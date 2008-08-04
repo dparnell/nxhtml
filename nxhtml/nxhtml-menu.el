@@ -2,8 +2,8 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 13:49:41 2007
-(defconst nxhtml-menu:version "1.34") ;;Version:
-;; Last-Updated: 2008-07-08T11:14:19+0200 Tue
+(defconst nxhtml-menu:version "1.36") ;;Version:
+;; Last-Updated: 2008-08-01T20:04:23+0200 Fri
 ;; URL:
 ;; Keywords:
 ;; Compatibility:

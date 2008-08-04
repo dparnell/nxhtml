@@ -3,8 +3,8 @@
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Maintainer:
 ;; Created: Fri Mar 09 18:15:25 2007
-(defconst mumamo:version "0.87") ;;Version:
-;; Last-Updated: 2008-07-08T12:09:09+0200 Tue
+(defconst mumamo:version "0.88") ;;Version:
+;; Last-Updated: 2008-08-04T17:54:41+0200 Mon
 ;; URL: http://OurComments.org/Emacs/Emacs.html
 ;; Keywords:
 ;; Compatibility:
@@ -1174,6 +1174,7 @@ that does syntactic fontification."
                 ;; Now call font-lock-fontify-region again with
                 ;; the chunk font lock parameters:
                 ;;(message "(font-lock-fontify-region %s %s)" new-start new-end)
+                (setq font-lock-syntactically-fontified (1- new-start))
                 (font-lock-fontify-region new-start new-end verbose))
             (error
              (mumamo-display-error 'mumamo-do-fontify-2
@@ -1850,6 +1851,12 @@ An entry in the list looks like
 
   \(MAJOR-MODE LOCAL-KEYMAP)")
 
+(defvar mumamo-major-modes-syntax-tables nil
+  "An alist with major mode and syntax tables.
+An entry in the list looks like
+
+  \(MAJOR-MODE SYNTAX-TABLE)")
+
 ;; RMS had the following idea:
 ;;
 ;; Suppose we add a Lisp primitive to bind a set of variables under
@@ -1966,6 +1973,7 @@ The main reasons for doing it this way is:
                   (list 'font-lock-extend-region-functions (custom-quote font-lock-extend-region-functions))
                   (list 'font-lock-comment-start-skip (custom-quote font-lock-comment-start-skip))
                   (list 'font-lock-comment-end-skip (custom-quote font-lock-comment-end-skip))
+                  (list 'font-lock-syntactic-keywords (custom-quote font-lock-syntactic-keywords))
 
                   (list 'font-lock-set-defaults) ; whether we have set up defaults.
 
@@ -2021,8 +2029,11 @@ The main reasons for doing it this way is:
                               relevant-buffer-locals
                               )
                              (list 'with-syntax-table
-                                   (list 'if syntax-sym syntax-sym
-                                         (list 'standard-syntax-table));;'syntax-table
+                                   ;;(list 'if syntax-sym syntax-sym
+                                   (if syntax-sym
+                                       syntax-sym
+                                     (list 'standard-syntax-table)
+                                     );;'syntax-table
                                    ;; I can't see why it should be
                                    ;; needed to call
                                    ;; `font-lock-set-defaults' now:
@@ -2060,6 +2071,11 @@ The main reasons for doing it this way is:
           (byte-compile func-sym))
         (mumamo-msgfntfy "===========> after byte-compile")
         (put func-sym 'mumamo-defun fetch-func-definition)
+
+        (add-to-list 'mumamo-major-modes-syntax-tables
+                     (cons major-mode (if syntax-sym
+                                          syntax-sym
+                                        (standard-syntax-table))))
         ))
     (kill-buffer temp-buf)
     func-sym))
@@ -2400,6 +2416,7 @@ CHUNK-VALUES should be in the format returned by
     (unless (mumamo-valid-nxml-chunk chunk-ovl)
       (rng-clear-overlays min max))
     (when (and (not parseable-by)
+               (not major-sub)
                (mumamo-derived-from-mode major-normal 'nxml-mode))
       (setq parseable-by '(nxml-mode)))
     (put-text-property min max 'mumamo-parseable-by parseable-by)
@@ -3272,11 +3289,12 @@ not done because point was to a new chunk."
 ;;(unless (> emacs-major-version 22)
 (defvar mumamo-test-add-hook nil
   "Internal use.")
-(unless (let ((has-it nil))
-          (add-hook 'mumamo-test-add-hook 'mumamo-jit-lock-after-change nil t)
-          (setq has-it (eq 'permanent-local-hook
-                           (get 'mumamo-test-add-hook 'permanent-local)))
-          has-it)
+(unless (and t
+             (let ((has-it nil))
+               (add-hook 'mumamo-test-add-hook 'mumamo-jit-lock-after-change nil t)
+               (setq has-it (eq 'permanent-local-hook
+                                (get 'mumamo-test-add-hook 'permanent-local)))
+               has-it))
   (defun add-hook (hook function &optional append local)
     "Add to the value of HOOK the function FUNCTION.
 FUNCTION is not added if already present.
@@ -3619,6 +3637,7 @@ function, it is changed to a list of functions."
 
 (defvar mumamo-survive
   '(
+    buffer-file-name
     tags-file-name
     nxhtml-minor-mode
     ;; Fix-me: adding rng timers here stops Emacs from looping after
@@ -3626,7 +3645,6 @@ function, it is changed to a list of functions."
     ;; problem is gone, but I forgot why.
     ;;rng-validate-timer is permanent-local t
     ;;rng-validate-quick-timer is permanent-local t
-    ;;rng-current-schema
     rng-c-current-token ;;rng-cmpct.el:132:(make-variable-buffer-local 'rng-c-current-token)
     rng-c-escape-positions ;;rng-cmpct.el:341:(make-variable-buffer-local 'rng-c-escape-positions)
     rng-c-file-name ;;rng-cmpct.el:344:(make-variable-buffer-local 'rng-c-file-name)
@@ -3651,6 +3669,7 @@ function, it is changed to a list of functions."
     longlines-wrap-point
     longlines-showing
     longlines-decoded
+    buffer-invisibility-spec
     )
   "Local variables to survive the change of major mode.")
 
@@ -3817,9 +3836,10 @@ Just check the name."
     (when (mumamo-derived-from-mode (mumamo-main-major-mode) 'nxml-mode)
       (add-hook 'after-change-functions 'rng-after-change-function nil t))
 
-    (when (and global-font-lock-mode
-               font-lock-global-modes
-               font-lock-mode)
+;;;     (when (and global-font-lock-mode
+;;;                font-lock-global-modes
+;;;                font-lock-mode)
+    (when global-font-lock-mode
       (add-hook 'change-major-mode-hook 'global-font-lock-mode-cmhh))
     (add-hook 'change-major-mode-hook 'font-lock-change-mode nil t)
     (when (and (fboundp 'longlines-mode-off)
@@ -4033,6 +4053,9 @@ mode in the chunk family is nil."
   (remove-hook 'post-command-hook 'mumamo-post-command t)
   ;;(remove-hook 'c-special-indent-hook 'mumamo-c-special-indent t)
   (mumamo-remove-all-chunk-overlays)
+  (save-restriction
+    (widen)
+    (set-text-properties (point-min) (point-max) nil))
   (setq mumamo-current-chunk-family nil)
   (setq mumamo-major-mode nil)
   (set mumamo-multi-major-mode nil) ;; for minor-mode-map-alist
@@ -4738,6 +4761,7 @@ See the defadvice for `syntax-ppss' for an explanation."
 (make-variable-buffer-local 'mumamo-syntax-chunk-at-pos)
 
 ;; Fix-me: Is this really needed?
+;; See http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg00374.html
 (defadvice syntax-ppss-stats (around
                               mumamo-advice-syntax-ppss-stats
                               activate
@@ -4753,6 +4777,43 @@ See the defadvice for `syntax-ppss' for an explanation."
         )
     (setq ad-return-value ad-do-it)))
 
+(defvar mumamo-syntax-ppss-major nil)
+
+;; FIX-ME: There is a problem with " in xhtml files, especially after
+;; syntax="...".  Looks like it is the " entry in
+;; `sgml-font-lock-syntactic-keywords' that is jumping in!  Dumping
+;; things in `font-lock-apply-syntactic-highlight' seems to show that.
+;;
+;; (I have put in some dump code in my patched version of
+;; Emacs+EmacsW32 there for that.  This is commented out by default
+;; and it will only work for the file nxhtml-changes.html which is big
+;; enough for the problem to occur.  It happens at point 1109.)
+;;
+;; It is this piece of code where the problem arise:
+;;
+;;   (if (prog1
+;;           (zerop (car (syntax-ppss (match-beginning 0))))
+;;         (goto-char (match-end 0)))
+;;       .)
+;;
+;;
+;; It comes from `sgml-font-lock-syntactic-keywords' in sgml-mode.el
+;; and is supposed to protect from " that is not inside a tag.
+;; However in this case for the second " in syntax="..." `syntax-ppss'
+;; returns 0 as the first element in its return value.  That happen
+;; even though `major-mode' is correctly `html-mode'.  It leads to
+;; that the property 'syntax with the value (1) is added to the "
+;; after the css-mode chunk in syntax="...".  The problem persists
+;; even if the chunk has `fundamental-mode' instead of `css-mode'.
+;;
+;; Bypassing the cache for `syntax-pss' by calling
+;; `parse-partial-sexp' directly instead of doing ad-do-it (see
+;; by-pass-chache in the code below) solves the problem for now.  It
+;; does not feel like the right solution however.
+;;
+;; One way of temporary solving the problem is perhaps to modify
+;; `mumamo-chunk-attr=' to make "" borders, but I am not sure that it
+;; works and it is the wrong solution.
 (defadvice syntax-ppss (around
                         mumamo-advice-syntax-ppss
                         activate
@@ -4781,9 +4842,14 @@ Put this at next chunk's beginning.
 Do here also other necessary adjustments for this."
   (let ((pos (ad-get-arg 0)))
     (unless pos (setq pos (point)))
-    (let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-get-existing-chunk-at pos))))
+    (let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-get-existing-chunk-at pos)))
+           (dump (and (boundp 'dump-quote-hunt)
+                      dump-quote-hunt
+                      (boundp 'start)
+                      ;;(= 1109 start)
+                      )))
       (setq mumamo-syntax-chunk-at-pos chunk-at-pos)
-      ;;(message "mumamo-syntax-ppss.chunk-at-pos=%s" chunk-at-pos)
+      (when dump (message "\npos=%s point-min=%s mumamo-syntax-ppss.chunk-at-pos=%s" pos (point-min) chunk-at-pos))
       (if chunk-at-pos
           (let* ((chunk-syntax-min (mumamo-chunk-syntax-min chunk-at-pos))
                  (chunk-major (mumamo-chunk-major-mode chunk-at-pos))
@@ -4801,14 +4867,15 @@ Do here also other necessary adjustments for this."
                                           stats
                                         (default-value 'syntax-ppss-stats))))
                  )
-            ;;(message "get syntax-ppss-last-min=%s len=%s chunk=%s" syntax-ppss-last-min (length syntax-ppss-last-min) chunk-at-pos)
-            ;;(message " propt syntax-ppss-last-min=%s" (overlay-properties chunk-at-pos))
-            ;;(message "  chunk-major=%s, %s, syntax-min=%s\n  last-min=%s" chunk-major major-mode chunk-syntax-min syntax-ppss-last-min)
+            (when dump
+              (message " get syntax-ppss-last-min=%s len=%s chunk=%s" syntax-ppss-last-min (length syntax-ppss-last-min) chunk-at-pos)
+              (message " prop syntax-ppss-last-min=%s" (overlay-properties chunk-at-pos))
+              (message " chunk-major=%s, %s, syntax-min=%s\n last-min=%s" chunk-major major-mode chunk-syntax-min syntax-ppss-last-min))
             (when syntax-ppss-last-min
               (unless (car syntax-ppss-last-min)
                 ;;(message "fix-me: emacs bug workaround, setting car of syntax-ppss-last-min")
                 ;;(setcar syntax-ppss-last-min (1- chunk-syntax-min))
-                (message "fix-me: emacs bug workaround, getting new syntax-ppss-last-min because car is nil")
+                (message "fix-me: emacs bug workaround, need new syntax-ppss-last-min because car is nil")
                 (setq syntax-ppss-last-min nil)
                 ))
             (unless syntax-ppss-last-min
@@ -4818,40 +4885,58 @@ Do here also other necessary adjustments for this."
                        (chunk-sub-major (mumamo-chunk-major-mode chunk-at-pos))
                        (main-major (mumamo-main-major-mode))
                        (is-main-mode-chunk (eq chunk-sub-major main-major)))
-                  ;;(message "last-pos=%s" last-pos)
+                  (when dump (message " last-pos=%s, is-main-mode-chunk=%s" last-pos is-main-mode-chunk))
                   (setq syntax-ppss-last-min
-                        (cons (1- last-pos)
+                        (cons last-pos ;;(1- last-pos)
                               (if is-main-mode-chunk
                                   ;; Fix-me: previous chunks as a cache?
                                   (mumamo-with-major-mode-fontification main-major
-                                    `(parse-partial-sexp (point-min) ,last-pos))
+                                    `(parse-partial-sexp 1 ,last-pos))
                                 (parse-partial-sexp 1 1))))
                   (setq syntax-ppss-cache-min (list syntax-ppss-last-min))
-                  ;;(message "put syntax-ppss-last-min=%s len=%s chunk=%s" syntax-ppss-last-min (length syntax-ppss-last-min) chunk-at-pos)
-                  ;;(message " propt syntax-ppss-last-min=%s" (overlay-properties chunk-at-pos))
+                  (when dump (message " put syntax-ppss-last-min=%s len=%s chunk=%s" syntax-ppss-last-min (length syntax-ppss-last-min) chunk-at-pos))
+                  (when dump (message " prop syntax-ppss-last-min=%s" (overlay-properties chunk-at-pos)))
                   (overlay-put chunk-at-pos 'syntax-ppss-last-min syntax-ppss-last-min)
                   (let ((test-syntax-ppss-last-min
                          (overlay-get chunk-at-pos 'syntax-ppss-last-min)))
-                    ;;(message " test syntax-ppss-last-min=%s len=%s" test-syntax-ppss-last-min (length test-syntax-ppss-last-min))
-                    ;;(message " propt syntax-ppss-last-min=%s" (overlay-properties chunk-at-pos))
+                    (when dump (message " test syntax-ppss-last-min=%s len=%s" test-syntax-ppss-last-min (length test-syntax-ppss-last-min)))
+                    (when dump (message " propt syntax-ppss-last-min=%s" (overlay-properties chunk-at-pos)))
                   ))))
-            ;;(message "here 0, syntax-ppss-last=%s" syntax-ppss-last)
+            (when dump (message " here 0, syntax-ppss-last=%s" syntax-ppss-last))
             (unless syntax-ppss-last
               (setq syntax-ppss-last syntax-ppss-last-min)
               (setq syntax-ppss-cache syntax-ppss-cache-min))
             ;;(syntax-ppss pos)
-            ;;(message "here 1, syntax-ppss-last=%s, cache=%s" syntax-ppss-last syntax-ppss-cache)
-            (setq ad-return-value ad-do-it)
+            (when dump (message " at 1, syntax-ppss-last=%s" syntax-ppss-last))
+            (when dump (message " at 1, syntax-ppss-cache=%s" syntax-ppss-cache))
+            (let (ret-val
+                  (by-pass-cache t)
+                  (dump dump))
+              (if (not by-pass-cache)
+                  (progn
+                    (when dump
+                      (let ((old-ppss (cdr syntax-ppss-last))
+                            (old-pos (car syntax-ppss-last)))
+                        (message "parse-partial-sexp=>%s" (parse-partial-sexp old-pos pos nil nil old-ppss))))
+                    (let (dump)
+                      (setq ret-val ad-do-it)))
+                (let ((old-ppss (cdr syntax-ppss-last))
+                      (old-pos (car syntax-ppss-last)))
+                  (when dump
+                    (message "Xparse-partial-sexp %s %s nil nil %s" old-pos pos old-ppss)
+                    (let (dump)
+                      (message "ad-do-it=>%s" ad-do-it)))
+                  (save-restriction
+                    (widen)
+                    (setq ret-val (parse-partial-sexp old-pos pos nil nil old-ppss)))))
+              (when dump (message " ==>ret-val=%s" ret-val))
+              (setq ad-return-value ret-val))
             ;;(message "here 2")
             (overlay-put chunk-at-pos 'syntax-ppss-last syntax-ppss-last)
             (overlay-put chunk-at-pos 'syntax-ppss-cache syntax-ppss-cache)
             (overlay-put chunk-at-pos 'syntax-ppss-stats syntax-ppss-stats)
             )
-        ;;(syntax-ppss pos)
-        ;;ad-do-it
-        (setq ad-return-value ad-do-it))
-        ))
-  )
+        (setq ad-return-value ad-do-it)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -4982,7 +5067,7 @@ For more info see also `rng-get-major-mode-chunk-function'.")
               ;;(setq have-remaining-chars t)
               (goto-char end-major-mode-chunk))
             )
-          (message "end-major-mode-chunk=%s, rng-validate-up-to-date-end=%s" end-major-mode-chunk rng-validate-up-to-date-end)
+          ;;(message "end-major-mode-chunk=%s, rng-validate-up-to-date-end=%s" end-major-mode-chunk rng-validate-up-to-date-end)
           (setq have-remaining-chars (< (point) point-max))
           ;;(unless have-remaining-chars (message "*** here have-remaining-chars=%s, p=%s/%s" have-remaining-chars (point) point-max))
           (let ((pos (point)))

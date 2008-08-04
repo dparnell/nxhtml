@@ -2,15 +2,15 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-06-01T18:41:50+0200 Sun
-;; Version: 0.5
-;; Last-Updated: 2008-07-20T03:38:58+0200 Sun
+;; Version: 0.71
+;; Last-Updated: 2008-08-01T20:03:51+0200 Fri
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   `w32-reg-iface'.
+;;   None
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -20,17 +20,36 @@
 ;; enable this turn on the global minor mode `sex-mode'.
 ;;
 ;; If you for example open a .pdf file with C-x C-f it can be opened
-;; by the .pdf application you have set your computer to use.  This
-;; can be used in for example `org-mode' to have links to files that
-;; Emacs itself does not handle.
+;; by the .pdf application you have set your computer to use. (Or, if
+;; that such settings are not possible on your OS, with the
+;; application you have choosen here.)
 ;;
-;; Note: Currently this is only useable on w32. Could someone please
-;; complete the missing pieces for GNU/Linux?
+;; There is also a defmacro `sex-with-temporary-apps' that you can use
+;; for example with `find-file' to open files in external
+;; applications.
+;;
+;; The functions used to open files in external applications are
+;; borrowed from `org-mode'.  There is some small differences:
+;;
+;; - There is an extra variable here `sex-file-apps' that is checked
+;;   before the corresponding lists in `org-mode'.
+;;
+;; - In `org-mode' any file that is not found in the lists (and is not
+;;   remote or a directory) is sent to an external application. This
+;;   would create trouble when used here in a file handler so the
+;;   logic is the reverse here: Any file that is not found in the
+;;   lists is opened inside Emacs. (Actually I think that might be a
+;;   good default in `org-mode' too, but I am not sure.)
+;;
+;; - Because of the above I have to guess which function is the one
+;;   that sends a file to an external application.
+;;
+;; (Currently the integration with org.el is not the best code wise.
+;; We hope to improve that soon.)
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Change log:
-;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -53,50 +72,94 @@
 ;;
 ;;; Code:
 
+;;(org-open-file "c:/EmacsW32/nxhtml/nxhtml/doc/nxhtml-changes.html")
 
-;; (defvar sex-w32-file-extensions
-;;   (when (fboundp 'w32-shell-execute)
-;;     (let ((ext nil))
-;;       (mapc (lambda (key)
-;;               (when (= (string-to-char key) ?.)
-;;                 (setq ext (cons key ext))))
-;;             (w32-reg-iface-enum-values "HKCR/"))
-;;       ext)))
+(defcustom sex-file-apps
+  '(
+    ("html" . emacs)
+    ("pdf"  . default)
+    )
+  "Application for opening a file.
+See `sex-get-file-open-cmd'."
+  :group 'sex
+  :type '(repeat
+	  (cons (choice :value ""
+			(string :tag "Extension")
+			(const :tag "Default for unrecognized files" t)
+			(const :tag "Remote file" remote)
+			(const :tag "Links to a directory" directory))
+		(choice :value ""
+			(const :tag "Visit with Emacs" emacs)
+			(const :tag "Use system default" default)
+			(string :tag "Command")
+			(sexp :tag "Lisp form")))))
 
-(require 'w32-reg-iface nil t)
+;;(sex-get-apps)
+
+(defvar sex-with-temporary-file-apps nil)
+
+(defun sex-get-apps ()
+  (or sex-with-temporary-file-apps
+      (append sex-file-apps org-file-apps (org-default-apps))))
+
+;; (sex-get-file-open-cmd "temp.el")
+;; (sex-get-file-open-cmd "http://some.where/temp.el")
+;; (sex-get-file-open-cmd "temp.c")
+;; (sex-get-file-open-cmd "temp.pdf")
+;; (sex-get-file-open-cmd "temp.doc")
+;; (sex-get-file-open-cmd "/ftp:temp.doc")
+;; (sex-get-file-open-cmd "http://some.host/temp.doc")
+;; (sex-get-file-open-cmd "http://some.host/temp.html")
+
+(defun sex-get-file-open-cmd (path)
+  "Get action for opening file.
+Construct a key from PATH:
+- If PATH specifies a location on a remote system then set key to
+  'remote.
+- If PATH is a directory set key to 'directory.
+- Otherwise use the file extension of PATH as key.
+
+Search with this key against the combined association list of
+`sex-file-apps', `org-file-apps' and `org-default-apps'.  The
+first matching entry is used.
+
+If cdr of this entry is 'default then search again with key equal
+to t for the default action for the operating system you are on
+\(or your own default action if you have defined one in the
+variables above).
+
+Return the cdr of the found entry.
+
+If no entry was found return `emacs' for opening inside Emacs."
+  (let* ((apps (sex-get-apps))
+         (key (if (org-file-remote-p path)
+                  'remote
+                (if (file-directory-p path)
+                    'directory
+                  (let ((ext (file-name-extension path)))
+                    (if (and t ext)
+                        ;; t should be a check for case insensitive
+                        ;; file names ... - how do you do that?
+                        (downcase ext)
+                      ext)))))
+         (cmd (or (cdr (assoc key apps))
+                  'emacs)))
+    (when (eq cmd 'default)
+      (setq cmd (or (cdr (assoc t apps))
+                    'emacs)))
+    (when (eq cmd 'mailcap)
+      (require 'mailcap)
+      (mailcap-parse-mailcaps)
+      (let* ((mime-type (mailcap-extension-to-mime (or ext "")))
+	     (command (mailcap-mime-info mime-type)))
+	(if (stringp command)
+	    (setq cmd command)
+	  (setq cmd 'emacs))))
+    ;;(message "cmd=%s" cmd)
+    cmd))
 
 (defgroup sex nil
   "Customization group for `sex-mode'.")
-
-;;(setq sex-w32-use-registry t)
-;;(setq sex-w32-use-registry nil)
-(defcustom sex-w32-use-registry t
-    "Use file types from MS Windows registry.
-See `sex-w32-ftypes' for what values are read.
-
-If non-nil send all files except those associated with
-`sex-w32-emacs-ftype' or prevented by `sex-open-alist' to the
-shell.
-
-Only used on w32."
-    :type 'boolean
-    :group 'sex)
-
-(defcustom sex-w32-emacs-ftype "EmacsFile"
-    "File type for .el files.
-This is what
-
-  assoc .el
-
-in a command shell returns. The default value is the value
-installed by Emacs+EmacsW32.
-
-This value is used when checking the MS Windows registry, ie if
-`sex-w32-use-registry' is non-nil.
-
-Only used on w32."
-    :type 'string
-    :group 'sex)
 
 ;;(setq sex-handle-urls t)
 (defcustom sex-handle-urls nil
@@ -106,73 +169,21 @@ non-nil.  Open urls in a web browser."
   :type 'boolean
   :group 'sex)
 
-(defcustom sex-open-alist
-  '(
-    ;; These are normally not handled by Emacs
-    ("\\.pdf\\'" t)
-    ("\\.doc\\'" t)
-    ("\\.dot\\'" t)
-    ("\\.7z\\'" t)
-    ("\\.bz2\\'" t)
-    ("\\.bzip2\\'" t)
-    ("\\.avi\\'" t)
-    ("\\.cpl\\'" t)
-    ("\\.cur\\'" t)
-    ;; fix-me: continue ...
-
-    ;; These can be handled by Emacs
-    ("\\.png\\'" nil)
-    ("\\.gif\\'" nil)
-    ;; All scripts and exectutables should be opened by Emacs
-    ("\\.exe\\'" nil)
-    ("\\.cmd\\'" nil)
-    ("\\.bat\\'" nil)
-    ("\\.vbs\\'" nil)
-    ("\\.pl\\'" nil)
-    ("\\.pm\\'" nil)
-    ("\\.py\\'" nil)
-    ;; fix-me: continue ...
-    )
-  "Alist of file name patterns to handle.
-Entries in the list have the form
-
-  (FILE-REGEXP OPEN-BY-SHELL)
-
-where FILE-REGEXP is a regular expression to match a file name.
-OPEN-BY-SHELL is a boolean.
-
-When `sex-mode' is on the rules for deciding if a file should be
-opened by the shell is:
-
- If file name matches in this list then
- - If OPEN-BY-SHELL is nil always open inside Emacs.
- - If OPEN-BY-SHELL is non-nil then open the file with the shell.
-
- Otherwise (if file name does not matches in this list) then
- - If `sex-w32-use-registry is nil open inside Emacs.
- - If `sex-w32-use-registry is non-nil then see this variable.
-
-When opening a file with the shell a dummy buffer is created in
-Emacs in `sex-file-mode' and an external program is called to
-handle the file. How this dummy buffer is handled is governed by
-`sex-keep-dummy-buffer'."
-  :type '(repeat (list
-                  (regexp :tag "Filename regexp")
-                  (boolean :tag "Open with external program")))
-  :group 'sex)
-
 ;; (setq sex-keep-dummy-buffer nil)
 ;; (setq sex-keep-dummy-buffer 'visible)
 ;; (setq sex-keep-dummy-buffer 'burried)
-(defcustom sex-keep-dummy-buffer nil
+(defcustom sex-keep-dummy-buffer 'visible
   "Keep dummy buffer after opening file.
-See `sex-open-alist'."
+When opening a file with the shell a dummy buffer is created in
+Emacs in `sex-file-mode' and an external program is called to
+handle the file. How this dummy buffer is handled is governed by
+this variable."
   :type '(choice (const :tag "Visible" visible)
                  (const :tag "Burried" burried)
                  (const :tag "Do not keep it" nil))
   :group 'sex)
 
-(defcustom sex-reopen-on-buffer-entry t
+(defcustom sex-reopen-on-buffer-entry nil
   "If non-nil send file to shell again on buffer entry."
   :type 'boolean
   :group 'sex)
@@ -185,20 +196,8 @@ file to system again."
     (if (and (boundp 'url-handler-regexp)
              (string-match url-handler-regexp buffer-file-name))
         (sex-browse-url buffer-file-name)
-      (sex-handle-by-external (buffer-file-name)))
+      (sex-handle-by-external buffer-file-name))
     (bury-buffer)))
-
-(defvar sex-w32-ftypes '(("el" emacs-file)
-                         ("elc" emacs-file))
-    "File types cache for registry values.
-File types are fetched from registry like this:
-
-  \(w32-reg-iface-read-value \"HKCR/.doc/\")
-      => (\"OpenOffice.org.doc\" . \"REG_SZ\")
-
-In this list (\"el\" \"OpenOffice.org.doc\") is cached.
-
-Only used on w32.")
 
 (defun sex-browse-url (url)
   "Ask a web browser to open URL."
@@ -216,6 +215,7 @@ Only used on w32.")
    url visit beg end replace))
 
 (defun sex-file-insert-file-contents (url &optional visit beg end replace)
+  ;;(message "sex-file-insert-file-contents %s %s %s %s %s" url visit beg end replace)
   (sex-generic-insert-file-contents
    'sex-handle-by-external
    (concat "This dummy buffer is used just for opening a file.\n"
@@ -236,7 +236,8 @@ Only used on w32.")
   (let ((window-config (current-window-configuration)))
     (unless (= 0 (buffer-size))
       (error "Buffer must be empty"))
-    (set (make-local-variable 'write-file-functions) '(sex-write-file-function))
+    (set (make-local-variable 'write-file-functions)
+         '(sex-write-file-function))
     (let* ((name url)
            ;;(result (sex-browse-url name))
            (result (funcall insert-fun name))
@@ -254,61 +255,36 @@ Only used on w32.")
       (save-excursion
         (insert-text-button
          buffer-file-name
+         'insert-fun insert-fun
          'action (lambda (button)
-                   (sex-browse-url buffer-file-name)))))))
+                   ;;(sex-browse-url buffer-file-name)
+                   (funcall (button-get button 'insert-fun) buffer-file-name)
+                   ))))))
 
 (defun sex-file-handler (operation &rest args)
   "Handler for `insert-file-contents'."
+  ;;(message "\noperation=%s, args=%s" operation args)
   (let ((done nil)
-        (ftype 'emacs-file))
+        (ftype 'emacs))
     ;; Always open files inside Emacs if the file opening request came
     ;; through Emacs client. Here is a primitive test if we are called
     ;; from outside, client-record is bound in `server-visit-files'
     ;; ...
     (when (not (boundp 'client-record))
       (let* ((filename (car args))
-             fileext
-             rec
-             (sex-open-alist-handling
-              (catch 'sex-open-special
-                (dolist (srec sex-open-alist)
-                  (when (string-match (car srec) filename)
-                    ;;(message "special srec=%s" srec)
-                    (throw 'sex-open-special (if (nth 1 srec)
-                                                 'shell
-                                               'emacs-file)))))))
-        (if sex-open-alist-handling
-            (setq ftype sex-open-alist-handling)
-          (when (and (fboundp 'w32-shell-execute)
-                     (featurep 'w32-reg-iface)
-                     sex-w32-use-registry)
-            (setq fileext  (file-name-extension filename))
-            (setq rec (assoc fileext sex-w32-ftypes))
-            (unless rec
-              (setq rec
-                    (or (let* ((regrec (w32-reg-iface-read-value
-                                        (concat "HKCR/." fileext "/")))
-                               ;; (w32-reg-iface-read-value "HKCR/.none12/")
-                               ;; (w32-reg-iface-read-value "HKCR/.doc/")
-                               ;; (w32-reg-iface-read-value "HKCR/.el/")
-                               ;; (w32-reg-iface-read-value "HKCR/.elc/")
-                               ;; (w32-reg-iface-read-value "HKCR/.txt/")
-                               (regftype (car regrec)))
-                          (when regftype
-                            (when (string= regftype sex-w32-emacs-ftype)
-                              (setq regftype 'emacs-file))
-                            (list fileext regftype)))
-                        (list fileext 'emacs-file)))
-              (add-to-list 'sex-w32-ftypes rec))
-            (setq ftype (nth 1 rec))))))
-    ;;(message "filename=%s; ftype=%s" (car args) ftype)
-    (unless (eq ftype 'emacs-file)
-      ;;(message "using sex-file-insert-file-contents for %s" filename)
+             (insert-handling (sex-get-file-open-cmd filename)))
+        ;;(message "insert-handling=%s" insert-handling)
+        (when insert-handling
+          (setq ftype insert-handling))
+        ;;(message "ftype=%s, filename=%s" ftype filename)
+        ))
+    (unless (eq ftype 'emacs)
+      ;;(message "using sex-file-insert-file-contents for %s" args)
       (apply 'sex-file-insert-file-contents args)
       (setq done t))
     ;; Handle any operation we don't know about.
     (unless done
-      ;;(message "operation=%s, args=%s" operation args)
+      ;;(message "fallback for operation=%s, args=%s" operation args)
       (let ((inhibit-file-name-handlers
              (cons 'sex-file-handler
                    (and (eq inhibit-file-name-operation operation)
@@ -343,15 +319,31 @@ Return a list:
 where SUCCESS is non-nil if operation succeeded and MESSAGE is an
 informational message."
   (unless file (setq file buffer-file-name))
-  (cond ((fboundp 'w32-shell-execute)
-         (condition-case err
-             (progn
-               (w32-shell-execute "open" (convert-standard-filename file))
-               (list t (concat "Sent file " file " to system")))
-           (error
-            (list nil (error-message-string err)))))
-        (t
-         (error "Don't know how to handle the file on your OS yet."))))
+  (let ((cmd (sex-get-file-open-cmd file)))
+    (assert (not (eq cmd 'emacs)))
+    (cond
+     ((and (stringp cmd) (not (string-match "^\\s-*$" cmd)))
+      ;; Remove quotes around the file name - we'll use shell-quote-argument.
+      (while (string-match "['\"]%s['\"]" cmd)
+	(setq cmd (replace-match "%s" t t cmd)))
+      (while (string-match "%s" cmd)
+	(setq cmd (replace-match
+		   (save-match-data
+		     (shell-quote-argument
+		      (convert-standard-filename file)))
+		   t t cmd)))
+      (save-window-excursion
+	(start-process-shell-command cmd nil cmd)
+	;;(and (boundp 'org-wait) (numberp org-wait) (sit-for org-wait))
+	)
+      (list t (format "Opened %s in external application" file)))
+     ((consp cmd)
+      (let ((file (convert-standard-filename file)))
+	(eval cmd))
+      (list t (format "Opened %s in external application" file)))
+     (t (list nil (format "Don't know how to handle %s" file))))
+    ))
+
 
 (define-derived-mode sex-file-mode nil
   "External"
@@ -367,75 +359,90 @@ informational message."
 
 (define-minor-mode sex-mode
   "Open certain files in external programs.
-Which files to open this way can be choosen by customizing
-`sex-open-alist' and and MS Windows also `sex-w32-use-registry'.
+See `sex-get-file-open-cmd' for how to determine which files to
+open by external applications.  Note that this selection is
+nearly the same as in `org-mode'.  The main difference is that
+the fallback always is to open a file in Emacs. \(This is
+necessary to avoid to disturb many of Emacs operations.)
 
 This affects all functions that opens files, like `find-file',
 `find-file-noselect' etc.
 
 However it does not affect files opened through Emacs client.
 
-On MS Windows `w32-shell-execute' is called to open files in an
-external application. Be aware that this may run scripts if the
-script file extension is not blocked in `sex-open-alist'.
+Urls can also be handled, see `sex-handle-urls'.
 
-\(MS Windows is the only platform were this works yet. Additions
-for other platforms are most welcome!)
+When opening a file with the shell a \(temporary) dummy buffer is
+created in Emacs with major mode `sex-file-mode' and an external
+program is called to handle the file.  How this dummy buffer is
+handled is governed by `sex-keep-dummy-buffer'."
 
-Urls can also be handled, see `sex-handle-urls'."
-nil
+  ;; On MS Windows `w32-shell-execute' is called to open files in an
+  ;; external application. Be aware that this may run scripts if the
+  ;; script file extension is not blocked in `sex-open-alist'.
+  nil
   :group 'sex
   :global t
   ;; fix-me: better list handling
   (if sex-mode
       (progn
-        (when sex-w32-use-registry
-          (add-to-list 'file-name-handler-alist (cons "\\.[a-z]+\\'" 'sex-file-handler) t))
-        (dolist (rec sex-open-alist)
-          (let ((patt (nth 0 rec))
-                (on   (nth 1 rec)))
-            (when on
-              (add-to-list 'auto-mode-alist (cons patt 'sex-file-mode))
-              (unless sex-w32-use-registry
-                (add-to-list 'file-name-handler-alist (cons patt 'sex-file-handler) t)))))
-        (setq sex-old-url-insert-file-contents (get 'insert-file-contents 'url-file-handlers))
+        (require 'org)
+        (dolist (rec (sex-get-apps))
+          (let* ((ext (car rec))
+                 (app (cdr rec))
+                 (patt (when (and (stringp ext)
+                                  (not (eq app 'emacs)))
+                         (concat "\\." ext "\\'"))))
+            (unless patt
+              (when (eq ext t)
+                (setq patt (concat ".*\\'"))))
+            (when patt
+              (unless (eq ext t)
+                (add-to-list 'auto-mode-alist (cons patt 'sex-file-mode)))
+              (add-to-list 'file-name-handler-alist
+                           (cons patt 'sex-file-handler) t))))
+        (setq sex-old-url-insert-file-contents
+              (get 'insert-file-contents 'url-file-handlers))
         (setq sex-old-url-handler-mode url-handler-mode)
         (when sex-handle-urls
           ;;(message "req url, before")
           (require 'url-handlers)
           ;;(message "req url, after")
-          (put 'insert-file-contents 'url-file-handlers 'sex-url-insert-file-contents)
+          (put 'insert-file-contents 'url-file-handlers
+               'sex-url-insert-file-contents)
           (unless url-handler-mode
             (url-handler-mode 1)
             ;;(message "after url-handler-mode 1")
             )))
     ;; Remove from the lists:
-    (setq auto-mode-alist
-          (delete (cons "\\.[a-z]+\\'" 'sex-file-mode) auto-mode-alist))
-    (setq file-name-handler-alist
-          (delete (cons "\\.[a-z]+\\'" 'sex-file-handler)
-                  file-name-handler-alist))
-    (dolist (rec sex-open-alist)
-      (let ((patt (nth 0 rec)))
-        (setq auto-mode-alist
-              (delete (cons patt 'sex-file-mode) auto-mode-alist))
-        (setq file-name-handler-alist
-              (delete (cons patt 'sex-file-handler)
-                      file-name-handler-alist))))
-    (put 'insert-file-contents 'url-file-handlers sex-old-url-insert-file-contents)
+    (let ((handler-list (copy-list file-name-handler-alist)))
+      (dolist (handler handler-list)
+        (when (eq 'sex-file-handler (cdr handler))
+          (setq file-name-handler-alist
+                (delete handler file-name-handler-alist)))))
+    (let ((mode-alist (copy-list auto-mode-alist)))
+      (dolist (auto-mode mode-alist)
+        (when (eq 'sex-file-mode (cdr auto-mode))
+          (setq auto-mode-alist
+                (delete auto-mode auto-mode-alist)))))
+    (put 'insert-file-contents 'url-file-handlers
+         sex-old-url-insert-file-contents)
     (unless sex-old-url-handler-mode (url-handler-mode 0))))
 
-(defmacro with-sex (open-alist &rest body)
+(defmacro sex-with-temporary-apps (open-alist &rest body)
   "Run BODY with `sex-mode' on.
-OPEN-ALIST replaces `sex-open-alist', or if it is t, use the
-current value."
+If OPEN-ALIST is not t it replaces the list normally used by
+`sex-get-file-open-cmd'."
   (declare (indent 1) (debug t))
   `(let ((old-sex-mode sex-mode)
-         (sex-open-alist (if (eq ,open-alist t)
-                             sex-open-alist
-                           ,open-alist)))
-     (unless sex-mode (sex-mode 1))
+         (sex-with-temporary-file-apps
+          (if (eq ,open-alist t)
+              nil
+            ,open-alist)))
+     (when sex-mode (sex-mode -1))
+     (sex-mode 1)
      ,@body
+     (setq sex-with-temporary-file-apps nil)
      (unless old-sex-mode (sex-mode -1))))
 
 ;; (with-sex t (find-file "c:/emacs-lisp/gimp-mode-v1.40/gimpmode.pdf"))
