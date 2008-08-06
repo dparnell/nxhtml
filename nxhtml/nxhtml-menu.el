@@ -127,8 +127,10 @@
     (let ((help-map (make-sparse-keymap)))
       ;;(define-key help-map [nxhtml-run-tests]
       ;;  (list 'menu-item "Run nXhtml Tests in this Emacs" 'mumamo-test-run-ert))
-      (define-key help-map [nxhtml-run-tests-Q]
-        (list 'menu-item "Run nXhtml Tests in a Fresh Emacs" 'nxhtml-run-tests-Q))
+      (define-key help-map [nxhtmltest-run]
+        (list 'menu-item "Run nXhtml Tests in Current Emacs" 'nxhtmltest-run))
+      (define-key help-map [nxhtmltest-run-Q]
+        (list 'menu-item "Run nXhtml Tests in a Fresh Emacs" 'nxhtmltest-run-Q))
       (define-key help-map [nxhtml-report-bug]
         (list 'menu-item "Report a Bug in nXhtml ..." 'nxhtml-report-bug))
       (define-key help-map [nxhtml-help-separator2] (list 'menu-item "--"))

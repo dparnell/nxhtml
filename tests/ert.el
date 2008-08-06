@@ -6,7 +6,7 @@
 ;; Copyright (C) 2007, 2008 Christian M. Ohler
 
 ;; Author: Christian M. Ohler
-;; Version: 0.1
+;; Version: 0.2
 ;; Keywords: lisp, tools
 
 ;; This file is NOT part of GNU Emacs.
@@ -1645,6 +1645,25 @@ To be used in the ERT results buffer."
           (not (ert-ewoc-entry-extended-printer-limits-p entry)))
     (ewoc-invalidate ewoc node)))
 
+(defun ert-activate-font-lock-keywords ()
+  (font-lock-add-keywords
+   nil
+   '(("(\\(\\<ert-deftest\\)\\>\\s *\\(\\sw+\\)?"
+      (1 font-lock-keyword-face nil t)
+      (2 font-lock-function-name-face nil t)))))
+
+(defun* ert-remove-from-list (list-var element &key key test)
+  "Remove ELEMENT from the value of LIST-VAR if present.
+
+This is an inverse of `add-to-list'."
+  (unless key (setq key #'identity))
+  (unless test (setq test #'equal))
+  (setf (symbol-value list-var)
+        (remove* element
+                 (symbol-value list-var)
+                 :key key
+                 :test test)))
+
 
 ;;; Actions on load/unload.
 
@@ -1652,12 +1671,12 @@ To be used in the ERT results buffer."
 (add-to-list 'minor-mode-alist '(ert-current-run-stats
                                  (:eval
                                   (ert-tests-running-mode-line-indicator))))
+(add-to-list 'emacs-lisp-mode-hook 'ert-activate-font-lock-keywords)
 
 (defun ert-unload-function ()
-  (setq find-function-regexp-alist
-        (remove* 'ert-deftest find-function-regexp-alist :key #'car))
-  (setq minor-mode-alist
-        (remove* 'ert-current-run-stats minor-mode-alist :key #'car))
+  (ert-remove-from-list 'find-function-regexp-alist 'ert-deftest :key #'car)
+  (ert-remove-from-list 'minor-mode-alist 'ert-current-run-stats :key #'car)
+  (ert-remove-from-list 'emacs-lisp-mode-hook 'ert-activate-font-lock-keywords)
   nil)
 
 (defvar ert-unload-hook '())
@@ -2122,10 +2141,6 @@ To be used in the ERT results buffer."
                       (ert-stats-error-unexpected stats)))
         ;; Hide results window only when everything went well.
         (set-window-configuration window-configuration)))))
-
-(font-lock-add-keywords
- 'emacs-lisp-mode
- '(("\\<ert-deftest\\>" . font-lock-keyword-face)))
 
 (provide 'ert)
 

@@ -611,13 +611,18 @@ of those in for example common web browsers."
   (message "Started 'emacs' - it will be ready soon ..."))
 
 (defun emacs-buffer-file()
-  "Start a new Emacs showing current buffer file."
+  "Start a new Emacs showing current buffer file.
+If there is no buffer file start with `dired'."
   (interactive)
   (recentf-save-list)
   (let ((file (buffer-file-name)))
-    (unless file (error "No buffer file name"))
-    (call-process (concat exec-directory "emacs") nil 0 nil file)
-    (message "Started 'emacs buffer-file-name' - it will be ready soon ...")))
+    ;;(unless file (error "No buffer file name"))
+    (if file
+        (progn
+          (call-process (concat exec-directory "emacs") nil 0 nil file)
+          (message "Started 'emacs buffer-file-name' - it will be ready soon ..."))
+      (call-process (concat exec-directory "emacs") nil 0 nil "--eval"
+                    (format "(dired \"%s\")" default-directory)))))
 
 (defun emacs--debug-init()
   (interactive)

@@ -566,17 +566,17 @@ This covers inlined style and javascript and PHP."
 (defun mumamo-chunk-embperl-<- (pos min max)
   "Find [- ... -], return range and `perl-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-quick-static-chunk pos min max "[-" "-]" nil 'perl-mode t))
+  (mumamo-quick-static-chunk pos min max "[-" "-]" t 'perl-mode t))
 
 (defun mumamo-chunk-embperl-<+ (pos min max)
   "Find [+ ... +], return range and `perl-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-quick-static-chunk pos min max "[+" "+]" nil 'perl-mode nil))
+  (mumamo-quick-static-chunk pos min max "[+" "+]" t 'perl-mode nil))
 
 (defun mumamo-chunk-embperl-<! (pos min max)
   "Find [! ... !], return range and `perl-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-quick-static-chunk pos min max "[!" "!]" nil 'perl-mode t))
+  (mumamo-quick-static-chunk pos min max "[!" "!]" t 'perl-mode t))
 
 (defun mumamo-chunk-embperl-<$ (pos min max)
   "Find [$ ... $], return range and `perl-mode'.
@@ -802,18 +802,49 @@ This also covers inlined style and javascript."
 (defun mumamo-chunk-genshi%(pos min max)
   "Find {% python ... %}.  Return range and `genshi-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-quick-static-chunk pos min max "{% python" "%}" nil 'python-mode t))
+  (mumamo-quick-static-chunk pos min max "{% python" "%}" t 'python-mode t))
 
 ;; ${expr}
 (defun mumamo-chunk-genshi$(pos min max)
   "Find ${ ... }, return range and `python-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-quick-static-chunk pos min max "${" "}" nil 'python-mode t))
+  (let ((chunk
+         (mumamo-quick-static-chunk pos min max "${" "}" t 'python-mode t)))
+    (when chunk
+      ;; Test for clash with %}
+      (let ((sub-mode (nth 2 chunk))
+            (start (nth 0 chunk)))
+        (if sub-mode
+            chunk
+          ;;(message "point.1=%s" (point))
+          (when (and start
+                     (eq ?% (char-before start)))
+            ;;(message "point.2=%s" (point))
+            ;;(message "clash with %%}, chunk=%s" chunk)
+            ;;(setq chunk nil)
+            (setcar chunk (1- start))
+            )
+          ;;(message "chunk.return=%s" chunk)
+          chunk)))))
 
+;; Fix-me: Because of the way chunks currently are searched for there
+;; is an error when a python chunk is used. This is because mumamo
+;; gets confused by the %} ending and the } ending.  This can be
+;; solved by running a separate phase to get the chunks first and
+;; during that phase match start and end of the chunk.
 ;;;###autoload
 (define-mumamo-multi-major-mode genshi-html-mumamo
   "Turn on multiple major modes for Genshi with main mode `html-mode'.
-This also covers inlined style and javascript."
+This also covers inlined style and javascript.
+
+Note: You will currently get fontification errors if you use
+python chunks
+
+  {% python ... %}
+
+The reason is that the chunk routines currently do not know when
+to just look for the } or %} endings.  However this should not
+affect your editing normally."
   ("Genshi HTML Family" html-mode
    (
     mumamo-chunk-genshi%
@@ -832,7 +863,7 @@ This also covers inlined style and javascript."
 (defun mumamo-chunk-mjt$(pos min max)
   "Find ${ ... }, return range and `javascript-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-quick-static-chunk pos min max "${" "}" nil 'javascript-mode t))
+  (mumamo-quick-static-chunk pos min max "${" "}" t 'javascript-mode t))
 
 ;;;###autoload
 (define-mumamo-multi-major-mode mjt-html-mumamo
@@ -1689,7 +1720,7 @@ This also covers inlined style and javascript."
 (defun mumamo-chunk-org-html (pos min max)
   "Find #+BEGIN_HTML ... #+END_HTML, return range and `html-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-quick-static-chunk pos min max "#+BEGIN_HTML" "#+END_HTML" nil 'html-mode t))
+  (mumamo-quick-static-chunk pos min max "#+BEGIN_HTML" "#+END_HTML" t 'html-mode t))
 
 ;;;###autoload
 (define-mumamo-multi-major-mode org-mumamo

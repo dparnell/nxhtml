@@ -169,6 +169,24 @@ wonder how that works now ..."
      (eq (get-text-property (point) 'face)
          'font-lock-variable-name-face))))
 
+;;; Indentation tests
+
+(ert-deftest nxhtml-ert-php-indent-bug-1 ()
+  "Test indentation in php only file.
+The indentation on line 7 should be 0."
+  (nxhtmltest-with-persistent-buffer "only-php.php"
+    (nxhtml-mumamo)
+    ;; No fontification needed for indentation.
+    (goto-line 7)
+    (indent-for-tab-command)
+    (ert-should
+     (= 0
+        (current-indentation)))))
+
+
+;;; End of test definitions
+
+
 (defun nxhtmltest-run-ert ()
   "Run test with ert library."
   (ert-run-tests-interactively "nxhtml-ert"))
