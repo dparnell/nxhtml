@@ -5,7 +5,7 @@
 
 ;; Author:  Lennart Borgman <lennart DOT borgman DOT 073 AT student DOT lu DOT se>
 ;; Created: 2005-08-05
-(defconst nxhtml:version "1.36") ;;Version:
+(defconst nxhtml:version "1.39") ;;Version:
 ;; Last-Updated: 2008-08-01T20:04:10+0200 Fri
 ;; Keywords: languages
 ;;

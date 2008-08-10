@@ -261,6 +261,9 @@
           <a href="#v1.34">v1.34</a>
           <a href="#v1.35">v1.35</a>
           <a href="#v1.36">v1.36</a>
+          <a href="#v1.37">v1.37</a>
+          <a href="#v1.38">v1.38</a>
+          <a href="#v1.39">v1.39</a>
         </div>
 
         <dl>
@@ -1673,7 +1676,7 @@
           <dd id="v1.34-dd">
             <ul>
               <li>
-                <span style="font-size: 1.2em; color: red"
+                <span style="font-size: 1.2em; color: red ()"
                       >Changed top directory name from nxml to nxhtml</span>
                 <p>
                   This will of course case some problems if you do not
@@ -1789,6 +1792,53 @@
                     Took a new grab on the indentation problems.
                   </li>
                 </ul>
+              </li>
+            </ul>
+          </dd>
+          <dt id="v1.37">1.37</dt>
+          <dd id="v1.37-dd">
+            <ul>
+              <li>
+                The command <i>emacs-Q-nxhtml</i> and cousins did not
+                work on all platform. Tried to fix it.
+              </li>
+              <li>
+                Got a report that editing Django was to slow. Tried to fix this.
+              </li>
+              <li>
+                Added a test to the unit test suite that test
+                scrolling and jumping.
+              </li>
+            </ul>
+          </dd>
+          <dt id="v1.38">1.38</dt>
+          <dd id="v1.38-dd">
+            <ul>
+              <li>
+                Added a workaround that removes validation error marking in non-xhtml chunks.
+              </li>
+            </ul>
+          </dd>
+          <dt id="v1.39">1.39</dt>
+          <dd id="v1.39-dd">
+            <ul>
+              <li>
+                Multi major modes where not allowed in defcustoms
+                nxhtml-magic-mode-alist and
+                nxhtml-auto-mode-alist. Fixed.
+              </li>
+              <li>
+                Added tests for the use of the lists above.
+              </li>
+              <li>
+                Fixed some bugs that could make a buffer became
+                modified due to mumamo fontification actions.
+              </li>
+              <li>
+                The rnc files for mjt and genshi had include path that
+                did not work if you where using the nxml-mode that
+                comes with nXhtml. Fixed. (Thanks for pointing this
+                out, Bryan.)
               </li>
             </ul>
           </dd>

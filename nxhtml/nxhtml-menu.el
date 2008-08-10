@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 13:49:41 2007
-(defconst nxhtml-menu:version "1.36") ;;Version:
+(defconst nxhtml-menu:version "1.39") ;;Version:
 ;; Last-Updated: 2008-08-01T20:04:23+0200 Fri
 ;; URL:
 ;; Keywords:
@@ -125,8 +125,8 @@
   (let ((map (make-sparse-keymap "nxhtml-minor-mode-menu")))
 
     (let ((help-map (make-sparse-keymap)))
-      ;;(define-key help-map [nxhtml-run-tests]
-      ;;  (list 'menu-item "Run nXhtml Tests in this Emacs" 'mumamo-test-run-ert))
+      (define-key help-map [emacs-Q-nxhtml]
+        (list 'menu-item "Start 'emacs -Q' and load nXhtml" 'emacs-Q-nxhtml))
       (define-key help-map [nxhtmltest-run]
         (list 'menu-item "Run nXhtml Tests in Current Emacs" 'nxhtmltest-run))
       (define-key help-map [nxhtmltest-run-Q]
@@ -521,9 +521,13 @@
 
     (let ((chunk-map (make-sparse-keymap)))
       (define-key map [nxhtml-chunk-map]
-        (list 'menu-item "Move by Chunk" chunk-map
+        (list 'menu-item "Chunk" chunk-map
               :visible `(not (derived-mode-p 'dired-mode))
               :enable 'mumamo-multi-major-mode))
+      (define-key chunk-map [mumamo-mark-chunk]
+        (list 'menu-item "Mark Chunk"
+              'mumamo-mark-chunk))
+      (define-key chunk-map [nxhtml-separator-mark-chunk] (list 'menu-item "--"))
       (define-key chunk-map [mumamo-backward-chunk]
         (list 'menu-item "Backward Chunk"
               'mumamo-backward-chunk))
@@ -665,7 +669,7 @@
         (list 'menu-item "--" nil
               :visible '(nxhtml-nxml-html-in-buffer)))
       (define-key cmpl-map [nxhtml-tab-complete]
-        (list 'menu-item "General Tab Completion" 'tabkey2-first))
+        (list 'menu-item "Indent and then Complete" 'tabkey2-first))
       )
 
     map))

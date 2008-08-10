@@ -3,7 +3,7 @@
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-07-08T20:17:36+0200 Tue
 ;; Version: 0.11
-;; Last-Updated: 2008-07-20T22:48:18+0200 Sun
+;; Last-Updated: 2008-08-08T03:26:35+0200 Fri
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
@@ -55,7 +55,6 @@
 
 (defvar nxhtmltest-files-root
   (let* ((this-dir nxhtmltest-bin)
-         ;;(root (expand-file-name "../nxhtml/bug-tests/" this-dir)))
          (root (expand-file-name "in/" this-dir)))
     (unless (file-accessible-directory-p root)
           (error (if (file-exists-p root)
@@ -75,7 +74,90 @@
       )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Using ert.el
+;; Define tests using ert.el
+
+(ert-deftest nxhtml-ert-genshi-valid-in-genshi ()
+  (nxhtmltest-with-persistent-buffer "genshi-auto-mode.html"
+    (message "\n")
+    (genshi-nxhtml-mumamo)
+    (nxhtmltest-fontify-default-way 2 "sheit")
+    (font-lock-mode 1)
+    (rng-validate-mode 1)
+    (rngalt-validate)
+    (assert (eq rng-validate-mode t) t)
+    (nxhtmltest-should-no-mumamo-errors)
+    (ert-should
+      (= 0 rng-error-count))))
+
+(ert-deftest nxhtml-ert-genshi-invalid-in-nxhtml ()
+  (nxhtmltest-with-persistent-buffer "genshi-auto-mode.html"
+    (message "\n")
+    (nxhtml-mumamo)
+    (nxhtmltest-fontify-default-way 2 "sheit")
+    (font-lock-mode 1)
+    (rng-validate-mode 1)
+    (rngalt-validate)
+    (assert (eq rng-validate-mode t) t)
+    (nxhtmltest-should-no-mumamo-errors)
+    (ert-should
+      (= 1 rng-error-count))))
+
+(ert-deftest nxhtml-ert-genshi-magic-mode ()
+  "Test if genshi file is recognized."
+  (let ((file1 (nxhtml-get-test-file-name "genshi-auto-mode.html"))
+        buf1)
+    ;; Ensure we open the files
+    (setq buf1 (find-buffer-visiting file1))
+    (when buf1 (kill-buffer buf1))
+    ;; Open file 1
+    (setq buf1 (find-file file1))
+    (nxhtmltest-fontify-default-way 2 "mod")
+    (nxhtmltest-should-no-mumamo-errors)
+    (ert-should
+     (with-current-buffer buf1
+       (eq mumamo-multi-major-mode 'genshi-nxhtml-mumamo)))
+    (kill-buffer buf1)))
+
+(ert-deftest nxhtml-ert-genshi-auto-mode ()
+  "Test if file extension .ghtml is recognized."
+  (let ((file1 (nxhtml-get-test-file-name "genshi-HelloWorldPage.ghtml"))
+        buf1)
+    ;; Ensure we open the files
+    (setq buf1 (find-buffer-visiting file1))
+    (when buf1 (kill-buffer buf1))
+    ;; Open file 1
+    (setq buf1 (find-file file1))
+    (nxhtmltest-fontify-default-way 2 "mod")
+    (nxhtmltest-should-no-mumamo-errors)
+    (ert-should
+     (with-current-buffer buf1
+       (eq mumamo-multi-major-mode 'genshi-nxhtml-mumamo)))
+    (kill-buffer buf1)))
+
+(ert-deftest nxhtml-ert-opened-modified ()
+  "Test if buffer get modified when opening a file."
+  (let ((file1 (nxhtml-get-test-file-name "cvd-080805-ac.php"))
+        (file2 (nxhtml-get-test-file-name "cvd-080805-cc.php"))
+        buf1
+        buf2)
+    ;; Ensure we open the files
+    (setq buf1 (find-buffer-visiting file1))
+    (when buf1 (kill-buffer buf1))
+    (setq buf2 (find-buffer-visiting file2))
+    (when buf2 (kill-buffer buf2))
+    ;; Open file 1
+    (setq buf1 (find-file file1))
+    (nxhtmltest-fontify-default-way 2 "mod")
+    (nxhtmltest-should-no-mumamo-errors)
+    ;; Open file 2
+    (setq buf2 (find-file file2))
+    (nxhtmltest-fontify-default-way 2 "mod")
+    (nxhtmltest-should-no-mumamo-errors)
+    (ert-should
+     (not (or (buffer-modified-p buf1)
+              (buffer-modified-p buf2))))
+    (kill-buffer buf1)
+    (kill-buffer buf2)))
 
 (ert-deftest nxhtml-ert-wiki-strange-hili-080629 ()
   "From a report on EmacsWiki."
@@ -85,35 +167,44 @@
     (assert (not font-lock-mode) t "%s %s" "font-lock on after")
     (nxhtmltest-fontify-default-way 2 "hili")
     (goto-char 44)
+    (nxhtmltest-should-no-mumamo-errors)
     (ert-should
      (eq (get-text-property 44 'face)
          'font-lock-function-name-face))))
 
 (ert-deftest nxhtml-ert-wiki-080708-ind-problem ()
   (nxhtmltest-with-persistent-buffer "wiki-080708-ind-problem.rhtml"
-    (require 'ruby-mode)
-    (assert (not font-lock-mode))
-    (eruby-nxhtml-mumamo)
-    (assert (not font-lock-mode))
-    (nxhtmltest-fontify-default-way 2 "ind")
-    (mark-whole-buffer)
-    (indent-for-tab-command)
-    (goto-line 3)
-    (ert-should (= (current-indentation) 0))))
+    (require 'ruby-mode nil t)
+    (if (not (featurep 'ruby-mode))
+        ;; Fix-me: ert should maybe have some way to just display
+        ;; informational messages?
+        (error "ruby-mode not available, skipping test")
+      (assert (not font-lock-mode))
+      (eruby-nxhtml-mumamo)
+      (assert (not font-lock-mode))
+      (nxhtmltest-fontify-default-way 2 "ind")
+      (mark-whole-buffer)
+      (indent-for-tab-command)
+      (goto-line 3)
+      (nxhtmltest-should-no-mumamo-errors)
+      (ert-should (= (current-indentation) 0)))))
 
 (ert-deftest nxhtml-ert-wiki-080708-ind-problem-a ()
   (nxhtmltest-with-persistent-buffer "wiki-080708-ind-problem.rhtml"
-    (require 'ruby-mode)
-    (assert (not font-lock-mode))
-    (eruby-nxhtml-mumamo)
-    (assert (not font-lock-mode))
-    (nxhtmltest-fontify-default-way 2 "ind")
-    (insert "  ")
-    (mark-whole-buffer)
-    (indent-for-tab-command)
-    (goto-line 3)
-    ;; Test
-    (ert-should (= (current-indentation) 2))))
+    (require 'ruby-mode nil t)
+    (if (not (featurep 'ruby-mode))
+        (error "ruby-mode not available, skipping test")
+      (assert (not font-lock-mode))
+      (eruby-nxhtml-mumamo)
+      (assert (not font-lock-mode))
+      (nxhtmltest-fontify-default-way 2 "ind")
+      (insert "  ")
+      (mark-whole-buffer)
+      (indent-for-tab-command)
+      (goto-line 3)
+      ;; Test
+      (nxhtmltest-should-no-mumamo-errors)
+      (ert-should (= (current-indentation) 2)))))
 
 (ert-deftest nxhtml-ert-sheit-2007-12-26 ()
   (nxhtmltest-with-persistent-buffer "sheit-2007-12-26.php"
@@ -121,6 +212,7 @@
     (nxhtml-mumamo)
     (assert (not font-lock-mode))
     (nxhtmltest-fontify-default-way 2 "sheit")
+    (nxhtmltest-should-no-mumamo-errors)
     (ert-should
      (and
       (eq (get-text-property 21 'face)
@@ -134,16 +226,18 @@
 ;; Now some tests with a big file. Jumping backwards can fail.
 
 (defun nxhtml-ert-nxhtml-changes-jump-back-2 (pos)
-  (assert (not font-lock-mode))
+ (assert (not font-lock-mode))
   (nxhtml-mumamo)
   (assert (not font-lock-mode))
   (goto-char (- (point-max) (- 64036 63869)))
   (nxhtmltest-fontify-default-way 2)
+  (nxhtmltest-should-no-mumamo-errors)
   (ert-should
    (eq (get-text-property (point) 'face)
        'font-lock-variable-name-face))
   (goto-char pos)
   (nxhtmltest-fontify-default-way 2)
+  (nxhtmltest-should-no-mumamo-errors)
   (ert-should
    (eq (get-text-property (point) 'face)
        'font-lock-function-name-face)))
@@ -165,6 +259,7 @@ wonder how that works now ..."
     (assert (not font-lock-mode))
     (goto-char 10549)
     (nxhtmltest-fontify-default-way 2 "jump-2")
+    (nxhtmltest-should-no-mumamo-errors)
     (ert-should
      (eq (get-text-property (point) 'face)
          'font-lock-variable-name-face))))
@@ -179,17 +274,63 @@ The indentation on line 7 should be 0."
     ;; No fontification needed for indentation.
     (goto-line 7)
     (indent-for-tab-command)
+    (nxhtmltest-should-no-mumamo-errors)
     (ert-should
      (= 0
         (current-indentation)))))
 
+;;; Scroll tests
+
+;; (ert-deftest nxhtml-ert-scroll-jump-test ()
+;;   "Test if `scroll-conservatively' eq 1 works."
+;;   (nxhtmltest-with-persistent-buffer "../../nxhtml/doc/nxhtml-changes.html"
+;;     (assert (not font-lock-mode))
+;;     (nxhtml-mumamo)
+;;     (assert (not font-lock-mode))
+;;     (nxhtmltest-fontify-default-way 2 "jump-2")
+;;     (let ((scroll-conservatively 1)
+;;           (ws (list (window-start)))
+;;           (xi (loop for ii from 1 to 100 by 1
+;;                     do
+;;                     (next-line)
+;;                     (sit-for 0.01)
+;;                     collect (list (window-start)
+;;                                   (let ((here (point)))
+;;                                     (goto-char (window-start))
+;;                                     (prog1 (line-end-position)
+;;                                       (goto-char here)))
+;;                                   (point))
+;;                     ))
+;;           (jumps 0)
+;;           prev-win-start
+;;           prev-win-start-le
+;;           )
+;;       (loop for xx in xi
+;;             do
+;;             (message "xx=%s" xx)
+;;             (let ((win-start (nth 0 xx))
+;;                   (win-start-le (nth 1 xx))
+;;                   (cur-point (nth 2 xx)))
+;;               (unless (or (not prev-win-start)
+;;                           (= prev-win-start win-start)
+;;                           (= (1+ prev-win-start-le) win-start))
+;;                 (setq jumps (1+ jumps)))
+;;               (setq prev-win-start win-start)
+;;               (setq prev-win-start-le win-start-le)
+;;               )
+;;             )
+;;       (ert-should (= 0 jumps))
+;;       )))
+
+(defvar ert-error-on-test-redefinition nil)
 
 ;;; End of test definitions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (defun nxhtmltest-run-ert ()
   "Run test with ert library."
-  (ert-run-tests-interactively "nxhtml-ert"))
+  (ert-run-tests-interactively "nxhtml-ert-genshi"))
 
 (defun nxhtmltest-run ()
   "Run all tests defined for nXhtml.
@@ -202,6 +343,7 @@ fail (they corresponds to known errors in nXhtml/Emacs):
   `nxhtml-ert-nxhtml-changes-jump-back-7033'
 "
   (interactive)
+  (setq message-log-max t)
   (when (called-interactively-p)
     (nxhtmltest-get-fontification-method))
   (nxhtmltest-run-ert))

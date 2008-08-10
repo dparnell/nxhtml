@@ -835,42 +835,42 @@ Preserves the `buffer-modified-p' state of the current buffer."
 (defun mumamo-find-chunks (pos end)
   "Find or create chunks from position POS until END.
 Return last chunk."
-  (let ((pos (or pos mumamo-end-last-chunk-pos 1))
-        (end (or end (point-max)))
-        this-values
-        this-chunk
-        first-change-pos
-        (here (point)))
-    (save-restriction
-      (widen)
-      (while (and (not (input-pending-p))
-                  (< pos end))
-        ;; Narrow to speed up
-        (narrow-to-region pos (point-max))
-        (setq this-chunk (mumamo-get-existing-chunk-at pos))
-        (setq this-values (mumamo-create-chunk-values-at pos))
-        (when (and this-chunk
-                   (not (mumamo-chunk-equal-chunk-values this-chunk
-                                                         this-values)))
-          ;; Fix-me: keep values to compare? Or perhaps this should
-          ;; only be used when there are no old chunk at END?
-          (delete-overlay this-chunk)
-          (setq this-chunk nil))
-        (unless this-chunk
-          (setq this-chunk (mumamo-create-chunk-from-chunk-values this-values))
-          (unless first-change-pos
-            (setq first-change-pos (overlay-start this-chunk))))
-        ;; Cache ppss syntax
-        (syntax-ppss (1+ (mumamo-chunk-syntax-min this-chunk)))
-        (setq pos (overlay-end this-chunk))
-        (setq mumamo-end-last-chunk-pos pos)))
-    (when first-change-pos
-      (mumamo-with-buffer-prepared-for-jit-lock
-       (put-text-property first-change-pos (point) 'fontfied nil))
-      (setq jit-lock-context-unfontify-pos
-            (min jit-lock-context-unfontify-pos first-change-pos)))
-    (goto-char here)
-    this-chunk))
+  (mumamo-save-buffer-state nil
+    (let ((pos (or pos mumamo-end-last-chunk-pos 1))
+          (end (or end (point-max)))
+          this-values
+          this-chunk
+          first-change-pos
+          (here (point)))
+      (save-restriction
+        (widen)
+        (while (and (not (input-pending-p))
+                    (< pos end))
+          ;; Narrow to speed up
+          (narrow-to-region pos (point-max))
+          (setq this-chunk (mumamo-get-existing-chunk-at pos))
+          (setq this-values (mumamo-create-chunk-values-at pos))
+          (when (and this-chunk
+                     (not (mumamo-chunk-equal-chunk-values this-chunk
+                                                           this-values)))
+            ;; Fix-me: keep values to compare? Or perhaps this should
+            ;; only be used when there are no old chunk at END?
+            (delete-overlay this-chunk)
+            (setq this-chunk nil))
+          (unless this-chunk
+            (setq this-chunk (mumamo-create-chunk-from-chunk-values this-values))
+            (unless first-change-pos
+              (setq first-change-pos (overlay-start this-chunk))))
+          ;; Cache ppss syntax
+          (syntax-ppss (1+ (mumamo-chunk-syntax-min this-chunk)))
+          (setq pos (overlay-end this-chunk))
+          (setq mumamo-end-last-chunk-pos pos)))
+      (when first-change-pos
+        (mumamo-with-buffer-prepared-for-jit-lock
+         (put-text-property first-change-pos (point) 'fontified nil))
+        (setq jit-lock-context-unfontify-pos
+              (min jit-lock-context-unfontify-pos first-change-pos)))
+      (goto-char here))))
 
 (defun mumamo-find-chunk-after-change (min)
   (when (and mumamo-end-last-chunk-pos
@@ -984,6 +984,15 @@ mode."
          (syntax-ppss-flush-cache min)
          )))
   (cons min max))
+
+(defun mumamo-mark-chunk ()
+  "Mark chunk and move point to beginning of chunk."
+  (interactive)
+  (let ((chunk (mumamo-get-existing-chunk-at (point))))
+    (unless chunk (error "There is no MuMaMo chunk here."))
+    (goto-char (overlay-start chunk))
+    (push-mark (overlay-end chunk) t t)))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1480,7 +1489,8 @@ for refontification."
   (overlay-put chunk 'syntax-ppss-last  nil)
   (overlay-put chunk 'syntax-ppss-cache nil)
   (overlay-put chunk 'syntax-ppss-stats nil)
-  (remove-text-properties chunk-min chunk-max '(syntax-table nil)))
+  (mumamo-save-buffer-state nil
+    (remove-text-properties chunk-min chunk-max '(syntax-table nil))))
 
 ;; Fix-me: If I open nxhtml-changes.html and then go to the bottom of
 ;; the file at once syntax-ppss seems to be upset. It is however cured
@@ -2483,6 +2493,13 @@ There must not be an old chunk there.  Mark for refontification."
         (when (mumamo-chunk-major-mode o)
           (setq chunk-ovl o))))
     chunk-ovl))
+
+(defun mumamo-get-chunk-save-buffer-state (pos)
+  "Return chunk overlay at POS. Preserve state."
+  (let (chunk)
+    (mumamo-save-buffer-state nil
+      (setq chunk (mumamo-get-chunk-at pos)))
+    chunk))
 
 (defun mumamo-get-chunk-at (pos)
   "Return chunk overlay at POS.
@@ -4051,7 +4068,7 @@ mode in the chunk family is nil."
     (when (boundp 'flyspell-generic-check-word-predicate)
       (setq flyspell-generic-check-word-predicate 'mumamo-flyspell-verify))
     (run-hooks 'mumamo-turn-on-hook)
-    (mumamo-get-chunk-at (point))
+    (mumamo-get-chunk-save-buffer-state (point))
     (message "(benchmark 1 '(mumamo-find-chunks))") (benchmark 1 '(mumamo-find-chunks nil nil))
     ))
 
@@ -4085,6 +4102,8 @@ mode in the chunk family is nil."
 (defun mumamo-turn-off-actions ()
   "The reverse of `mumamo-turn-on-actions'."
   (mumamo-msgfntfy "mumamo-turn-off-actions")
+  (when (fboundp 'nxhtml-validation-header-mode)
+    (nxhtml-validation-header-mode -1))
   (when (mumamo-derived-from-mode
          (nth 1 mumamo-current-chunk-family) 'nxml-mode)
     (when (fboundp 'nxml-change-mode)
@@ -4107,14 +4126,13 @@ mode in the chunk family is nil."
   (mumamo-remove-all-chunk-overlays)
   (save-restriction
     (widen)
-    (set-text-properties (point-min) (point-max) nil))
+    (mumamo-save-buffer-state nil
+      (set-text-properties (point-min) (point-max) nil)))
   (setq mumamo-current-chunk-family nil)
   (setq mumamo-major-mode nil)
   (set mumamo-multi-major-mode nil) ;; for minor-mode-map-alist
   (setq mumamo-multi-major-mode nil)
   (when (fboundp 'rng-cancel-timers) (rng-cancel-timers))
-  (when (fboundp 'nxhtml-validation-header-mode)
-    (nxhtml-validation-header-mode -1))
   )
 
 (defvar mumamo-turn-on-hook nil
@@ -4410,14 +4428,14 @@ is returned."
            (pos4 (if (< le-pos (point-max))
                      (1+ le-pos)
                    (point-max)))
-           (ovl1 (mumamo-get-chunk-at pos1))
+           (ovl1 (mumamo-get-chunk-save-buffer-state pos1))
            (ovl2 (if (>= (overlay-end ovl1) pos2)
                      ovl1
-                   (mumamo-get-chunk-at pos2)))
-           (ovl3 (mumamo-get-chunk-at pos3))
+                   (mumamo-get-chunk-save-buffer-state pos2)))
+           (ovl3 (mumamo-get-chunk-save-buffer-state pos3))
            (ovl4 (if (<= pos4 (overlay-end ovl3))
                    ovl3
-                 (mumamo-get-chunk-at pos4)))
+                 (mumamo-get-chunk-save-buffer-state pos4)))
          )
       (list ovl1 ovl2 ovl3 ovl4))))
 
@@ -4588,7 +4606,7 @@ The following rules are used when indenting:
           ;; Since this line has another major mode than the
           ;; previous line we instead want to indent relative to
           ;; that line in a way decided in mumamo:
-          (let ((chunk (mumamo-get-chunk-at (point)))
+          (let ((chunk (mumamo-get-chunk-save-buffer-state (point)))
                 (font-lock-dont-widen t)
                 ind-zero
                 (here (point))
@@ -4633,7 +4651,7 @@ The following rules are used when indenting:
                         (setq want-indent (current-indentation)))
                       ;; If we got to the main major mode we need to add
                       ;; the special submode offset:
-                      (let* ((ovl (mumamo-get-chunk-at (point)))
+                      (let* ((ovl (mumamo-get-chunk-save-buffer-state (point)))
                              (major (mumamo-chunk-major-mode ovl)))
                         (when (eq major main-major)
                           (setq want-indent (+ want-indent
@@ -4686,7 +4704,7 @@ This is the buffer local value of
 `fill-forward-paragraph-function' when mumamo is used."
   ;; fix-me: Do this chunk by chunk
   ;; Fix-me: use this (but only in v 23)
-  (let* ((ovl (mumamo-get-chunk-at (point)))
+  (let* ((ovl (mumamo-get-chunk-save-buffer-state (point)))
          (major (mumamo-chunk-major-mode ovl)))
     (mumamo-with-major-mode-fontification major
       fill-forward-paragraph-function)))
@@ -4695,7 +4713,7 @@ This is the buffer local value of
   "Function to fill the current paragraph.
 This is the buffer local value of `fill-paragraph-function' when
 mumamo is used."
-  (let* ((ovl (mumamo-get-chunk-at (point)))
+  (let* ((ovl (mumamo-get-chunk-save-buffer-state (point)))
          (major (mumamo-chunk-major-mode ovl))
          ;;(main-major (mumamo-main-major-mode))
          )
@@ -4709,7 +4727,7 @@ mumamo is used."
 (defun mumamo-forward-chunk ()
   "Move forward to next chunk."
   (interactive)
-  (let* ((chunk (mumamo-get-chunk-at (point)))
+  (let* ((chunk (mumamo-get-chunk-save-buffer-state (point)))
          (end-pos (overlay-end chunk)))
     (goto-char (min end-pos
                     (point-max)))))
@@ -4717,7 +4735,7 @@ mumamo is used."
 (defun mumamo-backward-chunk ()
   "Move backward to previous chunk."
   (interactive)
-  (let* ((chunk (mumamo-get-chunk-at (point)))
+  (let* ((chunk (mumamo-get-chunk-save-buffer-state (point)))
          (start-pos (overlay-start chunk)))
     (goto-char (max (1- start-pos)
                     (point-min)))))
@@ -5073,6 +5091,39 @@ For more info see also `rng-get-major-mode-chunk-function'.")
 (put 'rng-end-major-mode-chunk-function 'permanent-local t)
 
 
+;; Fix-me: The solution in this defadvice is temporary. The defadvice
+;; for rng-do-some-validation should be fixed instead.
+(defadvice rng-mark-error (around
+                           mumamo-advice-rng-mark-error
+                           activate
+                           compile
+                           )
+  (let* ((beg (ad-get-arg 1))
+         (end (ad-get-arg 2))
+         (ovls-beg-end (overlays-in beg end))
+         (xml-parts nil)
+         chunks
+         )
+    (dolist (ovl ovls-beg-end)
+      (when (mumamo-chunk-major-mode ovl)
+        (setq chunks (cons ovl chunks))))
+    ;;(message "rng-mark-error advice, beg,end=%s,%s" beg end)
+    ;;(message "chunks=%s" chunks)
+    (if (not chunks)
+        ad-do-it
+      (dolist (chunk chunks)
+        (when (mumamo-valid-nxml-chunk chunk)
+          ;; rng-error
+          (let ((part-beg (max (overlay-start chunk)
+                               beg))
+                (part-end (min (overlay-end chunk)
+                               end)))
+            ;;(message "   part-beg/end=%s/%s" part-beg part-end)
+            (when (< part-beg part-end)
+              (ad-set-arg 1 part-beg)
+              (ad-set-arg 2 part-end)
+              ad-do-it)))))))
+
 (defadvice rng-do-some-validation-1 (around
                                      mumamo-advice-rng-do-some-validation-1
                                      activate
@@ -5281,12 +5332,14 @@ For more info see also `rng-get-major-mode-chunk-function'.")
       (ad-activate 'syntax-ppss-flush-cache)
       (ad-activate 'syntax-ppss-stats)
       (ad-activate 'rng-do-some-validation-1)
+      (ad-activate 'rng-mark-error)
       (ad-activate 'xmltok-add-error)
       )
   (ad-deactivate 'syntax-ppss)
   (ad-deactivate 'syntax-ppss-flush-cache)
   (ad-deactivate 'syntax-ppss-stats)
   (ad-deactivate 'rng-do-some-validation-1)
+  (ad-deactivate 'rng-mark-error)
   (ad-deactivate 'xmltok-add-error)
   )
 

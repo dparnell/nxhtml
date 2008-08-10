@@ -44,6 +44,11 @@
 ;;
 ;;; Code:
 
+(defun nxhtmltest-mumamo-error-messages ()
+  (ert-get-messages "^MuMaMo error"))
+
+(defun nxhtmltest-should-no-mumamo-errors ()
+  (ert-should (not (nxhtmltest-mumamo-error-messages))))
 
 (defun nxhtmltest-be-really-idle (seconds &optional prompt-mark)
   (unless prompt-mark (setq prompt-mark ""))
@@ -81,8 +86,35 @@
 ;; Fix-me: This does not work as I intended. A lot of buffers lying
 ;; around ...
 (defvar nxhtmltest-bufnum 0)
+(defvar nxhtmltest-test-buffers nil)
+
+(defun nxhtmltest-kill-test-buffers ()
+  "Delete test buffers from unsuccessful tests."
+  (interactive)
+  (dolist (buf nxhtmltest-test-buffers)
+    (when (buffer-live-p buf)
+      (kill-buffer buf)))
+  (setq nxhtmltest-test-buffers nil))
+
+(defun nxhtmltest-list-test-buffers ()
+  "List test buffers from unsuccessful tests."
+  (interactive)
+  (setq nxhtmltest-test-buffers
+        (delq nil
+              (mapcar (lambda (buf)
+                        (when (buffer-live-p buf)
+                          buf))
+                      nxhtmltest-test-buffers)))
+  (if nxhtmltest-test-buffers
+      (switch-to-buffer (list-buffers-noselect nil nxhtmltest-test-buffers))
+    (message "No test buffers from unsuccessful tests")))
 
 (defmacro* nxhtmltest-with-persistent-buffer (file-name-form &body body)
+  "Insert FILE-NAME-FORM in a temporary buffer and eval BODY.
+If success then delete the temporary buffer, otherwise keep it.
+
+To delete all temporary buffers from unsuccessful test you can
+use `nxhtmltest-kill-test-buffers'."
   (declare (indent 1) (debug t))
   (let ((file-name (gensym "file-name-")))
     `(let* ((,file-name (nxhtml-get-test-file-name ,file-name-form))
@@ -103,6 +135,7 @@
        (message "Testing with file %s" ,file-name)
        (when temp-buf (kill-buffer temp-buf))
        (setq temp-buf (get-buffer-create temp-buf-name))
+       (setq nxhtmltest-test-buffers (cons temp-buf nxhtmltest-test-buffers))
        (with-current-buffer temp-buf
          ;; Avoid global font lock
          (set (make-local-variable 'font-lock-global-modes) nil)
@@ -162,7 +195,7 @@
   (redisplay t))
 
 (defun nxhtmltest-fontify-default-way (seconds &optional pmark)
-  (assert (not font-lock-mode))
+  ;;(assert (not font-lock-mode))
   (case nxhtmltest-default-fontification-method
     (fontify-as-usual         (nxhtmltest-fontify-as-usual seconds pmark))
     (fontify-w-timer-handlers (nxhtmltest-fontify-w-timers-handlers))

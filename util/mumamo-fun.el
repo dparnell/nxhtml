@@ -653,38 +653,42 @@ This also covers inlined style and javascript."
 (defun mumamo-chunk-django4(pos min max)
   "Find {% comment %}.  Return range and `django-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-exc-start-django4
-                              'mumamo-search-bw-exc-end-django4
-                              'mumamo-search-fw-exc-start-django4
-                              'mumamo-search-fw-exc-end-django4))
+  (mumamo-quick-static-chunk pos min max "{% comment %}" "{% endcomment %}" t 'django-comment-mode t))
+;;;   (mumamo-find-possible-chunk pos min max
+;;;                               'mumamo-search-bw-exc-start-django4
+;;;                               'mumamo-search-bw-exc-end-django4
+;;;                               'mumamo-search-fw-exc-start-django4
+;;;                               'mumamo-search-fw-exc-end-django4))
 
 (defun mumamo-chunk-django3(pos min max)
   "Find {# ... #}.  Return range and `django-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-exc-start-django3
-                              'mumamo-search-bw-exc-end-django3
-                              'mumamo-search-fw-exc-start-django3
-                              'mumamo-search-fw-exc-end-django3))
+  (mumamo-quick-static-chunk pos min max "{#" "#}" t 'django-comment-mode t))
+;;;   (mumamo-find-possible-chunk pos min max
+;;;                               'mumamo-search-bw-exc-start-django3
+;;;                               'mumamo-search-bw-exc-end-django3
+;;;                               'mumamo-search-fw-exc-start-django3
+;;;                               'mumamo-search-fw-exc-end-django3))
 
 (defun mumamo-chunk-django2(pos min max)
   "Find {{ ... }}.  Return range and `django-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-exc-start-django2
-                              'mumamo-search-bw-exc-end-django2
-                              'mumamo-search-fw-exc-start-django2
-                              'mumamo-search-fw-exc-end-django2))
+  (mumamo-quick-static-chunk pos min max "{{" "}}" t 'django-variable-mode t))
+;;;   (mumamo-find-possible-chunk pos min max
+;;;                               'mumamo-search-bw-exc-start-django2
+;;;                               'mumamo-search-bw-exc-end-django2
+;;;                               'mumamo-search-fw-exc-start-django2
+;;;                               'mumamo-search-fw-exc-end-django2))
 
 (defun mumamo-chunk-django (pos min max)
   "Find {% ... %}.  Return range and `django-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-exc-start-django
-                              'mumamo-search-bw-exc-end-django
-                              'mumamo-search-fw-exc-start-django
-                              'mumamo-search-fw-exc-end-django))
+  (mumamo-quick-static-chunk pos min max "{%" "%}" t 'django-mode t))
+;;;   (mumamo-find-possible-chunk pos min max
+;;;                               'mumamo-search-bw-exc-start-django
+;;;                               'mumamo-search-bw-exc-end-django
+;;;                               'mumamo-search-fw-exc-start-django
+;;;                               'mumamo-search-fw-exc-end-django))
 
 (defun mumamo-search-bw-exc-start-django (pos min)
   "Helper for `mumamo-chunk-django'.
@@ -708,7 +712,7 @@ POS is where to start search and MIN is where to stop."
   (let ((exc-start (mumamo-chunk-start-bw-str-inc pos min "{#")))
     (and exc-start
          (<= exc-start pos)
-         (cons exc-start 'django-mode))))
+         (cons exc-start 'django-comment-mode))))
 
 (defun mumamo-search-bw-exc-start-django4(pos min)
   "Helper for `mumamo-chunk-django4'.
@@ -717,7 +721,7 @@ POS is where to start search and MIN is where to stop."
                                                        "{% comment %}")))
     (and exc-start
          (<= exc-start pos)
-         (cons exc-start 'django-mode))))
+         (cons exc-start 'django-comment-mode))))
 
 (defun mumamo-search-bw-exc-end-django (pos min)
   "Helper for `mumamo-chunk-django'.
@@ -1597,6 +1601,35 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   "Multi major mode for noweb files."
   ("noweb Family" latex-mode
    (mumamo-noweb2-code-chunk)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; TT
+
+
+
+;; (setq auto-mode-alist
+;;       (append '(("\\.tt2?$" . tt-mode))  auto-mode-alist ))
+
+;;(require 'tt-mode)
+(defun mumamo-chunk-tt (pos min max)
+  "Find [% ... %], return range and `tt-mode'.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX.
+
+This is for Template Toolkit.
+See URL `http://dave.org.uk/emacs/' for `tt-mode'."
+  (mumamo-quick-static-chunk pos min max "[%" "%]" t 'tt-mode nil))
+
+(define-mumamo-multi-major-mode tt-html-mumamo
+  "Turn on multiple major modes for TT files with main mode `nxhtml-mode'.
+This also covers inlined style and javascript."
+    ("TT HTML Family" html-mode
+     (mumamo-chunk-tt
+      mumamo-chunk-inlined-style
+      mumamo-chunk-inlined-script
+      mumamo-chunk-style=
+      mumamo-chunk-onjs=
+     )))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

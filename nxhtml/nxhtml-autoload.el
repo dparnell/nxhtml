@@ -96,6 +96,7 @@
   (autoload 'php-mode "php-mode" "Mode for editing php files" t)
   (autoload 'smarty-mode "smarty-mode" "Mode for editing php smarty files" t)
   (autoload 'csharp-mode "csharp-mode" "Mode for editing C# code" t)
+  (autoload 'django-mode "django" "Simple Django mode for use with mumamo." t)
   (eval-after-load 'nxml-mode
     '(progn
       (define-key nxml-mode-map [C-M-left]  'nxml-backward-element)
@@ -178,6 +179,7 @@ chunk family.
   :type '(repeat (cons :tag "Enter file name pattern and major mode"
                        (regexp :tag "Regexp for file name")
                        (major-mode-function :tag "Major mode")))
+                       ;;(command :tag "Major mode")))
   :set (lambda (sym val)
          (set-default sym val)
          (dolist (v val)

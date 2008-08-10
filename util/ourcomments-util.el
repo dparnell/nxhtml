@@ -2,8 +2,8 @@
 ;;
 ;; Author: Lennart Borgman <lennart dot borgman at gmail dot com>
 ;; Created: Wed Feb 21 23:19:07 2007
-(defconst ourcomments-util:version "0.22") ;;Version:
-;; Last-Updated: 2008-03-18T00:16:30+0100 Mon
+(defconst ourcomments-util:version "0.23") ;;Version:
+;; Last-Updated: 2008-08-07T18:29:29+0200 Thu
 ;; Keywords:
 ;; Compatibility: Emacs 22
 ;;
@@ -340,7 +340,29 @@ To create a menu item something similar to this can be used:
 ;;;; Widgets
 
 
+;; (rassq 'genshi-nxhtml-mumamo mumamo-defined-turn-on-functions)
 ;; (major-modep 'nxhtml-mode)
+;; (major-modep 'nxhtml-mumamo)
+;; (major-modep 'jsp-nxhtml-mumamo)
+;; (major-modep 'asp-nxhtml-mumamo)
+;; (major-modep 'django-nxhtml-mumamo)
+;; (major-modep 'eruby-nxhtml-mumamo)
+;; (major-modep 'eruby-nxhtml-mumamo)
+;; (major-modep 'smarty-nxhtml-mumamo)
+;; (major-modep 'embperl-nxhtml-mumamo)
+;; (major-modep 'laszlo-nxml-mumamo)
+;; (major-modep 'genshi-nxhtml-mumamo)
+;; (major-modep 'javascript-mode)
+;; (major-modep 'css-mode)
+(defun major-or-multi-majorp (value)
+  (or (multi-major-modep value)
+      (major-modep value)))
+
+(defun multi-major-modep (value)
+  "Return t if VALUE is a multi major mode function."
+  (and (fboundp value)
+       (rassq value mumamo-defined-turn-on-functions)))
+
 (defun major-modep (value)
   "Return t if VALUE is a major mode function."
   (let ((sym-name (symbol-name value)))
@@ -349,6 +371,7 @@ To create a menu item something similar to this can be used:
     ;;
     ;; Fix-me: Maybe test for minor modes? How was that done?
     (when (and (fboundp value)
+               (commandp value)
                (not (memq value '(flyspell-mode
                                   isearch-mode
                                   savehist-mode
@@ -383,12 +406,12 @@ To create a menu item something similar to this can be used:
   "A major mode lisp function."
   :complete-function (lambda ()
                        (interactive)
-                       (lisp-complete-symbol 'major-modep))
-  :prompt-match 'major-modep
+                       (lisp-complete-symbol 'major-or-multi-majorp))
+  :prompt-match 'major-or-multi-majorp
   :prompt-history 'widget-function-prompt-value-history
-  :match-alternatives '(major-modep)
+  :match-alternatives '(major-or-multi-majorp)
   :validate (lambda (widget)
-              (unless (major-modep (widget-value widget))
+              (unless (major-or-multi-majorp (widget-value widget))
                 (widget-put widget :error (format "Invalid function: %S"
                                                   (widget-value widget)))
                 widget))
@@ -448,6 +471,33 @@ first tried."
 
 ;;(describe-symbol-add-known 'variable-documentation "Doc for variable")
 
+(defun property-list-keys (plist)
+  "Return list of key names in property list PLIST."
+  (let ((keys))
+    (while plist
+      (setq keys (cons (car plist) keys))
+      (setq plist (cddr plist)))
+    keys))
+
+(defun ourcomments-symbol-type (symbol)
+  "Return a list of types where symbol SYMBOL is used.
+The can include 'variable, 'function and variaus 'cl-*."
+  (symbol-file symbol)
+  )
+
+(defun ourcomments-defstruct-p (symbol)
+  "Return non-nil if symbol SYMBOL is a CL defstruct."
+  (let ((plist (symbol-plist symbol)))
+    (and (plist-member plist 'cl-struct-slots)
+         (plist-member plist 'cl-struct-type)
+         (plist-member plist 'cl-struct-include)
+         (plist-member plist 'cl-struct-print))))
+
+(defun ourcomments-defstruct-file (symbol)
+  (unless (ourcomments-defstruct-p symbol)
+    (error "Not a CL defstruct symbol: %s" symbol))
+  )
+
 (defun describe-symbol(symbol)
   "Show information about SYMBOL.
 Show SYMBOL plist and whether is is a variable or/and a
@@ -475,6 +525,14 @@ function."
       (if (fboundp symbol)
           (insert (format "- There is a function `%s'.\n" symbol))
         (insert "- This symbol is not a function.\n"))
+      (when (plist-get (symbol-plist symbol) 'cl-compiler-macro)
+        (insert "- Looks like a CL thing.\n"))
+      (if (ourcomments-defstruct-p symbol)
+          (progn
+            (insert "- There is a CL defstruct ")
+            (insert-text-button (format "%s" symbol))
+            (insert ".\n"))
+        (insert "- This symbol is not a CL defstruct.\n"))
       (insert "\n")
       (let ((pl (symbol-plist symbol))
             any-known)
@@ -492,10 +550,40 @@ function."
                 )))
           (unless any-known
             (insert "The are no known keys in the property list.\n"))
-          (let ((pl (apropos-format-plist symbol "\n\n  ")))
+          (let ((pl (ourcomments-format-plist symbol "\n\n  ")))
             (insert "\nFull property list:\n\n (")
             (insert (propertize pl 'face 'default))
             (insert ")\n\n")))))))
+
+(defun ourcomments-format-plist (pl sep &optional compare)
+  (setq pl (symbol-plist pl))
+  (let (p desc p-out)
+    (while pl
+      (setq p (format "%s" (car pl)))
+      (if (or (not compare) (string-match apropos-regexp p))
+          (if apropos-property-face
+              (put-text-property 0 (length (symbol-name (car pl)))
+                                 'face apropos-property-face p))
+        (setq p nil))
+      (if p
+          (progn
+            (and compare apropos-match-face
+                 (put-text-property (match-beginning 0) (match-end 0)
+                                    'face apropos-match-face
+                                    p))
+            (setq desc (pp-to-string (nth 1 pl)))
+            (setq desc (split-string desc "\n"))
+            (if (= 1 (length desc))
+                (setq desc (concat " " (car desc)))
+              (let* ((indent "    ")
+                     (ind-nl (concat "\n" indent)))
+                (setq desc
+                      (concat
+                       ind-nl
+                       (mapconcat 'identity desc ind-nl)))))
+            (setq p-out (concat p-out (if p-out sep) p desc))))
+      (setq pl (nthcdr 2 pl)))
+    p-out))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; ido
@@ -603,11 +691,15 @@ of those in for example common web browsers."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; New Emacs instance
 
+(defun ourcomments-find-emacs ()
+  (let ((exec-path (list exec-directory)))
+    (executable-find "emacs")))
+
 (defun emacs()
   "Start a new Emacs."
   (interactive)
   (recentf-save-list)
-  (call-process (concat exec-directory "emacs") nil 0 nil)
+  (call-process (ourcomments-find-emacs) nil 0 nil)
   (message "Started 'emacs' - it will be ready soon ..."))
 
 (defun emacs-buffer-file()
@@ -619,20 +711,20 @@ If there is no buffer file start with `dired'."
     ;;(unless file (error "No buffer file name"))
     (if file
         (progn
-          (call-process (concat exec-directory "emacs") nil 0 nil file)
+          (call-process (ourcomments-find-emacs) nil 0 nil file)
           (message "Started 'emacs buffer-file-name' - it will be ready soon ..."))
-      (call-process (concat exec-directory "emacs") nil 0 nil "--eval"
+      (call-process (ourcomments-find-emacs) nil 0 nil "--eval"
                     (format "(dired \"%s\")" default-directory)))))
 
 (defun emacs--debug-init()
   (interactive)
-  (call-process (concat exec-directory "emacs") nil 0 nil "--debug-init")
+  (call-process (ourcomments-find-emacs) nil 0 nil "--debug-init")
   (message "Started 'emacs --debug-init' - it will be ready soon ..."))
 
 (defun emacs-Q()
   "Start new Emacs without any customization whatsoever."
   (interactive)
-  (call-process (concat exec-directory "emacs") nil 0 nil "-Q")
+  (call-process (ourcomments-find-emacs) nil 0 nil "-Q")
   (message "Started 'emacs -Q' - it will be ready soon ..."))
 
 (defun emacs-Q-nxhtml()
@@ -640,7 +732,7 @@ If there is no buffer file start with `dired'."
   (interactive)
   (let ((autostart (expand-file-name "../../EmacsW32/nxhtml/autostart.el"
                                      exec-directory)))
-    (call-process (concat exec-directory "emacs") nil 0 nil "-Q"
+    (call-process (ourcomments-find-emacs) nil 0 nil "-Q"
                   "--debug-init"
                   "--load" autostart
                   )

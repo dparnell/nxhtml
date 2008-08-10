@@ -81,12 +81,14 @@ See `nxhtmltest-run' for more information about the tests."
     (unless (file-exists-p nxhtml-auto-start)
       (error "Can't find file %s" nxhtml-auto-start))
     (message "nxhtmltest-bin-Q=%s" nxhtmltest-bin-Q)
-    (message "nxhtml-auto-start=%ss" nxhtml-auto-start)
+    (message "nxhtml-auto-start=%s" nxhtml-auto-start)
     (setenv "nxhtmltest-run-Q" "run")
-    (call-process (concat exec-directory "emacs") nil 0 nil "-Q"
+    (message "After set nxhtmltest-run-Q=%s" (getenv "nxhtmltest-run-Q"))
+    (call-process (ourcomments-find-emacs) nil 0 nil "-Q"
                   "-l" temp-eval-file
                   "-l" nxhtml-auto-start
                   "-l" test-el)
+    (message "After call-process")
     (setenv "nxhtmltest-run-Q")
     (message "Starting new Emacs instance for test - it will be ready soon ...")))
 

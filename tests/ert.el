@@ -346,6 +346,74 @@ Prompt with PROMPT.  By default, return DEFAULT-VALUE."
   t)
 
 
+(defun ert-make-end-marker (buffer must-exist)
+  "Return a marker to the end of buffer BUFFER.
+BUFFER may be a string or a buffer. If BUFFER does not exist
+return nil.
+
+The buffer must exist if MUST-EXIST is non-nil.
+
+See also:
+ `ert-end-of-messages'
+ `ert-end-of-warnings'"
+  (let ((buf (if must-exist
+                 (get-buffer buffer)
+               (get-buffer-create buffer))))
+    (when (and buf
+               (bufferp buf)
+               (buffer-live-p buf))
+      (with-current-buffer buf
+        (save-restriction
+          (widen)
+          (point-max-marker))))))
+
+(defun ert-end-of-messages ()
+  "Return a marker to the end of *Messages* buffer."
+  (ert-make-end-marker "*Messages*" nil))
+
+(defun ert-end-of-warnings ()
+  "Return a marker to the end of *Warnings* buffer."
+  (ert-make-end-marker "*Warnings*" nil))
+
+(defun ert-search-after (after regexp)
+  "Search after marker in AFTER for regular expression REGEXP.
+Return a alist of position and matches.  AFTER should have been
+created with `ert-make-end-marker'.
+
+This is supposed to be used for messages and trace buffers.
+
+See also
+ `ert-get-messages'"
+  (let ((buf (marker-buffer after)))
+    (with-current-buffer buf
+      (let ((here (point))
+            res)
+        (goto-char after)
+        (save-match-data
+          (while (re-search-forward regexp nil t)
+            (setq res (cons (match-data) res))))
+        (goto-char here)
+        (reverse res)))))
+;; fix-me: add a conventient way to look at the result of
+;; `ert-search-after'. Probably this means adding something more to
+;; the returned result.
+
+(defun ert-get-messages (regexp)
+  "Search *Messages* buffer for regular expression REGEXP.
+This should be used within `ert-deftest'.  Search begins where
+the buffer ended when test started.
+
+See also:
+ `ert-get-warnings'
+ `ert-search-after'"
+  (ert-search-after messages-mark regexp))
+
+(defun ert-get-warnings (regexp)
+  "Search *Warnings* buffer for regular expression REGEXP.
+See `ert-get-messages' for more information."
+  (ert-search-after messages-mark regexp))
+
+
 ;;; Test selectors.
 
 (defun ert-select-tests (selector universe)
@@ -604,7 +672,9 @@ silently or calls the interactive debugger, as appropriate."
                 (debug-on-quit t)
                 ;; FIXME: Do we need to store the old binding of this
                 ;; and consider it in `ert-run-test-debugger'?
-                (debug-ignored-errors nil))
+                (debug-ignored-errors nil)
+                (messages-mark (ert-end-of-messages))
+                (warnings-mark (ert-end-of-warnings)))
             (funcall (ert-test-body (ert-test-execution-info-test info))))))
       (ert-pass))
     (setf (ert-test-execution-info-result info) (make-ert-test-passed))))
@@ -1224,6 +1294,60 @@ Ensures a final newline is inserted."
 (defvar ert-selector-history nil
   "List of recent test selectors read from terminal.")
 
+;; Fix-me: return (regep (list of matches))?
+;; Fix-me: Add prompt parameter?
+(defun ert-read-test-selector ()
+  "Read a regexp for test selection from minibuffer.
+The user can use TAB to see which tests match."
+  (let ((all-tests
+         (mapcar (lambda (rec) (format "%s" (elt rec 1)))
+                 (ert-select-tests "" t))
+         ;;'("ert-group1-1" "ert-group1-2" "ert-other")
+         )
+        regexp
+        ret
+        (get-completions
+         (lambda ()
+           (let* ((ret (save-match-data
+                         (mapcar (lambda (alt)
+                                   (when (string-match regexp alt)
+                                     alt))
+                                 all-tests))))
+             (setq ret (delq nil ret))
+             ret))))
+    (setq all-tests (append all-tests
+                            '(":new"
+                              ":failed" ":passed" ":error"
+                              )
+                            nil))
+    (let ((mini-map (copy-keymap minibuffer-local-map)))
+      (define-key mini-map [?\t]
+        (lambda () (interactive)
+          (with-output-to-temp-buffer "*Completions*"
+            (display-completion-list
+             (progn
+               (setq regexp (minibuffer-contents))
+               (set-text-properties 0 (length regexp) nil regexp)
+               (funcall get-completions))))))
+      (setq regexp
+            (let ((default (if ert-selector-history
+                               (first ert-selector-history)
+                             "t")))
+              (read-from-minibuffer
+               (if (null default)
+                   "Run tests, use TAB to see matches: "
+                 (format "Run tests, use TAB to see matches (default %s): "
+                         default))
+               nil ;; initial-contents
+               mini-map ;; keymap
+               nil ;; read
+               'ert-selector-history
+               default nil))))
+    (setq ret regexp)
+    (when (string= "t" ret)
+      (setq ret t))
+    ret))
+
 ;; Should OUTPUT-BUFFER-NAME and MESSAGE-FN really be arguments here?
 ;; They are needed only for our automated self-tests at the moment.
 ;; Or should there be some other mechanism?
@@ -1232,15 +1356,20 @@ Ensures a final newline is inserted."
                                     &optional output-buffer-name message-fn)
   "Run the tests specified by SELECTOR and display the results in a buffer."
   (interactive
-   (list (let ((default (if ert-selector-history
-                            (first ert-selector-history)
-                          "t")))
-           (read-from-minibuffer (if (null default)
-                                     "Run tests: "
-                                   (format "Run tests (default %s): " default))
-                                 nil nil t 'ert-selector-history
-                                 default nil))
-         nil))
+;;;    (list (let ((default (if ert-selector-history
+;;;                             (first ert-selector-history)
+;;;                           "t")))
+;;;            (read-from-minibuffer (if (null default)
+;;;                                      "Run tests: "
+;;;                                    (format "Run tests (default %s): " default))
+;;;                                  ;;nil nil t 'ert-selector-history
+;;;                                  ;;
+;;;                                  ;; fix-me: seems like I am misunderstanding Christians intent here.
+;;;                                  nil nil nil 'ert-selector-history
+;;;                                  default nil))
+;;;          nil nil))
+   (list (ert-read-test-selector)
+         nil nil))
   (unless message-fn (setq message-fn 'message))
   (lexical-let ((output-buffer-name output-buffer-name)
                 buffer
