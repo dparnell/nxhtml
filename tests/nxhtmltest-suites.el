@@ -80,8 +80,13 @@
   (nxhtmltest-with-persistent-buffer "genshi-auto-mode.html"
     (message "\n")
     (genshi-nxhtml-mumamo)
-    (nxhtmltest-fontify-default-way 2 "sheit")
     (font-lock-mode 1)
+    (mumamo-post-command)
+    (ert-should (eq font-lock-mode t))
+    (ert-should (eq major-mode 'nxhtml-genshi-mode))
+    (ert-should
+     (eq mumamo-multi-major-mode 'genshi-nxhtml-mumamo))
+    (nxhtmltest-fontify-default-way 2 "sheit")
     (rng-validate-mode 1)
     (rngalt-validate)
     (assert (eq rng-validate-mode t) t)
@@ -100,7 +105,7 @@
     (assert (eq rng-validate-mode t) t)
     (nxhtmltest-should-no-mumamo-errors)
     (ert-should
-      (= 1 rng-error-count))))
+      (= 2 rng-error-count))))
 
 (ert-deftest nxhtml-ert-genshi-magic-mode ()
   "Test if genshi file is recognized."
@@ -330,7 +335,10 @@ The indentation on line 7 should be 0."
 
 (defun nxhtmltest-run-ert ()
   "Run test with ert library."
-  (ert-run-tests-interactively "nxhtml-ert-genshi"))
+  (let ((selector "nxhtml-ert-genshi"))
+    (if noninteractive
+        (ert-run-tests-batch selector)
+      (ert-run-tests-interactively selector))))
 
 (defun nxhtmltest-run ()
   "Run all tests defined for nXhtml.

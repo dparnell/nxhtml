@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-03-15T14:40:28+0100 Sat
-(defconst tabkey2:version "1.31")
+(defconst tabkey2:version "1.32")
 ;; Last-Updated: 2008-07-21T22:24:55+0200 Mon
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/tabkey2.el
 ;; Keywords:
@@ -190,8 +190,13 @@
 ;;   (Thanks Eric.)
 ;;
 ;; Version 1.31:
-;; - Added yasnippet and pabbrev completion functions. (Thanks Eric.)
-;; - Reorded completion functions.
+;; - Add yasnippet and pabbrev completion functions. (Thanks Eric.)
+;; - Reorder completion functions.
+;;
+;; Version 1.32:
+;; - Add support for pcomplete.
+;; - Inform about other key bindings in completion functions list.
+;; - Remove no longer used "preferred" from completion functions list.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -307,6 +312,7 @@ If value is a number then delay message that number of seconds."
     ("Spell check word" flyspell-correct-word-before-point)
     ;; Main mode related, often used
     ("Semantic Smart Completion" senator-complete-symbol senator-minor-mode)
+    ("Programmable completion" pcomplete)
     ("nXML completion" nxml-complete)
     ("Complete Emacs symbol" lisp-complete-symbol)
     ("Widget complete" widget-complete)
@@ -364,7 +370,7 @@ bound are in `tabkey2-first-key' and `tabkey2-alternate-key'.")
 ;; (setq tabkey2-keymap-overlay nil)
 (defconst tabkey2-completion-state-emul-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [(control ?c) tab]    'tabkey2-make-current-sticky)
+    (define-key map [(control ?c) tab]    'tabkey2-make-current-default)
 
     ;;(define-key map tabkey2-alternate-key 'tabkey2-cycle-completion-functions)
     (define-key map [backtab]             'tabkey2-cycle-completion-functions)
@@ -454,10 +460,10 @@ Therefore `tabkey2-first' just calls the function on Tab."
 ;;   :type 'boolean
 ;;   :group 'tabkey2)
 
-(defvar tabkey2-preferred nil
-  "Preferred function for second tab key press.")
-(make-variable-buffer-local 'tabkey2-preferred)
-(put 'tabkey2-preferred 'permanent-local t)
+;; (defvar tabkey2-preferred nil
+;;   "Preferred function for second tab key press.")
+;; (make-variable-buffer-local 'tabkey2-preferred)
+;; (put 'tabkey2-preferred 'permanent-local t)
 
 (defvar tabkey2-fallback nil
   "Fallback function for second tab key press.")
@@ -589,7 +595,7 @@ See `tabkey2-first' for the list considered."
                  (tabkey2-is-active-p
                   tabkey2-chosen-completion-function))
         tabkey2-chosen-completion-function)
-      tabkey2-preferred
+      ;;tabkey2-preferred
       (tabkey2-first-active-from-completion-functions)
       tabkey2-fallback))
 
@@ -919,8 +925,8 @@ Consider only those in `tabkey2-completion-functions'."
 (make-variable-buffer-local 'tabkey2-chosen-completion-function)
 (put 'tabkey2-chosen-completion-function 'permanent-local t)
 
-(defun tabkey2-make-current-sticky ()
-  "Make current Tab completion function sticky.
+(defun tabkey2-make-current-default ()
+  "Make current Tab completion function default.
 Set the current Tab completion function at point as default for
 the current buffer."
   (interactive)
@@ -1276,9 +1282,9 @@ BUF: buffer"
   (if bnd
       (if (with-current-buffer buf (tabkey2-read-only-p))
           (propertize "active, but read-only" 'face '( :foreground "red"))
-        (propertize "active" 'face '( :foreground "green")))
+        (propertize "active" 'face '( :foreground "green3")))
     (if (fboundp fun)
-        (propertize "not active" 'face '( :foreground "red"))
+        (propertize "not active" 'face '( :foreground "red2"))
       (propertize "not defined" 'face '( :foreground "gray")))))
 
 (defun tabkey2-show-completion-functions ()
@@ -1287,7 +1293,7 @@ BUF: buffer"
   (let ((orig-buf (current-buffer))
         (orig-mn  mode-name)
         (active-mark (concat " "
-                             (propertize " <= "
+                             (propertize "<= default"
                                          'face '( :background "yellow"))))
         (act-found nil)
         (chosen-fun tabkey2-chosen-completion-function)
@@ -1307,42 +1313,52 @@ BUF: buffer"
                         " 'Tab completion' in buffer\n'"
                 (buffer-name orig-buf)
                 "' at point with mode " orig-mn " are shown below.\n"
-                "The first active function is used.\n\n"))
+                "The first active function is used by default.\n\n"))
         (if (not chosen)
-            (insert "  None is chosen")
+            (insert "  No completion function is set as default.")
           (let* ((txt (nth 0 chosen))
                  (fun (nth 1 chosen))
                  (chk (nth 2 chosen))
                  (bnd (with-current-buffer orig-buf
                         (tabkey2-is-active fun chk)))
                  (act (tabkey2-get-active-string bnd fun orig-buf)))
-            (insert (format "  Chosen currently is %s (%s): %s"
+            (insert (format "  Default is set to\n    %s (%s): %s"
                             txt fun act))
             (when bnd (insert active-mark) (setq act-found t))))
         (insert "\n\n")
-        (if (not tabkey2-preferred)
-            (insert "  None is preferred")
-          (let* ((txt (nth 0 tabkey2-preferred))
-                 (fun (nth 1 tabkey2-preferred))
-                 (chk (nth 2 chosen))
-                 (bnd (with-current-buffer orig-buf
-                        (tabkey2-is-active fun chk)))
-                 (act (tabkey2-get-active-string bnd fun orig-buf)))
-            (insert (format "  Preferred is %s (`%s')': %s"
-                            txt fun act))
-            (when bnd (insert active-mark) (setq act-found t))))
-        (insert "\n\n")
+;;;         (if (not tabkey2-preferred)
+;;;             (insert "  None is preferred")
+;;;           (let* ((txt (nth 0 tabkey2-preferred))
+;;;                  (fun (nth 1 tabkey2-preferred))
+;;;                  (chk (nth 2 chosen))
+;;;                  (bnd (with-current-buffer orig-buf
+;;;                         (tabkey2-is-active fun chk)))
+;;;                  (act (tabkey2-get-active-string bnd fun orig-buf)))
+;;;             (insert (format "  Preferred is %s (`%s')': %s"
+;;;                             txt fun act))
+;;;             (when bnd (insert active-mark) (setq act-found t))))
+;;;         (insert "\n\n")
         (dolist (comp-fun tabkey2-completion-functions)
           (let* ((txt (nth 0 comp-fun))
                  (fun (nth 1 comp-fun))
                  (chk (nth 2 comp-fun))
                  (bnd (with-current-buffer orig-buf
                         (tabkey2-is-active fun chk)))
-                 (act (tabkey2-get-active-string bnd fun orig-buf)))
+                 (act (tabkey2-get-active-string bnd fun orig-buf))
+                 (keys (where-is-internal fun)))
+            (if (not keys)
+                (setq keys "")
+              (setq keys (mapconcat 'key-description keys ", "))
+              (when (and (< 9 (length keys))
+                         (string= "<menu-bar>" (substring keys 0 10)))
+                (setq keys "Menu"))
+              (setq keys (propertize keys 'face 'highlight))
+              (setq keys (concat ", " keys))
+              )
             (insert
              (format
-              "  %s (`%s'): %s"
-              txt fun act))
+              "  %s (`%s'%s): %s"
+              txt fun keys act))
             (when (and (not act-found) bnd)
               (insert active-mark) (setq act-found t))
             (insert "\n")))
@@ -1360,7 +1376,12 @@ BUF: buffer"
             (when (and (not act-found) bnd)
               (insert active-mark)
               (setq act-found t))))
-        (insert "\n\nSee function `tabkey2-mode' for more information.")
+        (insert "\n\nYou an ")
+        (insert-text-button "customize this list"
+                            'action (lambda (button)
+                                      (customize-option
+                                       'tabkey2-completion-functions)))
+        (insert ".\nSee function `tabkey2-mode' for more information.")
         (print-help-return-message)))))
 
 (defvar tabkey2-completing-read 'completing-read)
