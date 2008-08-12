@@ -2,8 +2,8 @@
 ;;
 ;; Author: Lennart Borgman <lennart dot borgman at gmail dot com>
 ;; Created: Wed Feb 21 23:19:07 2007
-(defconst ourcomments-util:version "0.23") ;;Version:
-;; Last-Updated: 2008-08-07T18:29:29+0200 Thu
+(defconst ourcomments-util:version "0.24") ;;Version:
+;; Last-Updated: 2008-08-11T12:25:12+0200 Mon
 ;; Keywords:
 ;; Compatibility: Emacs 22
 ;;
@@ -452,7 +452,188 @@ first tried."
 (put 'ourcomments-move-end-of-line 'CUA 'move)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Keymaps
+
+(defun ourcomments-find-keymap-variables (keymap---)
+  "Return a list of keymap variables with value KEYMAP--.
+Ignore `special-event-map', `global-map', `overriding-local-map'
+and `overriding-terminal-local-map'."
+  (let ((vars nil))
+    (mapatoms (lambda (symbol)
+                (unless (memq symbol '(keymap---
+                                       special-event-map
+                                       global-map
+                                       overriding-local-map
+                                       overriding-terminal-local-map
+                                       ))
+                  (let (val)
+                    (if (boundp symbol)
+                        (setq val (symbol-value symbol))
+                      (when (keymapp symbol)
+                        (setq val (symbol-function symbol))))
+                    (when (equal val keymap---)
+                      (push symbol vars))))))
+    vars))
+
+;; This is a replacement for describe-key-briefly.
+;;(global-set-key [f1 ?c] 'find-keymap-binding-key)
+(defun find-keymap-binding-key (&optional key insert untranslated)
+  "Try to print names of keymap from which KEY fetch its definition.
+Look in current active keymaps and find keymap variables with the
+same value as the keymap where KEY is bound.  Print a message
+with those keymap variable names.  Return a list with the keymap
+variable symbols.
+
+When called interactively prompt for KEY.
+
+INSERT and UNTRANSLATED should normall be nil (and I am not sure
+what they will do ;-)."
+  ;; >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ;; From describe-key-briefly. Keep this as it is for easier update.
+  (interactive
+   (let ((enable-disabled-menus-and-buttons t)
+	 (cursor-in-echo-area t)
+	 saved-yank-menu)
+     (unwind-protect
+	 (let (key)
+	   ;; If yank-menu is empty, populate it temporarily, so that
+	   ;; "Select and Paste" menu can generate a complete event.
+	   (when (null (cdr yank-menu))
+	     (setq saved-yank-menu (copy-sequence yank-menu))
+	     (menu-bar-update-yank-menu "(any string)" nil))
+	   (setq key (read-key-sequence "Describe key (or click or menu item): "))
+	   ;; If KEY is a down-event, read and discard the
+	   ;; corresponding up-event.  Note that there are also
+	   ;; down-events on scroll bars and mode lines: the actual
+	   ;; event then is in the second element of the vector.
+	   (and (vectorp key)
+		(let ((last-idx (1- (length key))))
+		  (and (eventp (aref key last-idx))
+		       (memq 'down (event-modifiers (aref key last-idx)))))
+		(read-event))
+	   (list
+	    key
+	    (if current-prefix-arg (prefix-numeric-value current-prefix-arg))
+	    1
+            ))
+       ;; Put yank-menu back as it was, if we changed it.
+       (when saved-yank-menu
+	 (setq yank-menu (copy-sequence saved-yank-menu))
+	 (fset 'yank-menu (cons 'keymap yank-menu))))))
+  (if (numberp untranslated)
+      (setq untranslated (this-single-command-raw-keys)))
+  (let* ((event (if (and (symbolp (aref key 0))
+			 (> (length key) 1)
+			 (consp (aref key 1)))
+		    (aref key 1)
+		  (aref key 0)))
+	 (modifiers (event-modifiers event))
+	 (standard-output (if insert (current-buffer) t))
+	 (mouse-msg (if (or (memq 'click modifiers) (memq 'down modifiers)
+			    (memq 'drag modifiers)) " at that spot" ""))
+	 (defn (key-binding key t))
+	 key-desc)
+    ;; Handle the case where we faked an entry in "Select and Paste" menu.
+    (if (and (eq defn nil)
+	     (stringp (aref key (1- (length key))))
+	     (eq (key-binding (substring key 0 -1)) 'yank-menu))
+	(setq defn 'menu-bar-select-yank))
+    ;; Don't bother user with strings from (e.g.) the select-paste menu.
+    (if (stringp (aref key (1- (length key))))
+	(aset key (1- (length key)) "(any string)"))
+    (if (and (> (length untranslated) 0)
+	     (stringp (aref untranslated (1- (length untranslated)))))
+	(aset untranslated (1- (length untranslated)) "(any string)"))
+    ;; Now describe the key, perhaps as changed.
+    (setq key-desc (help-key-description key untranslated))
+    ;;
+    ;; End of part from describe-key-briefly.
+    ;; <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    ;; Find the keymap:
+    (let* ((maps (current-active-maps))
+           ret
+           lk)
+      (if (or (null defn) (integerp defn) (equal defn 'undefined))
+          (setq ret 'not-defined)
+        (catch 'mapped
+          (while (< 1 (length maps))
+            (setq lk (lookup-key (car maps) key t))
+            (when (and lk (not (numberp lk)))
+              (setq ret (ourcomments-find-keymap-variables (car maps)))
+              (when ret
+                (throw 'mapped (car maps))))
+            (setq maps (cdr maps))))
+        (unless ret
+          (setq lk (lookup-key global-map key t))
+          (when (and lk (not (numberp lk)))
+            (setq ret '(global-map)))))
+      (cond
+       ((eq ret 'not-defined)
+        (message "%s%s not defined in any keymap" key-desc mouse-msg))
+       ((listp ret)
+        (if (not ret)
+            (message "%s%s is bound to `%s', but don't know where"
+                     key-desc mouse-msg defn)
+          (if (= 1 (length ret))
+              (message "%s%s is bound to `%s' in keymap variable `%s'"
+                       key-desc mouse-msg defn (car ret))
+            (message "%s%s is bound to `%s' in keymap variables `%s'"
+                     key-desc mouse-msg defn ret))))
+       (t
+        (error "ret=%s" ret)))
+      ret)))
+
+;; (ourcomments-find-keymap-variables (current-local-map))
+;; (keymapp 'ctl-x-4-prefix)
+;; (equal 'ctl-x-4-prefix (current-local-map))
+;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Misc.
+
+(defun ourcomments-read-symbol (prompt predicate)
+  "Basic function for reading a symbol for describe-* functions.
+Prompt with PROMPT and show only symbols satisfying function
+PREDICATE.  PREDICATE takes one argument, the symbol."
+  (let* ((symbol (symbol-at-point))
+	 (enable-recursive-minibuffers t)
+	 val)
+    (when predicate
+      (unless (and symbol
+                   (symbolp symbol)
+                   (funcall predicate symbol))
+        (setq symbol nil)))
+    (setq val (completing-read (if symbol
+                                   (format
+                                    "%s (default %s): " prompt symbol)
+                                 (format "%s: " prompt))
+                               obarray
+                               predicate
+                               t nil nil
+                               (if symbol (symbol-name symbol))))
+    (if (equal val "") symbol (intern val))))
+
+(defun ourcomments-command-at-point ()
+  (let ((fun (function-called-at-point)))
+    (when (commandp fun)
+      fun)))
+
+(defun describe-command (command)
+  "Like `describe-function', but prompts only for interactive commands."
+  (interactive
+   (let ((fn (ourcomments-command-at-point))
+	 (enable-recursive-minibuffers t)
+	 val)
+     (setq val (completing-read (if fn
+				    (format "Describe command (default %s): " fn)
+				  "Describe command: ")
+				obarray 'commandp t nil nil
+				(and fn (symbol-name fn))))
+     (list (if (equal val "")
+	       fn (intern val)))))
+  (describe-function command))
+
 
 (defun buffer-narrowed-p ()
   "Return non-nil if the current buffer is narrowed."
@@ -470,6 +651,7 @@ first tried."
               describe-symbol-alist)))
 
 ;;(describe-symbol-add-known 'variable-documentation "Doc for variable")
+;;(describe-symbol-add-known 'cl-struct-slots "defstruct slots")
 
 (defun property-list-keys (plist)
   "Return list of key names in property list PLIST."
@@ -493,70 +675,188 @@ The can include 'variable, 'function and variaus 'cl-*."
          (plist-member plist 'cl-struct-include)
          (plist-member plist 'cl-struct-print))))
 
+(defun ourcomments-defstruct-slots (symbol)
+  (unless (ourcomments-defstruct-p symbol)
+    (error "Not a CL defstruct symbol: %s" symbol))
+  (let ((cl-struct-slots (get symbol 'cl-struct-slots)))
+    (delq 'cl-tag-slot
+          (loop for rec in cl-struct-slots
+                collect (nth 0 rec)))))
+
+;; (ourcomments-defstruct-slots 'ert-test)
+
 (defun ourcomments-defstruct-file (symbol)
   (unless (ourcomments-defstruct-p symbol)
     (error "Not a CL defstruct symbol: %s" symbol))
   )
 
+(defun ourcomments-member-defstruct (symbol)
+  "Return defstruct name if member."
+  (when (and (functionp symbol)
+             (plist-member (symbol-plist symbol) 'cl-compiler-macro))
+    (let* (in-defstruct
+           (symbol-file (symbol-file symbol))
+           buf
+           was-here)
+      (unless symbol-file
+        (error "Can't check if defstruct member since don't know symbol file"))
+      (setq buf (find-buffer-visiting symbol-file))
+      (setq was-here (with-current-buffer buf (point)))
+      (unless buf
+        (setq buf (find-file-noselect symbol-file)))
+      (with-current-buffer buf
+        (save-restriction
+          (widen)
+          (let* ((buf-point (find-definition-noselect symbol nil)))
+            (goto-char (cdr buf-point))
+            (save-match-data
+              (when (looking-at "(defstruct (?\\(\\(?:\\sw\\|\\s_\\)+\\)")
+                (setq in-defstruct (match-string-no-properties 1))))))
+        (if was-here
+            (goto-char was-here)
+          (kill-buffer (current-buffer))))
+      in-defstruct)))
+;; (ourcomments-member-defstruct 'ert-test-name)
+;; (ourcomments-member-defstruct 'ert-test-error-condition)
+
+(defun ourcomments-custom-group-p (symbol)
+  (and (intern-soft symbol)
+       (or (and (get symbol 'custom-loads)
+                (not (get symbol 'custom-autoload)))
+           (get symbol 'custom-group))))
+
+(defun describe-custom-group (symbol)
+  "Describe customization group SYMBOL."
+  (interactive
+   (list
+    (ourcomments-read-symbol "Customization group"
+                             'ourcomments-custom-group-p)))
+  (message "g=%s" symbol))
+;; nxhtml
+
+;; Added this to current-load-list in cl-macs.el
+;; (describe-defstruct 'ert-stats)
+(defun describe-defstruct (symbol)
+  (interactive (list (ourcomments-read-symbol "Describe defstruct"
+                                              'ourcomments-defstruct-p)))
+  (if (not (ourcomments-defstruct-p symbol))
+      (message "%s is not a CL defstruct." symbol)
+  (with-output-to-temp-buffer (help-buffer)
+    (help-setup-xref (list #'describe-defstruct symbol) (interactive-p))
+    (with-current-buffer (help-buffer)
+      (insert "This is a description of a CL thing.")
+      (insert "\n\n")
+      (insert (format "%s is a CL `defstruct'" symbol))
+      (let ((file (symbol-file symbol)))
+        (if file
+            ;; Fix-me: .elc => .el
+            (let ((name (file-name-nondirectory file)))
+              (insert "defined in file %s.\n" (file-name-nondirectory file)))
+          (insert ".\n")))
+      (insert "\n\nIt has the following slot functions:\n")
+      (let ((num-slot-funs 0)
+            (slots (ourcomments-defstruct-slots symbol)))
+        (dolist (slot slots)
+          (if (not (fboundp (intern-soft (format "%s-%s" symbol slot))))
+              (insert (format "    Do not know function for slot %s\n" slot))
+            (setq num-slot-funs (1+ num-slot-funs))
+            (insert (format "    `%s-%s'\n" symbol slot))))
+        (unless (= num-slot-funs (length slots))
+          (insert "  No information about some slots, maybe :conc-name was used\n")))))))
+
+;;(defun describe-deftype (type)
 (defun describe-symbol(symbol)
   "Show information about SYMBOL.
 Show SYMBOL plist and whether is is a variable or/and a
 function."
-  (interactive
-   (let* ((s (symbol-at-point))
-          (val (completing-read (if (and (symbolp s)
-                                         (not (eq s nil)))
-                                    (format
-                                     "Describe symbol (default %s): " s)
-                                  "Describe symbol: ")
-                                obarray
-                                nil
-                                t nil nil
-                                (if (symbolp s) (symbol-name s)))))
-     (list (if (equal val "") s (intern val)))))
+  (interactive (list (ourcomments-read-symbol "Describe symbol" nil)))
+;;;    (let* ((s (symbol-at-point))
+;;;           (val (completing-read (if (and (symbolp s)
+;;;                                          (not (eq s nil)))
+;;;                                     (format
+;;;                                      "Describe symbol (default %s): " s)
+;;;                                   "Describe symbol: ")
+;;;                                 obarray
+;;;                                 nil
+;;;                                 t nil nil
+;;;                                 (if (symbolp s) (symbol-name s)))))
+;;;      (list (if (equal val "") s (intern val)))))
   (require 'apropos)
   (with-output-to-temp-buffer (help-buffer)
     (help-setup-xref (list #'describe-symbol symbol) (interactive-p))
     (with-current-buffer (help-buffer)
       (insert (format "Description of symbol %s\n\n" symbol))
+      (when (plist-get (symbol-plist symbol) 'cl-compiler-macro)
+        (insert "(Looks like a CL thing.)\n"))
       (if (boundp symbol)
           (insert (format "- There is a variable `%s'.\n" symbol))
         (insert "- This symbol is not a variable.\n"))
       (if (fboundp symbol)
-          (insert (format "- There is a function `%s'.\n" symbol))
+          (progn
+            (insert (format "- There is a function `%s'" symbol))
+            (when (ourcomments-member-defstruct symbol)
+              (let ((ds-name (ourcomments-member-defstruct symbol)))
+                (insert "\n  which is a member of defstruct ")
+                (insert-text-button (format "%s" ds-name)
+                                    'symbol (intern-soft ds-name)
+                                    'action (lambda (button)
+                                              (describe-symbol
+                                               (button-get button 'symbol))))))
+            (insert ".\n"))
         (insert "- This symbol is not a function.\n"))
-      (when (plist-get (symbol-plist symbol) 'cl-compiler-macro)
-        (insert "- Looks like a CL thing.\n"))
+      (if (facep symbol)
+          (insert (format "- There is a face `%s'.\n" symbol))
+        (insert "- This symbol is not a face.\n"))
+      (if (ourcomments-custom-group-p symbol)
+          (progn
+            (insert "- There is a customization group ")
+            (insert-text-button (format "%s" symbol)
+                                'symbol symbol
+                                'action (lambda (button)
+                                          (describe-custom-group
+                                           (button-get button 'symbol))))
+            (insert ".\n"))
+        (insert "- This symbol is not a customization group.\n"))
       (if (ourcomments-defstruct-p symbol)
           (progn
-            (insert "- There is a CL defstruct ")
-            (insert-text-button (format "%s" symbol))
-            (insert ".\n"))
+            (insert (format "- There is a CL defstruct %s with setf-able slots:\n" symbol))
+            (let ((num-slot-funs 0)
+                  (slots (ourcomments-defstruct-slots symbol)))
+              (dolist (slot slots)
+                (if (not (fboundp (intern-soft (format "%s-%s" symbol slot))))
+                    (insert (format "    Do not know function for slot %s\n" slot))
+                  (setq num-slot-funs (1+ num-slot-funs))
+                  (insert (format "    `%s-%s'\n" symbol slot))))
+              (unless (= num-slot-funs (length slots))
+                (insert "  No information about some slots, maybe :conc-name was used\n"))))
         (insert "- This symbol is not a CL defstruct.\n"))
       (insert "\n")
-      (let ((pl (symbol-plist symbol))
-            any-known)
+      (let* ((pl (symbol-plist symbol))
+             (pl-not-known (property-list-keys pl))
+             any-known)
         (if (not pl)
             (insert (format "Symbol %s has no property list\n\n" symbol))
           ;; Known properties
-          (dolist (rec describe-symbol-alist)
+          (dolist (rec nil) ;describe-symbol-alist)
             (let ((prop (nth 0 rec))
                   (desc (nth 1 rec)))
               (when (plist-member pl prop)
-                (unless any-known (setq any-known t))
+                (setq any-known (cons prop any-known))
+                (setq pl-not-known (delq prop pl-not-known))
                 (insert
                  "The following keys in the property list are known:\n\n")
                 (insert (format "* %s: %s\n" prop desc))
                 )))
           (unless any-known
             (insert "The are no known keys in the property list.\n"))
-          (let ((pl (ourcomments-format-plist symbol "\n\n  ")))
-            (insert "\nFull property list:\n\n (")
+          (let ((pl (ourcomments-format-plist pl-not-known "\n\n  ")))
+            (insert "\nRest of property list:\n\n (")
             (insert (propertize pl 'face 'default))
             (insert ")\n\n")))))))
 
 (defun ourcomments-format-plist (pl sep &optional compare)
-  (setq pl (symbol-plist pl))
+  (when (symbolp pl)
+    (setq pl (symbol-plist pl)))
   (let (p desc p-out)
     (while pl
       (setq p (format "%s" (car pl)))
@@ -622,6 +922,8 @@ function."
 
 ;;(add-hook 'ido-setup-hook 'ourcomments-ido-mode-advice)
 ;;(remove-hook 'ido-setup-hook 'ourcomments-ido-mode-advice)
+(defvar ourcomments-ido-adviced nil)
+(unless ourcomments-ido-adviced
 (defadvice ido-mode (after
                      ourcomments-ido-add-ctrl-tab
                      disable)
@@ -639,7 +941,9 @@ function."
     (ad-set-arg 1 ourcomments-ido-visit-method)
     (setq ourcomments-ido-visit-method nil)
     ))
+)
 
+(setq ourcomments-ido-adviced t)
 ;;(ad-deactivate 'ido-visit-buffer)
 ;;(ad-activate 'ido-visit-buffer)
 

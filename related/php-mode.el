@@ -269,7 +269,7 @@ See `php-beginning-of-defun'."
   "Obarray of tag names defined in current tags table and functions know to PHP.")
 
 (defvar php-warned-bad-indent nil)
-(make-variable-buffer-local 'php-warned-bad-indent)
+;;(make-variable-buffer-local 'php-warned-bad-indent)
 
 ;; Do it but tell it is not good if html tags in buffer.
 (defun php-check-html-for-indentation ()
@@ -281,9 +281,9 @@ See `php-beginning-of-defun'."
       (goto-char here)
       (setq php-warned-bad-indent t)
       ;;(setq php-warned-bad-indent nil)
-      (let* ((known-multi-libs '(("mumamo" mumamo-multi-major-mode)
-                                 ("mmm-mode" mmm-mode)
-                                 ("multi-mode" multi-mode)))
+      (let* ((known-multi-libs '(("mumamo" mumamo (lambda () (nxhtml-mumamo)))
+                                 ("mmm-mode" mmm-mode (lambda () (mmm-mode 1)))
+                                 ("multi-mode" multi-mode (lambda () (multi-mode 1)))))
              (known-names (mapcar (lambda (lib) (car lib)) known-multi-libs))
              (available-multi-libs (delq nil
                                          (mapcar
@@ -328,12 +328,12 @@ See `php-beginning-of-defun'."
                                            '(available-names . 1)
                                            )))
                        (mode (when name
-                               (cadr (assoc name available-multi-libs)))))
+                               (caddr (assoc name available-multi-libs)))))
                   (when mode
                     ;; Minibuffer window is more than one line, fix that first:
                     (message "")
                     (load name)
-                    (funcall mode 1))))
+                    (funcall mode))))
             (lwarn 'php-indent :warning base-msg)))
         nil))))
 

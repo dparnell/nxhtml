@@ -264,6 +264,7 @@
           <a href="#v1.37">v1.37</a>
           <a href="#v1.38">v1.38</a>
           <a href="#v1.39">v1.39</a>
+          <a href="#v1.40">v1.40</a>
         </div>
 
         <dl>
@@ -1843,6 +1844,35 @@
               <li>
                 Now trying to keep the launchpad bazaar repository in
                 sync.
+              </li>
+            </ul>
+          </dd>
+          <dt id="v1.40">1.40</dt>
+          <dd id="v1.40-dd">
+            <ul>
+              <li>
+                tabkey2-mode
+                <ul>
+                  <li>
+                    Some small changes: support for eshell
+                    and better information about completion commands
+                    alternative key bindings.
+                  </li>
+                </ul>
+              </li>
+              <li>
+                php-mode
+                <ul>
+                  <li>
+                    It turned out that my patched php-mode asked in
+                    every buffer to turn on mumamo.  Changed it to
+                    once for every Emacs invocation instead.
+                  </li>
+                  <li>
+                    In addition to this it did not turn on mumamo
+                    multi major support if the user wanted it ;-)
+                  </li>
+                </ul>
               </li>
             </ul>
           </dd>
