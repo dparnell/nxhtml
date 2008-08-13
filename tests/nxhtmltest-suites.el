@@ -77,6 +77,10 @@
 ;; Define tests using ert.el
 
 (ert-deftest nxhtml-ert-xhtml-1.0-transitional ()
+  "Test XHTML 1.0 Transitional with `nxhtml-mumamo'.
+This test should fail because there is currently no rng schema
+for transitional. The schema for strict is used instead and the
+file is invalid then."
   (nxhtmltest-with-persistent-buffer "lg-080813-label.html"
     (nxhtml-mumamo)
     (nxhtmltest-fontify-default-way 2 "trans")
