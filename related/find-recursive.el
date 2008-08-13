@@ -35,8 +35,7 @@
 ;; - Tried to fix bugs I introduced when trying to make code platform
 ;;   independent.
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl))
 
 (defcustom find-recursive-exclude-files '(".*.class$" ".*~$" ".*.elc$")
   "List of regular expressions of files to be excluded when recursively searching for files."

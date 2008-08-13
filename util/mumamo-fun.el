@@ -61,17 +61,19 @@
 (defun mumamo-chunk-attr=(pos min max attr= attr=is-regex attr-regex submode)
   "This should work similar to `mumamo-find-possible-chunk'.
 See `mumamo-chunk-style=' for an example of use."
-  ;; 1- for the case that pos is at the " before the attribute value.
   (mumamo-condition-case err
-      (progn
-        (goto-char (1- pos))
+      (save-match-data
+        (if (not attr=is-regex)
+            (goto-char (+ pos (length attr=)))
+          (goto-char pos)
+          (skip-chars-forward "a-zA-Z="))
         (let ((prev-attr= (if attr=is-regex
                               (re-search-backward attr= min t)
                             (search-backward attr= min t)))
               prev-attr-sure
               next-attr=
-              start
-              end
+              start start-border
+              end   end-border
               exc-mode
               borders
               exc-start-prev
@@ -83,7 +85,7 @@ See `mumamo-chunk-style=' for an example of use."
           (while (and prev-attr=
                       (not prev-attr-sure))
             (if (not (search-backward "<" min t))
-                (setq prev-attr-sure 'none)
+                (setq prev-attr= nil)
               (if (looking-at attr-regex)
                   (setq prev-attr-sure 'found)
                 (setq prev-attr= (if attr=is-regex
@@ -93,15 +95,26 @@ See `mumamo-chunk-style=' for an example of use."
 ;;;           (when (and prev-attr=
 ;;;                      (search-backward "<" min t))
 ;;;             (when (looking-at attr-regex)
-          (when (and prev-attr= (eq prev-attr-sure 'found))
+          (when prev-attr=
               (setq exc-start-prev (match-beginning 1))
-              (setq exc-end-prev   (match-end 1))
+              (setq exc-end-prev   (match-end 2))
               (when (<= exc-start-prev pos)
-                (if (>= pos exc-end-prev)
-                    (setq start exc-end-prev)
+;;;                 (if (>= pos exc-end-prev)
+;;;                     (setq start exc-end-prev)
+;;;                   (setq exc-mode submode)
+;;;                   (setq start exc-start-prev)
+;;;                   (setq end exc-end-prev))
+                (if (> pos exc-end-prev)
+                    (progn
+                      (setq start (+ (match-end 2) 1))
+                      ;;(setq start-border (+ (match-end 2) 2))
+                      )
                   (setq exc-mode submode)
-                  (setq start exc-start-prev)
-                  (setq end exc-end-prev))))
+                  (setq start (match-beginning 1))
+                  (setq start-border (match-beginning 2))
+                  (setq end (1+ (match-end 2)))
+                  (setq end-border (1- end)))
+                ))
             ;;)
           ;; find next change
           (unless end
@@ -119,26 +132,11 @@ See `mumamo-chunk-style=' for an example of use."
           (when start (assert (<= start pos) t))
           (when end   (assert (<= pos end) t))
           (goto-char pos)
-          ;;(list start end exc-mode t nil pos)))
-;;;           ;; fix-me: This is just an idea to fix the " problem
-;;;           (if exc-mode
-;;;               (progn
-;;;                 ;;(when start (setq start (1- start)))
-;;;                 ;;(when (< start 1) (setq start 1))
-;;;                 (when end   (setq end   (1+ end)))
-;;;                 (when (> end (buffer-size)) (setq end (buffer-size)))
-;;;                 (let* ((minb (when start (1+ start)))
-;;;                        (maxb (when end   (1- end))))
-;;;                   (setq borders (when (or minb maxb)
-;;;                                   (list minb maxb exc-mode)))))
-;;;             ;;(when start (setq start (1+ start)))
-;;;             ;;(when end   (setq end   (1- end)))
-;;;             (let* ((minb (when start (1+ start)))
-;;;                    (maxb (when end   (1- end))))
-;;;               (setq borders (when (or minb maxb)
-;;;                               (list minb maxb exc-mode)))))
-;;;           (setq borders nil)
-          (list start end exc-mode borders)))
+          (setq borders (list start-border end-border nil))
+          ;;(message "ret=%s" (list start end exc-mode borders))
+          (list start end exc-mode borders)
+          ;;nil
+          ))
     (error
      (mumamo-display-error 'mumamo-chunk-attr= "%s"
                            (error-message-string err)))))
@@ -487,13 +485,14 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (rx "<"
       (0+ (not (any ">")))
       space
-      "on"
-      (1+ (any "a-za-z"))
-      "="
+      (submatch
+       "on"
+       (1+ (any "a-za-z"))
+       "=")
       (0+ space)
       ?\"
       (submatch
-       "javascript:"
+       (opt "javascript:")
        (0+
         (not (any "\""))))
       ))
@@ -509,7 +508,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (rx "<"
       (0+ (not (any ">")))
       space
-      "style="
+      (submatch "style=")
       (0+ space)
       ?\"
       (submatch

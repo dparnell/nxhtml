@@ -941,13 +941,13 @@ function."
     (ad-set-arg 1 ourcomments-ido-visit-method)
     (setq ourcomments-ido-visit-method nil)
     ))
+(setq ourcomments-ido-adviced t)
 )
 
-(setq ourcomments-ido-adviced t)
 ;;(ad-deactivate 'ido-visit-buffer)
 ;;(ad-activate 'ido-visit-buffer)
 
-(defvar ourcomments-ido-old-state nil)
+(defvar ourcomments-ido-old-state ido-mode)
 
 (defcustom ourcomments-ido-ctrl-tab nil
   "Enable buffer switching using C-Tab with function `ido-mode'.
@@ -977,14 +977,17 @@ of those in for example common web browsers."
                (ad-activate 'ido-mode)
                (ad-update 'ido-mode)
                (ad-enable-advice 'ido-mode 'after
-                          'ourcomments-ido-add-ctrl-tab)
+                                 'ourcomments-ido-add-ctrl-tab)
                (setq ourcomments-ido-old-state ido-mode)
                (ido-mode (or ido-mode 'buffer))
                )
            (ad-disable-advice 'ido-visit-buffer 'before
-                      'ourcomments-ido-visit-buffer-other)
+                              'ourcomments-ido-visit-buffer-other)
            (ad-disable-advice 'ido-mode 'after
-                      'ourcomments-ido-add-ctrl-tab)
+                              'ourcomments-ido-add-ctrl-tab)
+           ;; For some reason this little complicated construct is
+           ;; needed. If they are not there the defadvice
+           ;; disappears. Huh.
            (if ourcomments-ido-old-state
                (ido-mode ourcomments-ido-old-state)
              (when ido-mode (ido-mode -1)))
@@ -1042,6 +1045,57 @@ If there is no buffer file start with `dired'."
                   )
     (message "Started 'emacs -Q --load \"%s\"' - it will be ready soon ..."
              autostart)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Searching
+
+(defun grep-get-files ()
+  "Return list of files in a grep-mode buffer."
+  (or (compilation-buffer-p (current-buffer))
+      (error "Not in a compilation buffer"))
+  (let ((here (point))
+        files
+        loc)
+    (goto-char (point-min))
+    ;; fix-me: How do you check if all is fontified?
+    (font-lock-fontify-buffer)
+    (while (setq loc
+                 (condition-case err
+                     (compilation-next-error 1)
+                   (error
+                    ;; This should be the end, but give a message for
+                    ;; easier debugging.
+                    (message "%s" err)
+                         nil)))
+      ;;(message "here =%s, loc=%s" (point) loc)
+      (let ((file (caar (nth 2 (car loc)))))
+        (setq file (expand-file-name file))
+        (add-to-list 'files file)))
+    (goto-char here)
+    ;;(message "files=%s" files)
+    files))
+
+;; Mostly copied from dired-do-query-replace-regexp. Fix-me: finish, test
+(defun grep-do-query-replace-regexp (from to &optional delimited)
+  "Do `query-replace-regexp' of FROM with TO, on all files in *grep*.
+Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
+If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
+with the command \\[tags-loop-continue]."
+  ;;'grep-regexp-history
+  (interactive
+   (let ((common
+	  (query-replace-read-args
+	   "Query replace regexp in files in *grep*" t t)))
+     (list (nth 0 common) (nth 1 common) (nth 2 common))))
+  (dolist (file (grep-get-files))
+    (let ((buffer (get-file-buffer file)))
+      (if (and buffer (with-current-buffer buffer
+			buffer-read-only))
+	  (error "File `%s' is visited read-only" file))))
+  (tags-query-replace from to delimited
+		      '(grep-get-files)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Info

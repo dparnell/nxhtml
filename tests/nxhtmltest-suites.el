@@ -76,6 +76,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define tests using ert.el
 
+(ert-deftest nxhtml-ert-xhtml-1.0-transitional ()
+  (nxhtmltest-with-persistent-buffer "lg-080813-label.html"
+    (nxhtml-mumamo)
+    (nxhtmltest-fontify-default-way 2 "trans")
+    (rng-validate-mode 1)
+    (rngalt-validate)
+    (ert-should (eq rng-validate-mode t))
+    (nxhtmltest-should-no-mumamo-errors)
+;;;     (ert-should
+;;;      (not (eq (get-char-property 398 'category)
+;;;               'rng-error)))
+    (ert-should
+     (= 0 rng-error-count))
+    (ert-should
+     (eq (get-text-property 398 'face)
+         'font-lock-function-name-face))))
+
 (ert-deftest nxhtml-ert-genshi-valid-in-genshi ()
   (nxhtmltest-with-persistent-buffer "genshi-auto-mode.html"
     (message "\n")
@@ -89,7 +106,7 @@
     (nxhtmltest-fontify-default-way 2 "sheit")
     (rng-validate-mode 1)
     (rngalt-validate)
-    (assert (eq rng-validate-mode t) t)
+    (ert-should (eq rng-validate-mode t))
     (nxhtmltest-should-no-mumamo-errors)
     (ert-should
       (= 0 rng-error-count))))
@@ -335,7 +352,7 @@ The indentation on line 7 should be 0."
 
 (defun nxhtmltest-run-ert ()
   "Run test with ert library."
-  (let ((selector "nxhtml-ert-genshi"))
+  (let ((selector "nxhtml-ert-"))
     (if noninteractive
         (ert-run-tests-batch selector)
       (ert-run-tests-interactively selector))))
