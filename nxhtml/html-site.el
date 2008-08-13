@@ -53,7 +53,7 @@
 ;; TODO: maybe use browse-url-filename-alist
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (load-library "cl-macs"))
+;;(eval-when-compile (load-library "cl-macs"))
 (defvar html-site-list) ;; Silence compiler
 (defvar html-site-current) ;; Silence compiler
 
