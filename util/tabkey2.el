@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-03-15T14:40:28+0100 Sat
-(defconst tabkey2:version "1.32")
+(defconst tabkey2:version "1.33")
 ;; Last-Updated: 2008-07-21T22:24:55+0200 Mon
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/tabkey2.el
 ;; Keywords:
@@ -36,7 +36,7 @@
 ;; See `tabkey2-mode' for more information.
 ;;
 ;;
-;; This is a generalization of an idea Sebastien Rocca Serra once
+;; This is a generalized of an idea Sebastien Rocca Serra once
 ;; presented on Emacs Wiki and called "Smart Tab".  (It seems like
 ;; many others have also been using Tab for completion in one way or
 ;; another for years.)
@@ -198,6 +198,14 @@
 ;; - Inform about other key bindings in completion functions list.
 ;; - Remove no longer used "preferred" from completion functions list.
 ;;
+;; Version 1.33:
+;; -- Automatically select next function on completion failure.
+;; -- Add completion functions reset functions.
+;;
+;; Fix-me: maybe add \\_>> option to behave like smart-tab. But this
+;; will only works for modes that does not do completion of empty
+;; words (like in smart-tab).
+;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Known bugs
@@ -240,7 +248,12 @@
 
 (defface tabkey2-highlight-line
   '((t :inherit highlight))
-  "Face for marker on current line."
+  "Face for marker on line when default function is active."
+  :group 'tabkey2)
+
+(defface tabkey2-highlight-line2
+  '((t :inherit isearch-fail))
+  "Face for marker on line when non-default function is active."
   :group 'tabkey2)
 
 (defface tabkey2-highlight-message
@@ -322,7 +335,7 @@ If value is a number then delay message that number of seconds."
     ;; General word completion
     ("Predictive word" complete-word-at-point predictive-mode)
     ("Predictive abbreviations" pabbrev-expand-maybe)
-    ("Dynamic word expansion" dabbrev-expand)
+    ("Dynamic word expansion" dabbrev-expand nil (setq dabbrev--last-abbrev-location nil))
     ("Ispell complete word" ispell-complete-word)
     ;; Snippets
     ("Yasnippet" yas/expand)
@@ -332,10 +345,9 @@ If value is a number then delay message that number of seconds."
   "List of completion functions.
 The first 'active' entry in this list is normally used during the
 'Tab completion state' by `tabkey2-complete'.  An entry in the
-list should have either of these forms
+list should have either of this forms
 
-  \(DESCRIPTION FUNCTION)
-  \(DESCRIPTION FUNCTION EXPRESSION)
+  \(DESCRIPTION FUNCTION ACTIVE-FORM RESET-FORM)
 
 The entry is considered active if:
 
@@ -347,16 +359,19 @@ and
 
   or
 
-  the elisp expression EXPRESSION evaluates to non-nil.
-  If it is a single symbol then its variable value is used,
-  otherwise the elisp form is evaled.
+  the elisp expression ACTIVE-FORM evaluates to non-nil.  If it
+  is a single symbol then its variable value is used, otherwise
+  the elisp form is evaled.
+
+RESET-FORM is used to reset the completion function.
 
 When choosing with `tabkey2-cycle-completion-functions'
 only the currently active entry in this list are shown."
   :type '(repeat (list string (choice (command :tag "Currently known command")
                                       (symbol  :tag "Command not known yet"))
                        (choice (const :tag "Active only if it has a key binding at point" nil)
-                               (sexp :tag "Elisp, if evals to non-nil then active"))))
+                               (sexp :tag "Elisp, if evals to non-nil then active"))
+                       (sexp :tag "Elisp, reset completion function")))
   :group 'tabkey2)
 
 ;; Use emulation mode map for first Tab key
@@ -495,6 +510,7 @@ Otherwise return nil."
   "Saved information message for Tab completion state.")
 (defvar tabkey2-current-tab-function nil
   "Tab completion state current completion function.")
+(make-variable-buffer-local 'tabkey2-current-tab-function)
 
 (defun tabkey2-read-only-p ()
   "Return non-nil if buffer seems to be read-only at point."
@@ -504,6 +520,12 @@ Otherwise return nil."
         (memq remap '(Custom-no-edit)))))
 
 ;;;; Minor mode active after first tab
+
+(defun tabkey2-get-highlight-face ()
+  (if (eq tabkey2-current-tab-function
+          (tabkey2-first-active-from-completion-functions))
+      'tabkey2-highlight-line
+    'tabkey2-highlight-line2))
 
 (defun tabkey2-move-overlays ()
   "Move overlays that mark the state and carries the state keymap."
@@ -523,7 +545,10 @@ Otherwise return nil."
     (overlay-put tabkey2-overlay 'priority 1000)
     (if tabkey2-show-mark-on-active-line
         (progn
-          (overlay-put tabkey2-overlay 'face 'tabkey2-highlight-line)
+          (overlay-put tabkey2-overlay 'face
+                       ;;'tabkey2-highlight-line
+                       (tabkey2-get-highlight-face)
+                       )
           (overlay-put tabkey2-overlay 'help-echo
                        "This highlight shows that Tab completion state is on"))
       (overlay-put tabkey2-overlay 'face nil)
@@ -643,6 +668,7 @@ See `tabkey2-first' for more information."
           (add-hook 'pre-command-hook 'tabkey2-pre-command)
           (add-hook 'post-command-hook 'tabkey2-post-command))
       ;;(set-keymap-parent emul-map nil)
+      (setq tabkey2-current-tab-function nil)
       (when (and old-wincfg
                  tabkey2-keymap-overlay
                  (eq (overlay-get tabkey2-keymap-overlay 'window) (selected-window))
@@ -698,6 +724,7 @@ This is run in `post-command-hook' after each command."
         ;; Delayd messages
         (if (not (tabkey2-completion-state-p))
             (tabkey2-completion-state-mode -1)
+          ;;(message "tabkey2-current-tab-function=%s" tabkey2-current-tab-function)
           (tabkey2-move-overlays)))
     (error (message "tabkey2 post: %s" (error-message-string err)))))
 
@@ -947,6 +974,22 @@ the current buffer."
       (tabkey2-message nil "%s%s" tabkey2-current-tab-info
                        (if set-it " - Done" "")))))
 
+(defun tabkey2-activate-next-completion-function ()
+  (let* ((active (mapcar (lambda (rec)
+                           (nth 1 rec))
+                         (tabkey2-get-active-completion-functions)))
+         (first (car active))
+         next)
+    ;;(message "is-shown=%s current=%s active=%s overlay=%s" tabkey2-message-is-shown tabkey2-current-tab-function active tabkey2-overlay)
+    (when tabkey2-current-tab-function
+      (while (and active (not next))
+        (when (eq (car active) tabkey2-current-tab-function)
+          (setq next (cadr active)))
+        (setq active (cdr active))))
+    (unless next (setq next first))
+    ;;(if (eq first next)
+    (tabkey2-make-message-and-set-fun next)))
+
 (defun tabkey2-cycle-completion-functions (prefix)
   "Cycle through cnd display ompletion functions.
 If 'Tab completion state' is not on then turn it on.
@@ -961,24 +1004,9 @@ If PREFIX is given just show what this command will do."
           ;; fix-me
           (message "(TabKey2) %s: show/cycle completion function"
                    last-input-event)
-        (let* ((active (mapcar (lambda (rec)
-                                 (nth 1 rec))
-                               (tabkey2-get-active-completion-functions)))
-               (first (car active))
-               next)
-          ;;(message "is-shown=%s current=%s active=%s overlay=%s" tabkey2-message-is-shown tabkey2-current-tab-function active tabkey2-overlay)
-          (when (or tabkey2-message-is-shown
-                    ;;(tabkey2-message-is-shown)
-                    )
+        (when tabkey2-message-is-shown
             ;; Message is shown currently so change
-            (when tabkey2-current-tab-function
-              (while (and active (not next))
-                (when (eq (car active) tabkey2-current-tab-function)
-                  (setq next (cadr active)))
-                (setq active (cdr active))))
-            (unless next (setq next first))
-            ;;(message "next=%s" next)
-            (tabkey2-make-message-and-set-fun next)))
+            (tabkey2-activate-next-completion-function))
         (tabkey2-show-current-message)))))
 
 
@@ -1108,6 +1136,10 @@ nothing else is bound to Tab there."
           (when to-do-2
             (tabkey2-completion-state-mode 1)))))))
 
+(defcustom tabkey2-choose-next-on-error t
+  "Choose next completion function on error."
+  :type 'boolean
+  :group 'tabkey2)
 
 (defun tabkey2-complete (prefix)
   "Call current completion function.
@@ -1116,7 +1148,18 @@ If used with a PREFIX argument then just show what Tab will do."
   (if prefix
       (message "(TabKey2) %s: %s"
                last-input-event tabkey2-current-tab-function)
-    (call-interactively tabkey2-current-tab-function)))
+    (let ((here (point))
+          (res (if tabkey2-choose-next-on-error
+                   (condition-case err
+                       (call-interactively tabkey2-current-tab-function)
+                     (error (message "%s" (error-message-string err))
+                            nil))
+                 (call-interactively tabkey2-current-tab-function))))
+      (when (and (not res) (= here (point)))
+        (tabkey2-activate-next-completion-function)
+        ;;(message "complete.tabkey2-current-tab-function=%s" tabkey2-current-tab-function)
+        (tabkey2-show-current-message)
+        ))))
 
 (define-minor-mode tabkey2-mode
   "More fun with Tab key number two (completion etc).
@@ -1135,6 +1178,10 @@ as well do completion.
 
 So you kind of do Tab-Tab for first completion \(and then just
 Tab for further completions as long as point is not moved).
+
+And there is even kind of Tab-Tab-Tab completion: If completion
+fails the next completion function will be the one you try with
+next Tab. \(You get some notification of this, of course.)
 
 See `tabkey2-first' for more information about usage.
 
@@ -1255,18 +1302,28 @@ again.")
                                  remapped)))
     key))
 
+;; (defun tabkey2-reset-completion-function (comp-fun)
+;;   "Reset states for functions in `tabkey2-completion-functions'."
+;; ;; Fix-me: remove hard-coding
+;;   (setq dabbrev--last-abbrev-location nil))
+
 (defun tabkey2-make-message-and-set-fun (comp-fun)
   "Set current completion function to COMP-FUN.
 Build message but don't show it."
-  (setq tabkey2-current-tab-function comp-fun)
+  ;;(tabkey2-reset-completion-functions)
   (let* ((chs-fun 'tabkey2-cycle-completion-functions)
          (key (tabkey2-get-key-binding chs-fun))
-         (active-funs (tabkey2-get-active-completion-functions))
-         what)
+         (def-fun (tabkey2-get-default-completion-fun))
+         what
+         reset)
+    (setq tabkey2-current-tab-function comp-fun)
     (dolist (rec tabkey2-completion-functions)
       (let ((fun (nth 1 rec))
-            (txt (nth 0 rec)))
-        (when (eq fun comp-fun) (setq what txt))))
+            (txt (nth 0 rec))
+            (res (nth 3 rec)))
+        (when (eq fun comp-fun)
+          (eval res)
+          (setq what txt))))
     (let ((info (concat (format "Tab: %s" what)
                         (if (cdr (tabkey2-get-active-completion-functions))
                             (format ", other %s, help F1"

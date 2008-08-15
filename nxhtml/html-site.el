@@ -171,6 +171,15 @@
   (interactive)
   (dired (html-site-current-site-dir)))
 
+(defun html-site-find-file ()
+  "Find file in current site."
+  (interactive)
+  (require 'ffip)
+  (ffip-set-current-project html-site-current
+                            (html-site-current-site-dir)
+                            'nxhtml)
+  (call-interactively 'find-file-in-project))
+
 (defun html-site-ensure-site-defined (site-name)
   (unless html-site-list
     (error "No sites defined. Please customize `html-site-list'."))
