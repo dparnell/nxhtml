@@ -4280,6 +4280,9 @@ major mode function:
   `after-change-major-mode-hook' and `change-major-mode-hook' are
   run.
 
+- There will be an alias for FUN-SYM called mumamo-alias-FUN-SYM.
+  This can be used to check whic multi major modes have been
+  defined.
 
 ** A little bit more technical description:
 
@@ -4333,6 +4336,12 @@ These are in the file mumamo-test.el."
                            (intern
                             (symbol-name (quote fun-sym))))
                         (error "Parameter FUN-SYM must be a symbol")))
+         (turn-on-fun-alias (intern
+                             (concat "mumamo-alias-"
+                                     (symbol-name
+                                      (symbol-value
+                                       (intern
+                                        (symbol-name (quote fun-sym))))))))
          (turn-on-hook (intern (concat (symbol-name turn-on-fun) "-hook")))
          (turn-on-map  (intern (concat (symbol-name turn-on-fun) "-map")))
          (turn-on-hook-doc (concat "Hook run at the very end of `"
@@ -4365,6 +4374,8 @@ major mode's local keymap.
 
 The keymap is named `" (symbol-name turn-on-map) "'.
 
+This major mode has an alias `mumamo-alias-"
+(symbol-name turn-on-fun) "'.
 For more information see `define-mumamo-multi-major-mode'."
            )))
     (add-to-list 'mumamo-defined-turn-on-functions
@@ -4388,7 +4399,9 @@ For more information see `define-mumamo-multi-major-mode'."
            (mumamo-add-multi-keymap ',turn-on-fun ,turn-on-map)
            (setq mumamo-current-chunk-family (copy-tree ',chunks2))
            (mumamo-turn-on-actions old-major-mode)
-           (run-hooks ',turn-on-hook))))))
+           (run-hooks ',turn-on-hook)))
+       (defalias ',turn-on-fun-alias ',turn-on-fun)
+       )))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
