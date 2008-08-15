@@ -1103,6 +1103,7 @@ Any command cancels this state."
                        (stralts (mapcar (lambda (elt)
                                           (car elt))
                                         alts))
+                       (setq case-fold-search t)
                        (stralt (completing-read "Type: " stralts nil t))
                        (alt (assoc stralt alts)))
                   (setq def (cdr alt))))))

@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 13:49:41 2007
-(defconst nxhtml-menu:version "1.42") ;;Version:
+(defconst nxhtml-menu:version "1.43") ;;Version:
 ;; Last-Updated: 2008-08-01T20:04:23+0200 Fri
 ;; URL:
 ;; Keywords:
@@ -491,10 +491,13 @@
       (define-key site-map [nxhtml-customize-site-list]
         (list 'menu-item "Edit Sites" (lambda () (interactive)
                                         (customize-option 'html-site-list))))
-      (define-key site-map [nxhtml-dired-site-top]
-        (list 'menu-item "Dired Site" 'html-site-dired-current))
       (define-key site-map [nxhtml-set-site]
         (list 'menu-item "Set Current Site" 'html-site-set-site))
+      (define-key site-map [nxhtml-site-separator-1] (list 'menu-item "--"))
+      (define-key site-map [nxhtml-dired-site-top]
+        (list 'menu-item "Dired Site" 'html-site-dired-current))
+      (define-key site-map [nxhtml-find-site-file]
+        (list 'menu-item "Find File in Site" 'html-site-find-file))
       )
 
     (define-key map [nxhtml-insert-separator]
