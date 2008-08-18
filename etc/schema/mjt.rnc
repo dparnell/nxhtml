@@ -1,4 +1,4 @@
-include "../../../../emacs/p/080810/emacs/etc/schema/xhtml.rnc"
+include "../../../../emacs/u/080810/emacs/etc/schema/xhtml.rnc"
 
 MjtAll.attrib =
   attribute mjt.def { Text.datatype }?,

@@ -592,6 +592,35 @@ what they will do ;-)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Misc.
 
+(defun ourcomments-latest-changelog ()
+  (let ((changelogs
+         '("ChangeLog"
+           "admin/ChangeLog"
+           "doc/emacs/ChangeLog"
+           "doc/lispintro/ChangeLog"
+           "doc/lispref/ChangeLog"
+           "doc/man/ChangeLog"
+           "doc/misc/ChangeLog"
+           "etc/ChangeLog"
+           "leim/ChangeLog"
+           "lib-src/ChangeLog"
+           "lisp/ChangeLog"
+           "lisp/erc/ChangeLog"
+           "lisp/gnus/ChangeLog"
+           "lisp/mh-e/ChangeLog"
+           "lisp/org/ChangeLog"
+           "lisp/url/ChangeLog"
+           "lwlib/ChangeLog"
+           "msdos/ChangeLog"
+           "nextstep/ChangeLog"
+           "nt/ChangeLog"
+           "oldXMenu/ChangeLog"
+           "src/ChangeLog"
+           "test/ChangeLog"))
+        )
+    (emacs-root (expand-file-name ".." exec-directory)
+    )))
+
 (defun ourcomments-read-symbol (prompt predicate)
   "Basic function for reading a symbol for describe-* functions.
 Prompt with PROMPT and show only symbols satisfying function
@@ -837,7 +866,7 @@ function."
         (if (not pl)
             (insert (format "Symbol %s has no property list\n\n" symbol))
           ;; Known properties
-          (dolist (rec nil) ;describe-symbol-alist)
+          (dolist (rec describe-symbol-alist)
             (let ((prop (nth 0 rec))
                   (desc (nth 1 rec)))
               (when (plist-member pl prop)
@@ -849,8 +878,10 @@ function."
                 )))
           (unless any-known
             (insert "The are no known keys in the property list.\n"))
-          (let ((pl (ourcomments-format-plist pl-not-known "\n\n  ")))
-            (insert "\nRest of property list:\n\n (")
+          (let ((pl (ourcomments-format-plist pl "\n  ")))
+            ;;(insert (format "plist=%s\n" (symbol-plist symbol)))
+            ;;(insert (format "pl-not-known=%s\n" pl-not-known))
+            (insert "\nFull property list:\n\n (")
             (insert (propertize pl 'face 'default))
             (insert ")\n\n")))))))
 

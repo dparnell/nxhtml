@@ -97,7 +97,7 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;;;; Information for major modes authors
+;;;; Information for major mode authors
 ;;
 ;; There are a few special requirements on major modes to make them
 ;; work with mumamo:
@@ -111,7 +111,7 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;;;; Information for minor modes authors
+;;;; Information for minor mode authors
 ;;
 ;; Some minor modes are written to be specific for the file edited in
 ;; the buffer and some are written to be specific for a major
@@ -153,6 +153,12 @@
 ;;
 ;;   where HOOKSYM is the hook and FUNSYM is the function.
 ;;
+;; * Some functions that are run in `change-major-mode' and dito
+;;   after- must be avoided when mumamo changes major mode.  The
+;;   functions to avoid should be listed in
+;;
+;;     `mumamo-change-major-mode-no-nos'
+;;     `mumamo-after-change-major-mode-no-nos'
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -3655,6 +3661,26 @@ function, it is changed to a list of functions."
     (put 'imenu-menubar-modified-tick 'permanent-local t)
     ))
 
+(eval-after-load 'longlines
+  (progn
+    ;; Fix-me: take care of longlines-mode-off
+    (put 'longlines-mode 'permanent-local t)
+    (put 'longlines-wrap-beg 'permanent-local t)
+    (put 'longlines-wrap-end 'permanent-local t)
+    (put 'longlines-wrap-point 'permanent-local t)
+    (put 'longlines-showing 'permanent-local t)
+    (put 'longlines-decoded 'permanent-local t)
+    ;;
+    (put 'longlines-after-change-function 'permanent-local-hook t)
+    (put 'longlines-after-revert-hook 'permanent-local-hook t)
+    (put 'longlines-before-revert-hook 'permanent-local-hook t)
+    (put 'longlines-decode-buffer 'permanent-local-hook t)
+    (put 'longlines-decode-region 'permanent-local-hook t)
+    (put 'longlines-mode-off 'permanent-local-hook t)
+    (put 'longlines-post-command-function 'permanent-local-hook t)
+    (put 'longlines-window-change-function 'permanent-local-hook t)
+    ;;(put 'mail-indent-citation 'permanent-local-hook t)
+    ))
 
 
 ;; Fix-me: Rails, many problematic things:
@@ -3727,9 +3753,16 @@ function, it is changed to a list of functions."
     rng-conditional-up-to-date-end ;;rng-valid.el:205:(make-variable-buffer-local 'rng-conditional-up-to-date-end)
     rng-validate-mode ;;rng-valid.el:212:(make-variable-buffer-local 'rng-validate-mode)
     rng-dtd ;;rng-valid.el:215:(make-variable-buffer-local 'rng-dtd)
-    nxml-syntax-highlight-flag
-    nxml-ns-state
-    nxml-scan-end
+
+    nxml-syntax-highlight-flag ;; For pre-Emacs nxml
+    ;;nxml-ns-state - not buffer local currently
+    nxml-prolog-regions ;;snxml-mode.el:362:(make-variable-buffer-local 'nxml-prolog-regions)
+    nxml-last-fontify-end ;;dnxml-mode.el:367:(make-variable-buffer-local 'nxml-last-fontify-end)
+    nxml-degraded ;;dnxml-mode.el:373:(make-variable-buffer-local 'nxml-degraded)
+    nxml-char-ref-extra-display ;;ynxml-mode.el:397:(make-variable-buffer-local 'nxml-char-ref-extra-display)
+    nxml-prolog-end ;;dnxml-rap.el:92:(make-variable-buffer-local 'nxml-prolog-end)
+    nxml-scan-end ;;dnxml-rap.el:107:(make-variable-buffer-local 'nxml-scan-end)
+
     longlines-mode
     longlines-wrap-beg
     longlines-wrap-end
@@ -3783,6 +3816,43 @@ Just check the name."
 (make-variable-buffer-local 'mumamo-major-mode)
 (put 'mumamo-major-mode 'permanent-local t)
 
+(defvar mumamo-change-major-mode-no-nos
+  '((font-lock-change-mode t)
+    (longlines-mode-off t)
+    global-font-lock-mode-cmhh
+    (nxml-cleanup t)
+    (turn-off-hideshow t))
+  "Avoid running these in `change-major-mode-hook'.")
+
+;; Fix-me: use
+(defvar mumamo-after-change-major-mode-no-nos
+  '(nxhtml-global-minor-mode-enable-in-buffers
+    global-font-lock-mode-enable-in-buffers)
+  "Avoid running these in `after-change-major-mode-hook'.")
+
+(defun mumamo-remove-from-hook (hook remove)
+  (dolist (rem remove)
+    ;;(message "rem.rem=%s" rem)
+    (if (listp rem)
+        (remove-hook hook (car rem) t)
+      (remove-hook hook rem))))
+
+(defun mumamo-addback-to-hook (hook remove)
+  (dolist (rem remove)
+    ;;(message "add.rem=%s" rem)
+    (if (listp rem)
+        (add-hook hook (car rem) nil t)
+      (add-hook hook rem))))
+
+(defun mumamo-get-hook-value (hook remove)
+  "Return hook HOOK value with entries in REMOVE removed.
+Remove also t. The value returned is a list of both local and
+default values."
+  (let ((value (append (symbol-value hook) (default-value hook) nil)))
+    (dolist (rem remove)
+      (setq value (delq rem value)))
+    (delq t value)))
+
 ;; FIX-ME: Clean up the different ways of surviving variables during
 ;; change of major mode.
 (defun mumamo-set-major (major)
@@ -3793,6 +3863,17 @@ Just check the name."
         used-time
         ;; Tell `mumamo-change-major-function':
         (mumamo-set-major-running major)
+        ;; Fix-me: Take care of the new values added to these hooks!
+        ;; That looks difficult. We may after this have changes to
+        ;; both buffer local value and global value. The global
+        ;; changes are in this variable, but the buffer local values
+        ;; have been set once again.
+;;;         (change-major-mode-hook (mumamo-get-hook-value
+;;;                                  'change-major-mode-hook
+;;;                                  mumamo-change-major-mode-no-nos))
+;;;         (after-change-major-mode-hook (mumamo-get-hook-value
+;;;                                        'after-change-major-mode-hook
+;;;                                        mumamo-after-change-major-mode-no-nos))
         ;; Some major modes deactivates the mark, we do not want that:
         deactivate-mark
         ;; Font lock
@@ -3801,20 +3882,25 @@ Just check the name."
         ;; Viper is used
         (old-cursor-type cursor-type)
         ;; Protect last-command: fix-me: probably remove
-        (old-last-command last-command)
+;;;         (old-last-command last-command)
+        (last-command last-command)
         ;; Fix-me: remove this
         (old-rng-schema-file (when (boundp 'rng-current-schema-file-name) rng-current-schema-file-name))
         )
     ;; We are not changing mode from font-lock's point of view, so do
     ;; not tell font-lock (let binding these hooks is probably not a
     ;; good choice since they may contain other stuff too):
-    (remove-hook 'change-major-mode-hook 'font-lock-change-mode t)
-    (remove-hook 'change-major-mode-hook 'longlines-mode-off t)
-    (remove-hook 'change-major-mode-hook 'global-font-lock-mode-cmhh)
-    ;; Added somewhere at the beginning of April to nxml:
-    (remove-hook 'change-major-mode-hook 'nxml-cleanup t)
-    ;; We are not changing mode from hs-minor-mode's point of view:
-    (remove-hook 'change-major-mode-hook 'turn-off-hideshow t)
+    ;;(message "here 1")
+    (mumamo-remove-from-hook 'change-major-mode-hook mumamo-change-major-mode-no-nos)
+    ;;(message "change-major-mode-hook=%s" change-major-mode-hook)
+    ;;(message "change-major-mode-hook glob=%s" (default-value 'change-major-mode-hook))
+;;;     (remove-hook 'change-major-mode-hook 'font-lock-change-mode t)
+;;;     (remove-hook 'change-major-mode-hook 'longlines-mode-off t)
+;;;     (remove-hook 'change-major-mode-hook 'global-font-lock-mode-cmhh)
+;;;     ;; Added somewhere at the beginning of April to nxml:
+;;;     (remove-hook 'change-major-mode-hook 'nxml-cleanup t)
+;;;     ;; We are not changing mode from hs-minor-mode's point of view:
+;;;     (remove-hook 'change-major-mode-hook 'turn-off-hideshow t)
 
     (dolist (sym (reverse mumamo-survive))
       (when (boundp sym)
@@ -3833,11 +3919,6 @@ Just check the name."
     ;; property on each function.  Remove those functions that does not
     ;; have it.  Then make the buffer local value of the hook survive
     ;; by putting a permanent-local property on it.
-    ;;
-    ;; I have made a request that this way of handling it should be
-    ;; implemented in Emacs.  RMS has agreed to this now, but for
-    ;; compatibility I have to handle this here.
-    ;;
     (unless (> emacs-major-version 22)
       (dolist (hk mumamo-survive-hooks)
         (put hk 'permanent-local t)
@@ -3869,18 +3950,21 @@ Just check the name."
 ;;       (add-hook 'after-save-hook 'flymake-after-save-hook nil t)
 ;;       (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook nil t))
 
+
     (dolist (sym mumamo-survive)
       (when (boundp sym)
         (put sym 'permanent-local nil)))
+    ;;(message "here 2")
+    (mumamo-addback-to-hook 'change-major-mode-hook mumamo-change-major-mode-no-nos)
     (when (and (featurep 'mlinks)
                mlinks-mode)
       (add-hook 'after-change-functions 'mlinks-after-change t t))
 
     (setq cursor-type old-cursor-type)
-    (unless (eq last-command old-last-command)
-      (lwarn 'mumamo-set-major :error
-             "last-command 3=%s, old-last-command" last-command old-last-command)
-      (setq last-command old-last-command))
+;;;     (unless (eq last-command old-last-command)
+;;;       (lwarn 'mumamo-set-major :error
+;;;              "last-command 3=%s, old-last-command" last-command old-last-command)
+;;;       (setq last-command old-last-command))
     (run-hooks 'mumamo-after-change-major-mode-hook)
 
     (when (derived-mode-p 'nxml-mode)
@@ -3908,12 +3992,12 @@ Just check the name."
 ;;;     (when (and global-font-lock-mode
 ;;;                font-lock-global-modes
 ;;;                font-lock-mode)
-    (when global-font-lock-mode
-      (add-hook 'change-major-mode-hook 'global-font-lock-mode-cmhh))
-    (add-hook 'change-major-mode-hook 'font-lock-change-mode nil t)
-    (when (and (fboundp 'longlines-mode-off)
-               longlines-mode)
-      (add-hook 'change-major-mode-hook 'longlines-mode-off nil t))
+;;;     (when global-font-lock-mode
+;;;       (add-hook 'change-major-mode-hook 'global-font-lock-mode-cmhh))
+;;;     (add-hook 'change-major-mode-hook 'font-lock-change-mode nil t)
+;;;     (when (and (fboundp 'longlines-mode-off)
+;;;                longlines-mode)
+;;;       (add-hook 'change-major-mode-hook 'longlines-mode-off nil t))
 
     (mumamo-set-fontification-functions)
 
