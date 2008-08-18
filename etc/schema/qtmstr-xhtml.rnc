@@ -3,7 +3,7 @@ namespace xi = "http://www.w3.org/2001/XInclude"
 
 include "genshi.rnc"
 include "xinclude.rnc"
-include "../../../../emacs/p/080810/emacs/etc/schema/xhtml.rnc"
+include "../../../../emacs/u/080810/emacs/etc/schema/xhtml.rnc"
 
 start |= head|body|p|\div|h1|h2|h3|h4|h5|h6|hr|pre|dl|ol|ul|table|form
 
