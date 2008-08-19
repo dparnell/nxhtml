@@ -624,31 +624,25 @@ Many aspects this mode can be customized using
 
 (defun nxml-after-change1 (start end pre-change-length)
   (setq nxml-last-fontify-end nil)
-  (message "here 1")
   (let ((pre-change-end (+ start pre-change-length)))
     (setq start
 	  (nxml-adjust-start-for-dependent-regions start
 						   end
 						   pre-change-length))
-    (message "xhere 2, nxml-prolog-end=%s, start=%s, end=%s" nxml-prolog-end start end)
     (when (<= start
 	      ;; Add 2 so as to include the < and following char
 	      ;; that start the instance, since changing these
 	      ;; can change where the prolog ends.
 	      (+ nxml-prolog-end 2))
       ;; end must be extended to at least the end of the old prolog
-      (message "here 3")
       (when (< pre-change-end nxml-prolog-end)
 	(setq end
 	      ;; don't let end get out of range even if pre-change-length
 	      ;; is bogus
 	      (min (point-max)
 		   (+ end (- nxml-prolog-end pre-change-end)))))
-      (message "here 4")
       (nxml-scan-prolog)))
-  (message "here 5, end=%s, nxml-prolog-end=%s" end nxml-prolog-end)
   (cond ((<= end nxml-prolog-end)
-	 (message "here a")
 	 (setq end nxml-prolog-end)
 	 (goto-char start)
 	 ;; This is so that Emacs redisplay works
@@ -666,7 +660,6 @@ Many aspects this mode can be customized using
 	 (setq end (max (nxml-scan-after-change (point) end)
 			end)))
 	(t
-	 (message "here b")
 	 (goto-char start)
 	 ;; This is both for redisplay and to move back
 	 ;; past any incomplete opening delimiters

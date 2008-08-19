@@ -827,7 +827,7 @@ Preserves the `buffer-modified-p' state of the current buffer."
 
 (defun mumamo-start-find-chunk-timer ()
   (mumamo-stop-find-chunk-timer)
-  (setq mumamo-stop-find-chunk-timer
+  (setq mumamo-find-chunk-timer
         (run-with-idle-timer mumamo-find-chunk-delay nil
                              'mumamo-find-chunks)))
 
@@ -878,11 +878,11 @@ Return last chunk."
               (min jit-lock-context-unfontify-pos first-change-pos)))
       (goto-char here))))
 
-(defun mumamo-find-chunk-after-change (min)
-  (when (and mumamo-end-last-chunk-pos
-             (< min mumamo-end-last-chunk-pos))
-    (goto-char here)
-    this-chunk))
+;; (defun mumamo-find-chunk-after-change (min)
+;;   (when (and mumamo-end-last-chunk-pos
+;;              (< min mumamo-end-last-chunk-pos))
+;;     (goto-char here)
+;;     this-chunk))
 
 (defun mumamo-find-chunk-after-change (min)
   (when (and mumamo-end-last-chunk-pos
@@ -2418,15 +2418,15 @@ CHUNK-VALUES should be in the format returned by
     ;; Make syntax border width positive integers:
     (overlay-put chunk-ovl 'syntax-min-d (when syntax-min (- syntax-min min)))
     (overlay-put chunk-ovl 'syntax-max-d (when syntax-max (- max syntax-max)))
-    (when (and (= min (point-min))
-               (= max (point-max)))
-      ;; Fix-me: I believe this is not needed any more and it creates
-      ;; trouble for files starting in a sub mode, for example php
-      ;; files.  They will get the wrong major mode in the
-      ;; chunk.
-      ;;
-      ;;(setq major-sub nil)
-      )
+;;;     (when (and (= min (point-min))
+;;;                (= max (point-max)))
+;;;       ;; Fix-me: I believe this is not needed any more and it creates
+;;;       ;; trouble for files starting in a sub mode, for example php
+;;;       ;; files.  They will get the wrong major mode in the
+;;;       ;; chunk.
+;;;       ;;
+;;;       ;;(setq major-sub nil)
+;;;       )
     ;; Get syntax-begin-function for syntax-ppss:
     (let* ((major (if major-sub major-sub major-normal))
            (syntax-begin-function
@@ -4160,8 +4160,9 @@ mode in the chunk family is nil."
       (with-temp-buffer
         (funcall main-major-mode))
       (setq mumamo-major-mode main-major-mode)
-      (when (mumamo-derived-from-mode main-major-mode 'nxml-mode)
-        (set (make-local-variable 'nxml-syntax-highlight-flag) nil)))
+      (when (boundp 'nxml-syntax-highlight-flag)
+        (when (mumamo-derived-from-mode main-major-mode 'nxml-mode)
+          (set (make-local-variable 'nxml-syntax-highlight-flag) nil))))
     ;; Init fontification
     (mumamo-initialize-state)
     (mumamo-set-fontification-functions)
