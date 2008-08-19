@@ -4,7 +4,7 @@
 ;; Maintainer:
 ;; Created: Fri Mar 09 18:15:25 2007
 (defconst mumamo:version "0.88") ;;Version:
-;; Last-Updated: 2008-08-04T17:54:41+0200 Mon
+;; Last-Updated: 2008-08-18T19:23:00+0200 Mon
 ;; URL: http://OurComments.org/Emacs/Emacs.html
 ;; Keywords:
 ;; Compatibility:
@@ -1618,7 +1618,7 @@ most major modes."
                 (when chunk (get-text-property chunk-max-1 'face)))
           (setq chunk-major (when chunk (mumamo-chunk-major-mode chunk)))
 
-          (if first-new-ovl
+          (if (and first-new-ovl (overlay-buffer first-new-ovl))
               (setq last-new-ovl chunk)
             (setq last-new-ovl chunk)
             (setq first-new-ovl chunk))
@@ -3824,25 +3824,53 @@ Just check the name."
     (turn-off-hideshow t))
   "Avoid running these in `change-major-mode-hook'.")
 
-;; Fix-me: use
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Remove things from hooks temporarily
+
+;; Fix-me: This is a bit disorganized, could not decide which level I
+;; wanted this on.
+
 (defvar mumamo-after-change-major-mode-no-nos
   '(nxhtml-global-minor-mode-enable-in-buffers
     global-font-lock-mode-enable-in-buffers)
   "Avoid running these in `after-change-major-mode-hook'.")
 
-(defun mumamo-remove-from-hook (hook remove)
-  (dolist (rem remove)
-    ;;(message "rem.rem=%s" rem)
-    (if (listp rem)
-        (remove-hook hook (car rem) t)
-      (remove-hook hook rem))))
+(defvar mumamo-removed-from-hook nil)
 
-(defun mumamo-addback-to-hook (hook remove)
-  (dolist (rem remove)
+(defun mumamo-remove-from-hook (hook remove)
+  (let (did-remove
+        removed)
+    (dolist (rem remove)
+      ;;(message "rem.rem=%s" rem)
+      (setq did-remove nil)
+      (if (listp rem)
+          (when (memq (car rem) (symbol-value hook))
+            (setq did-remove t)
+            (remove-hook hook (car rem) t))
+        (when (memq rem (symbol-value hook))
+          (setq did-remove t)
+          (remove-hook hook rem)))
+      (when did-remove
+        (setq removed (cons rem removed))))
+    (setq mumamo-removed-from-hook
+          (cons (cons hook removed)
+                mumamo-removed-from-hook))))
+
+(defun mumamo-addback-to-hooks ()
+  ;;(message "mumamo-removed-from-hook=%s" mumamo-removed-from-hook)
+  (dolist (rem-rec mumamo-removed-from-hook)
+    (mumamo-addback-to-hook (car rem-rec) (cdr rem-rec))))
+
+(defun mumamo-addback-to-hook (hook removed)
+  ;;(message "addback: hook=%s, removed=%s" hook removed)
+  (dolist (rem removed)
     ;;(message "add.rem=%s" rem)
     (if (listp rem)
         (add-hook hook (car rem) nil t)
       (add-hook hook rem))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 (defun mumamo-get-hook-value (hook remove)
   "Return hook HOOK value with entries in REMOVE removed.
@@ -3891,6 +3919,7 @@ default values."
     ;; not tell font-lock (let binding these hooks is probably not a
     ;; good choice since they may contain other stuff too):
     ;;(message "here 1")
+    (setq mumamo-removed-from-hook nil)
     (mumamo-remove-from-hook 'change-major-mode-hook mumamo-change-major-mode-no-nos)
     ;;(message "change-major-mode-hook=%s" change-major-mode-hook)
     ;;(message "change-major-mode-hook glob=%s" (default-value 'change-major-mode-hook))
@@ -3955,7 +3984,8 @@ default values."
       (when (boundp sym)
         (put sym 'permanent-local nil)))
     ;;(message "here 2")
-    (mumamo-addback-to-hook 'change-major-mode-hook mumamo-change-major-mode-no-nos)
+    ;;(mumamo-addback-to-hook 'change-major-mode-hook mumamo-change-major-mode-no-nos)
+    (mumamo-addback-to-hooks)
     (when (and (featurep 'mlinks)
                mlinks-mode)
       (add-hook 'after-change-functions 'mlinks-after-change t t))
@@ -3987,7 +4017,9 @@ default values."
     (when (mumamo-derived-from-mode (mumamo-main-major-mode) 'nxml-mode)
       (add-hook 'after-change-functions 'rng-after-change-function nil t)
       (add-hook 'after-change-functions 'nxml-after-change nil t)
-      )
+      ;; Added these for Emacs 22:
+      (unless nxml-prolog-end (setq nxml-prolog-end 1))
+      (unless nxml-scan-end (setq nxml-scan-end 1)))
 
 ;;;     (when (and global-font-lock-mode
 ;;;                font-lock-global-modes

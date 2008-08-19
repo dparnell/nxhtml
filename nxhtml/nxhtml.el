@@ -5,8 +5,8 @@
 
 ;; Author:  Lennart Borgman <lennart DOT borgman DOT 073 AT student DOT lu DOT se>
 ;; Created: 2005-08-05
-(defconst nxhtml:version "1.43") ;;Version:
-;; Last-Updated: 2008-08-01T20:04:10+0200 Fri
+(defconst nxhtml:version "1.44") ;;Version:
+;; Last-Updated: 2008-08-18T19:22:33+0200 Mon
 ;; Keywords: languages
 ;;
 ;;
@@ -138,8 +138,8 @@
                          "nxml-where.el" "0.52")
            (mlinks       "Live XHTML links"
                          "mlinks.el" "0.28")
-           (nxhtml-strval "Allow attr=\"<?php...?>\" etc"
-                         "nxhtml-strval.el" "0.3")
+;;;            (nxhtml-strval "Allow attr=\"<?php...?>\" etc"
+;;;                          "nxhtml-strval.el" "0.3")
            (as-external  "Emacs as an external editor"
                          "as-external.el" "0.5")
            (gimp         "Edit images with GIMP"

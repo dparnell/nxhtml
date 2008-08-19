@@ -12,7 +12,7 @@
 ;;
 ;;; Commentary:
 ;;
-;; Defines `nxhtmltest-run-ert'.  When (getenv "nxhtmltest-run-Q")
+;; Defines `nxhtmltest-run'.  When (getenv "nxhtmltest-run-Q")
 ;; returns non-nil also runs this function.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -76,6 +76,24 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define tests using ert.el
 
+(ert-deftest nxhtml-ert-only-php-no-end ()
+  "Check for nXml error."
+  (nxhtmltest-with-persistent-buffer "no-php-end-4.php"
+    (nxhtml-mumamo)
+    (run-hooks 'after-change-major-mode-hook)
+    (run-hooks 'post-command-hook)
+    (nxhtmltest-fontify-default-way 2 "trans")
+    (rng-validate-mode 1)
+    ;;(rngalt-validate)
+    (ert-should (eq rng-validate-mode t))
+    (nxhtmltest-should-no-mumamo-errors)
+    (nxhtmltest-should-no-nxml-errors)
+    (goto-char 324)
+    (message "before insert, after-change-functions local=%s" after-change-functions)
+    (insert "\n")
+    (nxhtmltest-should-no-mumamo-errors)
+    (nxhtmltest-should-no-nxml-errors)))
+
 (ert-deftest nxhtml-ert-xhtml-1.0-transitional ()
   "Test XHTML 1.0 Transitional with `nxhtml-mumamo'.
 This test should fail because there is currently no rng schema
@@ -123,7 +141,7 @@ file is invalid then."
     (font-lock-mode 1)
     (rng-validate-mode 1)
     (rngalt-validate)
-    (assert (eq rng-validate-mode t) t)
+    (ert-should (eq rng-validate-mode t))
     (nxhtmltest-should-no-mumamo-errors)
     (ert-should
       (= 2 rng-error-count))))
@@ -188,9 +206,9 @@ file is invalid then."
 (ert-deftest nxhtml-ert-wiki-strange-hili-080629 ()
   "From a report on EmacsWiki."
   (nxhtmltest-with-persistent-buffer "wiki-strange-hili-080629.html"
-    (assert (not font-lock-mode) t "%s %s" "font-lock on before")
+    ;;(ert-should (not font-lock-mode))
     (nxhtml-mumamo)
-    (assert (not font-lock-mode) t "%s %s" "font-lock on after")
+    ;;(ert-should (not font-lock-mode))
     (nxhtmltest-fontify-default-way 2 "hili")
     (goto-char 44)
     (nxhtmltest-should-no-mumamo-errors)
@@ -205,9 +223,9 @@ file is invalid then."
         ;; Fix-me: ert should maybe have some way to just display
         ;; informational messages?
         (error "ruby-mode not available, skipping test")
-      (assert (not font-lock-mode))
+      ;;(ert-should (not font-lock-mode))
       (eruby-nxhtml-mumamo)
-      (assert (not font-lock-mode))
+      ;;(ert-should (not font-lock-mode))
       (nxhtmltest-fontify-default-way 2 "ind")
       (mark-whole-buffer)
       (indent-for-tab-command)
@@ -220,9 +238,9 @@ file is invalid then."
     (require 'ruby-mode nil t)
     (if (not (featurep 'ruby-mode))
         (error "ruby-mode not available, skipping test")
-      (assert (not font-lock-mode))
+      ;;(ert-should (not font-lock-mode))
       (eruby-nxhtml-mumamo)
-      (assert (not font-lock-mode))
+      ;;(ert-should (not font-lock-mode))
       (nxhtmltest-fontify-default-way 2 "ind")
       (insert "  ")
       (mark-whole-buffer)
@@ -234,9 +252,9 @@ file is invalid then."
 
 (ert-deftest nxhtml-ert-sheit-2007-12-26 ()
   (nxhtmltest-with-persistent-buffer "sheit-2007-12-26.php"
-    (assert (not font-lock-mode))
+    ;;(ert-should (not font-lock-mode))
     (nxhtml-mumamo)
-    (assert (not font-lock-mode))
+    ;;(ert-should (not font-lock-mode))
     (nxhtmltest-fontify-default-way 2 "sheit")
     (nxhtmltest-should-no-mumamo-errors)
     (ert-should
@@ -252,18 +270,21 @@ file is invalid then."
 ;; Now some tests with a big file. Jumping backwards can fail.
 
 (defun nxhtml-ert-nxhtml-changes-jump-back-2 (pos)
- (assert (not font-lock-mode))
+  ;;(ert-should (not font-lock-mode))
   (nxhtml-mumamo)
-  (assert (not font-lock-mode))
+  (run-hooks 'post-command-hook)
+  ;;(ert-should (not font-lock-mode))
   (goto-char (- (point-max) (- 64036 63869)))
   (nxhtmltest-fontify-default-way 2)
   (nxhtmltest-should-no-mumamo-errors)
   (ert-should
    (eq (get-text-property (point) 'face)
        'font-lock-variable-name-face))
+  (message "here 1")
   (goto-char pos)
   (nxhtmltest-fontify-default-way 2)
   (nxhtmltest-should-no-mumamo-errors)
+  (message "here 2")
   (ert-should
    (eq (get-text-property (point) 'face)
        'font-lock-function-name-face)))
@@ -280,9 +301,9 @@ wonder how that works now ..."
 
 (ert-deftest nxhtml-ert-nxhtml-changes-jump-2 ()
   (nxhtmltest-with-persistent-buffer "../../nxhtml/doc/nxhtml-changes.html"
-    (assert (not font-lock-mode))
+    ;;(ert-should (not font-lock-mode))
     (nxhtml-mumamo)
-    (assert (not font-lock-mode))
+    ;;(ert-should (not font-lock-mode))
     (goto-char 10549)
     (nxhtmltest-fontify-default-way 2 "jump-2")
     (nxhtmltest-should-no-mumamo-errors)
@@ -310,9 +331,9 @@ The indentation on line 7 should be 0."
 ;; (ert-deftest nxhtml-ert-scroll-jump-test ()
 ;;   "Test if `scroll-conservatively' eq 1 works."
 ;;   (nxhtmltest-with-persistent-buffer "../../nxhtml/doc/nxhtml-changes.html"
-;;     (assert (not font-lock-mode))
+;;     (ert-should (not font-lock-mode))
 ;;     (nxhtml-mumamo)
-;;     (assert (not font-lock-mode))
+;;     (ert-should (not font-lock-mode))
 ;;     (nxhtmltest-fontify-default-way 2 "jump-2")
 ;;     (let ((scroll-conservatively 1)
 ;;           (ws (list (window-start)))
