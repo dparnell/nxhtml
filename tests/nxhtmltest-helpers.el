@@ -50,6 +50,12 @@
 (defun nxhtmltest-should-no-mumamo-errors ()
   (ert-should (not (nxhtmltest-mumamo-error-messages))))
 
+(defun nxhtmltest-mumamo-error-messages ()
+  (ert-get-messages "^MuMaMo error"))
+
+(defun nxhtmltest-should-no-nxml-errors ()
+  (ert-should (not (ert-get-messages "Internal nXML mode error"))))
+
 (defun nxhtmltest-be-really-idle (seconds &optional prompt-mark)
   (unless prompt-mark (setq prompt-mark ""))
   (with-timeout (4 (message "<<<< %s - not really idle any more at %s"
@@ -145,7 +151,8 @@ use `nxhtmltest-kill-test-buffers'."
          (put 'font-lock-global-modes 'permanent-local t)
          ;; Turn off font lock in buffer
          (font-lock-mode -1)
-         (assert (not font-lock-mode) t "%s %s" "in nxhtmltest-with-persistent-buffer")
+         (when (> emacs-major-version 22)
+           (assert (not font-lock-mode) t "%s %s" "in nxhtmltest-with-persistent-buffer"))
          (insert-file-contents ,file-name)
          (save-window-excursion
            ;; Switch to buffer so it will show immediately when

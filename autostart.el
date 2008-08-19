@@ -66,7 +66,8 @@
       (load (expand-file-name "nxml-mode-20041004/rng-auto" this-dir)))
     ;; Patch the rnc include paths
     (load-file (expand-file-name "etc/schema/schema-path-patch.el" this-dir))
-    (rncpp-patch-files)
+    ;;(rncpp-patch-files)
+    (rncpp-patch-xhtml-loader)
     ;; Load nXhtml
     (load (expand-file-name "nxhtml/nxhtml-autoload" this-dir))))
 
