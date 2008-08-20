@@ -711,8 +711,10 @@ of the current one in `html-mumamo'.
 
 Lookup in this list is done by `mumamo-major-mode-from-modespec'."
   :type '(alist
-          :key-type symbol
-          :value-type (repeat (choice function symbol))
+          :key-type (symbol :tag "Symbol for major mode spec in chunk")
+          :value-type (repeat (choice
+                               (command :tag "Major mode")
+                               (symbol :tag "Major mode (not yet loaded)")))
           )
   :group 'mumamo)
 
@@ -4303,6 +4305,12 @@ use `mumamo-quick-static-chunk'.")
                (if (not doc)
                    "(Not documented)"
                  (substring doc 0 (string-match "\n" doc)))))))
+    (setq desc
+          (concat
+           desc
+           "\n\n(Note that the functions for dividing into chunks returns\n"
+           "a major mode specifier which may be translated into a major mode\n"
+           "by `mumamo-main-major-mode'.)\n"))
     desc))
 
 (defun mumamo-add-multi-keymap (toggle keymap)
@@ -4471,10 +4479,10 @@ These are in the file mumamo-test.el."
            spec-doc
            "
 
-The main use for this function is in `auto-mode-alist' to have
-Emacs do this setup whenever you open a file named in a certain
-way.  \(You can of course call this function directly yourself
-too.)
+This function is called a multi major mode.  The main use for it
+is in `auto-mode-alist' to have Emacs do this setup whenever you
+open a file named in a certain way.  \(You can of course call
+this function directly yourself too.)
 
 It sets up for multiple mode in the following way:
 
@@ -4482,7 +4490,7 @@ It sets up for multiple mode in the following way:
            (funcall 'mumamo-describe-chunks chunks2)
            "
 
-At the very end this function runs first the hook
+At the very end this multi major mode function runs first the hook
 `mumamo-turn-on-hook' and then `" (symbol-name turn-on-hook) "'.
 
 There is a keymap specific to this multi major mode, but it is

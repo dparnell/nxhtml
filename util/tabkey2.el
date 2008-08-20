@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-03-15T14:40:28+0100 Sat
-(defconst tabkey2:version "1.33")
+(defconst tabkey2:version "1.34")
 ;; Last-Updated: 2008-07-21T22:24:55+0200 Mon
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/tabkey2.el
 ;; Keywords:
@@ -201,6 +201,10 @@
 ;; Version 1.33:
 ;; -- Automatically select next function on completion failure.
 ;; -- Add completion functions reset functions.
+;;
+;; Version 1.34:
+;; - Set this-command on call-interactively.
+;; - Avoid setting last-command.
 ;;
 ;; Fix-me: maybe add \\_>> option to behave like smart-tab. But this
 ;; will only works for modes that does not do completion of empty
@@ -503,6 +507,8 @@ Otherwise return nil."
            (end   (overlay-end   tabkey2-keymap-overlay))
            (chars (append (buffer-substring-no-properties start end) nil)))
       (and (not (memq ?\n chars))
+           (not (eq ?\  (car (last chars))))
+           (not (eq ?\  last-input-event))
            (<= start (point))
            (<= (point) end)))))
 
@@ -1129,12 +1135,16 @@ nothing else is bound to Tab there."
                      last-input-event to-do-1
                      (if to-do-2 to-do-2 "(same)")))
         (when to-do-1
-          (let ((last-command to-do-1)
-                mumamo-multi-major-mode)
-            (call-interactively to-do-1)))
+          (let (mumamo-multi-major-mode)
+              (tabkey2-call-interactively to-do-1)))
         (unless (tabkey2-read-only-p)
           (when to-do-2
             (tabkey2-completion-state-mode 1)))))))
+
+(defun tabkey2-call-interactively (function)
+  "Like `call-interactively, but handle `this-command'."
+  (setq this-command function)
+  (call-interactively function))
 
 (defcustom tabkey2-choose-next-on-error t
   "Choose next completion function on error."
@@ -1151,10 +1161,10 @@ If used with a PREFIX argument then just show what Tab will do."
     (let ((here (point))
           (res (if tabkey2-choose-next-on-error
                    (condition-case err
-                       (call-interactively tabkey2-current-tab-function)
+                       (tabkey2-call-interactively tabkey2-current-tab-function)
                      (error (message "%s" (error-message-string err))
                             nil))
-                 (call-interactively tabkey2-current-tab-function))))
+                 (tabkey2-call-interactively tabkey2-current-tab-function))))
       (when (and (not res) (= here (point)))
         (tabkey2-activate-next-completion-function)
         ;;(message "complete.tabkey2-current-tab-function=%s" tabkey2-current-tab-function)
