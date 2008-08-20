@@ -97,8 +97,33 @@
         (fill-region here (point))
         (setq here (point))
         (insert
-         "If you know Emacs lisp and are reporting a bug it would be nice if you wrote a new unit test case.\n"
-         "Please see the file nxhtml/tests/nxhtmltest-suites.el for examples.\n\n")
+         "You may also want to look at the installation part of the ")
+        (insert-text-button "The Quick Guide"
+                            'action (lambda (btn)
+                                      (browse-url
+                                       (concat
+                                        (nxhtml-docfile-url)
+                                        "#qg"))))
+        (insert " or the file ")
+        (insert-text-button
+         "nxhtml/readme.txt"
+         'action (lambda (btn)
+                   (find-file-other-window
+                    (expand-file-name "../readme.txt"
+                                      (file-name-directory
+                                       (symbol-file 'nxhtml-report-bug))))))
+        (insert ".\n\n")
+        (fill-region here (point))
+        (setq here (point))
+        (insert
+         "If you know Emacs lisp and are reporting a bug it would be nice "
+         "if you wrote a new unit test case.\n"
+         "Please see the file ")
+        (insert-text-button "nxhtmltest-suites.el"
+                            'help-echo "Visit file"
+                            'action (lambda (button)
+                                      (find-file (symbol-file 'nxhtmltest-run))))
+        (insert " for examples.\n\n")
         (fill-region here (point))
         (setq here (point))
         (insert
@@ -137,6 +162,7 @@ will take over the job (with your help)."
   (interactive (list (read-string "nXhtml Bug Subject: ")))
   ;; If there are four numbers in emacs-version, this is a pretest
   ;; version.
+  (require 'nxhtml-menu)
   (let* ((pretest-p (string-match "\\..*\\..*\\." emacs-version))
         (from-buffer (current-buffer))
         ;;(reporting-address "lennart.borgman@gmail.com")
@@ -188,7 +214,7 @@ usually do not have translators to read other languages for them.\n\n")
     (setq user-point (point))
     (insert "\n\n")
 
-    (insert "\n\nnXhtml version " nxhtml:version ", " (emacs-version) "\n\n")
+    (insert "\n\nnXhtml version " nxhtml-menu:version ", " (emacs-version) "\n\n")
     (insert (format "Major mode: %s\n"
                     (buffer-local-value 'mode-name from-buffer)))
     (insert "\n")

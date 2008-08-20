@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 13:49:41 2007
-(defconst nxhtml-menu:version "1.45") ;;Version:
+(defconst nxhtml-menu:version "1.46") ;;Version:
 ;; Last-Updated: 2008-08-18T19:22:50+0200 Mon
 ;; URL:
 ;; Keywords:
@@ -138,11 +138,11 @@
         (list 'menu-item "Check Optional Features" 'nxhtml-features-check))
       (define-key help-map [nxhtml-customize]
         (list 'menu-item "Customize nXhtml ..." 'nxhtml-customize))
-      (define-key help-map [nxhtml-quick-customize]
-        (list 'menu-item "Quick Customize nXhtml ..." 'nxhtml-quick-customize))
+;;;       (define-key help-map [nxhtml-quick-customize]
+;;;         (list 'menu-item "Quick Customize nXhtml ..." 'nxhtml-quick-customize))
       (define-key help-map [nxhtml-help-separator3] (list 'menu-item "--"))
-      (define-key help-map [nxhtml-help]
-        (list 'menu-item "nXhtml Help" 'nxhtml-help))
+;;;       (define-key help-map [nxhtml-help]
+;;;         (list 'menu-item "nXhtml Help" 'nxhtml-help))
       (define-key help-map [nxhtml-overview]
         (list 'menu-item (concat "nXhtml version " nxhtml-menu:version " Overview") 'nxhtml-overview))
       (define-key help-map [nxhtml-welcome]
@@ -833,72 +833,72 @@ See `nxhtml-minor-mode-modes'."
     (put-text-property 0 (length txt) 'mouse-face 'highlight txt)
     (widget-insert-link txt 'describe-function (list sym))))
 
-(defun nxhtml-quick-customize (&optional same-window)
-  "Show page for Quick Customize of nXhtml."
-  (interactive)
-  (require 'nxhtml)
-  (require 'custom)
-  (require 'cus-edit)
-  (if same-window
-      (switch-to-buffer "*Quick Customize nXhtml*")
-    (switch-to-buffer-other-window "*Quick Customize nXhtml*"))
-  (kill-all-local-variables)
-  (custom-mode)
-  (let ((inhibit-read-only t))
-    (erase-buffer))
-  (let ((sFound "found")
-        (sError "error"))
-    (put-text-property 0 (length sFound)
-                       'face '(bold
-                               (foreground-color . "green")) sFound)
-    (put-text-property 0 (length sError)
-                       'face '(bold
-                               (foreground-color . "red")) sError)
-    (let* (
-           (default-used "(not set yet - default used)")
-           )
-      (nxhtml-custom-h1 "Quick Customize for nXhtml" t)
-      (widget-insert "
+;; (defun nxhtml-quick-customize (&optional same-window)
+;;   "Show page for Quick Customize of nXhtml."
+;;   (interactive)
+;;   (require 'nxhtml)
+;;   (require 'custom)
+;;   (require 'cus-edit)
+;;   (if same-window
+;;       (switch-to-buffer "*Quick Customize nXhtml*")
+;;     (switch-to-buffer-other-window "*Quick Customize nXhtml*"))
+;;   (kill-all-local-variables)
+;;   (custom-mode)
+;;   (let ((inhibit-read-only t))
+;;     (erase-buffer))
+;;   (let ((sFound "found")
+;;         (sError "error"))
+;;     (put-text-property 0 (length sFound)
+;;                        'face '(bold
+;;                                (foreground-color . "green")) sFound)
+;;     (put-text-property 0 (length sError)
+;;                        'face '(bold
+;;                                (foreground-color . "red")) sError)
+;;     (let* (
+;;            (default-used "(not set yet - default used)")
+;;            )
+;;       (nxhtml-custom-h1 "Quick Customize for nXhtml" t)
+;;       (widget-insert "
 
-This page is for a quick and easy setup of some ")
-      (nxhtml-custom-url-link "nXhtml" (nxhtml-docfile-url))
-      (widget-insert " features
-that I did not want to turn on by default since they alter what
-happens when you open a file.  I suggest however that you turn
-them on since they are quite useful if you just understands what
-is happening.
+;; This page is for a quick and easy setup of some ")
+;;       (nxhtml-custom-url-link "nXhtml" (nxhtml-docfile-url))
+;;       (widget-insert " features
+;; that I did not want to turn on by default since they alter what
+;; happens when you open a file.  I suggest however that you turn
+;; them on since they are quite useful if you just understands what
+;; is happening.
 
-The values you set here are saved so that they will be used next
-time you start Emacs too.")
-      ;;(widget-insert-link "customize nXhtml" 'customize-group (list 'nxhtml))
-      (widget-insert "\n\n")
+;; The values you set here are saved so that they will be used next
+;; time you start Emacs too.")
+;;       ;;(widget-insert-link "customize nXhtml" 'customize-group (list 'nxhtml))
+;;       (widget-insert "\n\n")
 
-      (nxhtml-custom-insert-nxhtml-row 'nxhtml-global-minor-mode t "Show the nXhtml menu in all relevant buffers\n\t")
-      ;;(nxhtml-custom-insert-nxhtml-row 'mumamo-global-mode t "Turn on Multiple Major Mode in all relevant buffers\n\t")
-      ;;(nxhtml-custom-insert-nxhtml-row 'mlinks-global-mode t "Make link of lins, for example href=\"...\"\n\t")
-      (nxhtml-custom-insert-nxhtml-row 'indent-region-mode t "Use TAB to indent region when it is selected\n\t")
+;;       (nxhtml-custom-insert-nxhtml-row 'nxhtml-global-minor-mode t "Show the nXhtml menu in all relevant buffers\n\t")
+;;       ;;(nxhtml-custom-insert-nxhtml-row 'mumamo-global-mode t "Turn on Multiple Major Mode in all relevant buffers\n\t")
+;;       ;;(nxhtml-custom-insert-nxhtml-row 'mlinks-global-mode t "Make link of lins, for example href=\"...\"\n\t")
+;;       ;;(nxhtml-custom-insert-nxhtml-row 'indent-region-mode t "Use TAB to indent region when it is selected\n\t")
 
-      (widget-insert "\n")
-      (widget-insert-button " Turn them all on "
-                          (lambda ()
-                            (nxhtml-quick-all t)
-                            (nxhtml-quick-customize t))
-                          nil)
-      (widget-insert "  ")
-      (widget-insert-button " Turn them all off "
-                          (lambda ()
-                            (nxhtml-quick-all nil)
-                            (nxhtml-quick-customize t))
-                          nil)
-      (beginning-of-line)
-      )))
+;;       (widget-insert "\n")
+;;       (widget-insert-button " Turn them all on "
+;;                           (lambda ()
+;;                             (nxhtml-quick-all t)
+;;                             (nxhtml-quick-customize t))
+;;                           nil)
+;;       (widget-insert "  ")
+;;       (widget-insert-button " Turn them all off "
+;;                           (lambda ()
+;;                             (nxhtml-quick-all nil)
+;;                             (nxhtml-quick-customize t))
+;;                           nil)
+;;       (beginning-of-line)
+;;       )))
 
-(defun nxhtml-quick-all (on)
-  (custom-set-and-prepare-save 'nxhtml-global-minor-mode on)
-  ;;(custom-set-and-prepare-save 'mumamo-global-mode on)
-  (custom-set-and-prepare-save 'indent-region-mode on)
-  (when custom-file
-    (custom-save-all)))
+;; (defun nxhtml-quick-all (on)
+;;   (custom-set-and-prepare-save 'nxhtml-global-minor-mode on)
+;;   ;;(custom-set-and-prepare-save 'mumamo-global-mode on)
+;;   (custom-set-and-prepare-save 'indent-region-mode on)
+;;   (when custom-file
+;;     (custom-save-all)))
 
 (defun custom-set-and-prepare-save (symbol value)
   "Set SYMBOL to VALUE and add to customize.
@@ -920,62 +920,52 @@ Both the current value and the value to save is set, but
          (curwin (selected-window)))
     (switch-to-buffer-other-window bufnam)
     (unless oldbuf
-      (let ((inhibit-read-only t))
+      (let ((inhibit-read-only t)
+            (here (point)))
         (custom-mode)
         (setq cursor-in-non-selected-windows nil)
         (nxhtml-custom-h1 "Welcome to nXhtml - a package for web editing" t)
-        (insert "
-
-If you have not done it already it might be a good time to read
-the ")
+        (insert "\n\n")
+        (setq here (point))
+        (insert "If you have not done it already it might "
+                "be a good time to read at least The Quick Guide in the ")
         (nxhtml-custom-url-link "nXhtml overview" (nxhtml-docfile-url))
-        (insert " now.")
-
-        (insert "
-
-And oh, wait! If you are new to Emacs too you might want to take
-a quick ")
+        (insert " now.\n\n")
+        (fill-region here (point))
+        (setq here (point))
+        (insert "And oh, wait! If you are new to Emacs too you might want "
+                "to take a quick ")
         (nxhtml-custom-url-link
          "Emacs tour"
-         "http://stuff.mit.edu/iap/emacs/emacs-guided-tour-1.html")
+         "http://www.gnu.org/software/emacs/tour/")
+        (insert ".  And then perhaps the Emacs tutorial "
+                "(which is in the Help menu above).\n\n")
+        (fill-region here (point))
+        (setq here (point))
 
-        (insert ".  And then perhaps the Emacs tutorial (that
-one is in the Help menu above).")
+;;;         (insert "
 
+;;; To make the use of nXhtml as smooth as possible I also recommend
+;;; that you go to ")
 
-        (insert "
+;;;         (widget-insert-link "Quick Customize nXhtml"
+;;;                             (lambda ()
+;;;                               (nxhtml-quick-customize))
+;;;                             nil)
 
-To make the use of nXhtml as smooth as possible I also recommend
-that you go to ")
-
-        (widget-insert-link "Quick Customize nXhtml"
-                            (lambda ()
-                              (nxhtml-quick-customize))
-                            nil)
-
-        (insert " and follow the instructions
-there.")
+;;;         (insert " and follow the instructions
+;;; there.")
 
         (unless (nxhtml-skip-welcome)
-          (insert "
-
-Doing that will remove this message when you start Emacs. You can
-also just ")
+          (insert "Click to ")
           (widget-insert-link "remove this message"
                               (lambda ()
-;;                                 (custom-set-and-prepare-save
-;;                                  'nxhtml-skip-welcome t)
-;;                                 (custom-save-all)
-;;                                 (let ((s "The nXhtml Welcome message will not be shown any more."))
-;;                                   (put-text-property 0 (length s)
-;;                                                      'face '(:foreground "red")
-;;                                                      s)
-;;                                   (message s))
-                                (customize-option 'nxhtml-skip-welcome)
-                                )
+                                (customize-option 'nxhtml-skip-welcome))
                               nil)
-          (insert " at startup.  (This page is still
-available in the nXhtml menu, at the bottom.)"))
+          (insert " at startup.  (This page is still "
+                  "available in the nXhtml menu, at the bottom.)"))
+        (fill-region here (point))
+        (setq here (point))
         (goto-char (point-min))))
     (select-window curwin)))
 
@@ -991,7 +981,8 @@ file using nxhtml-mode."
    (or nxhtml-skip-welcome
        (and nxhtml-global-minor-mode
             ;;mumamo-global-mode
-            indent-region-mode)))
+            ;;indent-region-mode
+            )))
 
 (defun nxhtml-say-welcome-unless-skip ()
   (unless (nxhtml-skip-welcome)
