@@ -5,7 +5,7 @@
 
 ;; Author:  Lennart Borgman <lennart DOT borgman DOT 073 AT student DOT lu DOT se>
 ;; Created: 2005-08-05
-(defconst nxhtml:version "1.45") ;;Version:
+;;(defconst nxhtml:version "1.45") ;;Version:
 ;; Last-Updated: 2008-08-18T19:22:33+0200 Mon
 ;; Keywords: languages
 ;;
@@ -130,7 +130,7 @@
                          "hexcolor.el" "0.51")
            (fold-dwim    "Folding on headers and tags"
                          "fold-dwim.el" "1.3")
-           (appmenu      "Popup menu"
+           (appmenu      "General popup menu"
                          "appmenu.el" "0.53")
            (appmenu-fold "Popup menu entries for folding"
                          "appmenu-fold.el" "0.51" appmenu fold-dwim)
@@ -240,7 +240,7 @@ See this function for more information."
     (dolist (feat-entry nxhtml-req-features)
       (nxhtml-feature-check feat-entry nil))
     (goto-char (point-min))
-    (while (search-forward-regexp "[-a-zA-Z]+\\.el" nil t)
+    (while (search-forward-regexp "[-a-zA-Z0-9]+\\.el" nil t)
       (nxhtml-make-library-link
        (match-beginning 0)
        (match-end 0)))
