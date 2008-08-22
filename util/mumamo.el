@@ -684,6 +684,9 @@ major mode above has indentation 0."
      javascript-mode
      js2-fl-mode
      ecmascript-mode)
+    (java-mode
+     jde-mode
+     java-mode)
     )
   "Alist for conversion of chunk major mode specifier to major mode.
 Each entry has the form
@@ -1879,7 +1882,8 @@ known to not be necessary to save for fontification, indentation
 or filling \(or that can even disturb things)."
   (let (var-vals)
     (dolist (vv (buffer-local-variables))
-      (unless (or (memq (car vv) mumamo-irrelevant-buffer-local-vars)
+      (unless (or (not (listp vv))
+                  (memq (car vv) mumamo-irrelevant-buffer-local-vars)
                   (let* ((sym (car vv))
                          (val (symbol-value sym)))
                     (or (markerp val)
@@ -2331,7 +2335,7 @@ See `mumamo-major-modes' for an explanation."
                     (mumamo-condition-case err
                         (load (nth 1 def))
                       (error (setq m nil)))))
-                (throw 'mode m)))
+                (when m (throw 'mode m))))
             nil))
     (unless mode
       (if (functionp major-spec)
