@@ -75,6 +75,7 @@
 Buffer LOG-BUFFER is used for log messages and controling of the
 execution of the functions in list STEPS which are executed one
 after another."
+  ;;(dolist (step steps) (unless (functionp step) (error "Not a known function: %s" step)))
   (let ((buffer (get-buffer log-buffer))
         this-chain)
     (unless buffer (setq buffer (get-buffer-create log-buffer)))
@@ -135,12 +136,11 @@ returned above if any."
                                        (button-get btn 'buffer))))
           (setq proc (get-buffer-process buf)))
         ;; Setup for next step
-        (with-current-buffer buf
-          ;; Make a copy here for the sentinel function.
-          (setq udev-log-buffer log-buffer))
         (if proc
             (progn
               (with-current-buffer buf
+                ;; Make a copy here for the sentinel function.
+                (setq udev-log-buffer log-buffer)
                 (setq udev-orig-sentinel (process-sentinel proc))
                 (set-process-sentinel proc 'udev-compilation-sentinel)))
           ;;(message "proc is nil")
@@ -190,7 +190,9 @@ Check for error messages and call next step."
                           (next-single-property-change err-point 'face))
                     (when err-point
                       (let ((face (get-text-property err-point 'face)))
-                        (when (memq 'compilation-error face)
+                        (when (or (and (listp face)
+                                       (memq 'compilation-error face))
+                                  (eq 'compilation-error face))
                           (throw 'found-error t)))))))
           (when has-error
             (setq exit-status 1)

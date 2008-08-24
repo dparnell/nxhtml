@@ -206,6 +206,9 @@ see `udev-cedet-dir' and `udev-cedet-load-cedet'."
     (let ((here (point))
           (ret t))
       (goto-char (point-min))
+      ;; From cvs co command:
+      ;; rcsmerge: warning: conflicts during merge
+      ;; cvs checkout: conflicts found in emacs/lisp/startup.el
       (when (search-forward "cvs [diff aborted]" nil t)
         (setq ret nil))
       (when (search-forward "merge conflict" nil t)
