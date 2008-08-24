@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 13:49:41 2007
-(defconst nxhtml-menu:version "1.49") ;;Version:
+(defconst nxhtml-menu:version "1.50") ;;Version:
 ;; Last-Updated: 2008-08-18T19:22:50+0200 Mon
 ;; URL:
 ;; Keywords:
@@ -186,7 +186,20 @@
         (define-key cedet-map [nxhtml-custom-cedet]
           (list 'menu-item "Customize CEDET startup"
                 (lambda () (interactive)
+                  (require 'udev-cedet)
                   (customize-group 'udev-cedet))))
+        )
+      (let ((rinari-map (make-sparse-keymap)))
+        (define-key tools-map [nxhtml-rinari-map]
+          (list 'menu-item "rinari" rinari-map))
+        (define-key rinari-map [nxhtml-update-rinari]
+          (list 'menu-item "Fetch/update rinari dev sources"
+                'udev-rinari-update))
+        (define-key rinari-map [nxhtml-custom-rinari]
+          (list 'menu-item "Customize rinari startup"
+                (lambda () (interactive)
+                  (require 'udev-rinari)
+                  (customize-group 'udev-rinari))))
         )
       (define-key tools-map [nxhtml-tidy-separator]
         (list 'menu-item "--" nil))

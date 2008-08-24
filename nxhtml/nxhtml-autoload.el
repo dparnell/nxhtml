@@ -111,6 +111,10 @@
   (add-hook 'javascript-mode-hook 'javascript-moz-setup)
   (add-hook 'js2-fl-mode          'javascript-moz-setup)
 
+  ;; Development versions support
+  (autoload 'udev-rinari-update "udev-rinari" "Fetch and install rinari from the devel sources." t)
+  (autoload 'udev-cedet-update "udev-cedet" "Fetch and install CEDET from the devel sources." t)
+
   (require 'mumamo-fun)
   (require 'nxhtml-mumamo)
   (require 'as-external)
