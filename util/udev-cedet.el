@@ -46,9 +46,60 @@
 
 (require 'udev)
 
-(defcustom udev-cedet-dir "c:/cedet/cedet"
+(defcustom udev-cedet-dir "~/cedet-cvs/"
   "Directory where to put CVS CEDET sources."
   :type 'directory
+  :group 'udev-cedet)
+
+(defcustom udev-cedet-load-cedet nil
+  "To load or not to load CEDET..."
+  :type '(choice (const :tag "Don't load CEDET" nil)
+                 (set :tag "Choose what to load"
+                  (const :tag "EDE Project Management" ede)
+                  (radio :tag "Choose parsing and completion features"
+                   (const :tag "Minimum features (database+idle reparse)" min-parse)
+                   (const :tag "Semantic navigator etc" code-helpers)
+                   (const :tag "Intellisense etc" gaudy-code-helpers))
+                  (const srecode)
+                  )
+                 (const :tag "Load whole CEDET" t))
+  :set (lambda (sym val)
+         (set-default sym val)
+         (when val
+           (let ((cedet-el (expand-file-name "cedet/common/cedet.el" udev-cedet-dir))
+                 loaded)
+             (unless (featurep 'cedet)
+               (when (file-exists-p cedet-el)
+                 (condition-case-no-debug err
+                     (load-file cedet-el)
+                   (error (message "%s" err))))
+               (unless (featurep 'cedet)
+                 (when (y-or-n-p "Could not load CEDET, update from dev sources?")
+                   (udev-cedet-update)
+                   (load-file cedet-el))
+                 ))
+             (when (featurep 'cedet)
+               (let ((use-ede
+                      (or (eq val t)
+                          (memq 'ede val)))
+                     (use-min-parse
+                      (or (eq val t)
+                          (memq 'min-parse val)))
+                     (use-code-helpers
+                      (or (eq val t)
+                          (memq 'code-helpers val)))
+                     (use-gaudy-code-helpers
+                      (or (eq val t)
+                          (memq 'gaudy-code-helpers val)))
+                     )
+                 (global-ede-mode (if use-ede 1 -1))
+                 (when use-min-parse
+                   (semantic-load-enable-minimum-features))
+                 (when use-code-helpers
+                   (semantic-load-enable-code-helpers))
+                 (when use-gaudy-code-helpers
+                   (semantic-load-enable-gaudy-code-helpers))
+                 )))))
   :group 'udev-cedet)
 
 (defun udev-cedet-fontify-marker (limit)
@@ -95,9 +146,9 @@
 
 (defun udev-cedet-fetch ()
   (let* ((default-directory (file-name-as-directory udev-cedet-dir)) ;; fix-me: for emacs bug
-         (cedet-root (expand-file-name ".." udev-cedet-dir)))
-    (unless (file-directory-p cedet-root)
-      (error "Directory %s does not exist" cedet-root))
+         )
+    (unless (file-directory-p default-directory)
+      (make-directory default-directory))
     (with-current-buffer
         (compilation-start
          "cvs -z3 -d:pserver:anonymous@cedet.cvs.sourceforge.net:/cvsroot/cedet co -P cedet"
@@ -129,15 +180,30 @@
     (setq must-fetch-diff t)
     (setq udev-cedet-fetch-diff-buffer
           (when must-fetch-diff
-            (let* ((default-directory (file-name-as-directory udev-cedet-dir))) ;; fix-me: for emacs bug
+            (let* ((default-directory (file-name-as-directory
+                                       (expand-file-name "cedet"
+                                                         udev-cedet-dir))))
+              ;;(setq default-directory (file-name-as-directory udev-cedet-dir))
               (setq udev-cedet-diff-file (expand-file-name "../patches.diff"))
               (with-current-buffer
                   (compilation-start
-                   (concat "cvs diff -b -u > " udev-cedet-diff-file)
+                   (concat "cvs diff -b -u > " (shell-quote-argument udev-cedet-diff-file))
                    'udev-cedet-compilation-mode
                    'udev-cedet-buffer-name)
-                (setq udev-continue-on-error t)
+                (setq udev-continue-on-error-function 'udev-cvs-diff-continue)
                 (current-buffer)))))))
+
+(defun udev-cvs-diff-continue (cvs-diff-buffer)
+  (with-current-buffer cvs-diff-buffer
+    (let ((here (point))
+          (ret t))
+      (goto-char (point-min))
+      (when (search-forward "cvs [diff aborted]" nil t)
+        (setq ret nil))
+      (when (search-forward "merge conflict" nil t)
+        (setq ret nil))
+      (goto-char here)
+      ret)))
 
 (defvar udev-cedet-fetch-diff-buffer nil)
 
@@ -155,9 +221,10 @@
 (defun udev-cedet-install ()
   (if nil
       (progn
-        (load-file (expand-file-name "cedet-build.el" udev-cedet-dir))
+        (load-file (expand-file-name "cedet/cedet-build.el" udev-cedet-dir))
         (cedet-build-in-default-emacs))
-    (let* ((default-directory (file-name-as-directory udev-cedet-dir))) ;; fix-me: for emacs bug
+    (let* ((default-directory (file-name-as-directory
+                               (expand-file-name "cedet" udev-cedet-dir))))
       (with-current-buffer
           (compilation-start
            ;;"cvs -z3 -d:pserver:anonymous@cedet.cvs.sourceforge.net:/cvsroot/cedet co -P cedet"
