@@ -1,22 +1,24 @@
 ;;; udev-cedet.el --- Get CEDET sources and set it up
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
-;; Created: 2008-08-22T13:06:48+0200 Fri
-;; Version:
-;; Last-Updated:
+;; Created: 2008-08-22
+(defconst udev-cedet:version "0.2") ;; Version:
+;; Last-Updated: 2008-08-24T18:19:15+0200 Sun
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   None
+;;   `cl', `udev'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
 ;;
+;; Fetch and install CEDET from the devel sources.
 ;;
+;; See `udev-cedet-update' for more information.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -45,6 +47,10 @@
 ;;; Code:
 
 (require 'udev)
+
+(defgroup udev-cedet nil
+  "Customization group for udev-cedet."
+  :group 'nxhtml)
 
 (defcustom udev-cedet-dir "~/cedet-cvs/"
   "Directory where to put CVS CEDET sources."
@@ -125,22 +131,24 @@
     ))
 
 (defun udev-cedet-buffer-name (mode)
-  (format "*Updating CEDET %s*" (car udev-this-step)))
+  (format "*Updating CEDET %s*"
+          (udev-this-step udev-cedet-update-buffer)))
 
 (defvar udev-cedet-update-buffer nil)
 
 (defun udev-cedet-update ()
+  "Fetch and install CEDET from the devel sources.
+To determine where to store the sources and how to start CEDET
+see `udev-cedet-dir' and `udev-cedet-load-cedet'."
   (interactive)
   (setq udev-cedet-update-buffer (get-buffer-create "*Update CEDET*"))
   (switch-to-buffer udev-cedet-update-buffer)
-  (setq buffer-read-only t)
   (let ((inhibit-read-only t))
     (widen)
     (goto-char (point-max))
     (unless (= (point) (point-min)) (insert "\n\n"))
     (insert "Starting updating CEDET from development sources"))
-  (setq udev-this-step udev-cedet-steps)
-  (udev-call-this-step))
+  (udev-call-first-step udev-cedet-update-buffer udev-cedet-steps))
 
 (defvar udev-cedet-fetch-buffer nil)
 
@@ -215,7 +223,7 @@
         (goto-char (point-min))
         (if (search-forward "<<<<<<<" nil t)
             ;; Merge conflict
-            (udev-call-next-step 1 nil)
+            (udev-call-next-step udev-cedet-update-buffer 1 nil)
           buf)))))
 
 (defun udev-cedet-install ()

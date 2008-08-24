@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 13:49:41 2007
-(defconst nxhtml-menu:version "1.48") ;;Version:
+(defconst nxhtml-menu:version "1.49") ;;Version:
 ;; Last-Updated: 2008-08-18T19:22:50+0200 Mon
 ;; URL:
 ;; Keywords:
@@ -174,6 +174,19 @@
                 'longlines-mode
                 :button '(:toggle . (and (boundp 'longlines-mode)
                                          longlines-mode))))
+        )
+      (define-key tools-map [nxhtml-cedet-separator]
+        (list 'menu-item "--" nil))
+      (let ((cedet-map (make-sparse-keymap)))
+        (define-key tools-map [nxhtml-cedet-map]
+          (list 'menu-item "CEDET" cedet-map))
+        (define-key cedet-map [nxhtml-update-cedet]
+          (list 'menu-item "Fetch/update CEDET dev sources"
+                'udev-cedet-update))
+        (define-key cedet-map [nxhtml-custom-cedet]
+          (list 'menu-item "Customize CEDET startup"
+                (lambda () (interactive)
+                  (customize-group 'udev-cedet))))
         )
       (define-key tools-map [nxhtml-tidy-separator]
         (list 'menu-item "--" nil))

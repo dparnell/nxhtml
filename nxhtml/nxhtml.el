@@ -148,6 +148,8 @@
                          "html-imenu.el" "0.9")
            (tabkey2      "Tab completion"
                          "tabkey2.el" "1.12")
+           (udev-cedet   "CEDET fetcher and loader"
+                         "udev-cedet.el" "0.2")
            )
          ))
     (dolist (extf req-features)
