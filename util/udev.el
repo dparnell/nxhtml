@@ -84,7 +84,7 @@
           (goto-char here)
           ))
       (unless (member proc compilation-in-progress)
-        (udev-call-next-step exit-status udev-cedet-continue-on-error)))))
+        (udev-call-next-step exit-status (current-buffer))))))
 
 (defun udev-set-compilation-end-message (buffer process-status status)
   (with-current-buffer buffer
@@ -98,8 +98,12 @@
                                                  'compilation-error
                                                'compilation-info))))))
 
-(defvar udev-continue-on-error nil)
-(make-variable-buffer-local 'udev-continue-on-error)
+(defvar udev-continue-on-error-function nil
+  "One-time helper to resolve exit status error problem.
+Main use is `cvs diff' which returns error exit status if there
+is a difference - even though there does not have to be an
+error.")
+(make-variable-buffer-local 'udev-continue-on-error-function)
 
 (defun udev-call-this-step ()
   (with-current-buffer udev-cedet-update-buffer
@@ -133,10 +137,12 @@
           (udev-call-next-step 0 nil)
           )))))
 
-(defun udev-call-next-step (prev-exit-status continue-on-error)
+(defun udev-call-next-step (prev-exit-status exit-status-buffer)
   (with-current-buffer udev-cedet-update-buffer
-    (if (or continue-on-error
-            (= 0 prev-exit-status))
+    (if (or (= 0 prev-exit-status)
+            (with-current-buffer exit-status-buffer
+              (when udev-continue-on-error-function
+                (funcall udev-continue-on-error-function exit-status-buffer))))
         (progn
           (setq udev-this-step (cdr udev-this-step))
           (udev-call-this-step))
