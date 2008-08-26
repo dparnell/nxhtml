@@ -222,8 +222,6 @@
       (let ((mozrepl-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-mozrepl-map]
           (list 'menu-item "MozRepl for Javascript" mozrepl-map
-              :enable '(and (boundp 'moz-minor-mode)
-                            moz-minor-mode)
               ))
         (define-key mozrepl-map [nxhtml-mozrepl-home-page]
           (list 'menu-item "MozLab/MozRepl Home Page"
@@ -233,7 +231,8 @@
         (define-key mozrepl-map [nxhtml-mozrepl-separator2]
           (list 'menu-item "--" nil))
         (define-key mozrepl-map [nxhtml-mozrepl-run-mozilla]
-          (list 'menu-item "Display/Start MozRepl Process" 'run-mozilla))
+          (list 'menu-item "Display/Start MozRepl Process" 'run-mozilla
+              :enable '(and (boundp 'moz-minor-mode) moz-minor-mode)))
         (define-key mozrepl-map [nxhtml-mozrepl-separator1]
           (list 'menu-item "--" nil))
         (define-key mozrepl-map [nxhtml-mozrepl-save-and-send]
@@ -241,12 +240,15 @@
                 :enable '(not mumamo-multi-major-mode)))
         (define-key mozrepl-map [nxhtml-mozrepl-send-defun-and-go]
           (list 'menu-item "Send Current Function, Go to MozRepl"
-                'moz-send-defun-and-go))
+                'moz-send-defun-and-go
+                :enable '(and (boundp 'moz-minor-mode) moz-minor-mode)))
         (define-key mozrepl-map [nxhtml-mozrepl-send-defun]
-          (list 'menu-item "Send Current Function" 'moz-send-defun))
+          (list 'menu-item "Send Current Function" 'moz-send-defun
+                :enable '(and (boundp 'moz-minor-mode) moz-minor-mode)))
         (define-key mozrepl-map [nxhtml-mozrepl-send-region]
           (list 'menu-item "Send the Region" 'moz-send-region
-                :enable 'mark-active))
+                :enable '(and mark-active
+                              (boundp 'moz-minor-mode) moz-minor-mode)))
         )
       (define-key tools-map [nxhtml-majpri-separator]
         (list 'menu-item "--" nil))
