@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-08-26T02:51:27+0200 Tue
-;; Version: 0.1
+;; Version: 0.2
 ;; Last-Updated:
 ;; URL:
 ;; Keywords:
@@ -16,8 +16,9 @@
 ;;
 ;;; Commentary:
 ;;
-;; Lookup swedish or english words in the dictionary at 
-;;   http://www.tyda.se/?rid=651940&w=
+;; Lookup swedish or english words in the dictionary at
+;;
+;;   http://www.tyda.se/
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -56,11 +57,23 @@
                          (read-string "Lookup word: "))))
   (browse-url (concat "http://www.tyda.se/?rid=651940&w=" word)))
 
+(defvar tyda-appmenu-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [tyda-lookup]
+      (list 'menu-item "Lookup word at point in Tyda"
+            'tyda-lookup-word))
+    map))
+
 (define-minor-mode tyda-mode
   "Minor mode for looking up words at URL `http://tyda.se/'.
 This requires that you are using Firefox as your web browser and
 have installed the tyda-add on."
-  :lighter " Tyda")
+  :lighter " Tyda"
+  (if tyda-mode
+      (progn
+        (require 'appmenu nil t)
+        (when (featurep 'appmenu)
+          (appmenu-add 'tyda nil tyda-mode "Lookup word" tyda-appmenu-map)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
