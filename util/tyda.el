@@ -53,7 +53,7 @@
     map))
 
 (defun tyda-lookup-word (word)
-  (interactive (list (or (word-at-point)
+  (interactive (list (or (thing-at-point 'word)
                          (read-string "Lookup word: "))))
   (browse-url (concat "http://www.tyda.se/?rid=651940&w=" word)))
 

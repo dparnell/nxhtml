@@ -88,7 +88,6 @@
   (require 'nxhtml-menu)
 
   ;;; Change below if you need to:
-  (add-to-list 'auto-mode-alist '("\\.rnc\\'" . rnc-mode))
   (autoload 'rnc-mode "rnc-mode" "Major mode for editing REXAX NG" t)
   (autoload 'css-mode "css-mode" "Mode for editing css files" t)
   (autoload 'javascript-mode "javascript" "Mode for JavaScript" t)
@@ -142,8 +141,14 @@ mode."
 
 (defcustom nxhtml-auto-mode-alist
   '(
-    ("\\.x?html?\\'"  . nxhtml-mumamo)
-    ("\\.x?htmlf?\\'" . nxhtml-mumamo)
+    ("\\.htm\\'"      . nxhtml-mumamo)
+    ("\\.html\\'"     . nxhtml-mumamo)
+    ("\\.xhtm\\'"     . nxhtml-mumamo)
+    ("\\.xhtml\\'"    . nxhtml-mumamo)
+    ("\\.html\\'"     . nxhtml-mumamo)
+    ("\\.htmlf\\'"    . nxhtml-mumamo)
+    ("\\.xhtml\\'"    . nxhtml-mumamo)
+    ("\\.xhtmlf\\'"   . nxhtml-mumamo)
     ("\\.php\\'"      . nxhtml-mumamo)
     ("\\.phtml\\'"    . nxhtml-mumamo)
     ("\\.jsp\\'"      . jsp-nxhtml-mumamo)
@@ -153,10 +158,11 @@ mode."
     ("\\.erb\\'"      . eruby-nxhtml-mumamo)
     ("\\.phps\\'"     . smarty-nxhtml-mumamo)
     ("\\.epl\\'"      . embperl-nxhtml-mumamo)
-    ("\.lzx\\'"       . laszlo-nxml-mumamo)
-    ("\.ghtml\\'"     . genshi-nxhtml-mumamo)
+    ("\\.lzx\\'"       . laszlo-nxml-mumamo)
+    ("\\.ghtml\\'"     . genshi-nxhtml-mumamo)
     ("\\.js\\'"       . javascript-mode)
     ("\\.css\\'"      . css-mode)
+    ("\\.rnc\\'"      . rnc-mode)
     )
   "List to add to `auto-mode-alist'.
 This list is added to `auto-mode-alist' when loading
