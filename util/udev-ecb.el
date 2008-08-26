@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-08-25T04:02:37+0200 Mon
-;; Version:
+(defconst udev-ecb:version "0.2");; Version:
 ;; Last-Updated:
 ;; URL:
 ;; Keywords:

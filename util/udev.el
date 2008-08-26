@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-08-24
-;; Version: 0.5
+(defconst udev:version "0.5");; Version:
 ;; Last-Updated: 2008-08-24T18:19:41+0200 Sun
 ;; URL:
 ;; Keywords:
