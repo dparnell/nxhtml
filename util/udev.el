@@ -18,10 +18,10 @@
 ;;
 ;; When you want to fetch and install sources from a repository you
 ;; may have to call several async processes and wait for the answer
-;; before calling the next function. These functions may help you with
+;; before calling the next function.  These functions may help you with
 ;; this.
 ;;
-;; See `udev-call-first-step' for more information. Or look in the
+;; See `udev-call-first-step' for more information.  Or look in the
 ;; file udev-cedet.el for examples.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -52,9 +52,8 @@
 
 (eval-when-compile (require 'cl))
 
-(defvar udev-orig-sentinel nil
-  "Old sentinel function remembered by `udev-call-this-step'.")
-(make-variable-buffer-local 'udev-orig-sentinel)
+
+;;; Control/log buffer
 
 (defvar udev-log-buffer nil
   "Log buffer pointer for sentinel function.")
@@ -68,43 +67,95 @@
   "Check that BUFFER is an udev log/control buffer."
   (with-current-buffer buffer
     (unless udev-is-log-buffer
-      (error "Internat error, not a log buffer: %s" buffer))))
+      (error "Internal error, not a log buffer: %s" buffer))))
 
-(defun udev-call-first-step (log-buffer steps)
-  "Set up and call first step.
-Buffer LOG-BUFFER is used for log messages and controling of the
-execution of the functions in list STEPS which are executed one
-after another."
-  ;;(dolist (step steps) (unless (functionp step) (error "Not a known function: %s" step)))
-  (let ((buffer (get-buffer log-buffer))
-        this-chain)
-    (unless buffer (setq buffer (get-buffer-create log-buffer)))
-    (with-current-buffer buffer
-      (setq buffer-read-only t)
-      (setq udev-is-log-buffer t)
-      (setq this-chain
-            (cons nil
-                  (cons log-buffer
-                        (copy-tree steps))))
-      (setcar this-chain (cddr this-chain))
-      (setq udev-this-chain this-chain)
-      (assert (eq (car steps) (udev-this-step buffer)) t)
-      (udev-call-this-step log-buffer)
-      )))
+(defvar udev-this-chain nil)
+(make-variable-buffer-local 'udev-this-chain)
+
+(defvar udev-last-error nil
+  "Error found during last step.")
+(make-variable-buffer-local 'udev-last-error)
+
+;;; Chain utils
 
 (defun udev-chain (log-buffer)
+  "Return value of `udev-this-chain' in buffer LOG-BUFFER."
   (udev-check-is-log-buffer log-buffer)
   (with-current-buffer log-buffer
     udev-this-chain))
 
 (defun udev-this-step (log-buffer)
+  "Return current function to call from LOG-BUFFER."
   (let ((this-chain (udev-chain log-buffer)))
     (caar this-chain)))
 
 (defun udev-goto-next-step (log-buffer)
+  "Set next function as current in LOG-BUFFER."
   (let* ((this-chain (udev-chain log-buffer))
         (this-step (car this-chain)))
     (setcar this-chain (cdr this-step))))
+
+(defun udev-num-steps (log-buffer)
+  "Return number of steps."
+  (length (nth 2 (udev-chain log-buffer))))
+
+(defun udev-step-num (log-buffer)
+  "Return current step number."
+  (let ((this-chain (udev-chain log-buffer)))
+    (when this-chain
+      (1+ (- (udev-num-steps log-buffer)
+             (length (car this-chain)))))))
+
+(defun udev-finish-function (log-buffer)
+  "Return setup function to be called when finished."
+  (nth 3 (udev-chain log-buffer)))
+
+
+(defvar udev-control-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map button-buffer-map)
+    map))
+
+(define-derived-mode udev-control-mode nil
+  "Udev-Src"
+  "Mode for udev control buffer.")
+
+;;; Calling steps
+
+(defun udev-call-first-step (log-buffer steps header finish-fun)
+  "Set up and call first step.
+Set up buffer LOG-BUFFER to be used for log messages and
+controling of the execution of the functions in list STEPS which
+are executed one after another.
+
+Write HEADER at the end of LOG-BUFFER.
+
+Call first step.
+
+If FINISH-FUN non-nil it should be a function. This is called
+after last step with LOG-BUFFER as parameter."
+  ;;(dolist (step steps) (unless (functionp step) (error "Not a known function: %s" step)))
+  (switch-to-buffer log-buffer)
+  (udev-control-mode)
+  (setq show-trailing-whitespace nil)
+  (setq buffer-read-only t)
+  (setq udev-is-log-buffer t)
+  (setq this-chain
+        (cons nil
+              (cons log-buffer
+                    (cons (copy-tree steps)
+                          (cons finish-fun nil)))))
+  (setcar this-chain (caddr this-chain))
+  (setq udev-this-chain this-chain)
+  (assert (eq (car steps) (udev-this-step log-buffer)) t)
+  (assert (eq finish-fun (udev-finish-function log-buffer)) t)
+  (widen)
+  (goto-char (point-max))
+  (let ((inhibit-read-only t))
+    (unless (= (point) (point-min)) (insert "\n\n"))
+    (insert header))
+  (udev-call-this-step log-buffer)
+  (current-buffer))
 
 (defun udev-call-this-step (log-buffer)
   "Call the current function in LOG-BUFFER.
@@ -115,6 +166,7 @@ Otherwise continue to call the next function.
 Also put a log message in in LOG-BUFFER with a link to the buffer
 returned above if any."
   (with-current-buffer log-buffer
+    (setq udev-last-error nil)
     (widen)
     (goto-char (point-max))
     (let* ((inhibit-read-only t)
@@ -123,8 +175,13 @@ returned above if any."
            buf
            proc)
       (if (not this-step)
-          (insert (propertize "\nFinished\n" 'face 'compilation-info))
-        (insert "\nStep: ")
+          (let ((finish-fun (udev-finish-function log-buffer)))
+            (insert (propertize "\nFinished\n" 'face 'compilation-info))
+            (when finish-fun
+              (funcall finish-fun log-buffer)))
+        (insert (format "\nStep %s(%s): "
+                        (udev-step-num log-buffer)
+                        (udev-num-steps log-buffer)))
         (setq here (point))
         (insert (pp-to-string this-step))
         (setq buf (funcall this-step))
@@ -136,7 +193,8 @@ returned above if any."
                                        (button-get btn 'buffer))))
           (setq proc (get-buffer-process buf)))
         ;; Setup for next step
-        (if proc
+        (if (and proc
+                 (not udev-last-error))
             (progn
               (with-current-buffer buf
                 ;; Make a copy here for the sentinel function.
@@ -144,8 +202,10 @@ returned above if any."
                 (setq udev-orig-sentinel (process-sentinel proc))
                 (set-process-sentinel proc 'udev-compilation-sentinel)))
           ;;(message "proc is nil")
-          (udev-call-next-step log-buffer 0 nil)
-          )))))
+          (if udev-last-error
+              (insert " "
+                      (propertize udev-last-error 'face 'compilation-error))
+            (udev-call-next-step log-buffer 0 nil)))))))
 
 (defun udev-call-next-step (log-buffer prev-exit-status exit-status-buffer)
   "Go to next step in LOG-BUFFER and call `udev-call-this-step'.
@@ -154,25 +214,38 @@ previous step) is not 0 and there is in EXIT-STATUS-BUFFER no
 `udev-continue-on-error-function' then stop and insert an error
 message in LOG-BUFFER."
   (with-current-buffer log-buffer
-    (if (or (= 0 prev-exit-status)
-            (with-current-buffer exit-status-buffer
-              (when udev-continue-on-error-function
-                (funcall udev-continue-on-error-function exit-status-buffer))))
-        (progn
-          (udev-goto-next-step log-buffer)
-          (udev-call-this-step log-buffer))
-      (let ((inhibit-read-only t))
-        (insert " ")
+    (let ((inhibit-read-only t))
+      (widen)
+      (goto-char (point-max))
+      (insert " ")
+      (if (or (= 0 prev-exit-status)
+              (with-current-buffer exit-status-buffer
+                (when udev-continue-on-error-function
+                  (funcall udev-continue-on-error-function exit-status-buffer))))
+          (progn
+            (insert
+             (if (= 0 prev-exit-status)
+                 (propertize "Ok" 'face 'compilation-info)
+               (propertize "Warning, check next step" 'face 'compilation-warning)))
+            (udev-goto-next-step log-buffer)
+            (udev-call-this-step log-buffer))
         (insert (propertize "Error" 'face 'compilation-error))))))
+
+
+;;; Sentinel
+
+(defvar udev-orig-sentinel nil
+  "Old sentinel function remembered by `udev-call-this-step'.")
+(make-variable-buffer-local 'udev-orig-sentinel)
 
 (defun udev-compilation-sentinel (proc msg)
   "Sentinel to use for processes started by `udev-call-this-step'.
-Check for error messages and call next step."
+Check for error messages and call next step.  PROC and MSG have
+the same meaning as for `compilation-sentinel'."
   ;;(message "udev-compilation-sentinel proc=%s msg=%s" proc msg)
   (let ((buf (process-buffer proc))
         (exit-status (process-exit-status proc)))
     (with-current-buffer buf
-      ;;(message "  proc=%s, buf=%s, status=%s exit-status=%s orig-sentinel=%s" proc buf (process-status proc) (process-exit-status proc) udev-orig-sentinel)
       (when udev-orig-sentinel
         (funcall udev-orig-sentinel proc msg))
       (when (and (eq 'exit (process-status proc))
@@ -207,7 +280,8 @@ Check for error messages and call next step."
 
 (defun udev-set-compilation-end-message (buffer process-status status)
   "Change the message shown after compilation.
-This is similar to `compilation-end-message'."
+This is similar to `compilation-end-message' and BUFFER,
+PROCESS-STATUS and STATUS have the same meaning as there."
   (with-current-buffer buffer
     (setq mode-line-process
           (let ((out-string (format ":%s [%s]" process-status (cdr status)))
@@ -225,6 +299,103 @@ This can be used for example after calling `cvs diff' which
 returns error exit status if there is a difference - even though
 there does not have to be an error.")
 (make-variable-buffer-local 'udev-continue-on-error-function)
+
+
+;;; Convenience functions
+
+(defun udev-buffer-name (fmt log-buffer mode)
+  "Return a name for compilation buffer.
+Use format string FMT and buffer LOG-BUFFER, but ignoring MODE."
+  (format fmt (when (buffer-live-p log-buffer)
+                (udev-this-step log-buffer))))
+
+(defvar udev-this-dir
+  (let ((this-file (or load-file-name (buffer-file-name))))
+    (file-name-directory this-file)))
+
+(defun udev-batch-compile (emacs-args defdir name-function)
+  "Compile elisp code in an inferior Emacs.
+Start Emacs with
+
+  emacs -Q -batch EMACS-ARGS
+
+in the default directory DEFDIR.
+
+Set the buffer name for the inferior process with NAME-FUNCTION
+by giving this to `compilation-start'."
+  (let ((default-directory (file-name-as-directory defdir))
+        ;; Fix-me:
+        (this-emacs "emacs"))
+    (with-current-buffer
+        (compilation-start
+         (concat this-emacs " -Q -batch " emacs-args)
+         'compilation-mode
+         name-function)
+      (current-buffer))))
+
+;;; Convenience functions for CVS
+
+(defun udev-fetch-cvs-diff (defdir name-function)
+  "Fetch cvs diff in directory DEFDIR.
+Put the diff in file 'your-patches.diff' in DEFDIR.
+Give inferior buffer name with NAME-FUNCTION."
+  (let ((default-directory (file-name-as-directory defdir)))
+    (with-current-buffer
+        (compilation-start
+         (concat "cvs diff -b -u > " (shell-quote-argument "your-patches.diff"))
+         'compilation-mode
+         name-function)
+      (setq udev-continue-on-error-function 'udev-cvs-diff-continue)
+      (current-buffer))))
+
+(defun udev-cvs-diff-continue (cvs-diff-buffer)
+  "Return non-nil if it is ok to continue.
+Check the output from the `cvs diff' command in buffer
+CVS-DIFF-BUFFER.
+
+The cvs command exits with a failure status if there is a
+difference, which means that it is hard to know whether there was
+an error or just a difference.  This function tries to find out."
+  (with-current-buffer cvs-diff-buffer
+    (let ((here (point))
+          (ret t))
+      (goto-char (point-min))
+      (when (search-forward "cvs [diff aborted]" nil t) (setq ret nil))
+      (goto-char (point-min))
+      (when (search-forward "merge conflict" nil t) (setq ret t))
+      ;; From cvs co command:
+      ;; rcsmerge: warning: conflicts during merge
+      (goto-char (point-min))
+      (when (search-forward "conflicts during merge" nil t) (setq ret t))
+      ;; cvs checkout: conflicts found in emacs/lisp/startup.el
+      (goto-char (point-min))
+      (when (search-forward "conflicts found in" nil t) (setq ret t))
+      (goto-char here)
+      ret)))
+
+(defun udev-check-cvs-diff (diff-file log-buffer)
+  "Check cvs diff output in file DIFF-FILE for merge conflicts.
+Return buffer containing DIFF-FILE."
+  (let ((buf (find-buffer-visiting diff-file)))
+    ;; Kill buffer to avoid question about revert.
+    (when buf (kill-buffer buf))
+    (setq buf (find-file-noselect diff-file))
+    (with-current-buffer buf
+      (widen)
+      (let ((here (point)))
+        (goto-char (point-min))
+        ;; Fix-me: Better pattern:
+        (if (search-forward "<<<<<<<" nil t)
+            ;; Merge conflict
+            (with-current-buffer log-buffer
+              (let ((inhibit-read-only t))
+                (setq udev-last-error "Error: merge conflict")))
+          (goto-char here))))
+      buf))
+
+;;(setq compilation-scroll-output t)
+;;(add-to-list 'compilation-error-regexp-alist 'cvs)
+;;(setq compilation-error-regexp-alist (delq 'cvs compilation-error-regexp-alist))
 
 
 (provide 'udev)

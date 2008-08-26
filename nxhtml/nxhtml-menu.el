@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 13:49:41 2007
-(defconst nxhtml-menu:version "1.50") ;;Version:
+(defconst nxhtml-menu:version "1.51") ;;Version:
 ;; Last-Updated: 2008-08-18T19:22:50+0200 Mon
 ;; URL:
 ;; Keywords:
@@ -175,8 +175,26 @@
                 :button '(:toggle . (and (boundp 'longlines-mode)
                                          longlines-mode))))
         )
-      (define-key tools-map [nxhtml-cedet-separator]
+      (define-key tools-map [nxhtml-ecb-separator]
         (list 'menu-item "--" nil))
+      (let ((ecb-map (make-sparse-keymap)))
+        (define-key tools-map [nxhtml-ecb-map]
+          (list 'menu-item "ecb" ecb-map))
+        (define-key ecb-map [nxhtml-update-ecb]
+          (list 'menu-item "Fetch/update ECB dev sources"
+                'udev-ecb-update))
+        (define-key ecb-map [nxhtml-custom-ecb]
+          (list 'menu-item "Customize ECB dev startup"
+                (lambda () (interactive)
+                  (require 'udev-ecb)
+                  (customize-group-other-window 'udev-ecb))))
+        (define-key ecb-map [nxhtml-custom-important-ecb]
+          (list 'menu-item "Customize important ECB things"
+                (lambda () (interactive)
+                  (customize-group-other-window 'ecb-most-important))
+                :enable (featurep 'ecb)))
+        )
+      ;;(define-key tools-map [nxhtml-cedet-separator] (list 'menu-item "--" nil))
       (let ((cedet-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-cedet-map]
           (list 'menu-item "CEDET" cedet-map))
@@ -184,10 +202,10 @@
           (list 'menu-item "Fetch/update CEDET dev sources"
                 'udev-cedet-update))
         (define-key cedet-map [nxhtml-custom-cedet]
-          (list 'menu-item "Customize CEDET startup"
+          (list 'menu-item "Customize CEDET dev startup"
                 (lambda () (interactive)
                   (require 'udev-cedet)
-                  (customize-group 'udev-cedet))))
+                  (customize-group-other-window 'udev-cedet))))
         )
       (let ((rinari-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-rinari-map]
@@ -199,7 +217,7 @@
           (list 'menu-item "Customize rinari startup"
                 (lambda () (interactive)
                   (require 'udev-rinari)
-                  (customize-group 'udev-rinari))))
+                  (customize-group-other-window 'udev-rinari))))
         )
       (define-key tools-map [nxhtml-tidy-separator]
         (list 'menu-item "--" nil))
@@ -516,7 +534,7 @@
       (define-key site-map [nxhtml-site-separator] (list 'menu-item "--"))
       (define-key site-map [nxhtml-customize-site-list]
         (list 'menu-item "Edit Sites" (lambda () (interactive)
-                                        (customize-option 'html-site-list))))
+                                        (customize-option-other-window 'html-site-list))))
       (define-key site-map [nxhtml-set-site]
         (list 'menu-item "Set Current Site" 'html-site-set-site))
       (define-key site-map [nxhtml-site-separator-1] (list 'menu-item "--"))
