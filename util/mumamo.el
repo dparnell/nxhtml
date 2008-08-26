@@ -520,7 +520,9 @@ If the same problem happens again then do not warn again."
     (unless (member msgrec mumamo-warned-once)
       (setq mumamo-warned-once
             (cons msgrec mumamo-warned-once))
-      (apply 'lwarn type :warning message args))))
+      ;;(apply 'lwarn type :warning message args)
+      (apply 'message (format "%s: %s" type message) args)
+      )))
 
 (defun mumamo-add-help-tabs ()
   "Add key bindings for moving between buttons.
@@ -1087,13 +1089,13 @@ by using other major mode if the functions for this in
 `major-mode' are not compatible with mumamo.  This functions
 looks in the table `mumamo-major-mode-substitute' for get major
 mode to use."
-  (when (eq for-what 'indentation) (message "subst.major=%s" major))
+  ;;(when (eq for-what 'indentation) (message "subst.major=%s" major))
   (let ((m (assq major mumamo-major-mode-substitute))
-        ret)
+        ret-major)
     (if (not m)
-        major
+        (setq ret-major major)
       (setq m (nth 1 m))
-      (setq ret
+      (setq ret-major
             (cond
              ((eq for-what 'fontification)
               (nth 0 m))
@@ -1102,9 +1104,10 @@ mode to use."
              (t
               (mumamo-display-error 'mumamo-get-major-mode-substitute
                                     "Bad parameter, for-what=%s" for-what))))
-      (unless ret (setq ret major))
-      ;;(when (eq for-what 'indentation) (message "ret.ind=%s, major=%s, m=%s" ret major m))
-      ret)))
+      (unless ret-major (setq ret-major major)))
+    (unless (commandp ret-major) (setq ret-major 'fundamental-mode))
+    ;;(when (eq for-what 'indentation) (message "ret.ind=%s, major=%s, m=%s" ret major m))
+    ret-major))
 
 (defmacro mumamo-with-major-mode-setup (major for-what &rest body)
   "Run code with some local variables set as in specified major mode.
@@ -2317,6 +2320,23 @@ MIN to MAX, otherwise MIN to MAX."
     (list min (when max-found max) major-sub border-min border-max parseable)
     ))
 
+(defun mumamo-define-no-mode (mode-sym)
+  (let ((mumamo-repl4 (intern (format "mumamo-4-%s" mode-sym)))
+        (lighter (format "No %s" mode-sym))
+        (doc (format "MuMaMo replacement for %s which was not found."
+                     mode-sym)))
+    (if (commandp mumamo-repl4)
+        mumamo-repl4
+      (eval `(defun ,mumamo-repl4 ()
+               ,doc
+               (interactive)
+               (kill-all-local-variables)
+               (setq major-mode ',mumamo-repl4)
+               (setq mode-name
+                     (propertize ,lighter
+                                 'face 'font-lock-warning-face)))))))
+;;(mumamo-define-no-mode 'my-ownB-mode)
+
 (defun mumamo-major-mode-from-modespec (major-spec)
   "Translate MAJOR-SPEC to a major mode.
 Translate MAJOR-SPEC used in chunk definitions of multi major
@@ -2343,13 +2363,14 @@ See `mumamo-major-modes' for an explanation."
           (setq mode major-spec)
         (if modes
             (mumamo-warn-once '(mumamo-major-mode-from-modespec)
-                              "\n  Couldn't find an available major mode for specification %s,\n  alternatives are:\n    %s"
+                              "Couldn't find an available major mode for specification %s,\n  alternatives are:\n    %s"
                               major-spec modes)
-          (lwarn '(mumamo-major-mode-from-modespec)
-                 :error
-                 "\n  Couldn't find an available major mode for spec %s"
+          (mumamo-warn-once '(mumamo-major-mode-from-modespec)
+                 "Couldn't find an available major mode for spec %s"
                  major-spec))
-        (setq mode 'fundamental-mode)))
+        ;;(setq mode 'fundamental-mode)
+        (setq mode (mumamo-define-no-mode major-spec))
+        ))
     (mumamo-msgfntfy " mumamo-major-mode-from-modespec %s => %s" major-spec mode)
     mode))
 ;(mumamo-major-mode-from-modespec 'ruby-mode)
@@ -3285,7 +3306,8 @@ Return the fetched local map."
     (with-current-buffer temp-buf
       (let ((mumamo-fetching-major t))
         (funcall major))
-      (setq local-map (copy-keymap (current-local-map)))
+      (setq local-map (current-local-map))
+      (when local-map (setq local-map (copy-keymap (current-local-map))))
       (add-to-list 'mumamo-major-modes-local-maps
                    (cons major-mode local-map)))
     (kill-buffer temp-buf)

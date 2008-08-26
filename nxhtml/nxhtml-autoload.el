@@ -114,6 +114,7 @@
   ;; Development versions support
   (autoload 'udev-rinari-update "udev-rinari" "Fetch and install rinari from the devel sources." t)
   (autoload 'udev-cedet-update "udev-cedet" "Fetch and install CEDET from the devel sources." t)
+  (autoload 'udev-ecb-update "udev-ecb" "Fetch and install ECB from the devel sources." t)
 
   (require 'mumamo-fun)
   (require 'nxhtml-mumamo)
