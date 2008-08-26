@@ -2,8 +2,8 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 13:49:41 2007
-(defconst nxhtml-menu:version "1.51") ;;Version:
-;; Last-Updated: 2008-08-18T19:22:50+0200 Mon
+(defconst nxhtml-menu:version "1.52") ;;Version:
+;; Last-Updated: 2008-08-26T23:28:00+0200 Tue
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
@@ -209,18 +209,16 @@
         )
       (let ((rinari-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-rinari-map]
-          (list 'menu-item "rinari" rinari-map))
+          (list 'menu-item "Rinari" rinari-map))
         (define-key rinari-map [nxhtml-update-rinari]
-          (list 'menu-item "Fetch/update rinari dev sources"
+          (list 'menu-item "Fetch/update Rinari dev sources"
                 'udev-rinari-update))
         (define-key rinari-map [nxhtml-custom-rinari]
-          (list 'menu-item "Customize rinari startup"
+          (list 'menu-item "Customize Rinari startup"
                 (lambda () (interactive)
                   (require 'udev-rinari)
                   (customize-group-other-window 'udev-rinari))))
         )
-      (define-key tools-map [nxhtml-tidy-separator]
-        (list 'menu-item "--" nil))
       (let ((mozrepl-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-mozrepl-map]
           (list 'menu-item "MozRepl for Javascript" mozrepl-map
@@ -250,6 +248,21 @@
           (list 'menu-item "Send the Region" 'moz-send-region
                 :enable 'mark-active))
         )
+      (define-key tools-map [nxhtml-majpri-separator]
+        (list 'menu-item "--" nil))
+      (let ((majpri-map (make-sparse-keymap)))
+        (define-key tools-map [nxhtml-majpri-map]
+          (list 'menu-item "Major Modes Priorities" majpri-map))
+        (define-key majpri-map [nxhtml-majpri-act]
+          (list 'menu-item "Apply Major Modes Priorities"
+                'majmodpri-apply-priorities))
+        (define-key majpri-map [nxhtml-majpri-cust]
+          (list 'menu-item "Customize Major Mode Priorities"
+                (lambda () (interactive)
+                  (customize-group-other-window 'majmodpri))))
+        )
+      (define-key tools-map [nxhtml-tidy-separator]
+        (list 'menu-item "--" nil))
       (define-key tools-map [nxhtml-tidy-map]
         (list 'menu-item "Tidy XHTML" 'tidy-menu-symbol
               :filter 'nxhtml-insert-menu-dynamically

@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-08-24T22:32:21+0200 Sun
-;; Version:
+(defconst udev-rinari:version "0.2");; Version:
 ;; Last-Updated:
 ;; URL:
 ;; Keywords:
@@ -58,7 +58,7 @@
 (defcustom udev-rinari-load-rinari nil
   "To load or not to load Rinari..."
   :type '(choice (const :tag "Don't load Rinari" nil)
-                 (const :tag "Load whole Rinari" t))
+                 (const :tag "Load Rinari" t))
   :set (lambda (sym val)
          (when val
            (let* ((base-dir  (expand-file-name "svn/trunk/" udev-rinari-dir))

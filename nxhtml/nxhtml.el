@@ -148,8 +148,16 @@
                          "html-imenu.el" "0.9")
            (tabkey2      "Tab completion"
                          "tabkey2.el" "1.12")
+           (udev         "Fetch and load from elisp repostories"
+                         "udev.el" "0.5")
            (udev-cedet   "CEDET fetcher and loader"
                          "udev-cedet.el" "0.2")
+           (udev-ecb     "ECB fetcher and loader"
+                         "udev-ecb.el" "0.2")
+           (udev-rinari  "Rinari fetcher and loader"
+                         "udev-rinari.el" "0.2")
+           (majmodpri    "Major mode priorities"
+                         "majmodpri.el" "0.5")
            )
          ))
     (dolist (extf req-features)
@@ -226,15 +234,14 @@
     ok))
 
 (defun nxhtml-features-check ()
-  "Check if external modules used by `nxhtml-mode' are found.
-See this function for more information."
+  "Check if external modules used by nXhtml are found."
   (interactive)
   (switch-to-buffer-other-window (get-buffer-create "*nXhtml Optional Features Check*") t)
   (help-mode)
   (setq buffer-read-only t)
   (let ((inhibit-read-only t))
     (erase-buffer)
-    (let ((s (concat "Elisp modules used by Nxhtml Mode version " nxhtml-menu:version ":")))
+    (let ((s (concat "Elisp modules used by nXhtml version " nxhtml-menu:version ":")))
       (put-text-property 0 (length s)
                          'face '( :weight bold :height 1.4)
                          s)
