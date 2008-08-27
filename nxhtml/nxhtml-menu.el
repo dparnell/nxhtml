@@ -179,7 +179,7 @@
         (list 'menu-item "--" nil))
       (let ((ecb-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-ecb-map]
-          (list 'menu-item "ecb" ecb-map))
+          (list 'menu-item "ECB" ecb-map))
         (define-key ecb-map [nxhtml-update-ecb]
           (list 'menu-item "Fetch/update ECB dev sources"
                 'udev-ecb-update))
