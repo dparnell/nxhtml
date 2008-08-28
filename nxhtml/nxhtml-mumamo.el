@@ -116,9 +116,6 @@ This also covers inlined style and javascript."
     mumamo-chunk-onjs=
     )))
 
-(defvar nxhtml-src-dir (file-name-directory
-                        (if load-file-name load-file-name buffer-file-name)))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Genshi / kid
 
@@ -253,7 +250,12 @@ This also covers inlined style and javascript."
     mumamo-chunk-onjs=
     )))
 
-(eval-after-load 'php-mode '(fmode-replace-default-mode 'php-mode 'nxhtml-mumamo))
+;; Fix-me: This caused mumamo to loop during fontification since
+;; fmode-replace-default-mode was not defined. Mumamo tried to load
+;; the function in mumamo-fetch-major-mode-setup in (funcall major)
+;; where major mode is php-mode.
+
+;;(eval-after-load 'php-mode '(fmode-replace-default-mode 'php-mode 'nxhtml-mumamo))
 
 
 

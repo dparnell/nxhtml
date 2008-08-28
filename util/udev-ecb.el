@@ -134,7 +134,7 @@ For how to start ECB see `udev-ecb-load-ecb'."
                         "Starting updating ECB from development sources"
                         'udev-ecb-setup-when-finished))
 
-(defun udev-ecb-fetch ()
+(defun udev-ecb-fetch (log-buffer)
   "Fetch ECB sources (asynchronously)."
   (let ((default-directory (file-name-as-directory udev-ecb-dir)))
     (unless (file-directory-p default-directory)
@@ -150,17 +150,17 @@ For how to start ECB see `udev-ecb-load-ecb'."
   "Return cvs root directory."
   (file-name-as-directory (expand-file-name "ecb" udev-ecb-dir)))
 
-(defun udev-ecb-fetch-diff ()
+(defun udev-ecb-fetch-diff (log-buffer)
   "Fetch diff between local ECB sources and repository."
   (udev-fetch-cvs-diff (udev-ecb-cvs-dir) 'udev-ecb-buffer-name))
 
-(defun udev-ecb-check-diff ()
+(defun udev-ecb-check-diff (log-buffer)
   "Check cvs diff output for merge conflicts."
   (udev-check-cvs-diff (expand-file-name "your-patches.diff"
                                           (udev-ecb-cvs-dir))
                         udev-ecb-update-buffer))
 
-(defun udev-ecb-install ()
+(defun udev-ecb-install (log-buffer)
   "Install the ECB sources just fetched.
 Note that they will not be installed in current Emacs session."
   (udev-batch-compile "-l ecb-batch-compile.el"

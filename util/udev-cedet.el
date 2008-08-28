@@ -1,4 +1,4 @@
-;;; udev-cedet.el --- Get CEDET sources and set it up
+;;; udev-cedet.el --- Get CEDET development sources and set it up
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-08-22
@@ -174,7 +174,7 @@ For how to start CEDET see `udev-cedet-load-cedet'."
                               "Starting updating CEDET from development sources"
                               'udev-cedet-setup-when-finished)))
 
-(defun udev-cedet-fetch ()
+(defun udev-cedet-fetch (log-buffer)
   "Fetch CEDET sources (asynchronously)."
   (let ((default-directory (file-name-as-directory udev-cedet-dir)))
     (unless (file-directory-p default-directory)
@@ -190,17 +190,17 @@ For how to start CEDET see `udev-cedet-load-cedet'."
   "Return cvs root directory."
   (file-name-as-directory (expand-file-name "cedet" udev-cedet-dir)))
 
-(defun udev-cedet-fetch-diff ()
+(defun udev-cedet-fetch-diff (log-buffer)
   "Fetch diff between local CEDET sources and repository."
   (udev-fetch-cvs-diff (udev-cedet-cvs-dir) 'udev-cedet-buffer-name))
 
-(defun udev-cedet-check-diff ()
+(defun udev-cedet-check-diff (log-buffer)
   "Check cvs diff output for merge conflicts."
   (udev-check-cvs-diff (expand-file-name "your-patches.diff"
                                           (udev-cedet-cvs-dir))
                         udev-cedet-update-buffer))
 
-(defun udev-cedet-install ()
+(defun udev-cedet-install (log-buffer)
   "Install the CEDET sources just fetched.
 Note that they will not be installed in current Emacs session."
   (udev-batch-compile "-l cedet-build.el -f cedet-build"

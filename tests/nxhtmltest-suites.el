@@ -63,7 +63,7 @@
                  root))
     root))
 
-(let ((distr-in "c:/EmacsW32/nxml/tests/in/"))
+(let ((distr-in "c:/EmacsW32/nxhtml/tests/in/"))
   (when (file-directory-p distr-in)
     (setq nxhtmltest-files-root distr-in)))
 
@@ -75,6 +75,25 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define tests using ert.el
+
+(ert-deftest nxhtml-ert-question43320 ()
+  "Test for question 43320 in Launchpad."
+  (nxhtmltest-with-persistent-buffer "question43320.html"
+    (nxhtml-mumamo)
+    (run-hooks 'after-change-major-mode-hook)
+    (run-hooks 'post-command-hook)
+    (nxhtmltest-fontify-default-way 2 "trans")
+    (nxhtmltest-should-no-mumamo-errors)
+    (goto-line 25)
+    (ert-should (/= 14 (current-indentation)))
+    (mark-whole-buffer)
+    (sit-for 1)
+    (indent-for-tab-command)
+    (sit-for 3)
+    (nxhtmltest-should-no-mumamo-errors)
+    (goto-line 25)
+    (sit-for 3)
+    (ert-should (= 14 (current-indentation)))))
 
 (ert-deftest nxhtml-ert-only-php-no-end ()
   "Check for nXml error."
@@ -380,6 +399,7 @@ The indentation on line 7 should be 0."
   (let ((selector "nxhtml-ert-"))
     (if noninteractive
         (ert-run-tests-batch selector)
+      (nxhtmltest-kill-test-buffers)
       (ert-run-tests-interactively selector))))
 
 (defun nxhtmltest-run ()

@@ -76,6 +76,10 @@
   "Error found during last step.")
 (make-variable-buffer-local 'udev-last-error)
 
+(defun udev-set-last-error (log-buffer msg)
+  (with-current-buffer log-buffer
+    (setq udev-last-error msg)))
+
 ;;; Chain utils
 
 (defun udev-chain (log-buffer)
@@ -184,7 +188,7 @@ returned above if any."
                         (udev-num-steps log-buffer)))
         (setq here (point))
         (insert (pp-to-string this-step))
-        (setq buf (funcall this-step))
+        (setq buf (funcall this-step log-buffer))
         (when (bufferp buf)
           (make-text-button here (point)
                             'buffer buf

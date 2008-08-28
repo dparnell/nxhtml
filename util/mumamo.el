@@ -668,6 +668,20 @@ major mode above has indentation 0."
   :type 'integer
   :group 'mumamo)
 
+(defcustom mumamo-major-mode-indent-specials
+  '(
+    (php-mode
+     (
+      use-widen
+      ))
+    )
+  "Major mode specials to use during indentation."
+  :type '(repeat
+          (list (symbol :tag "Major mode symbol")
+                (set
+                 (const :tag "Widen buffer during indentation" use-widen))))
+  :group 'mumamo)
+
 (defcustom mumamo-check-chunk-major-same nil
   "Check if main major mode is the same as normal mode."
   :type 'boolean
@@ -1105,7 +1119,7 @@ mode to use."
               (mumamo-display-error 'mumamo-get-major-mode-substitute
                                     "Bad parameter, for-what=%s" for-what))))
       (unless ret-major (setq ret-major major)))
-    (unless (commandp ret-major) (setq ret-major 'fundamental-mode))
+    (unless (commandp ret-major) (setq ret-major 'mumamo-bad-mode))
     ;;(when (eq for-what 'indentation) (message "ret.ind=%s, major=%s, m=%s" ret major m))
     ret-major))
 
@@ -2128,10 +2142,23 @@ The main reasons for doing it this way is:
     func-sym))
 
 
+(defun mumamo-bad-mode ()
+  "MuMaMo replacement for a major mode that could not be loaded."
+  (interactive)
+  (kill-all-local-variables)
+  (setq major-mode 'mumamo-bad-mode)
+  (setq mode-name
+        (propertize "Mumamo Bad Mode"
+                    'face 'font-lock-warning-face)))
+
 ;;(mumamo-get-major-mode-setup 'css-mode)
+;;(mumamo-get-major-mode-setup 'fundamental-mode)
 (defun mumamo-get-major-mode-setup (use-major)
-  "Get local variable values for major mode USE-MAJOR.
-These variables are used for indentation and fontification.  The
+  "Return function for evaluating code in major mode USE-MAJOR.
+Fix-me: This doc string is wrong, old:
+
+Get local variable values for major mode USE-MAJOR.  These
+variables are used for indentation and fontification.  The
 variables are returned in a list with the same format as
 `mumamo-fetch-major-mode-setup'.
 
@@ -2139,15 +2166,40 @@ The list of local variable values which is returned by this
 function is cached in `mumamo-internal-major-modes-alist'. This
 avoids calling the major mode USE-MAJOR for each chunk during
 fontification and speeds up fontification significantly."
-;;;   (let ((fontify-info (assq use-major mumamo-internal-major-modes-alist)))
-;;;     (unless fontify-info
-;;;       (setq fontify-info
-;;;             (assq use-major
-;;;                   (add-to-list 'mumamo-internal-major-modes-alist
-;;;                                (list use-major
-;;;                                      (mumamo-fetch-major-mode-setup
-;;;                                       use-major))))))
-;;;     (cadr fontify-info)))
+  ;; Fix-me: Problems here can cause mumamo to loop badly when this
+  ;; function is called over and over again. To avoid this add a
+  ;; temporary entry using mumamo-bad-mode while trying to fetch the
+  ;; correct mode.
+
+  ;;(assq 'mumamo-bad-mode mumamo-internal-major-modes-alist)
+  (let ((use-major-entry (assq use-major mumamo-internal-major-modes-alist))
+        bad-mode-entry
+        dummy-entry)
+    (unless use-major-entry
+      ;; Get mumamo-bad-mode entry and add a dummy entry based on
+      ;; this to avoid looping.
+      (setq bad-mode-entry
+            (assq 'mumamo-bad-mode mumamo-internal-major-modes-alist))
+      (unless bad-mode-entry
+        ;; Assume it is safe to get the mumamo-bad-mode entry ;-)
+        (add-to-list 'mumamo-internal-major-modes-alist
+                     (list 'mumamo-bad-mode
+                           (mumamo-fetch-major-mode-setup
+                            'mumamo-bad-mode)))
+        (setq bad-mode-entry
+              (assq 'mumamo-bad-mode mumamo-internal-major-modes-alist)))
+      (setq dummy-entry (list use-major (cadr bad-mode-entry)))
+      ;; Before fetching setup add the dummy entry and then
+      ;; immediately remove it.
+      (add-to-list 'mumamo-internal-major-modes-alist dummy-entry)
+      (setq use-major-entry (list use-major
+                                  (mumamo-fetch-major-mode-setup
+                                   use-major)))
+      (setq mumamo-internal-major-modes-alist
+            (delete dummy-entry
+                    mumamo-internal-major-modes-alist))
+      (add-to-list 'mumamo-internal-major-modes-alist use-major-entry)
+      ))
 
   (cadr (or (assq use-major mumamo-internal-major-modes-alist)
             (assq use-major
@@ -2344,7 +2396,7 @@ modes to a major mode.
 
 See `mumamo-major-modes' for an explanation."
   (let ((modes (cdr (assq major-spec mumamo-major-modes)))
-        (mode 'fundamental-mode))
+        (mode 'mumamo-bad-mode))
     (setq mode
           (catch 'mode
             (dolist (m modes)
@@ -3353,20 +3405,29 @@ needed \(and is the default).
               (message "Switched to %s" major-mode))
           (mumamo-set-major major))))))
 
+(defun mumamo-post-command-1 (&optional no-debug)
+  (unless no-debug (setq debug-on-error t))
+  (if font-lock-mode
+      (mumamo-set-major-post-command)
+    ;;(mumamo-on-font-lock-off)
+    ))
+
 (defun mumamo-post-command ()
   "Run this in `post-command-hook'.
 Change major mode if necessary."
   ;;(mumamo-msgfntfy "mumamo-post-command")
   (when mumamo-multi-major-mode
     (mumamo-condition-case err
-        (if font-lock-mode
-            (mumamo-set-major-post-command)
-          ;;(mumamo-on-font-lock-off)
-          )
+        (mumamo-post-command-1 t)
       (error
        (mumamo-msgfntfy "mumamo-post-command %s" (error-message-string err))
-       (lwarn 'mumamo-post-command :warning "%s"
-                             (error-message-string err))))))
+       ;; Warnings are to disturbing when run in post-command-hook,
+       ;; but this message is important so show it with an highlight.
+       (message
+        (propertize
+         "%s\n- Please try M-: (mumamo-post-command-1) to see what happened."
+         'face 'highlight)
+        (error-message-string err))))))
 
 (defvar mumamo-set-major-running nil
   "Internal use.  Handling of mumamo turn off.")
@@ -4836,7 +4897,10 @@ The following rules are used when indenting:
        ;;(message "indent-line-function=%s, comment-start=%s" indent-line-function comment-start)
        ;;`(funcall ,indent-line-function)
        ;;(message "indent-line-function=%s, comment-start=%s" indent-line-function comment-start)
-       (funcall indent-line-function)
+       (let* ((specials (cadr (assoc major-mode mumamo-major-mode-indent-specials)))
+              (use-widen (memq 'use-widen specials)))
+         (when use-widen (widen))
+         (funcall indent-line-function))
        ))
   )
 

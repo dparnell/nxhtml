@@ -1355,9 +1355,15 @@ The user can use TAB to see which tests match."
                (set-text-properties 0 (length regexp) nil regexp)
                (funcall get-completions))))))
       (setq regexp
-            (let ((default (if ert-selector-history
-                               (first ert-selector-history)
-                             "t")))
+            (let* ((sym-here (thing-at-point 'symbol))
+                   (test-here (when (and sym-here
+                                         (memq sym-here all-tests))
+                                sym-here))
+                   (default (if sym-here
+                                (substring-no-properties sym-here)
+                              (if ert-selector-history
+                                  (first ert-selector-history)
+                                "t"))))
               (read-from-minibuffer
                (if (null default)
                    "Run tests, use TAB to see matches: "
