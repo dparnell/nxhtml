@@ -76,8 +76,14 @@
 
 (eval-when-compile
   (require 'cl)
-  (unless (featurep 'nxml-nxhtml-autostart)
-    (let ((efn (expand-file-name "../autostart.el"))) (load efn))
+  (unless (featurep 'nxhtml-autostart)
+    (let ((efn (expand-file-name
+                "../autostart.el"
+                (file-name-directory
+                 (if load-file-name
+                     load-file-name
+                   (buffer-file-name))))))
+      (load efn))
     (require 'rng-valid)
     (require 'rng-nxml)
     (require 'html-toc nil t)

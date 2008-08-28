@@ -140,7 +140,7 @@ see `udev-rinari-dir' and `udev-rinari-load-rinari'."
 
 (defvar udev-rinari-fetch-buffer nil)
 
-(defun udev-rinari-fetch ()
+(defun udev-rinari-fetch (log-buffer)
   "Fetch Rinari from development sources."
   (let* ((default-directory (file-name-as-directory udev-rinari-dir)) ;; fix-me: for emacs bug
          )
@@ -155,7 +155,7 @@ see `udev-rinari-dir' and `udev-rinari-load-rinari'."
 
 (defvar udev-rinari-diff-file nil)
 
-(defun udev-rinari-fetch-diff ()
+(defun udev-rinari-fetch-diff (log-buffer)
   "Fetch diff between local Rinari sources and dev repository."
   (let ((must-fetch-diff t))
     (setq udev-rinari-fetch-diff-buffer
@@ -174,7 +174,7 @@ see `udev-rinari-dir' and `udev-rinari-load-rinari'."
 
 (defvar udev-rinari-fetch-diff-buffer nil)
 
-(defun udev-rinari-check-diff ()
+(defun udev-rinari-check-diff (log-buffer)
   "Check output from svn diff command for merge conflicts."
   ;; Fix-me: How can this be checked?
   (when udev-rinari-fetch-diff-buffer

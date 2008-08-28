@@ -111,8 +111,11 @@
                         (when (buffer-live-p buf)
                           buf))
                       nxhtmltest-test-buffers)))
-  (if nxhtmltest-test-buffers
-      (switch-to-buffer (list-buffers-noselect nil nxhtmltest-test-buffers))
+  (let ((ert-buffer (get-buffer "*ert*"))
+        (buffers nxhtmltest-test-buffers))
+    (when ert-buffer (setq buffers (cons ert-buffer buffers)))
+    (switch-to-buffer (list-buffers-noselect nil buffers)))
+  (unless nxhtmltest-test-buffers
     (message "No test buffers from unsuccessful tests")))
 
 (defmacro* nxhtmltest-with-persistent-buffer (file-name-form &body body)

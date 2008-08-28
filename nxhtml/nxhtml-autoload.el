@@ -218,6 +218,9 @@
 
 (majmodpri-sort-lists)
 
+(defvar nxhtml-src-dir (file-name-directory
+                        (if load-file-name load-file-name buffer-file-name)))
+
 (provide `nxhtml-autoload)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; nxhtml-autoload.el ends here
