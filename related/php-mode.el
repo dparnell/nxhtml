@@ -10,7 +10,7 @@
 ;; Modified: 2008-01-25T22:25:26+0100 Fri
 ;; X-URL:   http://php-mode.sourceforge.net/
 
-(defconst php-mode-version-number "1.4.1a-nxhtml"
+(defconst php-mode-version-number "1.4.1b-nxhtml"
   "PHP Mode version number.")
 
 ;;; License
@@ -71,6 +71,11 @@
 
 ;;; Changelog:
 
+;; 1.4.1b-nxhtml
+;;   Remove php-mode-to.
+;;   Make the indentation check only on current line.
+;;   Warn only once per session about indentation.
+;;
 ;; 1.4.1a-nxhtml
 ;;   Made underscore be part of identifiers.
 ;;
@@ -176,29 +181,15 @@ You can replace \"en\" with your ISO language code."
   :group 'php)
 
 ;;;###autoload
-(defcustom php-mode-to-use
-  (progn
-    (require 'mumamo nil t)
-    (if (fboundp 'nxhtml-mumamo-turn-on)
-        'nxhtml-mumamo-turn-on
-      (if (fboundp 'html-mumamo-turn-on)
-          'html-mumamo-turn-on
-        'php-mode)))
-  "Major mode turn on function to use for php files."
-  :type 'function
-  :group 'php)
-
-;;;###autoload
 (defcustom php-file-patterns '("\\.php[s34]?\\'" "\\.phtml\\'" "\\.inc\\'")
   "List of file patterns for which to automatically invoke `php-mode'."
   :type '(repeat (regexp :tag "Pattern"))
-  :set-after '(php-mode-to-use)
   :set (lambda (sym val)
          (set-default sym val)
          (let ((php-file-patterns-temp val))
            (while php-file-patterns-temp
              (add-to-list 'auto-mode-alist
-                          (cons (car php-file-patterns-temp) php-mode-to-use))
+                          (cons (car php-file-patterns-temp) 'php-mode))
              (setq php-file-patterns-temp (cdr php-file-patterns-temp)))))
   :group 'php)
 
@@ -275,8 +266,9 @@ See `php-beginning-of-defun'."
 (defun php-check-html-for-indentation ()
   (let ((html-tag-re "</?\\sw+.*?>")
         (here (point)))
-    (if (not (or (re-search-forward html-tag-re (+ (point) 1000) t)
-                 (re-search-backward html-tag-re (- (point) 1000) t)))
+    (goto-char (line-beginning-position))
+    (if (not (or (re-search-forward html-tag-re (line-end-position) t)
+                 (re-search-backward html-tag-re (line-beginning-position) t)))
         t
       (goto-char here)
       (setq php-warned-bad-indent t)
@@ -293,11 +285,11 @@ See `php-beginning-of-defun'."
              (available-names (mapcar (lambda (lib) (car lib)) available-multi-libs))
              (base-msg
               (concat
-               "Indentation fails badly with mixed HTML/PHP in plaín\n"
-               "`php-mode'.  To get indentation to work you must use an Emacs\n"
-               "library that supports 'multiple major modes' in a buffer.  Parts\n"
-               "of the buffer will then be in `php-mode' and parts in for example\n"
-               "`html-mode'.  Known such libraries are:\n\t"
+               "Indentation fails badly with mixed HTML/PHP in the HTML part in
+plaín `php-mode'.  To get indentation to work you must use an
+Emacs library that supports 'multiple major modes' in a buffer.
+Parts of the buffer will then be in `php-mode' and parts in for
+example `html-mode'.  Known such libraries are:\n\t"
                (mapconcat 'identity known-names ", ")
                "\n"
                (if available-multi-libs

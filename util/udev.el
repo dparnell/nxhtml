@@ -52,6 +52,7 @@
 
 (eval-when-compile (require 'cl))
 
+(require 'cus-edit)
 
 ;;; Control/log buffer
 
@@ -122,7 +123,9 @@
 
 (define-derived-mode udev-control-mode nil
   "Udev-Src"
-  "Mode for udev control buffer.")
+  "Mode for udev control buffer."
+  (setq show-trailing-whitespace nil)
+  (setq buffer-read-only t))
 
 ;;; Calling steps
 
@@ -141,8 +144,6 @@ after last step with LOG-BUFFER as parameter."
   ;;(dolist (step steps) (unless (functionp step) (error "Not a known function: %s" step)))
   (switch-to-buffer log-buffer)
   (udev-control-mode)
-  (setq show-trailing-whitespace nil)
-  (setq buffer-read-only t)
   (setq udev-is-log-buffer t)
   (setq this-chain
         (cons nil
