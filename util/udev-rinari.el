@@ -107,7 +107,6 @@ Give an error if they are loaded from somewhere else than
   )
 
 (defun udev-rinari-setup-when-finished (log-buffer)
-  (require 'cus-edit)
   (let ((inhibit-read-only t))
     (with-current-buffer log-buffer
       (widen)
