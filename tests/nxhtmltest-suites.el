@@ -78,51 +78,89 @@
 
 (defvar ert-simulate-command-delay 4.0)
 
-(defvar ert-simulate-command-post-command-hook nil)
+(defvar ert-simulate-command-post-hook nil
+  "Normal hook to be run at end of `ert-simulate-command'.")
 
-(defun ert-simulate-command (command)
-  "Simulate calling the command COMMAND."
-  (ert-should (commandp command))
-  ;; For the order of things here see command_loop_1 in keyboard.c
-  (setq this-command command)
-  (setq deactivate-mark nil)
-  (run-hooks 'pre-command-hook)
-  (funcall command)
-  (run-hooks 'post-command-hook)
-  (when (and deactivate-mark transient-mark-mode) (deactivate-mark))
-  ;;(nxhtmltest-fontify-default-way 2 "trans")
-  (dolist (timer (copy-list timer-idle-list))
-    (timer-event-handler timer))
-  (run-hooks 'ert-simulate-command-post-command-hook)
-  (message "After command %s" command)
-  (redisplay t)
-  (when ert-simulate-command-delay
-    (let ((old-buffer-name (buffer-name)))
-      (rename-buffer (concat (format "After ")
-                             (propertize (format "%s" command)
-                                         'face 'highlight))
-                     t)
-      (sit-for ert-simulate-command-delay)
-      (rename-buffer old-buffer-name))))
+(defun ert-simulate-command (command run-idle-timers)
+  "Simulate calling command COMMAND as in Emacs command loop.
+If RUN-IDLE-TIMERS is non-nil then run the idle timers after
+calling everything involved with the command.
+
+COMMAND should be a list where the car is the command symbol and
+the rest are arguments to the command.
+
+NOTE: Since the command is not called by `call-interactively'
+test for `called-interactively' in the command will fail.
+
+Return the value of calling the command, ie
+
+  (apply (car COMMAND) (cdr COMMAND)).
+
+Run the hook `ert-simulate-command-post-hook' at the very end."
+
+  (ert-should (listp command))
+  (ert-should (commandp (car command)))
+  (let (return-value)
+    ;; For the order of things here see command_loop_1 in keyboard.c
+    ;;
+    ;; The command loop will reset the command related variables so
+    ;; there is no reason to let bind them. They are set here however
+    ;; to be able to test several commands in a row and how they
+    ;; affect each other.
+    (setq deactivate-mark nil)
+    (setq this-original-command (car command))
+    ;; remap through active keymaps
+    (setq this-command (or (command-remapping this-original-command)
+                           this-original-command))
+    (run-hooks 'pre-command-hook)
+    (setq return-value (apply (car command) (cdr command))) ;; <-----
+    (run-hooks 'post-command-hook)
+    (when deferred-action-list
+      (run-hooks 'deferred_action_function))
+    (setq real-last-command (car command))
+    (setq last-repeatable-command real-last-command)
+    (setq last-command this-command)
+    (when (and deactivate-mark transient-mark-mode) (deactivate-mark))
+    (when run-idle-timers
+      (dolist (timer (copy-list timer-idle-list))
+        (timer-event-handler timer))
+      (redisplay t))
+    (when ert-simulate-command-delay
+      ;; Show user
+      (message "After M-x %s" command)
+      (let ((old-buffer-name (buffer-name)))
+        (rename-buffer (propertize (format "After M-x %s" (car command))
+                                   'face 'highlight)
+                       t)
+        (sit-for ert-simulate-command-delay)
+        (rename-buffer old-buffer-name)))
+    (run-hooks 'ert-simulate-command-post-hook)
+    return-value))
+
+(defun ert-this-test ()
+  "Return current `ert-deftest' function."
+  (elt test 1))
 
 (ert-deftest nxhtml-ert-indent-question43320 ()
   "Test for question 43320 in Launchpad."
   (nxhtmltest-with-persistent-buffer "question43320.html"
-    (add-hook 'ert-simulate-command-post-command-hook
+    (add-hook 'ert-simulate-command-post-hook
               'nxhtmltest-should-no-mumamo-errors
               nil t)
-    (ert-simulate-command 'nxhtml-mumamo)
-    (goto-line 25) (ert-should (/= 14 (current-indentation)))
-    (ert-simulate-command 'mark-whole-buffer)
-    (ert-simulate-command 'indent-for-tab-command)
-    (goto-line 8) (ert-should (= 8 (current-indentation)))
-    (goto-line 9) (ert-should (= 0 (current-indentation)))
-    (goto-line 15) (ert-should (= 8 (current-indentation)))
-    (goto-line 16) (ert-should (= 8 (current-indentation)))
-    (goto-line 25) (ert-should (= 4 (current-indentation)))
-    (goto-line 8) (indent-line-to 0) (indent-for-tab-command) (ert-should (= 8 (current-indentation)))
+    (ert-simulate-command '(nxhtml-mumamo) t)
+    (font-lock-mode 1)
+    (goto-line 25)  (ert-should (/= 14 (current-indentation)))
+    (ert-simulate-command '(mark-whole-buffer) t)
+    (ert-simulate-command '(indent-for-tab-command) t)
+    (goto-line 8)   (ert-should (= 8 (current-indentation)))
+    (goto-line 9)   (ert-should (= 0 (current-indentation)))
+    (goto-line 15)  (ert-should (= 8 (current-indentation)))
+    (goto-line 16)  (ert-should (= 8 (current-indentation)))
+    (goto-line 25)  (ert-should (= 4 (current-indentation)))
+    (goto-line 8) (indent-line-to 0)
+    (ert-simulate-command '(indent-for-tab-command) t)
+    (ert-should (= 8 (current-indentation)))
     ))
-    (sit-for 3)
 
 (ert-deftest nxhtml-ert-only-php-no-end ()
   "Check for nXml error."

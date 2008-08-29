@@ -434,7 +434,10 @@ first tried."
   (let ((pos (point)))
     (call-interactively 'beginning-of-line arg)
     (when (= pos (point))
-      (skip-chars-forward " \t"))))
+      (if (= 0 (current-column))
+          (skip-chars-forward " \t")
+        (backward-char)
+        (beginning-of-line)))))
 (put 'ourcomments-move-beginning-of-line 'CUA 'move)
 
 (defun ourcomments-move-end-of-line(arg)
@@ -448,7 +451,10 @@ first tried."
   (let ((pos (point)))
     (call-interactively 'end-of-line arg)
     (when (= pos (point))
-      (skip-chars-backward " \t"))))
+      (if (= (line-end-position) (point))
+          (skip-chars-backward " \t")
+        (forward-char)
+        (end-of-line)))))
 (put 'ourcomments-move-end-of-line 'CUA 'move)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -456,7 +462,7 @@ first tried."
 
 (defun ourcomments-find-keymap-variables (keymap---)
   "Return a list of keymap variables with value KEYMAP--.
-Ignore `special-event-map', `global-map', `overriding-local-map'
+Ignore `special-event-map', `global-map', `overriding-local-map'    
 and `overriding-terminal-local-map'."
   (let ((vars nil))
     (mapatoms (lambda (symbol)
