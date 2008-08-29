@@ -267,8 +267,10 @@ See `php-beginning-of-defun'."
   (let ((html-tag-re "</?\\sw+.*?>")
         (here (point)))
     (goto-char (line-beginning-position))
-    (if (not (or (re-search-forward html-tag-re (line-end-position) t)
-                 (re-search-backward html-tag-re (line-beginning-position) t)))
+    (if (or (when (boundp mumamo-multi-major-mode) mumamo-multi-major-mode)
+            ;; Fix-me: no idea how to check for mmm or multi-mode
+            (not (or (re-search-forward html-tag-re (line-end-position) t)
+                 (re-search-backward html-tag-re (line-beginning-position) t))))
         t
       (goto-char here)
       (setq php-warned-bad-indent t)
