@@ -76,24 +76,53 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define tests using ert.el
 
-(ert-deftest nxhtml-ert-question43320 ()
+(defvar ert-simulate-command-delay 4.0)
+
+(defvar ert-simulate-command-post-command-hook nil)
+
+(defun ert-simulate-command (command)
+  "Simulate calling the command COMMAND."
+  (ert-should (commandp command))
+  ;; For the order of things here see command_loop_1 in keyboard.c
+  (setq this-command command)
+  (setq deactivate-mark nil)
+  (run-hooks 'pre-command-hook)
+  (funcall command)
+  (run-hooks 'post-command-hook)
+  (when (and deactivate-mark transient-mark-mode) (deactivate-mark))
+  ;;(nxhtmltest-fontify-default-way 2 "trans")
+  (dolist (timer (copy-list timer-idle-list))
+    (timer-event-handler timer))
+  (run-hooks 'ert-simulate-command-post-command-hook)
+  (message "After command %s" command)
+  (redisplay t)
+  (when ert-simulate-command-delay
+    (let ((old-buffer-name (buffer-name)))
+      (rename-buffer (concat (format "After ")
+                             (propertize (format "%s" command)
+                                         'face 'highlight))
+                     t)
+      (sit-for ert-simulate-command-delay)
+      (rename-buffer old-buffer-name))))
+
+(ert-deftest nxhtml-ert-indent-question43320 ()
   "Test for question 43320 in Launchpad."
   (nxhtmltest-with-persistent-buffer "question43320.html"
-    (nxhtml-mumamo)
-    (run-hooks 'after-change-major-mode-hook)
-    (run-hooks 'post-command-hook)
-    (nxhtmltest-fontify-default-way 2 "trans")
-    (nxhtmltest-should-no-mumamo-errors)
-    (goto-line 25)
-    (ert-should (/= 14 (current-indentation)))
-    (mark-whole-buffer)
-    (sit-for 1)
-    (indent-for-tab-command)
+    (add-hook 'ert-simulate-command-post-command-hook
+              'nxhtmltest-should-no-mumamo-errors
+              nil t)
+    (ert-simulate-command 'nxhtml-mumamo)
+    (goto-line 25) (ert-should (/= 14 (current-indentation)))
+    (ert-simulate-command 'mark-whole-buffer)
+    (ert-simulate-command 'indent-for-tab-command)
+    (goto-line 8) (ert-should (= 8 (current-indentation)))
+    (goto-line 9) (ert-should (= 0 (current-indentation)))
+    (goto-line 15) (ert-should (= 8 (current-indentation)))
+    (goto-line 16) (ert-should (= 8 (current-indentation)))
+    (goto-line 25) (ert-should (= 4 (current-indentation)))
+    (goto-line 8) (indent-line-to 0) (indent-for-tab-command) (ert-should (= 8 (current-indentation)))
+    ))
     (sit-for 3)
-    (nxhtmltest-should-no-mumamo-errors)
-    (goto-line 25)
-    (sit-for 3)
-    (ert-should (= 14 (current-indentation)))))
 
 (ert-deftest nxhtml-ert-only-php-no-end ()
   "Check for nXml error."
@@ -401,6 +430,16 @@ The indentation on line 7 should be 0."
         (ert-run-tests-batch selector)
       (nxhtmltest-kill-test-buffers)
       (ert-run-tests-interactively selector))))
+
+(defun nxhtmltest-run-indent ()
+  "Run indentation tests."
+  (interactive)
+  (let ((selector "nxhtml-ert-indent-"))
+    (nxhtmltest-kill-test-buffers)
+    (nxhtmltest-get-fontification-method)
+    (ert-run-tests-interactively selector))
+  (other-window 1)
+  (nxhtmltest-list-test-buffers))
 
 (defun nxhtmltest-run ()
   "Run all tests defined for nXhtml.
