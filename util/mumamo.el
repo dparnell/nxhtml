@@ -673,7 +673,7 @@ default."
 
 (defcustom mumamo-submode-indent-offset 2
   "Indentation of submode relative main major mode.
-If this is nil then no special indent is make when entering a
+If this is nil then no special indent is made when entering a
 submode.
 
 See also `mumamo-submode-indent-offset-0'."
