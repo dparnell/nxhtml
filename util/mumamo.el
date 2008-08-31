@@ -336,7 +336,7 @@ uses are in this file.
 
 FORMAT-STRING and ARGS have the same meaning as for the function
 `message'."
-  (list 'apply (list 'quote 'msgtrc) format-string (append '(list) args))
+  ;;(list 'apply (list 'quote 'msgtrc) format-string (append '(list) args))
   ;;(list 'apply (list 'quote 'message) format-string (append '(list) args))
   ;;(list 'apply (list 'quote 'message) (list 'concat "%s: " format-string)
   ;;   (list 'get-internal-run-time) (append '(list) args))
@@ -673,15 +673,20 @@ default."
 
 (defcustom mumamo-submode-indent-offset 2
   "Indentation of submode relative main major mode.
+If this is nil then no special indent is make when entering a
+submode.
+
 See also `mumamo-submode-indent-offset-0'."
-  :type 'integer
+  :type '(choice integer
+                 (const :tag "No special"))
   :group 'mumamo)
 
 (defcustom mumamo-submode-indent-offset-0 0
   "Indentation of submode at column 0.
 This value overrides `mumamo-submode-indent-offset' when the main
 major mode above has indentation 0."
-  :type 'integer
+  :type '(choice integer
+                 (const :tag "No special"))
   :group 'mumamo)
 
 (defcustom mumamo-major-mode-indent-specials
@@ -2629,24 +2634,29 @@ indentation etc."
   (assert (overlay-buffer chunk))
   (overlay-get chunk 'mumamo-major-mode))
 
-(defun mumamo-chunk-syntax-min (chunk)
+(defsubst mumamo-chunk-syntax-min (chunk)
   "Get min syntactically safe point inside mumamo chunk CHUNK.
 Syntax here refer to the syntax handled by `syntax-ppss' etc."
 ;;  (overlay-start chunk))
   (+ (overlay-start chunk)
      (or (overlay-get chunk 'syntax-min-d)
          0)))
-;;;   (or (overlay-get chunk 'syntax-min)
-;;;       (overlay-start chunk)))
 
-(defun mumamo-chunk-syntax-max (chunk)
+(defsubst mumamo-chunk-syntax-max (chunk)
   "Get max point where syntax is consistent inside mumamo chunk CHUNK.
 See `mumamo-chunk-syntax-min'."
   (- (overlay-end chunk)
      (or (overlay-get chunk 'syntax-max-d)
          0)))
-;;;   (or (overlay-get chunk 'syntax-max)
-;;;       (overlay-end chunk)))
+
+(defun mumamo-syntax-maybe-completable (pnt)
+  "Return non-nil if at point PNT non-printable characters may occur.
+This just considers existing chunks."
+  (let ((chunk (mumamo-get-existing-chunk-at pnt)))
+    (if (not chunk)
+        t
+      (and (> pnt (1+ (mumamo-chunk-syntax-min chunk)))
+           (< pnt (1- (mumamo-chunk-syntax-max chunk)))))))
 
 (defvar mumamo-current-chunk-family nil
   "The currently used chunk family.")
@@ -4793,6 +4803,7 @@ The following rules are used when indenting:
      (leaving-submode
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       ;;;;; First line after submode
+      (mumamo-msgindent "  leaving last-main-major-indent=%s" last-main-major-indent)
       (setq want-indent last-main-major-indent))
      (entering-submode
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -4800,15 +4811,31 @@ The following rules are used when indenting:
       (setq this-line-indent-major this-line-major0)
       ;;(when (and prev-line-major0 (not (eq this-line-major0 prev-line-major0))) (setq this-line-indent-major prev-line-major0))
       (mumamo-msgindent "  this-line-indent-major=%s, major-mode=%s this0=%s" this-line-indent-major major-mode this-line-major0)
+      (mumamo-msgindent "  mumamo-submode-indent-offset=%s" mumamo-submode-indent-offset)
+      (unless (eq this-line-indent-major major-mode) (mumamo-set-major this-line-indent-major))
       (setq want-indent (+ last-main-major-indent
                            (if (= 0 last-main-major-indent)
-                               mumamo-submode-indent-offset-0
-                             mumamo-submode-indent-offset)))
-      (unless (eq this-line-indent-major major-mode) (mumamo-set-major this-line-indent-major))
-      (mumamo-indent-special-or-default want-indent)
+                               (if mumamo-submode-indent-offset-0
+                                   mumamo-submode-indent-offset-0
+                                 -1000)
+                             (if mumamo-submode-indent-offset
+                                 mumamo-submode-indent-offset
+                               -1000))))
+      (unless (< 0 want-indent) (setq want-indent nil))
+      (when (and want-indent (mumamo-indent-use-widen major-mode))
+        ;; In this case only use want-indent if it is bigger than the
+        ;; indentation calling indent-line-function would give.
+        (condition-case nil
+            (atomic-change-group
+              (mumamo-call-indent-line)
+              (when (> want-indent (current-indentation))
+                (signal 'mumamo-error-ind-0 nil))
+              (setq want-indent nil))
+          (mumamo-error-ind-0)))
+      (unless want-indent
+        (mumamo-call-indent-line))
       (mumamo-msgindent "  enter sub.want-indent=%s, curr=%s, last-main=%s" want-indent (current-indentation)
                         last-main-major-indent)
-      (setq want-indent nil)
       ;;(unless (> want-indent (current-indentation)) (setq want-indent nil))
       )
      (t
@@ -4816,17 +4843,22 @@ The following rules are used when indenting:
       ;; about the requirements of the indent-line-function:
       ;; Fix-me: This may be cured by RMS suggestion to
       ;; temporarily set all variables back to global values?
-      (unless (eq this-line-major1 major-mode) (mumamo-set-major this-line-major1))
-      ;; Use the major mode at the end of since a sub chunk may
+      (setq this-line-indent-major this-line-major0)
+      (mumamo-msgindent "  this-line-indent-major=%s" this-line-indent-major)
+      (unless (eq this-line-indent-major major-mode) (mumamo-set-major this-line-indent-major))
+      ;; Use the major mode at the beginning of since a sub chunk may
       ;; start at start of line.
-      (if (eq this-line-major2 main-major)
+      (if (eq this-line-major1 main-major)
           ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
           ;;;;; In main major mode
           ;;
           ;; Fix-me: Take care of the case when all the text is in a
           ;; sub chunk. In that case use the same indentation as if
           ;; the code all belongs to the surrounding major mode.
-          (mumamo-call-indent-line)
+          (progn
+            (mumamo-msgindent "  In main major mode")
+            (mumamo-call-indent-line)
+            (setq last-main-major-indent (current-indentation)))
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;;;;; In sub major mode
         ;;
@@ -4835,6 +4867,7 @@ The following rules are used when indenting:
         ;; Since this line has another major mode than the
         ;; previous line we instead want to indent relative to
         ;; that line in a way decided in mumamo:
+        (mumamo-msgindent "  In sub major mode")
         (let ((chunk (mumamo-get-chunk-save-buffer-state (point)))
               (font-lock-dont-widen t)
               ind-zero
@@ -4891,6 +4924,7 @@ The following rules are used when indenting:
     (when want-indent
       (indent-line-to want-indent))
     (goto-char here-on-line)
+    ;;(message "exit: %s" (list this-line-chunks last-main-major-indent))
     (list this-line-chunks last-main-major-indent)))
 
 ;; Fix-me: use this for first line in a submode
@@ -4904,6 +4938,7 @@ The following rules are used when indenting:
 ;;(mumamo-indent-use-widen 'nxhtml-mode)
 ;;(mumamo-indent-use-widen 'html-mode)
 
+;; Fix-me: remove
 (defun mumamo-indent-special-or-default (default-indent)
   "Indent to DEFAULT-INDENT unless a special indent can be done."
   (mumamo-with-major-mode-indentation major-mode

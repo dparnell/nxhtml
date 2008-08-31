@@ -214,12 +214,15 @@ use `nxhtmltest-kill-test-buffers'."
          (hist (mapcar (lambda (rec)
                          (car rec))
                        collection))
-         (method-name (completing-read "Default fontification method: "
-                                       collection nil t
-                                       (car (nth 1 collection))
-                                       'hist)))
+         (method-name (or t
+                          (completing-read "Default fontification method: "
+                                           collection nil t
+                                           (car (nth 1 collection))
+                                           'hist))))
     (setq nxhtmltest-default-fontification-method
-          (nth 1 (assoc method-name collection)))))
+          ;;(nth 1 (assoc method-name collection))
+          'fontify-w-timer-handlers
+          )))
 
 (defun nxhtmltest-fontify-as-usual (seconds prompt-mark)
   (font-lock-mode 1)
