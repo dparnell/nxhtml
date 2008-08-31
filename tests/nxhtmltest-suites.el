@@ -2,8 +2,8 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-07-08T20:17:36+0200 Tue
-;; Version: 0.11
-;; Last-Updated: 2008-08-08T03:26:35+0200 Fri
+;; Version: 0.12
+;; Last-Updated: 2008-09-01T01:13:28+0200 Sun
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
@@ -81,6 +81,7 @@
 (defvar ert-simulate-command-post-hook nil
   "Normal hook to be run at end of `ert-simulate-command'.")
 
+;; Fix-me: use this in all tests where applicable.
 (defun ert-simulate-command (command run-idle-timers)
   "Simulate calling command COMMAND as in Emacs command loop.
 If RUN-IDLE-TIMERS is non-nil then run the idle timers after
@@ -144,7 +145,7 @@ Run the hook `ert-simulate-command-post-hook' at the very end."
 (ert-deftest nxhtml-ert-indent-question43320 ()
   "Test for question 43320 in Launchpad.
 See URL `https://answers.launchpad.net/nxhtml/+question/43320'."
-  (nxhtmltest-with-persistent-buffer "question43320.html"
+  (ert-with-temp-buffer-include-file "question43320.html"
     (add-hook 'ert-simulate-command-post-hook
               'nxhtmltest-should-no-mumamo-errors
               nil t)
@@ -182,7 +183,7 @@ See URL `https://answers.launchpad.net/nxhtml/+question/43320'."
 
 (ert-deftest nxhtml-ert-only-php-no-end ()
   "Check for nXml error."
-  (nxhtmltest-with-persistent-buffer "no-php-end-4.php"
+  (ert-with-temp-buffer-include-file "no-php-end-4.php"
     (nxhtml-mumamo)
     (run-hooks 'after-change-major-mode-hook)
     (run-hooks 'post-command-hook)
@@ -203,7 +204,7 @@ See URL `https://answers.launchpad.net/nxhtml/+question/43320'."
 This test should fail because there is currently no rng schema
 for transitional. The schema for strict is used instead and the
 file is invalid then."
-  (nxhtmltest-with-persistent-buffer "lg-080813-label.html"
+  (ert-with-temp-buffer-include-file "lg-080813-label.html"
     (nxhtml-mumamo)
     (nxhtmltest-fontify-default-way 2 "trans")
     (rng-validate-mode 1)
@@ -220,7 +221,7 @@ file is invalid then."
          'font-lock-function-name-face))))
 
 (ert-deftest nxhtml-ert-genshi-valid-in-genshi ()
-  (nxhtmltest-with-persistent-buffer "genshi-auto-mode.html"
+  (ert-with-temp-buffer-include-file "genshi-auto-mode.html"
     (message "\n")
     (genshi-nxhtml-mumamo)
     (font-lock-mode 1)
@@ -238,7 +239,7 @@ file is invalid then."
       (= 0 rng-error-count))))
 
 (ert-deftest nxhtml-ert-genshi-invalid-in-nxhtml ()
-  (nxhtmltest-with-persistent-buffer "genshi-auto-mode.html"
+  (ert-with-temp-buffer-include-file "genshi-auto-mode.html"
     (message "\n")
     (nxhtml-mumamo)
     (nxhtmltest-fontify-default-way 2 "sheit")
@@ -252,7 +253,7 @@ file is invalid then."
 
 (ert-deftest nxhtml-ert-genshi-magic-mode ()
   "Test if genshi file is recognized."
-  (let ((file1 (nxhtml-get-test-file-name "genshi-auto-mode.html"))
+  (let ((file1 (ert-get-test-file-name "genshi-auto-mode.html"))
         buf1)
     ;; Ensure we open the files
     (setq buf1 (find-buffer-visiting file1))
@@ -268,7 +269,7 @@ file is invalid then."
 
 (ert-deftest nxhtml-ert-genshi-auto-mode ()
   "Test if file extension .ghtml is recognized."
-  (let ((file1 (nxhtml-get-test-file-name "genshi-HelloWorldPage.ghtml"))
+  (let ((file1 (ert-get-test-file-name "genshi-HelloWorldPage.ghtml"))
         buf1)
     ;; Ensure we open the files
     (setq buf1 (find-buffer-visiting file1))
@@ -284,8 +285,8 @@ file is invalid then."
 
 (ert-deftest nxhtml-ert-opened-modified ()
   "Test if buffer get modified when opening a file."
-  (let ((file1 (nxhtml-get-test-file-name "cvd-080805-ac.php"))
-        (file2 (nxhtml-get-test-file-name "cvd-080805-cc.php"))
+  (let ((file1 (ert-get-test-file-name "cvd-080805-ac.php"))
+        (file2 (ert-get-test-file-name "cvd-080805-cc.php"))
         buf1
         buf2)
     ;; Ensure we open the files
@@ -309,7 +310,7 @@ file is invalid then."
 
 (ert-deftest nxhtml-ert-wiki-strange-hili-080629 ()
   "From a report on EmacsWiki."
-  (nxhtmltest-with-persistent-buffer "wiki-strange-hili-080629.html"
+  (ert-with-temp-buffer-include-file "wiki-strange-hili-080629.html"
     ;;(ert-should (not font-lock-mode))
     (nxhtml-mumamo)
     ;;(ert-should (not font-lock-mode))
@@ -320,8 +321,8 @@ file is invalid then."
      (eq (get-text-property 44 'face)
          'font-lock-function-name-face))))
 
-(ert-deftest nxhtml-ert-wiki-080708-ind-problem ()
-  (nxhtmltest-with-persistent-buffer "wiki-080708-ind-problem.rhtml"
+(ert-deftest nxhtml-ert-indent-wiki-080708-ind-problem ()
+  (ert-with-temp-buffer-include-file "wiki-080708-ind-problem.rhtml"
     (require 'ruby-mode nil t)
     (if (not (featurep 'ruby-mode))
         ;; Fix-me: ert should maybe have some way to just display
@@ -337,8 +338,8 @@ file is invalid then."
       (nxhtmltest-should-no-mumamo-errors)
       (ert-should (= (current-indentation) 0)))))
 
-(ert-deftest nxhtml-ert-wiki-080708-ind-problem-a ()
-  (nxhtmltest-with-persistent-buffer "wiki-080708-ind-problem.rhtml"
+(ert-deftest nxhtml-ert-indent-wiki-080708-ind-problem-a ()
+  (ert-with-temp-buffer-include-file "wiki-080708-ind-problem.rhtml"
     (require 'ruby-mode nil t)
     (if (not (featurep 'ruby-mode))
         (error "ruby-mode not available, skipping test")
@@ -355,7 +356,7 @@ file is invalid then."
       (ert-should (= (current-indentation) 2)))))
 
 (ert-deftest nxhtml-ert-sheit-2007-12-26 ()
-  (nxhtmltest-with-persistent-buffer "sheit-2007-12-26.php"
+  (ert-with-temp-buffer-include-file "sheit-2007-12-26.php"
     ;;(ert-should (not font-lock-mode))
     (nxhtml-mumamo)
     ;;(ert-should (not font-lock-mode))
@@ -396,15 +397,15 @@ file is invalid then."
 (ert-deftest nxhtml-ert-nxhtml-changes-jump-back-7033-2 ()
   "this is a docstring.
 wonder how that works now ..."
-  (nxhtmltest-with-persistent-buffer "../../nxhtml/doc/nxhtml-changes.html"
+  (ert-with-temp-buffer-include-file "../../nxhtml/doc/nxhtml-changes.html"
     (nxhtml-ert-nxhtml-changes-jump-back-2 7033)))
 
 (ert-deftest nxhtml-ert-nxhtml-changes-jump-back-10547-2 ()
-  (nxhtmltest-with-persistent-buffer "../../nxhtml/doc/nxhtml-changes.html"
+  (ert-with-temp-buffer-include-file "../../nxhtml/doc/nxhtml-changes.html"
     (nxhtml-ert-nxhtml-changes-jump-back-2 10547)))
 
 (ert-deftest nxhtml-ert-nxhtml-changes-jump-2 ()
-  (nxhtmltest-with-persistent-buffer "../../nxhtml/doc/nxhtml-changes.html"
+  (ert-with-temp-buffer-include-file "../../nxhtml/doc/nxhtml-changes.html"
     ;;(ert-should (not font-lock-mode))
     (nxhtml-mumamo)
     ;;(ert-should (not font-lock-mode))
@@ -420,7 +421,7 @@ wonder how that works now ..."
 (ert-deftest nxhtml-ert-php-indent-bug-1 ()
   "Test indentation in php only file.
 The indentation on line 7 should be 0."
-  (nxhtmltest-with-persistent-buffer "only-php.php"
+  (ert-with-temp-buffer-include-file "only-php.php"
     (nxhtml-mumamo)
     ;; No fontification needed for indentation.
     (goto-line 7)
@@ -434,7 +435,7 @@ The indentation on line 7 should be 0."
 
 ;; (ert-deftest nxhtml-ert-scroll-jump-test ()
 ;;   "Test if `scroll-conservatively' eq 1 works."
-;;   (nxhtmltest-with-persistent-buffer "../../nxhtml/doc/nxhtml-changes.html"
+;;   (ert-with-temp-buffer-include-file "../../nxhtml/doc/nxhtml-changes.html"
 ;;     (ert-should (not font-lock-mode))
 ;;     (nxhtml-mumamo)
 ;;     (ert-should (not font-lock-mode))
@@ -481,21 +482,25 @@ The indentation on line 7 should be 0."
 
 (defun nxhtmltest-run-ert ()
   "Run test with ert library."
+  (setq ert-test-files-root nxhtmltest-files-root)
   (let ((selector "nxhtml-ert-"))
     (if noninteractive
         (ert-run-tests-batch selector)
-      (nxhtmltest-kill-test-buffers)
-      (ert-run-tests-interactively selector))))
+      (ert-kill-temp-test-buffers)
+      (ert-run-tests-interactively selector)
+      (other-window 1)
+      (ert-list-temp-test-buffers))))
 
 (defun nxhtmltest-run-indent ()
   "Run indentation tests."
   (interactive)
+  (setq ert-test-files-root nxhtmltest-files-root)
   (let ((selector "nxhtml-ert-indent-"))
-    (nxhtmltest-kill-test-buffers)
+    (ert-kill-temp-test-buffers)
     (nxhtmltest-get-fontification-method)
     (ert-run-tests-interactively selector))
   (other-window 1)
-  (nxhtmltest-list-test-buffers))
+  (ert-list-temp-test-buffers))
 
 (defun nxhtmltest-run ()
   "Run all tests defined for nXhtml.
@@ -511,12 +516,9 @@ fail (they corresponds to known errors in nXhtml/Emacs):
   (setq message-log-max t)
   (when (called-interactively-p)
     (nxhtmltest-get-fontification-method))
-  (nxhtmltest-run-ert)
-  (other-window 1)
-  (nxhtmltest-list-test-buffers))
+  (nxhtmltest-run-ert))
 
 (when (getenv "nxhtmltest-run-Q")
-  ;;(global-font-lock-mode -1)
   (nxhtmltest-run))
 
 (provide 'nxhtmltest-suites)
