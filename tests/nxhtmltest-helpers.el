@@ -2,15 +2,15 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-07-08T19:10:54+0200 Tue
-;; Version: 0.1
-;; Last-Updated: 2008-07-08T19:11:22+0200 Tue
+;; Version: 0.2
+;; Last-Updated: 2008-09-01T01:13:15+0200 Sun
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   Cannot open load file: test-helpers.
+;;   `button', `help-fns', `help-mode', `view'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -72,131 +72,131 @@
 
 ;;(nxhtmltest-be-really-idle 4 "HERE I AM!!")
 
-(defmacro* nxhtmltest-with-temp-buffer (file-name-form &body body)
-  (declare (indent 1) (debug t))
-  (let ((file-name (gensym "file-name-")))
-    `(let ((,file-name (nxhtml-get-test-file-name ,file-name-form)))
-       (with-temp-buffer
-         ;; Give the buffer a name that allows us to switch to it
-         ;; quickly when debugging a failure.
-         (rename-buffer (format "Test input %s"
-                                (file-name-nondirectory ,file-name))
-                        t)
-         (insert-file-contents ,file-name)
-         (save-window-excursion
-           ;; Switch to buffer so it will show immediately when
-           ;; debugging a failure.
-           (switch-to-buffer (current-buffer))
-           ,@body)))))
+;; (defmacro* nxhtmltest-with-temp-buffer (file-name-form &body body)
+;;   (declare (indent 1) (debug t))
+;;   (let ((file-name (gensym "file-name-")))
+;;     `(let ((,file-name (nxhtml-get-test-file-name ,file-name-form)))
+;;        (with-temp-buffer
+;;          ;; Give the buffer a name that allows us to switch to it
+;;          ;; quickly when debugging a failure.
+;;          (rename-buffer (format "Test input %s"
+;;                                 (file-name-nondirectory ,file-name))
+;;                         t)
+;;          (insert-file-contents ,file-name)
+;;          (save-window-excursion
+;;            ;; Switch to buffer so it will show immediately when
+;;            ;; debugging a failure.
+;;            (switch-to-buffer (current-buffer))
+;;            ,@body)))))
 
-;; Fix-me: This does not work as I intended. A lot of buffers lying
-;; around ...
-(defvar nxhtmltest-test-buffers nil)
 
-(defun nxhtmltest-kill-test-buffers ()
+(defvar ert-failed-tests-temp-buffers nil)
+
+(defvar ert-list-failed-buffers-name "*Ert Failed Test Buffers*")
+
+(defun ert-kill-temp-test-buffers ()
   "Delete test buffers from unsuccessful tests."
   (interactive)
-  (let ((failed (get-buffer nxhtmltest-failed-buffers-name)))
+  (let ((failed (get-buffer ert-list-failed-buffers-name)))
     (when failed (kill-buffer failed)))
-  (dolist (buf nxhtmltest-test-buffers)
+  (dolist (buf ert-failed-tests-temp-buffers)
     (when (buffer-live-p buf)
       (kill-buffer buf)))
-  (setq nxhtmltest-test-buffers nil))
+  (setq ert-failed-tests-temp-buffers nil))
 
-(defun nxhtmltest-list-test-buffers ()
+(defun ert-list-temp-test-buffers ()
   "List test buffers from unsuccessful tests."
   (interactive)
-  (setq nxhtmltest-test-buffers
+  (setq ert-failed-tests-temp-buffers
         (delq nil
               (mapcar (lambda (buf)
                         (when (buffer-live-p buf)
                           buf))
-                      nxhtmltest-test-buffers)))
+                      ert-failed-tests-temp-buffers)))
   (let ((ert-buffer (get-buffer "*ert*"))
-        (buffers nxhtmltest-test-buffers))
+        (buffers ert-failed-tests-temp-buffers))
     (when ert-buffer (setq buffers (cons ert-buffer buffers)))
     (switch-to-buffer
      (let ((Buffer-menu-buffer+size-width 40))
        (list-buffers-noselect nil buffers)))
-    (rename-buffer nxhtmltest-failed-buffers-name t))
-  (unless nxhtmltest-test-buffers
+    (rename-buffer ert-list-failed-buffers-name t))
+  (unless ert-failed-tests-temp-buffers
     (message "No test buffers from unsuccessful tests")))
 
-(defvar nxhtmltest-failed-buffers-name "*Ert Failed Test Buffers*")
-
-(defvar nxhtmltest-persistent-buffer-mode-map
+(defvar ert-temp-test-buffer-minor-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Add menu bar entries for test buffer and test function
-    (define-key map [(control ?c) ?? ?t] 'nxhtmltest-persistent-go-test)
-    (define-key map [(control ?c) ?? ?f] 'nxhtmltest-persistent-go-file)
+    (define-key map [(control ?c) ?? ?t] 'ert-temp-test-buffer-go-test)
+    (define-key map [(control ?c) ?? ?f] 'ert-temp-test-buffer-go-file)
     map))
-(defun nxhtmltest-persistent-go-test ()
+(defun ert-temp-test-buffer-go-test ()
   (interactive)
-  (ert-find-test-other-window nxhtmltest-persistent-buffer-test))
-(defun nxhtmltest-persistent-go-file ()
+  (ert-find-test-other-window ert-temp-test-buffer-test))
+(defun ert-temp-test-buffer-go-file ()
   (interactive)
-  (find-file-other-window nxhtmltest-persistent-buffer-file))
+  (find-file-other-window ert-temp-test-buffer-file))
 
-(define-minor-mode nxhtmltest-persistent-buffer-mode
+(define-minor-mode ert-temp-test-buffer-minor-mode
   "Helpers for those buffers ..."
   )
-(put 'nxhtmltest-persistent-buffer-mode 'permanent-local t)
-(defvar nxhtmltest-persistent-buffer-test nil)
-(make-variable-buffer-local 'nxhtmltest-persistent-buffer-test)
-(put 'nxhtmltest-persistent-buffer-test 'permanent-local t)
-(defvar nxhtmltest-persistent-buffer-file nil)
-(make-variable-buffer-local 'nxhtmltest-persistent-buffer-file)
-(put 'nxhtmltest-persistent-buffer-file 'permanent-local t)
+(put 'ert-temp-test-buffer-minor-mode 'permanent-local t)
+(defvar ert-temp-test-buffer-test nil)
+(make-variable-buffer-local 'ert-temp-test-buffer-test)
+(put 'ert-temp-test-buffer-test 'permanent-local t)
+(defvar ert-temp-test-buffer-file nil)
+(make-variable-buffer-local 'ert-temp-test-buffer-file)
+(put 'ert-temp-test-buffer-file 'permanent-local t)
 
-(defmacro* nxhtmltest-with-persistent-buffer (file-name-form &body body)
+;; Fix-me: doc
+(defvar ert-test-files-root nil)
+(defun ert-get-test-file-name (file-name)
+  (unless ert-test-files-root
+    (error "Please set ert-test-files-root for your tests"))
+  (unless (file-directory-p ert-test-files-root)
+    (error "Can't find directory %s" ert-test-files-root))
+  (expand-file-name file-name ert-test-files-root))
+
+(defmacro* ert-with-temp-buffer-include-file (file-name-form &body body)
   "Insert FILE-NAME-FORM in a temporary buffer and eval BODY.
 If success then delete the temporary buffer, otherwise keep it.
 
-To delete all temporary buffers from unsuccessful test you can
-use `nxhtmltest-kill-test-buffers'."
+To access these temporary test buffers use
+- `ert-list-temp-test-buffers': list them
+- `ert-kill-temp-test-buffers': delete them"
   (declare (indent 1) (debug t))
   (let ((file-name (gensym "file-name-")))
-    `(let* ((,file-name (nxhtml-get-test-file-name ,file-name-form))
-            (nxhtmltest-this-file ,file-name)
+    `(let* ((,file-name (ert-get-test-file-name ,file-name-form))
             (mode-line-buffer-identification (list (propertize "%b" 'face 'highlight)))
             ;; Give the buffer a name that allows us to switch to it
             ;; quickly when debugging a failure.
             (temp-buf
              (generate-new-buffer
-              (format "%s"
-                      (ert-this-test)
-                      ;;(file-name-nondirectory ,file-name)
-                      ;; Fix-me: I would like to have the test name
-                      ;; here. Is that possible?
-                      ))))
+              (format "%s" (ert-this-test)))))
        (unless (file-readable-p ,file-name)
          (if (file-exists-p ,file-name)
              (error "Can't read %s" ,file-name)
            (error "Can't find %s" ,file-name)))
        (message "Testing with file %s" ,file-name)
-       (setq nxhtmltest-test-buffers (cons temp-buf nxhtmltest-test-buffers))
+       (setq ert-failed-tests-temp-buffers (cons temp-buf ert-failed-tests-temp-buffers))
        (with-current-buffer temp-buf
-         (nxhtmltest-persistent-buffer-mode 1)
-         (setq nxhtmltest-persistent-buffer-file ,file-name)
-         (setq nxhtmltest-persistent-buffer-test (ert-this-test))
+         (ert-temp-test-buffer-minor-mode 1)
+         (setq ert-temp-test-buffer-file ,file-name)
+         (setq ert-temp-test-buffer-test (ert-this-test))
          ;; Avoid global font lock
          (let ((font-lock-global-modes nil))
            ;; Turn off font lock in buffer
            (font-lock-mode -1)
            (when (> emacs-major-version 22)
-             (assert (not font-lock-mode) t "%s %s" "in nxhtmltest-with-persistent-buffer"))
+             (assert (not font-lock-mode) t "%s %s" "in ert-with-temp-buffer-include-file"))
            (insert-file-contents ,file-name)
            (save-window-excursion
              ;; Switch to buffer so it will show immediately when
              ;; debugging a failure.
              (switch-to-buffer-other-window (current-buffer))
              ,@body)
-           ;; Fix-me: move to success list.
+           ;; Fix-me: move to success list?
            (kill-buffer temp-buf))))))
 
-
-(defun nxhtml-get-test-file-name (file-name)
-  (expand-file-name file-name nxhtmltest-files-root))
 
 
 ;;; Fontification methods

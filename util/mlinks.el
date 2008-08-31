@@ -810,12 +810,22 @@ Any command cancels this state."
 (defun mlinks-html-style-hili ()
   (mlinks-html-style-mode-fun nil))
 
-;; Fix-me: All on one line now
-;; Fix-me: This is where Shaowei Dai get
+;; Fix-me: All must be on one line now. Can that be changed?
+;; This is where Shaowei Dai got
 ;;   Debugger entered--Lisp error: (invalid-read-syntax "] in a list")
+(require 'rx)
 (defvar mlinks-html-link-regex
   ;; This value takes care of nxhtml-strval-mode (and is therefore a little bit incorrect ...)
-  "\\(?:^\\|[[:space:]]\\)\\(?:href\\|src\\)[[:space:]]*=[[:space:]]*\"\\([^<«\"]*\\)\"")
+  ;;"\\(?:^\\|[[:space:]]\\)\\(?:href\\|src\\)[[:space:]]*=[[:space:]]*\"\\([^<«\"]*\\)\""
+  (rx (or "^" space)
+      (or "href" "src")
+      (0+ space)
+      "="
+      (0+ space)
+      (submatch
+       (or
+        (seq "\"" (0+ (not (any "\""))) "\"")
+        (seq "'" (0+ (not (any "'"))) "'")))))
 
 ;;(require 'rx)
 ;;(rx
