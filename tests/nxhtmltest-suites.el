@@ -76,7 +76,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define tests using ert.el
 
-(defvar ert-simulate-command-delay 4.0)
+(defvar ert-simulate-command-delay nil)
 
 (defvar ert-simulate-command-post-hook nil
   "Normal hook to be run at end of `ert-simulate-command'.")
@@ -127,7 +127,7 @@ Run the hook `ert-simulate-command-post-hook' at the very end."
       (redisplay t))
     (when ert-simulate-command-delay
       ;; Show user
-      (message "After M-x %s" command)
+      ;;(message "After M-x %s" command)
       (let ((old-buffer-name (buffer-name)))
         (rename-buffer (propertize (format "After M-x %s" (car command))
                                    'face 'highlight)
@@ -142,7 +142,8 @@ Run the hook `ert-simulate-command-post-hook' at the very end."
   (elt test 1))
 
 (ert-deftest nxhtml-ert-indent-question43320 ()
-  "Test for question 43320 in Launchpad."
+  "Test for question 43320 in Launchpad.
+See URL `https://answers.launchpad.net/nxhtml/+question/43320'."
   (nxhtmltest-with-persistent-buffer "question43320.html"
     (add-hook 'ert-simulate-command-post-hook
               'nxhtmltest-should-no-mumamo-errors
@@ -150,16 +151,33 @@ Run the hook `ert-simulate-command-post-hook' at the very end."
     (ert-simulate-command '(nxhtml-mumamo) t)
     (font-lock-mode 1)
     (goto-line 25)  (ert-should (/= 14 (current-indentation)))
+    (put 'mumamo-submode-indent-offset-0 'permanent-local t)
+    (put 'mumamo-submode-indent-offset 'permanent-local t)
+    ;;
+    (set (make-local-variable 'mumamo-submode-indent-offset-0) nil)
+    (set (make-local-variable 'mumamo-submode-indent-offset) nil)
     (ert-simulate-command '(mark-whole-buffer) t)
     (ert-simulate-command '(indent-for-tab-command) t)
     (goto-line 8)   (ert-should (= 8 (current-indentation)))
     (goto-line 9)   (ert-should (= 0 (current-indentation)))
     (goto-line 15)  (ert-should (= 8 (current-indentation)))
     (goto-line 16)  (ert-should (= 8 (current-indentation)))
+    (goto-line 22)  (ert-should (= 10 (current-indentation)))
     (goto-line 25)  (ert-should (= 4 (current-indentation)))
     (goto-line 8) (indent-line-to 0)
     (ert-simulate-command '(indent-for-tab-command) t)
     (ert-should (= 8 (current-indentation)))
+    ;;
+    (set (make-local-variable 'mumamo-submode-indent-offset-0) 0)
+    (set (make-local-variable 'mumamo-submode-indent-offset) 2)
+    (ert-simulate-command '(mark-whole-buffer) t)
+    (ert-simulate-command '(indent-for-tab-command) t)
+    (goto-line 8)   (ert-should (= 8 (current-indentation)))
+    (goto-line 9)   (ert-should (= 10 (current-indentation)))
+    (goto-line 15)  (ert-should (= 8 (current-indentation)))
+    (goto-line 16)  (ert-should (= 8 (current-indentation)))
+    (goto-line 22)  (ert-should (= 20 (current-indentation)))
+    (goto-line 25)  (ert-should (= 14 (current-indentation)))
     ))
 
 (ert-deftest nxhtml-ert-only-php-no-end ()
@@ -493,7 +511,9 @@ fail (they corresponds to known errors in nXhtml/Emacs):
   (setq message-log-max t)
   (when (called-interactively-p)
     (nxhtmltest-get-fontification-method))
-  (nxhtmltest-run-ert))
+  (nxhtmltest-run-ert)
+  (other-window 1)
+  (nxhtmltest-list-test-buffers))
 
 (when (getenv "nxhtmltest-run-Q")
   ;;(global-font-lock-mode -1)

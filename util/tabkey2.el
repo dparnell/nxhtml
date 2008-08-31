@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-03-15T14:40:28+0100 Sat
-(defconst tabkey2:version "1.34")
+(defconst tabkey2:version "1.35")
 ;; Last-Updated: 2008-07-21T22:24:55+0200 Mon
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/tabkey2.el
 ;; Keywords:
@@ -205,6 +205,11 @@
 ;; Version 1.34:
 ;; - Set this-command on call-interactively.
 ;; - Avoid setting last-command.
+;;
+;; Version 1.35:
+;; - Do not complete in or nearby mumamo chunk borders.
+;; - Finish completion mode unless last command was a tabkey2 command.
+;; - Finish when there are no more active completion functions.
 ;;
 ;; Fix-me: maybe add \\_>> option to behave like smart-tab. But this
 ;; will only works for modes that does not do completion of empty
@@ -510,7 +515,15 @@ Otherwise return nil."
            (not (eq ?\  (car (last chars))))
            (not (eq ?\  last-input-event))
            (<= start (point))
-           (<= (point) end)))))
+           (<= (point) end)
+           tabkey2-current-tab-function
+           (or (memq this-original-command '(tabkey2-first tabkey2-complete))
+               (let* ((last-name (symbol-name this-original-command))
+                      (name-prefix "tabkey2-")
+                      (prefix-len (length name-prefix)))
+                 (and (> (length last-name) prefix-len)
+                      (string= name-prefix (substring last-name 0 prefix-len)))))
+           ))))
 
 (defvar tabkey2-current-tab-info nil
   "Saved information message for Tab completion state.")
@@ -980,7 +993,7 @@ the current buffer."
       (tabkey2-message nil "%s%s" tabkey2-current-tab-info
                        (if set-it " - Done" "")))))
 
-(defun tabkey2-activate-next-completion-function ()
+(defun tabkey2-activate-next-completion-function (wrap)
   (let* ((active (mapcar (lambda (rec)
                            (nth 1 rec))
                          (tabkey2-get-active-completion-functions)))
@@ -992,7 +1005,8 @@ the current buffer."
         (when (eq (car active) tabkey2-current-tab-function)
           (setq next (cadr active)))
         (setq active (cdr active))))
-    (unless next (setq next first))
+    (unless next
+      (when wrap (setq next first)))
     ;;(if (eq first next)
     (tabkey2-make-message-and-set-fun next)))
 
@@ -1012,7 +1026,7 @@ If PREFIX is given just show what this command will do."
                    last-input-event)
         (when tabkey2-message-is-shown
             ;; Message is shown currently so change
-            (tabkey2-activate-next-completion-function))
+            (tabkey2-activate-next-completion-function 'wrap))
         (tabkey2-show-current-message)))))
 
 
@@ -1155,21 +1169,26 @@ nothing else is bound to Tab there."
   "Call current completion function.
 If used with a PREFIX argument then just show what Tab will do."
   (interactive "P")
-  (if prefix
-      (message "(TabKey2) %s: %s"
-               last-input-event tabkey2-current-tab-function)
-    (let ((here (point))
-          (res (if tabkey2-choose-next-on-error
-                   (condition-case err
-                       (tabkey2-call-interactively tabkey2-current-tab-function)
-                     (error (message "%s" (error-message-string err))
-                            nil))
-                 (tabkey2-call-interactively tabkey2-current-tab-function))))
-      (when (and (not res) (= here (point)))
-        (tabkey2-activate-next-completion-function)
-        ;;(message "complete.tabkey2-current-tab-function=%s" tabkey2-current-tab-function)
-        (tabkey2-show-current-message)
-        ))))
+  (if (and (boundp 'mumamo-multi-major-mode)
+           mumamo-multi-major-mode
+           (not (mumamo-syntax-maybe-completable (point))))
+      (message "Please move out of chunk border before trying to complete.")
+    (if prefix
+        (message "(TabKey2) %s: %s"
+                 last-input-event tabkey2-current-tab-function)
+      (let ((here (point))
+            (res (if tabkey2-choose-next-on-error
+                     (condition-case err
+                         (tabkey2-call-interactively tabkey2-current-tab-function)
+                       (error (message "%s" (error-message-string err))
+                              nil))
+                   (tabkey2-call-interactively tabkey2-current-tab-function))))
+        (when (and (not res) (= here (point)))
+          (tabkey2-activate-next-completion-function nil)
+          ;;(message "complete.tabkey2-current-tab-function=%s" tabkey2-current-tab-function)
+          (if tabkey2-current-tab-function
+              (tabkey2-show-current-message)
+            (message "No more active completion functions in this buffer")))))))
 
 (define-minor-mode tabkey2-mode
   "More fun with Tab key number two (completion etc).

@@ -75,6 +75,7 @@
 ;;   Remove php-mode-to.
 ;;   Make the indentation check only on current line.
 ;;   Warn only once per session about indentation.
+;;   Tell if can't complete in `php-complete-function'.
 ;;
 ;; 1.4.1a-nxhtml
 ;;   Made underscore be part of identifiers.
@@ -469,23 +470,24 @@ for \\[find-tag] (which see)."
         completion
         (php-functions (php-completion-table)))
     (if (not pattern) (message "Nothing to complete")
-        (search-backward pattern)
-        (setq beg (point))
-        (forward-char (length pattern))
-        (setq completion (try-completion pattern php-functions nil))
-        (cond ((eq completion t))
-              ((null completion)
-               (message "Can't find completion for \"%s\"" pattern)
-               (ding))
-              ((not (string= pattern completion))
-               (delete-region beg (point))
-               (insert completion))
-              (t
-               (message "Making completion list...")
-               (with-output-to-temp-buffer "*Completions*"
-                 (display-completion-list
-                  (all-completions pattern php-functions)))
-               (message "Making completion list...%s" "done"))))))
+        (if (not (search-backward pattern nil t))
+            (message "Can't complete here")
+          (setq beg (point))
+          (forward-char (length pattern))
+          (setq completion (try-completion pattern php-functions nil))
+          (cond ((eq completion t))
+                ((null completion)
+                 (message "Can't find completion for \"%s\"" pattern)
+                 (ding))
+                ((not (string= pattern completion))
+                 (delete-region beg (point))
+                 (insert completion))
+                (t
+                 (message "Making completion list...")
+                 (with-output-to-temp-buffer "*Completions*"
+                   (display-completion-list
+                    (all-completions pattern php-functions)))
+                 (message "Making completion list...%s" "done")))))))
 
 ;; Build php-completion-table on demand.  The table includes the
 ;; PHP functions and the tags from the current tags-file-name

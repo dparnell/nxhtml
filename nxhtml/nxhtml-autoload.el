@@ -76,8 +76,10 @@
   (let* ((this-dir (file-name-directory (if load-file-name load-file-name buffer-file-name)))
          (test-q-file (expand-file-name "../tests/nxhtmltest-Q.el" this-dir))
          (test-file (expand-file-name "../tests/nxhtmltest-suites.el" this-dir)))
-    (autoload 'nxhtmltest-run-Q test-q-file "Run all tests defined for nXhtml in fresh Emacs." t)
-    (autoload 'nxhtmltest-run   test-file   "Run all tests defined for nXhtml." t))
+    (autoload 'nxhtmltest-run-Q      test-q-file "Run all tests defined for nXhtml in fresh Emacs." t)
+    (autoload 'nxhtmltest-run        test-file   "Run all tests defined for nXhtml." t)
+    (autoload 'nxhtmltest-run-indent test-file   "Run all indentation tests defined for nXhtml." t)
+    )
 
   ;;   (require 'fmode)
   ;;   (fmode-replace-default-mode 'html-mode 'nxhtml-mode)

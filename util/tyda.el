@@ -53,6 +53,9 @@
     map))
 
 (defun tyda-lookup-word (word)
+  "Look up word WORD at URL `http://tyda.se/'.
+This site translates between English and Swedish.  The site will
+be opened in your webbrowser with WORD looked up."
   (interactive (list (or (thing-at-point 'word)
                          (read-string "Lookup word: "))))
   (browse-url (concat "http://www.tyda.se/?rid=651940&w=" word)))
@@ -65,9 +68,12 @@
     map))
 
 (define-minor-mode tyda-mode
-  "Minor mode for looking up words at URL `http://tyda.se/'.
-This requires that you are using Firefox as your web browser and
-have installed the tyda-add on."
+  "Minor mode for key bindings for `tyda-lookup-word'.
+It binds Alt-Mouse-1 just as the Tyda add-on does in Firefox.
+Here are all key bindings
+
+\\{tyda-mode-map}
+"
   :lighter " Tyda"
   (if tyda-mode
       (progn
@@ -76,5 +82,6 @@ have installed the tyda-add on."
           (appmenu-add 'tyda nil tyda-mode "Lookup word" tyda-appmenu-map)))))
 
 
+(provide 'tyda)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; tyda.el ends here
