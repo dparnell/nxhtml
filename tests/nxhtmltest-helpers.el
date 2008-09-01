@@ -72,23 +72,58 @@
 
 ;;(nxhtmltest-be-really-idle 4 "HERE I AM!!")
 
-;; (defmacro* nxhtmltest-with-temp-buffer (file-name-form &body body)
-;;   (declare (indent 1) (debug t))
-;;   (let ((file-name (gensym "file-name-")))
-;;     `(let ((,file-name (nxhtml-get-test-file-name ,file-name-form)))
-;;        (with-temp-buffer
-;;          ;; Give the buffer a name that allows us to switch to it
-;;          ;; quickly when debugging a failure.
-;;          (rename-buffer (format "Test input %s"
-;;                                 (file-name-nondirectory ,file-name))
-;;                         t)
-;;          (insert-file-contents ,file-name)
-;;          (save-window-excursion
-;;            ;; Switch to buffer so it will show immediately when
-;;            ;; debugging a failure.
-;;            (switch-to-buffer (current-buffer))
-;;            ,@body)))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Fontification methods
+
+(defvar nxhtmltest-default-fontification-method nil)
+
+(defun nxhtmltest-get-fontification-method ()
+  "Ask user for default fontification method."
+  (let* ((collection
+          '(
+            ("Fontify as usual (wait)" fontify-as-usual)
+            ("Fontify by calling timer handlers" fontify-w-timer-handlers)
+            ("Call fontify-buffer" fontify-buffer)
+            ))
+         (hist (mapcar (lambda (rec)
+                         (car rec))
+                       collection))
+         (method-name (or t
+                          (completing-read "Default fontification method: "
+                                           collection nil t
+                                           (car (nth 1 collection))
+                                           'hist))))
+    (setq nxhtmltest-default-fontification-method
+          ;;(nth 1 (assoc method-name collection))
+          'fontify-w-timer-handlers
+          )))
+
+(defun nxhtmltest-fontify-as-usual (seconds prompt-mark)
+  (font-lock-mode 1)
+  (font-lock-wait (nxhtmltest-be-really-idle seconds prompt-mark)))
+
+(defun nxhtmltest-fontify-w-timers-handlers ()
+    (dolist (timer (copy-list timer-idle-list))
+      (timer-event-handler timer))
+    (redisplay t))
+
+(defun nxhtmltest-fontify-buffer ()
+  (font-lock-fontify-buffer)
+  (redisplay t))
+
+(defun nxhtmltest-fontify-default-way (seconds &optional pmark)
+  ;;(assert (not font-lock-mode))
+  (case nxhtmltest-default-fontification-method
+    (fontify-as-usual         (nxhtmltest-fontify-as-usual seconds pmark))
+    (fontify-w-timer-handlers (nxhtmltest-fontify-w-timers-handlers))
+    (fontify-buffer           (nxhtmltest-fontify-buffer))
+    (t (error "Unrecognized default fontification method: %s"
+              nxhtmltest-default-fontification-method))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Test buffers
 
 (defvar ert-failed-tests-temp-buffers nil)
 
@@ -198,53 +233,78 @@ To access these temporary test buffers use
            (kill-buffer temp-buf))))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Simulate commands
 
-;;; Fontification methods
+(defvar ert-simulate-command-delay nil)
 
-(defvar nxhtmltest-default-fontification-method nil)
+(defvar ert-simulate-command-post-hook nil
+  "Normal hook to be run at end of `ert-simulate-command'.")
 
-(defun nxhtmltest-get-fontification-method ()
-  "Ask user for default fontification method."
-  (let* ((collection
-          '(
-            ("Fontify as usual (wait)" fontify-as-usual)
-            ("Fontify by calling timer handlers" fontify-w-timer-handlers)
-            ("Call fontify-buffer" fontify-buffer)
-            ))
-         (hist (mapcar (lambda (rec)
-                         (car rec))
-                       collection))
-         (method-name (or t
-                          (completing-read "Default fontification method: "
-                                           collection nil t
-                                           (car (nth 1 collection))
-                                           'hist))))
-    (setq nxhtmltest-default-fontification-method
-          ;;(nth 1 (assoc method-name collection))
-          'fontify-w-timer-handlers
-          )))
+;; Fix-me: use this in all tests where applicable.
+(defun ert-simulate-command (command run-idle-timers)
+  "Simulate calling command COMMAND as in Emacs command loop.
+If RUN-IDLE-TIMERS is non-nil then run the idle timers after
+calling everything involved with the command.
 
-(defun nxhtmltest-fontify-as-usual (seconds prompt-mark)
-  (font-lock-mode 1)
-  (font-lock-wait (nxhtmltest-be-really-idle seconds prompt-mark)))
+COMMAND should be a list where the car is the command symbol and
+the rest are arguments to the command.
 
-(defun nxhtmltest-fontify-w-timers-handlers ()
-    (dolist (timer (copy-list timer-idle-list))
-      (timer-event-handler timer))
-    (redisplay t))
+NOTE: Since the command is not called by `call-interactively'
+test for `called-interactively' in the command will fail.
 
-(defun nxhtmltest-fontify-buffer ()
-  (font-lock-fontify-buffer)
-  (redisplay t))
+Return the value of calling the command, ie
 
-(defun nxhtmltest-fontify-default-way (seconds &optional pmark)
-  ;;(assert (not font-lock-mode))
-  (case nxhtmltest-default-fontification-method
-    (fontify-as-usual         (nxhtmltest-fontify-as-usual seconds pmark))
-    (fontify-w-timer-handlers (nxhtmltest-fontify-w-timers-handlers))
-    (fontify-buffer           (nxhtmltest-fontify-buffer))
-    (t (error "Unrecognized default fontification method: %s"
-              nxhtmltest-default-fontification-method))))
+  (apply (car COMMAND) (cdr COMMAND)).
+
+Run the hook `ert-simulate-command-post-hook' at the very end."
+
+  (ert-should (listp command))
+  (ert-should (commandp (car command)))
+  (let (return-value)
+    ;; For the order of things here see command_loop_1 in keyboard.c
+    ;;
+    ;; The command loop will reset the command related variables so
+    ;; there is no reason to let bind them. They are set here however
+    ;; to be able to test several commands in a row and how they
+    ;; affect each other.
+    (setq deactivate-mark nil)
+    (setq this-original-command (car command))
+    ;; remap through active keymaps
+    (setq this-command (or (command-remapping this-original-command)
+                           this-original-command))
+    (run-hooks 'pre-command-hook)
+    (setq return-value (apply (car command) (cdr command))) ;; <-----
+    (run-hooks 'post-command-hook)
+    (when deferred-action-list
+      (run-hooks 'deferred_action_function))
+    (setq real-last-command (car command))
+    (setq last-repeatable-command real-last-command)
+    (setq last-command this-command)
+    (when (and deactivate-mark transient-mark-mode) (deactivate-mark))
+    (when run-idle-timers
+      (dolist (timer (copy-list timer-idle-list))
+        (timer-event-handler timer))
+      (redisplay t))
+    (when ert-simulate-command-delay
+      ;; Show user
+      ;;(message "After M-x %s" command)
+      (let ((old-buffer-name (buffer-name)))
+        (rename-buffer (propertize (format "After M-x %s" (car command))
+                                   'face 'highlight)
+                       t)
+        (sit-for ert-simulate-command-delay)
+        (rename-buffer old-buffer-name)))
+    (run-hooks 'ert-simulate-command-post-hook)
+    return-value))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Misc
+
+(defun ert-this-test ()
+  "Return current `ert-deftest' function."
+  (elt test 1))
 
 
 (provide 'nxhtmltest-helpers)
