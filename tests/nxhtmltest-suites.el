@@ -76,72 +76,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define tests using ert.el
 
-(defvar ert-simulate-command-delay nil)
-
-(defvar ert-simulate-command-post-hook nil
-  "Normal hook to be run at end of `ert-simulate-command'.")
-
-;; Fix-me: use this in all tests where applicable.
-(defun ert-simulate-command (command run-idle-timers)
-  "Simulate calling command COMMAND as in Emacs command loop.
-If RUN-IDLE-TIMERS is non-nil then run the idle timers after
-calling everything involved with the command.
-
-COMMAND should be a list where the car is the command symbol and
-the rest are arguments to the command.
-
-NOTE: Since the command is not called by `call-interactively'
-test for `called-interactively' in the command will fail.
-
-Return the value of calling the command, ie
-
-  (apply (car COMMAND) (cdr COMMAND)).
-
-Run the hook `ert-simulate-command-post-hook' at the very end."
-
-  (ert-should (listp command))
-  (ert-should (commandp (car command)))
-  (let (return-value)
-    ;; For the order of things here see command_loop_1 in keyboard.c
-    ;;
-    ;; The command loop will reset the command related variables so
-    ;; there is no reason to let bind them. They are set here however
-    ;; to be able to test several commands in a row and how they
-    ;; affect each other.
-    (setq deactivate-mark nil)
-    (setq this-original-command (car command))
-    ;; remap through active keymaps
-    (setq this-command (or (command-remapping this-original-command)
-                           this-original-command))
-    (run-hooks 'pre-command-hook)
-    (setq return-value (apply (car command) (cdr command))) ;; <-----
-    (run-hooks 'post-command-hook)
-    (when deferred-action-list
-      (run-hooks 'deferred_action_function))
-    (setq real-last-command (car command))
-    (setq last-repeatable-command real-last-command)
-    (setq last-command this-command)
-    (when (and deactivate-mark transient-mark-mode) (deactivate-mark))
-    (when run-idle-timers
-      (dolist (timer (copy-list timer-idle-list))
-        (timer-event-handler timer))
-      (redisplay t))
-    (when ert-simulate-command-delay
-      ;; Show user
-      ;;(message "After M-x %s" command)
-      (let ((old-buffer-name (buffer-name)))
-        (rename-buffer (propertize (format "After M-x %s" (car command))
-                                   'face 'highlight)
-                       t)
-        (sit-for ert-simulate-command-delay)
-        (rename-buffer old-buffer-name)))
-    (run-hooks 'ert-simulate-command-post-hook)
-    return-value))
-
-(defun ert-this-test ()
-  "Return current `ert-deftest' function."
-  (elt test 1))
-
 (ert-deftest nxhtml-ert-indent-question43320 ()
   "Test for question 43320 in Launchpad.
 See URL `https://answers.launchpad.net/nxhtml/+question/43320'."
@@ -394,22 +328,22 @@ file is invalid then."
    (eq (get-text-property (point) 'face)
        'font-lock-function-name-face)))
 
-(ert-deftest nxhtml-ert-nxhtml-changes-jump-back-7033-2 ()
+(ert-deftest nxhtml-ert-nxhtml-changes-jump-back-7014-2 ()
   "this is a docstring.
 wonder how that works now ..."
   (ert-with-temp-buffer-include-file "../../nxhtml/doc/nxhtml-changes.html"
-    (nxhtml-ert-nxhtml-changes-jump-back-2 7033)))
+    (nxhtml-ert-nxhtml-changes-jump-back-2 7014)))
 
-(ert-deftest nxhtml-ert-nxhtml-changes-jump-back-10547-2 ()
+(ert-deftest nxhtml-ert-nxhtml-changes-jump-back-10488-2 ()
   (ert-with-temp-buffer-include-file "../../nxhtml/doc/nxhtml-changes.html"
-    (nxhtml-ert-nxhtml-changes-jump-back-2 10547)))
+    (nxhtml-ert-nxhtml-changes-jump-back-2 10488)))
 
 (ert-deftest nxhtml-ert-nxhtml-changes-jump-2 ()
   (ert-with-temp-buffer-include-file "../../nxhtml/doc/nxhtml-changes.html"
     ;;(ert-should (not font-lock-mode))
     (nxhtml-mumamo)
     ;;(ert-should (not font-lock-mode))
-    (goto-char 10549)
+    (goto-char 10420)
     (nxhtmltest-fontify-default-way 2 "jump-2")
     (nxhtmltest-should-no-mumamo-errors)
     (ert-should
@@ -474,7 +408,7 @@ The indentation on line 7 should be 0."
 ;;       (ert-should (= 0 jumps))
 ;;       )))
 
-(defvar ert-error-on-test-redefinition nil)
+;;(defvar ert-error-on-test-redefinition nil)
 
 ;;; End of test definitions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -510,7 +444,7 @@ Note that it is currently expected that the following tests will
 fail (they corresponds to known errors in nXhtml/Emacs):
 
   `nxhtml-ert-nxhtml-changes-jump-back-10549'
-  `nxhtml-ert-nxhtml-changes-jump-back-7033'
+  `nxhtml-ert-nxhtml-changes-jump-back-7014'
 "
   (interactive)
   (setq message-log-max t)
