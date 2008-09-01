@@ -822,10 +822,15 @@ Any command cancels this state."
       (0+ space)
       "="
       (0+ space)
-      (submatch
-       (or
-        (seq "\"" (0+ (not (any "\""))) "\"")
-        (seq "'" (0+ (not (any "'"))) "'")))))
+      (or
+        (seq "\""
+             (submatch
+              (0+ (not (any "\""))))
+             "\"")
+        (seq "'"
+             (submatch
+              (0+ (not (any "'"))))
+             "'"))))
 
 ;;(require 'rx)
 ;;(rx
@@ -836,7 +841,9 @@ Any command cancels this state."
               (goto-char from)
               (re-search-forward mlinks-html-link-regex nil t))
           (re-search-forward mlinks-html-link-regex nil t))
-    (cons (match-beginning 1) (match-end 1))))
+    ;;(message "mlinks-html-link-regex match-string0=%s, 1=%s, 2=%s" (match-string-no-properties 0) (match-string-no-properties 1) (match-string-no-properties 2))
+    (let ((which (if (match-beginning 1) 1 2)))
+      (cons (match-beginning which) (match-end which)))))
 
 (defun mlinks-html-backward-link (&optional from)
   (when (if from
@@ -844,20 +851,25 @@ Any command cancels this state."
               (goto-char from)
               (re-search-backward mlinks-html-link-regex nil t))
           (re-search-backward mlinks-html-link-regex nil t))
-    (cons (match-beginning 1) (match-end 1))))
+    ;;(cons (match-beginning 1) (match-end 1))))
+    (let ((which (if (match-beginning 1) 1 2)))
+      (cons (match-beginning which) (match-end which)))))
 
 (defun mlinks-html-style-mode-fun (goto)
   (let (start
         end
         bounds)
     (save-excursion
-      (when (search-forward "\"" (line-end-position) t)
+      ;;(when (search-forward "\"" (line-end-position) t)
+      (when (< 0 (skip-chars-forward "^\"'" (line-end-position)))
+        (forward-char)
         (save-match-data
           (when (looking-back
                  mlinks-html-link-regex
                  (line-beginning-position -1))
-            (setq start (match-beginning 1))
-            (setq end   (match-end 1))
+            (let ((which (if (match-beginning 1) 1 2)))
+              (setq start (match-beginning which))
+              (setq end   (match-end which)))
             (setq bounds (cons start end))))))
     (when start
       (if (not goto)
