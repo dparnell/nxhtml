@@ -2902,8 +2902,9 @@ range.  Otherwise the main major mode should be used for this
 chunk.
 
 BORDERS is the return value of the optional FIND-BORDERS-FUN
-which takes to parameters, START and END in the return values
-above. BORDERS may be nil and otherwise has this format:
+which takes three parameters, START, END and EXCEPTION-MODE in
+the return values above. BORDERS may be nil and otherwise has
+this format:
 
   \(START-BORDER END-BORDER EXCEPTION-MODE)
 
