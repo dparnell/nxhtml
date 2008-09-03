@@ -1763,6 +1763,121 @@ sub chunks."
      (mumamo-chunk-org-html
       )))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Mako
+
+;; See http://www.makotemplates.org/docs/syntax.html
+
+;;; Comments mode
+(defconst mumamo-comment-font-lock-keywords
+  (list
+   (cons "\\(.*\\)" (list 1 font-lock-comment-face))
+   ))
+(defvar mumamo-comment-font-lock-defaults
+  '(mumamo-comment-font-lock-keywords t t))
+
+(define-derived-mode mumamo-comment-mode nil "Comment block"
+  "For comment blocks."
+  (set (make-local-variable 'font-lock-defaults) mumamo-comment-font-lock-defaults))
+
+
+(defun mumamo-chunk-mako-<% (pos min max)
+  "Find <% python %>.  Return range and `python-mode'.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+  (mumamo-find-possible-chunk pos min max
+                              'mumamo-mako-<%-bw-start
+                              'mumamo-mako-<%-bw-end
+                              'mumamo-mako-<%-fw-start
+                              'mumamo-mako-<%-fw-end
+                              ))
+(defun mumamo-mako-<%-bw-start (pos min)
+  (let ((start
+         (mumamo-chunk-start-bw-re pos min "<%\\(?:[ \t]\\|$\\)")))
+    (when start
+      (list start 'python-mode))))
+(defun mumamo-mako-<%-bw-end (pos min)
+  (mumamo-chunk-end-bw-str pos min "%>"))
+(defun mumamo-mako-<%-fw-start (pos max)
+  (mumamo-chunk-start-fw-re pos max "<%\\(?:[ \t]\\|$\\)"))
+(defun mumamo-mako-<%-fw-end (pos max)
+  (mumamo-chunk-end-fw-str pos max "%>"))
+
+(defun mumamo-chunk-mako-% (pos min max)
+  "Find % python EOL.  Return range and `python-mode'.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+  (mumamo-whole-line-chunk pos min max "%" 'python-mode))
+
+(defun mumamo-chunk-mako-one-line-comment (pos min max)
+  "Find ## comment EOL.  Return range and `python-mode'.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+  (mumamo-whole-line-chunk pos min max "##" 'mumamo-comment-mode))
+
+(defun mumamo-whole-line-chunk (pos min max marker mode)
+  (let ((here (point))
+        (len-marker (length marker))
+        beg
+        end
+        ret)
+    (goto-char pos)
+    (setq beg (line-beginning-position))
+    (setq end (line-end-position))
+    (unless (or (when min (< beg min))
+                (when max (> end max))
+                (= pos end))
+      (goto-char beg)
+      (skip-chars-forward " \t")
+      (when (and
+             ;;(eq ?% (char-after))
+             (string= marker (buffer-substring-no-properties (point) (+ (point) len-marker)))
+             ;;(not (eq ?> (char-after (1+ (point)))))
+             (memq (char-after (+ (point) len-marker))
+                   '(?\  ?\t ?\n))
+             (>= pos (+ (point) len-marker)))
+        (setq ret
+              (list (+ (point) len-marker) end mode))))
+    (unless ret
+      (let ((range-regexp
+             (concat "^[ \t]*"
+                     (regexp-quote marker)
+                     "\\([^>].*\\)$")))
+        ;; Backward
+        (goto-char pos)
+        (unless (= pos (line-end-position))
+          (goto-char (line-beginning-position)))
+        (setq beg (re-search-backward range-regexp min t))
+        (when beg (setq beg (match-end 1)))
+        ;; Forward, take care of indentation part
+        (goto-char pos)
+        (unless (= pos (line-end-position))
+          (goto-char (line-beginning-position)))
+        (setq end (re-search-forward range-regexp max t))
+        (when end (setq end (match-beginning 1))))
+      (setq ret (list beg end)))
+    (goto-char here)
+    ;;(setq ret nil)
+    ret))
+
+
+;;;###autoload
+(define-mumamo-multi-major-mode mako-html-mumamo
+  "Turn on multiple major modes for Mako with main mode `html-mode'.
+This also covers inlined style and javascript."
+;; Fix-me: test case
+;; Fix-me: rnc file like for genshi
+  ("Mako HTML Family" html-mode
+   (
+    mumamo-chunk-mako-one-line-comment
+    mumamo-chunk-mako-<%
+    mumamo-chunk-mako-%
+    mumamo-chunk-xml-pi
+    mumamo-chunk-inlined-style
+    mumamo-chunk-inlined-script
+    mumamo-chunk-style=
+    mumamo-chunk-onjs=
+    )))
+
+
 (provide 'mumamo-fun)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; mumamo-fun.el ends here
