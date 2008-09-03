@@ -2810,7 +2810,7 @@ meaning of POS, MAX and MARKER."
   (goto-char (1+ (- pos (length marker))))
   (search-forward marker max t))
 
-;; search start backward
+;; search end backward
 
 (defun mumamo-chunk-end-bw-str (pos min marker)
   "General chunk function helper.

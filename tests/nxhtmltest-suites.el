@@ -51,7 +51,7 @@
 
 (pushnew nxhtmltest-bin load-path)
 (require 'nxhtmltest-helpers)
-(require 'ert)
+;;(require 'ert)
 
 (defvar nxhtmltest-files-root
   (let* ((this-dir nxhtmltest-bin)
