@@ -1856,21 +1856,70 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
     ;;(setq ret nil)
     ret))
 
+(defun mumamo-single-regexp-chunk (pos min max begin-mark end-mark mode)
+  "Not ready yet. `mumamo-quick-static-chunk'"
+  (let ((here (point))
+        (len-marker (length marker))
+        beg
+        end
+        ret)
+    (goto-char pos)
+    (setq beg (line-beginning-position))
+    (setq end (line-end-position))
+    (unless (or (when min (< beg min))
+                (when max (> end max))
+                (= pos end))
+      (goto-char beg)
+      (skip-chars-forward " \t")
+      (when (and
+             (string= marker (buffer-substring-no-properties (point) (+ (point) len-marker)))
+             (memq (char-after (+ (point) len-marker))
+                   '(?\  ?\t ?\n))
+             (>= pos (point)))
+        (setq ret
+              (list (point)
+                    end
+                    mode
+                    (let ((start-border (+ (point) len-marker)))
+                      (list start-border nil))))))
+    (unless ret
+      (let ((range-regexp
+             (concat "^[ \t]*"
+                     "\\("
+                     (regexp-quote marker)
+                     "[ \t\n].*\\)$")))
+        ;; Backward
+        (goto-char pos)
+        (unless (= pos (line-end-position))
+          (goto-char (line-beginning-position)))
+        (setq beg (re-search-backward range-regexp min t))
+        (when beg (setq beg (match-end 1)))
+        ;; Forward, take care of indentation part
+        (goto-char pos)
+        (unless (= pos (line-end-position))
+          (goto-char (line-beginning-position)))
+        (setq end (re-search-forward range-regexp max t))
+        (when end (setq end (match-beginning 1))))
+      (setq ret (list beg end)))
+    (goto-char here)
+    ;;(setq ret nil)
+    ret))
+
 
 (defun mumamo-chunk-mako-<%doc (pos min max)
-  (mumamo-quick-static-chunk pos min max "<%doc>" "/%doc>" t 'mumamo-comment-mode t))
+  (mumamo-quick-static-chunk pos min max "<%doc>" "</%doc>" t 'mumamo-comment-mode t))
 
 (defun mumamo-chunk-mako-<%include (pos min max)
-  (mumamo-quick-static-chunk pos min max "<%inherit" "/>" t 'html-mode t))
+  (mumamo-quick-static-chunk pos min max "<%include" "/>" t 'html-mode t))
 
 (defun mumamo-chunk-mako-<%inherit (pos min max)
   (mumamo-quick-static-chunk pos min max "<%inherit" "/>" t 'html-mode t))
 
 (defun mumamo-chunk-mako-<%namespace (pos min max)
-  (mumamo-quick-static-chunk pos min max "<%inherit" "/>" t 'html-mode t))
+  (mumamo-quick-static-chunk pos min max "<%namespace" "/>" t 'html-mode t))
 
 (defun mumamo-chunk-mako-<%page (pos min max)
-  (mumamo-quick-static-chunk pos min max "<%inherit" "/>" t 'html-mode t))
+  (mumamo-quick-static-chunk pos min max "<%page" "/>" t 'html-mode t))
 
 ;;;###autoload
 (define-mumamo-multi-major-mode mako-html-mumamo

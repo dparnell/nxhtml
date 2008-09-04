@@ -70,6 +70,15 @@
 This is for update or install of nXhtml directly from the development repository at
 Launchpad.")
     ;;;;;;;;;;;;;;;;;;;;;;;
+    ;; Check bazaar
+    (when (not bzr-prog)
+      (setq ok nil)
+      (insert "\n\nYou must however first install bazaar, see\n\n  ")
+      (insert-text-button bzr-org-url
+                          'action
+                          `(lambda (btn) (interactive)
+                             (browse-url ,bzr-org-url))))
+    ;;;;;;;;;;;;;;;;;;;;;;;
     ;; Get installation dir
     (unless install-dir (setq install-dir current-nxhtml-dir))
     (when install-dir
@@ -83,13 +92,6 @@ Launchpad.")
                  (format "\n\nCan't find %s or its parent"
                          install-dir)
                  'face 'compilation-error))))
-    (when (not bzr-prog)
-      (setq ok nil)
-      (insert "\n\nYou must however first install bazaar, see\n\n  ")
-      (insert-text-button bzr-org-url
-                          'action
-                          `(lambda (btn) (interactive)
-                             (browse-url ,bzr-org-url))))
     (when ok
       (unless install-dir
         (setq ok nil)
