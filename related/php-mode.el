@@ -10,7 +10,7 @@
 ;; Modified: 2008-01-25T22:25:26+0100 Fri
 ;; X-URL:   http://php-mode.sourceforge.net/
 
-(defconst php-mode-version-number "1.4.1b-nxhtml"
+(defconst php-mode-version-number "1.4.1c-nxhtml"
   "PHP Mode version number.")
 
 ;;; License
@@ -71,6 +71,9 @@
 
 ;;; Changelog:
 
+;; 1.4.1c-nxhtml
+;;   Add `c-at-vsemi-p-fn' etc after advice from Alan Mackenzi.
+;;
 ;; 1.4.1b-nxhtml
 ;;   Remove php-mode-to.
 ;;   Make the indentation check only on current line.
@@ -342,6 +345,39 @@ example `html-mode'.  Known such libraries are:\n\t"
           (php-check-html-for-indentation))
       (funcall 'c-indent-line)))
 
+(defun php-c-at-vsemi-p (&optional pos)
+  "Return t on html lines (including php region border), otherwise nil.
+POS is a position on the line in question.
+
+This is was done due to the problem reported here:
+
+  URL `https://answers.launchpad.net/nxhtml/+question/43320'"
+  (setq pos (or pos (point)))
+  (let ((here (point))
+        ret)
+  (save-match-data
+    (goto-char pos)
+    (beginning-of-line)
+    (setq ret (looking-at
+               (rx
+                (or (seq
+                     bol
+                     (0+ space)
+                     "<"
+                     (in "a-z\\?"))
+                    (seq
+                     (0+ anything)
+                     (in "a-z\\?")
+                     ">"
+                     (0+ space)
+                     eol))))))
+  (goto-char here)
+  ret))
+
+(defun php-c-vsemi-status-unknown-p ()
+  "See `php-c-at-vsemi-p'."
+  )
+
 ;;;###autoload
 (define-derived-mode php-mode c-mode "PHP"
   "Major mode for editing PHP code.\n\n\\{php-mode-map}"
@@ -425,6 +461,8 @@ example `html-mode'.  Known such libraries are:\n\t"
   (setq indent-line-function 'php-cautious-indent-line)
   (setq indent-region-function 'php-cautious-indent-region)
   (setq c-special-indent-hook nil)
+  (setq c-at-vsemi-p-fn 'php-c-at-vsemi-p)
+  (setq c-vsemi-status-unknown-p 'php-c-vsemi-status-unknown-p)
 
   (set (make-local-variable 'syntax-begin-function)
        'c-beginning-of-syntax)
