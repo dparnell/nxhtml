@@ -1752,7 +1752,7 @@ sub chunks."
 
 
 (defun mumamo-chunk-mako-<% (pos min max)
-  "Find <% python %>.  Return range and `python-mode'.
+  "Find <% ... %> and <%! ... %>. Return range and `python-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (mumamo-find-possible-chunk pos min max
                               'mumamo-mako-<%-bw-start
@@ -1764,7 +1764,11 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 (defun mumamo-mako-<%-find-borders (start end exc-mode)
   (when exc-mode
     (list
-     (when start (+ start 2))
+     (when start
+       (+ start
+          (if (eq ?! (char-after (+ start 2)))
+              3
+            2)))
      (when end (- end 2))
      exc-mode)))
 
@@ -1773,9 +1777,9 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
         start
         ret
         )
-    (goto-char (+ pos 2))
-    (setq start (re-search-backward "<%\\(?:[ \t]\\|$\\)" min t))
-    (when start
+    (goto-char (+ pos 3))
+    (setq start (re-search-backward "<%!?\\(?:[ \t]\\|$\\)" min t))
+    (when (and start (<= start pos))
       (setq ret (list start 'python-mode)))
     (goto-char here)
     ret))
@@ -1787,7 +1791,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
         ret)
     (goto-char pos)
     (setq start
-          (re-search-forward "<%\\(?:[ \t]\\|$\\)" max t))
+          (re-search-forward "<%!?\\(?:[ \t]\\|$\\)" max t))
     (when start
       (setq ret (match-beginning 0)))
     (goto-char here)
@@ -1856,54 +1860,54 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
     ;;(setq ret nil)
     ret))
 
-(defun mumamo-single-regexp-chunk (pos min max begin-mark end-mark mode)
-  "Not ready yet. `mumamo-quick-static-chunk'"
-  (let ((here (point))
-        (len-marker (length marker))
-        beg
-        end
-        ret)
-    (goto-char pos)
-    (setq beg (line-beginning-position))
-    (setq end (line-end-position))
-    (unless (or (when min (< beg min))
-                (when max (> end max))
-                (= pos end))
-      (goto-char beg)
-      (skip-chars-forward " \t")
-      (when (and
-             (string= marker (buffer-substring-no-properties (point) (+ (point) len-marker)))
-             (memq (char-after (+ (point) len-marker))
-                   '(?\  ?\t ?\n))
-             (>= pos (point)))
-        (setq ret
-              (list (point)
-                    end
-                    mode
-                    (let ((start-border (+ (point) len-marker)))
-                      (list start-border nil))))))
-    (unless ret
-      (let ((range-regexp
-             (concat "^[ \t]*"
-                     "\\("
-                     (regexp-quote marker)
-                     "[ \t\n].*\\)$")))
-        ;; Backward
-        (goto-char pos)
-        (unless (= pos (line-end-position))
-          (goto-char (line-beginning-position)))
-        (setq beg (re-search-backward range-regexp min t))
-        (when beg (setq beg (match-end 1)))
-        ;; Forward, take care of indentation part
-        (goto-char pos)
-        (unless (= pos (line-end-position))
-          (goto-char (line-beginning-position)))
-        (setq end (re-search-forward range-regexp max t))
-        (when end (setq end (match-beginning 1))))
-      (setq ret (list beg end)))
-    (goto-char here)
-    ;;(setq ret nil)
-    ret))
+;; (defun mumamo-single-regexp-chunk (pos min max begin-mark end-mark mode)
+;;   "Not ready yet. `mumamo-quick-static-chunk'"
+;;   (let ((here (point))
+;;         (len-marker (length marker))
+;;         beg
+;;         end
+;;         ret)
+;;     (goto-char pos)
+;;     (setq beg (line-beginning-position))
+;;     (setq end (line-end-position))
+;;     (unless (or (when min (< beg min))
+;;                 (when max (> end max))
+;;                 (= pos end))
+;;       (goto-char beg)
+;;       (skip-chars-forward " \t")
+;;       (when (and
+;;              (string= marker (buffer-substring-no-properties (point) (+ (point) len-marker)))
+;;              (memq (char-after (+ (point) len-marker))
+;;                    '(?\  ?\t ?\n))
+;;              (>= pos (point)))
+;;         (setq ret
+;;               (list (point)
+;;                     end
+;;                     mode
+;;                     (let ((start-border (+ (point) len-marker)))
+;;                       (list start-border nil))))))
+;;     (unless ret
+;;       (let ((range-regexp
+;;              (concat "^[ \t]*"
+;;                      "\\("
+;;                      (regexp-quote marker)
+;;                      "[ \t\n].*\\)$")))
+;;         ;; Backward
+;;         (goto-char pos)
+;;         (unless (= pos (line-end-position))
+;;           (goto-char (line-beginning-position)))
+;;         (setq beg (re-search-backward range-regexp min t))
+;;         (when beg (setq beg (match-end 1)))
+;;         ;; Forward, take care of indentation part
+;;         (goto-char pos)
+;;         (unless (= pos (line-end-position))
+;;           (goto-char (line-beginning-position)))
+;;         (setq end (re-search-forward range-regexp max t))
+;;         (when end (setq end (match-beginning 1))))
+;;       (setq ret (list beg end)))
+;;     (goto-char here)
+;;     ;;(setq ret nil)
+;;     ret))
 
 
 (defun mumamo-chunk-mako-<%doc (pos min max)

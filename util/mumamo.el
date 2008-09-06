@@ -509,7 +509,7 @@ If `mumamo-use-condition-case' is non-nil then do
 Otherwise just evaluate BODY-FORM."
   (declare (indent 2) (debug t))
   `(if (not mumamo-use-condition-case)
-       (let* ((debugger mumamo-debugger)
+       (let* ((debugger (or mumamo-debugger 'debug))
               (debug-on-error (if debugger t debug-on-error)))
          ,body-form)
     (condition-case ,var
@@ -2925,6 +2925,7 @@ also `mumamo-quick-static-chunk'."
   (mumamo-msgfntfy "\nmumamo-find-possible-chunk %s %s %s %s %s\n%s %s %s %s %s" pos min max (point-min) (point-max) bw-exc-start-fun bw-exc-end-fun fw-exc-start-fun fw-exc-end-fun find-borders-fun)
   ;;(message "\nmumamo-find-possible-chunk %s %s %s %s %s\n%s %s %s %s %s" pos min max (point-min) (point-max) bw-exc-start-fun bw-exc-end-fun fw-exc-start-fun fw-exc-end-fun find-borders-fun)
   ;;(message "\nmumamo-find-possible-chunk %s %s %s %s %s" pos min max (point-min) (point-max))
+  ;;(message "\nmumamo-find-possible-chunk.debugger=%s" debugger)
   (mumamo-condition-case err
       (progn
         (assert (and (<= min pos) (<= pos max))
@@ -2950,19 +2951,34 @@ also `mumamo-quick-static-chunk'."
           ;;
           ;; start normal
           ;;
-          ;;(message "here a1, bw-exc-end-fun=(%s %s %s)" bw-exc-end-fun pos min)
+          ;;(message "here a1, bw-exc-end-fun=(%s %s %s) debugger=%s" bw-exc-end-fun pos min debugger)
           (setq start-out (funcall bw-exc-end-fun pos min))
+          ;;(message "here a1b, start-out=%s debugger=%s" start-out debugger)
           (when start-out
             (assert (<= start-out pos))
             (assert (<= min start-out)))
           (when start-out (setq min start-out)) ;; minimize next search bw
           ;; start exception
+          ;;(message "start exception, bw-exc-start-fun=%s debugger=%s" bw-exc-start-fun debugger)
           (setq start-in-cons (funcall bw-exc-start-fun pos min))
+          ;;(message "after start exception, bw-exc-start-fun=%s" bw-exc-start-fun)
           (setq start-in (car start-in-cons))
+          ;;(message "start-in=%s" start-in)
           (when start-in
-            (assert (<= start-in pos))
-            (assert (<= min start-in)))
+            ;;(message "here in a2, start-in=%s, pos=%s" start-in pos)
+            ;;(assert (<= start-in pos) t)
+            (unless (<= start-in pos)
+              ;;(message "(<= start-in=%s pos=%s)" start-in pos)
+              ;;(message "signal-hook-function=%s, debugger=%s" signal-hook-function debugger)
+              ;;(message "%s" (with-output-to-string (backtrace)))
+              (error "(<= start-in=%s pos=%s)" start-in pos)
+              )
+            ;;(message "here in b")
+            (assert (<= min start-in) t)
+            ;;(message "here in c")
+            )
           ;; compare
+          ;;(message "compare")
           (cond
            ((and start-in start-out)
             (if (< start-in start-out)
@@ -2990,6 +3006,7 @@ also `mumamo-quick-static-chunk'."
           ;; what end type is acceptable?  three possible values: nil means
           ;; any end type, the other values are 'end-normal and
           ;; 'end-exception.
+          ;;(message "find end of range")
           (while (not found-valid-end)
             (when start
               (if exc-mode
@@ -3034,7 +3051,7 @@ also `mumamo-quick-static-chunk'."
               (when border-beg
                 (assert (<= start border-beg))))
             (when end
-;;;               (message "start=%s, wants-end-type =%s" start wants-end-type)
+              ;;(message "start=%s, wants-end-type =%s" start wants-end-type)
 ;;;               (message "pos=%s min=%s max=%s bw-exc-start-fun=%s bw-exc-end-fun=%s fw-exc-start-fun=%s fw-exc-end-fun=%s find-borders-fun=%s"
 ;;;                        pos min max
 ;;;                        bw-exc-start-fun

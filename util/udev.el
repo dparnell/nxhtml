@@ -159,10 +159,38 @@ after last step with LOG-BUFFER as parameter."
   (let ((inhibit-read-only t))
     (unless (= (point) (point-min)) (insert "\n\n"))
     (insert header))
-  (udev-call-this-step log-buffer)
+  (udev-call-this-step log-buffer nil)
   (current-buffer))
 
-(defun udev-call-this-step (log-buffer)
+(defvar udev-step-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(control ?c) ?r] 'udev-rerun-this-step)
+    (define-key map [(control ?c) ?c] 'udev-continue-from-this-step)
+    (define-key map [(control ?c) ?s] 'udev-goto-this-step-source)
+    map))
+
+(defun udev-step-at-point ()
+  (get-text-property (point) 'udev-step))
+
+(defun udev-rerun-this-step ()
+  "Rerun this step."
+  (interactive)
+  (let ((this-step (udev-step-at-point)))
+    (udev-call-this-step (current-buffer) this-step)))
+
+(defun udev-continue-from-this-step ()
+  "Continue from this step."
+  (interactive)
+  (let ((this-step (udev-step-at-point)))
+    (udev-call-this-step (current-buffer) this-step)))
+
+(defun udev-goto-this-step-source ()
+  "Find source function for this step."
+  (interactive)
+  (let ((this-step (udev-step-at-point)))
+    (find-function-other-window this-step)))
+
+(defun udev-call-this-step (log-buffer this-step)
   "Call the current function in LOG-BUFFER.
 If this function returns a buffer and the buffer has a process
 then change the process sentinel to `udev-compilation-sentinel'.
@@ -170,12 +198,12 @@ Otherwise continue to call the next function.
 
 Also put a log message in in LOG-BUFFER with a link to the buffer
 returned above if any."
+  (setq this-step (or this-step (udev-this-step log-buffer)))
   (with-current-buffer log-buffer
     (setq udev-last-error nil)
     (widen)
     (goto-char (point-max))
     (let* ((inhibit-read-only t)
-           (this-step (udev-this-step log-buffer))
            here
            buf
            proc)
@@ -192,6 +220,8 @@ returned above if any."
         (setq buf (funcall this-step log-buffer))
         (when (bufferp buf)
           (make-text-button here (point)
+                            'udev-step this-step
+                            'keymap 'udev-step-keymap
                             'buffer buf
                             'action (lambda (btn)
                                       (display-buffer
@@ -233,7 +263,7 @@ message in LOG-BUFFER."
                  (propertize "Ok" 'face 'compilation-info)
                (propertize "Warning, check next step" 'face 'compilation-warning)))
             (udev-goto-next-step log-buffer)
-            (udev-call-this-step log-buffer))
+            (udev-call-this-step log-buffer nil))
         (insert (propertize "Error" 'face 'compilation-error))))))
 
 
