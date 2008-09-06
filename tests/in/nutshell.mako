@@ -3,6 +3,9 @@
 <%
     rows = [[v for v in range(0,10)] for row in range(0,10)]
 %>
+<%!
+    rows = [[v for v in range(0,10)] for row in range(0,10)]
+%>
 aaa
 <table>
   ## This is a comment.
