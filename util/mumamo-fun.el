@@ -1921,6 +1921,11 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 (defun mumamo-chunk-mako-<%page (pos min max)
   (mumamo-quick-static-chunk pos min max "<%page" "/>" t 'html-mode t))
 
+(defun mumamo-chunk-mako$(pos min max)
+  "Find ${ ... }, return range and `python-mode'.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+  (mumamo-quick-static-chunk pos min max "${" "}" t 'python-mode t))
+
 ;;;###autoload
 (define-mumamo-multi-major-mode mako-html-mumamo
   "Turn on multiple major modes for Mako with main mode `html-mode'.
@@ -1946,6 +1951,8 @@ This also covers inlined style and javascript."
 
     mumamo-chunk-mako-<%
     mumamo-chunk-mako-%
+    mumamo-chunk-mako$
+
     mumamo-chunk-xml-pi
     mumamo-chunk-inlined-style
     mumamo-chunk-inlined-script
