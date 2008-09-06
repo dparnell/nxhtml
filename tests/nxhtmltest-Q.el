@@ -55,8 +55,11 @@ See `nxhtmltest-run' for more information about the tests."
   (let* ((test-el (expand-file-name "nxhtmltest-suites.el" nxhtmltest-bin-Q))
          (nxhtml-auto-start (expand-file-name "../autostart.el" nxhtmltest-bin-Q))
          (temp-eval-file (expand-file-name "temp-test.el" nxhtmltest-bin-Q))
-         (temp-eval-buf (find-file-noselect temp-eval-file)))
-    (load (expand-file-name "nxhtmltest-helpers" nxhtmltest-bin-Q))
+         (temp-eval-buf (find-file-noselect temp-eval-file))
+         (load-path load-path))
+    ;;(load (expand-file-name "nxhtmltest-helpers" nxhtmltest-bin-Q))
+    (add-to-list 'load-path nxhtmltest-bin-Q)
+    (require 'nxhtmltest-helpers)
     (nxhtmltest-get-fontification-method)
     (with-current-buffer temp-eval-buf
       (erase-buffer)

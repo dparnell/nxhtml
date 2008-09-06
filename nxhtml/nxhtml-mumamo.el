@@ -250,6 +250,40 @@ This also covers inlined style and javascript."
     mumamo-chunk-onjs=
     )))
 
+;;;###autoload
+(define-mumamo-multi-major-mode mako-nxhtml-mumamo
+  "Turn on multiple major modes for Mako with main mode `nxhtml-mode'.
+This also covers inlined style and javascript."
+;; Fix-me: test case
+;;
+;; Fix-me: Add chunks for the tags, but make sure these are made
+;; invisible to nxml-mode parser.
+;;
+;; Fix-me: Maybe finally add that indentation support for one-line chunks?
+  ("Mako nXhtml Family" nxhtml-mode
+   (
+    mumamo-chunk-mako-one-line-comment
+    mumamo-chunk-mako-<%doc
+    mumamo-chunk-mako-<%include
+    mumamo-chunk-mako-<%inherit
+    mumamo-chunk-mako-<%namespace
+    mumamo-chunk-mako-<%page
+
+    ;;mumamo-chunk-mako-<%def
+    ;;mumamo-chunk-mako-<%call
+    ;;mumamo-chunk-mako-<%text
+
+    mumamo-chunk-mako-<%
+    mumamo-chunk-mako-%
+    mumamo-chunk-mako$
+
+    mumamo-chunk-xml-pi
+    mumamo-chunk-inlined-style
+    mumamo-chunk-inlined-script
+    mumamo-chunk-style=
+    mumamo-chunk-onjs=
+    )))
+
 ;; Fix-me: This caused mumamo to loop during fontification since
 ;; fmode-replace-default-mode was not defined. Mumamo tried to load
 ;; the function in mumamo-fetch-major-mode-setup in (funcall major)
