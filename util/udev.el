@@ -221,8 +221,9 @@ returned above if any."
         (when (bufferp buf)
           (make-text-button here (point)
                             'udev-step this-step
-                            'keymap 'udev-step-keymap
+                            'keymap udev-step-keymap
                             'buffer buf
+                            'help-echo "Push RET to see log buffer, <APPS> for other actions"
                             'action (lambda (btn)
                                       (display-buffer
                                        (button-get btn 'buffer))))

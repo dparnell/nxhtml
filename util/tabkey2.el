@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-03-15T14:40:28+0100 Sat
-(defconst tabkey2:version "1.35")
+(defconst tabkey2:version "1.36")
 ;; Last-Updated: 2008-07-21T22:24:55+0200 Mon
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/tabkey2.el
 ;; Keywords:
@@ -211,6 +211,11 @@
 ;; - Finish completion mode unless last command was a tabkey2 command.
 ;; - Finish when there are no more active completion functions.
 ;;
+;; Version 1.36:
+;; - Actually check if completion function is a defined command.
+;; - Integrate better with YASnippet.
+;; - Give YASnippet higher priority since that seems what is wanted.
+;;
 ;; Fix-me: maybe add \\_>> option to behave like smart-tab. But this
 ;; will only works for modes that does not do completion of empty
 ;; words (like in smart-tab).
@@ -328,10 +333,17 @@ If value is a number then delay message that number of seconds."
              (appmenu-remove 'tabkey2))))
   :group 'tabkey2)
 
+(defun yas/expandable-at-point ()
+  "Return non-nil if a snippet can be expanded here."
+  (yas/template-condition-predicate
+   yas/buffer-local-condition))
+
 (defcustom tabkey2-completion-functions
   '(
     ;; Temporary things
     ("Spell check word" flyspell-correct-word-before-point)
+    ;; Snippets
+    ("Yasnippet" yas/expand '(yas/expandable-at-point))
     ;; Main mode related, often used
     ("Semantic Smart Completion" senator-complete-symbol senator-minor-mode)
     ("Programmable completion" pcomplete)
@@ -346,8 +358,6 @@ If value is a number then delay message that number of seconds."
     ("Predictive abbreviations" pabbrev-expand-maybe)
     ("Dynamic word expansion" dabbrev-expand nil (setq dabbrev--last-abbrev-location nil))
     ("Ispell complete word" ispell-complete-word)
-    ;; Snippets
-    ("Yasnippet" yas/expand)
     ;; The catch all
     ("Anything" anything (commandp 'anything))
     )
@@ -356,23 +366,25 @@ The first 'active' entry in this list is normally used during the
 'Tab completion state' by `tabkey2-complete'.  An entry in the
 list should have either of this forms
 
-  \(DESCRIPTION FUNCTION ACTIVE-FORM RESET-FORM)
+  \(TITLE COMPLETION-FUNCTION ACTIVE-FORM RESET-FORM)
 
-The entry is considered active if:
+TITLE to show in menus etc.
 
--  The symbol FUNCTION is bound to a function
+COMPLETION-FUNCTION is the completion function symbol.
 
-and
+The entry is considered active if the symbol COMPLETION-FUNCTION
+is bound to a command and
 
-- this function has a key binding at point,
+  - This function has a key binding at point.
 
-  or
+or
 
-  the elisp expression ACTIVE-FORM evaluates to non-nil.  If it
+  - The elisp expression ACTIVE-FORM evaluates to non-nil.  If it
   is a single symbol then its variable value is used, otherwise
   the elisp form is evaled.
 
-RESET-FORM is used to reset the completion function.
+RESET-FORM is used to reset the completion function before
+calling it.
 
 When choosing with `tabkey2-cycle-completion-functions'
 only the currently active entry in this list are shown."
@@ -615,11 +627,13 @@ Otherwise return t if FUN has a key binding at point."
   "Return FUN is active.
 Look it up in `tabkey2-completion-functions' to find out what to
 check and return the value from `tabkey2-is-active'."
-  (let ((chk (catch 'chk
-               (dolist (rec tabkey2-completion-functions)
-                 (when (eq fun (nth 1 rec))
-                   (throw 'chk (nth 2 rec)))))))
-    (tabkey2-is-active fun chk)))
+  (when (and (fboundp fun)
+             (commandp fun))
+    (let ((chk (catch 'chk
+                 (dolist (rec tabkey2-completion-functions)
+                   (when (eq fun (nth 1 rec))
+                     (throw 'chk (nth 2 rec)))))))
+      (tabkey2-is-active fun chk))))
 
 (defun tabkey2-first-active-from-completion-functions ()
   "Return first active completion function.
@@ -1369,7 +1383,8 @@ BUF: buffer"
       (if (with-current-buffer buf (tabkey2-read-only-p))
           (propertize "active, but read-only" 'face '( :foreground "red"))
         (propertize "active" 'face '( :foreground "green3")))
-    (if (fboundp fun)
+    (if (and (fboundp fun)
+             (commandp fun))
         (propertize "not active" 'face '( :foreground "red2"))
       (propertize "not defined" 'face '( :foreground "gray")))))
 
