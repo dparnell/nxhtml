@@ -182,6 +182,9 @@ after last step with LOG-BUFFER as parameter."
   "Continue from this step."
   (interactive)
   (let ((this-step (udev-step-at-point)))
+    (goto-char (point-max))
+    (let ((inhibit-read-only t))
+      (insert (format "\n\nContinuing from %s..." this-step)))
     (udev-call-this-step (current-buffer) this-step)))
 
 (defun udev-goto-this-step-source ()

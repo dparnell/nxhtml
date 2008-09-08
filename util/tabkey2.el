@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-03-15T14:40:28+0100 Sat
-(defconst tabkey2:version "1.36")
+(defconst tabkey2:version "1.37")
 ;; Last-Updated: 2008-07-21T22:24:55+0200 Mon
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/tabkey2.el
 ;; Keywords:
@@ -216,6 +216,9 @@
 ;; - Integrate better with YASnippet.
 ;; - Give YASnippet higher priority since that seems what is wanted.
 ;;
+;; Version 1.37:
+;; - Fix bug revealed by 1.36 changes.
+;;
 ;; Fix-me: maybe add \\_>> option to behave like smart-tab. But this
 ;; will only works for modes that does not do completion of empty
 ;; words (like in smart-tab).
@@ -335,8 +338,9 @@ If value is a number then delay message that number of seconds."
 
 (defun yas/expandable-at-point ()
   "Return non-nil if a snippet can be expanded here."
-  (yas/template-condition-predicate
-   yas/buffer-local-condition))
+  (when (fboundp 'yas/template-condition-predicate)
+    (yas/template-condition-predicate
+     yas/buffer-local-condition)))
 
 (defcustom tabkey2-completion-functions
   '(
@@ -608,32 +612,32 @@ Return t if CHK is a symbol with non-nil value or a form that
 evals to non-nil.
 
 Otherwise return t if FUN has a key binding at point."
-  (or (if (symbolp chk)
-          (when (boundp chk) (symbol-value chk))
-        (eval chk))
-      (let* ((emulation-mode-map-alists
-              ;; Remove keymaps from tabkey2 in this copy:
-              (delq 'tabkey2--emul-keymap-alist
-                    (copy-sequence emulation-mode-map-alists)))
-             (keys (tabkey2-symbol-keys fun))
-             kb-bound)
-        (dolist (key keys)
-          (unless (memq (car (append key nil))
-                        '(menu-bar))
-            (setq kb-bound t)))
-        kb-bound)))
+  (when (and (fboundp fun)
+             (commandp fun))
+    (or (if (symbolp chk)
+            (when (boundp chk) (symbol-value chk))
+          (eval (cadr chk)))
+        (let* ((emulation-mode-map-alists
+                ;; Remove keymaps from tabkey2 in this copy:
+                (delq 'tabkey2--emul-keymap-alist
+                      (copy-sequence emulation-mode-map-alists)))
+               (keys (tabkey2-symbol-keys fun))
+               kb-bound)
+          (dolist (key keys)
+            (unless (memq (car (append key nil))
+                          '(menu-bar))
+              (setq kb-bound t)))
+          kb-bound))))
 
 (defun tabkey2-is-active-p (fun)
   "Return FUN is active.
 Look it up in `tabkey2-completion-functions' to find out what to
 check and return the value from `tabkey2-is-active'."
-  (when (and (fboundp fun)
-             (commandp fun))
-    (let ((chk (catch 'chk
-                 (dolist (rec tabkey2-completion-functions)
-                   (when (eq fun (nth 1 rec))
-                     (throw 'chk (nth 2 rec)))))))
-      (tabkey2-is-active fun chk))))
+  (let ((chk (catch 'chk
+               (dolist (rec tabkey2-completion-functions)
+                 (when (eq fun (nth 1 rec))
+                   (throw 'chk (nth 2 rec)))))))
+    (tabkey2-is-active fun chk))))
 
 (defun tabkey2-first-active-from-completion-functions ()
   "Return first active completion function.
