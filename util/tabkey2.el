@@ -637,7 +637,7 @@ check and return the value from `tabkey2-is-active'."
                (dolist (rec tabkey2-completion-functions)
                  (when (eq fun (nth 1 rec))
                    (throw 'chk (nth 2 rec)))))))
-    (tabkey2-is-active fun chk))))
+    (tabkey2-is-active fun chk)))
 
 (defun tabkey2-first-active-from-completion-functions ()
   "Return first active completion function.
