@@ -10,7 +10,7 @@
 ;; Modified: 2008-01-25T22:25:26+0100 Fri
 ;; X-URL:   http://php-mode.sourceforge.net/
 
-(defconst php-mode-version-number "1.4.1c-nxhtml"
+(defconst php-mode-version-number "1.4.1d-nxhtml"
   "PHP Mode version number.")
 
 ;;; License
@@ -71,6 +71,10 @@
 
 ;;; Changelog:
 
+;; 1.4.1d-nxhtml
+;;   Move back point after checking indentation in
+;;   `php-check-html-for-indentation'.
+;;
 ;; 1.4.1c-nxhtml
 ;;   Add `c-at-vsemi-p-fn' etc after advice from Alan Mackenzi.
 ;;
@@ -271,11 +275,14 @@ See `php-beginning-of-defun'."
   (let ((html-tag-re "</?\\sw+.*?>")
         (here (point)))
     (goto-char (line-beginning-position))
-    (if (or (when (boundp mumamo-multi-major-mode) mumamo-multi-major-mode)
+    (if (or (when (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode)
             ;; Fix-me: no idea how to check for mmm or multi-mode
-            (not (or (re-search-forward html-tag-re (line-end-position) t)
-                 (re-search-backward html-tag-re (line-beginning-position) t))))
-        t
+            (save-match-data
+              (not (or (re-search-forward html-tag-re (line-end-position) t)
+                       (re-search-backward html-tag-re (line-beginning-position) t)))))
+        (progn
+          (goto-char here)
+          t)
       (goto-char here)
       (setq php-warned-bad-indent t)
       ;;(setq php-warned-bad-indent nil)

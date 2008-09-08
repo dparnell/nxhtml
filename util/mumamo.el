@@ -2966,13 +2966,7 @@ also `mumamo-quick-static-chunk'."
           ;;(message "start-in=%s" start-in)
           (when start-in
             ;;(message "here in a2, start-in=%s, pos=%s" start-in pos)
-            ;;(assert (<= start-in pos) t)
-            (unless (<= start-in pos)
-              ;;(message "(<= start-in=%s pos=%s)" start-in pos)
-              ;;(message "signal-hook-function=%s, debugger=%s" signal-hook-function debugger)
-              ;;(message "%s" (with-output-to-string (backtrace)))
-              (error "(<= start-in=%s pos=%s)" start-in pos)
-              )
+            (assert (<= start-in pos) t)
             ;;(message "here in b")
             (assert (<= min start-in) t)
             ;;(message "here in c")
@@ -4476,7 +4470,7 @@ with a multi major mode."
     (define-key map [(control meta prior)] 'mumamo-backward-chunk)
     (define-key map [(control meta next)]  'mumamo-forward-chunk)
     ;; Use mumamo-indent-line-function:
-    (define-key map [tab] 'indent-for-tab-command)
+    ;;(define-key map [tab] 'indent-for-tab-command)
     map))
 
 (mumamo-add-multi-keymap 'mumamo-multi-major-mode mumamo-map)
