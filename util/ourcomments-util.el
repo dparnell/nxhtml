@@ -460,13 +460,23 @@ first tried."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Keymaps
 
-(defun ourcomments-find-keymap-variables (keymap---)
-  "Return a list of keymap variables with value KEYMAP--.
-Ignore `special-event-map', `global-map', `overriding-local-map'    
+(defun ourcomments-find-keymap-variables (key--- binding--- keymap---)
+  "Return a list of matching keymap variables.
+They should have key KEY--- bound to BINDING--- and have value
+KEYMAP---.
+
+Ignore `special-event-map', `global-map', `overriding-local-map'
 and `overriding-terminal-local-map'."
-  (let ((vars nil))
+  (let ((vars--- nil)
+        (ancestors--- nil))
+    (let ((parent (keymap-parent keymap---)))
+      (while parent
+        (setq ancestors--- (cons parent ancestors---))
+        (setq parent (keymap-parent parent))))
     (mapatoms (lambda (symbol)
                 (unless (memq symbol '(keymap---
+                                       ancestors---
+                                       vars---
                                        special-event-map
                                        global-map
                                        overriding-local-map
@@ -477,9 +487,18 @@ and `overriding-terminal-local-map'."
                         (setq val (symbol-value symbol))
                       (when (keymapp symbol)
                         (setq val (symbol-function symbol))))
-                    (when (equal val keymap---)
-                      (push symbol vars))))))
-    vars))
+                    (when (and val
+                               (keymapp val)
+                               (eq binding--- (lookup-key val key--- t)))
+                      (if (equal val keymap---)
+                          (push symbol vars---)
+                        (when ancestors---
+                          (catch 'found
+                            (dolist (ancestor ancestors---)
+                              (when (equal val ancestor)
+                                (push symbol vars---)
+                                (throw 'found nil)))))))))))
+    vars---))
 
 ;; This is a replacement for describe-key-briefly.
 ;;(global-set-key [f1 ?c] 'find-keymap-binding-key)
@@ -566,7 +585,7 @@ what they will do ;-)."
           (while (< 1 (length maps))
             (setq lk (lookup-key (car maps) key t))
             (when (and lk (not (numberp lk)))
-              (setq ret (ourcomments-find-keymap-variables (car maps)))
+              (setq ret (ourcomments-find-keymap-variables key lk (car maps)))
               (when ret
                 (throw 'mapped (car maps))))
             (setq maps (cdr maps))))
@@ -582,7 +601,7 @@ what they will do ;-)."
             (message "%s%s is bound to `%s', but don't know where"
                      key-desc mouse-msg defn)
           (if (= 1 (length ret))
-              (message "%s%s is bound to `%s' in keymap variable `%s'"
+              (message "%s%s is bound to `%s' in `%s'"
                        key-desc mouse-msg defn (car ret))
             (message "%s%s is bound to `%s' in keymap variables `%s'"
                      key-desc mouse-msg defn ret))))

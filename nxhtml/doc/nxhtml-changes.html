@@ -261,6 +261,7 @@
           <a href="#v1.57">v1.57</a>
           <a href="#v1.58">v1.58</a>
           <a href="#v1.59">v1.59</a>
+          <a href="#v1.60">v1.60</a>
         </div>
 
         <dl>
@@ -2134,6 +2135,17 @@
             <ul>
               <li>
                 Fixed a bug that was revealed by the better support for YASnippet.
+              </li>
+            </ul>
+          </dd>
+          <dt id="v1.60">1.60</dt>
+          <dd id="v1.60-dd">
+            <ul>
+              <li>
+                Finished a replacement for the usual help command on
+                [f1 ?c]. This will in addition to the command show the
+                keymap. To use it add
+                <i>(global-set-key [f1 ?c] 'find-keymap-binding-key)</i> to your .emacs.
               </li>
             </ul>
           </dd>
