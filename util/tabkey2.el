@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-03-15T14:40:28+0100 Sat
-(defconst tabkey2:version "1.37")
+(defconst tabkey2:version "1.38")
 ;; Last-Updated: 2008-07-21T22:24:55+0200 Mon
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/tabkey2.el
 ;; Keywords:
@@ -219,6 +219,10 @@
 ;; Version 1.37:
 ;; - Fix bug revealed by 1.36 changes.
 ;;
+;; Version 1.38:
+;; - Fix typo in completion function list.
+;; - Fix corresponding part of check if function is active.
+;;
 ;; Fix-me: maybe add \\_>> option to behave like smart-tab. But this
 ;; will only works for modes that does not do completion of empty
 ;; words (like in smart-tab).
@@ -347,7 +351,7 @@ If value is a number then delay message that number of seconds."
     ;; Temporary things
     ("Spell check word" flyspell-correct-word-before-point)
     ;; Snippets
-    ("Yasnippet" yas/expand '(yas/expandable-at-point))
+    ("Yasnippet" yas/expand (yas/expandable-at-point))
     ;; Main mode related, often used
     ("Semantic Smart Completion" senator-complete-symbol senator-minor-mode)
     ("Programmable completion" pcomplete)
@@ -616,7 +620,7 @@ Otherwise return t if FUN has a key binding at point."
              (commandp fun))
     (or (if (symbolp chk)
             (when (boundp chk) (symbol-value chk))
-          (eval (cadr chk)))
+          (eval chk))
         (let* ((emulation-mode-map-alists
                 ;; Remove keymaps from tabkey2 in this copy:
                 (delq 'tabkey2--emul-keymap-alist
