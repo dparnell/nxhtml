@@ -501,8 +501,8 @@ and `overriding-terminal-local-map'."
     vars---))
 
 ;; This is a replacement for describe-key-briefly.
-;;(global-set-key [f1 ?c] 'find-keymap-binding-key)
-(defun find-keymap-binding-key (&optional key insert untranslated)
+;;(global-set-key [f1 ?c] 'describe-key-and-map-briefly)
+(defun describe-key-and-map-briefly (&optional key insert untranslated)
   "Try to print names of keymap from which KEY fetch its definition.
 Look in current active keymaps and find keymap variables with the
 same value as the keymap where KEY is bound.  Print a message
