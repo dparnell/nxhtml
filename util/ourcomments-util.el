@@ -498,7 +498,137 @@ and `overriding-terminal-local-map'."
                               (when (equal val ancestor)
                                 (push symbol vars---)
                                 (throw 'found nil)))))))))))
+;;;     (let ((childs nil))
+;;;       (dolist (var vars---)
+;;;         (dolist (ancestor ancestors---)
+;;;         (when (equal (keymap-parent var)
+;;;                      (
     vars---))
+
+;; This is modelled after `current-active-maps'.
+(defun key-bindings (key &optional olp position)
+  "Return list of bindings for key sequence KEY in current keymaps.
+The first binding is the active binding and the others are
+bindings shadowed by this in the order of their priority level
+\(see Info node `(elisp) Searching Keymaps').
+
+The entries in the list have the form
+
+  \(BINDING (MAPS) MORE-INFO)
+
+where BINDING is the command bound to and MAPS are matching maps
+\(according to `ourcomments-find-keymap-variables').
+
+MORE-INFO is a list with more information
+
+  \(PRIORITY-LEVEL \[ACTIVE-WHEN])
+
+where PRIORITY-LEVEL is a symbol matching the level where the
+keymap is found and ACTIVE-WHEN is a symbol which must be non-nil
+for the keymap to be active \(minor mode levels only)."
+  ;;(message "\nkey-bindings %s %s %s" key olp position)
+  (let* ((bindings nil)
+        (maps (current-active-maps))
+        map
+        map-sym
+        binding
+        keymaps
+        minor-maps
+        where
+        map-where
+        where-map
+        (local-map (current-local-map))
+        (pt (or position (point)))
+        (point-keymap (get-char-property pt 'keymap))
+        (point-local-map (get-char-property pt 'local-map))
+        )
+    (setq keymaps
+          (cons (list global-map 'global-map)
+                keymaps))
+    (when overriding-terminal-local-map
+      (setq keymaps
+            (cons (list overriding-terminal-local-map 'overriding-terminal-local-map)
+                  keymaps)))
+    (when overriding-local-map
+      (setq keymaps
+            (cons (list overriding-local-map 'overriding-local-map)
+                  keymaps)))
+    (unless (cdr keymaps)
+      (when point-local-map
+        (setq keymaps
+              (cons (list point-local-map 'point-local-map)
+                    keymaps)))
+      ;; Fix-me:
+      ;;/* If on a mode line string with a local keymap,
+
+      (when local-map
+        (setq keymaps
+              (cons (list local-map 'local-map)
+                    keymaps)))
+
+      ;; Minor-modes
+      ;;(message "================ Minor-modes")
+      (dolist (list '(emulation-mode-map-alists
+                      minor-mode-overriding-map-alist
+                      minor-mode-map-alist))
+        ;;(message "------- %s" list)
+        (let ((alists (if (eq list 'emulation-mode-map-alists)
+                          (symbol-value list)
+                        (list (symbol-value list)))))
+          (dolist (alist alists)
+            ;;(message "\n(symbolp alist)=%s alist= %s (symbol-value alist)=%s" (symbolp alist) "dum" "dum2") ;alist "dummy");(when (symbolp alist) (symbol-value alist)))
+            (when (symbolp alist)
+              (setq alist (symbol-value alist)))
+            (dolist (assoc alist)
+              (let* (;(assoc (car alist-rec))
+                     (var (when (consp assoc) (car assoc)))
+                     (val (when (and (symbolp var)
+                                     (boundp var))
+                            (symbol-value var))))
+                ;;(message "var= %s, val= %s" var val)
+                (when (and
+                       val
+                       (or (not (eq list 'minor-mode-map-alist))
+                           (not (assq var minor-mode-overriding-map-alist))))
+                  ;;(message "** Adding this")
+                  (setq minor-maps
+                        (cons (list (cdr assoc) list var)
+                              minor-maps)))
+                )))))
+      (dolist (map minor-maps)
+        ;;(message "cdr map= %s" (cdr map))
+        (setq keymaps
+              (cons map
+                    keymaps)))
+      (when point-keymap
+        (setq keymaps
+              (cons (list point-keymap 'point-keymap)))))
+
+    ;; Fix-me: compare with current-active-maps
+    (let ((ca-maps (current-active-maps))
+          (wh-maps keymaps)
+          ca
+          wh)
+      (while (or ca-maps wh-maps)
+        (setq ca (car ca-maps))
+        (setq wh (car wh-maps))
+        (setq ca-maps (cdr ca-maps))
+        (setq wh-maps (cdr wh-maps))
+        ;;(message "\nca= %s" ca)
+        ;;(message "cdr wh= %s" (cdr wh))
+        (unless (equal ca (car wh))
+          (error "Did not match: %s" (cdr wh)))))
+
+    (while keymaps
+      (setq map-rec (car keymaps))
+      (setq map (car map-rec))
+      (when (setq binding (lookup-key map key t))
+        (setq map-sym (ourcomments-find-keymap-variables key binding map))
+        (setq map-sym (delq 'map map-sym))
+        (setq bindings (cons (list binding map-sym (cdr map-rec)) bindings)))
+      (setq keymaps (cdr keymaps)))
+
+    (nreverse bindings)))
 
 ;; This is a replacement for describe-key-briefly.
 ;;(global-set-key [f1 ?c] 'describe-key-and-map-briefly)
@@ -575,6 +705,8 @@ what they will do ;-)."
     ;; End of part from describe-key-briefly.
     ;; <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
+    
+    (message "bindings=%s" (key-bindings key)) (sit-for 2)
     ;; Find the keymap:
     (let* ((maps (current-active-maps))
            ret
@@ -618,6 +750,7 @@ what they will do ;-)."
 ;;;; Misc.
 
 (defun ourcomments-latest-changelog ()
+  "not ready"
   (let ((changelogs
          '("ChangeLog"
            "admin/ChangeLog"

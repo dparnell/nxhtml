@@ -3891,12 +3891,12 @@ function, it is changed to a list of functions."
     nxml-prolog-end ;;dnxml-rap.el:92:(make-variable-buffer-local 'nxml-prolog-end)
     nxml-scan-end ;;dnxml-rap.el:107:(make-variable-buffer-local 'nxml-scan-end)
 
-    longlines-mode
-    longlines-wrap-beg
-    longlines-wrap-end
-    longlines-wrap-point
-    longlines-showing
-    longlines-decoded
+;;;     longlines-mode
+;;;     longlines-wrap-beg
+;;;     longlines-wrap-end
+;;;     longlines-wrap-point
+;;;     longlines-showing
+;;;     longlines-decoded
     buffer-invisibility-spec
     )
   "Local variables to survive the change of major mode.")
@@ -4581,18 +4581,11 @@ the functions for testing chunks:
 
 These are in the file mumamo-test.el."
   ;;(let ((c (if (symbolp chunks) (symbol-value chunks) chunks))) (message "c=%S" c))
-  (let* ((mumamo-describe-chunks (make-symbol "mumamo-describe-chunks"))
+  (let* (;;(mumamo-describe-chunks (make-symbol "mumamo-describe-chunks"))
          (turn-on-fun (if (symbolp fun-sym)
-                          (symbol-value
-                           (intern
-                            (symbol-name (quote fun-sym))))
+                          fun-sym
                         (error "Parameter FUN-SYM must be a symbol")))
-         (turn-on-fun-alias (intern
-                             (concat "mumamo-alias-"
-                                     (symbol-name
-                                      (symbol-value
-                                       (intern
-                                        (symbol-name (quote fun-sym))))))))
+         (turn-on-fun-alias (intern (concat "mumamo-alias-" (symbol-name fun-sym))))
          (turn-on-hook (intern (concat (symbol-name turn-on-fun) "-hook")))
          (turn-on-map  (intern (concat (symbol-name turn-on-fun) "-map")))
          (turn-on-hook-doc (concat "Hook run at the very end of `"
@@ -4613,6 +4606,9 @@ this function directly yourself too.)
 It sets up for multiple mode in the following way:
 
 "
+           ;; Fix-me: During byte compilation the next line is not
+           ;; expanded as I thought because the functions in CHUNK is
+           ;; not defined. How do I fix this?
            (funcall 'mumamo-describe-chunks chunks2)
            "
 
@@ -4629,9 +4625,8 @@ This major mode has an alias `mumamo-alias-"
 (symbol-name turn-on-fun) "'.
 For more information see `define-mumamo-multi-major-mode'."
            )))
-    (add-to-list 'mumamo-defined-turn-on-functions
-                 (cons (car chunks2) turn-on-fun))
     `(progn
+       (add-to-list 'mumamo-defined-turn-on-functions (cons (car ',chunks2) ',turn-on-fun))
        (defvar ,turn-on-hook nil ,turn-on-hook-doc)
        (defvar ,turn-on-map (make-sparse-keymap)
          ,(concat "Keymap for multi major mode function `"
