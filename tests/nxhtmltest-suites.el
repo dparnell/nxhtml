@@ -76,6 +76,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define tests using ert.el
 
+(ert-deftest nxhtml-ert-indent-bug271497 ()
+  "Test for bug 271497 in Launchpad.
+See URL `https://bugs.launchpad.net/nxhtml/+bug/271497'."
+  (ert-with-temp-buffer-include-file "bug271497.txt"
+    (add-hook 'ert-simulate-command-post-hook
+              'nxhtmltest-should-no-mumamo-errors
+              nil t)
+    (load-file (ert-get-test-file-name "bug271497.el"))
+    (ert-simulate-command '(bug271497-mumamo) t)
+    (font-lock-mode 1)
+    (ert-simulate-command '(goto-char 42) t)
+    (let ((ac42 after-change-functions)
+          ac88)
+      (ert-simulate-command '(goto-char 88) t)
+      (setq ac88 after-change-functions)
+      (ert-should (not (equal ac88 ac42))))))
+
 (ert-deftest nxhtml-ert-indent-question43320 ()
   "Test for question 43320 in Launchpad.
 See URL `https://answers.launchpad.net/nxhtml/+question/43320'."
