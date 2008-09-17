@@ -143,8 +143,10 @@
       (define-key help-map [nxhtml-help-separator3] (list 'menu-item "--"))
 ;;;       (define-key help-map [nxhtml-help]
 ;;;         (list 'menu-item "nXhtml Help" 'nxhtml-help))
+      (define-key help-map [nxhtml-tutorials]
+        (list 'menu-item "nXhtml Tutorials" 'nxhtml-tutorials))
       (define-key help-map [nxhtml-overview]
-        (list 'menu-item (concat "nXhtml version " nxhtml-menu:version " Overview") 'nxhtml-overview))
+        (list 'menu-item (concat "nXhtml Version " nxhtml-menu:version " Overview") 'nxhtml-overview))
       (define-key help-map [nxhtml-welcome]
         (list 'menu-item "Welcome to nXhtml" 'nxhtml-welcome))
       (define-key map [nxhtml-help-map]
@@ -812,9 +814,14 @@ See `nxhtml-minor-mode-modes'."
   (concat "file://" (nxhtml-docfile)))
 
 (defun nxhtml-overview ()
-  "Show a HTML page with an overview of `nxhtml-mode'."
+  "Show a HTML page with an overview of nXhtml."
   (interactive)
   (browse-url (nxhtml-docfile-url)))
+
+(defun nxhtml-tutorials ()
+  "Show a HTML page with a list of tutorials for nXhtml'."
+  (interactive)
+  (browse-url "http://ourcomments.org/Emacs/nXhtml/tut/tutorials.html"))
 
 (defun nxhtml-custom-valfaced (value &optional bgcolor)
   (let ((v (if (sequencep value)

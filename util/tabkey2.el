@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-03-15T14:40:28+0100 Sat
-(defconst tabkey2:version "1.38")
+(defconst tabkey2:version "1.39")
 ;; Last-Updated: 2008-07-21T22:24:55+0200 Mon
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/tabkey2.el
 ;; Keywords:
@@ -222,6 +222,9 @@
 ;; Version 1.38:
 ;; - Fix typo in completion function list.
 ;; - Fix corresponding part of check if function is active.
+;;
+;; Version 1.39:
+;; - Try first [tab] and then [?\t] when looking for command.
 ;;
 ;; Fix-me: maybe add \\_>> option to behave like smart-tab. But this
 ;; will only works for modes that does not do completion of empty
@@ -1156,7 +1159,10 @@ nothing else is bound to Tab there."
                              (equal [backtab] (this-command-keys-vector))
                              )
                       (let ((emulation-mode-map-alists emma-without-tabkey2))
-                        (key-binding [?\t] t))))
+                        ;; Fix-me: Is this the way to pick up "tab keys"?
+                        (or (key-binding [tab] t)
+                            (key-binding [?\t] t))
+                        )))
            (to-do-2 (unless (or
                              ;;(memq what '(complete))
                              (memq what '(indent))

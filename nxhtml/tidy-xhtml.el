@@ -10,7 +10,7 @@
 ;;         <lennart dot borgman dot 073 dot student dot lu dot se>
 ;; Original X-URL: http://www.emacswiki.org/elisp/tidy.el
 ;; Last-Updated: 2008-03-09T13:10:06+0100 Sun
-(defconst tidy-xhtml:version "2.24")
+(defconst tidy-xhtml:version "2.25")
 ;; Keywords: languages
 
 ;; This file is NOT part of GNU Emacs.
@@ -2451,7 +2451,7 @@ calling tidy."
       (set (make-local-variable 'widget-link-prefix) "")
       (set (make-local-variable 'widget-link-suffix) "")
       (widget-create 'push-button
-                     :tag " Show Original "
+                     :tag " Show Source "
                      :keymap (make-sparse-keymap)
                      :arg-orig orig-buffer
                      :action (lambda (widget &optional event)
@@ -2476,7 +2476,7 @@ calling tidy."
 
       (insert " ")
       (widget-create 'push-button
-                     :tag " Copy Tidied "
+                     :tag " Use Tidied "
                      :keymap (make-sparse-keymap)
                      :arg-tidy output-buffer
                      :arg-orig orig-buffer
@@ -2496,12 +2496,16 @@ calling tidy."
                                            (buffer-substring-no-properties (point-min) (point-max)))))
                                       )
                                  (tidy-check-is-tidied orig-buf tidy-buf)
+                                 (kill-buffer (current-buffer))
+                                 (kill-buffer tidy-buf)
                                  (if (string= orig-buf-str tidy-buf-str)
                                      (message "Original buffer's and tidied buffer's contents are equal")
                                    (with-current-buffer orig-buf
                                      (erase-buffer)
                                      (insert tidy-buf-str)
                                      (goto-char (point-min))
+                                     (delete-window (selected-window))
+                                     (switch-to-buffer orig-buf)
                                      (message "Copied to %s" orig-buf))))))
       (insert " ")
       (widget-create 'push-button
@@ -2876,8 +2880,8 @@ called."
   (interactive)
   (wab-fb t))
 
-(define-derived-mode wab-compilation-mode compilation-mode "WAB Compilation"
-  nil
+(define-compilation-mode wab-compilation-mode "WAB Compilation"
+  "Mode for tidy control buffer."
   )
 (define-key wab-compilation-mode-map [tab]         'wab-forward)
 (define-key wab-compilation-mode-map [(shift tab)] 'wab-backward)

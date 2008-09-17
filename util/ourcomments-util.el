@@ -602,7 +602,8 @@ for the keymap to be active \(minor mode levels only)."
                     keymaps)))
       (when point-keymap
         (setq keymaps
-              (cons (list point-keymap 'point-keymap)))))
+              (cons (list point-keymap 'point-keymap)
+                    keymaps))))
 
     ;; Fix-me: compare with current-active-maps
     (let ((ca-maps (current-active-maps))
@@ -625,6 +626,9 @@ for the keymap to be active \(minor mode levels only)."
       (when (setq binding (lookup-key map key t))
         (setq map-sym (ourcomments-find-keymap-variables key binding map))
         (setq map-sym (delq 'map map-sym))
+        (setq map-sym (delq 'local-map map-sym))
+        (setq map-sym (delq 'point-keymap map-sym))
+        (setq map-sym (delq 'point-local-map map-sym))
         (setq bindings (cons (list binding map-sym (cdr map-rec)) bindings)))
       (setq keymaps (cdr keymaps)))
 
