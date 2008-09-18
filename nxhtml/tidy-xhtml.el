@@ -1523,7 +1523,7 @@ POSITION are not used in this case. "
           ["Tidy Directory Tree" tidy-tree
            :active (tidy-exe-found)]
 
-          ["Tidy Local Web Site" tidy-tree
+          ["Tidy Site" tidy-tree
            :active (and (featurep 'html-site)
                         (tidy-exe-found))]
 
@@ -1898,8 +1898,7 @@ POSITION are not used in this case. "
                                                :style 'toggle
                                                :selected '(if tidy-menu-lock t nil)
                                                ))
-                                 (list (list "-------")
-                                       )
+                                 (list (list "-------"))
 
                                  (list (append (list "Fix Markup")
                                                markup-menu-bool
@@ -1923,7 +1922,15 @@ POSITION are not used in this case. "
                                  (list tidy-output-encoding-menu)
                                  (list tidy-newline-menu)
                                  ))
-                   '(["Describe Options" tidy-describe-options t])))
+                   '(["Describe Options" tidy-describe-options t])
+                   (list (list "-------"))
+                   '(["Tidy Home Page"
+                      (lambda ()
+                        "Open Tidy home page in your web browser."
+                        (interactive)
+                        (browse-url "http://tidy.sourceforge.net/"))
+                      t])
+                   ))
   )
 )
 

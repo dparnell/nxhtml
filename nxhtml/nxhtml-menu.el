@@ -182,6 +182,14 @@
       (let ((ecb-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-ecb-map]
           (list 'menu-item "ECB" ecb-map))
+        (define-key ecb-map [nxhtml-rinari-homepage]
+          (list 'menu-item "ECB Home Page"
+                (lambda ()
+                  "Open ECB home page in your web browser."
+                  (interactive)
+                  (browse-url "http://ecb.sourceforge.net/"))))
+        (define-key ecb-map [nxhtml-ecb-home-separator]
+          (list 'menu-item "--" nil))
         (define-key ecb-map [nxhtml-update-ecb]
           (list 'menu-item "Fetch/update ECB dev sources"
                 'udev-ecb-update))
@@ -200,6 +208,14 @@
       (let ((cedet-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-cedet-map]
           (list 'menu-item "CEDET" cedet-map))
+        (define-key cedet-map [nxhtml-rinari-homepage]
+          (list 'menu-item "CEDET Home Page"
+                (lambda ()
+                  "Open CEDET home page in your web browser."
+                  (interactive)
+                  (browse-url "http://cedet.sourceforge.net/"))))
+        (define-key cedet-map [nxhtml-cedet-home-separator]
+          (list 'menu-item "--" nil))
         (define-key cedet-map [nxhtml-update-cedet]
           (list 'menu-item "Fetch/update CEDET dev sources"
                 'udev-cedet-update))
@@ -212,6 +228,14 @@
       (let ((rinari-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-rinari-map]
           (list 'menu-item "Rinari" rinari-map))
+        (define-key rinari-map [nxhtml-rinari-homepage]
+          (list 'menu-item "Rinari Home Page"
+                (lambda ()
+                  "Open Rinari home page in your web browser."
+                  (interactive)
+                  (browse-url "http://rubyforge.org/projects/rinari/"))))
+        (define-key rinari-map [nxhtml-rinari-home-separator]
+          (list 'menu-item "--" nil))
         (define-key rinari-map [nxhtml-update-rinari]
           (list 'menu-item "Fetch/update Rinari dev sources"
                 'udev-rinari-update))
@@ -228,6 +252,7 @@
         (define-key mozrepl-map [nxhtml-mozrepl-home-page]
           (list 'menu-item "MozLab/MozRepl Home Page"
                 (lambda ()
+                  "Open MozLab/MozRepl home page in your web browser."
                   (interactive)
                   (browse-url "http://hyperstruct.net/projects/mozlab"))))
         (define-key mozrepl-map [nxhtml-mozrepl-separator2]
