@@ -710,7 +710,7 @@ what they will do ;-)."
     ;; <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     
-    (message "bindings=%s" (key-bindings key)) (sit-for 2)
+    ;;(message "bindings=%s" (key-bindings key)) (sit-for 2)
     ;; Find the keymap:
     (let* ((maps (current-active-maps))
            ret

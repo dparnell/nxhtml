@@ -662,6 +662,14 @@ for \\[find-tag] (which see)."
 (define-key php-mode-map
   '[(control .)]
   'php-show-arglist)
+
+;; Use the Emacs standard indentation binding. This may upset c-mode
+;; which does not follow this at the moment, but I see no better
+;; choice.
+(define-key php-mode-map
+  [?\t]
+  'indent-for-tab-command)
+
 
 (defconst php-constants
   (eval-when-compile
