@@ -2630,9 +2630,11 @@ indentation etc."
 
 (defsubst mumamo-chunk-major-mode (chunk)
   "Get major mode specified in CHUNK."
-  (assert chunk)
-  (assert (overlay-buffer chunk))
-  (overlay-get chunk 'mumamo-major-mode))
+  ;;(assert chunk)
+  ;;(assert (overlay-buffer chunk))
+  (if chunk
+      (overlay-get chunk 'mumamo-major-mode)
+    major-mode))
 
 (defsubst mumamo-chunk-syntax-min (chunk)
   "Get min syntactically safe point inside mumamo chunk CHUNK.

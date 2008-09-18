@@ -459,11 +459,12 @@ Takes into account the relative position of the saved link."
   ;;(unless (= 0 (buffer-size)) (error "Buffer is not empty"))
   (let* ((frames "Frameset page")
          (normal "Normal page")
-         (vlhead "Validation header")
+         ;;(vlhead "Validation header")
          ;;popcmp-popup-completion
          (initial (unless popcmp-popup-completion normal))
          (hist (if mumamo-multi-major-mode
-                   (list vlhead frames normal)
+                   ;;(list vlhead frames normal)
+                   (list frames normal)
                  (list frames normal)))
          res)
     (setq res (popcmp-completing-read "Insert: " hist nil t initial (cons 'hist (length hist))))
@@ -1137,6 +1138,21 @@ This is not supposed to be entirely correct."
           (string-match nxhtml-image-completion-pattern url))
       t
     (setq nxhtml-predicate-error "Does not match image file name pattern.")
+    nil
+    ))
+
+(defcustom nxhtml-css-completion-pattern
+  "\\.\\(?:css\\)$"
+  "Pattern for matching css URLs in completion."
+  :type 'regexp
+  :group 'nxhtml)
+
+(defun nxhtml-css-url-predicate (url)
+  (setq nxhtml-predicate-error nil)
+  (if (or (file-directory-p url)
+          (string-match nxhtml-css-completion-pattern url))
+      t
+    (setq nxhtml-predicate-error "Does not match css file name pattern.")
     nil
     ))
 
@@ -1954,9 +1970,11 @@ You can add additional elisp code for completing to
                  (attr (buffer-substring-no-properties name-start
                                                        (or colon name-end)))
                  (value-start (1+ (match-beginning 3)))
+                 tag-start-end
                  (tag (save-excursion
                         (when (search-backward-regexp "<[[:alpha:]]+" nil t)
-                      (match-string 0)))))
+                          (setq tag-start-end (match-end 0))
+                          (match-string-no-properties 0)))))
             (setq init (buffer-substring-no-properties value-start (point)))
             (setq delimiter (char-before value-start))
             (if in-xml-attr-val
@@ -2002,7 +2020,15 @@ You can add additional elisp code for completing to
                            ((string= "<area" tag)
                             (setq val (nxhtml-read-url nil init)))
                            ((string= "<link" tag)
-                            (setq val (nxhtml-read-url nil init)))
+                            (let (predicate
+                                  (here (point)))
+                              (save-excursion
+                                (goto-char tag-start-end)
+                                (cond
+                                 ((search-forward "text/css" here nil)
+                                  (setq predicate 'nxhtml-css-url-predicate))
+                                 ))
+                              (setq val (nxhtml-read-url nil init predicate))))
                            (t
                             (setq val (nxhtml-read-url nil init)))))
                     ((string= "src" attr)
