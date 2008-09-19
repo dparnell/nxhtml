@@ -751,6 +751,61 @@ what they will do ;-)."
 ;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Wrapping
+
+;; Fix-me: There is a confusion between buffer and window margins
+;; here. Also the doc says that left-margin-width and dito right may
+;; be nil. However they seem to be 0 by default, but when displaying a
+;; buffer in a window then window-margins returns (nil).
+(defun set-wrap-to-fill-values ()
+  "Use `fill-column' display columns in buffer windows."
+  (let ((buf-windows (get-buffer-window-list (current-buffer))))
+    (dolist (win buf-windows)
+      (if wrap-to-fill-mode
+          (let* ((edges (window-edges win))
+                 (win-width (- (nth 2 edges) (nth 0 edges)))
+                 (extra-width (- win-width fill-column))
+                 (left-marg (if wrap-to-fill-left-marg
+                                wrap-to-fill-left-marg
+                              (- (/ extra-width 2) 1)))
+                 (right-marg (- win-width fill-column left-marg))
+                 (win-margs (window-margins win))
+                 (old-left (or (car win-margs) 0))
+                 (old-right (or (cdr win-margs) 0)))
+            (unless (> left-marg 0) (setq left-marg 0))
+            (unless (> right-marg 0) (setq right-marg 0))
+            (unless (and (= old-left left-marg)
+                         (= old-right right-marg))
+              (set-window-margins win left-marg right-marg)))
+        (set-window-buffer win (current-buffer))))))
+
+(defcustom wrap-to-fill-left-marg nil
+  "Left margin handling for `wrap-to-fill-mode'.
+Used by `wrap-to-fill-mode'. If nil then center the display
+columns. Otherwise it should be a number which will be the left
+margin."
+  :type '(choice (const :tag "Center" nil)
+                 (integer :tag "Left margin"))
+  :group 'emacs)
+(make-variable-buffer-local 'wrap-to-fill-left-marg)
+
+(define-minor-mode wrap-to-fill-mode
+  "Use `fill-column' display columns in buffer windows.
+By default the display columns are centered, but see the option
+`wrap-to-fill-left-marg'.
+
+Note: When turning this on `visual-line-mode' is also turned on. This
+is not reset when turning off this mode."
+  :group 'emacs
+  (if wrap-to-fill-mode
+      (progn
+        (add-hook 'window-configuration-change-hook 'set-wrap-to-fill-values nil t)
+        (visual-line-mode 1))
+    (remove-hook 'window-configuration-change-hook 'set-wrap-to-fill-values t))
+  (set-wrap-to-fill-values))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Misc.
 
 (defun ourcomments-latest-changelog ()

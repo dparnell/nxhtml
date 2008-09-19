@@ -178,7 +178,7 @@
   (ffip-set-current-project html-site-current
                             (html-site-current-site-dir)
                             'nxhtml)
-  (call-interactively 'find-file-in-project))
+  (call-interactively 'ffip-find-file-in-project))
 
 (defun html-site-ensure-site-defined (site-name)
   (unless html-site-list

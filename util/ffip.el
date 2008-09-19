@@ -243,7 +243,7 @@ project."
         (ffip-project-type nil)
         (ffip-project-file-matcher nil))
     (ffip-set-current-project "(temporary)" root nil)
-    (call-interactively 'find-file-in-project)))
+    (call-interactively 'ffip-find-file-in-project)))
 
 (defun ffip-find-file-in-project (file)
   "Find files in current ffip project."
@@ -254,8 +254,11 @@ project."
       (if (memq ido-mode '(file 'both))
           (ido-completing-read prompt
                                (mapcar 'car (ffip-project-files)))
-        (completing-read prompt
-                         (mapcar 'car (ffip-project-files)))))))
+        (let ((files (mapcar 'car (ffip-project-files))))
+          (completing-read prompt
+                           files
+                           (lambda (elem) (member elem files))
+                           t))))))
   (find-file (cdr (assoc file ffip-project-files-table))))
 
 ;;(global-set-key (kbd "C-x C-M-f") 'find-file-in-project)
