@@ -112,62 +112,44 @@
 (defvar nxhtml-req-features
   (let ((req-features
          '(
-           (html-site    "Web sites you define"
-                         "html-site.el" "0.2")
-           (html-chklnk  "Checking links in site"
-                         "html-chklnk.el" "0.2")
-           (html-move    "Moving files in web sites"
-                         "html-move.el" "0.31")
-           (html-pagetoc "Page TOC"
-                         "html-pagetoc.el" "0.85")
-           (html-toc     "Web site TOC"
-                         "html-toc.el" "0.4")
-           (html-wtoc    "Merge pages and web Site TOC"
-                         "html-wtoc.el" "0.2")
-           (html-upl     "Upload web sites"
-                         "html-upl.el" "0.2")
-           (mumamo       "Multiple major modes in buffer"
-                         "mumamo.el" "0.73")
-           (tidy-xhtml   "Run HTML tidy program"
-                         "tidy-xhtml.el" "2.24")
-           (xhtml-help   "HTML+CSS help"
-                         "xhtml-help.el" "0.57")
-           (hexcolor     "Hex color help functions"
-                         "hexcolor.el" "0.51")
-           (fold-dwim    "Folding on headers and tags"
-                         "fold-dwim.el" "1.3")
-           (appmenu      "General popup menu"
-                         "appmenu.el" "0.53")
-           (appmenu-fold "Popup menu entries for folding"
-                         "appmenu-fold.el" "0.51" appmenu fold-dwim)
-           (nxml-where   "Shows XML path"
-                         "nxml-where.el" "0.52")
-           (mlinks       "Live XHTML links"
-                         "mlinks.el" "0.28")
-;;;            (nxhtml-strval "Allow attr=\"<?php...?>\" etc"
-;;;                          "nxhtml-strval.el" "0.3")
-           (as-external  "Emacs as an external editor"
-                         "as-external.el" "0.5")
-           (gimp         "Edit images with GIMP"
-                         "gimp.el" "0.2")
-           (html-imenu   "Table of content in menus"
-                         "html-imenu.el" "0.9")
-           (tabkey2      "Tab completion"
-                         "tabkey2.el" "1.12")
-           (udev         "Fetch and load from elisp repostories"
-                         "udev.el" "0.5")
-           (udev-cedet   "CEDET fetcher and loader"
-                         "udev-cedet.el" "0.2")
-           (udev-ecb     "ECB fetcher and loader"
-                         "udev-ecb.el" "0.2")
-           (udev-rinari  "Rinari fetcher and loader"
-                         "udev-rinari.el" "0.2")
-           (majmodpri    "Major mode priorities"
-                         "majmodpri.el" "0.5")
+           "XHTML/HTML"
+           (nxml-mode    "XML Completion" "nxml-mode.el")
+           (nxhtml       "Additional XHTML Completion" "nxhtml.el")
+           (mlinks       "Live XHTML links" "mlinks.el" "0.28")
+           (tidy-xhtml   "Run HTML tidy program" "tidy-xhtml.el" "2.24")
+           (xhtml-help   "HTML+CSS help" "xhtml-help.el" "0.57")
+           (nxml-where   "Shows XML path" "nxml-where.el" "0.52")
+           (html-imenu   "Table of content in menus" "html-imenu.el" "0.9")
+           (html-pagetoc "Page TOC" "html-pagetoc.el" "0.85")
+           (html-site    "Web sites you define" "html-site.el" "0.2")
+           (html-upl     "Upload web sites" "html-upl.el" "0.2")
+           (html-chklnk  "Checking links in site" "html-chklnk.el" "0.2")
+           (html-move    "Moving files in web sites" "html-move.el" "0.31")
+           (html-toc     "Web site TOC" "html-toc.el" "0.4")
+           (html-wtoc    "Merge pages and web Site TOC" "html-wtoc.el" "0.2")
+           "General"
+           (mumamo       "Multiple major modes in buffer" "mumamo.el" "0.73")
+           (majmodpri    "Major mode priorities" "majmodpri.el" "0.5")
+           (tabkey2      "Tab completion" "tabkey2.el" "1.12")
+           (fold-dwim    "Folding on headers and tags" "fold-dwim.el" "1.3")
+           (appmenu      "General popup menu" "appmenu.el" "0.53")
+           (appmenu-fold "Popup menu entries for folding" "appmenu-fold.el" "0.51" appmenu fold-dwim)
+           "External applications / Emacs as dito"
+           (as-external  "Emacs as an external editor" "as-external.el" "0.5")
+           (sex-mode     "Send to EXternal program" "sex-mode.el" "0.71")
+           "Images and Colors"
+           (gimp         "Edit images with GIMP" "gimp.el" "0.2")
+           (hexcolor     "Hex color help functions" "hexcolor.el" "0.51")
+           "Fetching and using elisp from repositories"
+           (udev         "Fetch and load from elisp repostories" "udev.el" "0.5")
+           (udev-cedet   "CEDET fetcher and loader" "udev-cedet.el" "0.2")
+           (udev-ecb     "ECB fetcher and loader" "udev-ecb.el" "0.2")
+           (udev-rinari  "Rinari fetcher and loader" "udev-rinari.el" "0.2")
            )
          ))
     (dolist (extf req-features)
-      (require (car extf) nil t))
+      (unless (stringp extf)
+        (require (car extf) nil t)))
     req-features))
 
 
@@ -219,9 +201,11 @@
                      (if ok
                          (format "supported by %s%s\n"
                                  file
-                                 (if (string= feat-ver need-ver)
-                                     (format " (%s)" feat-ver)
-                                   (format " (%s/%s)" feat-ver need-ver)))
+                                 (if (not need-ver)
+                                     ""
+                                   (if (string= feat-ver need-ver)
+                                       (format " (%s)" feat-ver)
+                                     (format " (%s/%s)" feat-ver need-ver))))
                        (concat "found " file
                                " but needs"
                                (if feat-vok ""
@@ -230,8 +214,9 @@
                                (if need-ok ""
                                  (format " also %s" need-list))
                                "\n"))))
-            (unless (string= file
-                             (file-name-nondirectory (feature-file feature)))
+            (unless (string= (file-name-sans-extension file)
+                             (file-name-sans-extension
+                              (file-name-nondirectory (feature-file feature))))
               (insert (make-string (+ 34 4) ?\ ) "** Bad file name: " file "\n"))))
       (unless silent
         (nxhtml-feature-insert
@@ -253,7 +238,9 @@
                          s)
       (insert s "\n\n"))
     (dolist (feat-entry nxhtml-req-features)
-      (nxhtml-feature-check feat-entry nil))
+      (if (stringp feat-entry)
+          (insert "==== " (propertize feat-entry 'face 'font-lock-comment-face 'face '(:weight bold)) "\n")
+        (nxhtml-feature-check feat-entry nil)))
     (goto-char (point-min))
     (while (search-forward-regexp "[-a-zA-Z0-9]+\\.el" nil t)
       (nxhtml-make-library-link
@@ -266,8 +253,9 @@
   (let ((all t))
     (dolist (feat-entry nxhtml-req-features)
       ;;(unless (featurep (car extf))
-      (unless (nxhtml-feature-check feat-entry t)
-        (setq all nil)))
+      (unless (stringp feat-entry)
+        (unless (nxhtml-feature-check feat-entry t)
+          (setq all nil))))
     all))
 
 ;;(defun nxhtml-nxml-fontify-attribute (att &optional namespace-declaration)

@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-06-01T18:41:50+0200 Sun
-;; Version: 0.71
+(defconst sex-mode:version "0.71")
 ;; Last-Updated: 2008-08-01T20:03:51+0200 Fri
 ;; URL:
 ;; Keywords:
@@ -78,6 +78,7 @@
   '(
     ("html" . emacs)
     ("pdf"  . default)
+    ("wnk"  . default)
     )
   "Application for opening a file.
 See `sex-get-file-open-cmd'."
