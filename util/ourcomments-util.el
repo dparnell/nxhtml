@@ -765,8 +765,8 @@ what they will do ;-)."
           (let* ((edges (window-edges win))
                  (win-width (- (nth 2 edges) (nth 0 edges)))
                  (extra-width (- win-width fill-column))
-                 (left-marg (if wrap-to-fill-left-marg
-                                wrap-to-fill-left-marg
+                 (left-marg (if wrap-to-fill-left-marg-use
+                                wrap-to-fill-left-marg-use
                               (- (/ extra-width 2) 1)))
                  (right-marg (- win-width fill-column left-marg))
                  (win-margs (window-margins win))
@@ -786,8 +786,18 @@ columns. Otherwise it should be a number which will be the left
 margin."
   :type '(choice (const :tag "Center" nil)
                  (integer :tag "Left margin"))
-  :group 'emacs)
+  :group 'convenience)
 (make-variable-buffer-local 'wrap-to-fill-left-marg)
+
+(defvar wrap-to-fill-left-marg-use 0)
+(make-variable-buffer-local 'wrap-to-fill-left-marg-use)
+
+(defcustom wrap-to-fill-left-marg-modes
+  '(text-mode
+    fundamental-mode)
+  "Major modes where `wrap-to-fill-left-margin' may be nil."
+  :type '(repeat commandp)
+  :group 'convenience)
 
 (define-minor-mode wrap-to-fill-mode
   "Use `fill-column' display columns in buffer windows.
@@ -796,9 +806,14 @@ By default the display columns are centered, but see the option
 
 Note: When turning this on `visual-line-mode' is also turned on. This
 is not reset when turning off this mode."
-  :group 'emacs
+  :group 'convenience
   (if wrap-to-fill-mode
       (progn
+        (setq wrap-to-fill-left-marg-use wrap-to-fill-left-marg)
+        (unless (or wrap-to-fill-left-marg-use
+                    (memq major-mode wrap-to-fill-left-marg-modes))
+          (setq wrap-to-fill-left-marg-use
+                (default-value 'wrap-to-fill-left-marg-use)))
         (add-hook 'window-configuration-change-hook 'set-wrap-to-fill-values nil t)
         (visual-line-mode 1))
     (remove-hook 'window-configuration-change-hook 'set-wrap-to-fill-values t))
