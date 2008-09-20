@@ -114,7 +114,7 @@
          '(
            "XHTML/HTML"
            (nxml-mode    "XML Completion" "nxml-mode.el")
-           ;;(nxhtml       "Additional XHTML Completion" "nxhtml.el")
+           (nxhtml       "Additional XHTML Completion" "nxhtml.el")
            (mlinks       "Live XHTML links" "mlinks.el" "0.28")
            (tidy-xhtml   "Run HTML tidy program" "tidy-xhtml.el" "2.24")
            (xhtml-help   "HTML+CSS help" "xhtml-help.el" "0.57")
@@ -148,7 +148,8 @@
            )
          ))
     (dolist (extf req-features)
-      (unless (stringp extf)
+      (unless (or (stringp extf)
+                  (eq (car extf) 'nxhtml))
         (require (car extf) nil t)))
     req-features))
 
