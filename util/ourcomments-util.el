@@ -757,7 +757,7 @@ what they will do ;-)."
 ;; here. Also the doc says that left-margin-width and dito right may
 ;; be nil. However they seem to be 0 by default, but when displaying a
 ;; buffer in a window then window-margins returns (nil).
-(defun set-wrap-to-fill-values ()
+(defun wrap-to-fill-set-values ()
   "Use `fill-column' display columns in buffer windows."
   (let ((buf-windows (get-buffer-window-list (current-buffer))))
     (dolist (win buf-windows)
@@ -799,13 +799,57 @@ margin."
   :type '(repeat commandp)
   :group 'convenience)
 
+(defun wrap-to-fill-set-prefix (min max)
+  "Set `wrap-prefix' text property from point MIN to MAX."
+  (let ((here (point))
+        beg-pos
+        end-pos
+        ind-str
+        (inhibit-field-text-motion t)
+        )
+    (goto-char min)
+    (forward-line 0)
+    (when (< (point) min) (forward-line))
+    (mumamo-with-buffer-prepared-for-jit-lock
+     (while (and (<= (point) max)
+                 (< (point) (point-max)))
+       (setq beg-pos (point))
+       (setq end-pos (line-end-position))
+       (when (equal (get-text-property beg-pos 'wrap-prefix)
+                    (get-text-property beg-pos 'wrap-to-fill-prefix))
+         (skip-chars-forward "[:blank:]")
+         (setq ind-str (buffer-substring-no-properties beg-pos (point)))
+         (put-text-property beg-pos end-pos 'wrap-prefix ind-str)
+         (put-text-property beg-pos end-pos 'wrap-to-fill-prefix ind-str))
+       (forward-line)))
+    (goto-char here)))
+
+(defun wrap-to-fill-after-change (min max old-len)
+  "`after-change-functions'"
+  (let ((here (point))
+        (inhibit-field-text-motion t))
+    (goto-char min)
+    (setq min (line-beginning-position))
+    (goto-char max)
+    (setq max (line-end-position))
+    (wrap-to-fill-set-prefix min max)))
+
+(defun wrap-to-fill-scroll-fun (window start-pos)
+  (let ((min (window-start window))
+        (max (window-end window t)))
+    (wrap-to-fill-set-prefix min max)))
+
 (define-minor-mode wrap-to-fill-mode
   "Use `fill-column' display columns in buffer windows.
 By default the display columns are centered, but see the option
 `wrap-to-fill-left-marg'.
 
-Note: When turning this on `visual-line-mode' is also turned on. This
-is not reset when turning off this mode."
+Note 1: When turning this on `visual-line-mode' is also turned on. This
+is not reset when turning off this mode.
+
+Note 2: The text property `wrap-prefix' is set by this mode to
+indent continuation lines.
+This is not recorded in the undo list."
   :group 'convenience
   (if wrap-to-fill-mode
       (progn
@@ -814,10 +858,36 @@ is not reset when turning off this mode."
                     (memq major-mode wrap-to-fill-left-marg-modes))
           (setq wrap-to-fill-left-marg-use
                 (default-value 'wrap-to-fill-left-marg-use)))
-        (add-hook 'window-configuration-change-hook 'set-wrap-to-fill-values nil t)
-        (visual-line-mode 1))
-    (remove-hook 'window-configuration-change-hook 'set-wrap-to-fill-values t))
-  (set-wrap-to-fill-values))
+        (add-hook 'window-configuration-change-hook 'wrap-to-fill-set-values nil t)
+        (add-hook 'after-change-functions 'wrap-to-fill-after-change nil t)
+        (add-hook 'window-scroll-functions 'wrap-to-fill-scroll-fun nil t)
+        (visual-line-mode 1)
+        (dolist (window (get-buffer-window-list (current-buffer)))
+          (wrap-to-fill-scroll-fun window nil)))
+    (remove-hook 'window-configuration-change-hook 'wrap-to-fill-set-values t)
+    (remove-hook 'after-change-functions 'wrap-to-fill-after-change t)
+    (remove-hook 'window-scroll-functions 'wrap-to-fill-scroll-fun t)
+    (let ((here (point))
+          (inhibit-field-text-motion t)
+          beg-pos
+          end-pos)
+      (save-restriction
+        (widen)
+        (goto-char (point-min))
+        (while (< (point) (point-max))
+          (setq beg-pos (point))
+          (setq end-pos (line-end-position))
+          (when (equal (get-text-property beg-pos 'wrap-prefix)
+                       (get-text-property beg-pos 'wrap-to-fill-prefix))
+            (remove-list-of-text-properties
+             beg-pos end-pos
+             '(wrap-prefix)))
+          (forward-line))
+        (remove-list-of-text-properties
+             (point-min) (point-max)
+             '(wrap-to-fill-prefix)))
+      (goto-char here)))
+  (wrap-to-fill-set-values))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
