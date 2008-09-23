@@ -922,6 +922,16 @@ list."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Misc.
 
+(defun ourcomments-ediff-files (def-dir file-a file-b)
+  "In directory DEF-DIR run `ediff-files' on files FILE-A and FILE-B.
+The purpose of this function is to make it eaiser to start
+`ediff-files' from a shell through Emacs Client.
+
+This is used in EmacsW32 in the file ediff.cmd."
+  (let ((default-directory def-dir))
+    (ediff-files file-a file-b)))
+
+
 (defun ourcomments-latest-changelog ()
   "not ready"
   (let ((changelogs

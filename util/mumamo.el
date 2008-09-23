@@ -4,7 +4,7 @@
 ;; Maintainer:
 ;; Created: Fri Mar 09 18:15:25 2007
 (defconst mumamo:version "0.88") ;;Version:
-;; Last-Updated: 2008-08-18T19:23:00+0200 Mon
+;; Last-Updated: 2008-09-23T19:09:11+0200 Tue
 ;; URL: http://OurComments.org/Emacs/Emacs.html
 ;; Keywords:
 ;; Compatibility:
@@ -4240,17 +4240,14 @@ default values."
     ;; Restore local variables after switching, but do it in the mode
     ;; hook:
     (let ((mode-hook (intern-soft (concat (symbol-name major) "-hook")))
-          (delay-old delay-mode-hooks)
           (restore-fun (lambda ()
                          (mumamo-restore-most-buffer-locals major))))
       (when mode-hook
-        (setq delay-mode-hooks nil)
         ;; Put first in local hook to run it first:
         (add-hook mode-hook restore-fun nil t))
       (funcall major) ;; <-----------------------------------------------
       (if (not mode-hook)
           (mumamo-restore-most-buffer-locals major)
-        (setq delay-mode-hooks delay-old)
         (remove-hook mode-hook restore-fun t)))
 
     (setq mode-name (concat (format-mode-line mode-name)
