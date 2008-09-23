@@ -4033,11 +4033,22 @@ Just check the name."
 ;; Compare mumamo-irrelevant-buffer-local-vars
 (defvar mumamo-buffer-locals-dont-set
   '(
+    adaptive-fill-mode
+    adaptive-fill-first-line-regexp
+    adaptive-fill-regexp
+    add-log-current-defun-header-regexp
+    auto-composition-function
+    auto-composition-mode
+    auto-composition-mode-major-mode
+
+
+    beginning-of-defun-function
     buffer-auto-save-file-format
     buffer-auto-save-file-name
     buffer-backed-up
     buffer-display-count
     buffer-display-time
+    buffer-file-coding-system
     buffer-file-format
     buffer-file-name
     buffer-file-truename
@@ -4045,40 +4056,206 @@ Just check the name."
     buffer-read-only
     buffer-saved-size
     buffer-undo-list
+    c++-template-syntax-table
+    c-<-op-cont-regexp
+    c-<>-multichar-token-regexp
+    c->-op-cont-regexp
+    c-after-suffixed-type-decl-key
+    c-after-suffixed-type-maybe-decl-key
+    c-anchored-cpp-prefix
+    c-assignment-op-regexp
+    c-at-vsemi-p-fn
+    c-backslash-column
+    c-backslash-max-column
+    c-basic-offset
+    c-before-font-lock-function
+    c-block-comment-prefix
+    c-block-comment-start-regexp
+    c-block-prefix-charset
+    c-block-stmt-1-key
+    c-block-stmt-2-key
+    c-brace-list-key
+    c-cast-parens
+    c-class-key
+    c-cleanup-list
+    c-colon-type-list-re
+    c-comment-only-line-offset
+    c-comment-prefix-regexp
+    c-comment-start-regexp
+    c-current-comment-prefix
+    c-decl-block-key
+    c-decl-hangon-key
+    c-decl-prefix-or-start-re
+    c-decl-prefix-re
+    c-decl-start-re
+    c-doc-comment-start-regexp
+    c-doc-comment-style
+    c-found-types
+    c-get-state-before-change-function
+    c-hanging-braces-alist
+    c-hanging-colons-alist
+    c-hanging-semi&comma-criteria
+    c-identifier-key
+    c-identifier-start
+    c-identifier-syntax-modifications
+    c-identifier-syntax-table
+    c-indent-comment-alist
+    c-indent-comments-syntactically-p
+    c-indentation-style
+    c-keywords-obarray
+    c-keywords-regexp
+    c-known-type-key
+    c-label-kwds-regexp
+    c-label-minimum-indentation
+    c-label-prefix-re
+    c-line-comment-starter
+    c-literal-start-regexp
+    c-multiline-string-start-char
+    c-nonlabel-token-key
+    c-nonsymbol-chars
+    c-nonsymbol-token-regexp
+    c-not-decl-init-keywords
+    c-offsets-alist
+    c-old-BOM
+    c-old-EOM
+    c-opt-<>-arglist-start
+    c-opt-<>-arglist-start-in-paren
+    c-opt-<>-sexp-key
+    c-opt-asm-stmt-key
+    c-opt-bitfield-key
+    c-opt-block-decls-with-vars-key
+    c-opt-block-stmt-key
+    c-opt-cpp-macro-define-id
+    c-opt-cpp-macro-define-start
+    c-opt-cpp-prefix
+    c-opt-cpp-start
+    c-opt-extra-label-key
+    c-opt-friend-key
+    c-opt-identifier-concat-key
+    c-opt-inexpr-brace-list-key
+    c-opt-method-key
+    c-opt-op-identifier-prefix
+    c-opt-postfix-decl-spec-key
+    c-opt-type-component-key
+    c-opt-type-concat-key
+    c-opt-type-modifier-key
+    c-opt-type-suffix-key
+    c-other-decl-block-key
+    c-other-decl-block-key-in-symbols-alist
+    c-overloadable-operators-regexp
+    c-paragraph-separate
+    c-paragraph-start
+    c-paren-stmt-key
+    c-prefix-spec-kwds-re
+    c-primary-expr-regexp
+    c-primitive-type-key
+    c-recognize-<>-arglists
+    c-recognize-colon-labels
+    c-recognize-knr-p
+    c-recognize-paren-inexpr-blocks
+    c-recognize-paren-inits
+    c-recognize-typeless-decls
+    c-regular-keywords-regexp
+    c-simple-stmt-key
+    c-special-brace-lists
+    c-special-indent-hook
+    c-specifier-key
+    c-stmt-delim-chars
+    c-stmt-delim-chars-with-comma
+    c-string-escaped-newlines
+    c-symbol-key
+    c-symbol-start
+    c-syntactic-eol
+    c-syntactic-ws-end
+    c-syntactic-ws-start
+    c-type-decl-end-used
+    c-type-decl-prefix-key
+    c-type-decl-suffix-key
+    c-type-prefix-key
+    c-vsemi-status-unknown-p-fn
+
+    case-fold-search
+    comment-end
+    comment-end-skip
+    comment-indent-function
+    comment-line-break-function
+    comment-multi-line
+    comment-start
+    comment-start-skip
     cursor-type
+
     default-directory
+    defun-prompt-regexp
     delay-mode-hooks
+
     enable-multibyte-characters
-    mark-active
-    ;;mark-ring
-    mode-name
-    point-before-scroll
+    end-of-defun-function
+
     ;; Handled by font lock etc
+    font-lock-beginning-of-syntax-function
     font-lock-defaults
+    font-lock-extend-after-change-region-function
     font-lock-fontified
+    font-lock-fontify-buffer-function
+    font-lock-fontify-region-function
     font-lock-keywords
     font-lock-keywords-only
     font-lock-keywords-case-fold-search
     font-lock-mode
+    font-lock-mode-hook
     font-lock-mode-major-mode
+    font-lock-multiline
     font-lock-set-defaults
+    font-lock-syntactic-keywords
+    font-lock-syntactically-fontified
     font-lock-syntax-table
-    font-lock-beginning-of-syntax-function
     fontification-functions
+
+    isearch-mode
+
+    jit-lock-after-change-extend-region-functions
     jit-lock-context-unfontify-pos
-    jit-lock-mode
-    ;; Mumamo
-    font-lock-fontify-buffer-function
     jit-lock-contextually
     jit-lock-functions
+    jit-lock-mode
+
+    line-move-ignore-invisible
+    local-abbrev-table
+
+    major-mode
+    mark-active
+    ;;mark-ring
+    mode-line-process
+    mode-name
+
+    normal-auto-fill-function
+    nxhtml-minor-mode-major-mode
+
+    open-paren-in-column-0-is-defun-start
+    outline-level
+    outline-regexp
+
+    paragraph-ignore-fill-prefix
+    paragraph-separate
+    paragraph-start
+    parse-sexp-ignore-comments
+    parse-sexp-lookup-properties
+    php-mode-pear-hook
+    point-before-scroll
+
     ;; More symbols from visual inspection
     ;;before-change-functions
     ;;delayed-mode-hooks
     ;;imenu-case-fold-search
     ;;imenu-generic-expression
-    isearch-mode
-    line-move-ignore-invisible
-    ;;local-abbrev-table
+    rngalt-completing-read-tag
+    rngalt-completing-read-attribute-name
+    rngalt-completing-read-attribute-value
+    rngalt-complete-first-try
+    rngalt-complete-last-try
+    rngalt-complete-tag-hooks
+
+    syntax-begin-function
     )
   )
 
@@ -4088,21 +4265,24 @@ This should be called before switching to a new chunks major
 mode."
   (let ((locals (buffer-local-variables)))
     (setq locals (mapcar (lambda (local)
-                           (unless (or
-                                    (memq (car local) mumamo-buffer-locals-dont-set)
-                                    (memq (car local) mumamo-survive)
-                                    (get (car local) 'permanent-local)
-                                    )))
+                           (unless
+                               (or (memq (car local) mumamo-buffer-locals-dont-set)
+                                   (memq (car local) mumamo-survive)
+                                   (get (car local) 'permanent-local))
+                             local))
                          locals))
     (setq locals (delq nil locals))
+    (setq locals (sort locals (lambda (sym-a sym-b)
+                                (string< (symbol-name (car sym-a))
+                                         (symbol-name (car sym-b))))))
     (setq mumamo-buffer-locals-per-major
           (assq-delete-all major mumamo-buffer-locals-per-major))
     (setq mumamo-buffer-locals-per-major
           (cons (cons major-mode locals)
                 mumamo-buffer-locals-per-major))))
 
-;; (benchmark 1000 '(mumamo-save-buffer-locals major-mode))
-;; (benchmark 1000 '(mumamo-restore-buffer-locals major-mode))
+;; (benchmark 1000 '(mumamo-save-most-buffer-locals major-mode))
+;; (benchmark 1000 '(mumamo-restore-most-buffer-locals major-mode))
 (defun mumamo-restore-most-buffer-locals (major)
   "Restore some local variables for major mode MAJOR.
 This should be called after switching to a new chunks major
@@ -4237,18 +4417,27 @@ default values."
 
     ;; Save local variables before switching major
     (mumamo-save-most-buffer-locals major-mode)
-    ;; Restore local variables after switching, but do it in the mode
-    ;; hook:
-    (let ((mode-hook (intern-soft (concat (symbol-name major) "-hook")))
+    ;; Restore local variables after switching, but do it in the
+    ;; greatest ancestor's mode hook (see `run-mode-hooks'):
+    (let (ancestor-hook-sym
+          parent-hook-sym
+          (parent major-mode)
           (restore-fun (lambda ()
                          (mumamo-restore-most-buffer-locals major))))
-      (when mode-hook
+      ;; We want the greatest ancestor's mode hook:
+      (setq parent-hook-sym (intern-soft (concat (symbol-name parent) "-hook")))
+      (when parent-hook-sym (setq ancestor-hook-sym parent-hook-sym))
+      (while (get parent 'derived-mode-parent)
+        (setq parent (get parent 'derived-mode-parent))
+        (setq parent-hook-sym (intern-soft (concat (symbol-name parent) "-hook")))
+        (when parent-hook-sym (setq ancestor-hook-sym parent-hook-sym)))
+      (when ancestor-hook-sym
         ;; Put first in local hook to run it first:
-        (add-hook mode-hook restore-fun nil t))
+        (add-hook ancestor-hook-sym restore-fun nil t))
       (funcall major) ;; <-----------------------------------------------
-      (if (not mode-hook)
+      (if (not ancestor-hook-sym)
           (mumamo-restore-most-buffer-locals major)
-        (remove-hook mode-hook restore-fun t)))
+        (remove-hook ancestor-hook-sym restore-fun t)))
 
     (setq mode-name (concat (format-mode-line mode-name)
                             (save-match-data
