@@ -534,7 +534,7 @@ Takes into account the relative position of the saved link."
   (save-excursion
     (save-restriction
       (widen)
-      (rng-validate-mode 0)
+      (rng-validate-mode -1)
       (let ((inhibit-read-only t)
             (buffer-undo-list t)
             (modified (buffer-modified-p)))
@@ -1708,7 +1708,7 @@ This is not supposed to be entirely correct."
                      (match-string 1)))))
     ;;(insert "type=\"" choice "\" ")
     (rngalt-validate)
-    (message "choice=%s" choice)(sit-for 2)
+    ;;(message "choice=%s" choice)(sit-for 2)
     ;; name=
     (when (member choice '("button" "checkbox" "file" "hidden" "image"
                            "password" "radio" "text"))
@@ -2507,7 +2507,7 @@ This mode may be turned on automatically in two ways:
 
 (defun nxhtml-vhm-change-major ()
   "Turn off `nxhtml-validation-header-mode' after change major."
-  (message "nxhtml-vhm-change-major here")
+  ;;(message "nxhtml-vhm-change-major here")
   (unless mumamo-multi-major-mode
     (setq nxhtml-current-validation-header nil))
   (run-with-idle-timer 0 nil 'nxhtml-validation-header-empty))
@@ -2525,9 +2525,9 @@ the buffer."
   "Turn off validation header mode.
 This is called because there was no validation header."
   (unless nxhtml-current-validation-header
-    (message "nxhtml-validation-header-empty")
+    ;;(message "nxhtml-validation-header-empty")
     (nxhtml-validation-header-mode -1)
-    (message "No validation header was needed")
+    ;;(message "No validation header was needed")
     ))
 
 (defun nxhtml-turn-on-validation-header-mode ()

@@ -100,7 +100,7 @@ See URL `https://answers.launchpad.net/nxhtml/+question/43320'."
     (add-hook 'ert-simulate-command-post-hook
               'nxhtmltest-should-no-mumamo-errors
               nil t)
-    (ert-simulate-command '(nxhtml-mumamo) t)
+    (ert-simulate-command '(nxhtml-mumamo-mode) t)
     (font-lock-mode 1)
     (goto-line 25)  (ert-should (/= 14 (current-indentation)))
     (put 'mumamo-submode-indent-offset-0 'permanent-local t)
@@ -135,7 +135,7 @@ See URL `https://answers.launchpad.net/nxhtml/+question/43320'."
 (ert-deftest nxhtml-ert-only-php-no-end ()
   "Check for nXml error."
   (ert-with-temp-buffer-include-file "no-php-end-4.php"
-    (nxhtml-mumamo)
+    (nxhtml-mumamo-mode)
     (run-hooks 'after-change-major-mode-hook)
     (run-hooks 'post-command-hook)
     (nxhtmltest-fontify-default-way 2 "trans")
@@ -151,12 +151,12 @@ See URL `https://answers.launchpad.net/nxhtml/+question/43320'."
     (nxhtmltest-should-no-nxml-errors)))
 
 (ert-deftest nxhtml-ert-xhtml-1.0-transitional ()
-  "Test XHTML 1.0 Transitional with `nxhtml-mumamo'.
+  "Test XHTML 1.0 Transitional with `nxhtml-mumamo-mode'.
 This test should fail because there is currently no rng schema
 for transitional. The schema for strict is used instead and the
 file is invalid then."
   (ert-with-temp-buffer-include-file "lg-080813-label.html"
-    (nxhtml-mumamo)
+    (nxhtml-mumamo-mode)
     (nxhtmltest-fontify-default-way 2 "trans")
     (rng-validate-mode 1)
     (rngalt-validate)
@@ -174,13 +174,13 @@ file is invalid then."
 (ert-deftest nxhtml-ert-genshi-valid-in-genshi ()
   (ert-with-temp-buffer-include-file "genshi-auto-mode.html"
     (message "\n")
-    (genshi-nxhtml-mumamo)
+    (genshi-nxhtml-mumamo-mode)
     (font-lock-mode 1)
     (mumamo-post-command)
     (ert-should (eq font-lock-mode t))
     (ert-should (eq major-mode 'nxhtml-genshi-mode))
     (ert-should
-     (eq mumamo-multi-major-mode 'genshi-nxhtml-mumamo))
+     (eq mumamo-multi-major-mode 'genshi-nxhtml-mumamo-mode))
     (nxhtmltest-fontify-default-way 2 "sheit")
     (rng-validate-mode 1)
     (rngalt-validate)
@@ -192,7 +192,7 @@ file is invalid then."
 (ert-deftest nxhtml-ert-genshi-invalid-in-nxhtml ()
   (ert-with-temp-buffer-include-file "genshi-auto-mode.html"
     (message "\n")
-    (nxhtml-mumamo)
+    (nxhtml-mumamo-mode)
     (nxhtmltest-fontify-default-way 2 "sheit")
     (font-lock-mode 1)
     (rng-validate-mode 1)
@@ -215,7 +215,7 @@ file is invalid then."
     (nxhtmltest-should-no-mumamo-errors)
     (ert-should
      (with-current-buffer buf1
-       (eq mumamo-multi-major-mode 'genshi-nxhtml-mumamo)))
+       (eq mumamo-multi-major-mode 'genshi-nxhtml-mumamo-mode)))
     (kill-buffer buf1)))
 
 (ert-deftest nxhtml-ert-genshi-auto-mode ()
@@ -231,7 +231,7 @@ file is invalid then."
     (nxhtmltest-should-no-mumamo-errors)
     (ert-should
      (with-current-buffer buf1
-       (eq mumamo-multi-major-mode 'genshi-nxhtml-mumamo)))
+       (eq mumamo-multi-major-mode 'genshi-nxhtml-mumamo-mode)))
     (kill-buffer buf1)))
 
 (ert-deftest nxhtml-ert-opened-modified ()
@@ -263,7 +263,7 @@ file is invalid then."
   "From a report on EmacsWiki."
   (ert-with-temp-buffer-include-file "wiki-strange-hili-080629.html"
     ;;(ert-should (not font-lock-mode))
-    (nxhtml-mumamo)
+    (nxhtml-mumamo-mode)
     ;;(ert-should (not font-lock-mode))
     (nxhtmltest-fontify-default-way 2 "hili")
     (goto-char 44)
@@ -280,7 +280,7 @@ file is invalid then."
         ;; informational messages?
         (error "ruby-mode not available, skipping test")
       ;;(ert-should (not font-lock-mode))
-      (eruby-nxhtml-mumamo)
+      (eruby-nxhtml-mumamo-mode)
       ;;(ert-should (not font-lock-mode))
       (nxhtmltest-fontify-default-way 2 "ind")
       (mark-whole-buffer)
@@ -295,7 +295,7 @@ file is invalid then."
     (if (not (featurep 'ruby-mode))
         (error "ruby-mode not available, skipping test")
       ;;(ert-should (not font-lock-mode))
-      (eruby-nxhtml-mumamo)
+      (eruby-nxhtml-mumamo-mode)
       ;;(ert-should (not font-lock-mode))
       (nxhtmltest-fontify-default-way 2 "ind")
       (insert "  ")
@@ -309,7 +309,7 @@ file is invalid then."
 (ert-deftest nxhtml-ert-sheit-2007-12-26 ()
   (ert-with-temp-buffer-include-file "sheit-2007-12-26.php"
     ;;(ert-should (not font-lock-mode))
-    (nxhtml-mumamo)
+    (nxhtml-mumamo-mode)
     ;;(ert-should (not font-lock-mode))
     (nxhtmltest-fontify-default-way 2 "sheit")
     (nxhtmltest-should-no-mumamo-errors)
@@ -327,7 +327,7 @@ file is invalid then."
 
 (defun nxhtml-ert-nxhtml-changes-jump-back-2 (pos)
   ;;(ert-should (not font-lock-mode))
-  (nxhtml-mumamo)
+  (nxhtml-mumamo-mode)
   (run-hooks 'post-command-hook)
   ;;(ert-should (not font-lock-mode))
   (goto-char (- (point-max) (- 64036 63869)))
@@ -361,7 +361,7 @@ file is invalid then."
 ;; (ert-deftest nxhtml-ert-nxhtml-changes-jump-2 ()
 ;;   (ert-with-temp-buffer-include-file "../../nxhtml/doc/nxhtml-changes.html"
 ;;     ;;(ert-should (not font-lock-mode))
-;;     (nxhtml-mumamo)
+;;     (nxhtml-mumamo-mode)
 ;;     ;;(ert-should (not font-lock-mode))
 ;;     (goto-char 10420)
 ;;     (nxhtmltest-fontify-default-way 2 "jump-2")
@@ -376,7 +376,7 @@ file is invalid then."
   "Test indentation in php only file.
 The indentation on line 7 should be 0."
   (ert-with-temp-buffer-include-file "only-php.php"
-    (nxhtml-mumamo)
+    (nxhtml-mumamo-mode)
     ;; No fontification needed for indentation.
     (goto-line 7)
     (indent-for-tab-command)
@@ -391,7 +391,7 @@ The indentation on line 7 should be 0."
 ;;   "Test if `scroll-conservatively' eq 1 works."
 ;;   (ert-with-temp-buffer-include-file "../../nxhtml/doc/nxhtml-changes.html"
 ;;     (ert-should (not font-lock-mode))
-;;     (nxhtml-mumamo)
+;;     (nxhtml-mumamo-mode)
 ;;     (ert-should (not font-lock-mode))
 ;;     (nxhtmltest-fontify-default-way 2 "jump-2")
 ;;     (let ((scroll-conservatively 1)

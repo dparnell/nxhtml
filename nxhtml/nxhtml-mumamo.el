@@ -73,7 +73,7 @@
 ;; allow things like myattr="<?php echo ?>".
 
 ;;;###autoload
-(define-mumamo-multi-major-mode nxhtml-mumamo
+(define-mumamo-multi-major-mode nxhtml-mumamo-mode
   "Turn on multiple major modes for (X)HTML with main mode `nxhtml-mode'.
 This covers inlined style and javascript and PHP."
   ("nXhtml Family" nxhtml-mode
@@ -84,10 +84,10 @@ This covers inlined style and javascript and PHP."
     mumamo-chunk-style=
     mumamo-chunk-onjs=
     )))
-;;(define-fictive-validation-header-toggle nxhtml-mumamo t)
+;;(define-fictive-validation-header-toggle nxhtml-mumamo-mode t)
 
 ;;;###autoload
-(define-mumamo-multi-major-mode embperl-nxhtml-mumamo
+(define-mumamo-multi-major-mode embperl-nxhtml-mumamo-mode
   "Turn on multiple major modes for Embperl files with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
   ("Embperl nXhtml Family" nxhtml-mode
@@ -102,7 +102,7 @@ This also covers inlined style and javascript."
     )))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode django-nxhtml-mumamo
+(define-mumamo-multi-major-mode django-nxhtml-mumamo-mode
   "Turn on multiple major modes for Django with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
   ("Django nXhtml Family" nxhtml-mode
@@ -122,7 +122,7 @@ This also covers inlined style and javascript."
 (define-derived-mode nxhtml-genshi-mode nxhtml-mode "gXhtml"
   "Like `nxhtml-mode' but with Genshi rnc.
 You should not use this! This is just a part of
-`genshi-nxhtml-mumamo', use that instead."
+`genshi-nxhtml-mumamo-mode', use that instead."
   (let* ((schema-dir (expand-file-name "../etc/schema/" nxhtml-src-dir))
          (genshi-rnc (expand-file-name "qtmstr-xhtml.rnc" schema-dir)))
     (message "nxhtml-src-dir =%s" nxhtml-src-dir)
@@ -138,11 +138,11 @@ You should not use this! This is just a part of
         (nxml-file-parse-error
          (nxml-display-file-parse-error err)))
       (when rng-validate-mode
-        (rng-validate-mode 0)
+        (rng-validate-mode -1)
         (rng-validate-mode 1)))))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode genshi-nxhtml-mumamo
+(define-mumamo-multi-major-mode genshi-nxhtml-mumamo-mode
   "Turn on multiple major modes for Genshi with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
   ("Genshi HTML Family" nxhtml-genshi-mode
@@ -163,7 +163,7 @@ This also covers inlined style and javascript."
 (define-derived-mode nxhtml-mjt-mode nxhtml-mode "mjtXhtml"
   "Like `nxhtml-mode' but with genshi rnc.
 You should not use this! This is just a part of
-`mjt-nxhtml-mumamo', use that instead."
+`mjt-nxhtml-mumamo-mode', use that instead."
   (let* ((schema-dir (expand-file-name "../etc/schema/" nxhtml-src-dir))
          (genshi-rnc (expand-file-name "mjt.rnc" schema-dir)))
     (message "nxhtml-src-dir =%s" nxhtml-src-dir)
@@ -179,11 +179,11 @@ You should not use this! This is just a part of
         (nxml-file-parse-error
          (nxml-display-file-parse-error err)))
       (when rng-validate-mode
-        (rng-validate-mode 0)
+        (rng-validate-mode -1)
         (rng-validate-mode 1)))))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode mjt-nxhtml-mumamo
+(define-mumamo-multi-major-mode mjt-nxhtml-mumamo-mode
   "Turn on multiple major modes for MJT with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
   ("MJT nXhtml Family" nxhtml-mjt-mode
@@ -201,7 +201,7 @@ This also covers inlined style and javascript."
 ;;;; Smarty
 
 ;;;###autoload
-(define-mumamo-multi-major-mode smarty-nxhtml-mumamo
+(define-mumamo-multi-major-mode smarty-nxhtml-mumamo-mode
   "Turn on multiple major modes for Smarty with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
   ("Smarty nXhtml Family" nxhtml-mode
@@ -215,7 +215,7 @@ This also covers inlined style and javascript."
 ;;;; JSP
 
 ;;;###autoload
-(define-mumamo-multi-major-mode jsp-nxhtml-mumamo
+(define-mumamo-multi-major-mode jsp-nxhtml-mumamo-mode
   "Turn on multiple major modes for JSP with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
   ("JSP nXhtml Family" nxhtml-mode
@@ -227,7 +227,7 @@ This also covers inlined style and javascript."
     )))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode eruby-nxhtml-mumamo
+(define-mumamo-multi-major-mode eruby-nxhtml-mumamo-mode
   "Turn on multiple major modes for eRuby with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
   ("eRuby nXhtml Family" nxhtml-mode
@@ -239,7 +239,7 @@ This also covers inlined style and javascript."
     )))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode asp-nxhtml-mumamo
+(define-mumamo-multi-major-mode asp-nxhtml-mumamo-mode
   "Turn on multiple major modes for ASP with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
   ("ASP nXhtml Family" nxhtml-mode
@@ -251,7 +251,7 @@ This also covers inlined style and javascript."
     )))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode mako-nxhtml-mumamo
+(define-mumamo-multi-major-mode mako-nxhtml-mumamo-mode
   "Turn on multiple major modes for Mako with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
 ;; Fix-me: test case
@@ -289,7 +289,7 @@ This also covers inlined style and javascript."
 ;; the function in mumamo-fetch-major-mode-setup in (funcall major)
 ;; where major mode is php-mode.
 
-;;(eval-after-load 'php-mode '(fmode-replace-default-mode 'php-mode 'nxhtml-mumamo))
+;;(eval-after-load 'php-mode '(fmode-replace-default-mode 'php-mode 'nxhtml-mumamo-mode))
 
 
 

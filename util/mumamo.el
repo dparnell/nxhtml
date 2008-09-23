@@ -692,8 +692,8 @@ major mode above has indentation 0."
 (defcustom mumamo-major-mode-indent-specials
   '(
     (php-mode (use-widen))
-    (nxhtml-mode ((use-widen (html-mumamo nxhtml-mumamo))))
-    (html-mode ((use-widen (html-mumamo nxhtml-mumamo))))
+    (nxhtml-mode ((use-widen (html-mumamo-mode nxhtml-mumamo-mode))))
+    (html-mode ((use-widen (html-mumamo-mode nxhtml-mumamo-mode))))
     )
   "Major mode specials to use during indentation."
   :type '(repeat
@@ -746,7 +746,7 @@ mode.
 The reason for doing it this way is to make it possible to use
 new major modes with existing multi major modes. If for example
 someone writes a new CSS mode that could easily be used instead
-of the current one in `html-mumamo'.
+of the current one in `html-mumamo-mode'.
 
 Lookup in this list is done by `mumamo-major-mode-from-modespec'."
   :type '(alist
@@ -1801,7 +1801,7 @@ most major modes."
 
 (defconst mumamo-irrelevant-buffer-local-vars
   '(
-    ;; This list is fetch with
+    ;; This list was fetched with
     ;; emacs-Q, fundamental-mode
     after-change-functions
     ;;auto-composition-function
@@ -3417,6 +3417,7 @@ request a change of major mode when Emacs is idle that long.
 See the variable above for an explanation why a delay might be
 needed \(and is the default).
 "
+  ;;(message "mumamo-set-major-post-command here")
   (let* ((ovl (mumamo-get-chunk-at (point)))
          (major (mumamo-chunk-major-mode ovl))
          (in-pre-hook (memq 'mumamo-set-major-pre-command pre-command-hook)))
@@ -3426,6 +3427,7 @@ needed \(and is the default).
       (unless (and mumamo-done-first-set-major
                    (eq major-mode major)
                    (not in-pre-hook))
+        ;;(message "mumamo-set-major-post-command here done=%s\nsurvive=%s" mumamo-done-first-set-major mumamo-survive)
         (if mumamo-done-first-set-major
             (if (<= 0 mumamo-set-major-mode-delay)
                 ;; Window point has been moved to a new chunk with a
@@ -3456,7 +3458,7 @@ needed \(and is the default).
 (defun mumamo-post-command ()
   "Run this in `post-command-hook'.
 Change major mode if necessary."
-  ;;(mumamo-msgfntfy "mumamo-post-command")
+  (mumamo-msgfntfy "mumamo-post-command")
   (when mumamo-multi-major-mode
     (mumamo-condition-case err
         (mumamo-post-command-1 t)
@@ -3734,6 +3736,8 @@ function, it is changed to a list of functions."
 ;; Minor modes that are not major mode specific
 ;;
 
+(put 'visual-line-mode 'permanent-local t)
+
 (eval-after-load 'flymake
   (progn
     ;; hook functions:
@@ -3762,34 +3766,34 @@ function, it is changed to a list of functions."
     (put 'flymake-temp-master-file-name 'permanent-local t)
     (put 'flymake-base-dir 'permanent-local t)))
 
-(eval-after-load 'imenu
-  (progn
-    ;; Fix-me: imenu is only useful for main major mode.  The menu
-    ;; disappears in sub chunks because it is tighed to
-    ;; local-map.  Don't know what to do about that.  I do not
-    ;; understand the reason for binding it to local-map, but I
-    ;; suspect the intent is to have different menu items for
-    ;; different modes.  Could not that be achieved by deleting the
-    ;; menu and creating it again when changing major mode? (That must
-    ;; be implemented in imenu.el of course.)
-    ;;
-    ;; hook functions:
-;;;     (put 'imenu-update-menubar 'permanent-local-hook t)
-    ;; hooks:
-    (put 'menu-bar-update-hook 'permanent-local 'permanent-local-hook)
-    ;; vars:
-    (put 'imenu-generic-expression 'permanent-local t)
-    (put 'imenu-create-index-function 'permanent-local t)
-    (put 'imenu-prev-index-position-function 'permanent-local t)
-    (put 'imenu-extract-index-name-function 'permanent-local t)
-    (put 'imenu-name-lookup-function 'permanent-local t)
-    (put 'imenu-default-goto-function 'permanent-local t)
-    (put 'imenu--index-alist 'permanent-local t)
-    (put 'imenu--last-menubar-index-alist 'permanent-local t)
-    (put 'imenu-syntax-alist 'permanent-local t)
-    (put 'imenu-case-fold-search 'permanent-local t)
-    (put 'imenu-menubar-modified-tick 'permanent-local t)
-    ))
+;; (eval-after-load 'imenu
+;;   (progn
+;;     ;; Fix-me: imenu is only useful for main major mode.  The menu
+;;     ;; disappears in sub chunks because it is tighed to
+;;     ;; local-map.  Don't know what to do about that.  I do not
+;;     ;; understand the reason for binding it to local-map, but I
+;;     ;; suspect the intent is to have different menu items for
+;;     ;; different modes.  Could not that be achieved by deleting the
+;;     ;; menu and creating it again when changing major mode? (That must
+;;     ;; be implemented in imenu.el of course.)
+;;     ;;
+;;     ;; hook functions:
+;; ;;;     (put 'imenu-update-menubar 'permanent-local-hook t)
+;;     ;; hooks:
+;;     (put 'menu-bar-update-hook 'permanent-local 'permanent-local-hook)
+;;     ;; vars:
+;;     (put 'imenu-generic-expression 'permanent-local t)
+;;     (put 'imenu-create-index-function 'permanent-local t)
+;;     (put 'imenu-prev-index-position-function 'permanent-local t)
+;;     (put 'imenu-extract-index-name-function 'permanent-local t)
+;;     (put 'imenu-name-lookup-function 'permanent-local t)
+;;     (put 'imenu-default-goto-function 'permanent-local t)
+;;     (put 'imenu--index-alist 'permanent-local t)
+;;     (put 'imenu--last-menubar-index-alist 'permanent-local t)
+;;     (put 'imenu-syntax-alist 'permanent-local t)
+;;     (put 'imenu-case-fold-search 'permanent-local t)
+;;     (put 'imenu-menubar-modified-tick 'permanent-local t)
+;;     ))
 
 (eval-after-load 'longlines
   (progn
@@ -3900,8 +3904,33 @@ function, it is changed to a list of functions."
 ;;;     longlines-showing
 ;;;     longlines-decoded
     buffer-invisibility-spec
+
+    line-move-visual ;;simple.el:4537:    (kill-local-variable 'line-move-visual)
+    word-wrap ;;simple.el:4538:    (kill-local-variable 'word-wrap)
+    truncate-lines ;;simple.el:4539:    (kill-local-variable 'truncate-lines)
+    truncate-partial-width-windows ;;simple.el:4540:    (kill-local-variable 'truncate-partial-width-windows)
+    fringe-indicator-alist ;;simple.el:4541:    (kill-local-variable 'fringe-indicator-alist)
+    visual-line--saved-state ;;simple.el:4544:    (kill-local-variable 'visual-line--saved-state)))
+    vis-mode-saved-buffer-invisibility-spec ;;simple.el:6237:    (kill-local-variable 'vis-mode-saved-buffer-invisibility-spec))
     )
   "Local variables to survive the change of major mode.")
+
+(when nil
+  (make-variable-buffer-local 'mumamo-survive-minor-modes)
+  (put 'mumamo-survive-minor-modes 'permanent-local t)
+  (defvar mumamo-survive-minor-modes nil
+    "Hold local minor mode variables specific major modes.
+  Those values are saved when leaving a chunk with a certain
+  major mode and restored when entering a chunk with the same
+  major mode again.
+
+  The value of this variable is an associative list where the key
+  is a list with
+
+    \(MAJOR-MODE MINOR-MODE)
+
+  and the value is a stored value for the minor mode.")
+  )
 
 (defun mumamo-make-variable-buffer-permanent (var)
   "Make buffer local value of VAR survive when moving point to a new chunk.
@@ -4001,6 +4030,110 @@ Just check the name."
       (add-hook hook rem))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Compare mumamo-irrelevant-buffer-local-vars
+(defvar mumamo-buffer-locals-dont-set
+  '(
+    buffer-auto-save-file-format
+    buffer-auto-save-file-name
+    buffer-backed-up
+    buffer-display-count
+    buffer-display-time
+    buffer-file-format
+    buffer-file-name
+    buffer-file-truename
+    buffer-invisibility-spec
+    buffer-read-only
+    buffer-saved-size
+    buffer-undo-list
+    cursor-type
+    default-directory
+    delay-mode-hooks
+    enable-multibyte-characters
+    mark-active
+    ;;mark-ring
+    mode-name
+    point-before-scroll
+    ;; Handled by font lock etc
+    font-lock-defaults
+    font-lock-fontified
+    font-lock-keywords
+    font-lock-keywords-only
+    font-lock-keywords-case-fold-search
+    font-lock-mode
+    font-lock-mode-major-mode
+    font-lock-set-defaults
+    font-lock-syntax-table
+    font-lock-beginning-of-syntax-function
+    fontification-functions
+    jit-lock-context-unfontify-pos
+    jit-lock-mode
+    ;; Mumamo
+    font-lock-fontify-buffer-function
+    jit-lock-contextually
+    jit-lock-functions
+    ;; More symbols from visual inspection
+    ;;before-change-functions
+    ;;delayed-mode-hooks
+    ;;imenu-case-fold-search
+    ;;imenu-generic-expression
+    isearch-mode
+    line-move-ignore-invisible
+    ;;local-abbrev-table
+    )
+  )
+
+(defun mumamo-save-most-buffer-locals (major)
+  "Save some local variables for major mode MAJOR.
+This should be called before switching to a new chunks major
+mode."
+  (let ((locals (buffer-local-variables)))
+    (setq locals (mapcar (lambda (local)
+                           (unless (or
+                                    (memq (car local) mumamo-buffer-locals-dont-set)
+                                    (memq (car local) mumamo-survive)
+                                    (get (car local) 'permanent-local)
+                                    )))
+                         locals))
+    (setq locals (delq nil locals))
+    (setq mumamo-buffer-locals-per-major
+          (assq-delete-all major mumamo-buffer-locals-per-major))
+    (setq mumamo-buffer-locals-per-major
+          (cons (cons major-mode locals)
+                mumamo-buffer-locals-per-major))))
+
+;; (benchmark 1000 '(mumamo-save-buffer-locals major-mode))
+;; (benchmark 1000 '(mumamo-restore-buffer-locals major-mode))
+(defun mumamo-restore-most-buffer-locals (major)
+  "Restore some local variables for major mode MAJOR.
+This should be called after switching to a new chunks major
+mode."
+  (let ((locals (cdr (assq major mumamo-buffer-locals-per-major)))
+        var
+        perm)
+    (dolist (rec locals)
+      (setq var (car rec))
+      (setq perm (get var 'permanent-local))
+      (unless (or perm
+                  (memq var mumamo-buffer-locals-dont-set))
+        (setq var (cdr rec))))))
+
+;; (defun mumamo-testing-new ()
+;;   (let ((locals (buffer-local-variables))
+;;         var
+;;         perm
+;;         )
+;;     (dolist (rec locals)
+;;       (setq var (car rec))
+;;       (setq perm (get var 'permanent-local))
+;;       (unless (or perm
+;;                   (memq var mumamo-buffer-locals-dont-set))
+;;         (setq var (cdr rec))))
+;;     ))
+;; ;;(benchmark 1000 '(mumamo-testing-new))
+
+(defvar mumamo-buffer-locals-per-major nil)
+(make-variable-buffer-local 'mumamo-buffer-locals-per-major)
+(put 'mumamo-buffer-locals-per-major 'permanent-local t)
 
 (defun mumamo-get-hook-value (hook remove)
   "Return hook HOOK value with entries in REMOVE removed.
@@ -4044,6 +4177,7 @@ default values."
         (last-command last-command)
         ;; Fix-me: remove this
         (old-rng-schema-file (when (boundp 'rng-current-schema-file-name) rng-current-schema-file-name))
+        saved-state
         )
     ;; We are not changing mode from font-lock's point of view, so do
     ;; not tell font-lock (let binding these hooks is probably not a
@@ -4069,9 +4203,16 @@ default values."
           (delq sym mumamo-survive)
           (lwarn 'mumamo-survive :warning
                  "Already 'permanent-local t: %s" sym))))
-    (dolist (sym mumamo-survive)
-      (add-to-list 'mumamo-survive-done-by-me sym)
-      (put sym 'permanent-local t))
+    ;; Fix-me: Implement alternative way since there are problems with
+    ;; 'permanent-local right now. Copy the style used in
+    ;; visual-line-mode.
+;;;     (dolist (sym mumamo-survive)
+;;;       (add-to-list 'mumamo-survive-done-by-me sym)
+;;;       (put sym 'permanent-local t))
+    (dolist (var mumamo-survive)
+      (if (local-variable-p var)
+          (push (cons var (symbol-value var))
+                saved-state)))
 
     ;; For all hooks that probably can have buffer local values, go
     ;; through the buffer local values and look for a permanent-local
@@ -4094,12 +4235,31 @@ default values."
     (setq mumamo-major-mode major)
 
 
-    (funcall major) ;; <-----------------------------------------------
+    ;; Save local variables before switching major
+    (mumamo-save-most-buffer-locals major-mode)
+    ;; Restore local variables after switching, but do it in the mode
+    ;; hook:
+    (let ((mode-hook (intern-soft (concat (symbol-name major) "-hook")))
+          (delay-old delay-mode-hooks)
+          (restore-fun (lambda ()
+                         (mumamo-restore-most-buffer-locals major))))
+      (when mode-hook
+        (setq delay-mode-hooks nil)
+        ;; Put first in local hook to run it first:
+        (add-hook mode-hook restore-fun nil t))
+      (funcall major) ;; <-----------------------------------------------
+      (if (not mode-hook)
+          (mumamo-restore-most-buffer-locals major)
+        (setq delay-mode-hooks delay-old)
+        (remove-hook mode-hook restore-fun t)))
+
     (setq mode-name (concat (format-mode-line mode-name)
                             (save-match-data
                               (replace-regexp-in-string
-                               "-mumamo$" ""
+                               "-mumamo-mode$" ""
                                (format "/%s" mumamo-multi-major-mode)))))
+
+    ;;(mumamo-restore-most-buffer-locals major)
 
     (dolist (hk mumamo-survive-hooks) (put hk 'permanent-local nil))
 
@@ -4110,9 +4270,11 @@ default values."
 ;;       (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook nil t))
 
 
-    (dolist (sym mumamo-survive)
-      (when (boundp sym)
-        (put sym 'permanent-local nil)))
+;;;     (dolist (sym mumamo-survive)
+;;;       (when (boundp sym)
+;;;         (put sym 'permanent-local nil)))
+    (dolist (saved saved-state)
+      (set (make-local-variable (car saved)) (cdr saved)))
     ;;(message "here 2")
     ;;(mumamo-addback-to-hook 'change-major-mode-hook mumamo-change-major-mode-no-nos)
     (mumamo-addback-to-hooks)
@@ -4316,7 +4478,8 @@ mode in the chunk family is nil."
       (setq flyspell-generic-check-word-predicate 'mumamo-flyspell-verify))
     (run-hooks 'mumamo-turn-on-hook)
     (mumamo-get-chunk-save-buffer-state (point))
-    (message "(benchmark 1 '(mumamo-find-chunks))") (benchmark 1 '(mumamo-find-chunks nil nil))
+    ;;(message "(benchmark 1 '(mumamo-find-chunks))") (benchmark 1 '(mumamo-find-chunks nil nil))
+    (mumamo-find-chunks nil nil)
     ))
 
 ;; (defun mumamo-on-font-lock-off ()

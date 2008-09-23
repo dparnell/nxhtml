@@ -526,7 +526,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 ;;;; HTML w html-mode
 
 ;;;###autoload
-(define-mumamo-multi-major-mode html-mumamo
+(define-mumamo-multi-major-mode html-mumamo-mode
   "Turn on multiple major modes for (X)HTML with main mode `html-mode'.
 This covers inlined style and javascript and PHP."
   ("HTML Family" html-mode
@@ -536,7 +536,7 @@ This covers inlined style and javascript and PHP."
     mumamo-chunk-style=
     mumamo-chunk-onjs=
     )))
-;; (define-mumamo-multi-major-mode xml-pi-only-mumamo
+;; (define-mumamo-multi-major-mode xml-pi-only-mumamo-mode
 ;;   "Test"
 ;;   ("HTML Family" html-mode
 ;;    (mumamo-chunk-xml-pi
@@ -547,7 +547,7 @@ This covers inlined style and javascript and PHP."
 ;;;; XHTML w nxml-mode
 
 ;;;###autoload
-(define-mumamo-multi-major-mode nxml-mumamo
+(define-mumamo-multi-major-mode nxml-mumamo-mode
   "Turn on multiple major modes for (X)HTML with main mode `nxml-mode'.
 This covers inlined style and javascript and PHP."
     ("nXml Family" nxml-mode
@@ -631,7 +631,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
                                 search-fw-exc-end)))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode embperl-html-mumamo
+(define-mumamo-multi-major-mode embperl-html-mumamo-mode
   "Turn on multiple major modes for Embperl files with main mode `html-mode'.
 This also covers inlined style and javascript."
     ("Embperl HTML Family" html-mode
@@ -783,7 +783,7 @@ POS is where to start search and MAX is where to stop."
   (mumamo-chunk-end-fw-str-inc pos max "{% endcomment %}"))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode django-html-mumamo
+(define-mumamo-multi-major-mode django-html-mumamo-mode
   "Turn on multiple major modes for Django with main mode `html-mode'.
 This also covers inlined style and javascript."
   ("Django HTML Family" html-mode
@@ -836,7 +836,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 ;; solved by running a separate phase to get the chunks first and
 ;; during that phase match start and end of the chunk.
 ;;;###autoload
-(define-mumamo-multi-major-mode genshi-html-mumamo
+(define-mumamo-multi-major-mode genshi-html-mumamo-mode
   "Turn on multiple major modes for Genshi with main mode `html-mode'.
 This also covers inlined style and javascript.
 
@@ -869,7 +869,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (mumamo-quick-static-chunk pos min max "${" "}" t 'javascript-mode t))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode mjt-html-mumamo
+(define-mumamo-multi-major-mode mjt-html-mumamo-mode
   "Turn on multiple major modes for MJT with main mode `html-mode'.
 This also covers inlined style and javascript."
   ("MJT HTML Family" html-mode
@@ -920,7 +920,7 @@ POS is where to start search and MAX is where to stop."
   (mumamo-chunk-end-fw-str-inc pos max "}"))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode smarty-html-mumamo
+(define-mumamo-multi-major-mode smarty-html-mumamo-mode
   "Turn on multiple major modes for Smarty with main mode `html-mode'.
 This also covers inlined style and javascript."
   ("Smarty HTML Family" html-mode
@@ -940,7 +940,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (mumamo-quick-static-chunk pos min max "<%" "%>" t 'java-mode t))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode jsp-html-mumamo
+(define-mumamo-multi-major-mode jsp-html-mumamo-mode
   "Turn on multiple major modes for JSP with main mode `html-mode'.
 This also covers inlined style and javascript."
     ("JSP HTML Family" html-mode
@@ -973,7 +973,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 ;;       (cons exc-start 'ruby-mode))))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode eruby-mumamo
+(define-mumamo-multi-major-mode eruby-mumamo-mode
   "Turn on multiple major mode for eRuby with unspecified main mode.
 Current major-mode will be used as the main major mode."
   ("eRuby Family" nil
@@ -981,7 +981,7 @@ Current major-mode will be used as the main major mode."
     )))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode eruby-html-mumamo
+(define-mumamo-multi-major-mode eruby-html-mumamo-mode
   "Turn on multiple major modes for eRuby with main mode `html-mode'.
 This also covers inlined style and javascript."
   ("eRuby Html Family" html-mode
@@ -1108,14 +1108,14 @@ and MAX.
     r))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode perl-mumamo
+(define-mumamo-multi-major-mode perl-mumamo-mode
   "Turn on multiple major modes for Perl Here Document."
   ("Perl Here Doc" perl-mode
    (mumamo-chunk-perl-here-html
     )))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode cperl-mumamo
+(define-mumamo-multi-major-mode cperl-mumamo-mode
   "Turn on multiple major modes for Perl Here Document."
   ("Perl Here Doc" cperl-mode
    (mumamo-chunk-perl-here-html
@@ -1254,7 +1254,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
                               'mumamo-search-fw-btex-end))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode metapost-mumamo
+(define-mumamo-multi-major-mode metapost-mumamo-mode
   "Turn on multiple major modes for MetaPost."
   ("MetaPost TeX Family" metapost-mode
    (mumamo-chunk-textext
@@ -1403,7 +1403,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 
 
 ;;;###autoload
-(define-mumamo-multi-major-mode laszlo-nxml-mumamo
+(define-mumamo-multi-major-mode laszlo-nxml-mumamo-mode
   "Turn on multiple major modes for OpenLaszlo."
   ("OpenLaszlo Family" nxml-mode
    (mumamo-chunk-inlined-script
@@ -1480,7 +1480,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
                               'mumamo-search-fw-exc-end-csound-sco))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode csound-sgml-mumamo
+(define-mumamo-multi-major-mode csound-sgml-mumamo-mode
   "Turn on mutiple major modes for CSound orc/sco Modes."
   ("CSound orc/sco Modes" sgml-mode
    (mumamo-chunk-csound-sco
@@ -1563,7 +1563,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 
 
 ;;;###autoload
-(define-mumamo-multi-major-mode noweb2-mumamo
+(define-mumamo-multi-major-mode noweb2-mumamo-mode
   "Multi major mode for noweb files."
   ("noweb Family" latex-mode
    (mumamo-noweb2-code-chunk)))
@@ -1586,7 +1586,7 @@ This is for Template Toolkit.
 See URL `http://dave.org.uk/emacs/' for `tt-mode'."
   (mumamo-quick-static-chunk pos min max "[%" "%]" t 'tt-mode nil))
 
-(define-mumamo-multi-major-mode tt-html-mumamo
+(define-mumamo-multi-major-mode tt-html-mumamo-mode
   "Turn on multiple major modes for TT files with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
     ("TT HTML Family" html-mode
@@ -1697,7 +1697,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
                               'mumamo-search-fw-exc-end-inlined-script))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode asp-html-mumamo
+(define-mumamo-multi-major-mode asp-html-mumamo-mode
   "Turn on multiple major modes for ASP with main mode `html-mode'.
 This also covers inlined style and javascript."
   ("ASP Html Family" html-mode
@@ -1722,7 +1722,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (mumamo-quick-static-chunk pos min max "#+BEGIN_HTML" "#+END_HTML" t 'html-mode t))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode org-mumamo
+(define-mumamo-multi-major-mode org-mumamo-mode
   "Turn on multiple major modes for `org-mode' files with main mode `org-mode'.
 Unfortunately this only allows `html-mode' (not `nxhtml-mode') in
 sub chunks."
@@ -1931,7 +1931,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (mumamo-quick-static-chunk pos min max "${" "}" t 'python-mode t))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode mako-html-mumamo
+(define-mumamo-multi-major-mode mako-html-mumamo-mode
   "Turn on multiple major modes for Mako with main mode `html-mode'.
 This also covers inlined style and javascript."
 ;; Fix-me: test case

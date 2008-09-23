@@ -169,13 +169,12 @@
           (list 'menu-item "Unfill Paragraph" 'unfill-paragraph))
         (define-key fill-map [nxhtml-fill-paragraph]
           (list 'menu-item "Fill Paragraph" 'fill-paragraph))
-        (define-key fill-map [nxhtml-longlines-separator]
+        (define-key fill-map [nxhtml-wrap-to-fill-separator]
           (list 'menu-item "--" nil))
-        (define-key fill-map [nxhtml-longlines-mode]
-          (list 'menu-item "Long Lines Mode"
-                'longlines-mode
-                :button '(:toggle . (and (boundp 'longlines-mode)
-                                         longlines-mode))))
+        (define-key fill-map [nxhtml-wrap-to-fill-column-mode]
+          (list 'menu-item "Wrap To Fill Column Mode"
+                'wrap-to-fill-column-mode
+                :button '(:toggle . wrap-to-fill-column-mode)))
         )
       (define-key tools-map [nxhtml-ecb-separator]
         (list 'menu-item "--" nil))

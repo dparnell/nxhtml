@@ -77,8 +77,8 @@ See URL `https://addons.mozilla.org/en-US/firefox/addon/4125'.
 In this case Emacs is used to edit textarea fields on a web page.
 The text will most often be part of a web page later, like on a
 blog.  Therefore turn on `nxhtml-mode',
-`nxhtml-validation-header-mode' and `longlines-mode'. You may
-want to set `longlines-show-hard-newlines' to t.
+`nxhtml-validation-header-mode' and
+`wrap-to-fill-column-mode'.
 
 Also turn off `mumamo-mode' in the buffer and bypasses the
 question for line end conversion when using emacsw32-eol."
@@ -86,9 +86,16 @@ question for line end conversion when using emacsw32-eol."
       (as-external-fall-back "Can't find nXhtml")
 ;;;     (nxhtml-mode)
 ;;;     (mumamo-mode 0)
-    (nxhtml-mumamo)
+    ;;(message "as-ext setting nxhtml-mumamo-mode %s" (current-buffer))
+    (nxhtml-mumamo-mode)
+    ;;(message "as-ext after nxhtml-mumamo-mode")
     (nxhtml-validation-header-mode 1)
-    (longlines-mode 1)
+    ;;(message "as-ext after val head")
+    (mumamo-post-command)
+    (set (make-local-variable 'wrap-to-fill-left-marg-modes)
+         '(nxhtml-mode fundamental-mode))
+    (wrap-to-fill-column-mode 1)
+    ;;(message "as-ext after wrap fill")
     ;;(longlines-show-hard-newlines)
     ;;(make-local-variable 'longlines-show-hard-newlines)
     ;;(put 'longlines-show-hard-newlines 'permanent-local t)
@@ -210,6 +217,7 @@ This is done by checking `as-external-alist'."
           (when (symbolp file-regexp)
             (setq file-regexp (symbol-value file-regexp)))
           (when (string-match file-regexp (buffer-file-name))
+            ;;(message "funcall %s" setup-fun)
             (funcall setup-fun)
             (throw 'done t)))))))
 

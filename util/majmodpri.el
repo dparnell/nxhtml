@@ -137,32 +137,32 @@ See `majmodpri-sort-lists' for more information."
 
 (defcustom majmodpri-mode-priorities
   '(
-    cperl-mumamo
-    csound-sgml-mumamo
-    django-nxhtml-mumamo
-    django-html-mumamo
-    embperl-nxhtml-mumamo
-    embperl-html-mumamo
-    eruby-nxhtml-mumamo
-    eruby-html-mumamo
-    genshi-nxhtml-mumamo
-    genshi-html-mumamo
-    jsp-nxhtml-mumamo
-    jsp-html-mumamo
-    laszlo-nxml-mumamo
-    metapost-mumamo
-    mjt-nxhtml-mumamo
-    mjt-html-mumamo
-    noweb2-mumamo
-    ;;org-mumamo
-    perl-mumamo
-    smarty-nxhtml-mumamo
-    smarty-html-mumamo
-    ;;tt-html-mumamo
+    cperl-mumamo-mode
+    csound-sgml-mumamo-mode
+    django-nxhtml-mumamo-mode
+    django-html-mumamo-mode
+    embperl-nxhtml-mumamo-mode
+    embperl-html-mumamo-mode
+    eruby-nxhtml-mumamo-mode
+    eruby-html-mumamo-mode
+    genshi-nxhtml-mumamo-mode
+    genshi-html-mumamo-mode
+    jsp-nxhtml-mumamo-mode
+    jsp-html-mumamo-mode
+    laszlo-nxml-mumamo-mode
+    metapost-mumamo-mode
+    mjt-nxhtml-mumamo-mode
+    mjt-html-mumamo-mode
+    noweb2-mumamo-mode
+    ;;org-mumamo-mode
+    perl-mumamo-mode
+    smarty-nxhtml-mumamo-mode
+    smarty-html-mumamo-mode
+    ;;tt-html-mumamo-mode
 
-    nxhtml-mumamo
-    html-mumamo
-    nxml-mumamo
+    nxhtml-mumamo-mode
+    html-mumamo-mode
+    nxml-mumamo-mode
     nxml-mode
 
     rhtml-mode

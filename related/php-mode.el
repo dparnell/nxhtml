@@ -373,7 +373,8 @@ This is was done due to the problem reported here:
                      "<"
                      (in "a-z\\?"))
                     (seq
-                     (0+ anything)
+                     ;;(0+ anything)
+                     (0+ not-newline)
                      (in "a-z\\?")
                      ">"
                      (0+ space)
