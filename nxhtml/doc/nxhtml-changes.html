@@ -2151,14 +2151,14 @@
                 Fix some bugs in Tidy XHTML support.
               </li>
               <li>
+                Some small improvements to Tidy GUI.
+              </li>
+              <li>
                 Let tabkey2-mode first look for [tab] and then [?\t].
               </li>
               <li>
                 Added an <a href="http://ourcomments.org/Emacs/nXhtml/tut/tutorials.html"
                 >nXhtml tutorial page</a>.
-              </li>
-              <li>
-                Some small improvements to Tidy GUI.
               </li>
               <li>
                 Added a test case for bug
@@ -2170,6 +2170,35 @@
               </li>
               <li>
                 Bug fixes to ffip.el
+              </li>
+              <li>
+                Added <i>wrap-to-fill-column-mode</i> and replaced longlines-mode in
+                the Tools menu with this.
+              </li>
+              <li>
+                After question
+                <a href="https://answers.launchpad.net/nxhtml/+question/45721"
+                   >https://answers.launchpad.net/nxhtml/+question/45721</a>
+                there was a short discussion on Emacs Devel where I
+                was convinced to change the name convention for multi
+                major modes. They are now supposed to end
+                in <i>-mumamo-mode</i> (instead of the
+                old <i>-mumamo</i>).
+              </li>
+              <li>
+                Added fix for Emacs bug 1013:
+                <a href="http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=1013"
+                   >http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=1013</a>
+              </li>
+              <li>
+                Fixed some minor bugs in as-external.el.
+              </li>
+              <li>
+                New handling of minor modes (buffer local variables).
+                I hope this should fix the problem reported in
+                <a href="https://bugs.launchpad.net/bugs/272526">bug
+                272526: Imenu on menubar doesn't work after switching
+                modes</a>.
               </li>
             </ul>
           </dd>

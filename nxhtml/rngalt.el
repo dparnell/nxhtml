@@ -647,7 +647,7 @@ except when `rngalt-validation-header' is non-nil."
 ;;                          (t (rng-set-initial-state))))))))))
 
 (defun rngalt-set-validation-header (start-of-doc)
-  (rng-validate-mode 0)
+  (rng-validate-mode -1)
   ;;(lwarn 'rngalt-svh :warning "here 1")
   (if start-of-doc
       (progn
@@ -708,7 +708,7 @@ except when `rngalt-validation-header' is non-nil."
   ;; FIX-ME: better buffer name?
   (let ((statebuf (rngalt-get-validation-header-buffer)))
     (with-current-buffer statebuf
-      (when rng-validate-mode (rng-validate-mode 0))
+      (when rng-validate-mode (rng-validate-mode -1))
       (erase-buffer)
       (insert start-of-doc)
       (nxml-mode)
