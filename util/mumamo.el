@@ -4040,7 +4040,7 @@ Just check the name."
     auto-composition-function
     auto-composition-mode
     auto-composition-mode-major-mode
-
+    auto-fill-chars
 
     beginning-of-defun-function
     buffer-auto-save-file-format
@@ -4191,10 +4191,11 @@ Just check the name."
     enable-multibyte-characters
     end-of-defun-function
 
-    ;; Handled by font lock etc
+    fill-paragraph-function
     font-lock-beginning-of-syntax-function
     font-lock-defaults
     font-lock-extend-after-change-region-function
+    font-lock-extend-region-functions
     font-lock-fontified
     font-lock-fontify-buffer-function
     font-lock-fontify-region-function
@@ -4209,8 +4210,17 @@ Just check the name."
     font-lock-syntactic-keywords
     font-lock-syntactically-fontified
     font-lock-syntax-table
+    font-lock-unfontify-buffer-function
+    font-lock-unfontify-region-function
     fontification-functions
+    forward-sexp-function
 
+    indent-line-function
+    indent-region-function
+    imenu--index-alist
+    imenu--last-menubar-index-alist
+    imenu-create-index-function
+    imenu-menubar-modified-tick
     isearch-mode
 
     jit-lock-after-change-extend-region-functions
@@ -4263,6 +4273,7 @@ Just check the name."
   "Save some local variables for major mode MAJOR.
 This should be called before switching to a new chunks major
 mode."
+  (message "mumamo-save-most-buffer-locals %s %s" major (current-buffer))
   (let ((locals (buffer-local-variables)))
     (setq locals (mapcar (lambda (local)
                            (unless
@@ -4283,10 +4294,18 @@ mode."
 
 ;; (benchmark 1000 '(mumamo-save-most-buffer-locals major-mode))
 ;; (benchmark 1000 '(mumamo-restore-most-buffer-locals major-mode))
+(defvar mumamo-restore-most-buffer-locals-in-hook-major nil)
+(defun mumamo-restore-most-buffer-locals-in-hook ()
+  (mumamo-restore-most-buffer-locals
+   mumamo-restore-most-buffer-locals-in-hook-major)
+  (setq mumamo-restore-most-buffer-locals-in-hook-major nil))
+(put 'mumamo-restore-most-buffer-locals-in-hook 'permanent-local-hook t)
+
 (defun mumamo-restore-most-buffer-locals (major)
   "Restore some local variables for major mode MAJOR.
 This should be called after switching to a new chunks major
 mode."
+  (message "mumamo-restore-most-buffer-locals %s %s" major (current-buffer))
   (let ((locals (cdr (assq major mumamo-buffer-locals-per-major)))
         var
         perm)
@@ -4295,7 +4314,7 @@ mode."
       (setq perm (get var 'permanent-local))
       (unless (or perm
                   (memq var mumamo-buffer-locals-dont-set))
-        (setq var (cdr rec))))))
+        (set (make-local-variable var) (cdr rec))))))
 
 ;; (defun mumamo-testing-new ()
 ;;   (let ((locals (buffer-local-variables))
@@ -4421,9 +4440,9 @@ default values."
     ;; greatest ancestor's mode hook (see `run-mode-hooks'):
     (let (ancestor-hook-sym
           parent-hook-sym
-          (parent major-mode)
-          (restore-fun (lambda ()
-                         (mumamo-restore-most-buffer-locals major))))
+          (parent major)
+          ;;(restore-fun (lambda () (mumamo-restore-most-buffer-locals major)))
+          )
       ;; We want the greatest ancestor's mode hook:
       (setq parent-hook-sym (intern-soft (concat (symbol-name parent) "-hook")))
       (when parent-hook-sym (setq ancestor-hook-sym parent-hook-sym))
@@ -4433,11 +4452,18 @@ default values."
         (when parent-hook-sym (setq ancestor-hook-sym parent-hook-sym)))
       (when ancestor-hook-sym
         ;; Put first in local hook to run it first:
-        (add-hook ancestor-hook-sym restore-fun nil t))
+        (setq mumamo-restore-most-buffer-locals-in-hook-major major)
+        (add-hook ancestor-hook-sym
+                  ;;restore-fun
+                  'mumamo-restore-most-buffer-locals-in-hook
+                  nil t))
       (funcall major) ;; <-----------------------------------------------
       (if (not ancestor-hook-sym)
           (mumamo-restore-most-buffer-locals major)
-        (remove-hook ancestor-hook-sym restore-fun t)))
+        (remove-hook ancestor-hook-sym
+                     ;;restore-fun
+                     'mumamo-restore-most-buffer-locals-in-hook
+                     t)))
 
     (setq mode-name (concat (format-mode-line mode-name)
                             (save-match-data

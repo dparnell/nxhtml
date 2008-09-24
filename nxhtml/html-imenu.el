@@ -55,16 +55,17 @@ The third `match-string' will be the used in the menu.")
 	toc-str)
     (save-excursion
       (goto-char (point-min))
-      (while (re-search-forward html-imenu-regexp nil t)
-	(setq toc-str
-	      (concat
-	       (make-string
-		(* 6 (- (string-to-number (match-string 1)) 1))
-		space)
-	       (match-string 3)))
-	(beginning-of-line)
-	(setq toc-index (cons (cons toc-str (point)) toc-index))
-	(end-of-line) ))
+      (save-match-data
+        (while (re-search-forward html-imenu-regexp nil t)
+          (setq toc-str
+                (concat
+                 (make-string
+                  (* 6 (- (string-to-number (match-string 1)) 1))
+                  space)
+                 (match-string 3)))
+          (beginning-of-line)
+          (setq toc-index (cons (cons toc-str (point)) toc-index))
+          (end-of-line))))
     (nreverse toc-index)))
 
 (defun html-imenu-setup ()
@@ -73,9 +74,11 @@ The third `match-string' will be the used in the menu.")
   ;; Fix-me: It looks like this function has to be called every time
   ;; switching to some html mode in mumamo. Values are "survived" by
   ;; mumamo, but the menu item disappears.
-  (setq imenu-create-index-function 'html-imenu-index)
-  (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
-  (imenu-add-to-menubar html-imenu-title))
+  (message "html-imenu-setup imenu-create-index-function =%s" imenu-create-index-function)
+  (unless nil ;(eq imenu-create-index-function 'html-imenu-index)
+    (setq imenu-create-index-function 'html-imenu-index)
+    (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
+    (imenu-add-to-menubar html-imenu-title)))
 
 (provide 'html-imenu)
 
