@@ -37,7 +37,7 @@
 
 ;;; Code:
 
-(defvar html-imenu-title "TOC"
+(defvar html-imenu-title "Index"
   "*Title of the menu which will be added to the menubar.")
 
 (defvar html-imenu-regexp

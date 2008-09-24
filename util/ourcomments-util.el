@@ -922,6 +922,20 @@ list."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Misc.
 
+(defun find-emacs-source ()
+  "Find checked out Emacs source corresponding to buffer file.
+Display it in other window."
+  (interactive)
+  (let* ((install-directory
+         (file-name-as-directory (expand-file-name ".." exec-directory)))
+         (relative-install
+          (file-relative-name (buffer-file-name) install-directory))
+         source-file)
+    (when (string= ".." (substring relative-install 0 2))
+      (error "This file is not in Emacs"))
+    (setq source-file (expand-file-name relative-install source-directory))
+    (find-file-other-window source-file)))
+
 (defun ourcomments-ediff-files (def-dir file-a file-b)
   "In directory DEF-DIR run `ediff-files' on files FILE-A and FILE-B.
 The purpose of this function is to make it eaiser to start

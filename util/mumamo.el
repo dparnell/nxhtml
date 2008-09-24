@@ -4348,6 +4348,7 @@ default values."
 (defun mumamo-set-major (major)
   "Set major mode to MAJOR for mumamo."
   (mumamo-msgfntfy "mumamo-set-major %s, %s" major (current-buffer))
+  (message "mumamo-set-major %s, %s" major (current-buffer))
   (let ((start-time (get-internal-run-time))
         end-time
         used-time
