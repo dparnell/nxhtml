@@ -659,7 +659,7 @@ point in the mumamo chunk you want to know the key bindings in.
   (nxhtml-minor-mode 1)
   (when (and nxhtml-use-imenu
              (featurep 'html-imenu))
-    (html-imenu-setup))
+    (add-hook 'nxhtml-mode-hook 'html-imenu-setup nil t))
   (when (featurep 'mlinks)
     (mlinks-mode 1))
   (when (featurep 'fold-dwim)
