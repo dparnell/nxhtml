@@ -162,6 +162,7 @@
                                  (customize-group-other-window 'udev-cedet)))
         (insert " Setup to load CEDET from fetched sources when starting Emacs.")))))
 
+;;;###autoload
 (defun udev-cedet-update ()
   "Fetch and install CEDET from the devel sources.
 To determine where to store the sources see `udev-cedet-dir'.

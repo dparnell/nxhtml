@@ -328,6 +328,13 @@
                                     '("png" "gif" "jpg" "jpeg")))))
       (define-key tools-map [nxhtml-gimp-separator]
         (list 'menu-item "--"))
+      (define-key tools-map [nxhtml-htmlimg-toggle-img]
+        (list 'menu-item "Toggle Display of Image" 'htmlimg-toggle-img-display))
+      (define-key tools-map [nxhtml-htmlimg-mode]
+        (list 'menu-item "Show <img ...> Images" 'htmlimg-mode
+              :button '(:toggle . 'htmlimg-mode)))
+      (define-key tools-map [nxhtml-img-separator]
+        (list 'menu-item "--"))
       (let ((some-help-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-some-help-map]
           (list 'menu-item "Help for Item at Point" some-help-map))
@@ -774,6 +781,7 @@
       (list 'menu-item "nXhtml" nxhtml-minor-mode-menu-map))
     map))
 
+;;;###autoload
 (define-minor-mode nxhtml-minor-mode
   "Minor mode to turn on some key and menu bindings.
 See `nxhtml-mode' for more information."
@@ -821,6 +829,7 @@ See `nxhtml-minor-mode-modes'."
       (when on
         (nxhtml-minor-mode 1)))))
 
+;;;###autoload
 (define-globalized-minor-mode nxhtml-global-minor-mode
   nxhtml-minor-mode
   nxhtml-maybe-turn-on-minor-mode

@@ -167,6 +167,7 @@ See also `as-external-its-all-text-default'."
   :group 'as-external)
 
 
+;;;###autoload
 (defcustom as-external-on nil
   "If non-nil check for if Emacs is used as external editor.
 When Emacs is used as an external editor for example to edit text

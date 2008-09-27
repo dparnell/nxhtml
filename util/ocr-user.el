@@ -55,7 +55,7 @@
 
 (define-minor-mode ocr-user-mode
   "Color up digits three by three."
-  :
+  :group 'convenience)
 
 
 (provide 'ocr-user)

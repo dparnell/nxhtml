@@ -34,9 +34,7 @@
 ;;     (autoload 'nxhtml-mode "nxhtml" "Mode for editing XHTML files - based on nxml-mode." t)
 ;;
 ;;     ;; For file associations you can use:
-;;     (require 'fmode)
-;;     (fmode-replace-default-mode 'html-mode 'nxhtml-mode)
-;;     (fmode-replace-default-mode 'xml-mode 'nxml-mode)
+;;     (majmodpri-apply-priorities t)
 ;;
 ;;
 ;;  Tip: Why not put all these in a .nxml file that you load in your
@@ -548,6 +546,7 @@ Takes into account the relative position of the saved link."
   :group 'nxhtml)
 
 (put 'nxhtml-mode 'flyspell-mode-predicate 'sgml-mode-flyspell-verify)
+;;;###autoload
 (define-derived-mode nxhtml-mode nxml-mode "nXhtml"
   "Major mode for editing XHTML documents.
 It is based on `nxml-mode' and adds some features that are useful

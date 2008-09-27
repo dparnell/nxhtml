@@ -445,6 +445,7 @@ The indentation on line 7 should be 0."
       (other-window 1)
       (ert-list-temp-test-buffers))))
 
+;;;###autoload
 (defun nxhtmltest-run-indent ()
   "Run indentation tests."
   (interactive)
@@ -456,6 +457,7 @@ The indentation on line 7 should be 0."
   (other-window 1)
   (ert-list-temp-test-buffers))
 
+;;;###autoload
 (defun nxhtmltest-run ()
   "Run all tests defined for nXhtml.
 Currently there are only tests using ert.el defined.

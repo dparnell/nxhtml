@@ -62,6 +62,7 @@ This form is suitable for `popup-menu'."
          (pos (list (list x (+ y 20)) (selected-window))))
     pos))
 
+;;;###autoload
 (defun popup-menu-at-point (menu &optional prefix)
   "Popup the given menu at point.
 This is similar to `popup-menu' and MENU and PREFIX has the same
@@ -76,6 +77,7 @@ the window point is."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Toggles in menus
 
+;;;###autoload
 (defmacro define-toggle (symbol value doc &rest args)
   "Declare SYMBOL as a customizable variable with a toggle function.
 The purpose of this macro is to define a defcustom and a toggle
@@ -316,16 +318,19 @@ To create a menu item something similar to this can be used:
 ;; The idea is from
 ;;   http://interglacial.com/~sburke/pub/emacs/sburke_dot_emacs.config
 
+;;;###autoload
 (defun unfill-paragraph ()
   "Unfill the current paragraph."
   (interactive) (with-unfilling 'fill-paragraph))
 ;;(defalias 'unwrap-paragraph 'unfill-paragraph)
 
+;;;###autoload
 (defun unfill-region ()
   "Unfill the current region."
   (interactive) (with-unfilling 'fill-region))
 ;;(defalias 'unwrap-region 'unfill-region)
 
+;;;###autoload
 (defun unfill-individual-paragraphs ()
   "Unfill individual paragraphs in the current region."
   (interactive) (with-unfilling 'fill-individual-paragraphs))
@@ -354,15 +359,19 @@ To create a menu item something similar to this can be used:
 ;; (major-modep 'genshi-nxhtml-mumamo-mode)
 ;; (major-modep 'javascript-mode)
 ;; (major-modep 'css-mode)
+
+;;;###autoload
 (defun major-or-multi-majorp (value)
   (or (multi-major-modep value)
       (major-modep value)))
 
+;;;###autoload
 (defun multi-major-modep (value)
   "Return t if VALUE is a multi major mode function."
   (and (fboundp value)
        (rassq value mumamo-defined-turn-on-functions)))
 
+;;;###autoload
 (defun major-modep (value)
   "Return t if VALUE is a major mode function."
   (let ((sym-name (symbol-name value)))
@@ -402,6 +411,7 @@ To create a menu item something similar to this can be used:
                    ))
       t)))
 
+;;;###autoload
 (define-widget 'major-mode-function 'function
   "A major mode lisp function."
   :complete-function (lambda ()
@@ -424,6 +434,7 @@ To create a menu item something similar to this can be used:
 
 ;; Changed from move-beginning-of-line to beginning-of-line to support
 ;; physical-line-mode.
+;;;###autoload
 (defun ourcomments-move-beginning-of-line(arg)
   "Move point to beginning of line or indentation.
 See `beginning-of-line' for ARG.
@@ -440,6 +451,7 @@ first tried."
         (beginning-of-line)))))
 (put 'ourcomments-move-beginning-of-line 'CUA 'move)
 
+;;;###autoload
 (defun ourcomments-move-end-of-line(arg)
   "Move point to end of line or indentation.
 See `end-of-line' for ARG.
@@ -636,6 +648,7 @@ for the keymap to be active \(minor mode levels only)."
 
 ;; This is a replacement for describe-key-briefly.
 ;;(global-set-key [f1 ?c] 'describe-key-and-map-briefly)
+;;;###autoload
 (defun describe-key-and-map-briefly (&optional key insert untranslated)
   "Try to print names of keymap from which KEY fetch its definition.
 Look in current active keymaps and find keymap variables with the
@@ -780,6 +793,7 @@ what they will do ;-)."
               (set-window-margins win left-marg right-marg)))
         (set-window-buffer win (current-buffer))))))
 
+;;;###autoload
 (defcustom wrap-to-fill-left-marg nil
   "Left margin handling for `wrap-to-fill-column-mode'.
 Used by `wrap-to-fill-column-mode'. If nil then center the
@@ -794,6 +808,7 @@ the left margin."
 (make-variable-buffer-local 'wrap-to-fill-left-marg-use)
 (put 'wrap-to-fill-left-marg-use 'permanent-local t)
 
+;;;###autoload
 (defcustom wrap-to-fill-left-marg-modes
   '(text-mode
     fundamental-mode)
@@ -863,6 +878,7 @@ See the hook for WINDOW and START-POS."
     (wrap-to-fill-set-prefix min max)))
 
 (put 'wrap-to-fill-column-mode 'permanent-local t)
+;;;###autoload
 (define-minor-mode wrap-to-fill-column-mode
   "Use `fill-column' display columns in buffer windows.
 By default the display columns are centered, but see the option
@@ -922,20 +938,55 @@ list."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Misc.
 
-(defun find-emacs-source ()
-  "Find checked out Emacs source corresponding to buffer file.
-Display it in other window."
-  (interactive)
-  (let* ((install-directory
-         (file-name-as-directory (expand-file-name ".." exec-directory)))
-         (relative-install
-          (file-relative-name (buffer-file-name) install-directory))
-         source-file)
-    (when (string= ".." (substring relative-install 0 2))
-      (error "This file is not in Emacs"))
-    (setq source-file (expand-file-name relative-install source-directory))
-    (find-file-other-window source-file)))
+;;;###autoload
+(defun find-emacs-other-file (display-file)
+  "Find corresponding file to source or installed elisp file.
+If you have checked out and compiled Emacs yourself you may have
+Emacs lisp files in two places, the checked out source tree and
+the installed Emacs tree.  If buffer contains an Emacs elisp file
+in one of these places then find the corresponding elisp file in
+the other place. Return the file name of this file.
 
+When DISPLAY-FILE is non-nil display this file in other window
+and go to the same line number as in the current buffer."
+  (interactive (list t))
+  (unless (buffer-file-name)
+    (error "This buffer is not visiting a file"))
+  (unless source-directory
+    (error "Can't find the checked out Emacs sources"))
+  (let* ((installed-directory (file-name-as-directory
+                               (expand-file-name ".." exec-directory)))
+         (relative-installed (file-relative-name
+                              (buffer-file-name) installed-directory))
+         (relative-source (file-relative-name
+                           (buffer-file-name) source-directory))
+         (name-nondir (file-name-nondirectory (buffer-file-name)))
+         source-file
+         installed-file
+         other-file
+         (line-num (line-number-at-pos)))
+    (cond
+     ((and relative-installed
+           (not (string= name-nondir relative-installed))
+           (not (file-name-absolute-p relative-installed))
+           (not (string= ".." (substring relative-installed 0 2))))
+      (setq source-file (expand-file-name relative-installed source-directory)))
+     ((and relative-source
+           (not (string= name-nondir relative-source))
+           (not (file-name-absolute-p relative-source))
+           (not (string= ".." (substring relative-source 0 2))))
+      (setq installed-file (expand-file-name relative-source installed-directory))))
+    (setq other-file (or source-file installed-file))
+    (unless other-file
+      (error "This file is not in Emacs source or installed lisp tree"))
+    (unless (file-exists-p other-file)
+      (error "Can't find the corresponding file %s" other-file))
+    (when display-file
+      (find-file-other-window other-file)
+      (goto-line line-num))
+    other-file))
+
+;;;###autoload
 (defun ourcomments-ediff-files (def-dir file-a file-b)
   "In directory DEF-DIR run `ediff-files' on files FILE-A and FILE-B.
 The purpose of this function is to make it eaiser to start
@@ -1003,6 +1054,7 @@ PREDICATE.  PREDICATE takes one argument, the symbol."
     (when (commandp fun)
       fun)))
 
+;;;###autoload
 (defun describe-command (command)
   "Like `describe-function', but prompts only for interactive commands."
   (interactive
@@ -1109,6 +1161,7 @@ The can include 'variable, 'function and variaus 'cl-*."
                 (not (get symbol 'custom-autoload)))
            (get symbol 'custom-group))))
 
+;;;###autoload
 (defun describe-custom-group (symbol)
   "Describe customization group SYMBOL."
   (interactive
@@ -1120,6 +1173,7 @@ The can include 'variable, 'function and variaus 'cl-*."
 
 ;; Added this to current-load-list in cl-macs.el
 ;; (describe-defstruct 'ert-stats)
+;;;###autoload
 (defun describe-defstruct (symbol)
   (interactive (list (ourcomments-read-symbol "Describe defstruct"
                                               'ourcomments-defstruct-p)))
@@ -1149,6 +1203,7 @@ The can include 'variable, 'function and variaus 'cl-*."
           (insert "  No information about some slots, maybe :conc-name was used\n")))))))
 
 ;;(defun describe-deftype (type)
+;;;###autoload
 (defun describe-symbol(symbol)
   "Show information about SYMBOL.
 Show SYMBOL plist and whether is is a variable or/and a
@@ -1276,18 +1331,21 @@ function."
 
 (defvar ourcomments-ido-visit-method nil)
 
+;;;###autoload
 (defun ourcomments-ido-buffer-other-window ()
   "Show buffer in other window."
   (interactive)
   (setq ourcomments-ido-visit-method 'other-window)
   (call-interactively 'ido-exit-minibuffer))
 
+;;;###autoload
 (defun ourcomments-ido-buffer-other-frame ()
   "Show buffer in other frame."
   (interactive)
   (setq ourcomments-ido-visit-method 'other-frame)
   (call-interactively 'ido-exit-minibuffer))
 
+;;;###autoload
 (defun ourcomments-ido-buffer-raise-frame ()
   "Raise frame showing buffer."
   (interactive)
@@ -1388,6 +1446,7 @@ of those in for example common web browsers."
   (let ((exec-path (list exec-directory)))
     (executable-find "emacs")))
 
+;;;###autoload
 (defun emacs()
   "Start a new Emacs."
   (interactive)
@@ -1395,6 +1454,7 @@ of those in for example common web browsers."
   (call-process (ourcomments-find-emacs) nil 0 nil)
   (message "Started 'emacs' - it will be ready soon ..."))
 
+;;;###autoload
 (defun emacs-buffer-file()
   "Start a new Emacs showing current buffer file.
 If there is no buffer file start with `dired'."
@@ -1409,17 +1469,20 @@ If there is no buffer file start with `dired'."
       (call-process (ourcomments-find-emacs) nil 0 nil "--eval"
                     (format "(dired \"%s\")" default-directory)))))
 
+;;;###autoload
 (defun emacs--debug-init()
   (interactive)
   (call-process (ourcomments-find-emacs) nil 0 nil "--debug-init")
   (message "Started 'emacs --debug-init' - it will be ready soon ..."))
 
+;;;###autoload
 (defun emacs-Q()
   "Start new Emacs without any customization whatsoever."
   (interactive)
   (call-process (ourcomments-find-emacs) nil 0 nil "-Q")
   (message "Started 'emacs -Q' - it will be ready soon ..."))
 
+;;;###autoload
 (defun emacs-Q-nxhtml()
   "Start new Emacs with -Q and load nXhtml."
   (interactive)
@@ -1463,6 +1526,7 @@ If there is no buffer file start with `dired'."
     files))
 
 ;; Mostly copied from dired-do-query-replace-regexp. Fix-me: finish, test
+;;;###autoload
 (defun grep-do-query-replace-regexp (from to &optional delimited)
   "Do `query-replace-regexp' of FROM with TO, on all files in *grep*.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
@@ -1486,6 +1550,7 @@ with the command \\[tags-loop-continue]."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Info
 
+;;;###autoload
 (defun info-open-file (info-file)
   "Open an info file in `Info-mode'."
   (interactive

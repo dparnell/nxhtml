@@ -1570,7 +1570,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; TT
+;;;; Template-Toolkit
 
 
 
@@ -1588,6 +1588,8 @@ See URL `http://dave.org.uk/emacs/' for `tt-mode'."
 
 (define-mumamo-multi-major-mode tt-html-mumamo-mode
   "Turn on multiple major modes for TT files with main mode `nxhtml-mode'.
+TT = Template-Toolkit.
+
 This also covers inlined style and javascript."
     ("TT HTML Family" html-mode
      (mumamo-chunk-tt

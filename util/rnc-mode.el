@@ -221,6 +221,7 @@
   (define-key rnc-mode-map "]" 'rnc-electric-brace)
   (define-key rnc-mode-map "[" 'rnc-electric-brace))
 
+;;;###autoload
 (defun rnc-mode ()
   "Major mode for editing RELAX NG Compact Syntax schemas.
 \\{rnc-mode-map}"

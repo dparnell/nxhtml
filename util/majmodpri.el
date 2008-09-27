@@ -84,6 +84,7 @@
 
 ;;;; Custom
 
+;;;###autoload
 (defgroup majmodpri nil
   "Customization group for majmodpri.el"
   :group 'nxhml
@@ -266,6 +267,7 @@ Comparision:
                        ((/= pri1 pri2) (> pri1 pri2))
                        (t (> ord1 ord2))))))))))
 
+;;;###autoload
 (defun majmodpri-sort-lists ()
   "Sort the list used when selecting major mode.
 Only sort those lists choosen in `majmodpri-lists-to-sort'.
@@ -287,6 +289,7 @@ See also `majmodpri-apply-priorities'."
     (majmodpri-sort-magic-list 'magic-fallback-mode-alist)))
 
 
+;;;###autoload
 (defun majmodpri-apply-priorities (change-modes)
   "Apply major mode priorities.
 First run `majmodpri-sort-lists' and then if CHANGE-MODES is

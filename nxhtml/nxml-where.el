@@ -10,7 +10,7 @@
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   None
+;;   `cl'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -59,6 +59,10 @@
 (make-variable-buffer-local 'nxml-where-once-update-timer)
 (put 'nxml-where-once-update-timer 'permanent-local t)
 
+(defvar nxml-where-second-update-timer nil)
+(make-variable-buffer-local 'nxml-where-second-update-timer)
+(put 'nxml-where-second-update-timer 'permanent-local t)
+
 (defvar nxml-where-ovls nil)
 (make-variable-buffer-local 'nxml-where-ovls)
 (put 'nxml-where-ovls 'permanent-local t)
@@ -68,21 +72,45 @@
     (cancel-timer nxml-where-once-update-timer)
     (setq nxml-where-once-update-timer nil)))
 
+(defun nxml-where-cancel-second ()
+  (when (timerp nxml-where-second-update-timer)
+    (cancel-timer nxml-where-second-update-timer)
+    (setq nxml-where-second-update-timer nil)))
+
+(defun nxml-where-start-second (next-point buffer)
+  (message "start second")
+  (setq nxml-where-second-update-timer
+        (run-with-idle-timer idle-update-delay
+                             nil
+                             'nxml-where-add-overlays
+                             next-point
+                             (current-buffer))))
+
+(defun nxml-where-update-buffers ()
+  (when (boundp 'nxml-where-mode)
+    (dolist (buf (buffer-list))
+      (when nxml-where-mode
+        (nxml-where-update-once)))))
+
 (defun nxml-where-update-once ()
+  ;;(message "\nupd-once. this-command=%s" this-command)
   (condition-case err
       (progn
         (nxml-where-cancel-once)
         (setq nxml-where-once-update-timer
-              (run-with-idle-timer idle-update-delay nil
-                                   'nxml-where-update
-                                   (current-buffer))))
+              (run-with-idle-timer
+               (* 0.2 idle-update-delay)
+               nil
+               'nxml-where-update
+               (current-buffer))))
     (error
      (message "%s" (error-message-string err)))))
 (put 'nxml-where-update-once 'permanent-local-hook t)
 
 (defun nxml-where-stop-updating ()
   (remove-hook 'post-command-hook 'nxml-where-update-once t)
-  (nxml-where-update-once))
+  ;;(nxml-where-update-once)
+  )
 
 (defun nxml-where-restart-updating ()
   (nxml-where-update-once)
@@ -96,20 +124,37 @@
 (define-toggle nxml-where-tag+id t
   "Show tags + id in path if non-nil.
 If nil show only tag names."
+  :set (lambda (sym val)
+         (set-default sym val)
+         (nxml-where-update-buffers))
   :group 'nxml-where)
 
 (define-toggle nxml-where-header t
   "Show header with XML-path if non-nil."
   :set (lambda (sym val)
          (set-default sym val)
-         (nxml-where-update-once))
+         (nxml-where-update-buffers))
   :group 'nxml-where)
 
 (define-toggle nxml-where-marks t
   "Show marks in buffer for XML-path if non-nil."
   :set (lambda (sym val)
          (set-default sym val)
-         (nxml-where-update-once))
+         (nxml-where-update-buffers))
+  :group 'nxml-where)
+
+(define-toggle nxml-where-only-inner nil
+  "Mark only inner-most tag."
+  :set (lambda (sym val)
+         (set-default sym val)
+         (nxml-where-update-buffers))
+  :group 'nxml-where)
+
+(define-toggle nxml-where-only-tags-with-id t
+  "Show only tags with id in the header line."
+  :set (lambda (sym val)
+         (set-default sym val)
+         (nxml-where-update-buffers))
   :group 'nxml-where)
 
 (defface nxml-where-marking
@@ -120,11 +165,17 @@ If nil show only tag names."
 (defcustom nxml-where-marking 'nxml-where-marking
   "Variable pointing to the face used for marking tags in path."
   :type 'face
+  :set (lambda (sym val)
+         (set-default sym val)
+         (nxml-where-update-buffers))
   :group 'nxml-where)
 
 (defcustom nxml-where-header-attributes '("id" "name")
   "List of attributes `nxml-where-header' should display."
   :type '(repeat string)
+  :set (lambda (sym val)
+         (set-default sym val)
+         (nxml-where-update-buffers))
   :group 'nxml-where)
 
 (defcustom nxml-where-widen t
@@ -154,17 +205,23 @@ If nil show only tag names."
              (derived-mode-p 'nxml-mode)))))
 
 (defun nxml-where-mode-start ()
+  (message "START")
   (unless (nxml-where-is-nxml)
     (error "Can't display XML path since major mode is not nxml-mode child."))
   (add-hook 'after-change-major-mode-hook 'nxml-where-turn-off-unless-nxml nil t)
   (nxml-where-save-header-line-format)
+  (setq nxml-where-inner-start nil)
+  (setq nxml-where-path nil)
+  (setq nxml-where-old-path nil)
   (nxml-where-restart-updating))
 
 (defun nxml-where-mode-stop ()
+  (message "STOP")
   (nxml-where-stop-updating)
   (nxml-where-restore-header-line-format)
-  (dolist (o nxml-where-ovls)
-    (delete-overlay o)))
+  (nxml-where-handle-old-path)
+  (setq nxml-where-old-path nil)
+  (setq nxml-where-path nil))
 
 (defun nxml-where-turn-off-unless-nxml ()
   (unless (nxml-where-is-nxml)
@@ -199,16 +256,105 @@ This is possible if `major-mode' in the buffer is derived from
   (nxml-where-global-mode 1))
 
 (defun nxml-where-update (buffer)
+  (message "nxml-where-update %s" buffer)
   (if (and (bufferp buffer)
            (buffer-live-p buffer))
-      (if nxml-where-widen
-          (save-restriction
-            (widen)
-            (nxml-where-update-1 buffer))
-        (nxml-where-update-1 buffer))
-    (cancel-timer timer-event-last)))
+      (save-restriction
+        (when nxml-where-widen (widen))
+        (nxml-where-add-overlays nil buffer))
+    ;; Kill timer if buffer is gone
+    ;;(cancel-timer timer-event-last)
+    ))
 
-(defun nxml-where-update-1 (buffer)
+(defvar nxml-where-get-id-pattern
+  (rx space
+      (eval (cons 'or nxml-where-header-attributes))
+      (0+ space)
+      ?=
+      (0+ space)
+      ?\"
+      (0+ (not (any ?\")))
+      ?\"
+      ))
+
+(defvar nxml-where-tag+id-pattern
+  ;;(insert ;; -------------------
+  (rx ?<
+      (submatch
+       (1+ (char "-a-z0-9:"))
+       )
+      (0+ (1+ space)
+          (1+ (any "a-z"))
+          (0+ space)
+          ?=
+          (0+ space)
+          ?\"
+          (0+ (not (any ?\")))
+          ?\"
+          )
+      (0+ space)
+      (opt ?/)
+      ?>)
+  ;;) ;; -------------------
+  )
+
+(defun nxml-where-mark (start end)
+  (let (ovl
+        (ovls (overlays-at start)))
+    (dolist (o ovls)
+      (when (and (eq (overlay-get o 'face) nxml-where-marking)
+                 (= start (overlay-start o))
+                 (= end   (overlay-end o)))
+        (setq ovl o)))
+    (unless ovl
+      (setq ovl (make-overlay start end))
+      (setq nxml-where-ovls (cons ovl nxml-where-ovls))
+      (overlay-put ovl 'face nxml-where-marking)
+      (move-overlay ovl start end))
+    ovl))
+
+(defvar nxml-where-inner-start nil
+  "Last inner element start tag position. Internal use.")
+(make-variable-buffer-local 'nxml-where-inner-start)
+(put 'nxml-where-inner-start 'permanent-local t)
+
+(defun nxml-where-mark-forward-element (bottom)
+  (save-restriction
+    (let ((here (point))
+          (end-of-narrow
+           (progn
+             (goto-char bottom)
+             (line-end-position 4)))
+          start end ovl)
+      ;; Fix-me: Narrow how much?
+      (setq end-of-narrow (max (+ 4000 (window-end))
+                               end-of-narrow))
+      (setq end-of-narrow (min (point-max)
+                               end-of-narrow))
+      (narrow-to-region here end-of-narrow)
+      (condition-case err
+          (progn
+            (goto-char here)
+            (nxml-forward-element)
+            (when (looking-back "</[a-z0-9]+>")
+              (setq start (match-beginning 0))
+              (setq end (point))
+              (setq ovl (nxml-where-mark start end))))
+        (error
+         (message "nxml-where-mark-forw err=%s" err)))
+      (goto-char here)
+      ovl)))
+
+(defvar nxml-where-path nil)
+(make-variable-buffer-local 'nxml-where-path)
+(put 'nxml-where-path 'permanent-local t)
+
+(defvar nxml-where-old-path nil)
+(make-variable-buffer-local 'nxml-where-old-path)
+(put 'nxml-where-old-path 'permanent-local t)
+
+(defun nxml-where-add-overlays (this-point buffer)
+  (message "nxml-where-add-overlays %s %s, point=%s" this-point buffer (point))
   (with-current-buffer buffer
     (unless nxml-where-marks
       (when nxml-where-ovls
@@ -217,115 +363,151 @@ This is possible if `major-mode' in the buffer is derived from
         (setq nxml-where-ovls nil)))
     (unless nxml-where-header
       (setq header-line-format nil))
-    (and nxml-where-mode
-         (or nxml-where-header nxml-where-marks)
-         (condition-case info
-             (let ((current (nxml-where)))
-               (when nxml-where-header
-                 (setq header-line-format current)))
-           (error
-            ;;(nxml-where-mode 0)
-            (message "Error in nxml-where-update: %s" info)
-            (sit-for 2))))))
-
-(defvar nxml-where-get-id-pattern
-         (rx space
-             (eval (cons 'or nxml-where-header-attributes))
-             (0+ space)
-             ?=
-             (0+ space)
-             ?\"
-             (0+ (not (any ?\")))
-             ?\"
-             ))
-
-(defvar nxml-where-tag+id-pattern
-         ;;(insert ;; -------------------
-          (rx ?<
-              (submatch
-               (1+ (char "-a-z0-9:"))
-               )
-              (0+ (1+ space)
-                  (1+ (any "a-z"))
-                  (0+ space)
-                  ?=
-                  (0+ space)
-                  ?\"
-                  (0+ (not (any ?\")))
-                  ?\"
-                  )
-              (0+ space)
-              (opt ?/)
-              ?>)
-          ;;) ;; -------------------
-         )
-
-(defun nxml-where ()
-  (let (path
-        start
-        end
-        (ovls nxml-where-ovls)
-        ovl
-        )
-    (save-excursion
-      (catch 'err
-        (while (> (point) (point-min))
-          (condition-case err
-              (progn
-                (nxml-backward-up-element)
+    (when (and nxml-where-mode
+               (or nxml-where-header nxml-where-marks)
+               (if this-point
+                   (> this-point (point-min))
+                 t))
+      (let ((ovls nxml-where-ovls)
+            ovl
+            (here (point))
+            next-point
+            (is-first (not this-point))
+            same-as-last
+            )
+        ;; If on beginning of tag step forward one char.
+        (unless (or (eobp)
+                    this-point
+                    (not (eq  ?< (char-after))))
+          (forward-char))
+        (unless this-point (setq this-point (point)))
+        (goto-char this-point)
+        (setq next-point
+              (catch 'err
+                (condition-case err
+                    (nxml-backward-up-element)
+                  (error
+                   (if (equal err '(error "No parent element"))
+                       (throw 'err nil)
+                     (message "nxml-where error: %S" err)
+                     (throw 'err "uh?"))))
+                (when is-first
+                  (setq same-as-last
+                        (and nxml-where-inner-start
+                             (= (point) (car nxml-where-inner-start))))
+                  (unless same-as-last
+                    ;;(setq nxml-where-path nil)
+                    (when nxml-where-path
+                      (setq nxml-where-old-path (reverse nxml-where-path))
+                      (setq nxml-where-path nil))
+                    (nxml-where-cancel-second))
+                  (when same-as-last
+                    (throw 'err 'same-as-last))
+                  ;;(setq nxml-where-inner-start (point))
+                  (setq is-first nil)
+                  ;;(dolist (o ovls) (delete-overlay o))
+                  (setq nxml-where-ovls nil)
+                  (let ((ovl (nth 1 nxml-where-inner-start)))
+                    (when (overlayp ovl) (delete-overlay ovl)))
+                  (setq nxml-where-inner-start
+                        (list (point)
+                              (nxml-where-mark-forward-element here))))
                 (save-match-data
+                  (let (ovl)
+                    (while (and nxml-where-old-path
+                                (> (caar nxml-where-old-path) (point)))
+                      (setq ovl (nth 2 (car nxml-where-old-path)))
+                      (message "delete 1: point=%s, ovl=%s" (point) (car nxml-where-old-path))
+                      (when (overlayp ovl) (delete-overlay ovl))
+                      (setq nxml-where-old-path
+                            (cdr nxml-where-old-path))))
                   (unless (looking-at nxml-where-tag+id-pattern)
-                    (throw 'err "at top"))
-                  (setq start (point))
-                  (setq end (match-end 0))
-                  (let ((tag (match-string-no-properties 1))
-                        (all (match-string-no-properties 0)))
+                    (throw 'err nil))
+                  (let ((start (point))
+                        (end (match-end 0))
+                        (tag (match-string-no-properties 1))
+                        (all (match-string-no-properties 0))
+                        (old-rec (car nxml-where-old-path))
+                        rec
+                        ovl)
                     (when nxml-where-tag+id
                       (when (string-match nxml-where-get-id-pattern all)
-                        (setq tag (concat tag (match-string 0 all))))
-                      (setq tag (concat "<" tag ">")))
-                    (setq path (cons tag path)))
-                  (if nxml-where-marks
-                    (progn
-                      (setq ovl (car ovls))
-                      (setq ovls (cdr ovls))
-                      (unless ovl
-                        (setq ovl (make-overlay start end))
-                        (overlay-put ovl 'face nxml-where-marking)
-                        (setq nxml-where-ovls (cons ovl nxml-where-ovls)))
-                      (unless (and (eq (overlay-buffer ovl) (current-buffer))
-                                   (= start (overlay-start ovl))
-                                   (= end   (overlay-end   ovl)))
-                        (move-overlay ovl start end)))
-                    )))
-            (error
-             ;;(message "nxml-where error: %S" err)
-             (throw 'err "uh?"))))))
-    (dolist (o ovls)
-      (delete-overlay o))
-    (unless path
-      (setq path (list (if (looking-at "[[:space:]]*\\'")
-                           "(After last tag)"
-                         "(Before first tag)"))))
-    ;; Throw away <html>
-    (if (null path)
-        (setq path " *Error* ")
-      (let* ((first (car path))
-             (html "<html")
-             (hlen (length html)))
-        (when (and (> (length first) hlen)
-                   (string= html (substring first 0 hlen)))
-          (setq path (cdr path))))
-      (unless path
-        (setq path (list "(At html start)"))))
-    (let* ((sp (substring (format "%s" path) 1 -1))
-           (label " Path: ")
-           (totlen (+ (length sp) (length label))))
-      (when (> totlen (window-width))
-        (setq sp (concat "... " (substring sp (+ (- totlen (window-width)) 4)))))
-      (concat label sp))))
+                        (setq tag (concat tag (match-string 0 all)))))
+                    (setq tag (concat "<" tag ">"))
+                    ;; Keep old overlay if it is ok.
+                    (if (and old-rec
+                             (= (nth 0 old-rec) start)
+                             (string= (nth 1 rec) tag))
+                        (progn
+                          (while nxml-where-old-path
+                            (setq rec (car nxml-where-old-path))
+                            (setq nxml-where-old-path (cdr nxml-where-old-path))
+                            (setq nxml-where-path (cons rec nxml-where-path)))
+                          (throw 'err (1- (nth 0 rec))))
+                      (when nxml-where-marks
+                        (setq ovl (nxml-where-mark start end)))
+                      (setq rec (list start tag ovl)))
+                    (setq nxml-where-path (cons rec nxml-where-path)))
+                  )
+                (throw 'err (max (1- (point)) (point-min)))))
+                                        ;)
+        (goto-char here)
+        ;;(setq next-point "test err")
+        (message "next-point=%s" next-point)
+        (if next-point
+            (cond
+             ((stringp next-point)
+              (setq header-line-format next-point))
+             ((eq 'same-as-last next-point)
+              nil)
+             (t
+              (nxml-where-cancel-second)
+              (if nxml-where-only-inner
+                  (progn
+                    (nxml-where-handle-old-path)
+                    (setq nxml-where-path nil))
+                (setq nxml-where-second-update-timer
+                      (run-with-timer (* 0.2 idle-update-delay)
+                                      nil
+                                      'nxml-where-start-second
+                                      next-point (current-buffer))))))
+          (nxml-where-handle-old-path)
+          (let ((path (mapcar (lambda (elt)
+                                (cadr elt))
+                              nxml-where-path)))
+            (unless path
+              (setq path (list (if (looking-at "[[:space:]]*\\'")
+                                   "(After last tag)"
+                                 "(Before first tag)"))))
+            (setq nxml-where-path nil)
+            (if (null path)
+                (setq path " *Error* ")
+              ;; Throw away <html>
+              (let* ((first (car path))
+                     (html "<html")
+                     (hlen (length html)))
+                (when (and (> (length first) hlen)
+                           (string= html (substring first 0 hlen)))
+                  (setq path (cdr path))))
+              (unless path
+                (setq path (list "(At html start)"))))
+            (let* ((sp (substring (format "%s" path) 1 -1))
+                   (label " Path: ")
+                   (totlen (+ (length sp) (length label)))
+                   header)
+              (when (> totlen (window-width))
+                (setq sp (concat "... " (substring sp (+ (- totlen (window-width)) 4)))))
+              (setq header (concat label sp))
+              (when nxml-where-header
+                (setq header-line-format header)))))))))
 
-
+(defun nxml-where-handle-old-path ()
+  (while nxml-where-old-path
+    (setq ovl (nth 2 (car nxml-where-old-path)))
+    (message "delete 2: ovl=%s" (car nxml-where-old-path))
+    (when (overlayp ovl) (delete-overlay ovl))
+    (setq nxml-where-old-path (cdr nxml-where-old-path)))
+ (setq nxml-where-old-path (reverse nxml-where-path)))
 
 (provide 'nxml-where)
 
