@@ -45,7 +45,7 @@
 ;;
 ;;; Code:
 
-(require 'ourcomments-util)
+;;(require 'ourcomments-util)
 
 (unless (featurep 'nxml-enc)
   ;; This is for the case when nXml is included in Emacs
@@ -67,18 +67,18 @@
                (file-name-directory
                 (if load-file-name load-file-name buffer-file-name)))
 
-  (autoload 'nxhtml-report-bug "nxhtml-bug" "Report a bug in nXhtml." t)
-  (autoload 'nxhtml-mode "nxhtml" "Major mode for editing XHTML documents." t)
-  (autoload 'nxhtml-global-minor-mode "nxhtml-menu" "Toggle `nxhtml-minor-mode' in every buffer." t)
-  (autoload 'gimp-edit-buffer "gimp" "Edit image file in current buffer with GIMP." t)
-  (autoload 'gimp-edit-file "gimp" "Edit file with GIMP." t)
+  ;;(autoload 'nxhtml-report-bug "nxhtml-bug" "Report a bug in nXhtml." t)
+  ;;(autoload 'nxhtml-mode "nxhtml" "Major mode for editing XHTML documents." t)
+  ;;(autoload 'nxhtml-global-minor-mode "nxhtml-menu" "Toggle `nxhtml-minor-mode' in every buffer." t)
+  ;;(autoload 'gimp-edit-buffer "gimp" "Edit image file in current buffer with GIMP." t)
+  ;;(autoload 'gimp-edit-file "gimp" "Edit file with GIMP." t)
   ;; Testing
   (let* ((this-dir (file-name-directory (if load-file-name load-file-name buffer-file-name)))
          (test-q-file (expand-file-name "../tests/nxhtmltest-Q.el" this-dir))
          (test-file (expand-file-name "../tests/nxhtmltest-suites.el" this-dir)))
-    (autoload 'nxhtmltest-run-Q      test-q-file "Run all tests defined for nXhtml in fresh Emacs." t)
-    (autoload 'nxhtmltest-run        test-file   "Run all tests defined for nXhtml." t)
-    (autoload 'nxhtmltest-run-indent test-file   "Run all indentation tests defined for nXhtml." t)
+    ;;(autoload 'nxhtmltest-run-Q      test-q-file "Run all tests defined for nXhtml in fresh Emacs." t)
+    ;;(autoload 'nxhtmltest-run        test-file   "Run all tests defined for nXhtml." t)
+    ;;(autoload 'nxhtmltest-run-indent test-file   "Run all indentation tests defined for nXhtml." t)
     )
 
   ;;   (require 'fmode)
@@ -87,7 +87,7 @@
 
   ;; Replaced all the major mode file stuff here with majmodpri and
   ;; just adding to auto-mode-alist etc:
-  (require 'majmodpri)
+  ;;(require 'majmodpri)
 
   ;; Add entries similar to those that are already there for html-mode
   ;; and xml-mode.
@@ -103,18 +103,18 @@
         (add-to-list mode-list (cons (car rec) 'nxml-mode)))
       ))
 
-  (require 'html-site)
-  (require 'nxhtml-menu)
+  ;;(require 'html-site)
+  ;;(require 'nxhtml-menu)
 
   ;;; Change below if you need to:
-  (autoload 'rnc-mode "rnc-mode" "Major mode for editing REXAX NG" t)
-  (autoload 'css-mode "css-mode" "Mode for editing css files" t)
-  (autoload 'javascript-mode "javascript" "Mode for JavaScript" t)
-  (autoload 'js2-fl-mode "js2-font-lock-new" "Mode for JavaScript" t)
-  (autoload 'php-mode "php-mode" "Mode for editing php files" t)
-  (autoload 'smarty-mode "smarty-mode" "Mode for editing php smarty files" t)
-  (autoload 'csharp-mode "csharp-mode" "Mode for editing C# code" t)
-  (autoload 'django-mode "django" "Simple Django mode for use with mumamo." t)
+  ;;(autoload 'rnc-mode "rnc-mode" "Major mode for editing RELAX NG" t)
+  ;;(autoload 'css-mode "css-mode" "Mode for editing css files" t)
+  ;;(autoload 'javascript-mode "javascript" "Mode for JavaScript" t)
+  ;;(autoload 'js2-fl-mode "js2-font-lock-new" "Mode for JavaScript" t)
+  ;;(autoload 'php-mode "php-mode" "Mode for editing php files" t)
+  ;;(autoload 'smarty-mode "smarty-mode" "Mode for editing php smarty files" t)
+  ;;(autoload 'csharp-mode "csharp-mode" "Mode for editing C# code" t)
+  ;;(autoload 'django-mode "django" "Simple Django mode for use with mumamo." t)
   (eval-after-load 'nxml-mode
     '(progn
       (define-key nxml-mode-map [C-M-left]  'nxml-backward-element)
@@ -123,20 +123,20 @@
       (define-key nxml-mode-map [C-M-down]  'nxml-down-element)))
 
   ;; MozLab support, for more info see moz.el
-  (autoload 'inferior-moz-mode "moz" "MozRepl Inferior Mode" t)
-  (autoload 'moz-minor-mode "moz" "MozRepl Minor Mode" t)
+  ;;(autoload 'inferior-moz-mode "moz" "MozRepl Inferior Mode" t)
+  ;;(autoload 'moz-minor-mode "moz" "MozRepl Minor Mode" t)
   (defun javascript-moz-setup () (moz-minor-mode 1))
   (add-hook 'javascript-mode-hook 'javascript-moz-setup)
   (add-hook 'js2-fl-mode          'javascript-moz-setup)
 
   ;; Development versions support
-  (autoload 'udev-rinari-update "udev-rinari" "Fetch and install rinari from the devel sources." t)
-  (autoload 'udev-cedet-update "udev-cedet" "Fetch and install CEDET from the devel sources." t)
-  (autoload 'udev-ecb-update "udev-ecb" "Fetch and install ECB from the devel sources." t)
+  ;;(autoload 'udev-rinari-update "udev-rinari" "Fetch and install rinari from the devel sources." t)
+  ;;(autoload 'udev-cedet-update "udev-cedet" "Fetch and install CEDET from the devel sources." t)
+  ;;(autoload 'udev-ecb-update "udev-ecb" "Fetch and install ECB from the devel sources." t)
 
-  (require 'mumamo-fun)
-  (require 'nxhtml-mumamo)
-  (require 'as-external)
+  ;;(require 'mumamo-fun)
+  ;;(require 'nxhtml-mumamo)
+  ;;(require 'as-external)
   )
 
 ;; (setq magic-mode-alist nil)

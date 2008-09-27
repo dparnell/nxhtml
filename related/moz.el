@@ -84,6 +84,7 @@
     (define-key map "\C-c\C-l" 'moz-save-buffer-and-send)
     map))
 
+;;;###autoload
 (define-minor-mode moz-minor-mode
   "MozRepl minor mode for interaction with Firefox.
 With no argument, this command toggles the mode.
@@ -185,6 +186,7 @@ Also switch to the interaction buffer."
     (define-key map "\C-c." 'inferior-moz-insert-moz-repl)
     map))
 
+;;;###autoload
 (define-derived-mode inferior-moz-mode comint-mode "Inf-MozRepl"
   "Major mode for interacting with Firefox via MozRepl."
   (setq comint-input-sender 'inferior-moz-input-sender)

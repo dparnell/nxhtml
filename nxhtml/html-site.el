@@ -126,6 +126,7 @@
       (dired-get-file-for-visit)
     buffer-file-name))
 
+;;;###autoload
 (defun html-site-set-site (name)
   (interactive
    (let ((site-names)
@@ -166,11 +167,13 @@
     (setq html-site-current name)
     (customize-save-variable 'html-site-current html-site-current)))
 
+;;;###autoload
 (defun html-site-dired-current ()
   "Open `dired' in current site top directory."
   (interactive)
   (dired (html-site-current-site-dir)))
 
+;;;###autoload
 (defun html-site-find-file ()
   "Find file in current site."
   (interactive)
@@ -444,6 +447,7 @@ No check is done that the file exists."
   :group 'nxhtml)
 
 ;; Fix-me: Rewrite using directory variables
+;;;###autoload
 (defcustom html-site-list nil
   "Known site directories and corresponding attributes.
 Each element in the list is a list containing:

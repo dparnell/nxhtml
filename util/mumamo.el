@@ -3904,6 +3904,7 @@ function, it is changed to a list of functions."
 ;;;     longlines-showing
 ;;;     longlines-decoded
     buffer-invisibility-spec
+    header-line-format
 
     line-move-visual ;;simple.el:4537:    (kill-local-variable 'line-move-visual)
     word-wrap ;;simple.el:4538:    (kill-local-variable 'word-wrap)
@@ -4662,8 +4663,7 @@ mode in the chunk family is nil."
       (unless main-major-mode
         (setcar (cdr mumamo-current-chunk-family) old-major-mode)
         (setq main-major-mode (mumamo-main-major-mode)))
-      (with-temp-buffer
-        (funcall main-major-mode))
+      ;;(with-temp-buffer (funcall main-major-mode))
       (setq mumamo-major-mode main-major-mode)
       (when (boundp 'nxml-syntax-highlight-flag)
         (when (mumamo-derived-from-mode main-major-mode 'nxml-mode)

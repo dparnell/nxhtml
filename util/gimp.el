@@ -106,6 +106,7 @@ Example:
   :type '(list (file :must-match t) string)
   :group 'gimp)
 
+;;;###autoload
 (defun gimp-edit-file (image-file)
   "Edit IMAGE-FILE with GIMP."
   (interactive "fImage to edit in GIMP: ")
@@ -118,6 +119,7 @@ Example:
     (put-text-property 0 (length msg) 'face 'highlight msg)
     (message msg image-file)))
 
+;;;###autoload
 (defun gimp-edit-buffer ()
   "Edit image file in current buffer with GIMP."
   (interactive)

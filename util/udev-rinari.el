@@ -126,6 +126,7 @@ Give an error if they are loaded from somewhere else than
                                  (customize-group-other-window 'udev-rinari)))
         (insert " Setup to load Rinari from fetched sources when starting Emacs.")))))
 
+;;;###autoload
 (defun udev-rinari-update ()
   "Fetch and install Rinari from the devel sources.
 To determine where to store the sources and how to start rinari
