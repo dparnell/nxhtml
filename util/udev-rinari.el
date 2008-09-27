@@ -60,6 +60,7 @@
   :type '(choice (const :tag "Don't load Rinari" nil)
                  (const :tag "Load Rinari" t))
   :set (lambda (sym val)
+         (set-default sym val)
          (when val
            (let* ((base-dir  (expand-file-name "svn/trunk/" udev-rinari-dir))
                   (rhtml-dir (expand-file-name "rhtml/" base-dir))
@@ -71,8 +72,7 @@
              (add-to-list 'load-path rhtml-dir)
              (add-to-list 'load-path test-dir))
            (require 'rinari)
-           (require 'ruby-mode))
-         (set-default sym val))
+           (require 'ruby-mode)))
   :group 'udev-rinari)
 
 (defvar udev-rinari-steps

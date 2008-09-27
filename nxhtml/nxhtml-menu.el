@@ -332,7 +332,7 @@
         (list 'menu-item "Toggle Display of Image" 'htmlimg-toggle-img-display))
       (define-key tools-map [nxhtml-htmlimg-mode]
         (list 'menu-item "Show <img ...> Images" 'htmlimg-mode
-              :button '(:toggle . 'htmlimg-mode)))
+              :button '(:toggle . htmlimg-mode)))
       (define-key tools-map [nxhtml-img-separator]
         (list 'menu-item "--"))
       (let ((some-help-map (make-sparse-keymap)))
@@ -833,7 +833,9 @@ See `nxhtml-minor-mode-modes'."
 (define-globalized-minor-mode nxhtml-global-minor-mode
   nxhtml-minor-mode
   nxhtml-maybe-turn-on-minor-mode
+  :require 'nxhtml-menu
   :group 'nxhtml)
+(custom-reevaluate-setting 'nxhtml-global-minor-mode)
 (when nxhtml-global-minor-mode (nxhtml-global-minor-mode 1))
 
 

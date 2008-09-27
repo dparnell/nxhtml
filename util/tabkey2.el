@@ -457,8 +457,11 @@ bound are in `tabkey2-first-key' and `tabkey2-alternate-key'.")
   "First key, first time indents, more invocations completes.
 This key is always bound to `tabkey2-first'."
   :set (lambda (sym val)
-         (tabkey2-bind-keys val (when (boundp 'tabkey2-alternate-key) tabkey2-alternate-key))
-         (set-default sym val))
+         (set-default sym val)
+         (tabkey2-bind-keys
+          val
+          (when (boundp 'tabkey2-alternate-key)
+            tabkey2-alternate-key)))
   :type 'key-sequence
   :group 'tabkey2)
 
@@ -466,8 +469,8 @@ This key is always bound to `tabkey2-first'."
   "Alternate key, bound to cycle and show completion functions.
 This key is always bound to `tabkey2-cycle-completion-functions'."
   :set (lambda (sym val)
-         (tabkey2-bind-keys (when (boundp 'tabkey2-first-key) tabkey2-first-key) val)
-         (set-default sym val))
+         (set-default sym val)
+         (tabkey2-bind-keys (when (boundp 'tabkey2-first-key) tabkey2-first-key) val))
   :type 'key-sequence
   :group 'tabkey2)
 
