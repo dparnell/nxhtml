@@ -1859,8 +1859,8 @@ if this attribute points to a local file.
 You can add additional elisp code for completing to
 `nxhtml-complete-tag-do-also'."
   :set (lambda (symbol value)
-         (nxhtml-turn-onoff-tag-do-also value)
-         (set-default symbol value))
+         (set-default symbol value)
+         (nxhtml-turn-onoff-tag-do-also value))
   :group 'nxhtml)
 
 (defun nxhtml-can-insert-page-here ()

@@ -3,9 +3,8 @@
 ;; This file should be updated by `nxhtmlmaint-get-file-autoloads',
 ;; `nxhtmlmaint-get-dir-autoloads' or `nxhtmlmaint-get-all-autoloads'.
 
-;;;### (autoloads (html-site-list html-site-find-file html-site-dired-current
-;;;;;;  html-site-set-site) "../nxhtml/html-site" "nxhtml/html-site.el"
-;;;;;;  (18654 32186))
+;;;### (autoloads (html-site-find-file html-site-dired-current html-site-set-site)
+;;;;;;  "../nxhtml/html-site" "nxhtml/html-site.el" (18654 38734))
 ;;; Generated autoloads from nxhtml/html-site.el
 
 (autoload 'html-site-set-site "../nxhtml/html-site" "\
@@ -22,28 +21,6 @@ Open `dired' in current site top directory.
 Find file in current site.
 
 \(fn)" t nil)
-
-(defvar html-site-list nil "\
-Known site directories and corresponding attributes.
-Each element in the list is a list containing:
-
-* Name for the site.
-* Site root directory.
-* Page list file - Pages for table of contents (TOC). Usually
-  initially built from the site directory by
-  `html-toc-create-pages-file'.
-* Frames file.
-* TOC file for the frames file.
-* Output directory - where to put the merged TOC and site
-  pages.
-* Output template file - html template for merging. See `html-wtoc-dir'
-  for examples.
-* Function for additional tasks - for example copying images, style
-  sheets, scripts etc.
---
-")
-
-(custom-autoload 'html-site-list "../nxhtml/html-site" nil)
 
 ;;;***
 
@@ -1997,7 +1974,7 @@ resumed later.
 ;;;;;;  "util/popcmp.el" "util/rebind.el" "util/rxi.el" "util/search-form.el"
 ;;;;;;  "util/sex-mode.el" "util/tabkey2.el" "util/tyda.el" "util/udev-nxhtml.el"
 ;;;;;;  "util/udev.el" "util/vline.el" "util/whelp.el" "util/winsav.el"
-;;;;;;  "util/winsize.el" "util/zen-mode.el") (18654 32950 578000))
+;;;;;;  "util/winsize.el" "util/zen-mode.el") (18654 38759 609000))
 
 ;;;***
 

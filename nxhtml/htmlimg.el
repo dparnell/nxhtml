@@ -89,57 +89,70 @@
 If DISPLAY-IMAGE is non-nil then display image, otherwise hide it.
 
 Return non-nil if an img tag was found."
-  (let (src end img)
+  (let (src beg end img ovl remote)
     (goto-char pt)
     (when (setq res (re-search-forward htmlimg-img-regexp nil t))
       (setq src (match-string-no-properties 1))
+      (setq beg (match-beginning 0))
       (setq end (match-end 0))
+      (setq remote (string-match "^https?://" src))
       (if display-image
-          (if (not (file-exists-p src))
+          (progn
+            (setq ovl (make-overlay beg end))
+            (overlay-put ovl 'htmlimg-img t)
+            (overlay-put ovl 'priority 100)
+            (overlay-put ovl 'face 'lazy-highlight)
+            (if (or remote (not (file-exists-p src)))
+                (mumamo-with-buffer-prepared-for-jit-lock
+                 (put-text-property (- end 2) (- end 1)
+                                    'display
+                                    "/>")
+                 (put-text-property (- end 1) end
+                                    'display
+                                    (propertize (if remote
+                                                    " Image is on the web "
+                                                  " Image not found ")
+                                                'face
+                                                (if remote
+                                                    'isearch-fail
+                                                  ;;'custom-invalid
+                                                  ;;'match
+                                                  'trailing-whitespace))))
+              ;; Get src value before macro since buffer-file-name is nil inside.
+              (setq src (expand-file-name
+                         src
+                         (file-name-directory (buffer-file-name))))
               (mumamo-with-buffer-prepared-for-jit-lock
                (put-text-property (- end 2) (- end 1)
                                   'display
-                                  "/>")
+                                  "/>\n")
+               (setq img (create-image src nil nil
+                                       :relief 5
+                                       :margin htmlimg-margins))
+               (when htmlimg-slice
+                 (let* ((sizes (image-size img t))
+                        (width  (car sizes))
+                        (height (cdr sizes))
+                        (sl-left (nth 0 htmlimg-slice))
+                        (sl-top (nth 1 htmlimg-slice))
+                        (sl-width (nth 2 htmlimg-slice))
+                        (sl-height (nth 3 htmlimg-slice))
+                        )
+                   (when (> sl-left width) (setq sl-left 0))
+                   (when (> (+ sl-left sl-width) width)
+                     (setq sl-width (- width sl-left)))
+                   (when (> sl-top height) (setq sl-top 0))
+                   (when (> (+ sl-top sl-height) height)
+                     (setq sl-height (- height sl-top)))
+                   (setq img (list img))
+                   (setq img (cons
+                              (append '(slice)
+                                      htmlimg-slice
+                                      (list sl-top sl-left sl-width sl-height)
+                                      nil)
+                              img))))
                (put-text-property (- end 1) end
-                                  'display
-                                  (propertize " Image not found"
-                                              'face font-lock-warning-face)
-                                  ))
-            ;; Get src value before macro since buffer-file-name is nil inside.
-            (setq src (expand-file-name
-                       src
-                       (file-name-directory (buffer-file-name))))
-            (mumamo-with-buffer-prepared-for-jit-lock
-             (put-text-property (- end 2) (- end 1)
-                                'display
-                                "/>\n")
-             (setq img (create-image src nil nil
-                                     :relief 5
-                                     :margin htmlimg-margins))
-             (when htmlimg-slice
-               (let* ((sizes (image-size img t))
-                      (width  (car sizes))
-                      (height (cdr sizes))
-                      (sl-left (nth 0 htmlimg-slice))
-                      (sl-top (nth 1 htmlimg-slice))
-                      (sl-width (nth 2 htmlimg-slice))
-                      (sl-height (nth 3 htmlimg-slice))
-                      )
-                 (when (> sl-left width) (setq sl-left 0))
-                 (when (> (+ sl-left sl-width) width)
-                   (setq sl-width (- width sl-left)))
-                 (when (> sl-top height) (setq sl-top 0))
-                 (when (> (+ sl-top sl-height) height)
-                   (setq sl-height (- height sl-top)))
-                 (setq img (list img))
-                 (setq img (cons
-                            (append '(slice)
-                                    htmlimg-slice
-                                    (list sl-top sl-left sl-width sl-height)
-                                    nil)
-                            img))))
-             (put-text-property (- end 1) end
-                                'display img)))
+                                  'display img))))
         (mumamo-with-buffer-prepared-for-jit-lock
          (put-text-property (- end 2) end
                             'display nil)))
@@ -174,10 +187,16 @@ Return non-nil if an img tag was found."
   (with-current-buffer buffer
     (let ((here (point))
           res
+          ovls
           prop-pos1
           prop-pos2)
       (save-restriction
         (widen)
+        (goto-char start)
+        (setq ovls (overlays-in start end))
+        (dolist (ovl ovls)
+          (when (overlay-get ovl 'htmlimg-img)
+            (delete-overlay ovl)))
         (goto-char start)
         (setq prop-pos1 start)
         (mumamo-with-buffer-prepared-for-jit-lock
