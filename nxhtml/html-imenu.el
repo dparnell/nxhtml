@@ -74,7 +74,7 @@ The third `match-string' will be the used in the menu.")
   ;; Fix-me: It looks like this function has to be called every time
   ;; switching to some html mode in mumamo. Values are "survived" by
   ;; mumamo, but the menu item disappears.
-  (message "html-imenu-setup imenu-create-index-function =%s" imenu-create-index-function)
+  ;;(message "html-imenu-setup imenu-create-index-function =%s" imenu-create-index-function)
   (unless nil ;(eq imenu-create-index-function 'html-imenu-index)
     (setq imenu-create-index-function 'html-imenu-index)
     (setq imenu-sort-function nil) ; sorting the menu defeats the purpose

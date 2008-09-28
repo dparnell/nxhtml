@@ -4274,7 +4274,7 @@ Just check the name."
   "Save some local variables for major mode MAJOR.
 This should be called before switching to a new chunks major
 mode."
-  (message "mumamo-save-most-buffer-locals %s %s" major (current-buffer))
+  ;;(message "mumamo-save-most-buffer-locals %s %s" major (current-buffer))
   (let ((locals (buffer-local-variables)))
     (setq locals (mapcar (lambda (local)
                            (unless
@@ -4306,7 +4306,7 @@ mode."
   "Restore some local variables for major mode MAJOR.
 This should be called after switching to a new chunks major
 mode."
-  (message "mumamo-restore-most-buffer-locals %s %s" major (current-buffer))
+  ;;(message "mumamo-restore-most-buffer-locals %s %s" major (current-buffer))
   (let ((locals (cdr (assq major mumamo-buffer-locals-per-major)))
         var
         perm)
@@ -4349,7 +4349,7 @@ default values."
 (defun mumamo-set-major (major)
   "Set major mode to MAJOR for mumamo."
   (mumamo-msgfntfy "mumamo-set-major %s, %s" major (current-buffer))
-  (message "mumamo-set-major %s, %s" major (current-buffer))
+  ;;(message "mumamo-set-major %s, %s" major (current-buffer))
   (let ((start-time (get-internal-run-time))
         end-time
         used-time
