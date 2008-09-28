@@ -328,11 +328,11 @@
                                     '("png" "gif" "jpg" "jpeg")))))
       (define-key tools-map [nxhtml-gimp-separator]
         (list 'menu-item "--"))
-      (define-key tools-map [nxhtml-htmlimg-toggle-img]
-        (list 'menu-item "Toggle Display of Image" 'htmlimg-toggle-img-display))
-      (define-key tools-map [nxhtml-htmlimg-mode]
-        (list 'menu-item "Show <img ...> Images" 'htmlimg-mode
-              :button '(:toggle . htmlimg-mode)))
+      (define-key tools-map [nxhtml-inlimg-toggle-img]
+        (list 'menu-item "Toggle Display of Image" 'inlimg-toggle-img-display))
+      (define-key tools-map [nxhtml-inlimg-mode]
+        (list 'menu-item "Show <img ...> Images" 'inlimg-mode
+              :button '(:toggle . (and (boundp 'inlimg-mode) inlimg-mode))))
       (define-key tools-map [nxhtml-img-separator]
         (list 'menu-item "--"))
       (let ((some-help-map (make-sparse-keymap)))

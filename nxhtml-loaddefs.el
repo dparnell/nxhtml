@@ -24,23 +24,23 @@ Find file in current site.
 
 ;;;***
 
-;;;### (autoloads (htmlimg-toggle-img-display htmlimg-mode) "../nxhtml/htmlimg"
-;;;;;;  "nxhtml/htmlimg.el" (18654 10916))
-;;; Generated autoloads from nxhtml/htmlimg.el
+;;;### (autoloads (inlimg-toggle-img-display inlimg-mode) "../nxhtml/inlimg"
+;;;;;;  "nxhtml/inlimg.el" (18654 10916))
+;;; Generated autoloads from nxhtml/inlimg.el
 
-(autoload 'htmlimg-mode "../nxhtml/htmlimg" "\
+(autoload 'inlimg-mode "../nxhtml/inlimg" "\
 Display <img ...> images inline.
 Images are displayed below the <img ...> tag using the margins in
-`htmlimg-margins'.  The whole image or a slice of it may be
-displayed, see `htmlimg-slice'.
+`inlimg-margins'.  The whole image or a slice of it may be
+displayed, see `inlimg-slice'.
 
-See also the command `htmlimg-toggle-img-display'.
+See also the command `inlimg-toggle-img-display'.
 
 \(fn &optional ARG)" t nil)
 
-(autoload 'htmlimg-toggle-img-display "../nxhtml/htmlimg" "\
+(autoload 'inlimg-toggle-img-display "../nxhtml/inlimg" "\
 Toggle display of img image at point POINT.
-See also the command `htmlimg-mode'.
+See also the command `inlimg-mode'.
 
 \(fn POINT)" t nil)
 
