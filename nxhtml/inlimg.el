@@ -48,15 +48,22 @@
 ;;; Code:
 
 (defvar inlimg-img-regexp
-  (rx "<img"
-      (1+ space)
-      (0+ (1+ (not (any " <>")))
-          (1+ space))
-      "src=\""
-      (group (1+ (not (any "\""))))
-      "\""
-      (*? anything)
-      "/>"))
+  (rx (or (and "<img"
+               (1+ space)
+               (0+ (1+ (not (any " <>")))
+                   (1+ space))
+               "src=\""
+               (group (1+ (not (any "\""))))
+               "\""
+               (*? anything)
+               "/>")
+          (and "url("
+               ?\"
+               (group (1+ (not (any "\""))))
+               ?\"
+               ")"
+               )
+          )))
 
 (defgroup inlimg nil
   "Customization group for inlimg."
@@ -103,12 +110,14 @@
 If DISPLAY-IMAGE is non-nil then display image, otherwise hide it.
 
 Return non-nil if an img tag was found."
-  (let (src beg end img ovl remote beg-face)
+  (let (src beg end end-str img ovl remote beg-face)
     (goto-char pt)
     (when (setq res (re-search-forward inlimg-img-regexp nil t))
-      (setq src (match-string-no-properties 1))
+      (setq src (or (match-string-no-properties 1)
+                    (match-string-no-properties 2)))
       (setq beg (match-beginning 0))
       (setq end (match-end 0))
+      (setq end-str (buffer-substring-no-properties (- end 2) end))
       (setq beg-face (get-text-property beg 'face))
       (setq remote (string-match "^https?://" src))
       (if display-image
@@ -117,11 +126,14 @@ Return non-nil if an img tag was found."
             (overlay-put ovl 'inlimg-img t)
             (overlay-put ovl 'priority 100)
             (overlay-put ovl 'face 'inlimg-img-tag)
+            (overlay-put ovl 'keymap inlimg-img-keymap)
+            (overlay-put ovl 'image-file (expand-file-name src))
             (if (or remote (not (file-exists-p src)))
                 (mumamo-with-buffer-prepared-for-jit-lock
                  (put-text-property (- end 2) (- end 1)
                                     'display
-                                    "/>")
+                                    end-str ;;"/>"
+                                    )
                  (put-text-property (- end 1) end
                                     'display
                                     (propertize (if remote
@@ -140,7 +152,9 @@ Return non-nil if an img tag was found."
               (mumamo-with-buffer-prepared-for-jit-lock
                (put-text-property (- end 2) (- end 1)
                                   'display
-                                  "/>\n")
+                                  ;;"/>\n"
+                                  (concat end-str "\n")
+                                  )
                (setq img (create-image src nil nil
                                        :relief 5
                                        :margin inlimg-margins))
@@ -175,6 +189,14 @@ Return non-nil if an img tag was found."
        (put-text-property (- end 2) end
                           'inlimg-display display-image)))
     res))
+
+(defvar inlimg-img-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(control ?c) ?+] 'inlimg-toggle-img-display)
+    map))
+
+(eval-after-load 'gimp
+  '(gimp-add-point-bindings inlimg-img-keymap))
 
 (defvar inlimg-timer nil)
 (make-variable-buffer-local 'inlimg-timer)
@@ -279,17 +301,26 @@ See also the command `inlimg-mode'."
     (let ((here (point))
           img-start
           img-end
+          (ovls (overlays-at (point)))
+          iovl
           )
-      (skip-chars-backward "^<")
-      (unless (and (> (point) (point-min))
-                   (= ?\< (char-before))
-                   (progn
-                     (backward-char)
-                     (looking-at inlimg-img-regexp)))
-        (goto-char here)
-        (error "No image here"))
-      (setq img-start (point))
-      (setq img-end (- (match-end 0) 2))
+      (dolist (ovl ovls)
+        (when (overlay-get ovl 'inlimg-img)
+          (setq iovl ovl)))
+      (if iovl
+          (progn
+            (setq img-start (overlay-start iovl))
+            (setq img-end (- (overlay-end iovl) 2)))
+        (skip-chars-backward "^<")
+        (unless (and (> (point) (point-min))
+                     (= ?\< (char-before))
+                     (progn
+                       (backward-char)
+                       (looking-at inlimg-img-regexp)))
+          (goto-char here)
+          (error "No image here"))
+        (setq img-start (point))
+        (setq img-end (- (match-end 0) 2)))
       (setq is-displayed (get-text-property img-end 'inlimg-display))
       (inlimg-next (point) (not is-displayed))
       (goto-char here))))

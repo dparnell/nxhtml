@@ -109,7 +109,8 @@ Example:
 ;;;###autoload
 (defun gimp-edit-file (image-file)
   "Edit IMAGE-FILE with GIMP."
-  (interactive "fImage to edit in GIMP: ")
+  (interactive (list (or (get-char-property (point) 'image-file)
+                         (read-file-name "Image to edit in GIMP: "))))
   (apply 'call-process (car gimp-remote-command-list)
          nil
          0
@@ -124,8 +125,28 @@ Example:
   "Edit image file in current buffer with GIMP."
   (interactive)
   (unless (buffer-file-name)
-    (error "Can't edit in GIMP because this buffer does not have a file name."))
+    (error
+     "Can't edit in GIMP because this buffer does not have a file name."))
   (gimp-edit-file (buffer-file-name)))
+
+(defcustom gimp-point-key-bindings '(([(control ?c) ?&] gimp-edit-file))
+  "Key bindings suggested for image links etc."
+  :type '(repeat (list key-sequence function))
+  :group 'gimp)
+
+(defun gimp-add-point-bindings (map)
+  "Add `gimp-point-key-bindings' to point keymap MAP.
+Set it up like this:
+
+  (eval-after-load 'gimp
+    '(gimp-add-point-bindings MY-MAP))
+
+There must also be a character property `image-file' at point for this
+to work."
+  (dolist (binding gimp-point-key-bindings)
+    (let ((key (nth 0 binding))
+          (fun (nth 1 binding)))
+      (define-key map key fun))))
 
 (provide 'gimp)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
