@@ -92,7 +92,7 @@
 In this mode hexadecimal colour specifications like #3253ff are
 displayed with the specified colour as background."
   :initial-value nil
-;;;   (when (and (boundp mumamo-multi-major-mode) mumamo-multi-major-mode)
+;;;   (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode)
 ;;;     (error "Can't use hexcolor-mode and mumamo together"))
   (unless font-lock-defaults
     (error "Can't use hexcolor-mode for this major mode"))

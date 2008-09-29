@@ -263,7 +263,11 @@
           (list 'menu-item "--" nil))
         (define-key mozrepl-map [nxhtml-mozrepl-save-and-send]
           (list 'menu-item "Save Buffer and Send it" 'moz-save-buffer-and-send
-                :enable '(not mumamo-multi-major-mode)))
+                :enable '(or (not (boundp 'mumamo-multi-major-mode))
+                             (not mumamo-multi-major-mode))))
+
+
+
         (define-key mozrepl-map [nxhtml-mozrepl-send-defun-and-go]
           (list 'menu-item "Send Current Function, Go to MozRepl"
                 'moz-send-defun-and-go
@@ -353,7 +357,8 @@
                 'hexcolor-mode
                 :filter 'nxhtml-insert-menu-dynamically
                 :enable '(and font-lock-mode
-                              (not mumamo-multi-major-mode)
+                              (or (not (boundp 'mumamo-multi-major-mode))
+                                  (not mumamo-multi-major-mode))
                               (featurep 'hexcolor))
                 :button '(:toggle . (and (boundp 'hexcolor-mode) hexcolor-mode))))
         (define-key hexclr-map [nxhtml-hexcolor-test]
@@ -590,6 +595,12 @@
         (list 'menu-item "Dired Site" 'html-site-dired-current))
       (define-key site-map [nxhtml-find-site-file]
         (list 'menu-item "Find File in Site" 'html-site-find-file))
+      (define-key site-map [nxhtml-site-search-separator]
+        (list 'menu-item "--" nil))
+      (define-key site-map [nxhtml-replace-in-site]
+        (list 'menu-item "Replace in Site Files" 'html-site-replace))
+      (define-key site-map [nxhtml-rgrep-in-site]
+        (list 'menu-item "Search Site Files" 'html-site-rgrep))
       )
 
     (define-key map [nxhtml-insert-separator]
@@ -618,7 +629,8 @@
       (define-key map [nxhtml-chunk-map]
         (list 'menu-item "Chunk" chunk-map
               :visible `(not (derived-mode-p 'dired-mode))
-              :enable 'mumamo-multi-major-mode))
+              :enable '(and (boundp 'mumamo-multi-major-mode)
+                            mumamo-multi-major-mode)))
       (define-key chunk-map [mumamo-mark-chunk]
         (list 'menu-item "Mark Chunk"
               'mumamo-mark-chunk))
@@ -820,7 +832,8 @@ See `nxhtml-minor-mode-modes'."
               (string= " " (substring (buffer-name) 0 1))
               (string= "*" (substring (buffer-name) 0 1))
               )
-    (let ((on mumamo-multi-major-mode))
+    (let ((on (and (boundp 'mumamo-multi-major-mode)
+                   mumamo-multi-major-mode)))
       (dolist (major nxhtml-minor-mode-modes)
         (when (derived-mode-p major)
           (setq on t)))

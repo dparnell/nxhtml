@@ -1499,16 +1499,16 @@ If there is no buffer file start with `dired'."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Searching
 
-(defun grep-get-files ()
-  "Return list of files in a grep-mode buffer."
-  (or (compilation-buffer-p (current-buffer))
-      (error "Not in a compilation buffer"))
+(defun grep-get-buffer-files ()
+  "Return list of files in a `grep-mode' buffer."
+  (or (and (compilation-buffer-p (current-buffer))
+           (derived-mode-p 'grep-mode))
+      (error "Not in a grep buffer"))
   (let ((here (point))
         files
         loc)
-    (goto-char (point-min))
-    ;; fix-me: How do you check if all is fontified?
     (font-lock-fontify-buffer)
+    (goto-char (point-min))
     (while (setq loc
                  (condition-case err
                      (compilation-next-error 1)
@@ -1525,27 +1525,137 @@ If there is no buffer file start with `dired'."
     ;;(message "files=%s" files)
     files))
 
-;; Mostly copied from dired-do-query-replace-regexp. Fix-me: finish, test
+(defvar grep-query-replace-defaults nil
+  "Default values of FROM-STRING and TO-STRING for `grep-query-replace'.
+This is a cons cell (FROM-STRING . TO-STRING), or nil if there is
+no default value.")
+
+;; Mostly copied from `dired-do-query-replace-regexp'. Fix-me: finish, test
 ;;;###autoload
-(defun grep-do-query-replace-regexp (from to &optional delimited)
+(defun grep-query-replace(from to &optional delimited)
   "Do `query-replace-regexp' of FROM with TO, on all files in *grep*.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue]."
-  ;;'grep-regexp-history
   (interactive
    (let ((common
-	  (query-replace-read-args
-	   "Query replace regexp in files in *grep*" t t)))
+          ;; Use the regexps that have been used in grep
+          (let ((query-replace-from-history-variable 'grep-regexp-history)
+                (query-replace-defaults (or grep-query-replace-defaults
+                                            query-replace-defaults)))
+            (query-replace-read-args
+             "Query replace regexp in files in *grep*" t t))))
+     (setq grep-query-replace-defaults (cons (nth 0 common)
+                                             (nth 1 common)))
      (list (nth 0 common) (nth 1 common) (nth 2 common))))
-  (dolist (file (grep-get-files))
+  (dolist (file (grep-get-buffer-files))
     (let ((buffer (get-file-buffer file)))
       (if (and buffer (with-current-buffer buffer
 			buffer-read-only))
 	  (error "File `%s' is visited read-only" file))))
   (tags-query-replace from to delimited
-		      '(grep-get-files)))
+		      '(grep-get-buffer-files)))
 
+(defun ldir-query-replace (from to files dir &optional delimited)
+  "Replace FROM with TO in FILES in directory DIR.
+This runs `query-replace-regexp' in selected files.
+
+See `dired-do-query-replace-regexp' for DELIMETED and more
+information."
+  (interactive (dir-replace-read-parameters nil nil))
+  (message "%s" (list from to file-regexp root delimited))
+  ;;(let ((files (directory-files root nil file-regexp))) (message "files=%s" files))
+  (tags-query-replace from to delimited
+                      `(directory-files ,root t ,file-regexp)))
+
+(defun rdir-query-replace (from to file-regexp root &optional delimited)
+  "Replace FROM with TO in FILES in directory tree ROOT.
+This runs `query-replace-regexp' in selected files.
+
+See `dired-do-query-replace-regexp' for DELIMETED and more
+information."
+  (interactive (dir-replace-read-parameters nil t))
+  (message "%s" (list from to file-regexp root delimited))
+  ;;(let ((files (directory-files root nil file-regexp))) (message "files=%s" files))
+  (tags-query-replace from to delimited
+                      `(rdir-get-files ,root ,file-regexp)))
+
+;; (rdir-get-files ".." "^a.*\.el$")
+(defun rdir-get-files (root file-regexp)
+  (let ((files (directory-files root t file-regexp))
+        (subdirs (directory-files root t)))
+    (dolist (subdir subdirs)
+      (when (and (file-directory-p subdir)
+                 (not (or (string= "/." (substring subdir -2))
+                          (string= "/.." (substring subdir -3)))))
+        (setq files (append files (rdir-get-files subdir file-regexp) nil))))
+    files))
+
+(defun dir-replace-read-parameters (has-dir recursive)
+  (let* ((common
+          (let (;;(query-replace-from-history-variable 'grep-regexp-history)
+                ;;(query-replace-defaults (or grep-query-replace-defaults
+                ;;                            query-replace-defaults))
+                )
+            (query-replace-read-args
+             "Query replace regexp in files" t t)))
+         (from (nth 0 common))
+         (to   (nth 1 common))
+         (delimited (nth 2 common))
+         (files (replace-read-files from to))
+         (root (unless has-dir (read-directory-name (if recursive "Root directory: "
+                                                      "In single directory: ")))))
+    (list from to files root delimited)))
+
+;; Mostly copied from `grep-read-files'. Could possible be merged with
+;; that.
+(defvar replace-read-files-history nil)
+(defun replace-read-files (regexp &optional replace)
+  "Read files arg for replace."
+  (let* ((bn (or (buffer-file-name) (buffer-name)))
+	 (fn (and bn
+		  (stringp bn)
+		  (file-name-nondirectory bn)))
+	 (default
+           (let ((pre-default
+                  (or (and fn
+                           (let ((aliases grep-files-aliases)
+                                 alias)
+                             (while aliases
+                               (setq alias (car aliases)
+                                     aliases (cdr aliases))
+                               (if (string-match (wildcard-to-regexp
+                                                  (cdr alias)) fn)
+                                   (setq aliases nil)
+			  (setq alias nil)))
+                             (cdr alias)))
+                      (and fn
+                           (let ((ext (file-name-extension fn)))
+                             (and ext (concat "^.*\." ext))))
+                      (car replace-read-files-history)
+                      (car (car grep-files-aliases)))))
+             (if (string-match-p "^\\*\\.[a-zA-Z0-9]*$" pre-default)
+                 (concat "\\." (substring pre-default 2) "$")
+               pre-default)))
+	 (files (read-string
+                 (if replace
+                     (concat "Replace \"" regexp
+                             "\" with \"" replace "\" in files"
+                             (if default (concat " (default " default
+                                                 ", regexp or *.EXT)"))
+                             ": ")
+                   (concat "Search for \"" regexp
+                           "\" in files"
+                           (if default (concat " (default " default ")"))
+                           ": "))
+		 nil 'replace-read-files-history default)))
+    (let ((pattern (and files
+                        (or (cdr (assoc files grep-files-aliases))
+                            files))))
+      (if (and pattern
+               (string-match-p "^\\*\\.[a-zA-Z0-9]*$" pattern))
+          (concat "\\." (substring pattern 2) "$")
+        pattern))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Info

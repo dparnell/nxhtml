@@ -3,8 +3,9 @@
 ;; This file should be updated by `nxhtmlmaint-get-file-autoloads',
 ;; `nxhtmlmaint-get-dir-autoloads' or `nxhtmlmaint-get-all-autoloads'.
 
-;;;### (autoloads (html-site-find-file html-site-dired-current html-site-set-site)
-;;;;;;  "../nxhtml/html-site" "nxhtml/html-site.el" (18654 38734))
+;;;### (autoloads (html-site-replace html-site-rgrep html-site-find-file
+;;;;;;  html-site-dired-current html-site-set-site) "../nxhtml/html-site"
+;;;;;;  "nxhtml/html-site.el" (18657 24410))
 ;;; Generated autoloads from nxhtml/html-site.el
 
 (autoload 'html-site-set-site "../nxhtml/html-site" "\
@@ -22,10 +23,21 @@ Find file in current site.
 
 \(fn)" t nil)
 
+(autoload 'html-site-rgrep "../nxhtml/html-site" "\
+Search site files with `rgrep'.
+See `rgrep' for the arguments REGEXP and FILES.
+
+\(fn REGEXP FILES)" t nil)
+
+(autoload 'html-site-replace "../nxhtml/html-site" "\
+Not documented
+
+\(fn FROM TO FILE-REGEXP DELIMITED)" t nil)
+
 ;;;***
 
 ;;;### (autoloads (inlimg-toggle-img-display inlimg-mode) "../nxhtml/inlimg"
-;;;;;;  "nxhtml/inlimg.el" (18654 10916))
+;;;;;;  "nxhtml/inlimg.el" (18656 14310))
 ;;; Generated autoloads from nxhtml/inlimg.el
 
 (autoload 'inlimg-mode "../nxhtml/inlimg" "\
@@ -47,7 +59,7 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (nxhtml-mode) "../nxhtml/nxhtml" "nxhtml/nxhtml.el"
-;;;;;;  (18654 27700))
+;;;;;;  (18654 39089))
 ;;; Generated autoloads from nxhtml/nxhtml.el
 
 (autoload 'nxhtml-mode "../nxhtml/nxhtml" "\
@@ -168,7 +180,7 @@ Report a bug in nXhtml.
 ;;;***
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-minor-mode) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18654 32612))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18657 25417))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-minor-mode "../nxhtml/nxhtml-menu" "\
@@ -1500,7 +1512,7 @@ See `as-external-alist' for more information.")
 ;;;***
 
 ;;;### (autoloads (gimp-edit-buffer gimp-edit-file) "gimp" "util/gimp.el"
-;;;;;;  (18654 27628))
+;;;;;;  (18656 11569))
 ;;; Generated autoloads from util/gimp.el
 
 (autoload 'gimp-edit-file "gimp" "\
@@ -1635,7 +1647,7 @@ This also covers inlined style and javascript." t)
 
 ;;;***
 
-;;;### (autoloads (info-open-file grep-do-query-replace-regexp emacs-Q-nxhtml
+;;;### (autoloads (info-open-file grep-query-replace emacs-Q-nxhtml
 ;;;;;;  emacs-Q emacs--debug-init emacs-buffer-file emacs ourcomments-ido-buffer-raise-frame
 ;;;;;;  ourcomments-ido-buffer-other-frame ourcomments-ido-buffer-other-window
 ;;;;;;  describe-symbol describe-defstruct describe-custom-group
@@ -1645,7 +1657,7 @@ This also covers inlined style and javascript." t)
 ;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
 ;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
 ;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18654 31320))
+;;;;;;  "util/ourcomments-util.el" (18657 25041))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -1859,7 +1871,7 @@ Start new Emacs with -Q and load nXhtml.
 
 \(fn)" t nil)
 
-(autoload 'grep-do-query-replace-regexp "ourcomments-util" "\
+(autoload 'grep-query-replace "ourcomments-util" "\
 Do `query-replace-regexp' of FROM with TO, on all files in *grep*.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
@@ -1913,7 +1925,7 @@ For how to start ECB see `udev-ecb-load-ecb'.
 ;;;***
 
 ;;;### (autoloads (udev-rinari-update) "udev-rinari" "util/udev-rinari.el"
-;;;;;;  (18654 28208))
+;;;;;;  (18654 39297))
 ;;; Generated autoloads from util/udev-rinari.el
 
 (autoload 'udev-rinari-update "udev-rinari" "\
@@ -1965,16 +1977,17 @@ resumed later.
 ;;;;;;  "util/bw-rnc-load/schema-find.el" "util/chart.el" "util/color-test-sent.el"
 ;;;;;;  "util/color-test.el" "util/custsets.el" "util/ecb-batch-compile.el"
 ;;;;;;  "util/elunit.el" "util/ffip.el" "util/fmode.el" "util/freemind.el"
-;;;;;;  "util/from-osxkeys.el" "util/fupd.el" "util/hexcolor.el"
-;;;;;;  "util/hfyview.el" "util/hl-needed.el" "util/htmlfontify.21.el"
-;;;;;;  "util/htmlfontify.el" "util/mlinks.el" "util/mumamo-aspnet.el"
-;;;;;;  "util/mumamo-test.el" "util/mumamo-trace.el" "util/mumamo.el"
-;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "util/from-osxkeys.el" "util/fupd.el" "util/half-qwerty.el"
+;;;;;;  "util/hexcolor.el" "util/hfyview.el" "util/hl-needed.el"
+;;;;;;  "util/htmlfontify.21.el" "util/htmlfontify.el" "util/mlinks.el"
+;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-test.el" "util/mumamo-trace.el"
+;;;;;;  "util/mumamo.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/physical-line.el"
 ;;;;;;  "util/popcmp.el" "util/rebind.el" "util/rxi.el" "util/search-form.el"
 ;;;;;;  "util/sex-mode.el" "util/tabkey2.el" "util/tyda.el" "util/udev-nxhtml.el"
-;;;;;;  "util/udev.el" "util/vline.el" "util/whelp.el" "util/winsav.el"
-;;;;;;  "util/winsize.el" "util/zen-mode.el") (18654 38759 609000))
+;;;;;;  "util/udev.el" "util/useful-commands.el" "util/vline.el"
+;;;;;;  "util/whelp.el" "util/winsav.el" "util/winsize.el" "util/zen-mode.el")
+;;;;;;  (18657 25443 265000))
 
 ;;;***
 

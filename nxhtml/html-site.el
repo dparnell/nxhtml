@@ -187,6 +187,40 @@
                             'nxhtml)
   (call-interactively 'ffip-find-file-in-project))
 
+;;;###autoload
+(defun html-site-rgrep (regexp files)
+  "Search current site's files with `rgrep'.
+See `rgrep' for the arguments REGEXP and FILES."
+  (interactive
+   (progn
+     (grep-compute-defaults)
+     (let* ((regexp (grep-read-regexp))
+            (files (grep-read-files regexp)))
+       (list regexp files))))
+  ;; fix-me: ask for site
+  (when (called-interactively-p)
+    )
+  (rgrep regexp files (html-site-current-site-dir)))
+
+;;;###autoload
+(defun html-site-replace (from to file-regexp delimited)
+  "Query replace in current site's files."
+  (interactive
+   (let ((parameters (dir-replace-read-parameters t t)))
+     ;; Delete element 3
+     (length parameters)
+     (setcdr (nthcdr 2 parameters) (nthcdr 4 parameters))
+     (length parameters)
+     parameters))
+  ;; fix-me: ask for site
+  (when (called-interactively-p)
+    )
+  (rdir-query-replace from to file-regexp
+                      ;;root
+                      (html-site-current-site-dir)
+                      delimited)
+  )
+
 (defun html-site-ensure-site-defined (site-name)
   (unless html-site-list
     (error "No sites defined. Please customize `html-site-list'."))
