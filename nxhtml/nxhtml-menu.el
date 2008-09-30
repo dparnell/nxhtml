@@ -121,6 +121,18 @@
              (boundp real-binding))
     (symbol-value real-binding)))
 
+(defun nxhtml-menu-image-file ()
+  (or (get-char-property (point) 'image-file)
+      buffer-file-name))
+
+(defun nxhtml-gimp-can-edit ()
+  (gimp-can-edit (nxhtml-menu-image-file)))
+
+(defun nxhtml-edit-with-gimp ()
+  "Edit with GIMP buffer or file at point."
+  (interactive)
+  (gimp-edit-file (nxhtml-menu-image-file)))
+
 (defconst nxhtml-minor-mode-menu-map
   (let ((map (make-sparse-keymap "nxhtml-minor-mode-menu")))
 
@@ -325,18 +337,19 @@
         )
       (define-key tools-map [nxhtml-flyspell-separator]
         (list 'menu-item "--"))
-      (define-key tools-map [nxhtml-gimp-edit]
-        (list 'menu-item "Edit with GIMP" 'gimp-edit-buffer
-              :enable '(and buffer-file-name
-                            (member (downcase (file-name-extension buffer-file-name))
-                                    '("png" "gif" "jpg" "jpeg")))))
-      (define-key tools-map [nxhtml-gimp-separator]
-        (list 'menu-item "--"))
-      (define-key tools-map [nxhtml-inlimg-toggle-img]
-        (list 'menu-item "Toggle Display of Image" 'inlimg-toggle-img-display))
-      (define-key tools-map [nxhtml-inlimg-mode]
-        (list 'menu-item "Show <img ...> Images" 'inlimg-mode
-              :button '(:toggle . (and (boundp 'inlimg-mode) inlimg-mode))))
+      (let ((img-map (make-sparse-keymap)))
+        (define-key tools-map [nxhtml-img-map]
+          (list 'menu-item "Images" img-map))
+        (define-key img-map [nxhtml-gimp-edit]
+          (list 'menu-item "Edit with GIMP" 'nxhtml-edit-with-gimp
+                :enable '(nxhtml-gimp-can-edit)))
+        (define-key img-map [nxhtml-gimp-separator]
+          (list 'menu-item "--"))
+        (define-key img-map [nxhtml-inlimg-toggle-img]
+          (list 'menu-item "Toggle Display of Image" 'inlimg-toggle-img-display))
+        (define-key img-map [nxhtml-inlimg-mode]
+          (list 'menu-item "Show <img ...> Images" 'inlimg-mode
+                :button '(:toggle . (and (boundp 'inlimg-mode) inlimg-mode)))))
       (define-key tools-map [nxhtml-img-separator]
         (list 'menu-item "--"))
       (let ((some-help-map (make-sparse-keymap)))
@@ -368,7 +381,7 @@
       (let ((where-map (make-sparse-keymap)))
         (define-key tools-map [nxml-where]
           (list 'menu-item "XML Path" where-map
-                :enable '(and (featurep 'nxml-where)
+                :enable '(and (fboundp 'nxml-where-mode)
                               (or (derived-mode-p 'nxml-mode)
                                   (nxhtml-nxhtml-in-buffer)))))
         (define-key where-map [nxml-where-id]
@@ -583,7 +596,8 @@
       (define-key site-map [html-site-global-mode]
         (list 'menu-item "HTML Site Global Mode"
               'html-site-global-mode
-              :button '(:toggle . html-site-global-mode)))
+              :button '(:toggle . (and (boundp 'html-site-global-mode)
+                                       html-site-global-mode))))
       (define-key site-map [nxhtml-site-separator] (list 'menu-item "--"))
       (define-key site-map [nxhtml-customize-site-list]
         (list 'menu-item "Edit Sites" (lambda () (interactive)
@@ -598,7 +612,7 @@
       (define-key site-map [nxhtml-site-search-separator]
         (list 'menu-item "--" nil))
       (define-key site-map [nxhtml-replace-in-site]
-        (list 'menu-item "Replace in Site Files" 'html-site-replace))
+        (list 'menu-item "Replace in Site Files" 'html-site-query-replace))
       (define-key site-map [nxhtml-rgrep-in-site]
         (list 'menu-item "Search Site Files" 'html-site-rgrep))
       )
@@ -607,24 +621,6 @@
       (list 'menu-item "--" nil
             :visible `(not (derived-mode-p 'dired-mode))
             ))
-
-;;;     (let ((mu-map (make-sparse-keymap)))
-;;;       (define-key map [mumamo-map]
-;;;         (list 'menu-item "Multiple Major Modes" mu-map
-;;;               :enable '(featurep 'mumamo)))
-;;;       (define-key mu-map [nxhtml-mumamo-set-chunk-family]
-;;;         (list 'menu-item "Set Chunk Family" 'mumamo-set-chunk-family
-;;;               :enable 'mumamo-mode))
-;;;       (define-key mu-map [nxml-insert-separator-move22] (list 'menu-item "--"))
-;;; ;;;       (define-key mu-map [nxhtml-mumamo-global]
-;;; ;;;         (list 'menu-item "Multiple Major Modes Globally" 'mumamo-global-mode
-;;; ;;;               :button '(:toggle . mumamo-global-mode)))
-;;;       (define-key mu-map [nxhtml-mumamo]
-;;;         (list 'menu-item "Multiple Major Modes in Buffer" 'mumamo-mode
-;;;               :button '(:toggle . mumamo-mode)))
-;;;       (define-key map [nxhtml-mumamo-separator] (list 'menu-item "--"))
-;;;       )
-
     (let ((chunk-map (make-sparse-keymap)))
       (define-key map [nxhtml-chunk-map]
         (list 'menu-item "Chunk" chunk-map

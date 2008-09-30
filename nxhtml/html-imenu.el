@@ -1,8 +1,9 @@
 ;;; html-imenu --- imneu suport for html modes
 ;;
-;; This is a very slightly modified version of
+;; This is a slightly modified version of
 ;; html-helper-imenu.el. This version comes with nXhtml.
 (defconst html-imenu:version "0.9") ;;Version:
+;; Last-Updated: 2008-09-30T19:22:05+0200 Tue
 ;;
 ;; ~/share/emacs/pkg/html/html-helper-imenu.el ---
 ;;
@@ -77,9 +78,22 @@ The third `match-string' will be the used in the menu.")
   ;;(message "html-imenu-setup imenu-create-index-function =%s" imenu-create-index-function)
   (unless nil ;(eq imenu-create-index-function 'html-imenu-index)
     (setq imenu-create-index-function 'html-imenu-index)
-    (setq imenu-sort-function nil) ; sorting the menu defeats the purpose
-    (imenu-add-to-menubar html-imenu-title)))
+    (set (make-local-variable 'imenu-sort-function) nil) ; sorting the menu defeats the purpose
+    (imenu-add-to-menubar html-imenu-title)
+    ;; Run an update to make it easier to access the menubar
+    ;;(run-with-idle-timer 5 nil 'html-imenu-update-menubar (current-buffer))
+    ))
+
+(defun html-imenu-update-menubar (buffer)
+  (condition-case err
+      (html-imenu-update-menubar-1 buffer)
+    (error (message "html-imenu-update-menubar error: %s" err))))
+
+(defun html-imenu-update-menubar-1 (buffer)
+  (with-current-buffer buffer
+    (message "HTML Imenu: update menubar...")
+    (imenu-update-menubar)
+    (message "")))
 
 (provide 'html-imenu)
-
 ;;; html-imenu ends here

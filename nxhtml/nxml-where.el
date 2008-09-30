@@ -225,6 +225,7 @@ If nil show only tag names."
     (nxml-where-mode-stop)))
 (put 'nxml-where-turn-off-unless-nxml 'permanent-local-hook t)
 
+;;;###autoload
 (define-minor-mode nxml-where-mode
   "Shows path in mode line."
   :global nil
@@ -244,6 +245,7 @@ This is possible if `major-mode' in the buffer is derived from
   (when (derived-mode-p 'nxml-mode)
     (nxml-where-mode 1)))
 
+;;;###autoload
 (define-globalized-minor-mode nxml-where-global-mode nxml-where-mode
   nxml-where-turn-on-in-nxml-child
   :group 'nxml-where)

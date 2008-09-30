@@ -322,7 +322,11 @@ See also the command `inlimg-mode'."
         (setq img-start (point))
         (setq img-end (- (match-end 0) 2)))
       (setq is-displayed (get-text-property img-end 'inlimg-display))
-      (inlimg-next (point) (not is-displayed))
+      (inlimg-next img-start (not is-displayed))
+      (when (and iovl
+                 (not inlimg-mode)
+                 is-displayed)
+        (delete-overlay iovl))
       (goto-char here))))
 
 

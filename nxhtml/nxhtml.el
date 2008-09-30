@@ -94,9 +94,12 @@
 (require 'url-expand)
 (require 'popcmp)
 (require 'rngalt)
-(require 'nxhtml-menu)
+(require 'html-imenu)
+(require 'fold-dwim)
+(require 'tidy-xhtml)
+;;(require 'nxhtml-menu)
 (require 'html-quote)
-(require 'nxhtml-mumamo)
+;;(require 'nxhtml-mumamo)
 
 (defun nxhtml-version ()
   "Show nxthml version."
@@ -145,11 +148,14 @@
            (udev-rinari  "Rinari fetcher and loader" "udev-rinari.el" "0.2")
            )
          ))
-    (dolist (extf req-features)
-      (unless (or (stringp extf)
-                  (eq (car extf) 'nxhtml))
-        (require (car extf) nil t)))
     req-features))
+
+(defun nxhtml-load-req-features ()
+  (dolist (extf nxhtml-req-features)
+    (unless (or (stringp extf)
+                (eq (car extf) 'nxhtml))
+      (require (car extf) nil t))))
+
 
 
 (defun nxhtml-make-library-link (beg end)
@@ -236,6 +242,7 @@
                          'face '( :weight bold :height 1.4)
                          s)
       (insert s "\n\n"))
+    ;;(nxhtml-load-req-features)
     (dolist (feat-entry nxhtml-req-features)
       (if (stringp feat-entry)
           (insert "==== " (propertize feat-entry 'face 'font-lock-comment-face 'face '(:weight bold)) "\n")
@@ -522,7 +529,7 @@ Takes into account the relative position of the saved link."
 
 ;; This should be run in `change-major-mode-hook'."
 (defun nxhtml-change-mode ()
-  (when (featurep 'mlinks)
+  (when (fboundp 'mlinks-mode)
     (mlinks-mode 0)))
 
 ;; This should be run in `change-major-mode-hook'."
@@ -659,7 +666,7 @@ point in the mumamo chunk you want to know the key bindings in.
   (when (and nxhtml-use-imenu
              (featurep 'html-imenu))
     (add-hook 'nxhtml-mode-hook 'html-imenu-setup nil t))
-  (when (featurep 'mlinks)
+  (when (fboundp 'mlinks-mode)
     (mlinks-mode 1))
   (when (featurep 'fold-dwim)
     (nxhtml-setup-for-fold-dwim))
@@ -2454,11 +2461,7 @@ information see `rngalt-show-validation-header'."
             (unless schema-file
               (error "Could not locate schema for type id `%s'" key)) ;type-id))
             (rng-set-schema-file-1 schema-file))
-        ;; FIX-ME: I do not understand this, but there is an error at
-        ;; loading this file, have to test here:
-        ;;(when (functionp 'nxhtml-global-validation-header-mode-cmhh)
         (rngalt-set-validation-header header)
-        ;;)
         ))))
 
 (defun nxhtml-update-validation-header ()

@@ -914,7 +914,8 @@ Return last chunk."
           (setq mumamo-end-last-chunk-pos pos)))
       (when first-change-pos
         (mumamo-with-buffer-prepared-for-jit-lock
-         (put-text-property first-change-pos (point) 'fontified nil))
+         (put-text-property first-change-pos (point) 'fontified nil)
+         )
         (setq jit-lock-context-unfontify-pos
               (min jit-lock-context-unfontify-pos first-change-pos)))
       (goto-char here))))
@@ -1067,13 +1068,16 @@ Do not record undo information during evaluation of BODY."
 
 (defun mumamo-mark-for-refontification (min max)
   "Mark region between MIN and MAX for refontification."
-  (mumamo-msgfntfy "mumamo-mark-for-refontification A min,max=%s,%s point-min,max=%s,%s" min max (point-min) (point-max))
+  (mumamo-msgfntfy "mumamo-mark-for-refontification A min,max=%s,%s point-min,max=%s,%s modified=%s" min max (point-min) (point-max) (buffer-modified-p) )
   (assert (<= min max))
   (when (< min max)
     (save-restriction
       (widen)
-      (mumamo-msgfntfy "mumamo-mark-for-refontification B min,max=%s,%s point-min,max=%s,%s" min max (point-min) (point-max))
-      (mumamo-save-buffer-state nil (put-text-property min max 'fontified nil)))))
+      (mumamo-msgfntfy "mumamo-mark-for-refontification B min,max=%s,%s point-min,max=%s,%s modified=%s" min max (point-min) (point-max) (buffer-modified-p) )
+      ;;(mumamo-save-buffer-state nil
+      (mumamo-with-buffer-prepared-for-jit-lock
+        (put-text-property min max 'fontified nil)
+        ))))
 
 
 (defvar mumamo-internal-major-modes-alist nil
@@ -1156,7 +1160,7 @@ local since they otherwise could be wrong at \(point) in top
 level \(ie user interaction level)."
   (declare (indent 2) (debug t))
   `(let ((need-major-mode (mumamo-get-major-mode-substitute ,major ,for-what)))
-     (mumamo-msgfntfy "mumamo-with-major-mode-setup %s => %s" ,major need-major-mode)
+     (mumamo-msgfntfy "mumamo-with-major-mode-setup %s => %s, modified=%s" ,major need-major-mode (buffer-modified-p))
      (mumamo-msgfntfy "mumamo-with-major-mode-setup <<<<<<<<<< body=%S\n>>>>>>>>>>" '(progn ,@body))
      (let ((major-mode need-major-mode)
            (evaled-set-mode (mumamo-get-major-mode-setup need-major-mode)))
@@ -1165,7 +1169,7 @@ level \(ie user interaction level)."
          (funcall evaled-set-mode
                   (list 'progn
                         ,@body))
-         ;;(message "<<<<<< after")
+         ;;(mumamo-msgfntfy "<<<<<< after evaled-set-mode modified=%s" (buffer-modified-p))
          )))
 
 (defmacro mumamo-with-major-mode-fontification (major &rest body)
@@ -2237,7 +2241,7 @@ fontification and speeds up fontification significantly."
   "Mark chunk overlays in MIN to MAX as old.
 Return as a cons region covered by those overlays if greater than
 MIN to MAX, otherwise MIN to MAX."
-  (mumamo-msgfntfy "mumamo-remove-chunk-overlays %s %s" min max)
+  (mumamo-msgfntfy "mumamo-remove-chunk-overlays %s %s, modified=%s" min max (buffer-modified-p))
   ;;(mumamo-assert-fontified-t min max)
   (let ((min-min min)
         (max-max max)
@@ -2256,7 +2260,7 @@ MIN to MAX, otherwise MIN to MAX."
         (delete-overlay o)
         (setq did-remove t)
         (setq mumamo-chunks-to-remove (cons o mumamo-chunks-to-remove))))
-    (mumamo-msgfntfy "  exit mumamo-remove-chunk-overlays %s %s" min max)
+    (mumamo-msgfntfy "  exit mumamo-remove-chunk-overlays %s %s, modified=%s" min max (buffer-modified-p))
     ;;(mumamo-assert-fontified-t min max)
     (when did-remove (cons min-min max-max))))
 
@@ -2539,6 +2543,7 @@ CHUNK-VALUES should be in the format returned by
                             (boundp 'font-lock-beginning-of-syntax-function)
                             font-lock-beginning-of-syntax-function)
                    font-lock-beginning-of-syntax-function)))))
+      (mumamo-msgfntfy "Got syntax-begin-function, modified=%s" (buffer-modified-p))
       (overlay-put chunk-ovl 'syntax-begin-function syntax-begin-function))
 
     (if major-sub
@@ -2564,9 +2569,12 @@ CHUNK-VALUES should be in the format returned by
                nil ;; Fix-me: I can't understand the next line...
                (mumamo-derived-from-mode major-normal 'nxml-mode))
       (setq parseable-by '(nxml-mode)))
-    (put-text-property min max 'mumamo-parseable-by parseable-by)
+    (mumamo-with-buffer-prepared-for-jit-lock
+     (put-text-property min max 'mumamo-parseable-by parseable-by))
+    (mumamo-msgfntfy "after put mumamo-parseable-by, modified=%s" (buffer-modified-p))
     (unless (memq 'nxml-mode parseable-by)
-      (remove-text-properties min max '(category rng-error)))
+      (mumamo-with-buffer-prepared-for-jit-lock
+       (remove-text-properties min max '(category rng-error))))
     (let ((ovls (overlays-in min max)))
       (dolist (ovl ovls)
         (let ((ctg (overlay-get ovl 'category)))
@@ -2574,6 +2582,7 @@ CHUNK-VALUES should be in the format returned by
           (when (memq ctg '(nxml-dependent rng-dependent rng-error))
             (delete-overlay ovl))
           )))
+    (mumamo-msgfntfy "leaving mumamo-create-chunk-from-chunk-values modified=%s" (buffer-modified-p))
     chunk-ovl))
 
 (defun mumamo-create-chunk-at (pos)
@@ -3266,6 +3275,16 @@ this function will not see it since it is run in a timer.)"
 (make-variable-buffer-local 'mumamo-idle-set-major-mode-timer)
 (put 'mumamo-idle-set-major-mode-timer 'permanent-local t)
 
+(defun mumamotemp-pre-command ()
+  (message "mumamotemp-pre 1: modified=%s %s" (buffer-modified-p) (current-buffer)))
+(defun mumamotemp-post-command ()
+  (message "mumamotemp-post 1: modified=%s %s" (buffer-modified-p) (current-buffer)))
+(put 'mumamotemp-pre-command 'permanent-local-hook t)
+(put 'mumamotemp-post-command 'permanent-local-hook t)
+(defun mumamotemp-start ()
+  (add-hook 'post-command-hook 'mumamotemp-post-command nil t)
+  (add-hook 'pre-command-hook 'mumamotemp-pre-command nil t))
+
 (defun mumamo-idle-set-major-mode (buffer window)
   "Set major mode from mumamo chunk when Emacs is idle.
 Do this in window WINDOW if and only if current buffer is BUFFER.
@@ -3279,9 +3298,14 @@ explanation."
       (when (eq buffer (current-buffer))
         (mumamo-condition-case err
             (let* ((ovl (mumamo-get-chunk-at (point)))
-                   (major (mumamo-chunk-major-mode ovl)))
+                   (major (mumamo-chunk-major-mode ovl))
+                   (modified (buffer-modified-p)))
               (unless (eq major major-mode)
                 (mumamo-set-major major)
+                ;; Fix-me: This is a bug workaround. Possibly in Emacs.
+                (when (and (buffer-modified-p)
+                           (not modified))
+                  (set-buffer-modified-p nil))
                 ;; sync keymap
                 (when (timerp mumamo-unread-command-events-timer)
                   (cancel-timer mumamo-unread-command-events-timer))
