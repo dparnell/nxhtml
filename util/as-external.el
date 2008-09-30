@@ -2,15 +2,15 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Mon Jun 25 19:02:49 2007
-(defconst as-external:version "0.5") ;;Version:
-;; Last-Updated: Thu Dec 20 01:51:47 2007 (3600 +0100)
+(defconst as-external:version "0.6") ;;Version:
+;; Last-Updated: 2008-09-30T11:44:43+0200 Tue
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   None
+;;   `server'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -21,7 +21,7 @@
 ;;  use Emacs as the external editor with the Firefox add-on "It's All
 ;;  Text".
 ;;
-;;  See variable `as-external-on' for more information.
+;;  See variable `as-external-mode' for more information.
 ;;
 ;;
 ;;; A note on the implementation:
@@ -76,30 +76,22 @@ See URL `https://addons.mozilla.org/en-US/firefox/addon/4125'.
 
 In this case Emacs is used to edit textarea fields on a web page.
 The text will most often be part of a web page later, like on a
-blog.  Therefore turn on `nxhtml-mode',
-`nxhtml-validation-header-mode' and
-`wrap-to-fill-column-mode'.
+blog.  Therefore turn on these:
 
-Also turn off `mumamo-mode' in the buffer and bypasses the
-question for line end conversion when using emacsw32-eol."
-  (if (not (featurep 'nxhtml))
+- `nxhtml-mumamo-mode' since some XHTML tags may be allowed.
+- `nxhtml-validation-header-mode' since it is not a full page.
+- `wrap-to-fill-column-mode' to see what you are writing.
+
+Also bypass the question for line end conversion when using
+emacsw32-eol."
+  (if (not (fboundp 'nxhtml-mumamo-mode))
       (as-external-fall-back "Can't find nXhtml")
-;;;     (nxhtml-mode)
-;;;     (mumamo-mode 0)
-    ;;(message "as-ext setting nxhtml-mumamo-mode %s" (current-buffer))
     (nxhtml-mumamo-mode)
-    ;;(message "as-ext after nxhtml-mumamo-mode")
     (nxhtml-validation-header-mode 1)
-    ;;(message "as-ext after val head")
     (mumamo-post-command)
     (set (make-local-variable 'wrap-to-fill-left-marg-modes)
          '(nxhtml-mode fundamental-mode))
     (wrap-to-fill-column-mode 1)
-    ;;(message "as-ext after wrap fill")
-    ;;(longlines-show-hard-newlines)
-    ;;(make-local-variable 'longlines-show-hard-newlines)
-    ;;(put 'longlines-show-hard-newlines 'permanent-local t)
-    ;;(setq longlines-show-hard-newlines t)
     (when (boundp 'emacsw32-eol-ask-before-save)
       (make-local-variable 'emacsw32-eol-ask-before-save)
       (setq emacsw32-eol-ask-before-save nil))))
@@ -145,14 +137,14 @@ called in the buffer.
   'www.emacswiki.org.283b1y212e.html'.
 
 
-The list is processed by `as-external-check'. Note that the first
+The list is processed by `as-external-setup'. Note that the first
 match is used!
 
 The default entries in this list supports for Firefox addon It's
 All Text (see `as-external-its-all-text-default') and mediawiki (see
 `as-external-for-wiki').
 
-See also `as-external-on'."
+See also `as-external-mode'."
   :type '(repeat
           (list (choice (variable :tag "Regexp variable")
                         regexp)
@@ -168,7 +160,7 @@ See also `as-external-its-all-text-default'."
 
 
 ;;;###autoload
-(defcustom as-external-on nil
+(define-minor-mode as-external-mode
   "If non-nil check for if Emacs is used as external editor.
 When Emacs is used as an external editor for example to edit text
 areas on a web page viewed with Firefox this library tries to
@@ -176,51 +168,41 @@ help to setup the buffer in a useful way. It may for example set
 major and minor modes for the buffer.
 
 See `as-external-alist' for more information."
+  :global t
   :group 'as-external
-  :type 'boolean
-  :set (lambda (sym val)
-         (set-default sym val)
-         ;;(modify-coding-system-alist 'file "/itsalltext/" as-external-its-all-text-coding)
-         (let ((coding-entry
-                (cons
-                 as-external-its-all-text-regexp
-                 (cons as-external-its-all-text-coding
-                       as-external-its-all-text-coding))))
-           (if val
-               (progn
-                 (add-to-list 'file-coding-system-alist coding-entry)
-                 (add-hook 'find-file-hook 'as-external-check t))
-             (setq file-coding-system-alist
-                   (delq coding-entry file-coding-system-alist))
-             (remove-hook 'find-file-hook 'as-external-check)))))
+  ;;(modify-coding-system-alist 'file "/itsalltext/" as-external-its-all-text-coding)
+  (let ((coding-entry
+         (cons
+          as-external-its-all-text-regexp
+          (cons as-external-its-all-text-coding
+                as-external-its-all-text-coding))))
+    (if as-external-mode
+        (progn
+          (add-to-list 'file-coding-system-alist coding-entry)
+          (add-hook 'server-visit-hook 'as-external-setup t))
+      (setq file-coding-system-alist
+            (delq coding-entry file-coding-system-alist))
+      (remove-hook 'server-visit-hook 'as-external-setup))))
 
-(defun as-external-is-from-emacsclient ()
-  "Return non-nil if buffer has clients waiting, otherwise nil."
-  (or server-buffer-clients
-      ;; Fix-me: The above does not work because of what I think is a
-      ;; bug in Emacs. Work around:
-      (let ((bt (with-output-to-string (backtrace)))
-            ;; Hide the regexp in the backtrace:
-            (hidden-regexp (concat "server-" "visit-file")))
-        (save-match-data
-          (string-match hidden-regexp bt)))))
-
-(defun as-external-check ()
+(defun as-external-setup ()
   "Check if Emacs is used as an external editor.
 If so then turn on useful major and minor modes.
 This is done by checking `as-external-alist'."
-  (when (as-external-is-from-emacsclient)
-    ;; Fix-me: How does one know if the file names are case sensitive?
-    (catch 'done
-      (dolist (rec as-external-alist)
-        (let ((file-regexp (car rec))
-              (setup-fun   (cadr rec)))
-          (when (symbolp file-regexp)
-            (setq file-regexp (symbol-value file-regexp)))
-          (when (string-match file-regexp (buffer-file-name))
-            ;;(message "funcall %s" setup-fun)
-            (funcall setup-fun)
-            (throw 'done t)))))))
+  (condition-case err
+      (as-external-setup-1)
+    (error (message "as-external-setup error: %s" err))))
+
+(defun as-external-setup-1 ()
+  ;; Fix-me: How does one know if the file names are case sensitive?
+  (catch 'done
+    (dolist (rec as-external-alist)
+      (let ((file-regexp (car rec))
+            (setup-fun   (cadr rec)))
+        (when (symbolp file-regexp)
+          (setq file-regexp (symbol-value file-regexp)))
+        (when (string-match file-regexp (buffer-file-name))
+          (funcall setup-fun)
+          (throw 'done t))))))
 
 
 (provide 'as-external)

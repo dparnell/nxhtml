@@ -66,6 +66,7 @@
     (add-to-list 'load-path related-dir)
 
     ;; Autoloading etc
+    (require 'as-external)
     (load (expand-file-name "nxhtml-loaddefs.el" nxhtml-install-dir))
     ;; Use the nxml-mode that comes with Emacs if available:
     (unless (fboundp 'nxml-mode)

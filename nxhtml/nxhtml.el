@@ -6,7 +6,7 @@
 ;; Author:  Lennart Borgman <lennart DOT borgman DOT 073 AT student DOT lu DOT se>
 ;; Created: 2005-08-05
 ;;(defconst nxhtml:version "1.45") ;;Version:
-;; Last-Updated: 2008-08-18T19:22:33+0200 Mon
+;; Last-Updated: 2008-09-30T11:46:26+0200 Tue
 ;; Keywords: languages
 ;;
 ;;
@@ -2469,6 +2469,7 @@ information see `rngalt-show-validation-header'."
     (setq nxhtml-current-validation-header nil)
     (when mode-on (nxhtml-validation-header-mode 1))))
 
+;;;###autoload
 (define-minor-mode nxhtml-validation-header-mode
   "If on use a Fictive XHTML Validation Header for the buffer.
 See `nxhtml-set-validation-header' for information about Fictive XHTML Validation Headers.
@@ -2496,7 +2497,7 @@ This mode may be turned on automatically in two ways:
               (when (featurep 'mumamo)
                 (add-hook 'mumamo-change-major-mode-hook 'nxhtml-vhm-mumamo-change-major nil t)
                 (add-hook 'mumamo-after-change-major-mode-hook 'nxhtml-vhm-mumamo-after-change-major nil t)))
-          (run-with-idle-timer 0 nil 'nxhtml-validation-header-empty)))
+          (run-with-idle-timer 0 nil 'nxhtml-validation-header-empty (current-buffer))))
     (rngalt-set-validation-header nil)
     (setq nxhtml-current-validation-header nil)
     (remove-hook 'after-change-major-mode-hook 'nxhtml-vhm-after-change-major t)
@@ -2509,7 +2510,7 @@ This mode may be turned on automatically in two ways:
   ;;(message "nxhtml-vhm-change-major here")
   (unless mumamo-multi-major-mode
     (setq nxhtml-current-validation-header nil))
-  (run-with-idle-timer 0 nil 'nxhtml-validation-header-empty))
+  (run-with-idle-timer 0 nil 'nxhtml-validation-header-empty (current-buffer)))
 (put 'nxhtml-vhm-change-mode 'permanent-local-hook t)
 
 (defun nxhtml-recheck-validation-header ()
@@ -2520,14 +2521,15 @@ the buffer."
   (nxhtml-validation-header-mode -1)
   (nxhtml-validation-header-mode 1))
 
-(defun nxhtml-validation-header-empty ()
+(defun nxhtml-validation-header-empty (buffer)
   "Turn off validation header mode.
 This is called because there was no validation header."
-  (unless nxhtml-current-validation-header
-    ;;(message "nxhtml-validation-header-empty")
-    (nxhtml-validation-header-mode -1)
-    ;;(message "No validation header was needed")
-    ))
+  (with-current-buffer buffer
+    (unless nxhtml-current-validation-header
+      ;;(message "nxhtml-validation-header-empty")
+      (nxhtml-validation-header-mode -1)
+      ;;(message "No validation header was needed")
+      )))
 
 (defun nxhtml-turn-on-validation-header-mode ()
   "Turn on `nxhtml-validation-header-mode'."

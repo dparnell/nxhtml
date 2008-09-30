@@ -5,7 +5,7 @@
 
 ;;;### (autoloads (html-site-replace html-site-rgrep html-site-find-file
 ;;;;;;  html-site-dired-current html-site-set-site) "../nxhtml/html-site"
-;;;;;;  "nxhtml/html-site.el" (18657 24410))
+;;;;;;  "nxhtml/html-site.el" (18657 26443))
 ;;; Generated autoloads from nxhtml/html-site.el
 
 (autoload 'html-site-set-site "../nxhtml/html-site" "\
@@ -24,13 +24,13 @@ Find file in current site.
 \(fn)" t nil)
 
 (autoload 'html-site-rgrep "../nxhtml/html-site" "\
-Search site files with `rgrep'.
+Search current site's files with `rgrep'.
 See `rgrep' for the arguments REGEXP and FILES.
 
 \(fn REGEXP FILES)" t nil)
 
 (autoload 'html-site-replace "../nxhtml/html-site" "\
-Not documented
+Query replace in current site's files.
 
 \(fn FROM TO FILE-REGEXP DELIMITED)" t nil)
 
@@ -58,8 +58,8 @@ See also the command `inlimg-mode'.
 
 ;;;***
 
-;;;### (autoloads (nxhtml-mode) "../nxhtml/nxhtml" "nxhtml/nxhtml.el"
-;;;;;;  (18654 39089))
+;;;### (autoloads (nxhtml-validation-header-mode nxhtml-mode) "../nxhtml/nxhtml"
+;;;;;;  "nxhtml/nxhtml.el" (18657 35143))
 ;;; Generated autoloads from nxhtml/nxhtml.el
 
 (autoload 'nxhtml-mode "../nxhtml/nxhtml" "\
@@ -166,6 +166,20 @@ point in the mumamo chunk you want to know the key bindings in.
 
 \(fn)" t nil)
 
+(autoload 'nxhtml-validation-header-mode "../nxhtml/nxhtml" "\
+If on use a Fictive XHTML Validation Header for the buffer.
+See `nxhtml-set-validation-header' for information about Fictive XHTML Validation Headers.
+
+This mode may be turned on automatically in two ways:
+- If you try to do completion of a XHTML tag or attribute then
+  `nxthml-mode' may ask you if you want to turn this mode on if
+  needed.
+- You can also choose to have it turned on automatically whenever
+  mumamo is used, see `nxhtml-validation-header-if-mumamo' for
+  further information.
+
+\(fn &optional ARG)" t nil)
+
 ;;;***
 
 ;;;### (autoloads (nxhtml-report-bug) "../nxhtml/nxhtml-bug" "nxhtml/nxhtml-bug.el"
@@ -180,7 +194,7 @@ Report a bug in nXhtml.
 ;;;***
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-minor-mode) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18657 25417))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18657 25526))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-minor-mode "../nxhtml/nxhtml-menu" "\
@@ -1494,20 +1508,20 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 
 ;;;***
 
-;;;### (autoloads (as-external-on) "as-external" "util/as-external.el"
-;;;;;;  (18654 32690))
+;;;### (autoloads (as-external-mode) "as-external" "util/as-external.el"
+;;;;;;  (18657 35301))
 ;;; Generated autoloads from util/as-external.el
 
-(defvar as-external-on nil "\
+(autoload 'as-external-mode "as-external" "\
 If non-nil check for if Emacs is used as external editor.
 When Emacs is used as an external editor for example to edit text
 areas on a web page viewed with Firefox this library tries to
 help to setup the buffer in a useful way. It may for example set
 major and minor modes for the buffer.
 
-See `as-external-alist' for more information.")
+See `as-external-alist' for more information.
 
-(custom-autoload 'as-external-on "as-external" nil)
+\(fn &optional ARG)" t nil)
 
 ;;;***
 
@@ -1987,7 +2001,7 @@ resumed later.
 ;;;;;;  "util/sex-mode.el" "util/tabkey2.el" "util/tyda.el" "util/udev-nxhtml.el"
 ;;;;;;  "util/udev.el" "util/useful-commands.el" "util/vline.el"
 ;;;;;;  "util/whelp.el" "util/winsav.el" "util/winsize.el" "util/zen-mode.el")
-;;;;;;  (18657 25443 265000))
+;;;;;;  (18657 35325 625000))
 
 ;;;***
 
