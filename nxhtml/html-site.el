@@ -124,6 +124,7 @@
      (html-site-lwarn '(html-site) :error "Site dir must not contain ouput directory for pages with TOC."))))
 
 
+;;;###autoload
 (defun html-site-buffer-or-dired-file-name ()
   "Return buffer file name or file pointed to in dired."
   (if (derived-mode-p 'dired-mode)
@@ -203,7 +204,7 @@ See `rgrep' for the arguments REGEXP and FILES."
   (rgrep regexp files (html-site-current-site-dir)))
 
 ;;;###autoload
-(defun html-site-replace (from to file-regexp delimited)
+(defun html-site-query-replace (from to file-regexp delimited)
   "Query replace in current site's files."
   (interactive
    (let ((parameters (dir-replace-read-parameters t t)))

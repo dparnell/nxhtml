@@ -129,6 +129,12 @@ Example:
      "Can't edit in GIMP because this buffer does not have a file name."))
   (gimp-edit-file (buffer-file-name)))
 
+;;;###autoload
+(defun gimp-can-edit (file-name)
+  (and file-name
+       (member (downcase (file-name-extension file-name))
+               '("png" "gif" "jpg" "jpeg"))))
+
 (defcustom gimp-point-key-bindings '(([(control ?c) ?&] gimp-edit-file))
   "Key bindings suggested for image links etc."
   :type '(repeat (list key-sequence function))

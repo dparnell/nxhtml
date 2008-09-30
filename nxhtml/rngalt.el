@@ -540,6 +540,11 @@ nxhtml.el.
       (rngalt-reapply-validation-header))
     (rngalt-update-validation-header-overlay)))
 
+(defvar rngalt-validation-header-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-1] 'rngalt-minimal-validation-header-toggle)
+    map))
+
 (defun rngalt-update-validation-header-overlay ()
   (if (and rngalt-display-validation-header
            rngalt-validation-header
@@ -554,24 +559,33 @@ nxhtml.el.
           (setq rngalt-validation-header-overlay (make-overlay 1 1)))
         (overlay-put rngalt-validation-header-overlay
                      'priority 1000)
-        (overlay-put rngalt-validation-header-overlay
-                     'help-echo "XHTML/XML validation header")
-        (let ((s1 (concat "*** Fictive XHTML/XML Validation Header:\n"))
-              (s2))
-          (setq s2 (concat s1 (nth 2 rngalt-validation-header) "\n"))
-          (put-text-property 0 (length s2)
-                             'face (list (cons 'background-color
-                                               rngalt-validation-header-bgcolor)
-                                         (cons 'foreground-color
-                                               "black"))
-                             s2)
-          (put-text-property 0 (length s1)
-                             'face (list (cons 'foreground-color
-                                               rngalt-validation-header-bgcolor)
-                                         (cons 'background-color
-                                               "white"))
-                             s2)
-          (overlay-put rngalt-validation-header-overlay 'before-string s2)))
+        ;; Other properties should go to the 'before-string
+        (let* ((validation-header (nth 2 rngalt-validation-header))
+               (header
+               (if rngalt-minimal-validation-header
+                   (propertize
+                    (concat
+                     "*** Fictive XHTML/XML Validation Header: ... "
+                     (save-match-data
+                       (if (string-match "\\(<[^[:space:]>]+\\)[^>]*>[^<>]*\\'"
+                                         validation-header)
+                           (concat (match-string 1 validation-header) ">")
+                         "Error"))
+                     "\n")
+                    'face 'rngalt-validation-header-bottom)
+                 (concat
+                  (propertize "*** Fictive XHTML/XML Validation Header:\n"
+                              'face 'rngalt-validation-header-top)
+                  (propertize (concat validation-header "\n")
+                              'face 'rngalt-validation-header-bottom)))))
+          (setq header
+                (propertize
+                 header
+                 'help-echo
+                 "Click to toggle full/minimal display of header"
+                 'keymap rngalt-validation-header-keymap))
+          (overlay-put rngalt-validation-header-overlay
+                       'before-string header)))
     (when rngalt-validation-header-overlay
       (delete-overlay rngalt-validation-header-overlay))))
 
@@ -592,10 +606,23 @@ major mode is derived from `nxml-mode'."
   :group 'nxml
   :group 'nxhtml)
 
-(defcustom rngalt-validation-header-bgcolor "RGB:87/CE/FA"
-  "Background color for XML validation header."
-  :type 'color
+(define-toggle rngalt-minimal-validation-header t
+  "If non-nil display only a short informaion about the XML validation header.
+See also `rngalt-display-validation-header'."
+  :set (lambda (sym val)
+         (set-default sym val)
+         (rngalt-update-validation-header-overlay-everywhere))
   :group 'nxml
+  :group 'nxhtml)
+
+(defface rngalt-validation-header-top
+  '((t (:foreground "RGB:87/CE/FA" :background "white")))
+  "Face first line of validation header."
+  :group 'nxhtml)
+
+(defface rngalt-validation-header-bottom
+  '((t (:foreground "white" :background "RGB:87/CE/FA")))
+  "Face first line of validation header."
   :group 'nxhtml)
 
 (defun rng-set-initial-state ()
@@ -648,17 +675,12 @@ except when `rngalt-validation-header' is non-nil."
 
 (defun rngalt-set-validation-header (start-of-doc)
   (rng-validate-mode -1)
-  ;;(lwarn 'rngalt-svh :warning "here 1")
   (if start-of-doc
       (progn
         (add-hook 'after-change-major-mode-hook 'rngalt-after-change-major nil t)
-        ;;(lwarn 'rngalt-svh :warning "here 1a")
         (setq rngalt-validation-header (rngalt-get-state-after start-of-doc))
-        ;;(lwarn 'rngalt-svh :warning "here 1b")
         (rng-set-schema-file-1 (cadr rngalt-validation-header))
-        ;;(lwarn 'rngalt-svh :warning "here 1c")
         (setq rngalt-current-schema-file-name rng-current-schema-file-name)
-        ;;(lwarn 'rngalt-svh :warning "here 1d")
         (setq rng-compile-table nil)
         (setq rng-ipattern-table nil)
         (setq rng-last-ipattern-index nil))
@@ -666,14 +688,9 @@ except when `rngalt-validation-header' is non-nil."
     (setq rngalt-validation-header nil)
     (rng-set-vacuous-schema)
     (rng-auto-set-schema))
-  ;;(lwarn 'rngalt-svh :warning "here 2")
   (rng-validate-mode 1)
-  ;;(lwarn 'rngalt-svh :warning "here 3")
   (rngalt-update-validation-header-overlay)
-  ;;(lwarn 'rngalt-svh :warning "here 4")
-  (rngalt-update-validation-header-buffer)
-  ;;(lwarn 'rngalt-svh :warning "here 5")
-  )
+  (rngalt-update-validation-header-buffer))
 
 (defun rngalt-reapply-validation-header ()
   (when rngalt-validation-header

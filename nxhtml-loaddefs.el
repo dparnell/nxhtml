@@ -3,10 +3,15 @@
 ;; This file should be updated by `nxhtmlmaint-get-file-autoloads',
 ;; `nxhtmlmaint-get-dir-autoloads' or `nxhtmlmaint-get-all-autoloads'.
 
-;;;### (autoloads (html-site-replace html-site-rgrep html-site-find-file
-;;;;;;  html-site-dired-current html-site-set-site) "../nxhtml/html-site"
-;;;;;;  "nxhtml/html-site.el" (18657 26443))
+;;;### (autoloads (html-site-query-replace html-site-rgrep html-site-find-file
+;;;;;;  html-site-dired-current html-site-set-site html-site-buffer-or-dired-file-name)
+;;;;;;  "../nxhtml/html-site" "nxhtml/html-site.el" (18658 45782))
 ;;; Generated autoloads from nxhtml/html-site.el
+
+(autoload 'html-site-buffer-or-dired-file-name "../nxhtml/html-site" "\
+Return buffer file name or file pointed to in dired.
+
+\(fn)" nil nil)
 
 (autoload 'html-site-set-site "../nxhtml/html-site" "\
 Not documented
@@ -29,7 +34,7 @@ See `rgrep' for the arguments REGEXP and FILES.
 
 \(fn REGEXP FILES)" t nil)
 
-(autoload 'html-site-replace "../nxhtml/html-site" "\
+(autoload 'html-site-query-replace "../nxhtml/html-site" "\
 Query replace in current site's files.
 
 \(fn FROM TO FILE-REGEXP DELIMITED)" t nil)
@@ -37,7 +42,7 @@ Query replace in current site's files.
 ;;;***
 
 ;;;### (autoloads (inlimg-toggle-img-display inlimg-mode) "../nxhtml/inlimg"
-;;;;;;  "nxhtml/inlimg.el" (18656 14310))
+;;;;;;  "nxhtml/inlimg.el" (18658 11590))
 ;;; Generated autoloads from nxhtml/inlimg.el
 
 (autoload 'inlimg-mode "../nxhtml/inlimg" "\
@@ -59,7 +64,7 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-mode) "../nxhtml/nxhtml"
-;;;;;;  "nxhtml/nxhtml.el" (18657 35143))
+;;;;;;  "nxhtml/nxhtml.el" (18658 28898))
 ;;; Generated autoloads from nxhtml/nxhtml.el
 
 (autoload 'nxhtml-mode "../nxhtml/nxhtml" "\
@@ -183,7 +188,7 @@ This mode may be turned on automatically in two ways:
 ;;;***
 
 ;;;### (autoloads (nxhtml-report-bug) "../nxhtml/nxhtml-bug" "nxhtml/nxhtml-bug.el"
-;;;;;;  (18654 27663))
+;;;;;;  (18654 33920))
 ;;; Generated autoloads from nxhtml/nxhtml-bug.el
 
 (autoload 'nxhtml-report-bug "../nxhtml/nxhtml-bug" "\
@@ -194,7 +199,7 @@ Report a bug in nXhtml.
 ;;;***
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-minor-mode) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18657 25526))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18658 45791))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-minor-mode "../nxhtml/nxhtml-menu" "\
@@ -271,6 +276,34 @@ This also covers inlined style and javascript." t)
 
 ;;;***
 
+;;;### (autoloads (nxml-where-global-mode nxml-where-mode) "../nxhtml/nxml-where"
+;;;;;;  "nxhtml/nxml-where.el" (18658 28394))
+;;; Generated autoloads from nxhtml/nxml-where.el
+
+(autoload 'nxml-where-mode "../nxhtml/nxml-where" "\
+Shows path in mode line.
+
+\(fn &optional ARG)" t nil)
+
+(defvar nxml-where-global-mode nil "\
+Non-nil if Nxml-Where-Global mode is enabled.
+See the command `nxml-where-global-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `nxml-where-global-mode'.")
+
+(custom-autoload 'nxml-where-global-mode "../nxhtml/nxml-where" nil)
+
+(autoload 'nxml-where-global-mode "../nxhtml/nxml-where" "\
+Toggle Nxml-Where mode in every possible buffer.
+With prefix ARG, turn Nxml-Where-Global mode on if and only if ARG is positive.
+Nxml-Where mode is enabled in all buffers where `nxml-where-turn-on-in-nxml-child' would do it.
+See `nxml-where-mode' for more information on Nxml-Where mode.
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
 ;;;### (autoloads (csharp-mode) "../related/csharp-mode" "related/csharp-mode.el"
 ;;;;;;  (18283 4168))
 ;;; Generated autoloads from related/csharp-mode.el
@@ -303,7 +336,7 @@ Major mode to edit Cascading Style Sheets.
 ;;;***
 
 ;;;### (autoloads (django-mode) "../related/django" "related/django.el"
-;;;;;;  (18654 27792))
+;;;;;;  (18654 33920))
 ;;; Generated autoloads from related/django.el
 
 (autoload 'django-mode "../related/django" "\
@@ -381,7 +414,7 @@ Major mode for editing JavaScript code.
 ;;;***
 
 ;;;### (autoloads (inferior-moz-mode moz-minor-mode) "../related/moz"
-;;;;;;  "related/moz.el" (18654 28149))
+;;;;;;  "related/moz.el" (18654 33920))
 ;;; Generated autoloads from related/moz.el
 
 (autoload 'moz-minor-mode "../related/moz" "\
@@ -1486,7 +1519,7 @@ The variable ruby-indent-level controls the amount of indentation.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "../tests/nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (18654 22319))
+;;;;;;  "tests/nxhtmltest-suites.el" (18654 33920))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 
 (autoload 'nxhtmltest-run-indent "../tests/nxhtmltest-suites" "\
@@ -1509,8 +1542,17 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 ;;;***
 
 ;;;### (autoloads (as-external-mode) "as-external" "util/as-external.el"
-;;;;;;  (18657 35301))
+;;;;;;  (18657 63086))
 ;;; Generated autoloads from util/as-external.el
+
+(defvar as-external-mode nil "\
+Non-nil if As-External mode is enabled.
+See the command `as-external-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `as-external-mode'.")
+
+(custom-autoload 'as-external-mode "as-external" nil)
 
 (autoload 'as-external-mode "as-external" "\
 If non-nil check for if Emacs is used as external editor.
@@ -1525,8 +1567,8 @@ See `as-external-alist' for more information.
 
 ;;;***
 
-;;;### (autoloads (gimp-edit-buffer gimp-edit-file) "gimp" "util/gimp.el"
-;;;;;;  (18656 11569))
+;;;### (autoloads (gimp-can-edit gimp-edit-buffer gimp-edit-file)
+;;;;;;  "gimp" "util/gimp.el" (18658 27196))
 ;;; Generated autoloads from util/gimp.el
 
 (autoload 'gimp-edit-file "gimp" "\
@@ -1539,10 +1581,15 @@ Edit image file in current buffer with GIMP.
 
 \(fn)" t nil)
 
+(autoload 'gimp-can-edit "gimp" "\
+Not documented
+
+\(fn FILE-NAME)" nil nil)
+
 ;;;***
 
 ;;;### (autoloads (majmodpri-apply-priorities majmodpri-sort-lists
-;;;;;;  majmodpri) "majmodpri" "util/majmodpri.el" (18654 32812))
+;;;;;;  majmodpri) "majmodpri" "util/majmodpri.el" (18654 33920))
 ;;; Generated autoloads from util/majmodpri.el
 
 (let ((loads (get 'majmodpri 'custom-loads))) (if (member '"majmodpri" loads) nil (put 'majmodpri 'custom-loads (cons '"majmodpri" loads))))
@@ -1576,7 +1623,7 @@ before applying.
 ;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode smarty-html-mumamo-mode
 ;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
 ;;;;;;  embperl-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18652 3602))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18654 33922))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1671,7 +1718,7 @@ This also covers inlined style and javascript." t)
 ;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
 ;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
 ;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18657 25041))
+;;;;;;  "util/ourcomments-util.el" (18657 26622))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -1901,7 +1948,7 @@ Open an info file in `Info-mode'.
 ;;;***
 
 ;;;### (autoloads (rnc-mode) "rnc-mode" "util/rnc-mode.el" (18654
-;;;;;;  28060))
+;;;;;;  33922))
 ;;; Generated autoloads from util/rnc-mode.el
 
 (autoload 'rnc-mode "rnc-mode" "\
@@ -1913,7 +1960,7 @@ Major mode for editing RELAX NG Compact Syntax schemas.
 ;;;***
 
 ;;;### (autoloads (udev-cedet-update) "udev-cedet" "util/udev-cedet.el"
-;;;;;;  (18654 28232))
+;;;;;;  (18654 33922))
 ;;; Generated autoloads from util/udev-cedet.el
 
 (autoload 'udev-cedet-update "udev-cedet" "\
@@ -1926,7 +1973,7 @@ For how to start CEDET see `udev-cedet-load-cedet'.
 ;;;***
 
 ;;;### (autoloads (udev-ecb-update) "udev-ecb" "util/udev-ecb.el"
-;;;;;;  (18654 28254))
+;;;;;;  (18654 33922))
 ;;; Generated autoloads from util/udev-ecb.el
 
 (autoload 'udev-ecb-update "udev-ecb" "\
@@ -1939,7 +1986,7 @@ For how to start ECB see `udev-ecb-load-ecb'.
 ;;;***
 
 ;;;### (autoloads (udev-rinari-update) "udev-rinari" "util/udev-rinari.el"
-;;;;;;  (18654 39297))
+;;;;;;  (18654 44936))
 ;;; Generated autoloads from util/udev-rinari.el
 
 (autoload 'udev-rinari-update "udev-rinari" "\
@@ -1974,10 +2021,10 @@ resumed later.
 ;;;;;;  "nxhtml/html-pagetoc.el" "nxhtml/html-quote.el" "nxhtml/html-toc.el"
 ;;;;;;  "nxhtml/html-upl.el" "nxhtml/html-wtoc.el" "nxhtml/nxhtml-anything-1.el"
 ;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-js.el" "nxhtml/nxhtml-strval.el"
-;;;;;;  "nxhtml/nxml-where.el" "nxhtml/outline-magic.el" "nxhtml/rngalt.el"
-;;;;;;  "nxhtml/test-c-m.el" "nxhtml/test-cust.el" "nxhtml/tests.el"
-;;;;;;  "nxhtml/tidy-xhtml.el" "nxhtml/wtest.el" "nxhtml/xhtml-help.el"
-;;;;;;  "related/cgi+.el" "related/find-recursive-orig.el" "related/find-recursive.el"
+;;;;;;  "nxhtml/outline-magic.el" "nxhtml/rngalt.el" "nxhtml/test-c-m.el"
+;;;;;;  "nxhtml/test-cust.el" "nxhtml/tests.el" "nxhtml/tidy-xhtml.el"
+;;;;;;  "nxhtml/wtest.el" "nxhtml/xhtml-help.el" "related/cgi+.el"
+;;;;;;  "related/find-recursive-orig.el" "related/find-recursive.el"
 ;;;;;;  "related/flymake-helpers.el" "related/flymake-js.el" "related/flymake-keys.el"
 ;;;;;;  "related/flymake-php.el" "related/flymu.el" "related/fold-dwim.el"
 ;;;;;;  "related/js2-font-lock-new.el" "related/js2-font-lock.el"
@@ -1986,27 +2033,27 @@ resumed later.
 ;;;;;;  "tests/in/bug271497.el" "tests/in/cr-lf.el" "tests/in/el-070722-index-2.el"
 ;;;;;;  "tests/in/emacswiki-erb-bug.el" "tests/in/eval-in-html.el"
 ;;;;;;  "tests/in/nxml-indent.el" "tests/in/utf8-problem.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/nxhtmltest-Q.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
-;;;;;;  "util/appmenu-fold.el" "util/appmenu.el" "util/buffer-bg.el"
-;;;;;;  "util/bw-rnc-load/schema-find.el" "util/chart.el" "util/color-test-sent.el"
-;;;;;;  "util/color-test.el" "util/custsets.el" "util/ecb-batch-compile.el"
-;;;;;;  "util/elunit.el" "util/ffip.el" "util/fmode.el" "util/freemind.el"
-;;;;;;  "util/from-osxkeys.el" "util/fupd.el" "util/half-qwerty.el"
-;;;;;;  "util/hexcolor.el" "util/hfyview.el" "util/hl-needed.el"
-;;;;;;  "util/htmlfontify.21.el" "util/htmlfontify.el" "util/mlinks.el"
-;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-test.el" "util/mumamo-trace.el"
-;;;;;;  "util/mumamo.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
-;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/physical-line.el"
-;;;;;;  "util/popcmp.el" "util/rebind.el" "util/rxi.el" "util/search-form.el"
-;;;;;;  "util/sex-mode.el" "util/tabkey2.el" "util/tyda.el" "util/udev-nxhtml.el"
-;;;;;;  "util/udev.el" "util/useful-commands.el" "util/vline.el"
-;;;;;;  "util/whelp.el" "util/winsav.el" "util/winsize.el" "util/zen-mode.el")
-;;;;;;  (18657 35325 625000))
+;;;;;;  "tests/nxhtmltest-Q.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
+;;;;;;  "util/appmenu.el" "util/buffer-bg.el" "util/bw-rnc-load/schema-find.el"
+;;;;;;  "util/chart.el" "util/color-test-sent.el" "util/color-test.el"
+;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/elunit.el"
+;;;;;;  "util/ffip.el" "util/fmode.el" "util/freemind.el" "util/from-osxkeys.el"
+;;;;;;  "util/fupd.el" "util/half-qwerty.el" "util/hexcolor.el" "util/hfyview.el"
+;;;;;;  "util/hl-needed.el" "util/htmlfontify.21.el" "util/htmlfontify.el"
+;;;;;;  "util/mlinks.el" "util/mumamo-aspnet.el" "util/mumamo-test.el"
+;;;;;;  "util/mumamo-trace.el" "util/mumamo.el" "util/new-key-seq-widget.el"
+;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
+;;;;;;  "util/pause.el" "util/physical-line.el" "util/popcmp.el"
+;;;;;;  "util/rebind.el" "util/rxi.el" "util/search-form.el" "util/sex-mode.el"
+;;;;;;  "util/tabkey2.el" "util/tyda.el" "util/udev-nxhtml.el" "util/udev.el"
+;;;;;;  "util/useful-commands.el" "util/vline.el" "util/whelp.el"
+;;;;;;  "util/winsav.el" "util/winsize.el" "util/zen-mode.el") (18658
+;;;;;;  45809 890000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-get-all-autoloads) "../nxhtml-maintenance"
-;;;;;;  "nxhtml-maintenance.el" (18654 32934))
+;;;;;;  "nxhtml-maintenance.el" (18654 33920))
 ;;; Generated autoloads from nxhtml-maintenance.el
 
 (autoload 'nxhtmlmaint-get-all-autoloads "../nxhtml-maintenance" "\
