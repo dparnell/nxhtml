@@ -48,6 +48,7 @@
 (defvar nxhtmltest-bin-Q
   (file-name-directory (if load-file-name load-file-name buffer-file-name)))
 
+;;;###autoload
 (defun nxhtmltest-run-Q ()
   "Run all tests defined for nXhtml in fresh Emacs.
 See `nxhtmltest-run' for more information about the tests."

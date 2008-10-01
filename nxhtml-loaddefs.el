@@ -1518,6 +1518,18 @@ The variable ruby-indent-level controls the amount of indentation.
 
 ;;;***
 
+;;;### (autoloads (nxhtmltest-run-Q) "../tests/nxhtmltest-Q" "tests/nxhtmltest-Q.el"
+;;;;;;  (18659 15676))
+;;; Generated autoloads from tests/nxhtmltest-Q.el
+
+(autoload 'nxhtmltest-run-Q "../tests/nxhtmltest-Q" "\
+Run all tests defined for nXhtml in fresh Emacs.
+See `nxhtmltest-run' for more information about the tests.
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "../tests/nxhtmltest-suites"
 ;;;;;;  "tests/nxhtmltest-suites.el" (18654 33920))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
@@ -1564,6 +1576,38 @@ major and minor modes for the buffer.
 See `as-external-alist' for more information.
 
 \(fn &optional ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads (freemind-to-org-mode freemind-from-org-sparse-tree
+;;;;;;  freemind-from-org-mode freemind-from-org-mode-node freemind-show)
+;;;;;;  "freemind" "util/freemind.el" (18658 53586))
+;;; Generated autoloads from util/freemind.el
+
+(autoload 'freemind-show "freemind" "\
+Show file MM-FILE in Freemind.
+
+\(fn MM-FILE)" t nil)
+
+(autoload 'freemind-from-org-mode-node "freemind" "\
+Convert node at line NODE-LINE to the FreeMind file MM-FILE.
+
+\(fn NODE-LINE MM-FILE)" t nil)
+
+(autoload 'freemind-from-org-mode "freemind" "\
+Convert the `org-mode' file ORG-FILE to the FreeMind file MM-FILE.
+
+\(fn ORG-FILE MM-FILE)" t nil)
+
+(autoload 'freemind-from-org-sparse-tree "freemind" "\
+Convert visible part of buffer ORG-BUFFER to FreeMind file MM-FILE.
+
+\(fn ORG-BUFFER MM-FILE)" t nil)
+
+(autoload 'freemind-to-org-mode "freemind" "\
+Convert FreeMind file MM-FILE to `org-mode' file ORG-FILE.
+
+\(fn MM-FILE ORG-FILE)" t nil)
 
 ;;;***
 
@@ -1614,6 +1658,41 @@ non-nil apply to existing file buffers.  If interactive ask
 before applying.
 
 \(fn CHANGE-MODES)" t nil)
+
+;;;***
+
+;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18658
+;;;;;;  54929))
+;;; Generated autoloads from util/mlinks.el
+
+(autoload 'mlinks-mode "mlinks" "\
+Recognizes certain parts of a buffer as hyperlinks.
+The hyperlinks are created in different ways for different major
+modes with the help of the functions in the list
+`mlinks-mode-functions'.
+
+The hyperlinks can be hilighted when the point is over them.
+Use `mlinks-toggle-hilight' to toggle this feature for the
+current buffer.
+
+All keybindings in this mode are by default done under the prefi§x
+key
+
+  C-c RET
+
+which is supposed to be a kind of mnemonic for link (alluding to
+the RET key commonly used in web browser to follow a link).
+\(Unfortunately this breaks the rules in info node `Key Binding
+Conventions'.) Below are the key bindings defined by this mode:
+
+\\{mlinks-mode-map}
+
+For some major modes `mlinks-backward-link' and
+`mlinks-forward-link' will take you to the previous/next link.
+By default the link moved to will be active, see
+`mlinks-active-links'.
+
+\(fn &optional ARG)" t nil)
 
 ;;;***
 
@@ -1718,7 +1797,7 @@ This also covers inlined style and javascript." t)
 ;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
 ;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
 ;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18657 26622))
+;;;;;;  "util/ourcomments-util.el" (18658 50234))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -1959,6 +2038,70 @@ Major mode for editing RELAX NG Compact Syntax schemas.
 
 ;;;***
 
+;;;### (autoloads (tabkey2-mode) "tabkey2" "util/tabkey2.el" (18658
+;;;;;;  53818))
+;;; Generated autoloads from util/tabkey2.el
+
+(defvar tabkey2-mode nil "\
+Non-nil if Tabkey2 mode is enabled.
+See the command `tabkey2-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `tabkey2-mode'.")
+
+(custom-autoload 'tabkey2-mode "tabkey2" nil)
+
+(autoload 'tabkey2-mode "tabkey2" "\
+More fun with Tab key number two (completion etc).
+This global minor mode by default binds Tab in a way that let you
+do completion with Tab in all buffers (where it is possible).
+
+The Tab key is easy to type on your keyboard.  Then why not use
+it for completion, something that is very useful?  Shells usually
+use Tab for completion so many are used to it.  This was the idea
+of Smart Tabs and this is a generalization of that idea.
+
+However in Emacs the Tab key is usually used for indentation.
+The idea here is that if Tab has been pressed once for
+indentation, then as long as point stays further Tab keys might
+as well do completion.
+
+So you kind of do Tab-Tab for first completion (and then just
+Tab for further completions as long as point is not moved).
+
+And there is even kind of Tab-Tab-Tab completion: If completion
+fails the next completion function will be the one you try with
+next Tab. (You get some notification of this, of course.)
+
+See `tabkey2-first' for more information about usage.
+
+Note: If you do not want the Tab-Tab behaviour above, but still
+want an easy way to reach the available completion functions,
+then you can instead of turning on tabkey2-mode enter this in
+your .emacs:
+
+ (global-set-key [f8] 'tabkey2-cycle-completion-functions)
+
+After hitting f8 you will then be in the same state as after the
+first in tabkey2-mode.
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads (tyda-lookup-word) "tyda" "util/tyda.el" (18658
+;;;;;;  53632))
+;;; Generated autoloads from util/tyda.el
+
+(autoload 'tyda-lookup-word "tyda" "\
+Look up word WORD at URL `http://tyda.se/'.
+This site translates between English and Swedish.  The site will
+be opened in your webbrowser with WORD looked up.
+
+\(fn WORD)" t nil)
+
+;;;***
+
 ;;;### (autoloads (udev-cedet-update) "udev-cedet" "util/udev-cedet.el"
 ;;;;;;  (18654 33922))
 ;;; Generated autoloads from util/udev-cedet.el
@@ -2016,6 +2159,206 @@ resumed later.
 
 ;;;***
 
+;;;### (autoloads (winsize-save-window-configuration winsize-balance-siblings
+;;;;;;  resize-windows) "winsize" "util/winsize.el" (18658 54305))
+;;; Generated autoloads from util/winsize.el
+
+(autoload 'resize-windows "winsize" "\
+Start window resizing.
+During resizing a window is selected.  You can move its
+borders. In the default configuration the arrow keys moves the
+right or bottom border if they are there. To move the opposite
+border use S-arrowkeys.
+
+You can also do other window operations, like splitting, deleting
+and balancing the sizes.  The keybindings below describes the key
+bindings during resizing:\\<winsize-keymap>
+
+  `balance-windows'                      \\[balance-windows]
+  `winsize-balance-siblings'             \\[winsize-balance-siblings]
+  `fit-window-to-buffer'                 \\[fit-window-to-buffer]
+  `shrink-window-if-larger-than-buffer'  \\[shrink-window-if-larger-than-buffer]
+
+  `winsize-move-border-up'      \\[winsize-move-border-up]
+  `winsize-move-border-down'    \\[winsize-move-border-down]
+  `winsize-move-border-left'    \\[winsize-move-border-left]
+  `winsize-move-border-right'   \\[winsize-move-border-right]
+
+  `winsize-to-border-or-window-left'    \\[winsize-to-border-or-window-left]
+  `winsize-to-border-or-window-up'      \\[winsize-to-border-or-window-up]
+  `winsize-to-border-or-window-right'   \\[winsize-to-border-or-window-right]
+  `winsize-to-border-or-window-down'    \\[winsize-to-border-or-window-down]
+
+   Note that you can also use your normal keys for
+   `forward-char', `backward-char', `next-line', `previous-line'
+   and what you have on HOME and END to move in the windows. That
+   might sometimes be necessary to directly select a
+   window. (You may however also use `other-window' or click
+   with the mouse, see below.)
+
+  `delete-window'                \\[delete-window]
+  `delete-other-windows'         \\[delete-other-windows]
+  `split-window-vertically'      \\[split-window-vertically]
+  `split-window-horizontally'    \\[split-window-horizontally]
+  `other-window'                 \\[other-window]
+
+  `winsize-save-window-configuration'       \\[winsize-save-window-configuration]
+  `winsize-next-window-configuration'       \\[winsize-next-window-configuration]
+  `winsize-previous-window-configuration'   \\[winsize-previous-window-configuration]
+
+  `mouse-set-point'   \\[mouse-set-point]
+
+  `winsize-quit'               \\[winsize-quit]
+  `winsize-stop-go-back'       \\[winsize-stop-go-back]
+  `winsize-stop'               \\[winsize-stop]
+  `winsize-stop-and-execute'   \\[winsize-stop-and-execute]
+
+  `winsize-help'          \\[winsize-help]
+  `describe-key'          \\[describe-key]
+  `describe-key-briefly'  \\[describe-key-briefly]
+  (All the normal help keys work, and at least those above will
+  play well with resizing.)
+
+Nearly all other keys exits window resizing and they are also
+executed.  However, the key sequences in `winsize-let-me-use' and
+dito for commands there are also executed without exiting
+resizing.
+
+The colors of the modelines are changed to those given in
+`winsize-mode-line-colors' to indicate that you are resizing
+windows.  To make this indication more prominent the text in the
+selected window is marked with the face hold in the variable
+`winsize-selected-window-face'.
+
+The option `juris-way' decides how the borders to move are
+selected. If this option is non-nil then the right or bottom
+border are the ones that are moved with the arrow keys and the
+opposite border with shift arrow keys.
+
+If `juris-way' is nil then the following apply:
+
+As you select other borders or move to new a window the mouse
+pointer is moved inside the selected window to show which borders
+are beeing moved. The mouse jumps a little bit to make its
+position more visible. You can turn this off by customizing
+`winsize-make-mouse-prominent'.
+
+Which borders initially are choosen are controlled by the
+variable `winsize-autoselect-borders'.
+
+** Example: Border selection, movements and windows.
+
+  Suppose you have a frame divided into windows like in the
+  figure below.  If window B is selected when you start resizing
+  then (with default settings) the borders marked with 'v' and
+  'h' will be the ones that the arrow keys moves. To indicate
+  this the mouse pointer is placed in the right lower corner of
+  the selected window B.
+
+    +----------+-----------+--------+
+    |          |           v        |
+    |          |           v        |
+    |    A     |    _B_    v        |
+    |          |           v        |
+    |          |           v        |
+    |          |         x v        |
+    +hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh+
+    |                    |          |
+    |                    |          |
+    |                    |          |
+    |                    |          |
+    |                    |          |
+    |                    |          |
+    +----------+---------+----------+
+
+  Now if you press M-<left> then the picture below shows what has
+  happened. Note that the selected vertical border is now the one
+  between A and B. The mouse pointer has moved to the
+  corresponding corner in the window B, which is still selected.
+
+    +----------+-----------+--------+
+    |          v           |        |
+    |          v           |        |
+    |    A     v    _B_    |        |
+    |          v           |        |
+    |          v           |        |
+    |          v x         |        |
+    +hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh+
+    |                    |          |
+    |                    |          |
+    |                    |          |
+    |                    |          |
+    |                    |          |
+    |                    |          |
+    +----------+---------+----------+
+
+  Press M-<left> once again. This gives this picture:
+
+    +----------+-----------+--------+
+    |          v           |        |
+    |          v           |        |
+    |   _A_    v     B     |        |
+    |          v           |        |
+    |          v           |        |
+    |        x v           |        |
+    +hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh+
+    |                    |          |
+    |                    |          |
+    |                    |          |
+    |                    |          |
+    |                    |          |
+    |                    |          |
+    +----------+---------+----------+
+
+  Note that the window A is now selected. However there is no
+  border that could be moved to the left of this window (which
+  would otherwise be chosen now) so the border between A and B is
+  still the one that <left> and <right> moves. The mouse has
+  moved to A.
+
+  If we now delete window A the new situation will look like
+  this:
+
+    +----------+-----------+--------+
+    |                      |        |
+    |                      |        |
+    |         _B_          |        |
+    |                      |        |
+    |                      |        |
+    |                    x |        |
+    +hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh+
+    |                    |          |
+    |                    |          |
+    |                    |          |
+    |                    |          |
+    |                    |          |
+    |                    |          |
+    +----------+---------+----------+
+
+
+
+>>>> testing stuff >>>>
+`help-mode-hook'
+`temp-buffer-show-function'
+`view-exit-action'
+<<<<<<<<<<<<<<<<<<<<<<<
+
+\(fn)" t nil)
+
+(autoload 'winsize-balance-siblings "winsize" "\
+Make current window siblings the same height or width.
+It works the same way as `balance-windows', but only for the
+current window and its siblings.
+
+\(fn)" t nil)
+
+(autoload 'winsize-save-window-configuration "winsize" "\
+Not documented
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads nil nil ("autostart.el" "etc/schema/schema-path-patch.el"
 ;;;;;;  "nxhtml/html-chklnk.el" "nxhtml/html-imenu.el" "nxhtml/html-move.el"
 ;;;;;;  "nxhtml/html-pagetoc.el" "nxhtml/html-quote.el" "nxhtml/html-toc.el"
@@ -2033,27 +2376,25 @@ resumed later.
 ;;;;;;  "tests/in/bug271497.el" "tests/in/cr-lf.el" "tests/in/el-070722-index-2.el"
 ;;;;;;  "tests/in/emacswiki-erb-bug.el" "tests/in/eval-in-html.el"
 ;;;;;;  "tests/in/nxml-indent.el" "tests/in/utf8-problem.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/nxhtmltest-Q.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
-;;;;;;  "util/appmenu.el" "util/buffer-bg.el" "util/bw-rnc-load/schema-find.el"
-;;;;;;  "util/chart.el" "util/color-test-sent.el" "util/color-test.el"
-;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/elunit.el"
-;;;;;;  "util/ffip.el" "util/fmode.el" "util/freemind.el" "util/from-osxkeys.el"
-;;;;;;  "util/fupd.el" "util/half-qwerty.el" "util/hexcolor.el" "util/hfyview.el"
-;;;;;;  "util/hl-needed.el" "util/htmlfontify.21.el" "util/htmlfontify.el"
-;;;;;;  "util/mlinks.el" "util/mumamo-aspnet.el" "util/mumamo-test.el"
-;;;;;;  "util/mumamo-trace.el" "util/mumamo.el" "util/new-key-seq-widget.el"
-;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
-;;;;;;  "util/pause.el" "util/physical-line.el" "util/popcmp.el"
-;;;;;;  "util/rebind.el" "util/rxi.el" "util/search-form.el" "util/sex-mode.el"
-;;;;;;  "util/tabkey2.el" "util/tyda.el" "util/udev-nxhtml.el" "util/udev.el"
-;;;;;;  "util/useful-commands.el" "util/vline.el" "util/whelp.el"
-;;;;;;  "util/winsav.el" "util/winsize.el" "util/zen-mode.el") (18658
-;;;;;;  45809 890000))
+;;;;;;  "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el" "util/appmenu.el"
+;;;;;;  "util/buffer-bg.el" "util/bw-rnc-load/schema-find.el" "util/chart.el"
+;;;;;;  "util/color-test-sent.el" "util/color-test.el" "util/custsets.el"
+;;;;;;  "util/ecb-batch-compile.el" "util/elunit.el" "util/ffip.el"
+;;;;;;  "util/fmode.el" "util/from-osxkeys.el" "util/fupd.el" "util/half-qwerty.el"
+;;;;;;  "util/hexcolor.el" "util/hfyview.el" "util/hl-needed.el"
+;;;;;;  "util/htmlfontify.21.el" "util/htmlfontify.el" "util/mumamo-aspnet.el"
+;;;;;;  "util/mumamo-test.el" "util/mumamo-trace.el" "util/mumamo.el"
+;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/physical-line.el"
+;;;;;;  "util/popcmp.el" "util/rebind.el" "util/rxi.el" "util/search-form.el"
+;;;;;;  "util/sex-mode.el" "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
+;;;;;;  "util/vline.el" "util/whelp.el" "util/winsav.el" "util/zen-mode.el")
+;;;;;;  (18659 16289 437000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-get-all-autoloads) "../nxhtml-maintenance"
-;;;;;;  "nxhtml-maintenance.el" (18654 33920))
+;;;;;;  "nxhtml-maintenance.el" (18658 53900))
 ;;; Generated autoloads from nxhtml-maintenance.el
 
 (autoload 'nxhtmlmaint-get-all-autoloads "../nxhtml-maintenance" "\

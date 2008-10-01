@@ -1221,6 +1221,7 @@ If used with a PREFIX argument then just show what Tab will do."
               (tabkey2-show-current-message)
             (message "No more active completion functions in this buffer")))))))
 
+;;;###autoload
 (define-minor-mode tabkey2-mode
   "More fun with Tab key number two (completion etc).
 This global minor mode by default binds Tab in a way that let you
