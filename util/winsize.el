@@ -198,6 +198,7 @@ give a short help message unless last command gave some message."
       (winsize-set-border winsize-border-ver t)))
   (winsize-tell-user))
 
+;;;###autoload
 (defun resize-windows ()
   "Start window resizing.
 During resizing a window is selected.  You can move its
@@ -549,6 +550,7 @@ Select the window marked during resizing."
   (interactive)
   (winsize-exit-resizing nil))
 
+;;;###autoload
 (defun winsize-balance-siblings ()
   "Make current window siblings the same height or width.
 It works the same way as `balance-windows', but only for the
@@ -982,6 +984,7 @@ should be one of 'left, 'up, 'right and 'down."
       (winsize-ring-rotate ring forward)
       (set-window-configuration (ring-ref ring 0)))))
 
+;;;###autoload
 (defun winsize-save-window-configuration ()
   (interactive)
   (let* ((curr-conf (current-window-configuration))

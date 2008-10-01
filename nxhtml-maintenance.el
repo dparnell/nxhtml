@@ -171,5 +171,15 @@
         (nxhtmlmaint-make-autoload (ad-get-arg 0)
                                              (ad-get-arg 1))))
 
+(defun generate-library-autoloads (library)
+  "Insert at point autoloads for Emacs library LIBRARY.
+  Works like `generate-file-autoloads', but for a library."
+  (interactive
+   (list (completing-read "Generate autoloads for library: "
+                          'locate-file-completion
+                          (cons load-path (get-load-suffixes)))))
+  (let ((file (locate-library library)))
+    (generate-file-autoloads file)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; nxhtml-maintenance.el ends here

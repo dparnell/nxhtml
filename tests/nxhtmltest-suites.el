@@ -195,6 +195,7 @@ file is invalid then."
     (nxhtml-mumamo-mode)
     (nxhtmltest-fontify-default-way 2 "sheit")
     (font-lock-mode 1)
+    (mumamo-post-command)
     (rng-validate-mode 1)
     (rngalt-validate)
     (ert-should (eq rng-validate-mode t))

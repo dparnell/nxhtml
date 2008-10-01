@@ -41,10 +41,10 @@
 
 (message "Nxml/Nxhtml Autostart.el loading ...")
 
-;; In case an old Emacs 22 beta is used, ie mostly for Debian/Ubuntu
-;; at the moment. Suggested by Hadron Quark, thanks.
-(unless (fboundp 'define-globalized-minor-mode)
-  (defalias 'define-globalized-minor-mode 'define-global-minor-mode))
+;; ;; In case an old Emacs 22 beta is used, ie mostly for Debian/Ubuntu
+;; ;; at the moment. Suggested by Hadron Quark, thanks.
+;; (unless (fboundp 'define-globalized-minor-mode)
+;;   (defalias 'define-globalized-minor-mode 'define-global-minor-mode))
 
 (defvar nxhtml-install-dir
   (file-name-directory (if load-file-name load-file-name buffer-file-name))

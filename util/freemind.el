@@ -88,6 +88,7 @@
 ;;   :group 'freemind)
 
 
+;;;###autoload
 (defun freemind-show (mm-file)
   "Show file MM-FILE in Freemind."
   (interactive
@@ -540,6 +541,7 @@
             (goto-char (point-min))
             ))))))
 
+;;;###autoload
 (defun freemind-from-org-mode-node (node-line mm-file)
   "Convert node at line NODE-LINE to the FreeMind file MM-FILE."
   (interactive
@@ -564,6 +566,7 @@
           (switch-to-buffer-other-window mm-buffer)
           (freemind-show buffer-file-name))))))
 
+;;;###autoload
 (defun freemind-from-org-mode (org-file mm-file)
   "Convert the `org-mode' file ORG-FILE to the FreeMind file MM-FILE."
   ;; Fix-me: better doc, include recommendations etc.
@@ -586,6 +589,7 @@
           (switch-to-buffer-other-window mm-buffer)
           (freemind-show buffer-file-name))))))
 
+;;;###autoload
 (defun freemind-from-org-sparse-tree (org-buffer mm-file)
   "Convert visible part of buffer ORG-BUFFER to FreeMind file MM-FILE."
   (interactive
@@ -821,6 +825,7 @@ PATH should be a list of steps, where each step has the form
 
 ;; Fix-me: put back special things, like drawers that are stored in
 ;; the notes. Should maybe all notes contents be put in drawers?
+;;;###autoload
 (defun freemind-to-org-mode (mm-file org-file)
   "Convert FreeMind file MM-FILE to `org-mode' file ORG-FILE."
   (interactive

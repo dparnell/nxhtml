@@ -604,6 +604,7 @@ Uses `switch-to-buffer-other-frame'."
           (delete-overlay o)))))
   (cons min max))
 
+;;;###autoload
 (define-minor-mode mlinks-mode
   "Recognizes certain parts of a buffer as hyperlinks.
 The hyperlinks are created in different ways for different major
