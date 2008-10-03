@@ -942,6 +942,47 @@ list."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Misc.
 
+(defvar better-bottom-angles-defaults nil)
+;;;###autoload
+(defun better-fringe-bottom-angles ()
+  ;;(bottom bottom-left-angle bottom-right-angle top-right-angle top-left-angle)
+  (unless better-bottom-angles-defaults
+    (setq better-bottom-angles-defaults fringe-indicator-alist))
+  (let ((better
+         '(bottom
+           bottom-right-angle bottom-right-angle
+           bottom-left-angle bottom-left-angle
+           ))
+        (indicators (copy-list fringe-indicator-alist)))
+    (setq indicators (assq-delete-all 'bottom indicators))
+    (set-default 'fringe-indicator-alist (cons better indicators))))
+
+;;;###autoload
+(defun better-fringe-faces ()
+  (dolist (bitmap '(bottom-left-angle
+                    bottom-right-angle
+                    top-left-angle
+                    top-right-angle
+
+                    right-curly-arrow
+                    left-arrow right-arrow
+                    left-curly-arrow right-curly-arrow
+                    right-triangle
+                    up-arrow
+                    down-arrow
+                    left-bracket right-bracket
+                    empty-line
+                    question-mark
+                    ))
+    (set-fringe-bitmap-face bitmap 'better-fringe-bitmap)))
+
+
+(defface better-fringe-bitmap
+  '((t (:foreground "khaki")))
+  "Face for bitmap fringes."
+  ;;:set (lambda (sym val) (set-default sym val) (better-fringe-faces))
+  :group 'convenience)
+
 ;;;###autoload
 (defun find-emacs-other-file (display-file)
   "Find corresponding file to source or installed elisp file.
