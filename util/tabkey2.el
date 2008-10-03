@@ -789,8 +789,7 @@ This is run in `post-command-hook' after each command."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Message functions
 
-;; Fix-me: is something like this included in Emacs now? reveal.el
-;; gets it wrong.
+;; Fix-me: Included in Emacs 23.
 (unless (fboundp 'invisible-p)
   (defun invisible-p (pos)
     "Return non-nil if the character after POS is currently invisible."

@@ -72,16 +72,26 @@
           ))
         (reverse (cdr cmd-list))))))
 
-(defvar gimp-remote-command (gimp-get-remote-command))
+(defvar gimp-remote-command nil)
 
 ;; (gimp-get-gimp-exe)
 (defun gimp-get-gimp-exe ()
+  (unless gimp-remote-command
+    (setq gimp-remote-command (gimp-get-remote-command)))
   (if gimp-remote-command
       (let* ((command-list gimp-remote-command)
              (dir (file-name-directory (nth 0 command-list)))
              (exe (nth 1 command-list)))
-        (expand-file-name exe dir))
+        (if exe
+            ;; GIMP 2.0 - 2.5
+            (expand-file-name exe dir)
+          ;; GIMP 2.6
+          (nth 0 command-list)))
     "gimp.exe"))
+
+(defgroup gimp nil
+  "Customization group for GIMP."
+  :group 'nxhtml)
 
 (defcustom gimp-exe (gimp-get-gimp-exe)
   "Gimp executable file."
@@ -116,9 +126,9 @@ Example:
          0
          nil
          (reverse (cons image-file (reverse (cdr gimp-remote-command-list)))))
-  (let ((msg " Asked GIMP to open %s "))
+  (let ((msg " Asked GIMP to open %s - you may have to switch to GIMP"))
     (put-text-property 0 (length msg) 'face 'highlight msg)
-    (message msg image-file)))
+    (message msg (file-name-nondirectory image-file))))
 
 ;;;###autoload
 (defun gimp-edit-buffer ()
