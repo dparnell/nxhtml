@@ -146,6 +146,11 @@ OVERLAY is the overlay added by `html-write-hide-tags' for this tag."
         (overlay-put overlay 'face 'html-write-link)
         (overlay-put overlay 'help-echo href)
         (overlay-put overlay 'mouse-face 'highlight)
+        (if (eq ?# (string-to-char href))
+            ;; fix-me: Why is buffer-file-name nil????
+            (setq href (concat "file:///" buffer-name href))
+          (when (file-exists-p href)
+            (setq href (expand-file-name href))))
         (overlay-put overlay 'html-write-url href))
       (goto-char (point)))))
 
@@ -327,7 +332,8 @@ See that variable for START, END and PRE-LEN."
 
 (defun html-write-hide-tags (start end)
   "Hide tags matching `html-write-tag-list' between START and END."
-  (let ((here (point-marker)))
+  (let ((here (point-marker))
+        (buffer-name (buffer-file-name)))
     (save-restriction
       (widen)
       (goto-char start)
