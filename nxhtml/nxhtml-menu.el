@@ -176,13 +176,18 @@
               ))
       (let ((fill-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-filling]
-          (list 'menu-item "Filling" fill-map))
+          (list 'menu-item "Writing Text" fill-map))
         (define-key fill-map [nxhtml-unfill-paragraph]
           (list 'menu-item "Unfill Paragraph" 'unfill-paragraph))
         (define-key fill-map [nxhtml-fill-paragraph]
           (list 'menu-item "Fill Paragraph" 'fill-paragraph))
         (define-key fill-map [nxhtml-wrap-to-fill-separator]
           (list 'menu-item "--" nil))
+        (define-key fill-map [nxhtml-html-write-mode]
+          (list 'menu-item "HTML Write Mode"
+                'html-write-mode
+                :button '(:toggle . (and (boundp 'html-write-mode)
+                                         html-write-mode))))
         (define-key fill-map [nxhtml-wrap-to-fill-column-mode]
           (list 'menu-item "Wrap To Fill Column Mode"
                 'wrap-to-fill-column-mode
@@ -386,20 +391,27 @@
                                   (nxhtml-nxhtml-in-buffer)))))
         (define-key where-map [nxml-where-id]
           (list 'menu-item "Show tag ids in path" 'nxml-where-tag+id-toggle
-                :button '(:toggle . nxml-where-tag+id)))
+                :enable '(boundp 'nxml-where-tag+id)
+                :button '(:toggle . (and (boundp 'nxml-where-tag+id)
+                                         nxml-where-tag+id))))
         (define-key where-map [nxml-where-header]
           (list 'menu-item "Show XML path in header" 'nxml-where-header-toggle
-                :button '(:toggle . nxml-where-header)))
+                :enable '(boundp 'nxml-where-header)
+                :button '(:toggle . (and (boundp 'nxml-where-header)
+                                         'nxml-where-header))))
         (define-key where-map [nxml-where-marks]
           (list 'menu-item "Show XML path marks" 'nxml-where-marks-toggle
-                :button '(:toggle . nxml-where-marks)))
+                :enable '(boundp 'nxml-where-marks)
+                :button '(:toggle . (and (boundp 'nxml-where-marks)
+                                         nxml-where-marks))))
         (define-key where-map [where-separator] (list 'menu-item "--"))
         (define-key where-map [nxml-where-global-toggle]
           (list 'menu-item "Show XML path" 'nxml-where-global-mode
                 :button '(:toggle . nxml-where-global-mode)))
         (define-key where-map [nxml-where-toggle]
           (list 'menu-item "Show XML path in buffer" 'nxml-where-mode
-                :button '(:toggle . nxml-where-mode)))
+                :button '(:toggle . (and (boundp 'nxml-where-mode)
+                                         nxml-where-mode))))
         ))
 
     (let ((quick-map (make-sparse-keymap)))

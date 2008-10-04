@@ -5,7 +5,7 @@
 
 ;;;### (autoloads (html-site-query-replace html-site-rgrep html-site-find-file
 ;;;;;;  html-site-dired-current html-site-set-site html-site-buffer-or-dired-file-name)
-;;;;;;  "../nxhtml/html-site" "nxhtml/html-site.el" (18658 45782))
+;;;;;;  "../nxhtml/html-site" "nxhtml/html-site.el" (18658 47798))
 ;;; Generated autoloads from nxhtml/html-site.el
 
 (autoload 'html-site-buffer-or-dired-file-name "../nxhtml/html-site" "\
@@ -42,7 +42,7 @@ Query replace in current site's files.
 ;;;***
 
 ;;;### (autoloads (inlimg-toggle-img-display inlimg-mode) "../nxhtml/inlimg"
-;;;;;;  "nxhtml/inlimg.el" (18658 11590))
+;;;;;;  "nxhtml/inlimg.el" (18658 47798))
 ;;; Generated autoloads from nxhtml/inlimg.el
 
 (autoload 'inlimg-mode "../nxhtml/inlimg" "\
@@ -64,7 +64,7 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-mode) "../nxhtml/nxhtml"
-;;;;;;  "nxhtml/nxhtml.el" (18658 28898))
+;;;;;;  "nxhtml/nxhtml.el" (18658 47798))
 ;;; Generated autoloads from nxhtml/nxhtml.el
 
 (autoload 'nxhtml-mode "../nxhtml/nxhtml" "\
@@ -199,7 +199,7 @@ Report a bug in nXhtml.
 ;;;***
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-minor-mode) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18658 45791))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18662 25446))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-minor-mode "../nxhtml/nxhtml-menu" "\
@@ -277,7 +277,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxml-where-global-mode nxml-where-mode) "../nxhtml/nxml-where"
-;;;;;;  "nxhtml/nxml-where.el" (18658 28394))
+;;;;;;  "nxhtml/nxml-where.el" (18658 47798))
 ;;; Generated autoloads from nxhtml/nxml-where.el
 
 (autoload 'nxml-where-mode "../nxhtml/nxml-where" "\
@@ -1519,7 +1519,7 @@ The variable ruby-indent-level controls the amount of indentation.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run-Q) "../tests/nxhtmltest-Q" "tests/nxhtmltest-Q.el"
-;;;;;;  (18659 15676))
+;;;;;;  (18659 17016))
 ;;; Generated autoloads from tests/nxhtmltest-Q.el
 
 (autoload 'nxhtmltest-run-Q "../tests/nxhtmltest-Q" "\
@@ -1531,7 +1531,7 @@ See `nxhtmltest-run' for more information about the tests.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "../tests/nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (18654 33920))
+;;;;;;  "tests/nxhtmltest-suites.el" (18659 17016))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 
 (autoload 'nxhtmltest-run-indent "../tests/nxhtmltest-suites" "\
@@ -1554,7 +1554,7 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 ;;;***
 
 ;;;### (autoloads (as-external-mode) "as-external" "util/as-external.el"
-;;;;;;  (18657 63086))
+;;;;;;  (18662 32357))
 ;;; Generated autoloads from util/as-external.el
 
 (defvar as-external-mode nil "\
@@ -1581,7 +1581,7 @@ See `as-external-alist' for more information.
 
 ;;;### (autoloads (freemind-to-org-mode freemind-from-org-sparse-tree
 ;;;;;;  freemind-from-org-mode freemind-from-org-mode-node freemind-show)
-;;;;;;  "freemind" "util/freemind.el" (18658 53586))
+;;;;;;  "freemind" "util/freemind.el" (18659 17016))
 ;;; Generated autoloads from util/freemind.el
 
 (autoload 'freemind-show "freemind" "\
@@ -1612,7 +1612,7 @@ Convert FreeMind file MM-FILE to `org-mode' file ORG-FILE.
 ;;;***
 
 ;;;### (autoloads (gimp-can-edit gimp-edit-buffer gimp-edit-file)
-;;;;;;  "gimp" "util/gimp.el" (18658 27196))
+;;;;;;  "gimp" "util/gimp.el" (18661 17583))
 ;;; Generated autoloads from util/gimp.el
 
 (autoload 'gimp-edit-file "gimp" "\
@@ -1629,6 +1629,33 @@ Edit image file in current buffer with GIMP.
 Not documented
 
 \(fn FILE-NAME)" nil nil)
+
+;;;***
+
+;;;### (autoloads (visible-point-mode html-write-mode) "html-write"
+;;;;;;  "util/html-write.el" (18662 32379))
+;;; Generated autoloads from util/html-write.el
+
+(autoload 'html-write-mode "html-write" "\
+Minor mode for convenient display of some HTML tags.
+When this mode is on a tag in `html-write-tag-list' is displayed as
+the inner text of the tag with a face corresponding to the tag.
+By default for example <i>...</i> is displayed as italic and
+<a>...</a> is displayed as an underlined clickable link.
+
+Only non-nested tags are hidden.  The idea is just that it should
+be easier to read and write, not that it should look as html
+rendered text.
+
+See the customization group `html-write' for more information about
+faces.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'visible-point-mode "html-write" "\
+doc
+
+\(fn &optional ARG)" t nil)
 
 ;;;***
 
@@ -1661,8 +1688,8 @@ before applying.
 
 ;;;***
 
-;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18658
-;;;;;;  54929))
+;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18659
+;;;;;;  17016))
 ;;; Generated autoloads from util/mlinks.el
 
 (autoload 'mlinks-mode "mlinks" "\
@@ -1792,12 +1819,12 @@ This also covers inlined style and javascript." t)
 ;;;;;;  ourcomments-ido-buffer-other-frame ourcomments-ido-buffer-other-window
 ;;;;;;  describe-symbol describe-defstruct describe-custom-group
 ;;;;;;  describe-command ourcomments-ediff-files find-emacs-other-file
-;;;;;;  wrap-to-fill-column-mode wrap-to-fill-left-marg-modes wrap-to-fill-left-marg
-;;;;;;  describe-key-and-map-briefly ourcomments-move-end-of-line
+;;;;;;  better-fringes-mode wrap-to-fill-column-mode wrap-to-fill-left-marg-modes
+;;;;;;  wrap-to-fill-left-marg describe-key-and-map-briefly ourcomments-move-end-of-line
 ;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
 ;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
 ;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18658 50234))
+;;;;;;  "util/ourcomments-util.el" (18662 25107))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -1926,6 +1953,20 @@ list.
 
 \(fn &optional ARG)" t nil)
 
+(defvar better-fringes-mode nil "\
+Non-nil if Better-Fringes mode is enabled.
+See the command `better-fringes-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `better-fringes-mode'.")
+
+(custom-autoload 'better-fringes-mode "ourcomments-util" nil)
+
+(autoload 'better-fringes-mode "ourcomments-util" "\
+Choose another fringe bitmap color and bottom angle.
+
+\(fn &optional ARG)" t nil)
+
 (autoload 'find-emacs-other-file "ourcomments-util" "\
 Find corresponding file to source or installed elisp file.
 If you have checked out and compiled Emacs yourself you may have
@@ -2038,8 +2079,8 @@ Major mode for editing RELAX NG Compact Syntax schemas.
 
 ;;;***
 
-;;;### (autoloads (tabkey2-mode) "tabkey2" "util/tabkey2.el" (18658
-;;;;;;  53818))
+;;;### (autoloads (tabkey2-mode) "tabkey2" "util/tabkey2.el" (18661
+;;;;;;  62599))
 ;;; Generated autoloads from util/tabkey2.el
 
 (defvar tabkey2-mode nil "\
@@ -2089,8 +2130,8 @@ first in tabkey2-mode.
 
 ;;;***
 
-;;;### (autoloads (tyda-lookup-word) "tyda" "util/tyda.el" (18658
-;;;;;;  53632))
+;;;### (autoloads (tyda-lookup-word) "tyda" "util/tyda.el" (18659
+;;;;;;  17016))
 ;;; Generated autoloads from util/tyda.el
 
 (autoload 'tyda-lookup-word "tyda" "\
@@ -2160,7 +2201,7 @@ resumed later.
 ;;;***
 
 ;;;### (autoloads (winsize-save-window-configuration winsize-balance-siblings
-;;;;;;  resize-windows) "winsize" "util/winsize.el" (18658 54305))
+;;;;;;  resize-windows) "winsize" "util/winsize.el" (18659 17016))
 ;;; Generated autoloads from util/winsize.el
 
 (autoload 'resize-windows "winsize" "\
@@ -2376,25 +2417,25 @@ Not documented
 ;;;;;;  "tests/in/bug271497.el" "tests/in/cr-lf.el" "tests/in/el-070722-index-2.el"
 ;;;;;;  "tests/in/emacswiki-erb-bug.el" "tests/in/eval-in-html.el"
 ;;;;;;  "tests/in/nxml-indent.el" "tests/in/utf8-problem.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el" "util/appmenu.el"
-;;;;;;  "util/buffer-bg.el" "util/bw-rnc-load/schema-find.el" "util/chart.el"
-;;;;;;  "util/color-test-sent.el" "util/color-test.el" "util/custsets.el"
-;;;;;;  "util/ecb-batch-compile.el" "util/elunit.el" "util/ffip.el"
-;;;;;;  "util/fmode.el" "util/from-osxkeys.el" "util/fupd.el" "util/half-qwerty.el"
-;;;;;;  "util/hexcolor.el" "util/hfyview.el" "util/hl-needed.el"
-;;;;;;  "util/htmlfontify.21.el" "util/htmlfontify.el" "util/mumamo-aspnet.el"
-;;;;;;  "util/mumamo-test.el" "util/mumamo-trace.el" "util/mumamo.el"
-;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "tests/nxhtmltest-helpers.el" "tests/temp-test.el" "util/appmenu-fold.el"
+;;;;;;  "util/appmenu.el" "util/buffer-bg.el" "util/bw-rnc-load/schema-find.el"
+;;;;;;  "util/chart.el" "util/color-test-sent.el" "util/color-test.el"
+;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/elunit.el"
+;;;;;;  "util/ffip.el" "util/fmode.el" "util/from-osxkeys.el" "util/fupd.el"
+;;;;;;  "util/half-qwerty.el" "util/hexcolor.el" "util/hfyview.el"
+;;;;;;  "util/hl-needed.el" "util/htmlfontify.21.el" "util/htmlfontify.el"
+;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-test.el" "util/mumamo-trace.el"
+;;;;;;  "util/mumamo.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/physical-line.el"
 ;;;;;;  "util/popcmp.el" "util/rebind.el" "util/rxi.el" "util/search-form.el"
 ;;;;;;  "util/sex-mode.el" "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
 ;;;;;;  "util/vline.el" "util/whelp.el" "util/winsav.el" "util/zen-mode.el")
-;;;;;;  (18659 16289 437000))
+;;;;;;  (18662 32417 593000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-get-all-autoloads) "../nxhtml-maintenance"
-;;;;;;  "nxhtml-maintenance.el" (18658 53900))
+;;;;;;  "nxhtml-maintenance.el" (18659 17016))
 ;;; Generated autoloads from nxhtml-maintenance.el
 
 (autoload 'nxhtmlmaint-get-all-autoloads "../nxhtml-maintenance" "\
