@@ -93,7 +93,7 @@ emacsw32-eol."
     (set (make-local-variable 'wrap-to-fill-left-marg-modes)
          '(nxhtml-mode fundamental-mode))
     (wrap-to-fill-column-mode 1)
-    (visible-point-mode 1)
+    ;;(visible-point-mode 1)
     (html-write-mode 1)
     (when (boundp 'emacsw32-eol-ask-before-save)
       (make-local-variable 'emacsw32-eol-ask-before-save)

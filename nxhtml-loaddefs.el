@@ -199,7 +199,7 @@ Report a bug in nXhtml.
 ;;;***
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-minor-mode) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18662 25446))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18663 19504))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-minor-mode "../nxhtml/nxhtml-menu" "\
@@ -1554,7 +1554,7 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 ;;;***
 
 ;;;### (autoloads (as-external-mode) "as-external" "util/as-external.el"
-;;;;;;  (18662 32357))
+;;;;;;  (18665 17017))
 ;;; Generated autoloads from util/as-external.el
 
 (defvar as-external-mode nil "\
@@ -1612,7 +1612,7 @@ Convert FreeMind file MM-FILE to `org-mode' file ORG-FILE.
 ;;;***
 
 ;;;### (autoloads (gimp-can-edit gimp-edit-buffer gimp-edit-file)
-;;;;;;  "gimp" "util/gimp.el" (18661 17583))
+;;;;;;  "gimp" "util/gimp.el" (18662 2982))
 ;;; Generated autoloads from util/gimp.el
 
 (autoload 'gimp-edit-file "gimp" "\
@@ -1632,8 +1632,8 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (visible-point-mode html-write-mode) "html-write"
-;;;;;;  "util/html-write.el" (18662 32379))
+;;;### (autoloads (html-write-mode) "html-write" "util/html-write.el"
+;;;;;;  (18664 54864))
 ;;; Generated autoloads from util/html-write.el
 
 (autoload 'html-write-mode "html-write" "\
@@ -1650,10 +1650,9 @@ rendered text.
 See the customization group `html-write' for more information about
 faces.
 
-\(fn &optional ARG)" t nil)
-
-(autoload 'visible-point-mode "html-write" "\
-doc
+IMPORTANT: Most commands you use works also on the text that is
+hidden.  The movement commands is an exception, but as soon as
+you edit the buffer you may also change the hidden parts.
 
 \(fn &optional ARG)" t nil)
 
@@ -1688,8 +1687,8 @@ before applying.
 
 ;;;***
 
-;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18659
-;;;;;;  17016))
+;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18664
+;;;;;;  54864))
 ;;; Generated autoloads from util/mlinks.el
 
 (autoload 'mlinks-mode "mlinks" "\
@@ -1824,7 +1823,7 @@ This also covers inlined style and javascript." t)
 ;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
 ;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
 ;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18662 25107))
+;;;;;;  "util/ourcomments-util.el" (18663 19504))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2079,8 +2078,8 @@ Major mode for editing RELAX NG Compact Syntax schemas.
 
 ;;;***
 
-;;;### (autoloads (tabkey2-mode) "tabkey2" "util/tabkey2.el" (18661
-;;;;;;  62599))
+;;;### (autoloads (tabkey2-mode) "tabkey2" "util/tabkey2.el" (18662
+;;;;;;  2982))
 ;;; Generated autoloads from util/tabkey2.el
 
 (defvar tabkey2-mode nil "\
@@ -2417,20 +2416,20 @@ Not documented
 ;;;;;;  "tests/in/bug271497.el" "tests/in/cr-lf.el" "tests/in/el-070722-index-2.el"
 ;;;;;;  "tests/in/emacswiki-erb-bug.el" "tests/in/eval-in-html.el"
 ;;;;;;  "tests/in/nxml-indent.el" "tests/in/utf8-problem.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/nxhtmltest-helpers.el" "tests/temp-test.el" "util/appmenu-fold.el"
-;;;;;;  "util/appmenu.el" "util/buffer-bg.el" "util/bw-rnc-load/schema-find.el"
-;;;;;;  "util/chart.el" "util/color-test-sent.el" "util/color-test.el"
-;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/elunit.el"
-;;;;;;  "util/ffip.el" "util/fmode.el" "util/from-osxkeys.el" "util/fupd.el"
-;;;;;;  "util/half-qwerty.el" "util/hexcolor.el" "util/hfyview.el"
-;;;;;;  "util/hl-needed.el" "util/htmlfontify.21.el" "util/htmlfontify.el"
-;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-test.el" "util/mumamo-trace.el"
-;;;;;;  "util/mumamo.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el" "util/appmenu.el"
+;;;;;;  "util/buffer-bg.el" "util/bw-rnc-load/schema-find.el" "util/chart.el"
+;;;;;;  "util/color-test-sent.el" "util/color-test.el" "util/custsets.el"
+;;;;;;  "util/ecb-batch-compile.el" "util/elunit.el" "util/ffip.el"
+;;;;;;  "util/fmode.el" "util/from-osxkeys.el" "util/fupd.el" "util/half-qwerty.el"
+;;;;;;  "util/hexcolor.el" "util/hfyview.el" "util/hl-needed.el"
+;;;;;;  "util/htmlfontify.21.el" "util/htmlfontify.el" "util/mumamo-aspnet.el"
+;;;;;;  "util/mumamo-test.el" "util/mumamo-trace.el" "util/mumamo.el"
+;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/physical-line.el"
 ;;;;;;  "util/popcmp.el" "util/rebind.el" "util/rxi.el" "util/search-form.el"
 ;;;;;;  "util/sex-mode.el" "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
 ;;;;;;  "util/vline.el" "util/whelp.el" "util/winsav.el" "util/zen-mode.el")
-;;;;;;  (18662 32417 593000))
+;;;;;;  (18665 17040 687000))
 
 ;;;***
 
