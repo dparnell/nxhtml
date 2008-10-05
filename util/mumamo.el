@@ -4988,6 +4988,10 @@ These are in the file mumamo-test.el."
                           fun-sym
                         (error "Parameter FUN-SYM must be a symbol")))
          (turn-on-fun-alias (intern (concat "mumamo-alias-" (symbol-name fun-sym))))
+         ;; Backward compatibility nXhtml v 1.60
+         (turn-on-fun-old (when (string= (substring (symbol-name fun-sym) -5)
+                                         "-mode")
+                            (intern (substring (symbol-name fun-sym) 0 -5))))
          (turn-on-hook (intern (concat (symbol-name turn-on-fun) "-hook")))
          (turn-on-map  (intern (concat (symbol-name turn-on-fun) "-map")))
          (turn-on-hook-doc (concat "Hook run at the very end of `"
@@ -5049,6 +5053,8 @@ For more information see `define-mumamo-multi-major-mode'."
            (mumamo-turn-on-actions old-major-mode)
            (run-hooks ',turn-on-hook)))
        (defalias ',turn-on-fun-alias ',turn-on-fun)
+       (when (intern-soft ',turn-on-fun-old)
+         (defalias ',turn-on-fun-old ',turn-on-fun))
        )))
 
 

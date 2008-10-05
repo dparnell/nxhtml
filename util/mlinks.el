@@ -377,9 +377,11 @@
 
 
 (defun mlinks-goto ()
-  "Follow then `mlinks-mode' link at current point.
+  "Follow `mlinks-mode' link at current point.
 Save the current position so that they can be move to again by
-`mlinks-prev-saved-position' and `mlinks-next-saved-position'."
+`mlinks-prev-saved-position' and `mlinks-next-saved-position'.
+
+Return non-nil if link was followed, otherewise nil."
   (interactive)
   (mlinks-goto-1 nil))
 
@@ -402,7 +404,9 @@ Uses `switch-to-buffer-other-frame'."
          (mlinks-temp-buffer-where where)
          (res (run-hook-with-args-until-success 'funs)))
     (if (not res)
-        (message "No MLink link here")
+        (progn
+          (message "No MLink link here")
+          nil)
       (unless (= old (point-marker))
         (let* ((prev (car mlinks-places)))
           (when (or (not prev)
