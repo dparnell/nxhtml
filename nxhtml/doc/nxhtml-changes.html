@@ -2140,38 +2140,60 @@
           <dd id="v1.60-dd">
             <ul>
               <li>
+                Bug fixes:
+                <ul>
+                  <li>
+                    Fix some bugs in Tidy XHTML support.
+                  </li>
+                  <li>
+                    Also Some small improvements to Tidy GUI.
+                  </li>
+                  <li>
+                    Added a test case for bug
+                    https://bugs.launchpad.net/nxhtml/+bug/271497 (which I
+                    can't reproduce).
+                  </li>
+                  <li>
+                    Bug fixes to ffip.el
+                  </li>
+                  <li>
+                    Added fix for <a href="http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=1013"
+                   >Emacs bug 1013</a>.
+                  </li>
+                  <li>
+                    Fixed some minor bugs in as-external.el.
+                  </li>
+                  <li>
+                    New handling of minor modes (buffer local variables).
+                    I hope this should fix the problem reported in
+                    <a href="https://bugs.launchpad.net/bugs/272526">nXhtml bug 272526: Imenu on menubar doesn't work after switching modes</a>.
+                  </li>
+                  <li>
+                    Fixed a bug that could make buffer marked as modified
+                    during fontification.
+                  </li>
+                  <li>
+                    Changed <i>php-mode</i> binding for TAB to follow Emacs normal standard.
+                  </li>
+                  <li>
+                    Fixed a bug that sometimes caused rng-validate-mode to be
+                    turned on in wrong buffer when setting xhtml fictive
+                    validation header.
+                  </li>
+                </ul>
+              </li>
+              <li>
                 Finished a replacement for the usual help command on
                 [f1 ?c]. This will in addition to the command show the
                 keymap. To use it add
                 <i>(global-set-key [f1 ?c] 'find-keymap-binding-key)</i> to your .emacs.
               </li>
               <li>
-                Fix some bugs in Tidy XHTML support.
-              </li>
-              <li>
-                Some small improvements to Tidy GUI.
-              </li>
-              <li>
                 Let tabkey2-mode first look for [tab] and then [?\t].
               </li>
               <li>
                 Added an <a href="http://ourcomments.org/Emacs/nXhtml/tut/tutorials.html"
-                >nXhtml tutorial page</a>.
-              </li>
-              <li>
-                Added a test case for bug
-                https://bugs.launchpad.net/nxhtml/+bug/271497 (which I
-                can't reproduce).
-              </li>
-              <li>
-                Changed php binding for TAB to follow Emacs normal standard.
-              </li>
-              <li>
-                Bug fixes to ffip.el
-              </li>
-              <li>
-                Added <i>wrap-to-fill-column-mode</i> and replaced longlines-mode in
-                the Tools menu with this.
+                >nXhtml tutorial page</a> with video tutorials.
               </li>
               <li>
                 After question
@@ -2183,26 +2205,8 @@
                 in <i>-mumamo-mode</i> (instead of the old <i>-mumamo</i>).
               </li>
               <li>
-                Added fix for <a href="http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=1013"
-                   >Emacs bug 1013</a>.
-              </li>
-              <li>
-                Fixed some minor bugs in as-external.el.
-              </li>
-              <li>
-                New handling of minor modes (buffer local variables).
-                I hope this should fix the problem reported in
-                <a href="https://bugs.launchpad.net/bugs/272526">nXhtml bug 272526: Imenu on menubar doesn't work after switching modes</a>.
-              </li>
-              <li>
                 Added <i>ourcomments-ediff-files</i> to start ediff
                 from a shell with Emacs Client.
-              </li>
-              <li>
-                Some enhancements to <i>nxml-where-mode</i>.
-              </li>
-              <li>
-                Display of images inline. Can be used in different major modes/files.
               </li>
               <li>
                 Took a look at autoloading. nXhtml now uses
@@ -2216,19 +2220,33 @@
                 the nXhtml menu).
               </li>
               <li>
-                Fixed a that sometimes caused rng-validate-mode to be
-                turned on in wrong buffer when setting xhtml fictive
-                validation header.
+                Added <i>better-fringes-mode</i> for my personal preferences
+                for fringe symbols ...
               </li>
               <li>
-                Fixed a bug that could make buffer marked as modified
-                during fontification.
-              </li>
-              <li>
-                Added a minimal one-line display version of fictive
-                validation headers and made it the default.
-              </li>
-              <li>
+                Enhancement for (X)HTML editing:
+                <ul>
+                  <li>
+                    Added a minimal one-line display version of fictive
+                    validation headers and made it the default.
+                  </li>
+                  <li>
+                    Some enhancements to <i>nxml-where-mode</i>.
+                  </li>
+                  <li>
+                    Display of images inline. Can be used in different major modes/files.
+                  </li>
+                  <li>
+                    Added the minor mode <i>wrap-to-fill-column-mode</i> and
+                    replaced longlines-mode in the Tools menu with this.
+                  </li>
+                  <li>
+                    Added the minor mode <i>html-write-mode</i> that can hide
+                    some simple tags and just show the inner html with a
+                    user defined face.  This is meant to make it easier to
+                    write html files.
+                  </li>
+                </ul>
               </li>
             </ul>
           </dd>

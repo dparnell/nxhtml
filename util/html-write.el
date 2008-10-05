@@ -46,6 +46,7 @@
 ;;; Code:
 
 (require 'mumamo) ;; Just for the defmacro ...
+(require 'mlinks nil t)
 
 (defgroup html-write nil
   "Customization group for html-write."
@@ -147,7 +148,6 @@ OVERLAY is the overlay added by `html-write-hide-tags' for this tag."
         (overlay-put overlay 'help-echo href)
         (overlay-put overlay 'mouse-face 'highlight)
         (if (eq ?# (string-to-char href))
-            ;; fix-me: Why is buffer-file-name nil????
             (setq href (concat "file:///" buffer-name href))
           (when (file-exists-p href)
             (setq href (expand-file-name href))))
@@ -193,11 +193,49 @@ OVERLAY is the overlay added by `html-write-hide-tags' for this tag."
     ))
 
 (defvar html-write-keymap
-  (let ((map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap))
+        keys)
     (define-key map [(control ?c) ?+] 'html-write-toggle-current-tag)
     (define-key map [(control ?c) ?!] 'html-write-browse-link)
     (define-key map [mouse-1] 'html-write-browse-link)
+    (when (featurep 'mlinks)
+      (setq keys (where-is-internal 'mlinks-goto mlinks-mode-map))
+      (dolist (key keys)
+        (define-key map key 'html-write-mlinks-goto))
+      (setq keys (where-is-internal 'mlinks-goto-other-window mlinks-mode-map))
+      (dolist (key keys)
+        (define-key map key 'html-write-mlinks-goto-other-window))
+      (setq keys (where-is-internal 'mlinks-goto-other-frame mlinks-mode-map))
+      (dolist (key keys)
+        (define-key map key 'html-write-mlinks-goto-other-frame))
+      )
     map))
+
+(defun html-write-mlinks-goto ()
+  "Goto link."
+  (interactive)
+  (html-write-mlinks-goto-1 'mlinks-goto))
+
+(defun html-write-mlinks-goto-other-window ()
+  "Goto link in other window."
+  (interactive)
+  (html-write-mlinks-goto-1 'mlinks-goto-other-window))
+
+(defun html-write-mlinks-goto-other-frame ()
+  "Goto link in other frame."
+  (interactive)
+  (html-write-mlinks-goto-1 'mlinks-goto-other-frame))
+
+(defun html-write-mlinks-goto-1 (goto-fun)
+  (let* ((ovl (html-write-get-tag-ovl))
+         (ovl-start (overlay-start ovl))
+         (ovl-end (overlay-end ovl))
+         (here (point-marker)))
+    (goto-char ovl-start)
+    (skip-chars-forward "^\"" ovl-end)
+    (forward-char)
+    (unless (funcall goto-fun) (goto-char here))
+    ))
 
 ;;(html-write-make-hide-tags-regexp)
 (defun html-write-make-hide-tags-regexp ()
@@ -225,7 +263,9 @@ OVERLAY is the overlay added by `html-write-hide-tags' for this tag."
   "Function to put in `after-change-functions'.
 See that variable for START, END and PRE-LEN."
   (add-to-list 'html-write-pending-changes
-               (cons (copy-marker start) (copy-marker end))))
+               ;; Add +1 for deletions (and don't worry about other
+               ;; cases ...
+               (cons (copy-marker start) (copy-marker (1+ end)))))
 (put 'html-write-after-change 'permanent-hook t)
 
 (defun html-write-post-command ()
@@ -237,98 +277,179 @@ See that variable for START, END and PRE-LEN."
 
 (defun html-write-post-command-1 ()
   "Inner function for `html-write-post-command'."
-  ;; fix-me: widen
-  (let ((pending html-write-pending-changes)
-        pending2
-        pend pend-next
-        (here (point-marker))
-        (min-ovl (point-max))
-        (max-ovl (point-min))
-        our-overlays)
-    (dolist (pend pending)
-      (when (< (car pend) min-ovl)
-        (setq min-ovl (car pend)))
-      (when (> (cdr pend) max-ovl)
-        (setq max-ovl (cdr pend))))
-    ;; Get our visible overlays
-    (dolist (ovl (append (overlays-in min-ovl max-ovl)
-                         (overlays-at min-ovl)
-                         nil))
-      (and (overlay-get ovl 'html-write)
-           (not (invisible-p (overlay-start ovl)))
-           ;;(setq our-overlays (cons ovl our-overlays))
-           (add-to-list 'our-overlays ovl)
-           ))
-    ;; Sort
-    (setq pending2 (sort pending
-                         (lambda (rec-a rec-b)
-                           (< (car rec-a) (car rec-b)))))
-    (setq pending nil)
-    ;; delete dublicates, merge
-    (while pending2
-      (setq pend2 (car pending2))
-      (setq pending2 (cdr pending2))
-      ;; Avoid changes inside visible overlays
-      (unless (catch 'vis
-                (dolist (ovl our-overlays)
-                  (and (<= (overlay-start ovl) (car pend2))
-                       (<= (cdr pend2) (overlay-end ovl))
-                       (throw 'vis t))))
-        ;; The list is sorted
+  (save-restriction
+    (widen)
+    (let ((pending html-write-pending-changes)
+          pending2
+          pend pend-next
+          (here (point-marker))
+          (min-ovl (point-max))
+          (max-ovl (point-min))
+          our-overlays
+          our-visible-overlays)
+      (dolist (pend pending)
+        (when (< (car pend) min-ovl)
+          (setq min-ovl (car pend)))
+        (when (> (cdr pend) max-ovl)
+          (setq max-ovl (cdr pend))))
+      ;; Get our overlays
+      (dolist (ovl (append (overlays-in min-ovl max-ovl)
+                           (overlays-at min-ovl)
+                           nil))
+        (when (overlay-get ovl 'html-write)
+          (if (invisible-p (overlay-start ovl))
+              (add-to-list 'our-overlays ovl)
+            (add-to-list 'our-visible-overlays ovl))))
+      ;; Skip changes inside visible overlays
+      (while pending
         (setq pend (car pending))
-        (if (not pend)
-            (setq pending (cons pend2 pending))
-          (cond
-           ((equal pend2 pend)
-            nil)
-           ((= (car pend2) (car pend))
-            (when (> (cdr pend2) (cdr pend))
-              (setcdr pend (cdr pend2))))
-           ((<= (car pend2) (1+ (cdr pend)))
-            (setcdr pend (cdr pend2)))
-           (t
-            (setq pending (cons pend2 pending)))
-           ))))
-    (setq pending (reverse pending))
-    (dolist (pend pending)
-      (let* ((start (car pend))
-             (end   (cdr pend))
-             (start-new start)
-             (end-new end))
-        (dolist (ovl our-overlays)
-          (setq start-new (min start-new (overlay-start ovl)))
-          (setq end-new (max end-new (overlay-end ovl)))
-          ;; Check if visible
-          (when (get-text-property start-new 'invisible)
-            (setcar pend nil)))
-        (if (and start-new (/= start start-new))
-            (setcar pend start-new)
-          (goto-char start)
-          (skip-chars-backward "^>")
-          (unless (bobp)
-            (backward-char))
-          (skip-chars-backward "^<")
-          (if (or nil ;(bobp)
-                  (eq ?/ (char-after)))
-              (setcar pend nil)
-            (setq start-new (max (point-min)
-                                 (1- (point))))
-            (setcar pend start-new)))
-        (if (/= end end-new)
-            (setcdr pend end-new)
-          (goto-char end)
-          (skip-chars-forward "^<")
-          (when (eq ?/ (char-after (1+ (point))))
-            (skip-chars-forward "^>")
-            (setq end-new (min (point-max)
-                               (1+ (point))))
-            (setcdr pend end-new)))))
-    (setq pending (assq-delete-all nil pending))
-    (dolist (pend pending)
-      (html-write-reveal-tags (car pend) (cdr pend))
-      (html-write-hide-tags (car pend) (cdr pend)))
-    (setq html-write-pending-changes nil)
-    (goto-char here)))
+        (setq pending (cdr pending))
+        (unless (catch 'vis
+                  (dolist (ovl our-visible-overlays)
+                    (and (<= (overlay-start ovl) (car pend))
+                         (<= (cdr pend) (overlay-end ovl))
+                         (throw 'vis t))))
+          (setq pending2 (cons pend pending2))))
+      ;; Extend to normal overlays
+      (dolist (pend pending2)
+        (let ((pend-min (car pend))
+              (pend-max (cdr pend)))
+          (dolist (ovl our-overlays)
+            (let ((ovl-min (overlay-start ovl))
+                  (ovl-max (overlay-end ovl)))
+              (when (and (> pend-min ovl-min)
+                         (<= pend-min ovl-max))
+                (setcar pend ovl-min))
+              (when (and (< pend-max ovl-max)
+                         (>= pend-max ovl-min))
+                (setcdr pend ovl-max))
+              ))))
+      ;; Sort
+      (setq pending (sort pending2
+                           (lambda (rec-a rec-b)
+                             (if (= (car rec-a) (car rec-b))
+                                 (< (cdr rec-a) (cdr rec-b))
+                               (< (car rec-a) (car rec-b))))))
+      ;; Extend end
+      (let ((high-end (point-min))
+            end
+            next-<c-pos
+            this->-pos
+            )
+        (dolist (pend pending)
+          (setq end (cdr pend))
+          (if (> end high-end)
+              ;; Look further
+              (progn
+                ;; Is last tested <C..> useful?
+                (and next-<c-pos
+                     (< next-<c-pos end)
+                     (setq next-<c-pos nil))
+                (unless next-<c-pos
+                  (goto-char end)
+                  (skip-chars-forward "^<>")
+                  (if (eq ?< (char-after))
+                      (progn
+                        (forward-char)
+                        (if (not (eq ?/ (char-after)))
+                            ;; Start tag, we need not search after it.
+                            (setq next-<c-pos (point))
+                          ;; End tag, must include it.
+                          (forward-char)
+                          (skip-chars-forward "^>")
+                          (setq end (1+ (point)))))
+                    ;; Inside tag or unfinished tag
+                    (setq this->-pos (1+ (point)))
+                    (skip-chars-backward "^<>")
+                    (if (eq ?< (char-after (1- (point))))
+                        ;; Inside finished tag
+                        (if (eq ?/ (char-after))
+                            ;; End tag
+                            (setq end this->-pos)
+                          ;; Start tag
+                          (forward-char)
+                          (skip-chars-forward "^>")
+                          (setq end (point)))
+                      ;; Between > and >
+                      (setq end this->-pos)
+                      )))
+                (setq high-end end)
+                (setcdr pend high-end))
+            ;; This ends after so we can extend it to high-end
+            (setcdr pend high-end))))
+      ;; Extend start
+      (setq pending (nreverse pending))
+      (let ((low-start (point-max))
+            start
+            last-/>-pos
+            this->-pos-1)
+        (dolist (pend pending)
+          (setq start (car pend))
+          (if (< start low-start)
+              ;; Look further
+              (progn
+                ;; Is last tested </...> useful?
+                (and last-/>-pos
+                     (> last-/>-pos start)
+                     (setq last-/>-pos nil))
+                (unless last-/>-pos
+                  (goto-char start)
+                  (skip-chars-backward "^<>")
+                  (if (eq ?< (char-after (1- (point))))
+                      ;; Inside tag
+                      (if (eq ?/ (char-after))
+                          ;; Inside end tag, need to goto start tag
+                          (progn
+                            (backward-char)
+                            (skip-chars-backward "^<")
+                            (unless (eq ?/ (char-after))
+                              (setq start (1- (point)))))
+                        ;; Inside start tag
+                        (setq start (1- (point))))
+                    ;; Outside tag, check tag before
+                    (setq this->-pos-1 (point))
+                    (backward-char)
+                    (skip-chars-backward "^<")
+                    (if (eq ?/ (char-after))
+                        ;; Tag before is end tag, don't include
+                        nil
+                      ;; Tag before is start tag, include
+                      (setq start (1- (point))))))
+                (setq low-start start)
+                (setcar pend low-start)
+                )
+            ;; This starts before so we can extend it to low-start
+            (setcar pend low-start))))
+
+      ;; delete dublicates, merge
+      (setq pending2 pending)
+      (setq pending nil)
+      (while pending2
+        (setq pend2 (car pending2))
+        (setq pending2 (cdr pending2))
+          ;; The list is sorted
+          (setq pend (car pending))
+          (if (not pend)
+              (setq pending (cons pend2 pending))
+            (cond
+             ((= (car pend2) (car pend))
+              (when (> (cdr pend2) (cdr pend))
+                (setcdr pend (cdr pend2))))
+             ((<= (car pend2) (1+ (cdr pend)))
+              (setcdr pend (cdr pend2)))
+             ;; Probably never happens?
+             ((equal pend2 pend) nil)
+             (t
+              (setq pending (cons pend2 pending)))
+             )))
+      (setq pending (reverse pending))
+      (setq pending (assq-delete-all nil pending))
+      (dolist (pend pending)
+        (goto-char (car pend)) (goto-char (cdr pend))
+        (html-write-reveal-tags (car pend) (cdr pend))
+        (html-write-hide-tags (car pend) (cdr pend)))
+      (setq html-write-pending-changes nil)
+      (goto-char here))))
 
 (defun html-write-hide-tags (start end)
   "Hide tags matching `html-write-tag-list' between START and END."
@@ -339,29 +460,30 @@ See that variable for START, END and PRE-LEN."
       (goto-char start)
       (save-match-data
         (let ((hide-tags-regexp (html-write-make-hide-tags-regexp)))
-          (mumamo-with-buffer-prepared-for-jit-lock
-           (while (re-search-forward hide-tags-regexp end t)
-             (let* ((ovl (make-overlay (match-beginning 0) (match-end 0)
-                                       nil t nil))
+          (while (re-search-forward hide-tags-regexp end t)
+            (let* ((ovl (make-overlay (match-beginning 0) (match-end 0)
+                                      nil t nil))
                    (tag-fun (cadr (assoc (match-string-no-properties 1)
                                          html-write-tag-list)))
                    hiding-ranges)
-               (overlay-put ovl 'face 'font-lock-variable-name-face)
-               (overlay-put ovl 'keymap html-write-keymap)
-               (when tag-fun
-                 (funcall tag-fun (match-end 1) (match-beginning 3) ovl))
-               (setq hiding-ranges
-                     (list (cons (1- (match-beginning 1)) (match-beginning 3))
-                           (cons (match-beginning 2) (match-end 2))))
-               (overlay-put ovl 'html-write hiding-ranges)
-               (mumamo-with-buffer-prepared-for-jit-lock
-                (dolist (range hiding-ranges)
-                  (let ((start (car range))
-                        (end   (cdr range)))
-                    (put-text-property start end 'invisible 'html-write)
-                    ;; Fix-me: more careful rear-nonsticky?
-                    (put-text-property (1- end) end
-                                       'rear-nonsticky '(invisible)))))))))))
+              (overlay-put ovl 'face 'font-lock-variable-name-face)
+              (overlay-put ovl 'keymap html-write-keymap)
+              (setq hiding-ranges
+                    (list (cons (1- (match-beginning 1)) (match-beginning 3))
+                          (cons (match-beginning 2) (match-end 2))))
+              (overlay-put ovl 'html-write hiding-ranges)
+              (mumamo-with-buffer-prepared-for-jit-lock
+               (dolist (range hiding-ranges)
+                 (let ((start (car range))
+                       (end   (cdr range)))
+                   (put-text-property start end 'invisible 'html-write)
+                   ;; Fix-me: more careful rear-nonsticky?
+                   (put-text-property (1- end) end
+                                      'rear-nonsticky '(invisible)))))
+              ;; Let tag-fun override
+              (when tag-fun
+                (funcall tag-fun (match-end 1) (match-beginning 3) ovl))
+              )))))
     (goto-char here)))
 
 (defun html-write-reveal-tags (start end)
