@@ -646,6 +646,72 @@ for the keymap to be active \(minor mode levels only)."
 
     (nreverse bindings)))
 
+(defun describe-keymap-placement (keymap-sym)
+  "Find minor mode keymap KEYMAP-SYM in the keymaps searched for key lookup.
+See Info node `Searching Keymaps'."
+  ;;(info "(elisp) Searching Keymaps")
+  (interactive (list (ourcomments-read-symbol "Describe minor mode keymap symbol"
+                                              (lambda (sym)
+                                                (and (boundp sym)
+                                                     (keymapp (symbol-value sym)))))))
+  (unless (symbolp keymap-sym)
+    (error "Argument KEYMAP-SYM must be a symbol"))
+  (unless (keymapp (symbol-value keymap-sym))
+    (error "The value of argument KEYMAP-SYM must be a keymap"))
+  (with-output-to-temp-buffer (help-buffer)
+    (help-setup-xref (list #'describe-keymap-placement keymap-sym) (interactive-p))
+    (with-current-buffer (help-buffer)
+      (insert "Placement of keymap `")
+      (insert-text-button (symbol-name keymap-sym)
+                          'action
+                          (lambda (btn)
+                            (describe-variable keymap-sym)))
+      (insert "'\nin minor modes activation maps:\n")
+      (let (found)
+        (dolist (map-root '(emulation-mode-map-alists
+                            minor-mode-overriding-map-alist
+                            minor-mode-map-alist
+                            ))
+          (dolist (emul-alist (symbol-value map-root))
+            ;;(message "emul-alist=%s" emul-alist)
+            (dolist (keymap-alist
+                     (if (memq map-root '(emulation-mode-map-alists))
+                         (symbol-value emul-alist)
+                       (list emul-alist)))
+              (let* ((map (cdr keymap-alist))
+                     (first (catch 'first
+                              (map-keymap (lambda (key def)
+                                            (throw 'first (cons key def)))
+                                          map)))
+                     (key (car first))
+                     (def (cdr first))
+                     (keymap-variables (when (and key def)
+                                         (ourcomments-find-keymap-variables
+                                          (vector key) def map)))
+                     (active-var (car keymap-alist))
+                     )
+                (assert (keymapp map))
+                ;;(message "keymap-alist=%s, %s" keymap-alist first)
+                ;;(message "active-var=%s, %s" active-var keymap-variables)
+                (when (memq keymap-sym keymap-variables)
+                  (setq found t)
+                  (insert (format "\n`%s' " map-root))
+                  (insert (propertize "<= Minor mode keymap list holding this map"
+                                      'face 'font-lock-doc-face))
+                  (insert "\n")
+                  (when (symbolp emul-alist)
+                    (insert (format "  `%s' " emul-alist))
+                    (insert (propertize "<= Keymap alist variable" 'face 'font-lock-doc-face))
+                    (insert "\n"))
+                  ;;(insert (format "    `%s'\n" keymap-alist))
+                  (insert (format "      `%s' " active-var))
+                  (insert (propertize "<= Activation variable" 'face 'font-lock-doc-face))
+                  (insert "\n")
+                  )))))
+        (unless found
+          (insert (propertize "Not found." 'face 'font-lock-warning-face)))
+        ))))
+
 ;; This is a replacement for describe-key-briefly.
 ;;(global-set-key [f1 ?c] 'describe-key-and-map-briefly)
 ;;;###autoload
@@ -722,7 +788,6 @@ what they will do ;-)."
     ;; End of part from describe-key-briefly.
     ;; <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    
     ;;(message "bindings=%s" (key-bindings key)) (sit-for 2)
     ;; Find the keymap:
     (let* ((maps (current-active-maps))
@@ -1031,7 +1096,9 @@ and go to the same line number as in the current buffer."
          source-file
          installed-file
          other-file
-         (line-num (line-number-at-pos)))
+         (line-num (save-restriction
+                     (widen)
+                     (line-number-at-pos))))
     (cond
      ((and relative-installed
            (not (string= name-nondir relative-installed))
