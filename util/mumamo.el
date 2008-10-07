@@ -2854,6 +2854,32 @@ meaning of POS, MIN and MARKER."
 
 ;; (defvar mumamo-known-chunk-start nil "Internal use only!.")
 
+(defconst mumamo-string-syntax-table
+  (let ((tbl (copy-syntax-table)))
+    (modify-syntax-entry ?\" "\"" tbl)
+    (modify-syntax-entry ?\' "\"" tbl)
+    tbl)
+    "Just for \"..\" and '...'.")
+
+;; "..." '...' "..'.." '.."..'
+(defun mumamo-guess-in-string (pos)
+  (let ((here (point))
+        (inhibit-field-text-motion t)
+        line-beg
+        parsed
+        str-char
+        str-pos)
+    (goto-char pos)
+    (setq line-beg (line-beginning-position))
+    (setq parsed (with-syntax-table mumamo-string-syntax-table
+                   (parse-partial-sexp line-beg pos)))
+    (setq str-char (nth 3 parsed))
+    (when str-char
+      (skip-chars-backward (string ?^ str-char))
+      (setq str-pos (point)))
+    (goto-char here)
+    str-pos))
+
 ;;; The main generic chunk routine
 
 ;; Fix-me: This routine has some difficulties. One of the more
@@ -3027,6 +3053,7 @@ also `mumamo-quick-static-chunk'."
                       (eq wants-end-type 'end-normal))
               ;; 1+ is for zero length chunks (that will never be created)
               (setq end-out (funcall fw-exc-start-fun (1+ pos) max)))
+            (message "=========================== fw-exc-start-fun=%s end-out=%s end-in=%s" fw-exc-start-fun end-out end-in)
             ;; compare
             (cond
              ((and end-in end-out)
@@ -3075,9 +3102,9 @@ also `mumamo-quick-static-chunk'."
                     (major (if exc-mode exc-mode main-major)))
                 (mumamo-msgfntfy "point-min/max=%s/%s, border-beg=%s, border-end=%s, start/end/min=%s/%s/%s" (point-min) (point-max) border-beg border-end start end min)
                 (setq found-valid-end
-                      (mumamo-end-chunk-is-valid
-                       syntax-start syntax-end major))
-                (mumamo-msgfntfy "after setq found-valid-end")
+                      ;;(mumamo-end-chunk-is-valid syntax-start syntax-end major)
+                      t)
+                (mumamo-msgfntfy "after setq found-valid-end=%s" found-valid-end)
                 (unless found-valid-end
                   (setq end nil)
                   (setq end-in (point-max))
@@ -3091,8 +3118,56 @@ also `mumamo-quick-static-chunk'."
 ;;;                    fw-exc-start-fun
 ;;;                    fw-exc-end-fun
 ;;;                    find-borders-fun)
-          ;;(message "start/end=%s/%s borders=%s" start end borders)
+          (mumamo-msgfntfy "start/end=%s/%s borders=%s, exc-mode=%s" start end borders exc-mode)
+          (message "start/end=%s/%s borders=%s, exc-mode=%s" start end borders exc-mode)
+          ;; This is just totally wrong and a desperate try after
+          ;; seeing the problems with wp-app.php around line 1120.
+          ;; Maybe this can be used when cutting chunks from top to
+          ;; bottom however.
+          (when nil ;end
+            (let ((here (point))
+                  end-line-beg
+                  end-in-string
+                  start-in-string
+                  (start-border (or (nth 0 borders) start))
+                  (end-border   (or (nth 1 borders) end)))
+              ;; Check if in string
+              ;; Fix-me: add comments about why and examples + tests
+              ;; Fix-me: must loop to find good borders ....
+              (when end
+                (goto-char end)
+                (setq end-line-beg (line-beginning-position))
+                (goto-char here)
+                ;; Fix-me: more careful positions for guess
+                (setq end-in-string
+                      (mumamo-guess-in-string
+                       ;;(+ end 2)
+                       (1+ end-border)
+                       )))
+              (when start
+                (setq start-in-string
+                      (mumamo-guess-in-string
+                       ;;(- start 2)
+                       (1- start-border)
+                       )))
+              (if exc-mode
+                  (if (and start-in-string end-in-string)
+                      ;; If both are in a string and on the same line then
+                      ;; guess this is actually borders, otherwise not.
+                      (unless (= start-in-string end-in-string)
+                        (setq start nil)
+                        (setq end nil))
+                    (when start-in-string (setq start nil))
+                    (when end-in-string (setq end nil)))
+                ;; Fix-me: ???
+                (when start-in-string (setq start nil))
+                ))
+            (unless (or start end)
+              (setq exc-mode nil)
+              (setq borders nil)
+              (setq parseable-by nil)))
           (when (or start end exc-mode borders parseable-by)
+            (mumamo-msgfntfy "--- mumamo-find-possible-chunk %s" (list start end exc-mode borders parseable-by))
             (list start end exc-mode borders parseable-by))))
     (error
      (mumamo-display-error 'mumamo-chunk "%s"
@@ -3348,6 +3423,7 @@ Set by functions defined by `define-mumamo-multi-major-mode'.")
 (make-variable-buffer-local 'mumamo-multi-major-mode)
 (put 'mumamo-multi-major-mode 'permanent-local t)
 
+;; Fix-me: Add a property to the symbol instead (like in CUA).
 (defvar mumamo-safe-commands-in-wrong-major
   '(forward-char
     viper-forward-char
@@ -3365,6 +3441,8 @@ Set by functions defined by `define-mumamo-multi-major-mode'.")
     move-end-of-line
     nonincremental-search-forward
     nonincremental-search-backward
+    mumamo-backward-chunk
+    mumamo-forward-chunk
     ;; Fix-me: add more
     )
   )
@@ -5703,7 +5781,7 @@ Do here also other necessary adjustments for this."
                   (assert (and min-pos) t)
                   (setq syntax-ppss-last-min
                         (cons min-pos ;;(1- min-pos)
-                              (if is-main-mode-chunk
+                              (if nil ;is-main-mode-chunk
                                   ;; Fix-me: previous chunks as a cache?
                                   (mumamo-with-major-mode-fontification main-major
                                     `(parse-partial-sexp 1 ,min-pos nil nil nil nil))
