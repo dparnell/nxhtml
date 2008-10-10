@@ -855,8 +855,10 @@ Preserves the `buffer-modified-p' state of the current buffer."
 
 ;; Fix-me: integrate this with fontify-region!
 (defvar mumamo-find-chunk-timer nil)
+(make-variable-buffer-local 'mumamo-find-chunk-timer)
+(put 'mumamo-find-chunk-timer 'permanent-local t)
 
-(defvar mumamo-find-chunk-delay 0.5)
+(defvar mumamo-find-chunk-delay idle-update-delay)
 (make-variable-buffer-local 'mumamo-find-chunk-timer)
 (put 'mumamo-find-chunk-timer 'permanent-local t)
 
@@ -870,7 +872,14 @@ Preserves the `buffer-modified-p' state of the current buffer."
   (mumamo-stop-find-chunk-timer)
   (setq mumamo-find-chunk-timer
         (run-with-idle-timer mumamo-find-chunk-delay nil
-                             'mumamo-find-chunks)))
+                             'mumamo-find-chunks-in-timer)))
+
+(defun mumamo-find-chunks-in-timer (buffer)
+  (condition-case err
+      (when (buffer-live-p buffer)
+        (with-current-buffer buffer
+          (mumamo-find-chunks nil nil nil)))
+    (error (message "mumamo-find-chunks error: %s" err))))
 
 (defvar mumamo-end-last-chunk-pos nil)
 (make-variable-buffer-local 'mumamo-end-last-chunk-pos)
@@ -879,23 +888,38 @@ Preserves the `buffer-modified-p' state of the current buffer."
 ;; Fix-me: maybe this belongs to contextual fontification? Eh,
 ;; no. Unfortunately there is not way to make that handle more than
 ;; multiple lines.
-(defun mumamo-find-chunks (pos end)
+(defun mumamo-find-chunks (pos end must-pass-end)
   "Find or create chunks from position POS until END.
+If POS is nil then start from `mumamo-end-last-chunk-pos' if this
+is non-nil, otherwise 1.
+
+If END is nil then continue till end of buffer.
+
+If MUST-PASS-END is nil or POS is greater than END stop as soon
+as `input-pending-p' return non-nil.
+
 Return last chunk."
-  (mumamo-save-buffer-state nil
-    (let ((pos (or pos mumamo-end-last-chunk-pos 1))
-          (end (or end (point-max)))
-          this-values
-          this-chunk
-          first-change-pos
-          (here (point)))
-      (save-restriction
-        (widen)
-        (while (and (not (input-pending-p))
-                    (< pos end))
+  (let ((pos (or pos mumamo-end-last-chunk-pos 1))
+        (end (or end (point-max)))
+        this-values
+        this-chunk
+        first-change-pos
+        interrupted
+        (here (point)))
+    (save-restriction
+      (widen)
+      (mumamo-save-buffer-state nil
+        (while (and (< pos end)
+                    (progn
+                      (when (and (input-pending-p)
+                                 (not must-pass-end))
+                        (setq interrupted t))
+                      (not interrupted)))
           ;; Narrow to speed up
           (narrow-to-region pos (point-max))
           (setq this-chunk (mumamo-get-existing-chunk-at pos))
+          ;; With the new organization all chunks are created here.
+          ;;(setq this-chunk nil)
           (setq this-values (mumamo-create-chunk-values-at pos))
           (when (and this-chunk
                      (not (mumamo-chunk-equal-chunk-values this-chunk
@@ -909,16 +933,21 @@ Return last chunk."
             (unless first-change-pos
               (setq first-change-pos (overlay-start this-chunk))))
           ;; Cache ppss syntax
-          (syntax-ppss (1+ (mumamo-chunk-syntax-min this-chunk)))
+          ;;(syntax-ppss (1+ (mumamo-chunk-syntax-min this-chunk)))
           (setq pos (overlay-end this-chunk))
           (setq mumamo-end-last-chunk-pos pos)))
-      (when first-change-pos
-        (mumamo-with-buffer-prepared-for-jit-lock
-         (put-text-property first-change-pos (point) 'fontified nil)
-         )
-        (setq jit-lock-context-unfontify-pos
-              (min jit-lock-context-unfontify-pos first-change-pos)))
-      (goto-char here))))
+      ;;(unless mumamo-end-last-chunk-pos (setq mumamo-end-last-chunk-pos -1))
+      (when (or interrupted
+                (and mumamo-end-last-chunk-pos
+                     (< mumamo-end-last-chunk-pos (point-max))))
+        (mumamo-start-find-chunk-timer)))
+    (when first-change-pos
+      (mumamo-with-buffer-prepared-for-jit-lock
+       (put-text-property first-change-pos (point) 'fontified nil))
+      (setq jit-lock-context-unfontify-pos
+            (min jit-lock-context-unfontify-pos first-change-pos)))
+    (goto-char here)
+    this-chunk))
 
 ;; (defun mumamo-find-chunk-after-change (min)
 ;;   (when (and mumamo-end-last-chunk-pos
@@ -3053,7 +3082,7 @@ also `mumamo-quick-static-chunk'."
                       (eq wants-end-type 'end-normal))
               ;; 1+ is for zero length chunks (that will never be created)
               (setq end-out (funcall fw-exc-start-fun (1+ pos) max)))
-            (message "=========================== fw-exc-start-fun=%s end-out=%s end-in=%s" fw-exc-start-fun end-out end-in)
+            ;;(message "=========================== fw-exc-start-fun=%s end-out=%s end-in=%s" fw-exc-start-fun end-out end-in)
             ;; compare
             (cond
              ((and end-in end-out)
@@ -3119,11 +3148,11 @@ also `mumamo-quick-static-chunk'."
 ;;;                    fw-exc-end-fun
 ;;;                    find-borders-fun)
           (mumamo-msgfntfy "start/end=%s/%s borders=%s, exc-mode=%s" start end borders exc-mode)
-          (message "start/end=%s/%s borders=%s, exc-mode=%s" start end borders exc-mode)
-          ;; This is just totally wrong and a desperate try after
-          ;; seeing the problems with wp-app.php around line 1120.
-          ;; Maybe this can be used when cutting chunks from top to
-          ;; bottom however.
+          ;;(message "start/end=%s/%s borders=%s, exc-mode=%s" start end borders exc-mode)
+          ;; This is just totally wrong in some pieces and a desperate
+          ;; try after seeing the problems with wp-app.php around line
+          ;; 1120.  Maybe this can be used when cutting chunks from
+          ;; top to bottom however.
           (when nil ;end
             (let ((here (point))
                   end-line-beg
@@ -3135,37 +3164,38 @@ also `mumamo-quick-static-chunk'."
               ;; Fix-me: add comments about why and examples + tests
               ;; Fix-me: must loop to find good borders ....
               (when end
-                (goto-char end)
-                (setq end-line-beg (line-beginning-position))
-                (goto-char here)
                 ;; Fix-me: more careful positions for guess
                 (setq end-in-string
                       (mumamo-guess-in-string
                        ;;(+ end 2)
                        (1+ end-border)
-                       )))
-              (when start
-                (setq start-in-string
-                      (mumamo-guess-in-string
-                       ;;(- start 2)
-                       (1- start-border)
-                       )))
-              (if exc-mode
-                  (if (and start-in-string end-in-string)
-                      ;; If both are in a string and on the same line then
-                      ;; guess this is actually borders, otherwise not.
-                      (unless (= start-in-string end-in-string)
-                        (setq start nil)
-                        (setq end nil))
-                    (when start-in-string (setq start nil))
-                    (when end-in-string (setq end nil)))
-                ;; Fix-me: ???
-                (when start-in-string (setq start nil))
-                ))
-            (unless (or start end)
-              (setq exc-mode nil)
-              (setq borders nil)
-              (setq parseable-by nil)))
+                       ))
+                (when end-in-string
+                  (when start
+                    (setq start-in-string
+                          (mumamo-guess-in-string
+                           ;;(- start 2)
+                           (1- start-border)
+                           )))
+                  (if (not start-in-string)
+                      (setq end nil)
+                    (if exc-mode
+                        (if (and start-in-string end-in-string)
+                            ;; If both are in a string and on the same line then
+                            ;; guess this is actually borders, otherwise not.
+                            (unless (= start-in-string end-in-string)
+                              (setq start nil)
+                              (setq end nil))
+                          (when start-in-string (setq start nil))
+                          (when end-in-string (setq end nil)))
+                      ;; Fix-me: ???
+                      (when start-in-string (setq start nil))
+                      ))
+                  (unless (or start end)
+                    (setq exc-mode nil)
+                    (setq borders nil)
+                    (setq parseable-by nil))))))
+          
           (when (or start end exc-mode borders parseable-by)
             (mumamo-msgfntfy "--- mumamo-find-possible-chunk %s" (list start end exc-mode borders parseable-by))
             (list start end exc-mode borders parseable-by))))
@@ -4776,7 +4806,6 @@ mode in the chunk family is nil."
     (mumamo-save-buffer-state nil
       (remove-list-of-text-properties (point-min) (point-max)
                                       (list 'fontified)))
-    (setq mumamo-end-last-chunk-pos nil)
     ;; For validation header etc:
     (require 'rngalt nil t)
     (when (featurep 'rngalt)
@@ -4794,7 +4823,8 @@ mode in the chunk family is nil."
     (run-hooks 'mumamo-turn-on-hook)
     (mumamo-get-chunk-save-buffer-state (point))
     ;;(message "(benchmark 1 '(mumamo-find-chunks))") (benchmark 1 '(mumamo-find-chunks nil nil))
-    (mumamo-find-chunks nil nil)
+    (setq mumamo-end-last-chunk-pos nil)
+    (mumamo-find-chunks nil nil nil)
     ))
 
 ;; (defun mumamo-on-font-lock-off ()
