@@ -634,7 +634,7 @@ for \\[find-tag] (which see)."
 
 ;; Define function documentation function
 (defun php-search-documentation ()
-  "Search PHP documentation for the word at the point."
+  "Search PHP documentation for the word at point."
   (interactive)
   (browse-url (concat php-search-url (current-word t))))
 

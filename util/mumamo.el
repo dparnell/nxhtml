@@ -878,7 +878,7 @@ Preserves the `buffer-modified-p' state of the current buffer."
   (condition-case err
       (when (buffer-live-p buffer)
         (with-current-buffer buffer
-          (mumamo-find-chunks nil nil nil)))
+          (mumamo-find-chunks nil nil 'no)))
     (error (message "mumamo-find-chunks error: %s" err))))
 
 (defvar mumamo-end-last-chunk-pos nil)
@@ -899,43 +899,58 @@ If MUST-PASS-END is nil or POS is greater than END stop as soon
 as `input-pending-p' return non-nil.
 
 Return last chunk."
-  (let ((pos (or pos mumamo-end-last-chunk-pos 1))
+  ;; fix-me: mumamo-end-last-chunk-pos is perhaps not after chunk
+  ;; here!!! See after-change below.
+  (let ((pos (or pos
+                 (when mumamo-end-last-chunk-pos
+                   (let ((chunk (mumamo-get-existing-chunk-at mumamo-end-last-chunk-pos)))
+                     (when chunk
+                       (overlay-start chunk))))
+                 1))
         (end (or end (point-max)))
         this-values
         this-chunk
         first-change-pos
         interrupted
         (here (point)))
+    (assert (memq must-pass-end '(no yes last-as-values)))
     (save-restriction
       (widen)
       (mumamo-save-buffer-state nil
         (while (and (< pos end)
                     (progn
                       (when (and (input-pending-p)
-                                 (not must-pass-end))
+                                 ;; Fix-me: What to do with font-lock,
+                                 ;; how to restart it?
+                                 (not (eq 'yes must-pass-end)))
                         (setq interrupted t))
                       (not interrupted)))
           ;; Narrow to speed up
           (narrow-to-region pos (point-max))
-          (setq this-chunk (mumamo-get-existing-chunk-at pos))
           ;; With the new organization all chunks are created here.
-          ;;(setq this-chunk nil)
+          ;;(setq this-chunk (mumamo-get-existing-chunk-at pos))
+          (setq this-chunk nil)
           (setq this-values (mumamo-create-chunk-values-at pos))
-          (when (and this-chunk
-                     (not (mumamo-chunk-equal-chunk-values this-chunk
-                                                           this-values)))
-            ;; Fix-me: keep values to compare? Or perhaps this should
-            ;; only be used when there are no old chunk at END?
-            (delete-overlay this-chunk)
-            (setq this-chunk nil))
+;;;           (when (and this-chunk
+;;;                      (not (mumamo-chunk-equal-chunk-values this-chunk
+;;;                                                            this-values)))
+;;;             ;; Fix-me: keep values to compare? Or perhaps this should
+;;;             ;; only be used when there are no old chunk at END?
+;;;             (delete-overlay this-chunk)
+;;;             (setq this-chunk nil))
+          (setq pos (or (mumamo-chunk-value-max this-values) ;;(overlay-end this-chunk)
+                        (point-max)))
           (unless this-chunk
-            (setq this-chunk (mumamo-create-chunk-from-chunk-values this-values))
+            (unless (and (>= pos end)
+                         (eq 'last-as-values must-pass-end))
+              (setq this-chunk (mumamo-create-chunk-from-chunk-values this-values)))
             (unless first-change-pos
-              (setq first-change-pos (overlay-start this-chunk))))
+              (setq first-change-pos (mumamo-chunk-value-min this-values) ;;(overlay-start this-chunk)
+                    )))
           ;; Cache ppss syntax
           ;;(syntax-ppss (1+ (mumamo-chunk-syntax-min this-chunk)))
-          (setq pos (overlay-end this-chunk))
-          (setq mumamo-end-last-chunk-pos pos)))
+          ;;(setq mumamo-end-last-chunk-pos pos)
+          ))
       ;;(unless mumamo-end-last-chunk-pos (setq mumamo-end-last-chunk-pos -1))
       (when (or interrupted
                 (and mumamo-end-last-chunk-pos
@@ -947,7 +962,11 @@ Return last chunk."
       (setq jit-lock-context-unfontify-pos
             (min jit-lock-context-unfontify-pos first-change-pos)))
     (goto-char here)
-    this-chunk))
+    (if (eq 'last-as-values must-pass-end)
+        (progn
+          (assert (not this-chunk))
+          this-values)
+      this-chunk)))
 
 ;; (defun mumamo-find-chunk-after-change (min)
 ;;   (when (and mumamo-end-last-chunk-pos
@@ -2307,6 +2326,13 @@ MIN to MAX, otherwise MIN to MAX."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Creating and accessing chunks
 
+(defun mumamo-create-chunk-values-from-min-at (pos)
+  "Return a list of values for creating a chunk at POS after last chunk.
+Like `mumamo-create-chunk-values-at, but first create chunks
+before POS."
+  (mumamo-find-chunks nil pos 'last-as-values)
+  )
+
 (defun mumamo-create-chunk-values-at (pos)
   "Return a list of values to be used to create a chunk at POS."
   (assert mumamo-current-chunk-family)
@@ -2612,6 +2638,7 @@ CHUNK-VALUES should be in the format returned by
             (delete-overlay ovl))
           )))
     (mumamo-msgfntfy "leaving mumamo-create-chunk-from-chunk-values modified=%s" (buffer-modified-p))
+    (setq mumamo-end-last-chunk-pos (overlay-end chunk-ovl))
     chunk-ovl))
 
 (defun mumamo-create-chunk-at (pos)
@@ -2975,7 +3002,7 @@ this format:
   \(START-BORDER END-BORDER EXCEPTION-MODE)
 
 START-BORDER and END-BORDER may be nil. Otherwise they should be
-the point where the border ends respectively start at the
+the position where the border ends respectively start at the
 corresponding end of the chunk.
 
 PARSEABLE-BY is a list of major modes with parsers that can parse
@@ -4824,7 +4851,7 @@ mode in the chunk family is nil."
     (mumamo-get-chunk-save-buffer-state (point))
     ;;(message "(benchmark 1 '(mumamo-find-chunks))") (benchmark 1 '(mumamo-find-chunks nil nil))
     (setq mumamo-end-last-chunk-pos nil)
-    (mumamo-find-chunks nil nil nil)
+    (mumamo-find-chunks nil nil 'no)
     ))
 
 ;; (defun mumamo-on-font-lock-off ()
@@ -5870,7 +5897,7 @@ Do here also other necessary adjustments for this."
 
 (defvar rng-get-major-mode-chunk-function nil
   "Function to use to get major mode chunk.
-It should take one argument, the point where to get the major
+It should take one argument, the position where to get the major
 mode chunk.
 
 This is to be set by multiple major mode frame works, like

@@ -423,7 +423,7 @@ correspond to what the tutorial says.  (See also " )
 (defun viper-tut--save-tutorial ()
   "Save the tutorial buffer.
 This saves the part of the tutorial before and after the area
-showing changed keys.  It also saves the point position and the
+showing changed keys.  It also saves point position and the
 position where the display of changed bindings was inserted.
 
 Do not save anything if not `viper-mode' is enabled in the
@@ -646,9 +646,9 @@ If any of the standard Viper key bindings that are used in the
 tutorial have been changed then an explanatory note about this is
 shown in the beginning of the tutorial buffer.
 
-When the tutorial buffer is killed the content and the point
-position in the buffer is saved so that the tutorial may be
-resumed later."
+When the tutorial buffer is killed the content and point position
+in the buffer is saved so that the tutorial may be resumed
+later."
   (interactive (list
 ;;                 (condition-case nil
 ;;                     (widget-choose "The following viper tutorials are available"

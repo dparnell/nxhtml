@@ -64,7 +64,7 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-mode) "../nxhtml/nxhtml"
-;;;;;;  "nxhtml/nxhtml.el" (18658 47798))
+;;;;;;  "nxhtml/nxhtml.el" (18684 48290))
 ;;; Generated autoloads from nxhtml/nxhtml.el
 
 (autoload 'nxhtml-mode "../nxhtml/nxhtml" "\
@@ -199,7 +199,7 @@ Report a bug in nXhtml.
 ;;;***
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-minor-mode) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18663 19504))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18671 42692))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-minor-mode "../nxhtml/nxhtml-menu" "\
@@ -442,7 +442,7 @@ Major mode for interacting with Firefox via MozRepl.
 ;;;***
 
 ;;;### (autoloads (php-mode php-file-patterns) "../related/php-mode"
-;;;;;;  "related/php-mode.el" (18649 8278))
+;;;;;;  "related/php-mode.el" (18684 48359))
 ;;; Generated autoloads from related/php-mode.el
 
 (defvar php-file-patterns '("\\.php[s34]?\\'" "\\.phtml\\'" "\\.inc\\'") "\
@@ -1554,7 +1554,7 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 ;;;***
 
 ;;;### (autoloads (as-external-mode) "as-external" "util/as-external.el"
-;;;;;;  (18665 17017))
+;;;;;;  (18685 2655))
 ;;; Generated autoloads from util/as-external.el
 
 (defvar as-external-mode nil "\
@@ -1633,7 +1633,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (html-write-mode) "html-write" "util/html-write.el"
-;;;;;;  (18664 54864))
+;;;;;;  (18667 58694))
 ;;; Generated autoloads from util/html-write.el
 
 (autoload 'html-write-mode "html-write" "\
@@ -1687,8 +1687,8 @@ before applying.
 
 ;;;***
 
-;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18664
-;;;;;;  54864))
+;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18684
+;;;;;;  48397))
 ;;; Generated autoloads from util/mlinks.el
 
 (autoload 'mlinks-mode "mlinks" "\
@@ -1697,9 +1697,9 @@ The hyperlinks are created in different ways for different major
 modes with the help of the functions in the list
 `mlinks-mode-functions'.
 
-The hyperlinks can be hilighted when the point is over them.
-Use `mlinks-toggle-hilight' to toggle this feature for the
-current buffer.
+The hyperlinks can be hilighted when point is over them.  Use
+`mlinks-toggle-hilight' to toggle this feature for the current
+buffer.
 
 All keybindings in this mode are by default done under the prefi§x
 key
@@ -1823,7 +1823,7 @@ This also covers inlined style and javascript." t)
 ;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
 ;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
 ;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18663 19504))
+;;;;;;  "util/ourcomments-util.el" (18671 45472))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -1949,6 +1949,10 @@ is not reset when turning off this mode.
 Note 2: The text property `wrap-prefix' is set by this mode to
 indent continuation lines.  This is not recorded in the undo
 list.
+
+Key bindings added by this minor mode:
+
+\\{wrap-to-fill-column-mode-map}
 
 \(fn &optional ARG)" t nil)
 
@@ -2182,7 +2186,7 @@ see `udev-rinari-dir' and `udev-rinari-load-rinari'.
 ;;;***
 
 ;;;### (autoloads (viper-tutorial) "viper-tut" "util/viper-tut.el"
-;;;;;;  (18077 20316))
+;;;;;;  (18684 48500))
 ;;; Generated autoloads from util/viper-tut.el
 
 (autoload 'viper-tutorial "viper-tut" "\
@@ -2191,9 +2195,9 @@ If any of the standard Viper key bindings that are used in the
 tutorial have been changed then an explanatory note about this is
 shown in the beginning of the tutorial buffer.
 
-When the tutorial buffer is killed the content and the point
-position in the buffer is saved so that the tutorial may be
-resumed later.
+When the tutorial buffer is killed the content and point position
+in the buffer is saved so that the tutorial may be resumed
+later.
 
 \(fn PART &optional DONT-ASK-FOR-REVERT)" t nil)
 
@@ -2421,7 +2425,7 @@ Not documented
 ;;;;;;  "util/color-test-sent.el" "util/color-test.el" "util/custsets.el"
 ;;;;;;  "util/ecb-batch-compile.el" "util/elunit.el" "util/ffip.el"
 ;;;;;;  "util/fmode.el" "util/from-osxkeys.el" "util/fupd.el" "util/half-qwerty.el"
-;;;;;;  "util/hexcolor.el" "util/hfyview.el" "util/hl-needed.el"
+;;;;;;  "util/hexcolor.el" "util/hfy-test.el" "util/hfyview.el" "util/hl-needed.el"
 ;;;;;;  "util/htmlfontify.21.el" "util/htmlfontify.el" "util/mumamo-aspnet.el"
 ;;;;;;  "util/mumamo-test.el" "util/mumamo-trace.el" "util/mumamo.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
@@ -2429,7 +2433,7 @@ Not documented
 ;;;;;;  "util/popcmp.el" "util/rebind.el" "util/rxi.el" "util/search-form.el"
 ;;;;;;  "util/sex-mode.el" "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
 ;;;;;;  "util/vline.el" "util/whelp.el" "util/winsav.el" "util/zen-mode.el")
-;;;;;;  (18665 17040 687000))
+;;;;;;  (18685 3182 31000))
 
 ;;;***
 
