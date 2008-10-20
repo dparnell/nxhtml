@@ -2915,8 +2915,8 @@ Usage example:
         <ul>
       </div>
 
-  Then put the point at the X above (this is just a mark, should
-  not be in your code) and call this function.
+  Then put point at the X above (this is just a mark, should not
+  be in your code) and call this function.
 
   It will add some CSS code to in the header of your file. You
   may want to tweak this a little bit, see below (or place it

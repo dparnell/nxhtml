@@ -615,9 +615,9 @@ The hyperlinks are created in different ways for different major
 modes with the help of the functions in the list
 `mlinks-mode-functions'.
 
-The hyperlinks can be hilighted when the point is over them.
-Use `mlinks-toggle-hilight' to toggle this feature for the
-current buffer.
+The hyperlinks can be hilighted when point is over them.  Use
+`mlinks-toggle-hilight' to toggle this feature for the current
+buffer.
 
 All keybindings in this mode are by default done under the prefi§x
 key

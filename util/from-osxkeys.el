@@ -57,7 +57,7 @@
 ;; >>
 ;; >> We have been using different code for these that does the right
 ;; >> thing. This was necessary primarily because of variable width
-;; >> fonts. <down> is bound to visual-line-down', which moves the point to
+;; >> fonts. <down> is bound to visual-line-down', which moves point to
 ;; >> the next visual line and to the column that is closest on the screen
 ;; >> (pixel  wise), minimizing horizontal offset (in pixels). Other
 ;; >> functions provided are beginning-of-visual-line',

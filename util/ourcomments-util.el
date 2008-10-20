@@ -942,6 +942,24 @@ See the hook for WINDOW and START-POS."
         (max (window-end window t)))
     (wrap-to-fill-set-prefix min max)))
 
+(defun wrap-to-fill-wider ()
+  "Increase `fill-column' with 10."
+  (interactive)
+  (setq fill-column (+ fill-column 10))
+  (wrap-to-fill-set-values))
+
+(defun wrap-to-fill-narrower ()
+  "Decrease `fill-column' with 10."
+  (interactive)
+  (setq fill-column (- fill-column 10))
+  (wrap-to-fill-set-values))
+
+(defvar wrap-to-fill-column-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(control ?c) right] 'wrap-to-fill-wider)
+    (define-key map [(control ?c) left] 'wrap-to-fill-narrower)
+    map))
+
 (put 'wrap-to-fill-column-mode 'permanent-local t)
 ;;;###autoload
 (define-minor-mode wrap-to-fill-column-mode
@@ -954,7 +972,11 @@ is not reset when turning off this mode.
 
 Note 2: The text property `wrap-prefix' is set by this mode to
 indent continuation lines.  This is not recorded in the undo
-list."
+list.
+
+Key bindings added by this minor mode:
+
+\\{wrap-to-fill-column-mode-map}"
   ;; Fix-me: make the `wrap-prefix' behavior an option.
   :lighter " WrapFill"
   :group 'convenience

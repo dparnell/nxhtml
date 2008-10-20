@@ -99,6 +99,51 @@ emacsw32-eol."
       (make-local-variable 'emacsw32-eol-ask-before-save)
       (setq emacsw32-eol-ask-before-save nil))))
 
+(defun as-external-its-all-text-gmail ()
+  "Setup for Firefox addon It's All Text for gmail.
+
+- `text-mode' since some XHTML tags may be allowed.
+- `wrap-to-fill-column-mode' to see what you are writing.
+
+See also `as-external-its-all-text-default'."
+  (text-mode)
+  (as-external-mail-comment-mode 1)
+  (setq fill-column 90)
+  (wrap-to-fill-column-mode 1))
+
+(defvar as-external-mail-comment-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(meta ?\;)] 'as-external-comment-mail-text)
+    (define-key map [(meta ?\,)] 'as-external-uncomment-mail-text)
+    map))
+
+(defun as-external-comment-mail-text (from-pos to-pos)
+  (interactive "r")
+  (let ((here (point-marker)))
+    (goto-char from-pos)
+    (goto-char (line-beginning-position))
+    (while (< (point) to-pos)
+      (insert "> ")
+      (forward-line))
+    (goto-char here)))
+
+(defun as-external-uncomment-mail-text (from-pos to-pos)
+  (interactive "r")
+  (let ((here (point-marker)))
+    (goto-char from-pos)
+    (goto-char (line-beginning-position))
+    (while (< (point) to-pos)
+      (when (and (eq ?> (char-after))
+                 (eq ?\  (char-after (1+ (point)))))
+        (delete-char 2))
+      (forward-line))
+    (goto-char here)))
+
+(define-minor-mode as-external-mail-comment-mode
+  "Define commands to comment text in mail messages."
+  :keymap 'as-external-mail-comment-mode-map
+  :group 'as-external)
+
 (defun as-external-fall-back (msg)
   "Fallback to text-mode if necessary."
   (text-mode)
@@ -111,6 +156,11 @@ emacsw32-eol."
       (as-external-fall-back "Can't find file wikipedia-mode.el")
     (wikipedia-mode)))
 
+(defcustom as-external-its-all-text-gmail "/itsalltext/"
+  "Regular expression matching It's All Text buffer for gmail."
+  :type 'regexp
+  :group 'as-external)
+
 (defcustom as-external-its-all-text-regexp "/itsalltext/"
   "Regular expression matching It's All Text buffer's file."
   :type 'regexp
@@ -122,6 +172,7 @@ emacsw32-eol."
                  ".*"
                  "wiki")
          'as-external-for-wiki)
+   '(as-external-its-all-text-gmail  as-external-its-all-text-gmail)
    '(as-external-its-all-text-regexp as-external-its-all-text-default)
    )
   "List to determine setup if Emacs is used as an external Editor.

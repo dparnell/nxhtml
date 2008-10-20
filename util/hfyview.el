@@ -177,7 +177,7 @@ the Quick Print entry."
   ;; There seems to be a bug in Firefox that prevents this from
   ;; displaying correctly.  Anyway this is just a quick and reasonable
   ;; approximation.
-  (concat "<div style=\"color:%s; background:%s; white-space:pre; overflow:hidden; font-family:monospace;\">"
+  (concat "<div style=\"width:%sem; color:%s; background:%s; white-space:pre; overflow:hidden; font-family:monospace;\">"
           ;; Using <pre> gives empty line above and below
           ;;"<pre>"
           "-- (Unix)%s   <b>%s</b>    (%s%s) "
@@ -280,6 +280,7 @@ the Quick Print entry."
       (insert "</" tag ">\n")
       ;;(lwarn t :warning "%s" mark-viper)
       (insert (format hfyview-modline-format
+                      width
                       mod-fgcolor mod-bgcolor mod
                       (hfyview-dekludge-string bu-name)
                       (hfyview-dekludge-string ma-name)
