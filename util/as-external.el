@@ -68,8 +68,68 @@
   :group 'nxhtml
   :group 'external)
 
-(defun as-external-its-all-text-default ()
-  "Setup for Firefox addon It's All Text.
+(defcustom as-external-its-all-text-regexp "/itsalltext/"
+  "Regular expression matching It's All Text buffer's file."
+  :type 'regexp
+  :group 'as-external)
+
+(defcustom as-external-alist
+  '(
+    ("/itsalltext/.*wiki" as-external-for-wiki)
+    ("/itsalltext/.*mail" as-external-for-mail)
+    ("/itsalltext/"       as-external-for-xhtml)
+   )
+  "List to determine setup if Emacs is used as an external Editor.
+Element in this list should have the form
+
+  \(FILE-REGEXP BUFFER-SETUP)
+
+where FILE-REGEXP should be a regular expression to match
+`buffer-file-name'. If it matches then BUFFER-SETUP should be
+called in the buffer.
+
+* Tip when using Firefox's add-on It's All Text: It looks like
+  the file name used will be constructed from the host url. For
+  example if your are editing something on
+  http://www.emacswiki.org/ the file name may be something like
+  'www.emacswiki.org.283b1y212e.html'.
+
+
+The list is processed by `as-external-setup'. Note that the first
+match is used!
+
+The default entries in this list supports for Firefox addon It's
+All Text:
+
+- `as-external-for-xhtml'.  For text areas on web pages where you
+  can enter some XHTML code, for example blog comment fields.
+
+- `as-external-for-mail', for editing web mail messages.
+
+- `as-external-for-wiki', for mediawiki.
+
+See also `as-external-mode'."
+  :type '(repeat
+          (list (choice (variable :tag "Regexp variable")
+                        regexp)
+                command))
+  :group 'as-external)
+
+(defcustom as-external-its-all-text-coding 'utf-8
+  "Coding system to use for It's All Text buffers.
+See also `as-external-for-xhtml'."
+  :type '(choice (const :tag "No special coding system" nil)
+                 coding-system)
+  :group 'as-external)
+
+(defun as-external-fall-back (msg)
+  "Fallback to text-mode if necessary."
+  (text-mode)
+  (lwarn t :warning "%s. Using text-mode" msg))
+
+;;;###autoload
+(defun as-external-for-xhtml ()
+  "Setup for Firefox addon It's All Text to edit XHTML.
 It's All Text is a Firefox add-on for editing textareas with an
 external editor.
 See URL `https://addons.mozilla.org/en-US/firefox/addon/4125'.
@@ -85,6 +145,7 @@ blog.  Therefore turn on these:
 
 Also bypass the question for line end conversion when using
 emacsw32-eol."
+  (interactive)
   (if (not (fboundp 'nxhtml-mumamo-mode))
       (as-external-fall-back "Can't find nXhtml")
     (nxhtml-mumamo-mode)
@@ -99,13 +160,16 @@ emacsw32-eol."
       (make-local-variable 'emacsw32-eol-ask-before-save)
       (setq emacsw32-eol-ask-before-save nil))))
 
-(defun as-external-its-all-text-gmail ()
-  "Setup for Firefox addon It's All Text for gmail.
+;;;###autoload
+(defun as-external-for-mail ()
+  "Setup for Firefox addon It's All Text to edit mail.
 
 - `text-mode' since some XHTML tags may be allowed.
 - `wrap-to-fill-column-mode' to see what you are writing.
+- `as-external-mail-comment-mode' for commenting/uncommenting.
 
-See also `as-external-its-all-text-default'."
+See also `as-external-mode'."
+  (interactive)
   (text-mode)
   (as-external-mail-comment-mode 1)
   (setq fill-column 90)
@@ -144,73 +208,14 @@ See also `as-external-its-all-text-default'."
   :keymap 'as-external-mail-comment-mode-map
   :group 'as-external)
 
-(defun as-external-fall-back (msg)
-  "Fallback to text-mode if necessary."
-  (text-mode)
-  (lwarn t :warning "%s. Using text-mode" msg))
-
+;;;###autoload
 (defun as-external-for-wiki ()
-  "Setup for mediawikis."
+  "Setup for Firefox addon It's All Text to edit MediaWikis."
+  (interactive)
   (require 'wikipedia-mode nil t)
   (if (not (featurep 'wikipedia-mode))
       (as-external-fall-back "Can't find file wikipedia-mode.el")
     (wikipedia-mode)))
-
-(defcustom as-external-its-all-text-gmail "/itsalltext/"
-  "Regular expression matching It's All Text buffer for gmail."
-  :type 'regexp
-  :group 'as-external)
-
-(defcustom as-external-its-all-text-regexp "/itsalltext/"
-  "Regular expression matching It's All Text buffer's file."
-  :type 'regexp
-  :group 'as-external)
-
-(defcustom as-external-alist
-  (list
-   (list (concat as-external-its-all-text-regexp
-                 ".*"
-                 "wiki")
-         'as-external-for-wiki)
-   '(as-external-its-all-text-gmail  as-external-its-all-text-gmail)
-   '(as-external-its-all-text-regexp as-external-its-all-text-default)
-   )
-  "List to determine setup if Emacs is used as an external Editor.
-Element in this list should have the form
-
-  \(FILE-REGEXP BUFFER-SETUP)
-
-where FILE-REGEXP should be a regular expression to match
-`buffer-file-name'. If it matches then BUFFER-SETUP should be
-called in the buffer.
-
-* Tip when using Firefox's add-on It's All Text: It looks like
-  the file name used will be constructed from the host url. For
-  example if your are editing something on
-  http://www.emacswiki.org/ the file name may be something like
-  'www.emacswiki.org.283b1y212e.html'.
-
-
-The list is processed by `as-external-setup'. Note that the first
-match is used!
-
-The default entries in this list supports for Firefox addon It's
-All Text (see `as-external-its-all-text-default') and mediawiki (see
-`as-external-for-wiki').
-
-See also `as-external-mode'."
-  :type '(repeat
-          (list (choice (variable :tag "Regexp variable")
-                        regexp)
-                function))
-  :group 'as-external)
-
-(defcustom as-external-its-all-text-coding 'utf-8
-  "Coding system to use for It's All Text buffers.
-See also `as-external-its-all-text-default'."
-  :type '(choice (const :tag "No special coding system" nil)
-                 coding-system)
-  :group 'as-external)
 
 
 ;;;###autoload

@@ -64,7 +64,7 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-mode) "../nxhtml/nxhtml"
-;;;;;;  "nxhtml/nxhtml.el" (18684 48290))
+;;;;;;  "nxhtml/nxhtml.el" (18685 3334))
 ;;; Generated autoloads from nxhtml/nxhtml.el
 
 (autoload 'nxhtml-mode "../nxhtml/nxhtml" "\
@@ -442,7 +442,7 @@ Major mode for interacting with Firefox via MozRepl.
 ;;;***
 
 ;;;### (autoloads (php-mode php-file-patterns) "../related/php-mode"
-;;;;;;  "related/php-mode.el" (18684 48359))
+;;;;;;  "related/php-mode.el" (18685 3334))
 ;;; Generated autoloads from related/php-mode.el
 
 (defvar php-file-patterns '("\\.php[s34]?\\'" "\\.phtml\\'" "\\.inc\\'") "\
@@ -1553,9 +1553,46 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 
 ;;;***
 
-;;;### (autoloads (as-external-mode) "as-external" "util/as-external.el"
-;;;;;;  (18685 2655))
+;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-mail
+;;;;;;  as-external-for-xhtml) "as-external" "util/as-external.el"
+;;;;;;  (18686 27193))
 ;;; Generated autoloads from util/as-external.el
+
+(autoload 'as-external-for-xhtml "as-external" "\
+Setup for Firefox addon It's All Text to edit XHTML.
+It's All Text is a Firefox add-on for editing textareas with an
+external editor.
+See URL `https://addons.mozilla.org/en-US/firefox/addon/4125'.
+
+In this case Emacs is used to edit textarea fields on a web page.
+The text will most often be part of a web page later, like on a
+blog.  Therefore turn on these:
+
+- `nxhtml-mumamo-mode' since some XHTML tags may be allowed.
+- `nxhtml-validation-header-mode' since it is not a full page.
+- `wrap-to-fill-column-mode' to see what you are writing.
+- `html-write-mode' to see it even better.
+
+Also bypass the question for line end conversion when using
+emacsw32-eol.
+
+\(fn)" t nil)
+
+(autoload 'as-external-for-mail "as-external" "\
+Setup for Firefox addon It's All Text to edit mail.
+
+- `text-mode' since some XHTML tags may be allowed.
+- `wrap-to-fill-column-mode' to see what you are writing.
+- `as-external-mail-comment-mode' for commenting/uncommenting.
+
+See also `as-external-mode'.
+
+\(fn)" t nil)
+
+(autoload 'as-external-for-wiki "as-external" "\
+Setup for Firefox addon It's All Text to edit MediaWikis.
+
+\(fn)" t nil)
 
 (defvar as-external-mode nil "\
 Non-nil if As-External mode is enabled.
@@ -1687,8 +1724,8 @@ before applying.
 
 ;;;***
 
-;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18684
-;;;;;;  48397))
+;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18685
+;;;;;;  3334))
 ;;; Generated autoloads from util/mlinks.el
 
 (autoload 'mlinks-mode "mlinks" "\
@@ -1823,7 +1860,7 @@ This also covers inlined style and javascript." t)
 ;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
 ;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
 ;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18671 45472))
+;;;;;;  "util/ourcomments-util.el" (18685 3334))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2186,7 +2223,7 @@ see `udev-rinari-dir' and `udev-rinari-load-rinari'.
 ;;;***
 
 ;;;### (autoloads (viper-tutorial) "viper-tut" "util/viper-tut.el"
-;;;;;;  (18684 48500))
+;;;;;;  (18685 3334))
 ;;; Generated autoloads from util/viper-tut.el
 
 (autoload 'viper-tutorial "viper-tut" "\
@@ -2433,7 +2470,7 @@ Not documented
 ;;;;;;  "util/popcmp.el" "util/rebind.el" "util/rxi.el" "util/search-form.el"
 ;;;;;;  "util/sex-mode.el" "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
 ;;;;;;  "util/vline.el" "util/whelp.el" "util/winsav.el" "util/zen-mode.el")
-;;;;;;  (18685 3182 31000))
+;;;;;;  (18686 27261 703000))
 
 ;;;***
 
