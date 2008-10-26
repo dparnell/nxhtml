@@ -292,8 +292,7 @@ See that variable for START, END and PRE-LEN."
           (max-ovl (point-min))
           our-overlays
           our-visible-overlays
-          (dbg nil)
-          )
+          (dbg nil))
       (setq html-write-pending-changes nil)
       (dolist (pend pending)
         (when (< (car pend) min-ovl)
@@ -301,6 +300,7 @@ See that variable for START, END and PRE-LEN."
         (when (> (cdr pend) max-ovl)
           (setq max-ovl (cdr pend))))
       ;; Get our overlays
+      (when dbg (message "========================================"))
       (when dbg (message "Get our overlays"))
       (dolist (ovl (append (overlays-in min-ovl max-ovl)
                            (overlays-at min-ovl)
@@ -343,7 +343,7 @@ See that variable for START, END and PRE-LEN."
                                  (< (cdr rec-a) (cdr rec-b))
                                (< (car rec-a) (car rec-b))))))
       ;; Extend end
-      (when dbg (message "Extend end"))
+      (when dbg (message "== Extend end"))
       (let ((high-end (point-min))
             end
             next-<c-pos
@@ -374,6 +374,7 @@ See that variable for START, END and PRE-LEN."
                           (when dbg (message "End tag, must include it."))
                           ;;(forward-char)
                           (skip-chars-forward "^>")
+                          (when dbg (message "after skip ^>"))
                           (setq end (min (point-max) (1+ (point))))))
                     ;; Inside tag or unfinished tag
                     (when dbg (message "Inside tag or unfinished tag"))
@@ -388,8 +389,8 @@ See that variable for START, END and PRE-LEN."
                               (when dbg (message "End tag"))
                               (setq end this->-pos+1))
                           ;; Start tag
-                          (when dbg (message "Start tag"))
-                          (forward-char)
+                          (when dbg (message "Start tag 2"))
+                          (unless (eobp) (forward-char))
                           (skip-chars-forward "^>")
                           (setq end (point)))
                       ;; Between > and >
@@ -402,7 +403,7 @@ See that variable for START, END and PRE-LEN."
             (when dbg (message "This ends after so we can extend it to high-end"))
             (setcdr pend high-end))))
       ;; Extend start
-      (when dbg (message "Extend start"))
+      (when dbg (message "== Extend start"))
       (setq pending (nreverse pending))
       (let ((low-start (point-max))
             start
@@ -456,7 +457,7 @@ See that variable for START, END and PRE-LEN."
             (setcar pend low-start))))
 
       ;; delete dublicates, merge
-      (when dbg (message "delete dublicates, merge"))
+      (when dbg (message "== delete dublicates, merge"))
       (setq pending2 pending)
       (setq pending nil)
       (while pending2
