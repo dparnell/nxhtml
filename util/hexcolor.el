@@ -62,10 +62,10 @@
     (setq r2 (- 255 (string-to-number rr 16)))
     (setq g2 (- 255 (string-to-number gg 16)))
     (setq b2 (- 255 (string-to-number bb 16)))
-    (let ((mm (% (- (/ (+ r2 g2 b2)
-                       3)
-                    (/ 255 3))
-                 255)))
+    (let ((mm (mod (- (/ (+ r2 g2 b2)
+                         3)
+                      (/ 255 3))
+                   255)))
       (format "#%02x%02x%02x" mm mm mm))
     ))
 ;; (hexcolor-inverse-color "#fed")
@@ -73,6 +73,7 @@
 ;; (hexcolor-inverse-color "#f00")
 ;; (hexcolor-inverse-color "#000")
 ;; (hexcolor-inverse-color "#000000")
+;; (hexcolor-inverse-color "#ffeedd")
 
 (defvar hexcolor-keywords
   '((
