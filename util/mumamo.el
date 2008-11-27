@@ -318,7 +318,7 @@ uses are in this file.
 
 FORMAT-STRING and ARGS have the same meaning as for the function
 `message'."
-  (list 'apply (list 'quote 'msgtrc) format-string (append '(list) args))
+  ;;(list 'apply (list 'quote 'msgtrc) format-string (append '(list) args))
   ;;(list 'apply (list 'quote 'message) format-string (append '(list) args))
   ;;(list 'apply (list 'quote 'message) (list 'concat "%s: " format-string)
   ;;   (list 'get-internal-run-time) (append '(list) args))
@@ -918,6 +918,7 @@ OPERATION can have three values:
   (unless mumamo-end-last-chunk-pos (setq mumamo-end-last-chunk-pos 1))
   (let ((pos mumamo-end-last-chunk-pos)
         (end (or end (point-max)))
+        narpos
         this-values
         this-chunk
         first-change-pos
@@ -926,7 +927,9 @@ OPERATION can have three values:
     (assert (memq operation '(until-input create-all last-as-values)))
     (when (> pos end)
       (setq this-chunk (mumamo-get-existing-chunk-at end))
-      (setq pos (overlay-start this-chunk))
+      (if this-chunk
+          (setq pos (overlay-start this-chunk))
+        (setq pos end))
       )
     (save-restriction
       (widen)
@@ -938,8 +941,10 @@ OPERATION can have three values:
                                  (input-pending-p))
                         (setq interrupted t))
                       (not interrupted)))
-          ;; Narrow to speed up
-          (narrow-to-region pos (point-max))
+          ;; Narrow to speed up. However the chunk divider may be
+          ;; before pos here. Assume that the marker is not longer than 200 chars. fix-me.
+          (setq narpos (max (- pos 200) 1))
+          (narrow-to-region narpos (point-max))
           (setq this-chunk nil)
           (setq this-values (mumamo-create-chunk-values-at pos))
           (setq pos (or (mumamo-chunk-value-max this-values) ;;(overlay-end this-chunk)
@@ -950,13 +955,16 @@ OPERATION can have three values:
             ;; With the new organization all chunks are created here.
             (let ((old-chunk (mumamo-get-existing-chunk-at pos)))
               (when old-chunk
-                (mumamo-message-with-face
-                 (format "pos=%s, old-chunk=%s" pos old-chunk)
-                 'highlight)))
-            (setq this-chunk (mumamo-create-chunk-from-chunk-values this-values)))
-          (unless first-change-pos
-            (setq first-change-pos (mumamo-chunk-value-min this-values) ;;(overlay-start this-chunk)
-                  ))
+                (mumamo-message-with-face (format "pos=%s, old-chunk=%s" pos old-chunk) 'highlight)
+                (if (mumamo-chunk-equal-chunk-values old-chunk this-values)
+                    (setq this-chunk old-chunk)
+                  ;; Fix-me: maybe change range of old-chunk instead.
+                  (delete-overlay old-chunk)))
+              (unless this-chunk
+                (setq this-chunk (mumamo-create-chunk-from-chunk-values this-values))
+                (unless first-change-pos
+                  (setq first-change-pos (mumamo-chunk-value-min this-values) ;;(overlay-start this-chunk)
+                        )))))
           ;; Cache ppss syntax
           ;;(syntax-ppss (1+ (mumamo-chunk-syntax-min this-chunk)))
           ;;(setq mumamo-end-last-chunk-pos pos)
@@ -1386,6 +1394,7 @@ This function is called when the minor mode function
               (when major
                 (unless (eq major main-major)
                   (mumamo-unfontify-chunk o))
+                (mumamo-msgfntfy "delete-overlay 1")
                 (delete-overlay o)
                 ))))
         (mumamo-unfontify-region-with (point-min) (point-max)
@@ -1562,9 +1571,11 @@ for refontification."
       ;; Fix-me: Clean up among the overlay removal.
       ;;
       (when (< old-start new-start)
+        (mumamo-msgfntfy "(move-overlay %s %s %s" old old-start (1- new-start))
         (move-overlay old old-start (1- new-start)))
       (when (and (<= new-start old-start)
                  (<= old-end new-real-end))
+        (mumamo-msgfntfy "delete-overlay 2")
         (delete-overlay old))
       ;;(when (< old-start new-start))
       ;; There is nothing to do in this case since the conditions
@@ -1573,6 +1584,7 @@ for refontification."
         (mumamo-msgfntfy "new-is-closed=%s" new-is-closed)
         (if new-is-closed
             (progn
+              (mumamo-msgfntfy "delete-overlay 3")
               (delete-overlay old)
               (mumamo-mark-for-refontification (+ new-real-end 1) old-end))
           (if (eq (mumamo-chunk-major-mode old) new-major)
@@ -1583,7 +1595,9 @@ for refontification."
                 (mumamo-chunk-value-set-max        new-chunk-values old-end)
                 (mumamo-chunk-value-set-syntax-min new-chunk-values new-syntax-min)
                 (mumamo-chunk-value-set-syntax-max new-chunk-values old-syntax-max)
+                (mumamo-msgfntfy "delete-overlay 4")
                 (delete-overlay old))
+            (mumamo-msgfntfy "delete-overlay 5")
             (delete-overlay old)
             (mumamo-mark-for-refontification (+ new-real-end 1) old-end))))))))
 
@@ -1846,6 +1860,7 @@ most major modes."
       (setq mumamo-chunks-to-remove (cdr mumamo-chunks-to-remove))
       ;;(unless (overlay-get ovl 'mumamo-old-major-mode) (error "Chunk overlay was not marked for removal"))
       (overlay-put ovl 'mumamo-old-major-mode nil)
+      (mumamo-msgfntfy "delete-overlay 6")
       (delete-overlay ovl))))
 
 
@@ -2313,6 +2328,7 @@ MIN to MAX, otherwise MIN to MAX."
         (overlay-put o 'mumamo-major-mode nil)
         ;; Fix-me: There must be something wrong. If we remove the
         ;; overlay there is no need to save it.
+        (mumamo-msgfntfy "delete-overlay 7")
         (delete-overlay o)
         (setq did-remove t)
         (setq mumamo-chunks-to-remove (cons o mumamo-chunks-to-remove))))
@@ -2339,12 +2355,14 @@ MIN to MAX, otherwise MIN to MAX."
 Like `mumamo-create-chunk-values-at, but first create chunks
 before POS."
   (mumamo-msgfntfy "********* computing new-way and old-way")
-  (let ((new-way nil) ;(mumamo-find-chunks pos 'last-as-values))
+  (let ((new-way (mumamo-find-chunks pos 'last-as-values))
         ;; Fix-me: remove
         (old-way (mumamo-create-chunk-values-at pos)))
     (mumamo-msgfntfy "new-way=%s" new-way)
     (mumamo-msgfntfy "old-way=%s" old-way)
-    old-way)
+    (unless (equal new-way old-way)
+      (message "ERROR: new-way /= old-way"))
+    new-way)
   )
 
 (defun mumamo-create-chunk-values-at (pos)
@@ -2650,6 +2668,7 @@ CHUNK-VALUES should be in the format returned by
         (let ((ctg (overlay-get ovl 'category)))
           ;;(message "ctg=%s" ctg)
           (when (memq ctg '(nxml-dependent rng-dependent rng-error))
+            (mumamo-msgfntfy "delete-overlay 8")
             (delete-overlay ovl))
           )))
     (mumamo-msgfntfy "leaving mumamo-create-chunk-from-chunk-values modified=%s" (buffer-modified-p))
