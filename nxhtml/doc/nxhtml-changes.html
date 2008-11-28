@@ -2258,6 +2258,11 @@
                 Bug fixes in html-write-mode and as-external.el.
               </li>
               <li>
+                Fixed
+                bug <a href="https://bugs.launchpad.net/nxhtml/+bug/290364">290364</a>,
+                see below about MuMaMo important changes.
+              </li>
+              <li>
                 Added some support for editing gmail messages in
                 as-external.el (to be used with It's All Text for
                 Firefox).
@@ -2272,6 +2277,28 @@
               </li>
               <li>
                 Aaron Hawley merged in some changes he made to php-mode.el. Thanks Aaron!
+                Now nXhtml uses a slightly modified version of php-mode 1.5.0 is used
+              </li>
+              <li>
+                <b>MuMaMo important changes</b>
+                <p>
+                  Unfortunately the chunk dividing routines in
+                  mumamo.el can loop, see bug 290364 above.  The
+                  reason is that I tried to find chunks at current
+                  point in a buffer without looking through the buffer
+                  from the beginning.  Fontification works this way in
+                  Emacs.  It is a heuristic that sometimes fails
+                  however.  Chunk dividing must be more stable and
+                  therefore have to be done from the beginning of the
+                  buffer - just like the parser reading the file will do.
+                </p>
+                <p>
+                  I have done first part of this rewrite. Chunk
+                  dividing is now always done from the beginning.
+                  However the routines actually finding the chunks
+                  still looks both upwards and downwards.  I will try
+                  to remove this unnecessary complexity later.
+                </p>
               </li>
             </ul>
           </dd>
