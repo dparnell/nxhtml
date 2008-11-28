@@ -2880,9 +2880,9 @@ The mark has this form
     (while (re-search-forward (rx
                                "<!-- today -->"
                                (submatch (0+ anything))
-                               "<!-- end today -->"
-                                nil t)
-        (replace-match date-str nil nil nil 1)))
+                               "<!-- end today -->")
+                              nil t)
+      (replace-match date-str nil nil nil 1))
     (goto-char here)))
 
 (defun nxhtml-rollover-insert-2v ()
