@@ -2033,7 +2033,7 @@
                     major mode.
                   </li>
                   <li>
-                    Tried to fix https://answers.launchpad.net/nxhtml/+question/43320
+                    Tried to fix <a href="https://answers.launchpad.net/nxhtml/+question/43320">question 43320</a>.
                   </li>
                 </ul>
               </li>
@@ -2288,9 +2288,15 @@
                   point in a buffer without looking through the buffer
                   from the beginning.  Fontification works this way in
                   Emacs.  It is a heuristic that sometimes fails
-                  however.  Chunk dividing must be more stable and
+                  however, but the consequences are merely just local
+                  errors in fontification.
+                </p>
+                <p>
+                  Chunk dividing must be more stable since it has a
+                  global impact on the files fontification. It
                   therefore have to be done from the beginning of the
-                  buffer - just like the parser reading the file will do.
+                  buffer - just like a parser reading the file will
+                  do.
                 </p>
                 <p>
                   I have done first part of this rewrite. Chunk
