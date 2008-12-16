@@ -1599,8 +1599,12 @@ of those in for example common web browsers."
 ;;;; New Emacs instance
 
 (defun ourcomments-find-emacs ()
-  (let ((exec-path (list exec-directory)))
-    (executable-find "emacs")))
+  (locate-file invocation-name
+               (list invocation-directory)
+               exec-suffixes
+               ;; 1 ;; Fix-me: This parameter is depreceated, but used
+               ;; in executable-find, why?
+               ))
 
 ;;;###autoload
 (defun emacs()
