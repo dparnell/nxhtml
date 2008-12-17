@@ -318,7 +318,7 @@ uses are in this file.
 
 FORMAT-STRING and ARGS have the same meaning as for the function
 `message'."
-  (list 'apply (list 'quote 'msgtrc) format-string (append '(list) args))
+  ;;(list 'apply (list 'quote 'msgtrc) format-string (append '(list) args))
   ;;(list 'apply (list 'quote 'message) format-string (append '(list) args))
   ;;(list 'apply (list 'quote 'message) (list 'concat "%s: " format-string)
   ;;   (list 'get-internal-run-time) (append '(list) args))
@@ -930,8 +930,9 @@ in this part of the buffer."
                        mumamo-last-chunk-change-pos)))
       (setq mumamo-last-chunk-change-pos nil)
       (setq mumamo-last-chunk (overlay-get this-chunk 'mumamo-prev-chunk))))
-  (let ((ok-pos (or (when mumamo-last-chunk (overlay-end mumamo-last-chunk))
-                    1))
+  (unless (and (overlayp mumamo-last-chunk) (overlay-buffer mumamo-last-chunk))
+    (setq mumamo-last-chunk nil))
+  (let ((ok-pos (if mumamo-last-chunk (overlay-end mumamo-last-chunk) 1))
         (end (or end (point-max)))
         narpos
         this-values
@@ -949,7 +950,6 @@ in this part of the buffer."
       (save-restriction
         (widen)
         (mumamo-save-buffer-state nil
-          ;;(setq prev-chunk mumamo-last-chunk)
           (setq this-chunk mumamo-last-chunk)
           (while (and (or (not end)
                           (<= ok-pos end))
@@ -957,7 +957,8 @@ in this part of the buffer."
                       (not (setq interrupted (and (not end)
                                                   (input-pending-p)))))
             ;; Narrow to speed up. However the chunk divider may be
-            ;; before ok-pos here. Assume that the marker is not longer than 200 chars. fix-me.
+            ;; before ok-pos here. Assume that the marker is not
+            ;; longer than 200 chars. fix-me.
             (setq narpos (max (- ok-pos 200) 1))
             (narrow-to-region narpos point-max)
             (setq prev-chunk this-chunk)
@@ -973,21 +974,23 @@ in this part of the buffer."
                 (mumamo-message-with-face (format "ok-pos=%s, old-chunk=%s" ok-pos old-chunk) 'highlight)
                 (if (mumamo-chunk-equal-chunk-values old-chunk this-values)
                     (setq this-chunk old-chunk)
-                  (if mumamo-old-chunks
-                      ;; Keep old chunks in a separate list.
-                      ;; fix-me: maybe sort, maybe remove ...
-                      (progn
-                        (overlay-put old-chunk 'mumamo-next-chunk mumamo-old-chunks)
-                        (overlay-put old-chunk 'mumamo-is-old t)
-                        (setq mumamo-old-chunks old-chunk))
-                    (setq mumamo-old-chunks old-chunk))
+                  (delete-overlay old-chunk)
+;;;                   (if mumamo-old-chunks
+;;;                       ;; Keep old chunks in a separate list.
+;;;                       ;; fix-me: maybe sort, maybe remove ...
+;;;                       (progn
+;;;                         (overlay-put old-chunk 'mumamo-next-chunk mumamo-old-chunks)
+;;;                         (overlay-put old-chunk 'mumamo-is-old t)
+;;;                         (setq mumamo-old-chunks old-chunk))
+;;;                     (setq mumamo-old-chunks old-chunk))
                   ))
               (unless this-chunk
                 ;; Create chunk and chunk links
                 ;; Fix-me: Mark chunk borders here??? Won't work
                 ;; well with font lock turn on/off.
                 (setq this-chunk (mumamo-create-chunk-from-chunk-values this-values))
-                (overlay-put prev-chunk 'mumamo-next-chunk this-chunk)
+                (when prev-chunk
+                  (overlay-put prev-chunk 'mumamo-next-chunk this-chunk))
                 (overlay-put this-chunk 'mumamo-prev-chunk prev-chunk)
                 (unless first-change-pos
                   (setq first-change-pos (mumamo-chunk-value-min this-values)))
@@ -1454,7 +1457,8 @@ fontification."
   "Unfontify buffer.
 This function is called when the minor mode function
 `font-lock-mode' is turned off. \(It is the value of
-`font-lock-unfontify-buffer-function')."
+`font-lock-unfontify-uffer-function')."
+  (message "BACKTRACE: %s" (with-output-to-string (backtrace)))
   (when mumamo-multi-major-mode
     (save-excursion
       (save-restriction
@@ -2663,7 +2667,7 @@ CHUNK-VALUES should be in the format returned by
     ;; remove all old chunk overlays between min and max
     ;; Fix-me: Must keep track of those to know how much to refontify:
     (unless max-found  (setq max (point-max)))
-    (mumamo-remove-chunk-overlays min max)
+    ;;(mumamo-remove-chunk-overlays min max)
     ;;(message "min-max=%s-%s, prev-chunk=%s, prev-major=%s, prev-same=%s, major-sub=%s" min max prev-chunk prev-major prev-same major-sub)
     (setq chunk-ovl (make-overlay min max))
     (overlay-put chunk-ovl 'mumamo-prev-chunk prev-chunk)
@@ -3711,6 +3715,7 @@ needed \(and is the default).
 
 (defun mumamo-post-command-1 (&optional no-debug)
   (unless no-debug (setq debug-on-error t))
+  (mumamo-msgfntfy "mumamo-post-command-1: font-lock-mode=%s" font-lock-mode)
   (if font-lock-mode
       (mumamo-set-major-post-command)
     ;;(mumamo-on-font-lock-off)
@@ -4622,12 +4627,12 @@ default values."
         ;; both buffer local value and global value. The global
         ;; changes are in this variable, but the buffer local values
         ;; have been set once again.
-;;;         (change-major-mode-hook (mumamo-get-hook-value
-;;;                                  'change-major-mode-hook
-;;;                                  mumamo-change-major-mode-no-nos))
-;;;         (after-change-major-mode-hook (mumamo-get-hook-value
-;;;                                        'after-change-major-mode-hook
-;;;                                        mumamo-after-change-major-mode-no-nos))
+        (change-major-mode-hook (mumamo-get-hook-value
+                                 'change-major-mode-hook
+                                 mumamo-change-major-mode-no-nos))
+        (after-change-major-mode-hook (mumamo-get-hook-value
+                                       'after-change-major-mode-hook
+                                       mumamo-after-change-major-mode-no-nos))
         ;; Some major modes deactivates the mark, we do not want that:
         deactivate-mark
         ;; Font lock
