@@ -3,7 +3,7 @@
 ;; Author: Lennart Borgman <lennart dot borgman at gmail dot com >
 ;; Maintainer:
 ;; Created: Wed Dec 07 15:35:09 2005
-;; Version: 0.96
+;; Version: 0.97
 ;; Lxast-Updated: Sun Nov 18 02:14:52 2007 (3600 +0100)
 ;; Keywords:
 ;; Compatibility:
@@ -214,6 +214,8 @@ bindings during resizing:\\<winsize-keymap>
   `winsize-balance-siblings'             \\[winsize-balance-siblings]
   `fit-window-to-buffer'                 \\[fit-window-to-buffer]
   `shrink-window-if-larger-than-buffer'  \\[shrink-window-if-larger-than-buffer]
+
+  `winsav-rotate'                        \\[winsav-rotate]
 
   `winsize-move-border-up'      \\[winsize-move-border-up]
   `winsize-move-border-down'    \\[winsize-move-border-down]
