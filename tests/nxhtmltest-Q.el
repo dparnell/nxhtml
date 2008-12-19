@@ -87,7 +87,8 @@ See `nxhtmltest-run' for more information about the tests."
     (message "nxhtmltest-bin-Q=%s" nxhtmltest-bin-Q)
     (message "nxhtml-auto-start=%s" nxhtml-auto-start)
     (setenv "nxhtmltest-run-Q" "run")
-    (message "After set nxhtmltest-run-Q=%s" (getenv "nxhtmltest-run-Q"))
+    (message "After setenv nxhtmltest-run-Q=%s" (getenv "nxhtmltest-run-Q"))
+    (message "(ourcomments-find-emacs) => %s" (ourcomments-find-emacs))
     (call-process (ourcomments-find-emacs) nil 0 nil "-Q"
                   "-l" temp-eval-file
                   "-l" nxhtml-auto-start
