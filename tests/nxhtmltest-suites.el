@@ -83,12 +83,13 @@ See URL `https://bugs.launchpad.net/nxhtml/+bug/271497'.
 Note: If this test fails Emacs loops.  Therefore the whole test
 is included in a when clause so you can avoid it easily."
   (when t
-    (add-hook 'ert-simulate-command-post-hook
-              'nxhtmltest-should-no-mumamo-errors
-              nil t)
-    (ert-simulate-command '(nxhtml-mumamo-mode) t)
-    (font-lock-mode 1)
-    ))
+    (ert-with-temp-buffer-include-file "bug-290364.php"
+      (add-hook 'ert-simulate-command-post-hook
+                'nxhtmltest-should-no-mumamo-errors
+                nil t)
+      (ert-simulate-command '(nxhtml-mumamo-mode) t)
+      (font-lock-mode 1)
+      )))
 
 (ert-deftest nxhtml-ert-indent-bug271497 ()
   "Test for bug 271497 in Launchpad.
