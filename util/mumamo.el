@@ -4812,7 +4812,7 @@ default values."
       (add-hook 'after-change-functions 'nxml-after-change nil t)
       ;; Added these for Emacs 22:
       (unless nxml-prolog-end (setq nxml-prolog-end 1))
-      (unless nxml-scan-end (setq nxml-scan-end 1)))
+      (unless nxml-scan-end (setq nxml-scan-end (copy-marker 1))))
 
 ;;;     (when (and global-font-lock-mode
 ;;;                font-lock-global-modes
