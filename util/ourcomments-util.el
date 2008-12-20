@@ -1646,8 +1646,10 @@ If there is no buffer file start with `dired'."
 (defun emacs-Q-nxhtml()
   "Start new Emacs with -Q and load nXhtml."
   (interactive)
-  (let ((autostart (expand-file-name "../../EmacsW32/nxhtml/autostart.el"
-                                     exec-directory)))
+  (let ((autostart (if (boundp 'nxhtml-install-dir)
+                       (expand-file-name "autostart.el" nxhtml-install-dir)
+                     (expand-file-name "../../EmacsW32/nxhtml/autostart.el"
+                                       exec-directory))))
     (call-process (ourcomments-find-emacs) nil 0 nil "-Q"
                   "--debug-init"
                   "--load" autostart
