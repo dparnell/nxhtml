@@ -931,12 +931,14 @@ in this part of the buffer."
     (let* ((this-chunk (mumamo-get-existing-chunk-at
                        mumamo-last-chunk-change-pos))
            ;; Check if near border
-           (in-border (>= (mumamo-chunk-syntax-min this-chunk)
-                          mumamo-last-chunk-change-pos)))
-      (setq mumamo-last-chunk (overlay-get this-chunk 'mumamo-prev-chunk))
-      (when in-border
-        (setq mumamo-last-chunk
-              (overlay-get mumamo-last-chunk 'mumamo-prev-chunk)))
+           (in-border (when this-chunk
+                        (>= (mumamo-chunk-syntax-min this-chunk)
+                            mumamo-last-chunk-change-pos))))
+      (when this-chunk
+        (setq mumamo-last-chunk (overlay-get this-chunk 'mumamo-prev-chunk))
+        (when in-border
+          (setq mumamo-last-chunk
+                (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))))
       (setq mumamo-last-chunk-change-pos nil)))
   (unless (and (overlayp mumamo-last-chunk) (overlay-buffer mumamo-last-chunk))
     (setq mumamo-last-chunk nil))
@@ -1478,7 +1480,7 @@ fontification."
 This function is called when the minor mode function
 `font-lock-mode' is turned off. \(It is the value of
 `font-lock-unfontify-uffer-function')."
-  (message "BACKTRACE: %s" (with-output-to-string (backtrace)))
+  ;;(message "BACKTRACE: %s" (with-output-to-string (backtrace)))
   (when mumamo-multi-major-mode
     (save-excursion
       (save-restriction
@@ -5138,7 +5140,11 @@ with a multi major mode."
     (define-key map [(control meta next)]  'mumamo-forward-chunk)
     ;; Use mumamo-indent-line-function:
     ;;(define-key map [tab] 'indent-for-tab-command)
-    map))
+    map)
+  "Keymap that is active in all mumamo buffers.
+It has the some priority as minor mode maps.")
+;;(make-variable-buffer-local 'mumamo-map)
+(put 'mumamo-map 'permanent-local t)
 
 (mumamo-add-multi-keymap 'mumamo-multi-major-mode mumamo-map)
 

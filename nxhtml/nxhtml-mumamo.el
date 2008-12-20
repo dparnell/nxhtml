@@ -84,6 +84,7 @@ This covers inlined style and javascript and PHP."
     mumamo-chunk-style=
     mumamo-chunk-onjs=
     )))
+(add-hook 'nxhtml-mumamo-mode-hook 'mumamo-define-html-file-wide-keys)
 ;;(define-fictive-validation-header-toggle nxhtml-mumamo-mode t)
 
 ;;;###autoload

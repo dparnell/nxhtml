@@ -54,6 +54,25 @@
 (eval-when-compile (add-to-list 'load-path default-directory))
 (require 'mumamo)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; File wide key bindings
+
+(defun mumamo-multi-mode-map ()
+  "Return mumamo multi mode keymap."
+  (symbol-value
+   (intern-soft (concat (symbol-name mumamo-multi-major-mode) "-map"))))
+
+;; (defun mumamo-multi-mode-hook-symbol ()
+;;   "Return mumamo multi mode hook symbol."
+;;   (intern-soft (concat (symbol-name mumamo-multi-major-mode) "-hook")))
+
+(defun mumamo-define-html-file-wide-keys ()
+  (let ((map (mumamo-multi-mode-map)))
+    (define-key map [(control ?c) (control ?h) ?b] 'nxhtml-browse-file)
+    ))
+;; (defun mumamo-add-html-file-wide-keys (hook)
+;;   (add-hook hook 'mumamo-define-html-file-wide-keys)
+;;   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Chunk search routines for XHTML things
@@ -536,6 +555,7 @@ This covers inlined style and javascript and PHP."
     mumamo-chunk-style=
     mumamo-chunk-onjs=
     )))
+(add-hook 'html-mumamo-mode-hook 'mumamo-define-html-file-wide-keys)
 ;; (define-mumamo-multi-major-mode xml-pi-only-mumamo-mode
 ;;   "Test"
 ;;   ("HTML Family" html-mode
@@ -557,6 +577,7 @@ This covers inlined style and javascript and PHP."
       mumamo-chunk-style=
       mumamo-chunk-onjs=
       )))
+(add-hook 'nxml-mumamo-mode-hook 'mumamo-define-html-file-wide-keys)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
