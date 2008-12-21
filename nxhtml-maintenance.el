@@ -116,6 +116,7 @@
          (sub-dirs (mapcar (lambda (file)
                              (when (and (not (member file '("." "..")))
                                         (not (member file '("nxml-mode-20041004" "old")))
+                                        (not (member file '("in")))
                                         (file-directory-p (expand-file-name file root)))
                                file))
                            files)))

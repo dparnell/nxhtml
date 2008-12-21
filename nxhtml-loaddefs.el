@@ -64,7 +64,7 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-mode) "../nxhtml/nxhtml"
-;;;;;;  "nxhtml/nxhtml.el" (18685 3334))
+;;;;;;  "nxhtml/nxhtml.el" (18735 15066))
 ;;; Generated autoloads from nxhtml/nxhtml.el
 
 (autoload 'nxhtml-mode "../nxhtml/nxhtml" "\
@@ -231,7 +231,7 @@ See `nxhtml-minor-mode' for more information on Nxhtml minor mode.
 ;;;;;;  eruby-nxhtml-mumamo-mode jsp-nxhtml-mumamo-mode smarty-nxhtml-mumamo-mode
 ;;;;;;  mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode django-nxhtml-mumamo-mode
 ;;;;;;  embperl-nxhtml-mumamo-mode nxhtml-mumamo-mode) "../nxhtml/nxhtml-mumamo"
-;;;;;;  "nxhtml/nxhtml-mumamo.el" (18649 8278))
+;;;;;;  "nxhtml/nxhtml-mumamo.el" (18764 14404))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 
 (autoload 'nxhtml-mumamo-mode "../nxhtml/nxhtml-mumamo" "\
@@ -442,7 +442,7 @@ Major mode for interacting with Firefox via MozRepl.
 ;;;***
 
 ;;;### (autoloads (php-mode php-file-patterns) "../related/php-mode"
-;;;;;;  "related/php-mode.el" (18685 3334))
+;;;;;;  "related/php-mode.el" (18735 15066))
 ;;; Generated autoloads from related/php-mode.el
 
 (defvar php-file-patterns '("\\.php[s34]?\\'" "\\.phtml\\'" "\\.inc\\'") "\
@@ -451,6 +451,24 @@ List of file patterns for which to automatically invoke `php-mode'.")
 (custom-autoload 'php-file-patterns "../related/php-mode" nil)
 
 (autoload 'php-mode "../related/php-mode" "\
+Major mode for editing PHP code.
+
+\\{php-mode-map}
+
+\(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads (php-mode php-file-patterns) "../related/php-mode-2008-10-23"
+;;;;;;  "related/php-mode-2008-10-23.el" (18688 64648))
+;;; Generated autoloads from related/php-mode-2008-10-23.el
+
+(defvar php-file-patterns '("\\.php[s34]?\\'" "\\.phtml\\'" "\\.inc\\'") "\
+List of file patterns for which to automatically invoke `php-mode'.")
+
+(custom-autoload 'php-file-patterns "../related/php-mode-2008-10-23" nil)
+
+(autoload 'php-mode "../related/php-mode-2008-10-23" "\
 Major mode for editing PHP code.
 
 \\{php-mode-map}
@@ -1485,41 +1503,8 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 
 ;;;***
 
-;;;### (autoloads (ert-run-tests-interactively ert-deftest) "../tests/ert-080729"
-;;;;;;  "tests/ert-080729.el" (18603 15792))
-;;; Generated autoloads from tests/ert-080729.el
-
-(autoload 'ert-deftest "../tests/ert-080729" "\
-Define NAME (a symbol) as a test.
-
-\(fn NAME () [:documentation DOCSTRING] [:expected-result TYPE] BODY...)" nil (quote macro))
-
-(autoload 'ert-run-tests-interactively "../tests/ert-080729" "\
-Run the tests specified by SELECTOR and display the results in a buffer.
-
-\(fn SELECTOR &optional OUTPUT-BUFFER-NAME MESSAGE-FN)" t nil)
-
-;;;***
-
-;;;### (autoloads (ruby-mode) "../tests/in/pastie-246693.txt-ruby-mode"
-;;;;;;  "tests/in/pastie-246693.txt-ruby-mode.el" (18603 15792))
-;;; Generated autoloads from tests/in/pastie-246693.txt-ruby-mode.el
-
-(autoload 'ruby-mode "../tests/in/pastie-246693.txt-ruby-mode" "\
-Major mode for editing ruby scripts.
-\\[ruby-indent-line] properly indents subexpressions of multi-line
-class, module, def, if, while, for, do, and case statements, taking
-nesting into account.
-
-The variable ruby-indent-level controls the amount of indentation.
-\\{ruby-mode-map}
-
-\(fn)" t nil)
-
-;;;***
-
 ;;;### (autoloads (nxhtmltest-run-Q) "../tests/nxhtmltest-Q" "tests/nxhtmltest-Q.el"
-;;;;;;  (18659 17016))
+;;;;;;  (18762 63688))
 ;;; Generated autoloads from tests/nxhtmltest-Q.el
 
 (autoload 'nxhtmltest-run-Q "../tests/nxhtmltest-Q" "\
@@ -1531,7 +1516,7 @@ See `nxhtmltest-run' for more information about the tests.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "../tests/nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (18659 17016))
+;;;;;;  "tests/nxhtmltest-suites.el" (18764 7444))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 
 (autoload 'nxhtmltest-run-indent "../tests/nxhtmltest-suites" "\
@@ -1555,7 +1540,7 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-mail
 ;;;;;;  as-external-for-xhtml) "as-external" "util/as-external.el"
-;;;;;;  (18686 27193))
+;;;;;;  (18686 30854))
 ;;; Generated autoloads from util/as-external.el
 
 (autoload 'as-external-for-xhtml "as-external" "\
@@ -1670,7 +1655,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (html-write-mode) "html-write" "util/html-write.el"
-;;;;;;  (18667 58694))
+;;;;;;  (18692 35034))
 ;;; Generated autoloads from util/html-write.el
 
 (autoload 'html-write-mode "html-write" "\
@@ -1765,7 +1750,7 @@ By default the link moved to will be active, see
 ;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode smarty-html-mumamo-mode
 ;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
 ;;;;;;  embperl-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18654 33922))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18764 14316))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1860,7 +1845,7 @@ This also covers inlined style and javascript." t)
 ;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
 ;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
 ;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18685 3334))
+;;;;;;  "util/ourcomments-util.el" (18764 17429))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2241,7 +2226,7 @@ later.
 ;;;***
 
 ;;;### (autoloads (winsize-save-window-configuration winsize-balance-siblings
-;;;;;;  resize-windows) "winsize" "util/winsize.el" (18659 17016))
+;;;;;;  resize-windows) "winsize" "util/winsize.el" (18761 37866))
 ;;; Generated autoloads from util/winsize.el
 
 (autoload 'resize-windows "winsize" "\
@@ -2259,6 +2244,8 @@ bindings during resizing:\\<winsize-keymap>
   `winsize-balance-siblings'             \\[winsize-balance-siblings]
   `fit-window-to-buffer'                 \\[fit-window-to-buffer]
   `shrink-window-if-larger-than-buffer'  \\[shrink-window-if-larger-than-buffer]
+
+  `winsav-rotate'                        \\[winsav-rotate]
 
   `winsize-move-border-up'      \\[winsize-move-border-up]
   `winsize-move-border-down'    \\[winsize-move-border-down]
@@ -2452,30 +2439,29 @@ Not documented
 ;;;;;;  "related/flymake-helpers.el" "related/flymake-js.el" "related/flymake-keys.el"
 ;;;;;;  "related/flymake-php.el" "related/flymu.el" "related/fold-dwim.el"
 ;;;;;;  "related/js2-font-lock-new.el" "related/js2-font-lock.el"
-;;;;;;  "related/php-imenu.el" "related/snippet.el" "tests/angus77-setup-jde.el"
-;;;;;;  "tests/elunit.el" "tests/emacstest-suites.el" "tests/ert2.el"
-;;;;;;  "tests/in/bug271497.el" "tests/in/cr-lf.el" "tests/in/el-070722-index-2.el"
-;;;;;;  "tests/in/emacswiki-erb-bug.el" "tests/in/eval-in-html.el"
-;;;;;;  "tests/in/nxml-indent.el" "tests/in/utf8-problem.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el" "util/appmenu.el"
-;;;;;;  "util/buffer-bg.el" "util/bw-rnc-load/schema-find.el" "util/chart.el"
-;;;;;;  "util/color-test-sent.el" "util/color-test.el" "util/custsets.el"
-;;;;;;  "util/ecb-batch-compile.el" "util/elunit.el" "util/ffip.el"
-;;;;;;  "util/fmode.el" "util/from-osxkeys.el" "util/fupd.el" "util/half-qwerty.el"
-;;;;;;  "util/hexcolor.el" "util/hfy-test.el" "util/hfyview.el" "util/hl-needed.el"
-;;;;;;  "util/htmlfontify.21.el" "util/htmlfontify.el" "util/mumamo-aspnet.el"
-;;;;;;  "util/mumamo-test.el" "util/mumamo-trace.el" "util/mumamo.el"
-;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
-;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/physical-line.el"
-;;;;;;  "util/popcmp.el" "util/rebind.el" "util/rxi.el" "util/search-form.el"
-;;;;;;  "util/sex-mode.el" "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
+;;;;;;  "related/php-imenu.el" "related/php-mode-1.5.0.el" "related/snippet.el"
+;;;;;;  "tests/angus77-setup-jde.el" "tests/elunit.el" "tests/emacstest-suites.el"
+;;;;;;  "tests/ert-080729.el" "tests/ert2.el" "tests/inemacs/bug1013.el"
+;;;;;;  "tests/nxhtmltest-helpers.el" "tests/temp-test.el" "util/appmenu-fold.el"
+;;;;;;  "util/appmenu.el" "util/buffer-bg.el" "util/bw-rnc-load/schema-find.el"
+;;;;;;  "util/chart.el" "util/color-test-sent.el" "util/color-test.el"
+;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/elunit.el"
+;;;;;;  "util/ffip.el" "util/fmode.el" "util/from-osxkeys.el" "util/fupd.el"
+;;;;;;  "util/half-qwerty.el" "util/hexcolor.el" "util/hfy-test.el"
+;;;;;;  "util/hfyview.el" "util/hl-needed.el" "util/htmlfontify.21.el"
+;;;;;;  "util/htmlfontify.el" "util/mumamo-aspnet.el" "util/mumamo-test.el"
+;;;;;;  "util/mumamo-trace.el" "util/mumamo.el" "util/new-key-seq-widget.el"
+;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
+;;;;;;  "util/pause.el" "util/physical-line.el" "util/popcmp.el"
+;;;;;;  "util/rebind.el" "util/rxi.el" "util/search-form.el" "util/sex-mode.el"
+;;;;;;  "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
 ;;;;;;  "util/vline.el" "util/whelp.el" "util/winsav.el" "util/zen-mode.el")
-;;;;;;  (18686 27261 703000))
+;;;;;;  (18766 53631 796000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-get-all-autoloads) "../nxhtml-maintenance"
-;;;;;;  "nxhtml-maintenance.el" (18659 17016))
+;;;;;;  "nxhtml-maintenance.el" (18766 50614))
 ;;; Generated autoloads from nxhtml-maintenance.el
 
 (autoload 'nxhtmlmaint-get-all-autoloads "../nxhtml-maintenance" "\
