@@ -235,7 +235,7 @@ and the body."
                   collect value)
             remaining))))
 
-;;;###autoload
+;;;;###autoload
 (defmacro* ert-deftest (name () &body keys-and-body)
   "Define NAME (a symbol) as a test.
 
@@ -1186,7 +1186,7 @@ Ensures a final newline is inserted."
 ;; Should OUTPUT-BUFFER-NAME and MESSAGE-FN really be arguments here?
 ;; They are needed only for our automated self-tests at the moment.
 ;; Or should there be some other mechanism?
-;;;###autoload
+;;;;###autoload
 (defun ert-run-tests-interactively (selector
                                     &optional output-buffer-name message-fn)
   "Run the tests specified by SELECTOR and display the results in a buffer."
