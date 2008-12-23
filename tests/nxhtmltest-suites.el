@@ -80,7 +80,7 @@
   "Test for bug 300946 in Launchpad.
 See URL `https://bugs.launchpad.net/nxhtml/+bug/300946'.  This is
 a test for the file attached by Chris on 2008-12-02."
-  (ert-with-temp-buffer-include-file "bug-290364.php"
+  (ert-with-temp-buffer-include-file "bug-300946-index.html"
     (add-hook 'ert-simulate-command-post-hook
               'nxhtmltest-should-no-mumamo-errors
               nil t)
@@ -180,9 +180,9 @@ See URL `https://answers.launchpad.net/nxhtml/+question/43320'."
 
 (ert-deftest nxhtml-ert-xhtml-1.0-transitional ()
   "Test XHTML 1.0 Transitional with `nxhtml-mumamo-mode'.
-This test should fail because there is currently no rng schema
-for transitional. The schema for strict is used instead and the
-file is invalid then."
+NOTICE: This test SHOULD FAIL because there is currently no rng
+schema for transitional. The schema for strict is used instead
+and the file is invalid then."
   (ert-with-temp-buffer-include-file "lg-080813-label.html"
     (nxhtml-mumamo-mode)
     (nxhtmltest-fontify-default-way 2 "trans")
@@ -302,6 +302,8 @@ file is invalid then."
          'font-lock-function-name-face))))
 
 (ert-deftest nxhtml-ert-indent-wiki-080708-ind-problem ()
+  "From a report on EmacsWiki.NOTICE: This SHOULD FAIL. There is
+currently no support for the kind of indentation needed here."
   (ert-with-temp-buffer-include-file "wiki-080708-ind-problem.rhtml"
     (require 'ruby-mode nil t)
     (if (not (featurep 'ruby-mode))
