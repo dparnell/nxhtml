@@ -316,8 +316,6 @@ and the file is invalid then."
          'font-lock-function-name-face))))
 
 (ert-deftest nxhtml-ert-indent-wiki-080708-ind-problem ()
-  "From a report on EmacsWiki.NOTICE: This SHOULD FAIL. There is
-currently no support for the kind of indentation needed here."
   (ert-with-temp-buffer-include-file "wiki-080708-ind-problem.rhtml"
     (require 'ruby-mode nil t)
     (if (not (featurep 'ruby-mode))
@@ -335,6 +333,9 @@ currently no support for the kind of indentation needed here."
       (ert-should (= (current-indentation) 0)))))
 
 (ert-deftest nxhtml-ert-indent-wiki-080708-ind-problem-a ()
+  "From a report on EmacsWiki.
+NOTICE: This SHOULD FAIL. There is currently no support for the
+kind of indentation needed here."
   (ert-with-temp-buffer-include-file "wiki-080708-ind-problem.rhtml"
     (require 'ruby-mode nil t)
     (if (not (featurep 'ruby-mode))
