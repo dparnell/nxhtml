@@ -459,24 +459,6 @@ Major mode for editing PHP code.
 
 ;;;***
 
-;;;### (autoloads (php-mode php-file-patterns) "../related/php-mode-2008-10-23"
-;;;;;;  "related/php-mode-2008-10-23.el" (18688 64648))
-;;; Generated autoloads from related/php-mode-2008-10-23.el
-
-(defvar php-file-patterns '("\\.php[s34]?\\'" "\\.phtml\\'" "\\.inc\\'") "\
-List of file patterns for which to automatically invoke `php-mode'.")
-
-(custom-autoload 'php-file-patterns "../related/php-mode-2008-10-23" nil)
-
-(autoload 'php-mode "../related/php-mode-2008-10-23" "\
-Major mode for editing PHP code.
-
-\\{php-mode-map}
-
-\(fn)" t nil)
-
-;;;***
-
 ;;;### (autoloads (smarty-mode) "../related/smarty-mode" "related/smarty-mode.el"
 ;;;;;;  (18317 23898))
 ;;; Generated autoloads from related/smarty-mode.el
@@ -1516,7 +1498,7 @@ See `nxhtmltest-run' for more information about the tests.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "../tests/nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (18764 7444))
+;;;;;;  "tests/nxhtmltest-suites.el" (18767 57627))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 
 (autoload 'nxhtmltest-run-indent "../tests/nxhtmltest-suites" "\
@@ -2439,24 +2421,24 @@ Not documented
 ;;;;;;  "related/flymake-helpers.el" "related/flymake-js.el" "related/flymake-keys.el"
 ;;;;;;  "related/flymake-php.el" "related/flymu.el" "related/fold-dwim.el"
 ;;;;;;  "related/js2-font-lock-new.el" "related/js2-font-lock.el"
-;;;;;;  "related/php-imenu.el" "related/php-mode-1.5.0.el" "related/snippet.el"
-;;;;;;  "tests/angus77-setup-jde.el" "tests/elunit.el" "tests/emacstest-suites.el"
-;;;;;;  "tests/ert-080729.el" "tests/ert2.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/nxhtmltest-helpers.el" "tests/temp-test.el" "util/appmenu-fold.el"
-;;;;;;  "util/appmenu.el" "util/buffer-bg.el" "util/bw-rnc-load/schema-find.el"
-;;;;;;  "util/chart.el" "util/color-test-sent.el" "util/color-test.el"
-;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/elunit.el"
-;;;;;;  "util/ffip.el" "util/fmode.el" "util/from-osxkeys.el" "util/fupd.el"
-;;;;;;  "util/half-qwerty.el" "util/hexcolor.el" "util/hfy-test.el"
-;;;;;;  "util/hfyview.el" "util/hl-needed.el" "util/htmlfontify.21.el"
-;;;;;;  "util/htmlfontify.el" "util/mumamo-aspnet.el" "util/mumamo-test.el"
-;;;;;;  "util/mumamo-trace.el" "util/mumamo.el" "util/new-key-seq-widget.el"
-;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
-;;;;;;  "util/pause.el" "util/physical-line.el" "util/popcmp.el"
-;;;;;;  "util/rebind.el" "util/rxi.el" "util/search-form.el" "util/sex-mode.el"
-;;;;;;  "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
+;;;;;;  "related/php-imenu.el" "related/php-mode-1.5.0.el" "related/php-mode-2008-10-23.el"
+;;;;;;  "related/snippet.el" "tests/angus77-setup-jde.el" "tests/elunit.el"
+;;;;;;  "tests/emacstest-suites.el" "tests/ert-080729.el" "tests/ert2.el"
+;;;;;;  "tests/inemacs/bug1013.el" "tests/nxhtmltest-helpers.el"
+;;;;;;  "tests/temp-test.el" "util/appmenu-fold.el" "util/appmenu.el"
+;;;;;;  "util/buffer-bg.el" "util/bw-rnc-load/schema-find.el" "util/chart.el"
+;;;;;;  "util/color-test-sent.el" "util/color-test.el" "util/custsets.el"
+;;;;;;  "util/ecb-batch-compile.el" "util/elunit.el" "util/ffip.el"
+;;;;;;  "util/fmode.el" "util/from-osxkeys.el" "util/fupd.el" "util/half-qwerty.el"
+;;;;;;  "util/hexcolor.el" "util/hfy-test.el" "util/hfyview.el" "util/hl-needed.el"
+;;;;;;  "util/htmlfontify.21.el" "util/htmlfontify.el" "util/mumamo-aspnet.el"
+;;;;;;  "util/mumamo-test.el" "util/mumamo-trace.el" "util/mumamo.el"
+;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/physical-line.el"
+;;;;;;  "util/popcmp.el" "util/rebind.el" "util/rxi.el" "util/search-form.el"
+;;;;;;  "util/sex-mode.el" "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
 ;;;;;;  "util/vline.el" "util/whelp.el" "util/winsav.el" "util/zen-mode.el")
-;;;;;;  (18766 53631 796000))
+;;;;;;  (18769 31213 312000))
 
 ;;;***
 
