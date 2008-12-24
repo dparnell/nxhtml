@@ -49,6 +49,7 @@
 (defvar nxhtml-install-dir
   (file-name-directory (if load-file-name load-file-name buffer-file-name))
   "Installation directory for nXhtml.")
+(setq nxhtml-install-dir (file-name-directory (if load-file-name load-file-name buffer-file-name)))
 
 (unless (featurep 'nxhtml-autostart)
   ;; Provide the feature to avoid loading looping on error.
