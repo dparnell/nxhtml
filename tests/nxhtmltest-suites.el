@@ -123,21 +123,19 @@ See URL `https://bugs.launchpad.net/nxhtml/+bug/271497'."
 
 (ert-deftest nxhtml-ert-indent-question43320 ()
   "Test for question 43320 in Launchpad.
-See URL `https://answers.launchpad.net/nxhtml/+question/43320'.
+See URL `https://answers.launchpad.net/nxhtml/+question/43320'."
+;; I did see some problem here:
 
-I did see some problem here:
+;; - nXhtml 081222 + unpatched Emacs 081219 => ok
+;; - nXhtml 081222 + unpatched Emacs 081124 => ok
+;; - nXhtml 081222 + patched Emacs 081219 => ok
 
-- nXhtml 081222 + unpatched Emacs 081219 => ok
-- nXhtml 081222 + unpatched Emacs 081124 => ok
-- nXhtml 081222 + patched Emacs 081219 => ok
+;; - nXhtml 081222 + patched Emacs 081124 => ok, but it fails if I
+;;   use `nxhtmltest-run-Q'! I e, it fails if the autostart.el from
+;;   the nxhtml dir in 081222 is used - but not if the copy in
+;;   c:/EmacsW32 is used??? Which turned out to be if the old
+;;   php-mode was used ...
 
-- nXhtml 081222 + patched Emacs 081124 => ok, but it fails if I
-  use `nxhtmltest-run-Q'! I e, it fails if the autostart.el from
-  the nxhtml dir in 081222 is used - but not if the copy in
-  c:/EmacsW32 is used??? Which turned out to be if the old
-  php-mode was used ...
-
-"
   (ert-with-temp-buffer-include-file "question43320.html"
     (add-hook 'ert-simulate-command-post-hook
               'nxhtmltest-should-no-mumamo-errors
@@ -335,7 +333,10 @@ and the file is invalid then."
 (ert-deftest nxhtml-ert-indent-wiki-080708-ind-problem-a ()
   "From a report on EmacsWiki.
 NOTICE: This SHOULD FAIL. There is currently no support for the
-kind of indentation needed here."
+kind of indentation needed here.
+
+Notice 2: For some reason I sometimes get the error overlayp, nil
+here."
   (ert-with-temp-buffer-include-file "wiki-080708-ind-problem.rhtml"
     (require 'ruby-mode nil t)
     (if (not (featurep 'ruby-mode))
