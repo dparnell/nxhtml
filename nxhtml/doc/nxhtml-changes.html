@@ -2264,8 +2264,10 @@
                 Fixed bug <a href="https://bugs.launchpad.net/nxhtml/+bug/290364">290364</a>,
                 see below about MuMaMo important changes.
               </li>
-              <li>Fixed bug <a href="https://bugs.launchpad.net/nxhtml/+bug/304569">304569</a>.</li>
+              <li>Fixed bug <a href="https://bugs.launchpad.net/nxhtml/+bug/272526">272526</a>.</li>
               <li>Fixed bug <a href="https://bugs.launchpad.net/nxhtml/+bug/292393">292393</a>.</li>
+              <li>Fixed bug <a href="https://bugs.launchpad.net/nxhtml/+bug/300946">300946</a>.</li>
+              <li>Fixed bug <a href="https://bugs.launchpad.net/nxhtml/+bug/304569">304569</a>.</li>
               <li>
                 Added some support for editing gmail messages in
                 as-external.el (to be used with It's All Text for
@@ -2303,11 +2305,12 @@
                   do.
                 </p>
                 <p>
-                  I have done first part of this rewrite. Chunk
-                  dividing is now always done from the beginning.
-                  However the routines actually finding the chunks
-                  still looks both upwards and downwards.  I will try
-                  to remove this unnecessary complexity later.
+                  I have done first part of this rewrite and I hope
+                  chunk dividing can not loop any more. Chunk dividing
+                  is now always done from the beginning.  However the
+                  routines actually finding the chunks still looks
+                  both upwards and downwards.  I will try to remove
+                  this unnecessary complexity later.
                 </p>
               </li>
             </ul>
