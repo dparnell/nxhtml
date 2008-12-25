@@ -921,6 +921,7 @@ ends before END then create chunks upto END.
 
 If MIN and MAX are non-nil then do not mark for refontification
 in this part of the buffer."
+  ;;(message "")
   (mumamo-msgfntfy "!!!!!!!!!!!!!!!!!!!mumamo-find-chunks %s, last-chunk-change=%s, mumamo-last-chunk=%s" end mumamo-last-chunk-change-pos mumamo-last-chunk)
   ;;(message "!!!!!!mumamo-find-chunks %s, last-chunk-change=%s, mumamo-last-chunk=%s" end mumamo-last-chunk-change-pos mumamo-last-chunk)
   ;; If `mumamo-last-chunk-change-pos' is an integer then it was set
@@ -1011,62 +1012,14 @@ in this part of the buffer."
                 ;; Fix-me: Mark chunk borders here??? Won't work
                 ;; well with font lock turn on/off.
                 (setq this-chunk (mumamo-create-chunk-from-chunk-values this-values prev-chunk))
-                (setq mumamo-last-chunk this-chunk)
                 ;;(message "created this-chunk=%s" this-chunk)
                 (when prev-chunk
                   (overlay-put prev-chunk 'mumamo-next-chunk this-chunk))
                 (overlay-put this-chunk 'mumamo-prev-chunk prev-chunk)
                 (unless first-change-pos
                   (setq first-change-pos (mumamo-chunk-value-min this-values)))
-                ;; Fix-me: Mark old chunks for refontification, but
-                ;; only where fontified=t. This must be sent back to
-                ;; fontify-region in some way. Add a new text prop for
-                ;; this? Eh, or just use fontified ...
-
-                ;; Fix-me: Maybe better do what jit-lock-after-change
-                ;; does, but just for the current chunks?
-;;;                 (let (jit-lock-start jit-lock-end)
-;;;                   (while (and (prog1
-;;;                                   (setq old-chunk (car mumamo-old-chunks))
-;;;                                 (setq mumamo-old-chunks (cdr mumamo-old-chunks)))
-;;;                               (< (mumamo-chunk-value-min old-chunk)
-;;;                                  (mumamo-chunk-value-max this-chunk)))
-;;;                     (if (eq (mumamo-chunk-value-major this-chunk)
-;;;                             (mumamo-chunk-value-major old-chunk))
-;;;                         ;; Fix-me: extend?  Fix-me: Should we really
-;;;                         ;; mark for refontification here? this is before
-;;;                         ;; fontification per major mode is done, but
-;;;                         ;; fontified=t ...  So we must use another
-;;;                         ;; property here to tell what is not needed to
-;;;                         ;; refontify afaics.  (put-text-property min max
-;;;                         ;; 'fontified nil)
-;;;                         ;;
-;;;                         ;; Mark for refontification if major mode was
-;;;                         ;; changed, but not between MIN and MAX which
-;;;                         ;; are the values from `mumamo-fontify-region'
-;;;                         ;; because that region is beeing fontified right
-;;;                         ;; after this and `fontified' prop is already
-;;;                         ;; set to t.
-;;;                         ;;
-;;;                         (progn
-;;;                           ;; Border at start of old chunk
-;;;                           (setq jit-lock-start (mumamo-chunk-value-min old-chunk))
-;;;                           (setq jit-lock-end (mumamo-chunk-value-syntax-min old-chunk))
-;;;                           ;; Fix-me: make this a function - eh..., or move it ... - eh, no
-;;;                           (when (and (> jit-lock-end jit-lock-start)
-;;;                                      (not (or (< max jit-lock-start)
-;;;                                               (> min jit-lock-end))))
-;;;                             (when (> min jit-lock-start) (setq jit-lock-start min))
-;;;                             (when (< max jit-lock-end)   (setq jit-lock-end   max))
-;;;                             (run-hooks jit-lock-after-change-extend-region-functions)
-;;;                             )
-;;;                           ;; Border at end of old chunk
-;;;                           )
-;;;                       ;; Whole old chunk (within the range we are
-;;;                       ;; interested in here of course)
-;;;                       (mumamo-mark-for-refontification (mumamo-chunk-value-min old-chunk))
-;;;                       )))
-                ))
+                )
+              (setq mumamo-last-chunk this-chunk))
             ;; Cache ppss syntax
             ;;(syntax-ppss (1+ (mumamo-chunk-syntax-min this-chunk)))
             ;;(setq mumamo-end-last-chunk-pos ok-pos)
@@ -1077,10 +1030,8 @@ in this part of the buffer."
                   (and mumamo-last-chunk
                        (overlayp mumamo-last-chunk)
                        (< (overlay-end mumamo-last-chunk) (point-max))))
-          ;; Fix-me
-          ;;(message "start find chunks timer called")
+          ;;(message "find-chunks: start timer, mumamo-last-chunk=%s, o-end=%s, point-max=%s" mumamo-last-chunk (overlay-end mumamo-last-chunk) (point-max))
           (mumamo-start-find-chunks-timer)
-          ;;(message " mumamo-find-chunks-timer =%s" mumamo-find-chunks-timer)
           )
         ;;(message "first-change-pos=%s" first-change-pos)
         (when first-change-pos
@@ -1094,7 +1045,7 @@ in this part of the buffer."
         ;;(message "here=%s" here)
         (goto-char here)
         ;;(message "mumamo-find-chunks.here=%s => point=%s, min/max=%s/%s" here (point) (point-min) (point-max))
-        (mumamo-msgfntfy "!!!!mumamo-find-chunks, this-chunk=%s, this-values=%s" this-chunk this-values)
+        (mumamo-msgfntfy "!!!! EXIT mumamo-find-chunks, this-chunk=%s, this-values=%s" this-chunk this-values)
         ;;(message "!!!!mumamo-find-chunks, this-chunk=%s, this-values=%s" this-chunk this-values)
         this-chunk))))
 
