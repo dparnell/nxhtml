@@ -214,10 +214,14 @@ Run the hook `ert-simulate-command-post-hook' at the very end."
     (setq last-repeatable-command real-last-command)
     (setq last-command this-command)
     (when (and deactivate-mark transient-mark-mode) (deactivate-mark))
+    ;;(message "ert-simulate-command.before idle-timers, point=%s" (point))
     (when run-idle-timers
       (dolist (timer (copy-list timer-idle-list))
-        (timer-event-handler timer))
+        (timer-event-handler timer)
+        ;;(message "   after timer=%s, point=%s" timer (point))
+        )
       (redisplay t))
+    ;;(message "ert-simulate-command.after  idle-timers, point=%s" (point))
     (when ert-simulate-command-delay
       ;; Show user
       ;;(message "After M-x %s" command)

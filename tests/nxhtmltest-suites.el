@@ -157,7 +157,9 @@ See URL `https://answers.launchpad.net/nxhtml/+question/43320'."
     (goto-line 22)  (ert-should (= 6 (current-indentation)))
     (goto-line 25)  (ert-should (= 4 (current-indentation)))
     (goto-line 8) (indent-line-to 0)
+    ;;(message "before indent-for-tab-command")
     (ert-simulate-command '(indent-for-tab-command) t)
+    ;;(message "after indent-for-tab-command")
     (ert-should (= 8 (current-indentation)))
     ;;
     (set (make-local-variable 'mumamo-submode-indent-offset-0) 0)
