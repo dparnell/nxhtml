@@ -864,6 +864,7 @@ Preserves the `buffer-modified-p' state of the current buffer."
 (put 'mumamo-find-chunks-timer 'permanent-local t)
 
 (defun mumamo-stop-find-chunks-timer ()
+  ;;(message "stop find chunks timer")
   (when (and mumamo-find-chunks-timer
              (timerp mumamo-find-chunks-timer))
     (cancel-timer mumamo-find-chunks-timer))
@@ -877,7 +878,8 @@ Preserves the `buffer-modified-p' state of the current buffer."
                              'mumamo-find-chunks-in-timer (current-buffer))))
 
 (defun mumamo-find-chunks-in-timer (buffer)
-  (mumamo-msgfntfy "mumamo-find-chunks-in-timer")
+  (mumamo-msgfntfy "mumamo-find-chunks-in-timer %s" buffer)
+  ;;(message "mumamo-find-chunks-in-timer %s" buffer)
   (condition-case err
       (when (buffer-live-p buffer)
         (with-current-buffer buffer
@@ -918,8 +920,7 @@ ends before END then create chunks upto END.
 If MIN and MAX are non-nil then do not mark for refontification
 in this part of the buffer."
   (mumamo-msgfntfy "!!!!!!!!!!!!!!!!!!!mumamo-find-chunks %s, last-chunk-change=%s, mumamo-last-chunk=%s" end mumamo-last-chunk-change-pos mumamo-last-chunk)
-  ;;(message "!!!!!!!!!!!!!!!!!!!mumamo-find-chunks %s, last-chunk-change=%s, mumamo-last-chunk=%s" end mumamo-last-chunk-change-pos mumamo-last-chunk)
-  (mumamo-stop-find-chunks-timer)
+  ;;(message "!!!!!!mumamo-find-chunks %s, last-chunk-change=%s, mumamo-last-chunk=%s" end mumamo-last-chunk-change-pos mumamo-last-chunk)
   ;; If `mumamo-last-chunk-change-pos' is an integer then it was set
   ;; by `mumamo-find-chunk-after-change'.  We need to investigate
   ;; chunks after this position.
@@ -941,6 +942,7 @@ in this part of the buffer."
     (unless (and (overlayp mumamo-last-chunk) (overlay-buffer mumamo-last-chunk))
       (setq mumamo-last-chunk nil))
     (let ((ok-pos (if mumamo-last-chunk (overlay-end mumamo-last-chunk) 1))
+          (end-param end)
           (end (or end (point-max)))
           narpos
           this-values
@@ -956,6 +958,7 @@ in this part of the buffer."
             (setq this-chunk (mumamo-get-existing-chunk-at end))
             (unless this-chunk (error "Could not find chunk though ok-pos=%s > end=%s" ok-pos end))
             this-chunk)
+        (mumamo-stop-find-chunks-timer)
         (mumamo-save-buffer-state nil
           (setq this-chunk mumamo-last-chunk)
           (while (and (or (not end)
@@ -999,13 +1002,14 @@ in this part of the buffer."
                     ;;(message "deleting old-chunk %s" old-chunk)
                     (delete-overlay old-chunk)
                     (setq old-chunk next-old-chunk))
-                  (when end (mumamo-start-find-chunks-timer))
+                  (when end-param (mumamo-start-find-chunks-timer))
                   ))
               (unless this-chunk
                 ;; Create chunk and chunk links
                 ;; Fix-me: Mark chunk borders here??? Won't work
                 ;; well with font lock turn on/off.
-                (setq this-chunk (mumamo-create-chunk-from-chunk-values this-values))
+                (setq this-chunk (mumamo-create-chunk-from-chunk-values this-values prev-chunk))
+                (setq mumamo-last-chunk this-chunk)
                 ;;(message "created this-chunk=%s" this-chunk)
                 (when prev-chunk
                   (overlay-put prev-chunk 'mumamo-next-chunk this-chunk))
@@ -1065,19 +1069,27 @@ in this part of the buffer."
             ;;(syntax-ppss (1+ (mumamo-chunk-syntax-min this-chunk)))
             ;;(setq mumamo-end-last-chunk-pos ok-pos)
             ))
+        (widen)
+        ;;(message "find-chunks: after widen")
         (when (or interrupted
                   (and mumamo-last-chunk
                        (overlayp mumamo-last-chunk)
                        (< (overlay-end mumamo-last-chunk) (point-max))))
           ;; Fix-me
-          ;;(mumamo-start-find-chunks-timer)
+          ;;(message "start find chunks timer called")
+          (mumamo-start-find-chunks-timer)
+          ;;(message " mumamo-find-chunks-timer =%s" mumamo-find-chunks-timer)
           )
+        ;;(message "first-change-pos=%s" first-change-pos)
         (when first-change-pos
 ;;;         (mumamo-with-buffer-prepared-for-jit-lock
 ;;;          (put-text-property first-change-pos (point) 'fontified nil))
+          ;;(message "first-change-pos=%s" first-change-pos)
           (setq jit-lock-context-unfontify-pos
-                (min jit-lock-context-unfontify-pos first-change-pos)))
-        (widen)
+                (if jit-lock-context-unfontify-pos
+                    (min jit-lock-context-unfontify-pos first-change-pos)
+                  first-change-pos)))
+        ;;(message "here=%s" here)
         (goto-char here)
         ;;(message "mumamo-find-chunks.here=%s => point=%s, min/max=%s/%s" here (point) (point-min) (point-max))
         (mumamo-msgfntfy "!!!!mumamo-find-chunks, this-chunk=%s, this-values=%s" this-chunk this-values)
@@ -2662,7 +2674,7 @@ See `mumamo-major-modes' for an explanation."
          ;;(or (message " equal") t)
          )))
 
-(defun mumamo-create-chunk-from-chunk-values (chunk-values)
+(defun mumamo-create-chunk-from-chunk-values (chunk-values prev-chunk)
   "Create a chunk from CHUNK-VALUES and return it.
 CHUNK-VALUES should be in the format returned by
 `mumamo-create-chunk-values-at'."
@@ -2679,7 +2691,7 @@ CHUNK-VALUES should be in the format returned by
          (major-normal (mumamo-main-major-mode))
          (max-found    (when max t))
          ;; Fix-me: Get the prev chunk in a better way
-         (prev-chunk   (mumamo-get-existing-chunk-at (1- min)))
+         ;;(prev-chunk   (mumamo-get-existing-chunk-at (1- min)))
          (prev-major   (and prev-chunk
                             (mumamo-chunk-major-mode prev-chunk)))
          (prev-same    (and prev-chunk
@@ -2765,7 +2777,6 @@ CHUNK-VALUES should be in the format returned by
           )))
     (mumamo-msgfntfy "leaving mumamo-create-chunk-from-chunk-values modified=%s" (buffer-modified-p))
     ;;(setq mumamo-end-last-chunk-pos (overlay-end chunk-ovl))
-    (setq mumamo-last-chunk chunk-ovl)
     chunk-ovl))
 
 (defun mumamo-create-chunk-at (pos)
@@ -2850,7 +2861,8 @@ See `mumamo-chunk-syntax-min'."
 (defun mumamo-syntax-maybe-completable (pnt)
   "Return non-nil if at point PNT non-printable characters may occur.
 This just considers existing chunks."
-  (let ((chunk (mumamo-get-existing-chunk-at pnt)))
+  ;;(let ((chunk (mumamo-get-existing-chunk-at pnt)))
+  (let ((chunk (mumamo-find-chunks pnt)))
     (if (not chunk)
         t
       (and (> pnt (1+ (mumamo-chunk-syntax-min chunk)))
@@ -5728,7 +5740,8 @@ mumamo is used."
 (defun mumamo-flyspell-verify ()
   "Function used for `flyspell-generic-check-word-predicate'."
   (let* ((chunk (when mumamo-multi-major-mode
-                  (mumamo-get-existing-chunk-at (point))))
+                  ;;(mumamo-get-existing-chunk-at (point))))
+                  (mumamo-find-chunks (point))))
          (chunk-major (when chunk (mumamo-chunk-major-mode chunk)))
          (mode-predicate (when chunk-major
                            (let ((predicate (get chunk-major
