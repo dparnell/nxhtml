@@ -934,7 +934,7 @@ in this part of the buffer."
                               mumamo-last-chunk-change-pos))))
         (when this-chunk
           (setq mumamo-last-chunk (overlay-get this-chunk 'mumamo-prev-chunk))
-          (when in-border
+          (when (and in-border mumamo-last-chunk)
             (setq mumamo-last-chunk
                   (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))))
         (setq mumamo-last-chunk-change-pos nil)))
@@ -950,6 +950,7 @@ in this part of the buffer."
           interrupted
           (point-max (1+ (buffer-size)))
           (here (point)))
+      ;;(message "mumamo-find-chunks.here=%s" here)
       (if (> ok-pos end)
           (progn
             (setq this-chunk (mumamo-get-existing-chunk-at end))
@@ -1076,7 +1077,9 @@ in this part of the buffer."
 ;;;          (put-text-property first-change-pos (point) 'fontified nil))
           (setq jit-lock-context-unfontify-pos
                 (min jit-lock-context-unfontify-pos first-change-pos)))
+        (widen)
         (goto-char here)
+        ;;(message "mumamo-find-chunks.here=%s => point=%s, min/max=%s/%s" here (point) (point-min) (point-max))
         (mumamo-msgfntfy "!!!!mumamo-find-chunks, this-chunk=%s, this-values=%s" this-chunk this-values)
         ;;(message "!!!!mumamo-find-chunks, this-chunk=%s, this-values=%s" this-chunk this-values)
         this-chunk))))
@@ -1156,7 +1159,7 @@ fontified after a change) is added locally to the hook
               ;; buffer, only jit-lock-context-* will re-fontify it.
               (min jit-lock-context-unfontify-pos new-min))
         (mumamo-msgfntfy "mumamo-jit-lock-after-change.unfontify-pos=%s" jit-lock-context-unfontify-pos)
-        (message "mumamo-jit-lock-after-change.unfontify-pos=%s" jit-lock-context-unfontify-pos)
+        ;;(message "mumamo-jit-lock-after-change.unfontify-pos=%s" jit-lock-context-unfontify-pos)
         ))))
               ;;(min jit-lock-context-unfontify-pos jit-lock-start))))))
 ;;(put 'mumamo-jit-lock-after-change 'permanent-local-hook t)
@@ -2795,26 +2798,27 @@ There must not be an old chunk there.  Mark for refontification."
   "Return chunk overlay at POS. Preserve state."
   (let (chunk)
     (mumamo-save-buffer-state nil
-      (setq chunk (mumamo-get-chunk-at pos)))
+      ;;(setq chunk (mumamo-get-chunk-at pos)))
+      (setq chunk (mumamo-find-chunks pos)))
     chunk))
 
-(defun mumamo-get-chunk-at (pos)
-  "Return chunk overlay at POS.
-Create it if it does not exist.  How to do this is governed by
-`mumamo-current-chunk-family'.
+;; (defun mumamo-get-chunk-at (pos)
+;;   "Return chunk overlay at POS.
+;; Create it if it does not exist.  How to do this is governed by
+;; `mumamo-current-chunk-family'.
 
-A mumamo chunk is an Emacs overlay with some properties telling
-how mumamo should handle the chunk during fontification,
-indentation etc."
-  (let ((chunk-ovl (mumamo-get-existing-chunk-at pos)))
-    (if chunk-ovl
-        ;;(mumamo-msgfntfy "existing %s %s" pos chunk-ovl)
-        (unless (and (<= (overlay-start chunk-ovl) pos)
-                     (<= pos (overlay-end chunk-ovl)))
-          (error "Mumamo-get-chunk-at: start=%s, pos=%s, end=%s"
-                   (overlay-start chunk-ovl) pos (overlay-end chunk-ovl)))
-      (setq chunk-ovl (mumamo-create-chunk-at pos)))
-    chunk-ovl))
+;; A mumamo chunk is an Emacs overlay with some properties telling
+;; how mumamo should handle the chunk during fontification,
+;; indentation etc."
+;;   (let ((chunk-ovl (mumamo-get-existing-chunk-at pos)))
+;;     (if chunk-ovl
+;;         ;;(mumamo-msgfntfy "existing %s %s" pos chunk-ovl)
+;;         (unless (and (<= (overlay-start chunk-ovl) pos)
+;;                      (<= pos (overlay-end chunk-ovl)))
+;;           (error "Mumamo-get-chunk-at: start=%s, pos=%s, end=%s"
+;;                    (overlay-start chunk-ovl) pos (overlay-end chunk-ovl)))
+;;       (setq chunk-ovl (mumamo-create-chunk-at pos)))
+;;     chunk-ovl))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3558,7 +3562,8 @@ explanation."
     (with-current-buffer (window-buffer)
       (when (eq buffer (current-buffer))
         (mumamo-condition-case err
-            (let* ((ovl (mumamo-get-chunk-at (point)))
+            ;;(let* ((ovl (mumamo-get-chunk-at (point)))
+            (let* ((ovl (mumamo-find-chunks (point)))
                    (major (mumamo-chunk-major-mode ovl))
                    (modified (buffer-modified-p)))
               (unless (eq major major-mode)
@@ -3640,7 +3645,8 @@ local map and major mode is not the major mode for the current
 mumamo chunk then set major mode to that for the chunk."
   ;;(message "enter mumamo-set-major-pre-command")
   (mumamo-condition-case err
-      (let* ((ovl (mumamo-get-chunk-at (point)))
+      ;;(let* ((ovl (mumamo-get-chunk-at (point)))
+      (let* ((ovl (mumamo-find-chunks (point)))
              (major (mumamo-chunk-major-mode ovl))
              (found-this (lookup-key (current-local-map) (this-command-keys-vector)))
              )
@@ -3706,9 +3712,11 @@ See the variable above for an explanation why a delay might be
 needed \(and is the default).
 "
   ;;(message "mumamo-set-major-post-command here")
-  (let* ((ovl (mumamo-get-chunk-at (point)))
+  (let* (;;(ovl (mumamo-get-chunk-at (point)))
+         (ovl (mumamo-find-chunks (point)))
          (major (mumamo-chunk-major-mode ovl))
          (in-pre-hook (memq 'mumamo-set-major-pre-command pre-command-hook)))
+    ;;(message "ovl=%s" ovl)
     (if (not major)
         (lwarn '(mumamo-set-major-post-command)
                :error "major=%s" major)
@@ -4971,7 +4979,8 @@ mode in the chunk family is nil."
       (rngalt-update-validation-header-overlay))
     (when (featurep 'rng-valid)
       ;;(setq rng-get-major-mode-chunk-function 'mumamo-get-existing-chunk-at)
-      (setq rng-get-major-mode-chunk-function 'mumamo-get-chunk-at)
+      ;;(setq rng-get-major-mode-chunk-function 'mumamo-get-chunk-at)
+      (setq rng-get-major-mode-chunk-function 'mumamo-find-chunks)
       (setq rng-valid-nxml-major-mode-chunk-function 'mumamo-valid-nxml-chunk)
       (setq rng-end-major-mode-chunk-function 'overlay-end))
     ;;(mumamo-set-major-post-command)
