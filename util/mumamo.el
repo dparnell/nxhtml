@@ -295,11 +295,13 @@
 (defvar msgtrc-buffer
   "*Messages*"
   ;;"*trace-output*"
-  "Doc"
+  "Buffer or name of buffer for trace messages.
+See `msgtrc'."
   )
 
 (defun msgtrc (format-string &rest args)
-  ;;(apply 'message format-string args)
+  "Print message to `msgtrc-buffer'.
+Arguments FORMAT-STRING and ARGS are like for `message'."
   (with-current-buffer msgtrc-buffer
     (goto-char (point-max))
     (insert (apply 'format format-string args))
@@ -739,12 +741,11 @@ The MAJOR-SPEC symbols are used by the chunk definitions in
 `define-mumamo-multi-major-mode'.
 
 The major modes are not specified directly in the chunk
-definitions. Instead a chunk definition contains a symbol that is
-looked up in this list to find the chunk's major
-mode.
+definitions.  Instead a chunk definition contains a symbol that
+is looked up in this list to find the chunk's major mode.
 
 The reason for doing it this way is to make it possible to use
-new major modes with existing multi major modes. If for example
+new major modes with existing multi major modes.  If for example
 someone writes a new CSS mode that could easily be used instead
 of the current one in `html-mumamo-mode'.
 
@@ -864,20 +865,21 @@ Preserves the `buffer-modified-p' state of the current buffer."
 (put 'mumamo-find-chunks-timer 'permanent-local t)
 
 (defun mumamo-stop-find-chunks-timer ()
-  ;;(message "stop find chunks timer")
+  "Stop timer that find chunks."
   (when (and mumamo-find-chunks-timer
              (timerp mumamo-find-chunks-timer))
     (cancel-timer mumamo-find-chunks-timer))
   (setq mumamo-find-chunks-timer nil))
 
 (defun mumamo-start-find-chunks-timer ()
-  ;;(message "TIMER mumamo-start-find-chunks-timer ()")
+  "Start timer that find chunks."
   (mumamo-stop-find-chunks-timer)
   (setq mumamo-find-chunks-timer
         (run-with-idle-timer mumamo-find-chunk-delay nil
                              'mumamo-find-chunks-in-timer (current-buffer))))
 
 (defun mumamo-find-chunks-in-timer (buffer)
+  "Run `mumamo-find-chunks' in buffer BUFFER in a timer."
   (mumamo-msgfntfy "mumamo-find-chunks-in-timer %s" buffer)
   ;;(message "mumamo-find-chunks-in-timer %s" buffer)
   (condition-case err
@@ -1097,6 +1099,9 @@ in this part of the buffer."
         this-chunk))))
 
 (defun mumamo-find-chunk-after-change (min)
+  "Save change position after a buffer change.
+This should be run after a buffer change.  For MIN see
+`after-change-functions'."
   (setq mumamo-last-chunk-change-pos
         (if mumamo-last-chunk-change-pos
             (min min mumamo-last-chunk-change-pos)
@@ -1211,7 +1216,7 @@ mode."
   (interactive)
   ;;(let ((chunk (mumamo-get-existing-chunk-at (point))))
   (let ((chunk (mumamo-find-chunks (point))))
-    (unless chunk (error "There is no MuMaMo chunk here."))
+    (unless chunk (error "There is no MuMaMo chunk here"))
     (goto-char (overlay-start chunk))
     (push-mark (overlay-end chunk) t t)))
 
@@ -1347,7 +1352,7 @@ level \(ie user interaction level)."
          )))
 
 (defmacro mumamo-with-major-mode-fontification (major &rest body)
-  "With fontification variables set as in another major mode do things.
+  "With fontification variables set as major mode MAJOR eval BODY.
 This is used during font locking and indentation.  The variables
 affecting those are set as they are in major mode MAJOR.
 
@@ -1366,7 +1371,7 @@ BODY."
   `(mumamo-with-major-mode-setup ,major 'indentation ,@body))
 
 (defun mumamo-assert-fontified-t (start end)
-  "Assert that the region start to end has 'fontified t."
+  "Assert that the region START to END has 'fontified t."
   (let ((start-ok (get-text-property start 'fontified))
         (first-not-ok
          (next-single-property-change (1+ start) 'fontified nil end)))
@@ -1491,7 +1496,7 @@ fontification."
 (defun mumamo-unfontify-buffer ()
   "Unfontify buffer.
 This function is called when the minor mode function
-`font-lock-mode' is turned off. \(It is the value of
+`font-lock-mode' is turned off.  \(It is the value of
 `font-lock-unfontify-uffer-function')."
   ;;(message "BACKTRACE: %s" (with-output-to-string (backtrace)))
   (when mumamo-multi-major-mode
@@ -1721,13 +1726,15 @@ See also `mumamo-chunk-value-set-min'."
 (make-variable-buffer-local 'mumamo-chunks-to-remove)
 
 (defun mumamo-flush-chunk-syntax (chunk chunk-min chunk-max)
-  "Flush syntax cache for chunk CHUNK."
+  "Flush syntax cache for chunk CHUNK.
+This includes removing text property 'syntax-table between
+CHUNK-MIN and CHUNK-MAX."
   ;; syntax-ppss-flush-cache
   (overlay-put chunk 'syntax-ppss-last  nil)
   (overlay-put chunk 'syntax-ppss-cache nil)
   (overlay-put chunk 'syntax-ppss-stats nil)
   (mumamo-save-buffer-state nil
-    (remove-text-properties chunk-min chunk-max '(syntax-table nil))))
+    (remove-list-of-text-properties chunk-min chunk-max '(syntax-table))))
 
 ;; Fix-me: If I open nxhtml-changes.html and then go to the bottom of
 ;; the file at once syntax-ppss seems to be upset. It is however cured
@@ -2359,7 +2366,7 @@ variables are returned in a list with the same format as
 `mumamo-fetch-major-mode-setup'.
 
 The list of local variable values which is returned by this
-function is cached in `mumamo-internal-major-modes-alist'. This
+function is cached in `mumamo-internal-major-modes-alist'.  This
 avoids calling the major mode USE-MAJOR for each chunk during
 fontification and speeds up fontification significantly."
   ;; Fix-me: Problems here can cause mumamo to loop badly when this
@@ -2587,6 +2594,7 @@ MIN to MAX, otherwise MIN to MAX."
     ))
 
 (defun mumamo-define-no-mode (mode-sym)
+  "Fallback major mode when no major mode for MODE-SYM is found."
   (let ((mumamo-repl4 (intern (format "mumamo-4-%s" mode-sym)))
         (lighter (format "No %s" mode-sym))
         (doc (format "MuMaMo replacement for %s which was not found."
@@ -2677,7 +2685,8 @@ See `mumamo-major-modes' for an explanation."
 (defun mumamo-create-chunk-from-chunk-values (chunk-values prev-chunk)
   "Create a chunk from CHUNK-VALUES and return it.
 CHUNK-VALUES should be in the format returned by
-`mumamo-create-chunk-values-at'."
+`mumamo-create-chunk-values-at'.  Set previous chunk for the new
+chunk to PREV-CHUNK."
   (mumamo-msgfntfy "mumamo-create-chunk-from-chunk-values %s" chunk-values)
   ;; Fix-me: Move adjusting of old chunks to here since it must always
   ;; be done.
@@ -2806,7 +2815,7 @@ There must not be an old chunk there.  Mark for refontification."
     chunk-ovl))
 
 (defun mumamo-get-chunk-save-buffer-state (pos)
-  "Return chunk overlay at POS. Preserve state."
+  "Return chunk overlay at POS.  Preserve state."
   (let (chunk)
     (mumamo-save-buffer-state nil
       ;;(setq chunk (mumamo-get-chunk-at pos)))
@@ -3062,6 +3071,8 @@ meaning of POS, MIN and MARKER."
 
 ;; "..." '...' "..'.." '.."..'
 (defun mumamo-guess-in-string (pos)
+  "If POS is in a string then return string start position.
+Otherwise return nil."
   (let ((here (point))
         (inhibit-field-text-motion t)
         line-beg
@@ -3107,14 +3118,14 @@ exception start and return a cons or a list:
   \(FOUND-POS . EXCEPTION-MODE)
   \(FOUND-POS EXCEPTION-MODE PARSEABLE-BY)
 
-Here FOUND-POS is the start of the chunk. EXCEPTION-MODE is the
-major mode specifier for this chunk. \(Note that this specifier
+Here FOUND-POS is the start of the chunk.  EXCEPTION-MODE is the
+major mode specifier for this chunk.  \(Note that this specifier
 is translated to a major mode through `mumamo-major-modes'.)
 
 PARSEABLE-BY is a list of parsers that can handle the chunk
-beside the one that may be used by the chunks major
-mode. Currently only the XML parser in `nxml-mode' is
-recognized. In this list it should be the symbol `nxml-mode'.
+beside the one that may be used by the chunks major mode.
+Currently only the XML parser in `nxml-mode' is recognized.  In
+this list it should be the symbol `nxml-mode'.
 
 The functions BW-EXC-END-FUN, FW-EXC-START-FUN and FW-EXC-END-FUN
 should search for exception start or end, forward resp backward.
@@ -3139,24 +3150,23 @@ chunk.
 
 BORDERS is the return value of the optional FIND-BORDERS-FUN
 which takes three parameters, START, END and EXCEPTION-MODE in
-the return values above. BORDERS may be nil and otherwise has
+the return values above.  BORDERS may be nil and otherwise has
 this format:
 
   \(START-BORDER END-BORDER EXCEPTION-MODE)
 
-START-BORDER and END-BORDER may be nil. Otherwise they should be
+START-BORDER and END-BORDER may be nil.  Otherwise they should be
 the position where the border ends respectively start at the
 corresponding end of the chunk.
 
 PARSEABLE-BY is a list of major modes with parsers that can parse
 the chunk.
 
-----
-* Note: This routine is used by to create new members for chunk
-families.  If you want to add a new chunk family you could most
-often do that by writing functions for this routine.  Please see
-the many examples in mumamo-fun.el for how this can be done. See
-also `mumamo-quick-static-chunk'."
+---- * Note: This routine is used by to create new members for
+chunk families.  If you want to add a new chunk family you could
+most often do that by writing functions for this routine.  Please
+see the many examples in mumamo-fun.el for how this can be done.
+See also `mumamo-quick-static-chunk'."
   ;;\(START END EXCEPTION-MODE END-OF-EXCEPTION POS)
   (mumamo-msgfntfy "\nmumamo-find-possible-chunk %s %s %s %s %s\n%s %s %s %s %s" pos min max (point-min) (point-max) bw-exc-start-fun bw-exc-end-fun fw-exc-start-fun fw-exc-end-fun find-borders-fun)
   ;;(message "\nmumamo-find-possible-chunk %s %s %s %s %s\n%s %s %s %s %s" pos min max (point-min) (point-max) bw-exc-start-fun bw-exc-end-fun fw-exc-start-fun fw-exc-end-fun find-borders-fun)
@@ -3382,7 +3392,7 @@ also `mumamo-quick-static-chunk'."
 ;;       (mumamo-chunk-major-mode xml-chunk)))
 
 (defun mumamo-valid-nxml-point (pos)
-  "Return non-nil if point should be in valid XML chunk."
+  "Return non-nil if position POS is in an XML chunk."
   (memq 'nxml-mode (get-text-property pos 'mumamo-parseable-by)))
 
 (defun mumamo-valid-nxml-chunk (chunk)
@@ -3402,9 +3412,10 @@ also `mumamo-quick-static-chunk'."
 ;;
 ;; <?php header("Content-type:application/xml; charset=utf-8"); echo '<?xml version="1.0" encoding="utf-8"?>'; ?>
 (defun mumamo-end-chunk-is-valid (syntax-start syntax-end major)
-  "Return t if SYNTAX-END of chunk is not in a string or comment.
-Use MAJOR mode when testing this and assume that sexp syntax is
-nil at SYNTAX-START."
+  "Return t if possible syntax end is not in a string or comment.
+Assume that the sexp syntax is nil at SYNTAX-START return t if
+position SYNTAX-END is not in a string or comment according to
+the sexp syntax using major mode MAJOR."
   ;; Fix-me: This can't always detect html comments: <!--
   ;; ... -->. Could this be solved by RMS suggestion with a
   ;; function/defmacro that binds variables to their global values?
@@ -3553,18 +3564,22 @@ this function will not see it since it is run in a timer.)"
 (put 'mumamo-idle-set-major-mode-timer 'permanent-local t)
 
 (defun mumamotemp-pre-command ()
+  "Temporary command for debugging."
   (message "mumamotemp-pre 1: modified=%s %s" (buffer-modified-p) (current-buffer)))
 (defun mumamotemp-post-command ()
+  "Temporary command for debugging."
   (message "mumamotemp-post 1: modified=%s %s" (buffer-modified-p) (current-buffer)))
 (put 'mumamotemp-pre-command 'permanent-local-hook t)
 (put 'mumamotemp-post-command 'permanent-local-hook t)
 (defun mumamotemp-start ()
+  "Temporary command for debugging."
   (add-hook 'post-command-hook 'mumamotemp-post-command nil t)
   (add-hook 'pre-command-hook 'mumamotemp-pre-command nil t))
 
 (defun mumamo-idle-set-major-mode (buffer window)
   "Set major mode from mumamo chunk when Emacs is idle.
-Do this in window WINDOW if and only if current buffer is BUFFER.
+Do this only if current buffer is BUFFER and then do it in window
+WINDOW.
 
 See the variable `mumamo-set-major-mode-delay' for an
 explanation."
@@ -3721,8 +3736,7 @@ however `mumamo-set-major-mode-delay' is greater than 0 just
 request a change of major mode when Emacs is idle that long.
 
 See the variable above for an explanation why a delay might be
-needed \(and is the default).
-"
+needed \(and is the default)."
   ;;(message "mumamo-set-major-post-command here")
   (let* (;;(ovl (mumamo-get-chunk-at (point)))
          (ovl (mumamo-find-chunks (point)))
@@ -3757,6 +3771,8 @@ needed \(and is the default).
           (mumamo-set-major major))))))
 
 (defun mumamo-post-command-1 (&optional no-debug)
+  "See `mumamo-post-command'.
+Turn on `debug-on-error' unless NO-DEBUG is nil."
   (unless no-debug (setq debug-on-error t))
   (mumamo-msgfntfy "mumamo-post-command-1: font-lock-mode=%s" font-lock-mode)
   (if font-lock-mode
@@ -4309,6 +4325,9 @@ Just check the name."
 (defvar mumamo-removed-from-hook nil)
 
 (defun mumamo-remove-from-hook (hook remove)
+  "From hook HOOK remove functions in list REMOVE.
+Save HOOK and the list of functions removed to
+`mumamo-removed-from-hook'."
   (let (did-remove
         removed)
     (dolist (rem remove)
@@ -4328,11 +4347,13 @@ Just check the name."
                 mumamo-removed-from-hook))))
 
 (defun mumamo-addback-to-hooks ()
+  "Add back what was removed by `mumamo-remove-from-hook'."
   ;;(message "mumamo-removed-from-hook=%s" mumamo-removed-from-hook)
   (dolist (rem-rec mumamo-removed-from-hook)
     (mumamo-addback-to-hook (car rem-rec) (cdr rem-rec))))
 
 (defun mumamo-addback-to-hook (hook removed)
+  "Add to hook HOOK the list of functions in REMOVED."
   ;;(message "addback: hook=%s, removed=%s" hook removed)
   (dolist (rem removed)
     ;;(message "add.rem=%s" rem)
@@ -4607,6 +4628,9 @@ mode."
 ;; (benchmark 1000 '(mumamo-restore-most-buffer-locals major-mode))
 (defvar mumamo-restore-most-buffer-locals-in-hook-major nil)
 (defun mumamo-restore-most-buffer-locals-in-hook ()
+  "Call `mumamo-restore-most-buffer-locals'.
+Use `mumamo-restore-most-buffer-locals-in-hook-major' as the
+major mode."
   (mumamo-restore-most-buffer-locals
    mumamo-restore-most-buffer-locals-in-hook-major)
   (setq mumamo-restore-most-buffer-locals-in-hook-major nil))
@@ -5491,7 +5515,7 @@ The following rules are used when indenting:
     ;; Fix-me: indentation of <?\n?>
     (assert (not (and leaving-submode entering-submode)) t)
     ;; Fix-me: indentation
-    ;;(error "leaving=%s, entering=%s this0,1,2,3=%s,%s,%s,%s" leaving-submode entering-submode this-line-major0 this-line-major1 this-line-major2 this-line-major3)
+    ;;(error "Leaving=%s, entering=%s this0,1,2,3=%s,%s,%s,%s" leaving-submode entering-submode this-line-major0 this-line-major1 this-line-major2 this-line-major3)
     (when (or leaving-submode entering-submode)
       (unless last-main-major-indent
         (save-excursion
@@ -5639,6 +5663,7 @@ The following rules are used when indenting:
 
 ;; Fix-me: use this for first line in a submode
 (defun mumamo-indent-use-widen (major-mode)
+  "Return non-nil if widen before indentation in MAJOR-MODE."
   (let* ((specials (cadr (assoc major-mode mumamo-major-mode-indent-specials)))
          (use-widen (memq 'use-widen specials))
          (use-widen-maybe (assq 'use-widen specials)))
@@ -6063,7 +6088,7 @@ This is to be set by multiple major mode frame works, like
 mumamo.
 
 See also `rng-valid-nxml-major-mode-chunk-function' and
-`rng-end-major-mode-chunk-function'. Note that all three
+`rng-end-major-mode-chunk-function'.  Note that all three
 variables must be set.")
 (make-variable-buffer-local 'rng-get-major-mode-chunk-function)
 (put 'rng-get-major-mode-chunk-function 'permanent-local t)
@@ -6092,6 +6117,7 @@ For more info see also `rng-get-major-mode-chunk-function'.")
                            activate
                            compile
                            )
+  "Adjust range for error to chunks."
   (let* ((beg (ad-get-arg 1))
          (end (ad-get-arg 2))
          (ovls-beg-end (overlays-in beg end))
@@ -6123,6 +6149,7 @@ For more info see also `rng-get-major-mode-chunk-function'.")
                                      activate
                                      compile
                                      )
+  "Adjust validation to chunks."
   (if (not mumamo-multi-major-mode)
       ad-do-it
     (let (major-mode-chunk
@@ -6289,14 +6316,15 @@ For more info see also `rng-get-major-mode-chunk-function'.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; xmltok.el
 
-;; This advice only prevents adding nxml/rng-valid errors in non-xml
-;; chunks. Doing more seems like a very big job - unless Emacs gets a
-;; narrow-to-multiple-regions function!
 (defadvice xmltok-add-error (around
                              mumamo-advice-xmltok-add-error
                              activate
                              compile
                              )
+  "Prevent rng validation errors in non-xml chunks.
+This advice only prevents adding nxml/rng-valid errors in non-xml
+chunks.  Doing more seems like a very big job - unless Emacs gets
+a narrow-to-multiple-regions function!"
   (if (not mumamo-multi-major-mode)
       ad-do-it
     (when (let* ((start (or start xmltok-start))
