@@ -2700,7 +2700,7 @@ chunk to PREV-CHUNK."
 
     (if major-sub
         (let ((major-sub-to-use (mumamo-major-mode-from-modespec major-sub)))
-          (remove-list-of-text-properties min max '(category))
+          (remove-list-of-text-properties min (1- max) '(category))
           (overlay-put chunk-ovl 'mumamo-major-mode major-sub-to-use)
           (overlay-put chunk-ovl 'mumamo-parseable-by parseable-by)
           (overlay-put chunk-ovl
@@ -2722,11 +2722,11 @@ chunk to PREV-CHUNK."
                (mumamo-derived-from-mode major-normal 'nxml-mode))
       (setq parseable-by '(nxml-mode)))
     (mumamo-with-buffer-prepared-for-jit-lock
-     (put-text-property min max 'mumamo-parseable-by parseable-by))
+     (put-text-property min (1- max) 'mumamo-parseable-by parseable-by))
     (mumamo-msgfntfy "after put mumamo-parseable-by, modified=%s" (buffer-modified-p))
     (unless (memq 'nxml-mode parseable-by)
       (mumamo-with-buffer-prepared-for-jit-lock
-       (remove-text-properties min max '(category rng-error))))
+       (remove-list-of-text-properties min (1- max) '(category rng-error))))
     (let ((ovls (overlays-in min max)))
       (dolist (ovl ovls)
         (let ((ctg (overlay-get ovl 'category)))
@@ -4834,7 +4834,7 @@ default values."
       (mumamo-msgfntfy "mumamo-set-major: ----- removing 'fontified")
       ;; Set up to fontify buffer
       (mumamo-save-buffer-state nil
-        (remove-text-properties (point-min) (point-max) '(fontified)))
+        (remove-list-of-text-properties (point-min) (point-max) '(fontified)))
       (setq mumamo-done-first-set-major t))
 
     (remove-hook 'pre-command-hook 'mumamo-set-major-pre-command t)

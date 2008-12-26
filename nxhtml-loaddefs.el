@@ -199,7 +199,7 @@ Report a bug in nXhtml.
 ;;;***
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-minor-mode) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18671 42692))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18772 50105))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-minor-mode "../nxhtml/nxhtml-menu" "\
@@ -231,7 +231,7 @@ See `nxhtml-minor-mode' for more information on Nxhtml minor mode.
 ;;;;;;  eruby-nxhtml-mumamo-mode jsp-nxhtml-mumamo-mode smarty-nxhtml-mumamo-mode
 ;;;;;;  mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode django-nxhtml-mumamo-mode
 ;;;;;;  embperl-nxhtml-mumamo-mode nxhtml-mumamo-mode) "../nxhtml/nxhtml-mumamo"
-;;;;;;  "nxhtml/nxhtml-mumamo.el" (18764 14404))
+;;;;;;  "nxhtml/nxhtml-mumamo.el" (18764 15212))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 
 (autoload 'nxhtml-mumamo-mode "../nxhtml/nxhtml-mumamo" "\
@@ -362,57 +362,6 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads (javascript-mode) "../related/javascript-mozlab"
-;;;;;;  "related/javascript-mozlab.el" (18562 39536))
-;;; Generated autoloads from related/javascript-mozlab.el
-
-(autoload 'javascript-mode "../related/javascript-mozlab" "\
-Major mode for editing JavaScript source text.
-
-Key bindings:
-
-\\{javascript-mode-map}
-
-\(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads (js2-mode) "../related/js2" "related/js2.el" (18624
-;;;;;;  30036))
-;;; Generated autoloads from related/js2.el
- (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
-
-(autoload 'js2-mode "../related/js2" "\
-Major mode for editing JavaScript code.
-
-\(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads (js2-mode) "../related/js2-mumamo" "related/js2-mumamo.el"
-;;;;;;  (18496 38616))
-;;; Generated autoloads from related/js2-mumamo.el
- (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
-
-(autoload 'js2-mode "../related/js2-mumamo" "\
-Major mode for editing JavaScript code.
-
-\(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads (js2-mode) "../related/js2-new" "related/js2-new.el"
-;;;;;;  (18455 47788))
-;;; Generated autoloads from related/js2-new.el
- (add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
-
-(autoload 'js2-mode "../related/js2-new" "\
-Major mode for editing JavaScript code.
-
-\(fn)" t nil)
-
-;;;***
-
 ;;;### (autoloads (inferior-moz-mode moz-minor-mode) "../related/moz"
 ;;;;;;  "related/moz.el" (18654 33920))
 ;;; Generated autoloads from related/moz.el
@@ -442,7 +391,7 @@ Major mode for interacting with Firefox via MozRepl.
 ;;;***
 
 ;;;### (autoloads (php-mode php-file-patterns) "../related/php-mode"
-;;;;;;  "related/php-mode.el" (18735 15066))
+;;;;;;  "related/php-mode.el" (18771 35866))
 ;;; Generated autoloads from related/php-mode.el
 
 (defvar php-file-patterns '("\\.php[s34]?\\'" "\\.phtml\\'" "\\.inc\\'") "\
@@ -855,502 +804,6 @@ For Smarty functions, see PDF or HTML documentation.
 
 ;;;***
 
-;;;### (autoloads (smarty-mode) "../related/smarty-mode-vdebout"
-;;;;;;  "related/smarty-mode-vdebout.el" (18295 31440))
-;;; Generated autoloads from related/smarty-mode-vdebout.el
-
-(autoload 'smarty-mode "../related/smarty-mode-vdebout" "\
-Smarty Mode
-***********
-
-Smarty Mode is a GNU XEmacs major mode for editing Smarty templates.
-
-1 Introduction
-**************
-
-Smarty-Mode is a mode allowing easy edit of Smarty templates:
-highlight, templates, navigation into source files...
-
-
-
-Features (new features in bold) :
-
-   * Completion
-
-   * Customizable
-
-   * Highlight
-
-   * Menu
-
-   * Stuttering
-
-   * Templates
-        - Built-in Functions
-
-        - User Functions
-
-        - Variable Modifiers
-
-        - Plugin (Functions)
-             * Smarty Formtool
-
-             * Smarty Paginate
-
-             * Smarty Validate
-
-        - Plugin (Variable Modifiers)
-             * AlternativeDateModifierPlugin
-
-             * B2Smilies
-
-             * BBCodePlugin
-
-        - Fonctions Non-Smarty
-
-
-
-This manual describes Smarty Mode version 0.0.4.
-
-2 Installation
-**************
-
-2.1 Requirements
-================
-
-Smarty Mode is a XEmacs major mode that needs the following
-software/packages:
-
-   * XEmacs (http://www.xemacs.org/).
-
-   * `font-lock' mode generaly installed with XEmacs.
-
-   * `assoc' mode generaly installed with XEmacs.
-
-   * `easymenu' mode generaly installed with XEmacs.
-
-   * `hippie-exp' mode generaly installed with XEmacs.
-
-Before continuing, you must be sure to have all this packages
-installed.
-
-2.2 Download
-============
-
-Two internet address to download Smarty Mode :
-
-   * Principal: Smarty-Mode 0.0.4
-     (http://deboutv.free.fr/lisp/smarty/download/smarty-0.0.4.tar.gz)
-     (http://deboutv.free.fr/lisp/smarty/)
-
-   * Secondary: Smarty-Mode 0.0.4
-     (http://www.morinie.fr/lisp/smarty/download/smarty-0.0.4.tar.gz)
-     (http://www.morinie.fr/lisp/smarty/)
-
-   * Old releases: Smarty-Mode
-     (http://deboutv.free.fr/lisp/smarty/download.php)
-     (http://deboutv.free.fr/lisp/smarty/)
-
-2.3 Installation
-================
-
-2.3.1 Installation
-------------------
-
-To install Smarty Mode you need to choose an installation directory
-\(for example `/usr/local/share/lisp' or `c:lisp'). The administrator
-must have the write rights on this directory.
-
-With your favorite unzip software, unzip the archive in the
-installation directory.
-
-Example:
-     cd /usr/local/share/lisp
-     tar zxvf smarty-0.0.4.tar.gz
-Now you have a `smarty' directory in the installation directory. This
-directory contains 2 files `smarty-mode.el' and `smarty-mode.elc' and
-another directory `docs' containing the documentation.
-
-You need to configure XEmacs. open you initialization file `init.el'
-\(open the file or start XEmacs then choose the Options menu and Edit
-Init File). Add the following lines (the installation directory in
-this example is `/usr/local/share/lisp') :
-
-     (setq load-path
-           (append (list \"/usr/local/share/lisp/\") load-path))
-     (autoload 'smarty-mode \"smarty-mode\" \"Smarty Mode\" t)
-
-2.3.2 Update
-------------
-
-The update is easy. You need to unzip the archive in the installation
-directory to remove the old release.
-
-Example:
-     cd /usr/local/share/lisp
-     rm -rf smarty
-     tar zxvf smarty-0.0.4.tar.gz
-
-2.4 Invoke Smarty-Mode
-======================
-
-You have two possibilities to invoke the Smarty Mode.
-
-   - Manually: At each file opening you need to launch Smarty Mode
-     with the following command:
-
-     `M-x smarty-mode'
-
-   - Automatically: Add the following linesin your initialization
-     file `init.el' :
-
-          (setq auto-mode-alist
-                (append
-                 '((\"\\.tpl$\" . smarty-mode))
-          	 auto-mode-alist))
-
-
-3 Customization
-***************
-
-This chapter describes the differents parameters and functions that
-you can change to customize Smarty Mode.  To do that, open a Smarty
-file, click on the Smarty menu and choose Options then Browse
-Options....
-
-3.1 Parameters
-==============
-
-3.1.1 Mode
-----------
-
-Smarty Mode has 2 modes allowing to simplify the writing of Smarty
-templates. You can enable/disable each mode individually.
-
-`smarty-electric-mode'
-     Type: boolean
-     Default value: `t'
-     Description: If `t'; enable automatic generation of template.
-     If `nil'; template generators can still be invoked through key
-     bindings and menu. Is indicated in the modeline by \"/e\" after
-     the mode name and can be toggled by `smarty-electric-mode'.
-
-`smarty-stutter-mode'
-     Type: boolean
-     Default value: `t'
-     Description: If `t'; enable the stuttering. Is indicated in the
-     modeline by \"/s\" after the mode name and can be toggled by
-     `smarty-stutter-mode'.
-
-3.1.2 Menu
-----------
-
-Smarty Mode has also 1 menu that you can enable/disable. The menu
-Sources is specific to each Smarty files opened.
-
-`smarty-source-file-menu'
-     Type: boolean
-     Default value: `t'
-     Description: If `t'; the Sources menu is enabled. This menu
-     contains the list of Smarty file located in the current
-     directory. The Sources menu scans the directory when a file is
-     opened.
-
-3.1.3 Menu
-----------
-
-`smarty-highlight-plugin-functions'
-     Type: boolean
-     Default value: `t'
-     Description: If `t'; the functions described in the smarty
-     plugins are highlighted.
-
-3.1.4 Templates
----------------
-
-3.1.4.1 Header
-..............
-
-`smarty-file-header'
-     Type: string
-     Default value: `\"\"'
-     Description: String or file to insert as file header. If the
-     string specifies an existing file name the contents of the file
-     is inserted; otherwise the string itself is inserted as file
-     header.
-     Type `C-j' for newlines.
-     The follonwing keywords are supported:
-     <filename>: replaced by the file name.
-     <author>: replaced by the user name and email address.
-     <login>: replaced by `user-login-name'.
-     <company>: replaced by `smarty-company-name' content.
-     <date>: replaced by the current date.
-     <year>: replaced by the current year.
-     <copyright>: replaced by `smarty-copyright-string' content.
-     <cursor>: final cursor position.
-
-`smarty-file-footer'
-     Type: string
-     Default value: `\"\"'
-     Description: String or file to insert as file footer.  See
-     `smarty-file-header'
-
-`smarty-company-name'
-     Type: string
-     Default value: `\"\"'
-     Description: Name of the company to insert in file header.
-
-`smarty-copyright-string'
-     Type: string
-     Default value: `\"\"'
-     Description: Coryright string to insert in file header.
-
-`smarty-date-format'
-     Type: string
-     Default value: `\"%Y-%m-%d\"'
-     Description: Date format.
-
-`smarty-modify-date-prefix-string'
-     Type: string
-     Default value: `\"\"'
-     Description: Prefix string of modification date in Smarty file
-     header.
-
-`smarty-modify-date-on-saving'
-     Type: bool
-     Default value: `nil'
-     Description: If `t'; update the modification date when the
-     buffer is saved.
-
-3.1.5 Miscellaneous
--------------------
-
-`smarty-left-delimiter'
-     Type: string
-     Default value: `\"\"'
-     Description: Left escaping delimiter for Smarty templates.
-
-`smarty-right-delimiter'
-     Type: string
-     Default value: `\"\"'
-     Description: Right escaping delimiter for Smarty templates.
-
-`smarty-intelligent-tab'
-     Type: bool
-     Default value: `t'
-     Description: If `t'; TAB does indentation; completion and insert
-     tabulations. If `nil'; TAB does only indentation.
-
-`smarty-word-completion-in-minibuffer'
-     Type: bool
-     Default value: `t'
-     Description: If `t'; enable completion in the minibuffer.
-
-`smarty-word-completion-case-sensitive'
-     Type: bool
-     Default value: `nil'
-     Description: If `t'; completion is case sensitive.
-
-3.2 Functions
-=============
-
-3.2.1 Mode
-----------
-
-`smarty-electric-mode'
-     Menu: Smarty -> Options -> Mode -> Electric Mode
-     Keybinding: `C-c C-m C-e'
-     Description: This functions is used to enable/disable the
-     electric mode.
-
-`smarty-stutter-mode'
-     Menu: Smarty -> Options -> Mode -> Stutter Mode
-     Keybinding: `C-c C-m C-s'
-     Description: This function is used to enable/disable the stutter
-     mode.
-
-4 Menus
-*******
-
-There are 2 menus: Smarty and Sources. All theses menus can be
-accessed from the menubar or from the right click. This chapter
-describes each menus.
-
-4.1 Smarty
-==========
-
-This is the main menu of Smarty Mode. It allows an easy access to the
-main features of the Smarty Mode: Templates (see *Note Templates::)
-and Options (see *Note Customization::).
-
-This menu contains also 3 functions that are discussed in the next
-part.
-
-4.1.1 Functions
----------------
-
-`smarty-show-messages'
-     Menu: Smarty -> Show Messages
-     Keybinding: `C-c M-m'
-     Description: This function opens the *Messages* buffer to
-     display previous error messages.
-
-`smarty-doc-mode'
-     Menu: Smarty -> Smarty Mode Documentation
-     Keybinding: `C-c C-h'
-     Description: This function opens the *Help* buffer and prints in
-     it the Smarty Mode documentation.
-
-`smarty-version'
-     Menu: Smarty -> Version
-     Keybinding: `C-c C-v'
-     Description: This function displays in the minibuffer the
-     current Smarty Mode version with the timestamp.
-
-4.2 Sources
-===========
-
-The Sources menu shows the Smarty files in the current directory. If
-you add or delete a file in the current directory, you need to
-refresh the menu.
-
-4.2.1 Customization
--------------------
-
-`smarty-source-file-menu'
-     Type: boolean
-     Default value: `t'
-     Description: If `t'; the Sources menu is enabled. This menu
-     contains the list of Smarty file located in the current
-     directory. The Sources menu scans the directory when a file is
-     opened.
-
-4.2.2 Functions
----------------
-
-`smarty-add-source-files-menu'
-     Menu: Sources -> *Rescan*
-     Keybinding: `C-c C-s C-u'
-     Description: This function is used to refresh the Sources menu.
-
-5 Stuttering
-************
-
-The stutter mode is a mode that affects a function to a key. For
-example, when you use the `ENTER' key, the associated function will
-create a new line and indent it.
-
-5.1 Customization
-=================
-
-`smarty-stutter-mode'
-     Type: boolean
-     Default value: `t'
-     Description: If `t'; enable the stuttering. Is indicated in the
-     modeline by \"/s\" after the mode name and can be toggled by
-     `smarty-stutter-mode'.
-
-5.2 Functions
-=============
-
-`SPACE'
-     If in comment, indent the comment and add new line if necessary.
-     In other case, add a space.
-
-`('
-     If the previous character is a `(', the `((' will be replaced by
-     `['.
-     If the previous character is a `[', the `[(' will be replaced by
-     `{'.
-     In other case, insert a `('.
-
-`)'
-     If the previous character is a `)', the `))' will be replaced by
-     `]'.
-     If the previous character is a `]', the `])' will be replaced by
-     `}'.
-     In other case, insert a `)'.
-
-6 Templates
-***********
-
-In the Smarty Mode, the Smarty functions (like if, while, for, fopen,
-fclose) are predefined in functions called \"Templates\".
-
-Each template can be invoked by the function name or by using the
-<SPACE> key after the Smarty function name in the buffer (Note, using
-`M-<SPACE>' disable the template).
-
-A template can be aborted by using the `C-g' or by lefting empty the
-tempate prompt (in the minibuffer).
-
-6.1 Customization
-=================
-
-`smarty-electric-mode'
-     Type: boolean
-     Default value: `t'
-     Description: If `t'; enable automatic generation of template.
-     If `nil'; template generators can still be invoked through key
-     bindings and menu. Is indicated in the modeline by \"/e\" after
-     the mode name and can be toggled by `smarty-electric-mode'.
-
-For a complete description of the template customizable variables,
-see *Note Cu01-Pa01-Template::
-
-6.2 Functions
-=============
-
-6.2.1 Smarty Functions
-----------------------
-
-For Smarty functions, see PDF or HTML documentation.
-
-6.2.2 Non-Smarty Functions
---------------------------
-
-`smarty-template-header'
-     Menu: Smarty -> Templates -> Insert Header
-     Keybinding: `C-c C-t C-h'
-     Description: This function is used to insert a header in the
-     current buffer.
-
-`smarty-template-footer'
-     Menu: Smarty -> Templates -> Insert Footer
-     Keybinding: `C-c C-t C-f'
-     Description: This function is used to insert a footer in the
-     current buffer.
-
-`smarty-template-insert-date'
-     Menu: Smarty -> Templates -> Insert Date
-     Keybinding: `C-c C-t C-d i'
-     Description: This function is used to insert the date in the
-     current buffer.
-
-`smarty-template-modify'
-     Menu: Smarty -> Templates -> Modify Date
-     Keybinding: `C-c C-t C-d m'
-     Description: This function is used to modify the last
-     modification date in the current buffer.
-
-7 Bugs, Help
-************
-
-   * To report bugs: Bugtracker
-     (http://bugtracker.morinie.fr/lisp/set_project.php?project_id=2)
-
-   * To obtain help you can post on the dedicated forum: Forum
-     (http://forum.morinie.fr/lisp/)
-
-8 Key bindings
-**************
-
-\\{smarty-mode-map}
-
-\(fn)" t nil)
-
-;;;***
-
 ;;;### (autoloads (tt-mode) "../related/tt-mode" "related/tt-mode.el"
 ;;;;;;  (18603 15792))
 ;;; Generated autoloads from related/tt-mode.el
@@ -1498,7 +951,7 @@ See `nxhtmltest-run' for more information about the tests.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "../tests/nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (18767 57627))
+;;;;;;  "tests/nxhtmltest-suites.el" (18770 61910))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 
 (autoload 'nxhtmltest-run-indent "../tests/nxhtmltest-suites" "\
@@ -1732,7 +1185,7 @@ By default the link moved to will be active, see
 ;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode smarty-html-mumamo-mode
 ;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
 ;;;;;;  embperl-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18764 14316))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18764 15212))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1827,7 +1280,7 @@ This also covers inlined style and javascript." t)
 ;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
 ;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
 ;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18764 17429))
+;;;;;;  "util/ourcomments-util.el" (18764 17648))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2417,33 +1870,31 @@ Not documented
 ;;;;;;  "nxhtml/outline-magic.el" "nxhtml/rngalt.el" "nxhtml/test-c-m.el"
 ;;;;;;  "nxhtml/test-cust.el" "nxhtml/tests.el" "nxhtml/tidy-xhtml.el"
 ;;;;;;  "nxhtml/wtest.el" "nxhtml/xhtml-help.el" "related/cgi+.el"
-;;;;;;  "related/find-recursive-orig.el" "related/find-recursive.el"
-;;;;;;  "related/flymake-helpers.el" "related/flymake-js.el" "related/flymake-keys.el"
-;;;;;;  "related/flymake-php.el" "related/flymu.el" "related/fold-dwim.el"
-;;;;;;  "related/js2-font-lock-new.el" "related/js2-font-lock.el"
-;;;;;;  "related/php-imenu.el" "related/php-mode-1.5.0.el" "related/php-mode-2008-10-23.el"
-;;;;;;  "related/snippet.el" "tests/angus77-setup-jde.el" "tests/elunit.el"
-;;;;;;  "tests/emacstest-suites.el" "tests/ert-080729.el" "tests/ert2.el"
-;;;;;;  "tests/inemacs/bug1013.el" "tests/nxhtmltest-helpers.el"
-;;;;;;  "tests/temp-test.el" "util/appmenu-fold.el" "util/appmenu.el"
-;;;;;;  "util/buffer-bg.el" "util/bw-rnc-load/schema-find.el" "util/chart.el"
-;;;;;;  "util/color-test-sent.el" "util/color-test.el" "util/custsets.el"
-;;;;;;  "util/ecb-batch-compile.el" "util/elunit.el" "util/ffip.el"
-;;;;;;  "util/fmode.el" "util/from-osxkeys.el" "util/fupd.el" "util/half-qwerty.el"
-;;;;;;  "util/hexcolor.el" "util/hfy-test.el" "util/hfyview.el" "util/hl-needed.el"
-;;;;;;  "util/htmlfontify.21.el" "util/htmlfontify.el" "util/mumamo-aspnet.el"
-;;;;;;  "util/mumamo-test.el" "util/mumamo-trace.el" "util/mumamo.el"
-;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
-;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/physical-line.el"
-;;;;;;  "util/popcmp.el" "util/rebind.el" "util/rxi.el" "util/search-form.el"
-;;;;;;  "util/sex-mode.el" "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
+;;;;;;  "related/find-recursive.el" "related/flymake-helpers.el"
+;;;;;;  "related/flymake-js.el" "related/flymake-keys.el" "related/flymake-php.el"
+;;;;;;  "related/flymu.el" "related/fold-dwim.el" "related/php-imenu.el"
+;;;;;;  "tests/angus77-setup-jde.el" "tests/elunit.el" "tests/emacstest-suites.el"
+;;;;;;  "tests/ert-080729.el" "tests/ert2.el" "tests/inemacs/bug1013.el"
+;;;;;;  "tests/nxhtmltest-helpers.el" "tests/temp-test.el" "util/appmenu-fold.el"
+;;;;;;  "util/appmenu.el" "util/buffer-bg.el" "util/bw-rnc-load/schema-find.el"
+;;;;;;  "util/chart.el" "util/color-test-sent.el" "util/color-test.el"
+;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/elunit.el"
+;;;;;;  "util/ffip.el" "util/fmode.el" "util/from-osxkeys.el" "util/fupd.el"
+;;;;;;  "util/half-qwerty.el" "util/hexcolor.el" "util/hfy-test.el"
+;;;;;;  "util/hfyview.el" "util/hl-needed.el" "util/htmlfontify.21.el"
+;;;;;;  "util/htmlfontify.el" "util/mumamo-aspnet.el" "util/mumamo-test.el"
+;;;;;;  "util/mumamo-trace.el" "util/mumamo.el" "util/new-key-seq-widget.el"
+;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
+;;;;;;  "util/pause.el" "util/physical-line.el" "util/popcmp.el"
+;;;;;;  "util/rebind.el" "util/rxi.el" "util/search-form.el" "util/sex-mode.el"
+;;;;;;  "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
 ;;;;;;  "util/vline.el" "util/whelp.el" "util/winsav.el" "util/zen-mode.el")
-;;;;;;  (18769 31213 312000))
+;;;;;;  (18772 57829 328000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-get-all-autoloads) "../nxhtml-maintenance"
-;;;;;;  "nxhtml-maintenance.el" (18766 50614))
+;;;;;;  "nxhtml-maintenance.el" (18772 57807))
 ;;; Generated autoloads from nxhtml-maintenance.el
 
 (autoload 'nxhtmlmaint-get-all-autoloads "../nxhtml-maintenance" "\

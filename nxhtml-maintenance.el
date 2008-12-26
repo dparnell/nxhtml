@@ -2,15 +2,15 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-09-27T15:29:35+0200 Sat
-;; Version:
-;; Last-Updated:
+;; Version: 0.5
+;; Last-Updated: 2008-12-26 Fri
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   None
+;;   Cannot open load file: nxhtml-maintenance.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -124,7 +124,8 @@
     (message "sub-dirs=%s" sub-dirs)
     (dolist (dir sub-dirs)
       (let ((full-dir (expand-file-name dir root)))
-        (unless (string= full-dir nxhtmlmaint-dir)
+        (unless (or (string= full-dir nxhtmlmaint-dir)
+                    (string= dir "alts"))
           (nxhtmlmaint-get-tree-autoloads full-dir))))))
 
 ;;;###autoload
