@@ -114,7 +114,6 @@ bound to KEY in the global keymap and indents the current line."
     ;; "\\<xyz\\>" matches part of e.g. "_xyz" and "xyz_abc". Defines
     ;; it as word constituent for now.
     (modify-syntax-entry ?_ "w" table)
-
     table)
   "Syntax table used in JavaScript mode.")
 
@@ -169,7 +168,7 @@ comments have been removed."
       (re-search-backward regexp bound)
       (when (and (> (point) (point-min))
                  (save-excursion (backward-char) (looking-at "/[/*]")))
-        (forward-char))
+        (backward-char))
       (setq parse (parse-partial-sexp saved-point (point)))
       (cond ((nth 3 parse)
              (re-search-backward
@@ -618,7 +617,7 @@ beginning of buffer to point. JUSTIFY has the same meaning as in
             (fill-paragraph justify))
 
           ;; In Emacs 21.4 as opposed to CVS Emacs 22,
-          ;; `fill-paragraph' seems toadd a newline at the end of the
+          ;; `fill-paragraph' seems to add a newline at the end of the
           ;; paragraph. Remove it!
           (goto-char (point-max))
           (when (looking-at "^$") (backward-delete-char 1))
