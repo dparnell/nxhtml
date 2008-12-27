@@ -3351,6 +3351,7 @@ See also `mumamo-quick-static-chunk'."
   (when chunk
     (let ((major-mode (mumamo-chunk-major-mode chunk))
           (parseable-by (overlay-get chunk 'mumamo-parseable-by)))
+      ;;(message "mumamo-valid-nxml-chunk: major-mode=%s, parseble-by=%s" major-mode parseable-by)
       (or (derived-mode-p 'nxml-mode)
           (memq 'nxml-mode parseable-by)))))
 
@@ -5818,7 +5819,8 @@ mumamo is used."
   "Support for mumamo.
 See the defadvice for `syntax-ppss' for an explanation."
   (let ((pos (ad-get-arg 0)))
-    (let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-get-existing-chunk-at pos))))
+    ;;(let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-get-existing-chunk-at pos))))
+    (let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-find-chunks pos))))
       (if chunk-at-pos
           (let* ((syntax-ppss-last  (overlay-get chunk-at-pos 'syntax-ppss-last))
                  (syntax-ppss-cache (overlay-get chunk-at-pos 'syntax-ppss-cache)))
@@ -5914,7 +5916,8 @@ Put this at next chunk's beginning.
 Do here also other necessary adjustments for this."
   (let ((pos (ad-get-arg 0)))
     (unless pos (setq pos (point)))
-    (let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-get-existing-chunk-at pos)))
+    ;;(let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-get-existing-chunk-at pos)))
+    (let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-find-chunks pos)))
            (dump2 (and (boundp 'dump-quote-hunt)
                       dump-quote-hunt
                       (boundp 'start)
@@ -6283,9 +6286,11 @@ a narrow-to-multiple-regions function!"
                  ;; Fix-me: this is too slow - or was that really the
                  ;; problem???
                  ;;(chunk (mumamo-get-existing-chunk-at (if start start end)))
+                 (chunk (mumamo-find-chunks (if start start end)))
                  )
-            (mumamo-valid-nxml-point (if start start end))
-            ;;(when chunk (mumamo-valid-nxml-chunk chunk))
+            ;;(message "chunk=%s, start=%s end=%s, x=%s" chunk start end (mumamo-valid-nxml-chunk chunk))
+            ;;(mumamo-valid-nxml-point (if start start end))
+            (when chunk (mumamo-valid-nxml-chunk chunk))
             )
       ;;(message "xmltok-add-error start=%s, end=%s" start end)
       (setq xmltok-errors
