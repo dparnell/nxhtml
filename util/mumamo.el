@@ -5027,6 +5027,9 @@ mode in the chunk family is nil."
     (setq rng-valid-nxml-major-mode-chunk-function nil)
     (setq rng-end-major-mode-chunk-function nil)
     )
+  ;; Remove nxml for Emacs 22
+  (remove-hook 'after-change-functions 'rng-after-change-function t)
+  (remove-hook 'after-change-functions 'nxml-after-change t)
   (when (boundp 'rngalt-major-mode)
     (setq rngalt-major-mode nil))
   (remove-hook 'change-major-mode-hook 'mumamo-change-major-function t)
