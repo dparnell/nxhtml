@@ -123,7 +123,9 @@ See URL `https://bugs.launchpad.net/nxhtml/+bug/271497'."
 
 (ert-deftest nxhtml-ert-indent-question43320 ()
   "Test for question 43320 in Launchpad.
-See URL `https://answers.launchpad.net/nxhtml/+question/43320'."
+See URL `https://answers.launchpad.net/nxhtml/+question/43320'.
+
+Note: This fails in Emacs 22."
 ;; I did see some problem here:
 
 ;; - nXhtml 081222 + unpatched Emacs 081219 => ok

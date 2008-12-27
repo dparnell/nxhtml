@@ -194,9 +194,25 @@ See `majmodpri-sort-lists' for more information."
   "Get original value of REC after sorting."
   (cadr rec))
 
+;; Fix-me: default for Emacs 22??
+(defcustom majmodpri-no-nxml (< emacs-major-version 23)
+  "Don't use multi major modes with nxml if non-nil.
+The default for Emacs prior to version 23 is to not use this
+multi major modes by default since there are some problems.
+
+This gives those multi major mode lower priority, but it does not
+prevent use of them."
+  :group 'majmodpri)
+
+;; (majmodpri-priority 'html-mumamo-mode)
+;; (majmodpri-priority 'nxhtml-mumamo-mode)
 (defsubst majmodpri-priority (mode)
   "Return major mode MODE priority."
-  (length (memq mode majmodpri-mode-priorities)))
+  (if (and majmodpri-no-nxml
+           (save-match-data
+             (string-match "nxhtml-" (symbol-name mode))))
+      0
+    (length (memq mode majmodpri-mode-priorities))))
 
 (defun majmodpri-compare-auto-modes (rec1 rec2)
   "Compare record REC1 and record REC2.
