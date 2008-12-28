@@ -16,6 +16,11 @@
 ;;
 ;;; Commentary:
 ;;
+;; This module contain maintenance functions:
+;;
+;; `nxhtmlmaint-get-all-autoloads'
+;; `nxhtmlmaint-start-byte-compilation'
+;; `nxhtmlmaint-byte-uncompile-all'
 ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -54,9 +59,11 @@
 ;;;; Autoload helpers
 
 (defun nxhtmlmaint-autoloads-file ()
+  "Return autoload file name for nXhtml."
   (file-truename (expand-file-name "nxhtml-loaddefs.el" nxhtmlmaint-dir)))
 
 (defun nxhtmlmaint-util-dir ()
+  "Return nXhtml util directory."
   (file-truename (file-name-as-directory
                   (expand-file-name "util" nxhtmlmaint-dir))))
 
@@ -65,6 +72,7 @@
 (defvar generated-autoload-file)
 
 (defun nxhtmlmaint-initialize-autoloads-file ()
+  "Initialize nXhtml autoload file."
   (with-current-buffer (find-file-noselect generated-autoload-file)
     (when (= 0 (buffer-size))
       (insert ";; Autoloads for nXthml
@@ -74,6 +82,7 @@
     (basic-save-buffer))))
 
 (defun nxmtmlmaint-advice-autoload (on)
+  "Activate advices if ON, otherwise turn them off."
   (if on
       (progn
         (ad-activate 'autoload-file-load-name)
@@ -82,6 +91,8 @@
     (ad-deactivate 'make-autoload)))
 
 (defun nxhtmlmaint-get-file-autoloads (file)
+  "Get autoloads for file FILE.
+Update nXhtml autoload file with them."
   (interactive (list (buffer-file-name)))
   (let* ((generated-autoload-file (nxhtmlmaint-autoloads-file))
          (emacs-lisp-mode-hook nil)
@@ -95,6 +106,8 @@
     (display-buffer (find-file-noselect generated-autoload-file))))
 
 (defun nxhtmlmaint-get-dir-autoloads (dir)
+  "Get autoloads for directory DIR.
+Update nXhtml autoload file with them."
   (interactive (list (or (when (buffer-file-name)
                            (file-name-directory (buffer-file-name)))
                          default-directory)))
@@ -111,6 +124,8 @@
     (display-buffer (find-file-noselect generated-autoload-file))))
 
 (defun nxhtmlmaint-get-tree-autoloads (root)
+  "Get autoloads for directory tree ROOT.
+Update nXhtml autoload file with them."
   (interactive (list (or (when (buffer-file-name)
                            (file-name-directory (buffer-file-name)))
                          default-directory)))
@@ -132,8 +147,9 @@
                     (string= dir "alts"))
           (nxhtmlmaint-get-tree-autoloads full-dir))))))
 
-;;;###autoload
 (defun nxhtmlmaint-get-all-autoloads ()
+  "Get all autoloads for nXhtml.
+Update nXhtml autoload file with them."
   (interactive)
   (let ((auto-buf (find-file-noselect (nxhtmlmaint-autoloads-file))))
     (with-current-buffer auto-buf
@@ -142,6 +158,7 @@
   (nxhtmlmaint-get-tree-autoloads nxhtmlmaint-dir))
 
 (defun nxhtmlmaint-autoload-file-load-name (file)
+  "Return relative file name for FILE to autoload file directory."
   (let ((name (if nxhtmlmaint-autoload-default-directory
                   (file-relative-name
                    file nxhtmlmaint-autoload-default-directory)
@@ -154,9 +171,11 @@
                                     nxhtmlmaint-advice-autoload-file-load-name
                                     ;;activate
                                     compile)
+  "Advice to return relative file name."
   (setq ad-return-value (nxhtmlmaint-autoload-file-load-name (ad-get-arg 0))))
 
 (defun nxhtmlmaint-make-autoload (form file)
+  "Make autoload for multi major modes."
   ;;(message "form=%S" form)
   (if (or (not (listp form))
           (not (eq 'define-mumamo-multi-major-mode (car form))))
@@ -173,9 +192,10 @@
                           nxhtmlmaint-advice-make-autoload
                           ;;activate
                           compile)
+  "Make autoload for multi major modes."
   (setq ad-return-value
         (nxhtmlmaint-make-autoload (ad-get-arg 0)
-                                             (ad-get-arg 1))))
+                                   (ad-get-arg 1))))
 
 ;; (defun nxhtmlmaint-generate-library-autoloads (library)
 ;;   "Insert at point autoloads for Emacs library LIBRARY.
@@ -188,7 +208,16 @@
 ;;     ;; Fix-me: wasn't this defined???
 ;;     (generate-file-autoloads file)))
 
+;;;###autoload
 (defun nxhtmlmaint-start-byte-compilation ()
+  "Start byte compilation of nXhtml in new Emacs instance.
+Byte compiling in general makes elisp code run 5-10 times faster
+which is quite noticeable when you use nXhtml.
+
+You must restart Emacs to use the byte compiled files.
+
+If for some reason the byte compiled files does not work you can
+remove then with `nxhtmlmaint-byte-uncompile-all'."
   (interactive)
   (let ((this-file (expand-file-name "nxhtml-maintenance.el" nxhtmlmaint-dir)))
     (message "this-file=%s" this-file)
@@ -199,6 +228,7 @@
 
 ;;(nxhtmlmaint-byte-compile-all)
 (defun nxhtmlmaint-byte-compile-all ()
+  "Byte recompile all files in nXhtml that needs it."
   (let* ((load-path load-path)
          (nxhtml-dir (file-name-as-directory
                       (expand-file-name "nxhtml"
@@ -223,6 +253,8 @@
 
 ;;(nxhtmlmaint-byte-uncompile-all)
 (defun nxhtmlmaint-byte-uncompile-all ()
+  "Delete byte compiled files in nXhtml."
+  (interactive)
   (let ((dummy-debug-on-error t))
     (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir t t))
   (message "Byte uncompiling is ready, restart Emacs to use the elisp files"))
@@ -230,6 +262,12 @@
 (defconst nxhtmlmaint-nonbyte-compile-dirs '("." ".." "alts" "nxml-mode-20041004" "old" "xtests"))
 
 (defun nxhtmlmaint-byte-compile-dir (dir force del-elc)
+  "Byte compile or uncompile directory tree DIR.
+If FORCE is non-nil byte recompile the elisp file even if the
+compiled file is newer.
+
+If DEL-ELC is nil then byte compile files.  If DEL-ELC is non-nil
+then instead delete the compiled files."
   ;;(directory-files (file-name-directory buffer-file-name) t "\.el\\'")
   (dolist (el-src (directory-files dir t "\.el\\'"))
     (let ((elc-dst (concat el-src "c")))
