@@ -228,7 +228,7 @@
 ;;   that is needed.  The current logic is mainly in
 ;;   `mumamo-get-chunk-at' and `mumamo-find-possible-chunk'.  (Some
 ;;   other routines tries to behave like `mumamo-find-possible-chunk'
-;;   too: `mumamo-chunk-attr=' and `mumamo-easy-make-chunk-fun'.)
+;;   too: `mumamo-chunk-attr=' and `mumamo-quick-static-chunk'.)
 ;;
 ;; - One idea that I currently have not used is to check outer major
 ;;   mode while dividing into chunks.  This could probably be done
@@ -247,6 +247,10 @@
 
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'flyspell))
+(eval-when-compile (require 'mlinks))
+(eval-when-compile (require 'nxml-mode))
+(eval-when-compile (require 'rng-valid))
+(eval-when-compile (require 'rngalt))
 (eval-when-compile (require 'sgml-mode)) ;; For sgml-xml-mode
 ;; For `define-globalized-minor-mode-with-on-off':
 ;;(require 'ourcomments-util)
@@ -3414,8 +3418,6 @@ If INC is non-nil then the dividers are included in the chunks.
 MODE should be the major mode for the chunk.
 
 If MARK-IS-BORDER is non-nil then the marks are made borders."
-
-;;See also `mumamo-easy-make-chunk-fun'."
   (mumamo-msgfntfy "quick.pos=%s min,max=%s,%s begin-mark/end=%s/%s mark-is-border=%s" pos min max begin-mark end-mark mark-is-border)
   (let ((search-bw-exc-start
          (lambda (pos min)

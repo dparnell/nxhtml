@@ -46,6 +46,8 @@
 ;;; Code:
 
 ;;(require 'ourcomments-util)
+(eval-when-compile (require 'majmodpri))
+(eval-when-compile (require 'moz))
 
 (unless (featurep 'nxml-enc)
   ;; This is for the case when nXml is included in Emacs

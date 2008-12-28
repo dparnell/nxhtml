@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 13:49:41 2007
-(defconst nxhtml-menu:version "1.63") ;;Version:
+(defconst nxhtml-menu:version "1.65") ;;Version:
 ;; Last-Updated: 2008-08-26T23:28:00+0200 Tue
 ;; URL:
 ;; Keywords:
@@ -45,6 +45,12 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cus-edit))
+(eval-when-compile (require 'dired))
+(eval-when-compile (require 'gimp))
+(eval-when-compile (require 'html-site))
+(eval-when-compile (require 'mumamo))
 (require 'hexcolor)
 (require 'flymake)
 (require 'flymake-php)
@@ -1044,7 +1050,7 @@ Both the current value and the value to save is set, but
     (unless oldbuf
       (let ((inhibit-read-only t)
             (here (point)))
-        (custom-mode)
+        (Custom-mode)
         (setq cursor-in-non-selected-windows nil)
         (nxhtml-custom-h1 "Welcome to nXhtml - a package for web editing" t)
         (insert "\n\n")
@@ -1111,9 +1117,10 @@ file using nxhtml-mode."
     (nxhtml-welcome)))
 
 ;; Show welcome screen once after loading nxhtml:
-(eval-after-load 'nxhtml
-  ;; Use a short delay if something like desktop is used:
-  '(run-with-idle-timer 0.5 nil 'nxhtml-say-welcome-unless-skip))
+(unless (boundp 'bytecomp-filename)
+  (eval-after-load 'nxhtml
+    ;; Use a short delay if something like desktop is used:
+    '(run-with-idle-timer 0.5 nil 'nxhtml-say-welcome-unless-skip)))
 
 (provide 'nxhtml-menu)
 

@@ -44,9 +44,17 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+(require 'ourcomments-util)
 
-(defvar nxhtmltest-bin-Q
-  (file-name-directory (if load-file-name load-file-name buffer-file-name)))
+(eval-and-compile
+  (defvar nxhtmltest-bin-Q
+    (file-name-directory (or load-file-name
+                             bytecomp-filename
+                             buffer-file-name)))
+
+  (add-to-list 'load-path nxhtmltest-bin-Q)
+  (require 'nxhtmltest-helpers))
 
 ;;;###autoload
 (defun nxhtmltest-run-Q ()
