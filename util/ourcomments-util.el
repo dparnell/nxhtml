@@ -44,7 +44,10 @@
 ;;
 ;;; Code:
 
-
+(eval-when-compile (require 'apropos))
+(eval-when-compile (require 'grep))
+(eval-when-compile (require 'ido))
+(eval-when-compile (require 'recentf))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Popups etc.
@@ -543,6 +546,7 @@ for the keymap to be active \(minor mode levels only)."
         (maps (current-active-maps))
         map
         map-sym
+        map-rec
         binding
         keymaps
         minor-maps
@@ -1179,9 +1183,8 @@ This is used in EmacsW32 in the file ediff.cmd."
            "oldXMenu/ChangeLog"
            "src/ChangeLog"
            "test/ChangeLog"))
-        )
-    (emacs-root (expand-file-name ".." exec-directory)
-    )))
+	(emacs-root (expand-file-name ".." exec-directory)
+        ))))
 
 (defun ourcomments-read-symbol (prompt predicate)
   "Basic function for reading a symbol for describe-* functions.
@@ -1725,10 +1728,10 @@ This runs `query-replace-regexp' in selected files.
 See `dired-do-query-replace-regexp' for DELIMETED and more
 information."
   (interactive (dir-replace-read-parameters nil nil))
-  (message "%s" (list from to file-regexp root delimited))
+  (message "%s" (list from to files dir delimited))
   ;;(let ((files (directory-files root nil file-regexp))) (message "files=%s" files))
   (tags-query-replace from to delimited
-                      `(directory-files ,root t ,file-regexp)))
+                      `(directory-files ,dir t ,files)))
 
 (defun rdir-query-replace (from to file-regexp root &optional delimited)
   "Replace FROM with TO in FILES in directory tree ROOT.

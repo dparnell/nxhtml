@@ -6,7 +6,7 @@
 ;; Author:  Lennart Borgman <lennart DOT borgman DOT 073 AT student DOT lu DOT se>
 ;; Created: 2005-08-05
 ;;(defconst nxhtml:version "1.45") ;;Version:
-;; Last-Updated: 2008-09-30T11:46:26+0200 Tue
+;; Last-Updated: 2008-12-28 Sun
 ;; Keywords: languages
 ;;
 ;;
@@ -72,21 +72,28 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'mumamo))
 (eval-when-compile
   (require 'cl)
+  (require 'appmenu-fold)
+  (require 'nxhtml-menu)
+  (require 'fold-dwim)
+  (require 'typesetter nil t)
   (unless (featurep 'nxhtml-autostart)
     (let ((efn (expand-file-name
                 "../autostart.el"
                 (file-name-directory
-                 (if load-file-name
-                     load-file-name
-                   (buffer-file-name))))))
+                 (or load-file-name
+                     (when (boundp 'bytecomp-filename) bytecomp-filename)
+                     buffer-file-name)))))
+      (message "efn=%s" efn)
       (load efn))
     (require 'rng-valid)
     (require 'rng-nxml)
     (require 'html-toc nil t)
     (require 'html-pagetoc nil t)))
 
+(require 'typesetter nil t)
 (require 'button)
 (require 'loadhist)
 (require 'nxml-mode)
@@ -299,10 +306,10 @@
   (defun nxhtml-outline-level ()
     ;;(message "nxhtml-outline-level=%s" (buffer-substring (match-beginning 0) (match-end 0)))(sit-for 2)
     ;; Fix-me: What did I intend to do???
-    (let ((tag (buffer-substring (match-beginning 1) (match-end 1))))
-      (if (eq (length tag) 2)
-          (- (aref tag 1) ?0)
-        0))
+    ;; (let ((tag (buffer-substring (match-beginning 1) (match-end 1))))
+    ;;   (if (eq (length tag) 2)
+    ;;       (- (aref tag 1) ?0)
+    ;;     0))
     8)
 
 
@@ -466,8 +473,8 @@ Takes into account the relative position of the saved link."
            (nxhtml-insert-empty-frames-page))
           ((string= res normal)
            (nxhtml-insert-empty-page))
-          ((string= res vlhead)
-           (nxhtml-validation-header-mode))
+          ;;((string= res vlhead)
+          ;; (nxhtml-validation-header-mode))
           (t
            (error "Bad res=%s" res))))
   (rng-auto-set-schema))
@@ -480,6 +487,10 @@ Takes into account the relative position of the saved link."
 (defun nxhtml-help ()
   (interactive)
   (describe-function 'nxhtml-mode))
+
+(defvar nxhtml-current-validation-header nil)
+(make-variable-buffer-local 'nxhtml-current-validation-header)
+(put 'nxhtml-current-validation-header 'permanent-local t)
 
 
 (defun nxhtml-browse-file (file)
@@ -1840,10 +1851,6 @@ occurence of a tag name is used.")
       (funcall (cadr tagrec))))
   )
 
-(defun nxhtml-check-tag-do-also ()
-  (when nxhtml-tag-do-also
-    (nxhtml-turn-onoff-tag-do-also t)))
-
 (defun nxhtml-turn-onoff-tag-do-also (on)
   (add-hook 'nxhtml-mode-hook 'nxhtml-check-tag-do-also)
   (dolist (b (buffer-list))
@@ -1855,6 +1862,10 @@ occurence of a tag name is used.")
             )
           (remove-hook 'rngalt-complete-tag-hooks 'nxhtml-complete-tag-do-also t)
         ))))
+
+(defun nxhtml-check-tag-do-also ()
+  (when nxhtml-tag-do-also
+    (nxhtml-turn-onoff-tag-do-also t)))
 
 (define-toggle nxhtml-tag-do-also t
   "When completing tag names do some more if non-nil.
@@ -1869,6 +1880,43 @@ You can add additional elisp code for completing to
          (set-default symbol value)
          (nxhtml-turn-onoff-tag-do-also value))
   :group 'nxhtml)
+
+
+;;;###autoload
+(define-minor-mode nxhtml-validation-header-mode
+  "If on use a Fictive XHTML Validation Header for the buffer.
+See `nxhtml-set-validation-header' for information about Fictive XHTML Validation Headers.
+
+This mode may be turned on automatically in two ways:
+- If you try to do completion of a XHTML tag or attribute then
+  `nxthml-mode' may ask you if you want to turn this mode on if
+  needed.
+- You can also choose to have it turned on automatically whenever
+  mumamo is used, see `nxhtml-validation-header-if-mumamo' for
+  further information."
+  :global nil
+  :lighter " VH"
+  :group 'nxhtml
+  (if nxhtml-validation-header-mode
+      (progn
+        (unless nxhtml-current-validation-header
+          (setq nxhtml-current-validation-header
+                (nxhtml-get-default-validation-header)))
+        ;;(message "nxhtml-current-validation-header=%s" nxhtml-current-validation-header)
+        (if nxhtml-current-validation-header
+            (progn
+              (nxhtml-apply-validation-header)
+              (add-hook 'change-major-mode-hook 'nxhtml-vhm-change-major nil t)
+              (when (featurep 'mumamo)
+                (add-hook 'mumamo-change-major-mode-hook 'nxhtml-vhm-mumamo-change-major nil t)
+                (add-hook 'mumamo-after-change-major-mode-hook 'nxhtml-vhm-mumamo-after-change-major nil t)))
+          (run-with-idle-timer 0 nil 'nxhtml-validation-header-empty (current-buffer))))
+    (rngalt-set-validation-header nil)
+    (setq nxhtml-current-validation-header nil)
+    (remove-hook 'after-change-major-mode-hook 'nxhtml-vhm-after-change-major t)
+    (when (featurep 'mumamo)
+      (remove-hook 'mumamo-change-major-mode-hook 'nxhtml-vhm-mumamo-change-major t)
+      (remove-hook 'mumamo-after-change-major-mode-hook 'nxhtml-vhm-mumamo-after-change-major t))))
 
 (defun nxhtml-can-insert-page-here ()
    (and (not nxhtml-validation-header-mode)
@@ -2121,7 +2169,6 @@ You can add additional elisp code for completing to
   )
 
 
-(require 'typesetter nil t)
 (when (featurep 'typesetter)
   (defun typesetter-init-nxhtml-mode ()
     (typesetter-init-html-mode))
@@ -2240,10 +2287,6 @@ Must be nil or one of the key values in
      "No XHTML validation headers. Please customize nxhtml-validation-headers.")))
 
 (defvar nxhtml-set-validation-header-hist nil)
-
-(defvar nxhtml-current-validation-header nil)
-(make-variable-buffer-local 'nxhtml-current-validation-header)
-(put 'nxhtml-current-validation-header 'permanent-local t)
 
 (defcustom nxhtml-guess-validation-header-alist
   ;;(rx line-start (0+ blank) "<body")
@@ -2472,42 +2515,6 @@ information see `rngalt-show-validation-header'."
     (setq nxhtml-current-validation-header nil)
     (when mode-on (nxhtml-validation-header-mode 1))))
 
-;;;###autoload
-(define-minor-mode nxhtml-validation-header-mode
-  "If on use a Fictive XHTML Validation Header for the buffer.
-See `nxhtml-set-validation-header' for information about Fictive XHTML Validation Headers.
-
-This mode may be turned on automatically in two ways:
-- If you try to do completion of a XHTML tag or attribute then
-  `nxthml-mode' may ask you if you want to turn this mode on if
-  needed.
-- You can also choose to have it turned on automatically whenever
-  mumamo is used, see `nxhtml-validation-header-if-mumamo' for
-  further information."
-  :global nil
-  :lighter " VH"
-  :group 'nxhtml
-  (if nxhtml-validation-header-mode
-      (progn
-        (unless nxhtml-current-validation-header
-          (setq nxhtml-current-validation-header
-                (nxhtml-get-default-validation-header)))
-        ;;(message "nxhtml-current-validation-header=%s" nxhtml-current-validation-header)
-        (if nxhtml-current-validation-header
-            (progn
-              (nxhtml-apply-validation-header)
-              (add-hook 'change-major-mode-hook 'nxhtml-vhm-change-major nil t)
-              (when (featurep 'mumamo)
-                (add-hook 'mumamo-change-major-mode-hook 'nxhtml-vhm-mumamo-change-major nil t)
-                (add-hook 'mumamo-after-change-major-mode-hook 'nxhtml-vhm-mumamo-after-change-major nil t)))
-          (run-with-idle-timer 0 nil 'nxhtml-validation-header-empty (current-buffer))))
-    (rngalt-set-validation-header nil)
-    (setq nxhtml-current-validation-header nil)
-    (remove-hook 'after-change-major-mode-hook 'nxhtml-vhm-after-change-major t)
-    (when (featurep 'mumamo)
-      (remove-hook 'mumamo-change-major-mode-hook 'nxhtml-vhm-mumamo-change-major t)
-      (remove-hook 'mumamo-after-change-major-mode-hook 'nxhtml-vhm-mumamo-after-change-major t))))
-
 (defun nxhtml-vhm-change-major ()
   "Turn off `nxhtml-validation-header-mode' after change major."
   ;;(message "nxhtml-vhm-change-major here")
@@ -2596,15 +2603,15 @@ This is called because there was no validation header."
   (put 'rngalt-validation-header 'permanent-local t)
   (put 'nxhtml-validation-header-mode 'permanent-local t)
   (put 'nxhtml-current-validation-header 'permanent-local t)
-  (put 'nxhtml-validation-header-mode-major-mode 'permanent-local t)
-  (setq nxhtml-validation-header-mode-major-mode mumamo-set-major-running)
+  ;;(put 'nxhtml-validation-header-mode-major-mode 'permanent-local t)
+  ;;(setq nxhtml-validation-header-mode-major-mode mumamo-set-major-running)
   )
 
 (defun nxhtml-vhm-mumamo-after-change-major ()
   (put 'rngalt-validation-header 'permanent-local nil)
   (put 'nxhtml-validation-header-mode 'permanent-local nil)
   (put 'nxhtml-current-validation-header 'permanent-local nil)
-  (put 'nxhtml-validation-header-mode-major-mode 'permanent-local nil)
+  ;;(put 'nxhtml-validation-header-mode-major-mode 'permanent-local nil)
   )
 
 (defcustom nxhtml-validation-headers-check 'html
@@ -2882,8 +2889,7 @@ The mark has this form
                                (submatch (0+ anything))
                                "<!-- end today -->")
                               nil t)
-      (replace-match date-str nil nil nil 1))
-    (goto-char here)))
+      (replace-match date-str nil nil nil 1))))
 
 (defun nxhtml-rollover-insert-2v ()
   "Insert CSS rollover images.

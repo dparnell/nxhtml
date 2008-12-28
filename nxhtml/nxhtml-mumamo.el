@@ -44,6 +44,9 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+(eval-when-compile (require 'nxhtml))
+(eval-when-compile (require 'rng-valid))
 (require 'mumamo-fun)
 
 ;; (defgroup nxhtml-auto-val-head nil

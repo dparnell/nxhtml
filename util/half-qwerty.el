@@ -71,17 +71,17 @@
       (?q ?p)
       ;; Right side leftovers in first
       ;;([(control ?\ ) ?a ?q] ?å)
-      ;;([(control ?\ ) ?c ?c] ?:)
+      ([(control ?\ ) ?c ?c] ?:)
       ([(control ?\ ) ?v] ?^)
       ([(control ?\ ) ?s] ?~)
-      ([(control ?\ ) ?w] ?¨)
+      ;;([(control ?\ ) ?w] ?\¨)
 
       ;; Second row
       (?g ?h)
       (?f ?j)
       (?d ?k)
       (?s ?l)
-      (?a ?ö)
+      ;;(?a ?ö)
       ;; Right side leftovers in second
       ;;([(control ?\ ) ?a ?a] ?ä)
       ([(control ?\ ) ?q] ?')
@@ -104,17 +104,17 @@
       (?4 ?9)
       (?3 ?0)
       (?2 ?+)
-      (?1 ?´)
+      ;;(?1 ?´)
       ;; Number row shifted
       (?& ?/)
       (?% ?()
-      (?¤ ?))
+      ;;(?¤ ?))
       (?# ?=)
       (?\" ??)
       (?! ?`)
       ;; Number row AltGr
-      (?$ ?\])
-      (?£ ?\})
+      ;;(?$ ?\])
+      ;;(?£ ?\})
       (?@ ?\\)
       ;; Righ side leftovers for AltGr
       ([(control ?\ ) ?4] ?\])
@@ -143,7 +143,7 @@ Though we can not change for example SPACE+h directly.
 There is no support for pressing them simultaneously.
 
 Instead you have to type the after each other."
-  global t
+  :global t
   :group 'half-qwerty
   (if half-qwerty-mode
       (progn

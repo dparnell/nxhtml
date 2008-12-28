@@ -47,16 +47,24 @@
 ;;   (defalias 'define-globalized-minor-mode 'define-global-minor-mode))
 
 (defvar nxhtml-install-dir
-  (file-name-directory (if load-file-name load-file-name buffer-file-name))
+  (file-name-directory (or load-file-name
+                           (when (boundp 'bytecomp-filename) bytecomp-filename)
+                           buffer-file-name))
   "Installation directory for nXhtml.")
-(setq nxhtml-install-dir (file-name-directory (if load-file-name load-file-name buffer-file-name)))
+(setq nxhtml-install-dir (file-name-directory
+                          (or load-file-name
+                              (when (boundp 'bytecomp-filename) bytecomp-filename)
+                              buffer-file-name)))
 
 (unless (featurep 'nxhtml-autostart)
   ;; Provide the feature to avoid loading looping on error.
   (provide 'nxhtml-autostart)
   ;; Use the css-mode that comes with Emacs if there is one.
   ;; Fix-me: remove this loading later:
-  (when (fboundp 'css-mode) (require 'css-mode))
+  (when (and (or (not (boundp 'bytecomp-filename))
+                 (not bytecomp-filename))
+             (fboundp 'css-mode))
+    (require 'css-mode))
   (let* ((util-dir (file-name-as-directory
                     (expand-file-name "util"
                                       nxhtml-install-dir)))
@@ -76,7 +84,6 @@
     ;; Patch the rnc include paths
     (load-file (expand-file-name "etc/schema/schema-path-patch.el"
                                  nxhtml-install-dir))
-    (rncpp-patch-xhtml-loader)
     ;; Load nXhtml
     (load (expand-file-name "nxhtml/nxhtml-autoload"
                             nxhtml-install-dir))))

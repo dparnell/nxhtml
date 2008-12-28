@@ -167,6 +167,16 @@
   (set-frame-configuration pause-break-frmcfg)
   (pause-save-me))
 
+(defcustom pause-break-text
+  (concat "\n\tHi there,\n\n\tYou are worth a PAUSE!"
+          "\n\nTry some mindfulness:"
+          "\n\t- Look around and observe."
+          "\n\t- Listen."
+          "\n\t- Feel your body.")
+  "Text to show during pause."
+  :type 'integer
+  :group 'pause)
+
 (defun pause-break ()
   (pause-cancel-timer)
   (setq pause-break-frmcfg (current-frame-configuration))
@@ -176,9 +186,10 @@
       (setq pause-break-buffer
             (switch-to-buffer (get-buffer-create "* P A U S E *")))
       (when (= 0 (buffer-size))
-        (insert (propertize "\n\tHi there,\n\n\tYou are worth a PAUSE!\n"
+        ;;(insert (propertize "\n\tHi there,\n\n\tYou are worth a PAUSE!\n"
+        (insert (propertize pause-break-text
                             'face (list 'bold
-                                        :height 2.0
+                                        :height 1.4
                                         :foreground pause-text-color)))
         (pause-break-mode)
         (let ((inhibit-read-only t))
@@ -193,7 +204,8 @@
 (defun pause-break-in-timer ()
   (pause-cancel-timer)
   (if (or (active-minibuffer-window)
-          edebug-active)
+          (and (boundp 'edebug-active)
+	       edebug-active))
       (let ((pause-idle-delay 5))
         (pause-pre-break))
     (let ((there-was-an-error nil))

@@ -44,6 +44,8 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'nxhtml))
+
 (defun nxhtml-add-link (type src silent)
   ;;<script type="text/javascript" src="EmacsW32.js"></script>
   (catch 'exit
@@ -122,13 +124,23 @@ files that comes with nXhtml are linked to directly."
       (goto-char (point-min))
       (when  (search-forward nxhtml-smoothgallery-mark nil t)
         (back-to-indentation)
-        (when (looking-at (rx
-                           "<div id=\""
-                           (submatch
-                            (1+ (not (any ">")))
-                            )
-                           "\">" (eval nxhtml-smoothgallery-mark)
-                           ))
+        (when (looking-at
+               ;; (rx
+               ;;  "<div id=\""
+               ;;  (submatch
+               ;;   (1+ (not (any ">")))
+               ;;   )
+               ;;  "\">" (eval nxhtml-smoothgallery-mark))
+               ;;(concat "<div id=\"\\([^>]+\\)\">" nxhtml-smoothgallery-mark)
+               (rx-to-string
+                `(and
+                  "<div id=\""
+                  (submatch
+                   (1+ (not (any ">")))
+                   )
+                  "\">"
+                  ,nxhtml-smoothgallery-mark))
+               )
           (cons
            (copy-marker (match-beginning 0))
            (buffer-substring-no-properties
