@@ -2374,9 +2374,23 @@
           <dt id="v1.65">1.65</dt>
           <dd id="v1.65-dd">
             <ul>
-              <li>Fixed a bug in pause.el.</li>
               <li>Fixed a bug in nxml-where.el.</li>
-              <li>Added some mindfulness to pause.el.</li>
+              <li>
+                Fixed a bug in pause.el and added some mindfulness to it.
+              </li>
+              <li>
+                Made it possible to byte compile nXhtml.
+                <p>
+                  To do that use
+                  <i>M-x nxhtmlmaint-start-byte-compilation</i>.
+                </p>
+                <p>
+                  A lot of code changes to make byte compilation
+                  possible without a lot of warnings.  Most changes
+                  where just moving code around, but some where bug
+                  fixes.
+                </p>
+              </li>
             </ul>
           </dd>
         </dl>
