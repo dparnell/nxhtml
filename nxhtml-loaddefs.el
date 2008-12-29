@@ -5,7 +5,7 @@
 
 ;;;### (autoloads (html-site-query-replace html-site-rgrep html-site-find-file
 ;;;;;;  html-site-dired-current html-site-set-site html-site-buffer-or-dired-file-name)
-;;;;;;  "../nxhtml/html-site" "nxhtml/html-site.el" (18658 47798))
+;;;;;;  "../nxhtml/html-site" "nxhtml/html-site.el" (18775 12764))
 ;;; Generated autoloads from nxhtml/html-site.el
 
 (autoload 'html-site-buffer-or-dired-file-name "../nxhtml/html-site" "\
@@ -42,7 +42,7 @@ Query replace in current site's files.
 ;;;***
 
 ;;;### (autoloads (inlimg-toggle-img-display inlimg-mode) "../nxhtml/inlimg"
-;;;;;;  "nxhtml/inlimg.el" (18658 47798))
+;;;;;;  "nxhtml/inlimg.el" (18775 42752))
 ;;; Generated autoloads from nxhtml/inlimg.el
 
 (autoload 'inlimg-mode "../nxhtml/inlimg" "\
@@ -64,7 +64,7 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-mode) "../nxhtml/nxhtml"
-;;;;;;  "nxhtml/nxhtml.el" (18735 15066))
+;;;;;;  "nxhtml/nxhtml.el" (18775 58572))
 ;;; Generated autoloads from nxhtml/nxhtml.el
 
 (autoload 'nxhtml-mode "../nxhtml/nxhtml" "\
@@ -188,7 +188,7 @@ This mode may be turned on automatically in two ways:
 ;;;***
 
 ;;;### (autoloads (nxhtml-report-bug) "../nxhtml/nxhtml-bug" "nxhtml/nxhtml-bug.el"
-;;;;;;  (18654 33920))
+;;;;;;  (18774 62573))
 ;;; Generated autoloads from nxhtml/nxhtml-bug.el
 
 (autoload 'nxhtml-report-bug "../nxhtml/nxhtml-bug" "\
@@ -199,7 +199,7 @@ Report a bug in nXhtml.
 ;;;***
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-minor-mode) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18772 50105))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18775 59035))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-minor-mode "../nxhtml/nxhtml-menu" "\
@@ -231,7 +231,7 @@ See `nxhtml-minor-mode' for more information on Nxhtml minor mode.
 ;;;;;;  eruby-nxhtml-mumamo-mode jsp-nxhtml-mumamo-mode smarty-nxhtml-mumamo-mode
 ;;;;;;  mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode django-nxhtml-mumamo-mode
 ;;;;;;  embperl-nxhtml-mumamo-mode nxhtml-mumamo-mode) "../nxhtml/nxhtml-mumamo"
-;;;;;;  "nxhtml/nxhtml-mumamo.el" (18764 15212))
+;;;;;;  "nxhtml/nxhtml-mumamo.el" (18775 57775))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 
 (autoload 'nxhtml-mumamo-mode "../nxhtml/nxhtml-mumamo" "\
@@ -277,7 +277,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxml-where-global-mode nxml-where-mode) "../nxhtml/nxml-where"
-;;;;;;  "nxhtml/nxml-where.el" (18658 47798))
+;;;;;;  "nxhtml/nxml-where.el" (18775 40880))
 ;;; Generated autoloads from nxhtml/nxml-where.el
 
 (autoload 'nxml-where-mode "../nxhtml/nxml-where" "\
@@ -348,7 +348,7 @@ This mode only provides syntax highlighting.
 ;;;***
 
 ;;;### (autoloads (javascript-mode) "../related/javascript" "related/javascript.el"
-;;;;;;  (18418 45624))
+;;;;;;  (18773 4805))
 ;;; Generated autoloads from related/javascript.el
 
 (autoload 'javascript-mode "../related/javascript" "\
@@ -363,7 +363,7 @@ Key bindings:
 ;;;***
 
 ;;;### (autoloads (inferior-moz-mode moz-minor-mode) "../related/moz"
-;;;;;;  "related/moz.el" (18654 33920))
+;;;;;;  "related/moz.el" (18775 53331))
 ;;; Generated autoloads from related/moz.el
 
 (autoload 'moz-minor-mode "../related/moz" "\
@@ -391,7 +391,7 @@ Major mode for interacting with Firefox via MozRepl.
 ;;;***
 
 ;;;### (autoloads (php-mode php-file-patterns) "../related/php-mode"
-;;;;;;  "related/php-mode.el" (18771 35866))
+;;;;;;  "related/php-mode.el" (18775 53755))
 ;;; Generated autoloads from related/php-mode.el
 
 (defvar php-file-patterns '("\\.php[s34]?\\'" "\\.phtml\\'" "\\.inc\\'") "\
@@ -409,7 +409,7 @@ Major mode for editing PHP code.
 ;;;***
 
 ;;;### (autoloads (smarty-mode) "../related/smarty-mode" "related/smarty-mode.el"
-;;;;;;  (18317 23898))
+;;;;;;  (18775 6102))
 ;;; Generated autoloads from related/smarty-mode.el
 
 (autoload 'smarty-mode "../related/smarty-mode" "\
@@ -923,7 +923,7 @@ wikipedia-draft-data-file.
 ;;;***
 
 ;;;### (autoloads (ert-run-tests-interactively ert-deftest) "../tests/ert"
-;;;;;;  "tests/ert.el" (18614 1898))
+;;;;;;  "tests/ert.el" (18775 47201))
 ;;; Generated autoloads from tests/ert.el
 
 (autoload 'ert-deftest "../tests/ert" "\
@@ -939,7 +939,7 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run-Q) "../tests/nxhtmltest-Q" "tests/nxhtmltest-Q.el"
-;;;;;;  (18762 63688))
+;;;;;;  (18775 51134))
 ;;; Generated autoloads from tests/nxhtmltest-Q.el
 
 (autoload 'nxhtmltest-run-Q "../tests/nxhtmltest-Q" "\
@@ -951,7 +951,7 @@ See `nxhtmltest-run' for more information about the tests.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "../tests/nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (18770 61910))
+;;;;;;  "tests/nxhtmltest-suites.el" (18775 49650))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 
 (autoload 'nxhtmltest-run-indent "../tests/nxhtmltest-suites" "\
@@ -1038,7 +1038,7 @@ See `as-external-alist' for more information.
 
 ;;;### (autoloads (freemind-to-org-mode freemind-from-org-sparse-tree
 ;;;;;;  freemind-from-org-mode freemind-from-org-mode-node freemind-show)
-;;;;;;  "freemind" "util/freemind.el" (18659 17016))
+;;;;;;  "freemind" "util/freemind.el" (18775 1472))
 ;;; Generated autoloads from util/freemind.el
 
 (autoload 'freemind-show "freemind" "\
@@ -1069,7 +1069,7 @@ Convert FreeMind file MM-FILE to `org-mode' file ORG-FILE.
 ;;;***
 
 ;;;### (autoloads (gimp-can-edit gimp-edit-buffer gimp-edit-file)
-;;;;;;  "gimp" "util/gimp.el" (18662 2982))
+;;;;;;  "gimp" "util/gimp.el" (18775 58315))
 ;;; Generated autoloads from util/gimp.el
 
 (autoload 'gimp-edit-file "gimp" "\
@@ -1090,7 +1090,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (html-write-mode) "html-write" "util/html-write.el"
-;;;;;;  (18692 35034))
+;;;;;;  (18775 6255))
 ;;; Generated autoloads from util/html-write.el
 
 (autoload 'html-write-mode "html-write" "\
@@ -1107,6 +1107,11 @@ rendered text.
 See the customization group `html-write' for more information about
 faces.
 
+The following keys are defined when you are on a tag handled by
+this minor mode:
+
+\\{html-write-keymap}
+
 IMPORTANT: Most commands you use works also on the text that is
 hidden.  The movement commands is an exception, but as soon as
 you edit the buffer you may also change the hidden parts.
@@ -1116,7 +1121,7 @@ you edit the buffer you may also change the hidden parts.
 ;;;***
 
 ;;;### (autoloads (majmodpri-apply-priorities majmodpri-sort-lists
-;;;;;;  majmodpri) "majmodpri" "util/majmodpri.el" (18654 33920))
+;;;;;;  majmodpri) "majmodpri" "util/majmodpri.el" (18774 7847))
 ;;; Generated autoloads from util/majmodpri.el
 
 (let ((loads (get 'majmodpri 'custom-loads))) (if (member '"majmodpri" loads) nil (put 'majmodpri 'custom-loads (cons '"majmodpri" loads))))
@@ -1185,7 +1190,7 @@ By default the link moved to will be active, see
 ;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode smarty-html-mumamo-mode
 ;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
 ;;;;;;  embperl-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18764 15212))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18775 9521))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1280,7 +1285,7 @@ This also covers inlined style and javascript." t)
 ;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
 ;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
 ;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18764 17648))
+;;;;;;  "util/ourcomments-util.el" (18775 10787))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -1527,8 +1532,8 @@ Open an info file in `Info-mode'.
 
 ;;;***
 
-;;;### (autoloads (rnc-mode) "rnc-mode" "util/rnc-mode.el" (18654
-;;;;;;  33922))
+;;;### (autoloads (rnc-mode) "rnc-mode" "util/rnc-mode.el" (18775
+;;;;;;  4837))
 ;;; Generated autoloads from util/rnc-mode.el
 
 (autoload 'rnc-mode "rnc-mode" "\
@@ -1539,8 +1544,8 @@ Major mode for editing RELAX NG Compact Syntax schemas.
 
 ;;;***
 
-;;;### (autoloads (tabkey2-mode) "tabkey2" "util/tabkey2.el" (18662
-;;;;;;  2982))
+;;;### (autoloads (tabkey2-mode) "tabkey2" "util/tabkey2.el" (18775
+;;;;;;  5742))
 ;;; Generated autoloads from util/tabkey2.el
 
 (defvar tabkey2-mode nil "\
@@ -1604,7 +1609,7 @@ be opened in your webbrowser with WORD looked up.
 ;;;***
 
 ;;;### (autoloads (udev-cedet-update) "udev-cedet" "util/udev-cedet.el"
-;;;;;;  (18654 33922))
+;;;;;;  (18775 888))
 ;;; Generated autoloads from util/udev-cedet.el
 
 (autoload 'udev-cedet-update "udev-cedet" "\
@@ -1630,7 +1635,7 @@ For how to start ECB see `udev-ecb-load-ecb'.
 ;;;***
 
 ;;;### (autoloads (udev-rinari-update) "udev-rinari" "util/udev-rinari.el"
-;;;;;;  (18654 44936))
+;;;;;;  (18775 12681))
 ;;; Generated autoloads from util/udev-rinari.el
 
 (autoload 'udev-rinari-update "udev-rinari" "\
@@ -1643,7 +1648,7 @@ see `udev-rinari-dir' and `udev-rinari-load-rinari'.
 ;;;***
 
 ;;;### (autoloads (viper-tutorial) "viper-tut" "util/viper-tut.el"
-;;;;;;  (18685 3334))
+;;;;;;  (18775 13588))
 ;;; Generated autoloads from util/viper-tut.el
 
 (autoload 'viper-tutorial "viper-tut" "\
@@ -1661,7 +1666,7 @@ later.
 ;;;***
 
 ;;;### (autoloads (winsize-save-window-configuration winsize-balance-siblings
-;;;;;;  resize-windows) "winsize" "util/winsize.el" (18761 37866))
+;;;;;;  resize-windows) "winsize" "util/winsize.el" (18775 12611))
 ;;; Generated autoloads from util/winsize.el
 
 (autoload 'resize-windows "winsize" "\
@@ -1733,12 +1738,12 @@ windows.  To make this indication more prominent the text in the
 selected window is marked with the face hold in the variable
 `winsize-selected-window-face'.
 
-The option `juris-way' decides how the borders to move are
-selected. If this option is non-nil then the right or bottom
+The option `winsize-juris-way' decides how the borders to move
+are selected. If this option is non-nil then the right or bottom
 border are the ones that are moved with the arrow keys and the
 opposite border with shift arrow keys.
 
-If `juris-way' is nil then the following apply:
+If `winsize-juris-way' is nil then the following apply:
 
 As you select other borders or move to new a window the mouse
 pointer is moved inside the selected window to show which borders
@@ -1867,38 +1872,41 @@ Not documented
 ;;;;;;  "nxhtml/html-pagetoc.el" "nxhtml/html-quote.el" "nxhtml/html-toc.el"
 ;;;;;;  "nxhtml/html-upl.el" "nxhtml/html-wtoc.el" "nxhtml/nxhtml-anything-1.el"
 ;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-js.el" "nxhtml/nxhtml-strval.el"
-;;;;;;  "nxhtml/outline-magic.el" "nxhtml/rngalt.el" "nxhtml/test-c-m.el"
-;;;;;;  "nxhtml/test-cust.el" "nxhtml/tests.el" "nxhtml/tidy-xhtml.el"
-;;;;;;  "nxhtml/wtest.el" "nxhtml/xhtml-help.el" "related/cgi+.el"
-;;;;;;  "related/find-recursive.el" "related/flymake-helpers.el"
-;;;;;;  "related/flymake-js.el" "related/flymake-keys.el" "related/flymake-php.el"
-;;;;;;  "related/flymu.el" "related/fold-dwim.el" "related/php-imenu.el"
-;;;;;;  "tests/angus77-setup-jde.el" "tests/elunit.el" "tests/emacstest-suites.el"
-;;;;;;  "tests/ert-080729.el" "tests/ert2.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/nxhtmltest-helpers.el" "tests/temp-test.el" "util/appmenu-fold.el"
-;;;;;;  "util/appmenu.el" "util/buffer-bg.el" "util/bw-rnc-load/schema-find.el"
-;;;;;;  "util/chart.el" "util/color-test-sent.el" "util/color-test.el"
-;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/elunit.el"
-;;;;;;  "util/ffip.el" "util/fmode.el" "util/from-osxkeys.el" "util/fupd.el"
-;;;;;;  "util/half-qwerty.el" "util/hexcolor.el" "util/hfy-test.el"
-;;;;;;  "util/hfyview.el" "util/hl-needed.el" "util/htmlfontify.21.el"
-;;;;;;  "util/htmlfontify.el" "util/mumamo-aspnet.el" "util/mumamo-test.el"
+;;;;;;  "nxhtml/nxhtmljs.el" "nxhtml/outline-magic.el" "nxhtml/rngalt.el"
+;;;;;;  "nxhtml/tidy-xhtml.el" "nxhtml/wtest.el" "nxhtml/xhtml-help.el"
+;;;;;;  "related/flymake-helpers.el" "related/flymake-js.el" "related/flymake-keys.el"
+;;;;;;  "related/flymake-php.el" "related/flymu.el" "related/fold-dwim.el"
+;;;;;;  "related/php-imenu.el" "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
+;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
+;;;;;;  "util/appmenu-fold.el" "util/appmenu.el" "util/buffer-bg.el"
+;;;;;;  "util/bw-rnc-load/schema-find.el" "util/chart.el" "util/custsets.el"
+;;;;;;  "util/ecb-batch-compile.el" "util/ffip.el" "util/fmode.el"
+;;;;;;  "util/fupd.el" "util/hexcolor.el" "util/hfyview.el" "util/hl-needed.el"
+;;;;;;  "util/htmlfontify.21.el" "util/htmlfontify.el" "util/mumamo-aspnet.el"
 ;;;;;;  "util/mumamo-trace.el" "util/mumamo.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
 ;;;;;;  "util/pause.el" "util/physical-line.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/search-form.el" "util/sex-mode.el"
 ;;;;;;  "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
 ;;;;;;  "util/vline.el" "util/whelp.el" "util/winsav.el" "util/zen-mode.el")
-;;;;;;  (18772 57829 328000))
+;;;;;;  (18776 8995 968000))
 
 ;;;***
 
-;;;### (autoloads (nxhtmlmaint-get-all-autoloads) "../nxhtml-maintenance"
-;;;;;;  "nxhtml-maintenance.el" (18772 57807))
+;;;### (autoloads (nxhtmlmaint-start-byte-compilation) "../nxhtml-maintenance"
+;;;;;;  "nxhtml-maintenance.el" (18775 63010))
 ;;; Generated autoloads from nxhtml-maintenance.el
 
-(autoload 'nxhtmlmaint-get-all-autoloads "../nxhtml-maintenance" "\
-Not documented
+(autoload 'nxhtmlmaint-start-byte-compilation "../nxhtml-maintenance" "\
+Start byte compilation of nXhtml in new Emacs instance.
+Byte compiling in general makes elisp code run 5-10 times faster
+which is quite noticeable when you use nXhtml.
+
+You must restart Emacs to use the byte compiled files.
+
+If for some reason the byte compiled files does not work you can
+remove then with `nxhtmlmaint-byte-uncompile-all'.
 
 \(fn)" t nil)
 

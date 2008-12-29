@@ -3,7 +3,7 @@
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-09-27T15:29:35+0200 Sat
 ;; Version: 0.5
-;; Last-Updated: 2008-12-26 Fri
+;; Last-Updated: 2008-12-28 Sun
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
@@ -16,7 +16,7 @@
 ;;
 ;;; Commentary:
 ;;
-;; This module contain maintenance functions:
+;; This module contains maintenance functions:
 ;;
 ;; `nxhtmlmaint-get-all-autoloads'
 ;; `nxhtmlmaint-start-byte-compilation'
