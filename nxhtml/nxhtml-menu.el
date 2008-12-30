@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 13:49:41 2007
-(defconst nxhtml-menu:version "1.65") ;;Version:
+(defconst nxhtml-menu:version "1.66") ;;Version:
 ;; Last-Updated: 2008-08-26T23:28:00+0200 Tue
 ;; URL:
 ;; Keywords:

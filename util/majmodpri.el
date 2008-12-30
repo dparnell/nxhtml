@@ -2,8 +2,8 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-08-26
-(defconst majmodpri:version "0.6") ;;Version:
-;; Last-Updated: 2008-08-26T19:21:00+0200 Tue
+(defconst majmodpri:version "0.61") ;;Version:
+;; Last-Updated: 2009-12-29 Mon
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
@@ -209,6 +209,7 @@ prevent use of them."
 (defsubst majmodpri-priority (mode)
   "Return major mode MODE priority."
   (if (and majmodpri-no-nxml
+           (symbolp mode)
            (save-match-data
              (string-match "nxhtml-" (symbol-name mode))))
       0

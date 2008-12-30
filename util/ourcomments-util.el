@@ -442,11 +442,24 @@ To create a menu item something similar to this can be used:
   "Move point to beginning of line or indentation.
 See `beginning-of-line' for ARG.
 
-If `physical-line-mode' is on then the visual line beginning is
-first tried."
+If `line-move-visual' is non-nil then the visual line beginning
+is first tried."
   (interactive "p")
-  (let ((pos (point)))
+  (let ((pos (point))
+        vis-pos)
+    (when line-move-visual
+      (line-move-visual -1 t)
+      (beginning-of-line)
+      (setq vis-pos (point))
+      (goto-char pos))
     (call-interactively 'beginning-of-line arg)
+    (when (and vis-pos
+               (= vis-pos (point)))
+      (while (and (> pos (point))
+                  (not (eobp)))
+        (let (last-command)
+          (line-move-visual 1 t)))
+      (line-move-visual -1 t))
     (when (= pos (point))
       (if (= 0 (current-column))
           (skip-chars-forward " \t")
@@ -456,15 +469,26 @@ first tried."
 
 ;;;###autoload
 (defun ourcomments-move-end-of-line(arg)
-  "Move point to end of line or indentation.
+  "Move point to end of line or after last non blank char.
 See `end-of-line' for ARG.
 
-If `physical-line-mode' is on then the visual line ending is
-first tried."
+Similar to `ourcomments-move-beginning-of-line' but for end of
+line."
   (interactive "p")
   (or arg (setq arg 1))
-  (let ((pos (point)))
+  (let ((pos (point))
+        vis-pos)
+    (when line-move-visual
+      (let (last-command) (line-move-visual 1 t))
+      (end-of-line)
+      (setq vis-pos (point))
+      (goto-char pos))
     (call-interactively 'end-of-line arg)
+    (when (and vis-pos
+               (= vis-pos (point)))
+      (beginning-of-line)
+      (let (last-command) (line-move-visual 1 t))
+      (backward-char))
     (when (= pos (point))
       (if (= (line-end-position) (point))
           (skip-chars-backward " \t")
