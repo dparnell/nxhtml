@@ -199,7 +199,7 @@ Report a bug in nXhtml.
 ;;;***
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-minor-mode) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18775 59035))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18776 57623))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-minor-mode "../nxhtml/nxhtml-menu" "\
@@ -1121,7 +1121,7 @@ you edit the buffer you may also change the hidden parts.
 ;;;***
 
 ;;;### (autoloads (majmodpri-apply-priorities majmodpri-sort-lists
-;;;;;;  majmodpri) "majmodpri" "util/majmodpri.el" (18774 7847))
+;;;;;;  majmodpri) "majmodpri" "util/majmodpri.el" (18777 910))
 ;;; Generated autoloads from util/majmodpri.el
 
 (let ((loads (get 'majmodpri 'custom-loads))) (if (member '"majmodpri" loads) nil (put 'majmodpri 'custom-loads (cons '"majmodpri" loads))))
@@ -1285,7 +1285,7 @@ This also covers inlined style and javascript." t)
 ;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
 ;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
 ;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18775 10787))
+;;;;;;  "util/ourcomments-util.el" (18777 28621))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -1359,17 +1359,17 @@ A major mode lisp function." :complete-function (lambda nil (interactive) (lisp-
 Move point to beginning of line or indentation.
 See `beginning-of-line' for ARG.
 
-If `physical-line-mode' is on then the visual line beginning is
-first tried.
+If `line-move-visual' is non-nil then the visual line beginning
+is first tried.
 
 \(fn ARG)" t nil)
 
 (autoload 'ourcomments-move-end-of-line "ourcomments-util" "\
-Move point to end of line or indentation.
+Move point to end of line or after last non blank char.
 See `end-of-line' for ARG.
 
-If `physical-line-mode' is on then the visual line ending is
-first tried.
+Similar to `ourcomments-move-beginning-of-line' but for end of
+line.
 
 \(fn ARG)" t nil)
 
@@ -1871,12 +1871,12 @@ Not documented
 ;;;;;;  "nxhtml/html-chklnk.el" "nxhtml/html-imenu.el" "nxhtml/html-move.el"
 ;;;;;;  "nxhtml/html-pagetoc.el" "nxhtml/html-quote.el" "nxhtml/html-toc.el"
 ;;;;;;  "nxhtml/html-upl.el" "nxhtml/html-wtoc.el" "nxhtml/nxhtml-anything-1.el"
-;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-js.el" "nxhtml/nxhtml-strval.el"
-;;;;;;  "nxhtml/nxhtmljs.el" "nxhtml/outline-magic.el" "nxhtml/rngalt.el"
-;;;;;;  "nxhtml/tidy-xhtml.el" "nxhtml/wtest.el" "nxhtml/xhtml-help.el"
-;;;;;;  "related/flymake-helpers.el" "related/flymake-js.el" "related/flymake-keys.el"
-;;;;;;  "related/flymake-php.el" "related/flymu.el" "related/fold-dwim.el"
-;;;;;;  "related/php-imenu.el" "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
+;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el" "nxhtml/nxhtmljs.el"
+;;;;;;  "nxhtml/outline-magic.el" "nxhtml/rngalt.el" "nxhtml/tidy-xhtml.el"
+;;;;;;  "nxhtml/wtest.el" "nxhtml/xhtml-help.el" "related/flymake-helpers.el"
+;;;;;;  "related/flymake-js.el" "related/flymake-keys.el" "related/flymake-php.el"
+;;;;;;  "related/flymu.el" "related/fold-dwim.el" "related/php-imenu.el"
+;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
 ;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
 ;;;;;;  "util/appmenu-fold.el" "util/appmenu.el" "util/buffer-bg.el"
@@ -1886,11 +1886,11 @@ Not documented
 ;;;;;;  "util/htmlfontify.21.el" "util/htmlfontify.el" "util/mumamo-aspnet.el"
 ;;;;;;  "util/mumamo-trace.el" "util/mumamo.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
-;;;;;;  "util/pause.el" "util/physical-line.el" "util/popcmp.el"
-;;;;;;  "util/rebind.el" "util/rxi.el" "util/search-form.el" "util/sex-mode.el"
-;;;;;;  "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
-;;;;;;  "util/vline.el" "util/whelp.el" "util/winsav.el" "util/zen-mode.el")
-;;;;;;  (18776 8995 968000))
+;;;;;;  "util/pause.el" "util/popcmp.el" "util/rebind.el" "util/rxi.el"
+;;;;;;  "util/search-form.el" "util/sex-mode.el" "util/udev-nxhtml.el"
+;;;;;;  "util/udev.el" "util/useful-commands.el" "util/vline.el"
+;;;;;;  "util/whelp.el" "util/winsav.el" "util/zen-mode.el") (18777
+;;;;;;  29329 515000))
 
 ;;;***
 
