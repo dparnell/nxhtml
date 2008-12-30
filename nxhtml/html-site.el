@@ -52,11 +52,11 @@
 
 ;; TODO: maybe use browse-url-filename-alist
 
+(eval-when-compile (require 'ourcomments-util))
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'dired))
 (eval-when-compile (require 'ffip))
 (eval-when-compile (require 'grep))
-(eval-when-compile (require 'ourcomments-util))
 ;;(defvar html-site-list) ;; Silence compiler
 ;;(defvar html-site-current) ;; Silence compiler
 

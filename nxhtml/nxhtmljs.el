@@ -155,7 +155,7 @@ files that comes with nXhtml are linked to directly."
     (search-forward jsmark nil t)))
 
 (defun nxhtml-smoothgallery-add (point-name)
-  (interactive "P" nil)
+  (interactive "i")
   (unless point-name
     (setq point-name (nxhtml-smoothgallery-find))
     (unless point-name

@@ -78,6 +78,7 @@
     (require 'as-external)
     (load (expand-file-name "nxhtml-loaddefs.el" nxhtml-install-dir))
     ;; Use the nxml-mode that comes with Emacs if available:
+    ;; Load nXhtml
     (unless (fboundp 'nxml-mode)
       (load (expand-file-name "nxml-mode-20041004/rng-auto"
                               nxhtml-install-dir)))
