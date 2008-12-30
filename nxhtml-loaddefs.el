@@ -5,7 +5,7 @@
 
 ;;;### (autoloads (html-site-query-replace html-site-rgrep html-site-find-file
 ;;;;;;  html-site-dired-current html-site-set-site html-site-buffer-or-dired-file-name)
-;;;;;;  "../nxhtml/html-site" "nxhtml/html-site.el" (18775 12764))
+;;;;;;  "../nxhtml/html-site" "nxhtml/html-site.el" (18777 31679))
 ;;; Generated autoloads from nxhtml/html-site.el
 
 (autoload 'html-site-buffer-or-dired-file-name "../nxhtml/html-site" "\
@@ -199,7 +199,7 @@ Report a bug in nXhtml.
 ;;;***
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-minor-mode) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18776 57623))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18777 43492))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-minor-mode "../nxhtml/nxhtml-menu" "\
@@ -975,7 +975,7 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-mail
 ;;;;;;  as-external-for-xhtml) "as-external" "util/as-external.el"
-;;;;;;  (18686 30854))
+;;;;;;  (18777 31266))
 ;;; Generated autoloads from util/as-external.el
 
 (autoload 'as-external-for-xhtml "as-external" "\
@@ -1285,7 +1285,7 @@ This also covers inlined style and javascript." t)
 ;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
 ;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
 ;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18777 28621))
+;;;;;;  "util/ourcomments-util.el" (18778 10229))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -1539,6 +1539,17 @@ Open an info file in `Info-mode'.
 (autoload 'rnc-mode "rnc-mode" "\
 Major mode for editing RELAX NG Compact Syntax schemas.
 \\{rnc-mode-map}
+
+\(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads (search-form) "search-form" "util/search-form.el"
+;;;;;;  (18777 43268))
+;;; Generated autoloads from util/search-form.el
+
+(autoload 'search-form "search-form" "\
+Display a form for search and replace.
 
 \(fn)" t nil)
 
@@ -1887,18 +1898,17 @@ Not documented
 ;;;;;;  "util/mumamo-trace.el" "util/mumamo.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
 ;;;;;;  "util/pause.el" "util/popcmp.el" "util/rebind.el" "util/rxi.el"
-;;;;;;  "util/search-form.el" "util/sex-mode.el" "util/udev-nxhtml.el"
-;;;;;;  "util/udev.el" "util/useful-commands.el" "util/vline.el"
-;;;;;;  "util/whelp.el" "util/winsav.el" "util/zen-mode.el") (18777
-;;;;;;  29329 515000))
+;;;;;;  "util/sex-mode.el" "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
+;;;;;;  "util/vline.el" "util/whelp.el" "util/winsav.el" "util/zen-mode.el")
+;;;;;;  (18778 13378 562000))
 
 ;;;***
 
-;;;### (autoloads (nxhtmlmaint-start-byte-compilation) "../nxhtml-maintenance"
-;;;;;;  "nxhtml-maintenance.el" (18775 63010))
-;;; Generated autoloads from nxhtml-maintenance.el
+;;;### (autoloads (nxhtmlmaint-start-byte-compilation) "../nxhtmlmaint"
+;;;;;;  "nxhtmlmaint.el" (18777 31907))
+;;; Generated autoloads from nxhtmlmaint.el
 
-(autoload 'nxhtmlmaint-start-byte-compilation "../nxhtml-maintenance" "\
+(autoload 'nxhtmlmaint-start-byte-compilation "../nxhtmlmaint" "\
 Start byte compilation of nXhtml in new Emacs instance.
 Byte compiling in general makes elisp code run 5-10 times faster
 which is quite noticeable when you use nXhtml.

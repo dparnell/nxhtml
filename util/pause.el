@@ -170,11 +170,11 @@
 
 (defvar pause-break-was-in-minibuffer nil)
 (defun pause-break-mode-exit-2 ()
-  (message "pause-break-mode-exit-2, active-minibuffer-window=%s" (active-minibuffer-window))
+  ;;(message "pause-break-mode-exit-2, active-minibuffer-window=%s" (active-minibuffer-window))
   (if (active-minibuffer-window)
       (setq pause-break-was-in-minibuffer t)
     (unless pause-break-was-in-minibuffer
-      (message "pause-break-mode-exit-2 exit state")
+      ;;(message "pause-break-mode-exit-2 exit state")
       (dolist (win (get-buffer-window-list pause-break-buffer nil t))
         (set-window-margins win 0 0))
       (remove-hook 'window-configuration-change-hook 'pause-break-mode-exit-2)
@@ -226,7 +226,7 @@
                        (mapcar (lambda (d)
                                  (unless (file-directory-p d) d))
                                imgs)))
-    (message "imgs=%s" imgs)
+    ;;(message "imgs=%s" imgs)
     (setq skip (random (length imgs)))
     (while (> skip 0)
       (setq skip (1- skip))
@@ -244,7 +244,7 @@
         (insert img)
       (insert-image img nil 'left-margin slice)
       )
-    (message "After insert img=%s" img)
+    ;;(message "After insert img=%s" img)
     ))
 
 (defun pause-hide-cursor ()
@@ -255,7 +255,7 @@
   (add-hook 'window-configuration-change-hook 'pause-break-mode-exit-2))
 
 (defun pause-break ()
-  (message "pause-break")
+  ;;(message "pause-break")
   (pause-cancel-timer)
   (setq pause-break-frmcfg (current-frame-configuration))
   (dolist (frm (frame-list))
@@ -281,7 +281,7 @@
         )))
   (run-with-idle-timer 0 nil 'pause-add-to-conf-hook)
   (setq pause-break-was-in-minibuffer (active-minibuffer-window))
-  (message "pause-break-was-in-minibuffer before top-level=%s" pause-break-was-in-minibuffer)
+  ;;(message "pause-break-was-in-minibuffer before top-level=%s" pause-break-was-in-minibuffer)
   (top-level)
   )
 
@@ -297,7 +297,7 @@
       (let ((pause-idle-delay 5))
         (pause-pre-break))
     (let ((there-was-an-error nil))
-      (message "calling break in timer")
+      ;;(message "calling break in timer")
       (condition-case err
           (pause-break)
         (error

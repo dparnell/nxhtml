@@ -45,8 +45,10 @@
 ;;; Code:
 
 (eval-when-compile (require 'apropos))
+(eval-when-compile (require 'cl))
 (eval-when-compile (require 'grep))
 (eval-when-compile (require 'ido))
+;;(eval-when-compile (require 'mumamo))
 (eval-when-compile (require 'recentf))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -859,33 +861,6 @@ what they will do ;-)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Wrapping
 
-;; Fix-me: There is a confusion between buffer and window margins
-;; here. Also the doc says that left-margin-width and dito right may
-;; be nil. However they seem to be 0 by default, but when displaying a
-;; buffer in a window then window-margins returns (nil).
-(defun wrap-to-fill-set-values ()
-  "Use `fill-column' display columns in buffer windows."
-  ;;(message "wrap-to-fill-set-values here")
-  (let ((buf-windows (get-buffer-window-list (current-buffer))))
-    (dolist (win buf-windows)
-      (if wrap-to-fill-column-mode
-          (let* ((edges (window-edges win))
-                 (win-width (- (nth 2 edges) (nth 0 edges)))
-                 (extra-width (- win-width fill-column))
-                 (left-marg (if wrap-to-fill-left-marg-use
-                                wrap-to-fill-left-marg-use
-                              (- (/ extra-width 2) 1)))
-                 (right-marg (- win-width fill-column left-marg))
-                 (win-margs (window-margins win))
-                 (old-left (or (car win-margs) 0))
-                 (old-right (or (cdr win-margs) 0)))
-            (unless (> left-marg 0) (setq left-marg 0))
-            (unless (> right-marg 0) (setq right-marg 0))
-            (unless (and (= old-left left-marg)
-                         (= old-right right-marg))
-              (set-window-margins win left-marg right-marg)))
-        (set-window-buffer win (current-buffer))))))
-
 ;;;###autoload
 (defcustom wrap-to-fill-left-marg nil
   "Left margin handling for `wrap-to-fill-column-mode'.
@@ -988,7 +963,6 @@ See the hook for WINDOW and START-POS."
     (define-key map [(control ?c) left] 'wrap-to-fill-narrower)
     map))
 
-(put 'wrap-to-fill-column-mode 'permanent-local t)
 ;;;###autoload
 (define-minor-mode wrap-to-fill-column-mode
   "Use `fill-column' display columns in buffer windows.
@@ -1052,6 +1026,34 @@ Key bindings added by this minor mode:
           '(wrap-to-fill-prefix)))
        (goto-char here))))
   (wrap-to-fill-set-values))
+(put 'wrap-to-fill-column-mode 'permanent-local t)
+
+;; Fix-me: There is a confusion between buffer and window margins
+;; here. Also the doc says that left-margin-width and dito right may
+;; be nil. However they seem to be 0 by default, but when displaying a
+;; buffer in a window then window-margins returns (nil).
+(defun wrap-to-fill-set-values ()
+  "Use `fill-column' display columns in buffer windows."
+  ;;(message "wrap-to-fill-set-values here")
+  (let ((buf-windows (get-buffer-window-list (current-buffer))))
+    (dolist (win buf-windows)
+      (if wrap-to-fill-column-mode
+          (let* ((edges (window-edges win))
+                 (win-width (- (nth 2 edges) (nth 0 edges)))
+                 (extra-width (- win-width fill-column))
+                 (left-marg (if wrap-to-fill-left-marg-use
+                                wrap-to-fill-left-marg-use
+                              (- (/ extra-width 2) 1)))
+                 (right-marg (- win-width fill-column left-marg))
+                 (win-margs (window-margins win))
+                 (old-left (or (car win-margs) 0))
+                 (old-right (or (cdr win-margs) 0)))
+            (unless (> left-marg 0) (setq left-marg 0))
+            (unless (> right-marg 0) (setq right-marg 0))
+            (unless (and (= old-left left-marg)
+                         (= old-right right-marg))
+              (set-window-margins win left-marg right-marg)))
+        (set-window-buffer win (current-buffer))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1576,6 +1578,18 @@ function."
 
 (defvar ourcomments-ido-old-state ido-mode)
 
+(defun ourcomments-ido-ctrl-tab-activate ()
+  ;;(ad-update 'ido-visit-buffer)
+  (ad-enable-advice 'ido-visit-buffer 'before
+                    'ourcomments-ido-visit-buffer-other)
+  (ad-activate 'ido-visit-buffer)
+  ;;(ad-update 'ido-mode)
+  (ad-enable-advice 'ido-mode 'after
+                    'ourcomments-ido-add-ctrl-tab)
+  (ad-activate 'ido-mode)
+  (setq ourcomments-ido-old-state ido-mode)
+  (ido-mode (or ido-mode 'buffer)))
+
 (defcustom ourcomments-ido-ctrl-tab nil
   "Enable buffer switching using C-Tab with function `ido-mode'.
 This changes buffer switching with function `ido-mode' the
@@ -1596,18 +1610,7 @@ of those in for example common web browsers."
   :set (lambda (sym val)
          (set-default sym val)
          (if val
-             (progn
-               (ad-activate 'ido-visit-buffer)
-               (ad-update 'ido-visit-buffer)
-               (ad-enable-advice 'ido-visit-buffer 'before
-                                 'ourcomments-ido-visit-buffer-other)
-               (ad-activate 'ido-mode)
-               (ad-update 'ido-mode)
-               (ad-enable-advice 'ido-mode 'after
-                                 'ourcomments-ido-add-ctrl-tab)
-               (setq ourcomments-ido-old-state ido-mode)
-               (ido-mode (or ido-mode 'buffer))
-               )
+             (ourcomments-ido-ctrl-tab-activate)
            (ad-disable-advice 'ido-visit-buffer 'before
                               'ourcomments-ido-visit-buffer-other)
            (ad-disable-advice 'ido-mode 'after
@@ -1615,9 +1618,9 @@ of those in for example common web browsers."
            ;; For some reason this little complicated construct is
            ;; needed. If they are not there the defadvice
            ;; disappears. Huh.
-           (if ourcomments-ido-old-state
-               (ido-mode ourcomments-ido-old-state)
-             (when ido-mode (ido-mode -1)))
+           ;;(if ourcomments-ido-old-state
+           ;;    (ido-mode ourcomments-ido-old-state)
+           ;;  (when ido-mode (ido-mode -1)))
            ))
   :group 'emacsw32
   :group 'convenience)
