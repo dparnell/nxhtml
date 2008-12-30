@@ -2376,7 +2376,18 @@
             <ul>
               <li>Fixed a bug in nxml-where.el.</li>
               <li>
+                Fixed a minor bug in majmodpri.el.  It did not work if
+                magic-mode-alist contained anonymous functions.
+                (Thanks from Niels Giesen.)
+              </li>
+              <li>
                 Fixed a bug in pause.el and added some mindfulness to it.
+              </li>
+              <li>
+                Adjusted <i>ourcomments-move-beginning-of-line</i> (and dito
+                for end) to the new <i>line-move-visual</i> in Emacs 23.
+                Moved physical-line.el to <i>old</i> subdir since it is now
+                obsolete.
               </li>
               <li>
                 Made it possible to byte compile nXhtml.
