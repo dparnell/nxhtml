@@ -195,7 +195,7 @@
 (defcustom pause-break-text
   (concat "\n\tHi there,"
           "\n\tYou are worth a PAUSE!"
-          "n\nTry some mindfulness:"
+          "\n\nTry some mindfulness:"
           "\n\t- Look around and observe."
           "\n\t- Listen."
           "\n\t- Feel your body.")
