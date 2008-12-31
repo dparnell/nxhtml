@@ -199,7 +199,7 @@ Report a bug in nXhtml.
 ;;;***
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-minor-mode) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18777 43492))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18778 40399))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-minor-mode "../nxhtml/nxhtml-menu" "\
@@ -1285,7 +1285,7 @@ This also covers inlined style and javascript." t)
 ;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
 ;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
 ;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18778 10229))
+;;;;;;  "util/ourcomments-util.el" (18778 50407))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -1900,12 +1900,12 @@ Not documented
 ;;;;;;  "util/pause.el" "util/popcmp.el" "util/rebind.el" "util/rxi.el"
 ;;;;;;  "util/sex-mode.el" "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
 ;;;;;;  "util/vline.el" "util/whelp.el" "util/winsav.el" "util/zen-mode.el")
-;;;;;;  (18778 13378 562000))
+;;;;;;  (18778 51566 703000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-start-byte-compilation) "../nxhtmlmaint"
-;;;;;;  "nxhtmlmaint.el" (18777 31907))
+;;;;;;  "nxhtmlmaint.el" (18778 51547))
 ;;; Generated autoloads from nxhtmlmaint.el
 
 (autoload 'nxhtmlmaint-start-byte-compilation "../nxhtmlmaint" "\

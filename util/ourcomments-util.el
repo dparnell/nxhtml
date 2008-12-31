@@ -1033,9 +1033,15 @@ Key bindings added by this minor mode:
 ;; be nil. However they seem to be 0 by default, but when displaying a
 ;; buffer in a window then window-margins returns (nil).
 (defun wrap-to-fill-set-values ()
+  (condition-case err
+      (wrap-to-fill-set-values-1)
+    (error (message "ERROR wrap-to-fill-set-values-1: %s" (error-message-string err)))))
+
+(defun wrap-to-fill-set-values-1 ()
   "Use `fill-column' display columns in buffer windows."
-  ;;(message "wrap-to-fill-set-values here")
+  ;;(message "wrap-to-fill-set-values window-configuration-change-hook=%s, wrap-to-fill-column-mode=%s, cb=%s" window-configuration-change-hook wrap-to-fill-column-mode (current-buffer))
   (let ((buf-windows (get-buffer-window-list (current-buffer))))
+    ;;(message "buf-windows=%s" buf-windows)
     (dolist (win buf-windows)
       (if wrap-to-fill-column-mode
           (let* ((edges (window-edges win))
@@ -1048,6 +1054,7 @@ Key bindings added by this minor mode:
                  (win-margs (window-margins win))
                  (old-left (or (car win-margs) 0))
                  (old-right (or (cdr win-margs) 0)))
+            ;;(message "left-marg=%s, right-marg=%s, old-left=%s, old-right=%s" left-marg right-marg old-left old-right)
             (unless (> left-marg 0) (setq left-marg 0))
             (unless (> right-marg 0) (setq right-marg 0))
             (unless (and (= old-left left-marg)

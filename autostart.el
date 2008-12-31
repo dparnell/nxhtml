@@ -65,17 +65,18 @@
                  (not bytecomp-filename))
              (fboundp 'css-mode))
     (require 'css-mode))
-  (let* ((util-dir (file-name-as-directory
-                    (expand-file-name "util"
-                                      nxhtml-install-dir)))
-         (related-dir (file-name-as-directory
-                       (expand-file-name "related"
-                                         nxhtml-install-dir))))
-    (add-to-list 'load-path util-dir)
+  (let* ((util-dir (file-name-as-directory (expand-file-name "util" nxhtml-install-dir)))
+         (related-dir (file-name-as-directory (expand-file-name "related" nxhtml-install-dir)))
+         (nxhtml-dir (file-name-as-directory (expand-file-name "nxhtml" nxhtml-install-dir))))
+    (add-to-list 'load-path nxhtml-dir)
     (add-to-list 'load-path related-dir)
+    (add-to-list 'load-path util-dir)
 
     ;; Autoloading etc
-    (require 'as-external)
+
+    ;; Fix-me: Why must as-external be loaded? Why doesn't it work in batch?
+    (unless noninteractive (require 'as-external))
+
     (load (expand-file-name "nxhtml-loaddefs.el" nxhtml-install-dir))
     ;; Use the nxml-mode that comes with Emacs if available:
     ;; Load nXhtml

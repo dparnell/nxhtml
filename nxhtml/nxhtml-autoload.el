@@ -45,6 +45,8 @@
 ;;
 ;;; Code:
 
+(message "nxhtml-autoload starting ... (hm, should be renamed ...)")
+
 ;;(require 'ourcomments-util)
 (eval-when-compile (require 'majmodpri))
 (eval-when-compile (require 'moz))
@@ -65,9 +67,13 @@
         "    Load nxml by loading rng-auto.el in the nxml distribution.\n\n\n\n"))
       (sit-for 10))
 
-  (add-to-list 'load-path
-               (file-name-directory
-                (if load-file-name load-file-name buffer-file-name)))
+  ;; (add-to-list 'load-path
+  ;;              (file-name-directory
+  ;;               (or load-file-name
+  ;;                   (when (boundp 'bytecomp-file-name) bytecomp-file-name)
+  ;;                   buffer-file-name)))
+
+  ;;(message "nxhtml-autoload: load-path=%s" load-path)
 
   ;;(autoload 'nxhtml-report-bug "nxhtml-bug" "Report a bug in nXhtml." t)
   ;;(autoload 'nxhtml-mode "nxhtml" "Major mode for editing XHTML documents." t)
@@ -224,6 +230,8 @@
 
 (defvar nxhtml-src-dir (file-name-directory
                         (if load-file-name load-file-name buffer-file-name)))
+
+(message "nxhtml-autoload finished")
 
 (provide `nxhtml-autoload)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

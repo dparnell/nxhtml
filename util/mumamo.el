@@ -2805,7 +2805,9 @@ There must not be an old chunk there.  Mark for refontification."
   ;;(assert (overlay-buffer chunk))
   (if chunk
       (overlay-get chunk 'mumamo-major-mode)
-    major-mode))
+    ;;major-mode
+    (mumamo-main-major-mode)
+    ))
 
 (defsubst mumamo-chunk-syntax-min (chunk)
   "Get min syntactically safe point inside mumamo chunk CHUNK.
@@ -3548,6 +3550,7 @@ explanation."
                    (major (mumamo-chunk-major-mode ovl))
                    (modified (buffer-modified-p)))
               (unless (eq major major-mode)
+                ;;(message "mumamo-set-major at A")
                 (mumamo-set-major major)
                 ;; Fix-me: This is a bug workaround. Possibly in Emacs.
                 (when (and (buffer-modified-p)
@@ -3642,6 +3645,7 @@ mumamo chunk then set major mode to that for the chunk."
                      ;;(lookup-key (current-local-map) (this-command-keys-vector))
                      (not (memq this-command mumamo-safe-commands-in-wrong-major))
                      )
+            ;;(message "mumamo-set-major at B")
             (mumamo-set-major major)
             ;; Unread the last command key sequence
             (setq unread-command-events
@@ -3720,8 +3724,10 @@ needed \(and is the default)."
                   (add-hook 'pre-command-hook
                             'mumamo-set-major-pre-command nil t)
                   (mumamo-request-idle-set-major-mode))
+              ;;(message "mumamo-set-major at C")
               (mumamo-set-major major)
               (message "Switched to %s" major-mode))
+          ;;(message "mumamo-set-major at D")
           (mumamo-set-major major))))))
 
 (defun mumamo-post-command-1 (&optional no-debug)
