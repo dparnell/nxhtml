@@ -63,11 +63,52 @@ See also the command `inlimg-mode'.
 
 ;;;***
 
-;;;### (autoloads (nxhtml-validation-header-mode nxhtml-mode) "../nxhtml/nxhtml"
-;;;;;;  "nxhtml/nxhtml.el" (18775 58572))
-;;; Generated autoloads from nxhtml/nxhtml.el
+;;;### (autoloads (nxhtml-report-bug) "../nxhtml/nxhtml-bug" "nxhtml/nxhtml-bug.el"
+;;;;;;  (18774 62573))
+;;; Generated autoloads from nxhtml/nxhtml-bug.el
 
-(autoload 'nxhtml-mode "../nxhtml/nxhtml" "\
+(autoload 'nxhtml-report-bug "../nxhtml/nxhtml-bug" "\
+Report a bug in nXhtml.
+
+\(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads (nxhtml-global-minor-mode nxhtml-minor-mode) "../nxhtml/nxhtml-menu"
+;;;;;;  "nxhtml/nxhtml-menu.el" (18780 64251))
+;;; Generated autoloads from nxhtml/nxhtml-menu.el
+
+(autoload 'nxhtml-minor-mode "../nxhtml/nxhtml-menu" "\
+Minor mode to turn on some key and menu bindings.
+See `nxhtml-mode' for more information.
+
+\(fn &optional ARG)" t nil)
+
+(defvar nxhtml-global-minor-mode nil "\
+Non-nil if Nxhtml-Global minor mode is enabled.
+See the command `nxhtml-global-minor-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `nxhtml-global-minor-mode'.")
+
+(custom-autoload 'nxhtml-global-minor-mode "../nxhtml/nxhtml-menu" nil)
+
+(autoload 'nxhtml-global-minor-mode "../nxhtml/nxhtml-menu" "\
+Toggle Nxhtml minor mode in every possible buffer.
+With prefix ARG, turn Nxhtml-Global minor mode on if and only if ARG is positive.
+Nxhtml minor mode is enabled in all buffers where `nxhtml-maybe-turn-on-minor-mode' would do it.
+See `nxhtml-minor-mode' for more information on Nxhtml minor mode.
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads (nxhtml-validation-header-mode nxhtml-mode) "../nxhtml/nxhtml-mode"
+;;;;;;  "nxhtml/nxhtml-mode.el" (18781 1667))
+;;; Generated autoloads from nxhtml/nxhtml-mode.el
+
+(when (fboundp 'nxml-mode)
+(autoload 'nxhtml-mode "../nxhtml/nxhtml-mode" "\
 Major mode for editing XHTML documents.
 It is based on `nxml-mode' and adds some features that are useful
 when editing XHTML files.\\<nxhtml-mode-map>
@@ -169,9 +210,10 @@ point in the mumamo chunk you want to know the key bindings in.
   with this if you have followed the installation instructions
   for nXhtml.
 
-\(fn)" t nil)
+\(fn)" t nil))
 
-(autoload 'nxhtml-validation-header-mode "../nxhtml/nxhtml" "\
+(when (fboundp 'nxml-mode)
+(autoload 'nxhtml-validation-header-mode "../nxhtml/nxhtml-mode" "\
 If on use a Fictive XHTML Validation Header for the buffer.
 See `nxhtml-set-validation-header' for information about Fictive XHTML Validation Headers.
 
@@ -183,47 +225,7 @@ This mode may be turned on automatically in two ways:
   mumamo is used, see `nxhtml-validation-header-if-mumamo' for
   further information.
 
-\(fn &optional ARG)" t nil)
-
-;;;***
-
-;;;### (autoloads (nxhtml-report-bug) "../nxhtml/nxhtml-bug" "nxhtml/nxhtml-bug.el"
-;;;;;;  (18774 62573))
-;;; Generated autoloads from nxhtml/nxhtml-bug.el
-
-(autoload 'nxhtml-report-bug "../nxhtml/nxhtml-bug" "\
-Report a bug in nXhtml.
-
-\(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads (nxhtml-global-minor-mode nxhtml-minor-mode) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18778 40399))
-;;; Generated autoloads from nxhtml/nxhtml-menu.el
-
-(autoload 'nxhtml-minor-mode "../nxhtml/nxhtml-menu" "\
-Minor mode to turn on some key and menu bindings.
-See `nxhtml-mode' for more information.
-
-\(fn &optional ARG)" t nil)
-
-(defvar nxhtml-global-minor-mode nil "\
-Non-nil if Nxhtml-Global minor mode is enabled.
-See the command `nxhtml-global-minor-mode' for a description of this minor mode.
-Setting this variable directly does not take effect;
-either customize it (see the info node `Easy Customization')
-or call the function `nxhtml-global-minor-mode'.")
-
-(custom-autoload 'nxhtml-global-minor-mode "../nxhtml/nxhtml-menu" nil)
-
-(autoload 'nxhtml-global-minor-mode "../nxhtml/nxhtml-menu" "\
-Toggle Nxhtml minor mode in every possible buffer.
-With prefix ARG, turn Nxhtml-Global minor mode on if and only if ARG is positive.
-Nxhtml minor mode is enabled in all buffers where `nxhtml-maybe-turn-on-minor-mode' would do it.
-See `nxhtml-minor-mode' for more information on Nxhtml minor mode.
-
-\(fn &optional ARG)" t nil)
+\(fn &optional ARG)" t nil))
 
 ;;;***
 
@@ -231,7 +233,7 @@ See `nxhtml-minor-mode' for more information on Nxhtml minor mode.
 ;;;;;;  eruby-nxhtml-mumamo-mode jsp-nxhtml-mumamo-mode smarty-nxhtml-mumamo-mode
 ;;;;;;  mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode django-nxhtml-mumamo-mode
 ;;;;;;  embperl-nxhtml-mumamo-mode nxhtml-mumamo-mode) "../nxhtml/nxhtml-mumamo"
-;;;;;;  "nxhtml/nxhtml-mumamo.el" (18775 57775))
+;;;;;;  "nxhtml/nxhtml-mumamo.el" (18780 65478))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 
 (autoload 'nxhtml-mumamo-mode "../nxhtml/nxhtml-mumamo" "\
@@ -318,18 +320,6 @@ initialization, then `csharp-mode-hook'.
 
 Key bindings:
 \\{csharp-mode-map}
-
-\(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads (css-mode) "../related/css-mode" "related/css-mode.el"
-;;;;;;  (18248 47980))
-;;; Generated autoloads from related/css-mode.el
- (add-to-list 'auto-mode-alist '("\\.css\\'" . css-mode))
-
-(autoload 'css-mode "../related/css-mode" "\
-Major mode to edit Cascading Style Sheets.
 
 \(fn)" t nil)
 
@@ -939,7 +929,7 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run-Q) "../tests/nxhtmltest-Q" "tests/nxhtmltest-Q.el"
-;;;;;;  (18775 51134))
+;;;;;;  (18781 11546))
 ;;; Generated autoloads from tests/nxhtmltest-Q.el
 
 (autoload 'nxhtmltest-run-Q "../tests/nxhtmltest-Q" "\
@@ -951,7 +941,7 @@ See `nxhtmltest-run' for more information about the tests.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "../tests/nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (18775 49650))
+;;;;;;  "tests/nxhtmltest-suites.el" (18781 9770))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 
 (autoload 'nxhtmltest-run-indent "../tests/nxhtmltest-suites" "\
@@ -975,7 +965,7 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-mail
 ;;;;;;  as-external-for-xhtml) "as-external" "util/as-external.el"
-;;;;;;  (18777 31266))
+;;;;;;  (18780 36357))
 ;;; Generated autoloads from util/as-external.el
 
 (autoload 'as-external-for-xhtml "as-external" "\
@@ -1121,7 +1111,7 @@ you edit the buffer you may also change the hidden parts.
 ;;;***
 
 ;;;### (autoloads (majmodpri-apply-priorities majmodpri-sort-lists
-;;;;;;  majmodpri) "majmodpri" "util/majmodpri.el" (18777 910))
+;;;;;;  majmodpri) "majmodpri" "util/majmodpri.el" (18778 57823))
 ;;; Generated autoloads from util/majmodpri.el
 
 (let ((loads (get 'majmodpri 'custom-loads))) (if (member '"majmodpri" loads) nil (put 'majmodpri 'custom-loads (cons '"majmodpri" loads))))
@@ -1190,7 +1180,7 @@ By default the link moved to will be active, see
 ;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode smarty-html-mumamo-mode
 ;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
 ;;;;;;  embperl-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18775 9521))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18781 8560))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1555,8 +1545,8 @@ Display a form for search and replace.
 
 ;;;***
 
-;;;### (autoloads (tabkey2-mode) "tabkey2" "util/tabkey2.el" (18775
-;;;;;;  5742))
+;;;### (autoloads (tabkey2-mode) "tabkey2" "util/tabkey2.el" (18780
+;;;;;;  62360))
 ;;; Generated autoloads from util/tabkey2.el
 
 (defvar tabkey2-mode nil "\
@@ -1878,20 +1868,19 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads nil nil ("autostart.el" "etc/schema/schema-path-patch.el"
+;;;### (autoloads nil nil ("autostart.el" "autostart22.el" "etc/schema/schema-path-patch.el"
 ;;;;;;  "nxhtml/html-chklnk.el" "nxhtml/html-imenu.el" "nxhtml/html-move.el"
 ;;;;;;  "nxhtml/html-pagetoc.el" "nxhtml/html-quote.el" "nxhtml/html-toc.el"
 ;;;;;;  "nxhtml/html-upl.el" "nxhtml/html-wtoc.el" "nxhtml/nxhtml-anything-1.el"
-;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el" "nxhtml/nxhtmljs.el"
-;;;;;;  "nxhtml/outline-magic.el" "nxhtml/rngalt.el" "nxhtml/tidy-xhtml.el"
-;;;;;;  "nxhtml/wtest.el" "nxhtml/xhtml-help.el" "related/flymake-helpers.el"
-;;;;;;  "related/flymake-js.el" "related/flymake-keys.el" "related/flymake-php.el"
-;;;;;;  "related/flymu.el" "related/fold-dwim.el" "related/php-imenu.el"
-;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
+;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el" "nxhtml/nxhtml.el"
+;;;;;;  "nxhtml/nxhtmljs.el" "nxhtml/outline-magic.el" "nxhtml/rngalt.el"
+;;;;;;  "nxhtml/tidy-xhtml.el" "nxhtml/wtest.el" "nxhtml/xhtml-help.el"
+;;;;;;  "related/flymake-helpers.el" "related/flymake-js.el" "related/flymake-keys.el"
+;;;;;;  "related/flymake-php.el" "related/flymu.el" "related/fold-dwim.el"
+;;;;;;  "related/php-imenu.el" "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
-;;;;;;  "util/appmenu-fold.el" "util/appmenu.el" "util/buffer-bg.el"
-;;;;;;  "util/bw-rnc-load/schema-find.el" "util/chart.el" "util/custsets.el"
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
+;;;;;;  "util/appmenu.el" "util/buffer-bg.el" "util/chart.el" "util/custsets.el"
 ;;;;;;  "util/ecb-batch-compile.el" "util/ffip.el" "util/fmode.el"
 ;;;;;;  "util/fupd.el" "util/hexcolor.el" "util/hfyview.el" "util/hl-needed.el"
 ;;;;;;  "util/htmlfontify.21.el" "util/htmlfontify.el" "util/mumamo-aspnet.el"
@@ -1900,12 +1889,12 @@ Not documented
 ;;;;;;  "util/pause.el" "util/popcmp.el" "util/rebind.el" "util/rxi.el"
 ;;;;;;  "util/sex-mode.el" "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
 ;;;;;;  "util/vline.el" "util/whelp.el" "util/winsav.el" "util/zen-mode.el")
-;;;;;;  (18778 51566 703000))
+;;;;;;  (18781 11568 406000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-start-byte-compilation) "../nxhtmlmaint"
-;;;;;;  "nxhtmlmaint.el" (18778 51547))
+;;;;;;  "nxhtmlmaint.el" (18781 8939))
 ;;; Generated autoloads from nxhtmlmaint.el
 
 (autoload 'nxhtmlmaint-start-byte-compilation "../nxhtmlmaint" "\

@@ -42,12 +42,14 @@
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+;;(eval-when-compile (require 'cl))
+(require 'cl)
 (require 'mumamo)
 (require 'nxhtml)
 (require 'nxhtml-mumamo)
-(require 'rng-valid)
-(require 'rngalt)
+(when (fboundp 'nxml-mode)
+  (require 'rng-valid)
+  (require 'rngalt))
 
 (setq debug-on-error t)
 

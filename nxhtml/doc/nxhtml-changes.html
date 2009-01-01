@@ -268,6 +268,8 @@
           <a href="#v1.64">v1.64</a>
           <a href="#v1.65">v1.65</a>
           <a href="#v1.66">v1.66</a>
+          <a href="#v1.67">v1.67</a>
+          <a href="#v1.68">v1.68</a>
         </div>
 
         <dl>
@@ -2422,6 +2424,42 @@
                 When no chunk is found (border case) then set the
                 major mode to the main major mode for the current
                 multi major mode.
+              </li>
+            </ul>
+          </dd>
+          <dt id="v1.67">1.67</dt>
+          <dd id="v1.67-dd">
+            <ul>
+              <li>
+                Removed css.el since it is in Emacs 22.2 and later.
+              </li>
+            </ul>
+          </dd>
+          <dt id="v1.68">1.68</dt>
+          <dd id="v1.68-dd">
+            <ul>
+              <li>
+                Fixed bugs related to byte compilation. This should
+                now work for both Emacs 22 and 23.
+              </li>
+              <li>
+                Removed nXml from the distribution to make it
+                smaller. nXml comes with Emacs 23 (not yet released of
+                course). For Emacs 22 users see EmacsWiki about where
+                to get nXml.
+                <p>
+                  Adding nXml to Emacs 22 startup should be done by
+                  using the file <i>nxhtml/autostart22.el</i>.
+                </p>
+                <p>
+                  NOTE 1: if you want to use <i>nxhtml-mode</i> in
+                  multi major modes in Emacs 22 (not recommended) you
+                  must also customize <i>majmodpri-no-nxml</i>.
+                </p>
+                <p>
+                  NOTE 2: The major mode <i>nxhtml-mode</i> as a
+                  major-mode works however very well also in Emacs 22.
+                </p>
               </li>
             </ul>
           </dd>

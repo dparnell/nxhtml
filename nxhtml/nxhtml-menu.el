@@ -1,17 +1,17 @@
 ;;; nxhtml-menu.el --- Defines menus for nXhtml
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
-;; Created: Sat Apr 21 13:49:41 2007
-(defconst nxhtml-menu:version "1.67") ;;Version:
-;; Last-Updated: 2008-08-26T23:28:00+0200 Tue
+;; Created: Sat Apr 21 2007
+(defconst nxhtml-menu:version "1.68") ;;Version:
+;; Last-Updated: 2009-12-31 Wed
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   `compile', `flymake', `flymake-js', `flymake-php', `hexcolor',
-;;   `tool-bar', `xhtml-help'.
+  ;; `compile', `flymake', `flymake-js', `flymake-php', `hexcolor',
+  ;; `tool-bar', `xhtml-help'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -197,7 +197,7 @@
         (define-key fill-map [nxhtml-wrap-to-fill-column-mode]
           (list 'menu-item "Wrap To Fill Column Mode"
                 'wrap-to-fill-column-mode
-                :button '(:toggle . wrap-to-fill-column-mode)))
+                :button '(:toggle . (and (boundp 'wrap-to-fill-column-mode) wrap-to-fill-column-mode))))
         )
       (define-key tools-map [nxhtml-ecb-separator]
         (list 'menu-item "--" nil))
@@ -1050,6 +1050,7 @@ Both the current value and the value to save is set, but
     (unless oldbuf
       (let ((inhibit-read-only t)
             (here (point)))
+        (require 'cus-edit)
         (Custom-mode)
         (setq cursor-in-non-selected-windows nil)
         (nxhtml-custom-h1 "Welcome to nXhtml - a package for web editing" t)
@@ -1070,19 +1071,6 @@ Both the current value and the value to save is set, but
                 "(which is in the Help menu above).\n\n")
         (fill-region here (point))
         (setq here (point))
-
-;;;         (insert "
-
-;;; To make the use of nXhtml as smooth as possible I also recommend
-;;; that you go to ")
-
-;;;         (widget-insert-link "Quick Customize nXhtml"
-;;;                             (lambda ()
-;;;                               (nxhtml-quick-customize))
-;;;                             nil)
-
-;;;         (insert " and follow the instructions
-;;; there.")
 
         (unless (nxhtml-skip-welcome)
           (insert "Click to ")
@@ -1113,11 +1101,14 @@ file using nxhtml-mode."
             )))
 
 (defun nxhtml-say-welcome-unless-skip ()
-  (unless (nxhtml-skip-welcome)
-    (nxhtml-welcome)))
+  (condition-case err
+      (unless (nxhtml-skip-welcome)
+        (nxhtml-welcome))
+    (error (message "ERROR nxhtml-say-welcome-unless-skip: %s" err))))
 
 ;; Show welcome screen once after loading nxhtml:
-(unless (boundp 'bytecomp-filename)
+;;(unless (boundp 'bytecomp-filename)
+(eval-when '(load)
   (eval-after-load 'nxhtml
     ;; Use a short delay if something like desktop is used:
     '(run-with-idle-timer 0.5 nil 'nxhtml-say-welcome-unless-skip)))

@@ -65,8 +65,10 @@
 (eval-when-compile (require 'html-write))
 (eval-when-compile (require 'mumamo))
 (eval-when-compile (require 'ourcomments-util))
-(eval-when-compile (require 'nxhtml))
-(eval-when-compile (require 'nxhtml-mumamo))
+(eval-when-compile
+  (when (featurep 'nxml-mode)
+    (require 'nxhtml)
+    (require 'nxhtml-mumamo)))
 (eval-when-compile (require 'wikipedia-mode))
 (require 'server)
 
