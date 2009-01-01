@@ -152,6 +152,8 @@
       (define-key help-map [nxhtml-report-bug]
         (list 'menu-item "Report a Bug in nXhtml ..." 'nxhtml-report-bug))
       (define-key help-map [nxhtml-help-separator2] (list 'menu-item "--"))
+      (define-key help-map [nxhtml-byte-compile-nxhtml]
+        (list 'menu-item "Byte Compile nXhtml" 'nxhtmlmaint-start-byte-compilation))
       (define-key help-map [nxhtml-features-check]
         (list 'menu-item "Check Optional Features" 'nxhtml-features-check))
       (define-key help-map [nxhtml-customize]
