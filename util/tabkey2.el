@@ -482,6 +482,7 @@ This key is always bound to `tabkey2-cycle-completion-functions'."
     makefile-mode
     org-mode
     Custom-mode
+    custom-mode ;; For Emacs 22
     ;; other
     cmd-mode
     )

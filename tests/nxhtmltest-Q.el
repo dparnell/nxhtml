@@ -44,13 +44,13 @@
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(require 'cl)
 (require 'ourcomments-util)
 
 (eval-and-compile
   (defvar nxhtmltest-bin-Q
     (file-name-directory (or load-file-name
-                             bytecomp-filename
+                             (when 'bytecomp-filename bytecomp-filename)
                              buffer-file-name)))
 
   (add-to-list 'load-path nxhtmltest-bin-Q)

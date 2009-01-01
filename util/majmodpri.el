@@ -87,7 +87,7 @@
 ;;;###autoload
 (defgroup majmodpri nil
   "Customization group for majmodpri.el"
-  :group 'nxhml
+  :group 'xhtml
   )
 
 (defcustom majmodpri-sort-after-load

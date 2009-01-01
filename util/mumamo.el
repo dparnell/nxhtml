@@ -248,9 +248,11 @@
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'flyspell))
 (eval-when-compile (require 'mlinks))
-(eval-when-compile (require 'nxml-mode))
-(eval-when-compile (require 'rng-valid))
-(eval-when-compile (require 'rngalt))
+(eval-when-compile (require 'nxml-mode nil t))
+(eval-when-compile
+  (when (featurep 'nxml-mode)
+    (require 'rng-valid nil t)
+    (require 'rngalt nil t)))
 (eval-when-compile (require 'sgml-mode)) ;; For sgml-xml-mode
 ;; For `define-globalized-minor-mode-with-on-off':
 ;;(require 'ourcomments-util)
@@ -729,6 +731,11 @@ major mode above has indentation 0."
     (java-mode
      jde-mode
      java-mode)
+    ;; For Emacs 22 that do not have nxml by default
+    ;; Fix me: fallback when autoload fails!
+    (nxhtml-mode
+     nxhtml-mode
+     html-mode)
     )
   "Alist for conversion of chunk major mode specifier to major mode.
 Each entry has the form
@@ -959,7 +966,7 @@ in this part of the buffer."
           interrupted
           (point-max (1+ (buffer-size)))
           (here (point)))
-      ;;(message "mumamo-find-chunks.here=%s" here)
+      ;;(message "mumamo-find-chunks.here=%s ok-pos=%s end=%s" here ok-pos end)
       (if (> ok-pos end)
           (progn
             (setq this-chunk (mumamo-get-existing-chunk-at end))
@@ -1391,7 +1398,7 @@ that does syntactic fontification."
                 (narrow-to-region chunk-syntax-min chunk-syntax-max)
                 ;; Now call font-lock-fontify-region again with
                 ;; the chunk font lock parameters:
-                ;;(message "(font-lock-fontify-region %s %s)" new-start new-end)
+                ;;(message "(font-lock-do-fontify new-start=%s new-end=%s)" new-start new-end)
                 (setq font-lock-syntactically-fontified (1- new-start))
                 (font-lock-fontify-region new-start new-end verbose))
             (error
@@ -1407,7 +1414,7 @@ that does syntactic fontification."
                            "mumamo-do-fontify m=%s, s=%s, e=%s: %s"
                            chunk-major start end (error-message-string err)))
     )
-  (mumamo-msgfntfy "mumamo-do-fontify exit >>>>>>> %s %s %s %s %s %s" start end verbose chunk-syntax-min chunk-syntax-max major)
+  (mumamo-msgfntfy "mumamo-do-fontify exit >>>>>>> %s %s %s %s %s %s" start end verbose chunk-syntax-min chunk-syntax-max chunk-major)
   )
 
 (defun mumamo-do-unfontify (start end)
@@ -2718,8 +2725,9 @@ chunk to PREV-CHUNK."
                    (when (memq mumamo-chunk-coloring '(both-colored))
                      mumamo-background-chunk-major)))
     (assert (mumamo-chunk-major-mode chunk-ovl))
-    (unless (mumamo-valid-nxml-chunk chunk-ovl)
-      (rng-clear-overlays min max))
+    (when (featurep 'nxml-mode)
+      (unless (mumamo-valid-nxml-chunk chunk-ovl)
+        (rng-clear-overlays min max)))
     (when (and (not parseable-by)
                (not major-sub)
                nil ;; Fix-me: I can't understand the next line...
@@ -2758,6 +2766,7 @@ There must not be an old chunk there.  Mark for refontification."
 
 (defun mumamo-get-existing-chunk-at (pos)
   "Return existing chunk at POS if any."
+  ;;(message "mumamo-get-existing-chunk-at pos=%s" pos)
   (let ((chunk-ovl))
     (when (= pos (point-max))
       (setq pos (1- pos)))
@@ -2767,6 +2776,7 @@ There must not be an old chunk there.  Mark for refontification."
             (and (overlay-get o 'mumamo-major-mode)
                  (not (overlay-get o 'mumamo-is-old)))
           (setq chunk-ovl o))))
+    ;;(message "mumamo-get-existing-chunk-at EXIT chunk-ovl=%s" chunk-ovl)
     chunk-ovl))
 
 (defun mumamo-get-chunk-save-buffer-state (pos)
@@ -2805,8 +2815,8 @@ There must not be an old chunk there.  Mark for refontification."
   ;;(assert (overlay-buffer chunk))
   (if chunk
       (overlay-get chunk 'mumamo-major-mode)
-    ;;major-mode
-    (mumamo-main-major-mode)
+    ;;(mumamo-main-major-mode)
+    (mumamo-major-mode-from-modespec (mumamo-main-major-mode))
     ))
 
 (defsubst mumamo-chunk-syntax-min (chunk)
@@ -4953,7 +4963,7 @@ mode in the chunk family is nil."
           (mumamo-insert-describe-button 'define-mumamo-multi-major-mode 'describe-function)
           (insert "'.\n")))
     ;; Load major mode:
-    (let ((main-major-mode (mumamo-main-major-mode)))
+    (let ((main-major-mode (mumamo-major-mode-from-modespec (mumamo-main-major-mode))))
       (unless main-major-mode
         (setcar (cdr mumamo-current-chunk-family) old-major-mode)
         (setq main-major-mode (mumamo-main-major-mode)))
@@ -4961,24 +4971,23 @@ mode in the chunk family is nil."
       (setq mumamo-major-mode main-major-mode)
       (when (boundp 'nxml-syntax-highlight-flag)
         (when (mumamo-derived-from-mode main-major-mode 'nxml-mode)
-          (set (make-local-variable 'nxml-syntax-highlight-flag) nil))))
-    ;; Init fontification
-    (mumamo-initialize-state)
-    (mumamo-set-fontification-functions)
-    (mumamo-save-buffer-state nil
-      (remove-list-of-text-properties (point-min) (point-max)
-                                      (list 'fontified)))
-    ;; For validation header etc:
-    (require 'rngalt nil t)
-    (when (featurep 'rngalt)
-      (setq rngalt-major-mode (mumamo-main-major-mode))
-      (rngalt-update-validation-header-overlay))
-    (when (featurep 'rng-valid)
-      ;;(setq rng-get-major-mode-chunk-function 'mumamo-get-existing-chunk-at)
-      ;;(setq rng-get-major-mode-chunk-function 'mumamo-get-chunk-at)
-      (setq rng-get-major-mode-chunk-function 'mumamo-find-chunks)
-      (setq rng-valid-nxml-major-mode-chunk-function 'mumamo-valid-nxml-chunk)
-      (setq rng-end-major-mode-chunk-function 'overlay-end))
+          (set (make-local-variable 'nxml-syntax-highlight-flag) nil)))
+      ;; Init fontification
+      (mumamo-initialize-state)
+      (mumamo-set-fontification-functions)
+      (mumamo-save-buffer-state nil
+                                (remove-list-of-text-properties (point-min) (point-max)
+                                                                (list 'fontified)))
+      ;; For validation header etc:
+      (when (mumamo-derived-from-mode main-major-mode 'nxhtml-mode)
+        (require 'rngalt nil t)
+        (when (featurep 'rngalt)
+          (setq rngalt-major-mode (mumamo-main-major-mode))
+          (rngalt-update-validation-header-overlay))
+        (when (featurep 'rng-valid)
+          (setq rng-get-major-mode-chunk-function 'mumamo-find-chunks)
+          (setq rng-valid-nxml-major-mode-chunk-function 'mumamo-valid-nxml-chunk)
+          (setq rng-end-major-mode-chunk-function 'overlay-end))))
     ;;(mumamo-set-major-post-command)
     ;;(add-hook 'change-major-mode-hook 'mumamo-change-major-function nil t)
     (when (boundp 'flyspell-generic-check-word-predicate)
@@ -5984,7 +5993,9 @@ Do here also other necessary adjustments for this."
                        (main-major (mumamo-main-major-mode))
                        (is-main-mode-chunk (eq chunk-sub-major main-major)))
                   (when dump2 (msgtrc " min-pos=%s, is-main-mode-chunk=%s" min-pos is-main-mode-chunk))
-                  (assert (and min-pos) t)
+                  ;; Looks like assert can not be used here for some reason???
+                  ;;(assert (and min-pos) t)
+                  (unless (and min-pos) (error "defadvice syntax-ppss: (and min-pos=%s)" min-pos))
                   (setq syntax-ppss-last-min
                         (cons min-pos ;;(1- min-pos)
                               (if nil ;is-main-mode-chunk
@@ -6016,7 +6027,8 @@ Do here also other necessary adjustments for this."
                     (when dump2
                       (let ((old-ppss (cdr syntax-ppss-last))
                             (old-pos (car syntax-ppss-last)))
-                        (assert (and old-pos pos) t)
+                        ;;(assert (and old-pos pos) t)
+                        (unless (and old-pos pos) (error "defadvice syntax-ppss: (and old-pos=%s pos=%s)" old-pos pos))
                         (msgtrc "parse-partial-sexp=>%s" (parse-partial-sexp old-pos pos nil nil old-ppss))))
                     (let (dump2)
                       (setq ret-val ad-do-it)))
@@ -6028,7 +6040,8 @@ Do here also other necessary adjustments for this."
                       (msgtrc "ad-do-it=>%s" ad-do-it)))
                   (save-restriction
                     (widen)
-                    (assert (and old-pos pos) t)
+                    ;;(assert (and old-pos pos) t)
+                    (unless (and old-pos pos) (error "defadvice syntax-ppss 2 (and old-pos=%s pos=%s)" old-pos pos))
                     (when dump2
                       (msgtrc "parse-partial-sexp %s %s nil nil %s" old-pos pos old-ppss))
                     (setq ret-val (parse-partial-sexp old-pos pos nil nil old-ppss)))))

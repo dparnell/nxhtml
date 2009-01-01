@@ -1,3 +1,4 @@
+(setq debug-on-error t)
 ;;; autostart.el --- Load nxhtml
 ;;
 ;; Author: By: Lennart Borgman
@@ -59,18 +60,19 @@
 (unless (featurep 'nxhtml-autostart)
   ;; Provide the feature to avoid loading looping on error.
   (provide 'nxhtml-autostart)
-  ;; Use the css-mode that comes with Emacs if there is one.
-  ;; Fix-me: remove this loading later:
-  (when (and (or (not (boundp 'bytecomp-filename))
-                 (not bytecomp-filename))
-             (fboundp 'css-mode))
-    (require 'css-mode))
+  ;; ;; Use the css-mode that comes with Emacs if there is one.
+  ;; ;; Fix-me: remove this loading later:
+  ;; (when (and (or (not (boundp 'bytecomp-filename))
+  ;;                (not bytecomp-filename))
+  ;;            (fboundp 'css-mode))
+  ;;   (require 'css-mode))
   (let* ((util-dir (file-name-as-directory (expand-file-name "util" nxhtml-install-dir)))
          (related-dir (file-name-as-directory (expand-file-name "related" nxhtml-install-dir)))
          (nxhtml-dir (file-name-as-directory (expand-file-name "nxhtml" nxhtml-install-dir))))
     (add-to-list 'load-path nxhtml-dir)
     (add-to-list 'load-path related-dir)
     (add-to-list 'load-path util-dir)
+    (add-to-list 'load-path nxhtml-install-dir)
 
     ;; Autoloading etc
 
@@ -78,17 +80,24 @@
     (unless noninteractive (require 'as-external))
 
     (load (expand-file-name "nxhtml-loaddefs.el" nxhtml-install-dir))
+
+    ;; Turn on `nxhtml-global-minor-mode'
+    (nxhtml-global-minor-mode 1)
+
     ;; Use the nxml-mode that comes with Emacs if available:
     ;; Load nXhtml
-    (unless (fboundp 'nxml-mode)
-      (load (expand-file-name "nxml-mode-20041004/rng-auto"
-                              nxhtml-install-dir)))
-    ;; Patch the rnc include paths
-    (load-file (expand-file-name "etc/schema/schema-path-patch.el"
-                                 nxhtml-install-dir))
+    ;; (unless (fboundp 'nxml-mode)
+    ;;   (load (expand-file-name "nxml-mode-20041004/rng-auto"
+    ;;                           nxhtml-install-dir)))
+    (when (< emacs-major-version 23)
+      (load-file (expand-file-name "autostart22.el" nxhtml-install-dir)))
+    (when (fboundp 'nxml-mode)
+      ;; Patch the rnc include paths
+      (load-file (expand-file-name "etc/schema/schema-path-patch.el"
+                                   nxhtml-install-dir)))
     ;; Load nXhtml
     (load (expand-file-name "nxhtml/nxhtml-autoload"
-                            nxhtml-install-dir))))
+                              nxhtml-install-dir))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; autostart.el ends here
