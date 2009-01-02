@@ -94,7 +94,8 @@
     (when (fboundp 'nxml-mode)
       ;; Patch the rnc include paths
       (load-file (expand-file-name "etc/schema/schema-path-patch.el"
-                                   nxhtml-install-dir)))
+                                   nxhtml-install-dir))
+      (rncpp-patch-xhtml-loader))
     ;; Load nXhtml
     (load (expand-file-name "nxhtml/nxhtml-autoload"
                               nxhtml-install-dir))))
