@@ -48,9 +48,9 @@
 ;; If you want to create a file, visit that file with C-x C-f,
 ;; then enter the text in that file's own buffer.
 
+(eval-when-compile (require 'cl))
+(eval-when-compile (require 'mumamo))
 (eval-when-compile
-  (require 'cl)
-  (require 'mumamo)
   (unless (featurep 'nxhtml-autostart)
     (let ((efn (expand-file-name "../autostart.el")))
       (load efn))
