@@ -1428,6 +1428,7 @@ that does syntactic fontification."
           ;; A new condition-case just to catch errors easier:
           (mumamo-condition-case err
               (save-restriction
+                ;;(when (and (>= 625 (point-min)) (<= 625 (point-max))) (msgtrc "multi at 625=%s" (get-text-property 625 'font-lock-multiline)))
                 (narrow-to-region chunk-syntax-min chunk-syntax-max)
                 ;; Now call font-lock-fontify-region again but now
                 ;; with the chunk font lock parameters:
@@ -2870,7 +2871,12 @@ Syntax here refer to the syntax handled by `syntax-ppss' etc."
 See `mumamo-chunk-syntax-min'."
   (- (overlay-end chunk)
      (or (overlay-get chunk 'syntax-max-d)
-         0)))
+         0)
+     ;; Note: We must subtract one here because overlay-end is +1 from
+     ;; the last point in the overlay. (This cured the problem with
+     ;; kubica-freezing-i.html that made Emacs loop in
+     ;; font-lock-extend-region-multiline.)
+     1))
 
 (defun mumamo-syntax-maybe-completable (pnt)
   "Return non-nil if at point PNT non-printable characters may occur.
