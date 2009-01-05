@@ -3,14 +3,14 @@
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2009-01-01 Thu
 ;; Version:
-;; Last-Updated:
+;; Last-Updated: 2009-01-05 Mon
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   None
+;;   This file is for Emacs 22 only.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -57,7 +57,8 @@
   (let* ((this-file (or load-file-name buffer-file-name))
          (this-dir (file-name-directory this-file))
          ;; FIX-ME: PLACE THE PATH TO YOUR nXml HERE:
-         (rng-auto-file "c:/emacs/u/081231/EmacsW32/nxhtml/nxml-mode-20041004/rng-auto.el"))
+         (rng-auto-file (or (locate-library "rng-auto.el")
+                            "c:/emacs/u/081231/EmacsW32/nxhtml/nxml-mode-20041004/rng-auto.el")))
     (unless (file-exists-p rng-auto-file)
       (error "Can't find rng-auto.el, please edit %s" this-file))
     (load rng-auto-file)
