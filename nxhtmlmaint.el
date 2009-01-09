@@ -150,7 +150,7 @@ Update nXhtml autoload file with them."
 (defun nxhtmlmaint-get-all-autoloads ()
   "Get all autoloads for nXhtml.
 Update nXhtml autoload file with them."
-  (interactive)
+  ;;(interactive)
   (let ((auto-buf (find-file-noselect (nxhtmlmaint-autoloads-file))))
     (with-current-buffer auto-buf
       (erase-buffer)
@@ -170,6 +170,13 @@ Update nXhtml autoload file with them."
             (insert "(when (fboundp 'nxml-mode)\n")
             (forward-sexp)
             (insert ")"))))
+      ;; Fix defcustom autoloads
+      (goto-char (point-min))
+      (let ((cus-auto "(custom-autoload "))
+        (while (search-forward cus-auto nil t)
+          (backward-char (1- (length cus-auto)))
+          (insert "nxhtml-")))
+      ;; Save
       (basic-save-buffer))))
 
 
@@ -230,6 +237,8 @@ Update nXhtml autoload file with them."
 Byte compiling in general makes elisp code run 5-10 times faster
 which is quite noticeable when you use nXhtml.
 
+This will also update the file nxhtml-loaddefs.el.
+
 You must restart Emacs to use the byte compiled files.
 
 If for some reason the byte compiled files does not work you can
@@ -263,26 +272,36 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
          (tests-dir (file-name-as-directory
                      (expand-file-name "tests"
                                        nxhtmlmaint-dir)))
+         (emacsw32-dir (file-name-as-directory
+                        (expand-file-name "../lisp"
+                                          nxhtmlmaint-dir)))
          )
     (add-to-list 'load-path nxhtml-dir)
     (add-to-list 'load-path util-dir)
     (add-to-list 'load-path related-dir)
     (add-to-list 'load-path tests-dir)
+    (when (file-directory-p emacsw32-dir)
+      (add-to-list 'load-path emacsw32-dir))
     (require 'cl) ;; This is run in a new Emacs
     (let ((dummy-debug-on-error t))
       (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir nil nil))
     (message "Byte compiling is ready, restart Emacs to use the compiled files")))
 
-;;(nxhtmlmaint-byte-uncompile-all)
+;;;###autoload
 (defun nxhtmlmaint-byte-uncompile-all ()
-  "Delete byte compiled files in nXhtml."
+  "Delete byte compiled files in nXhtml.
+This will also update the file nxhtml-loaddefs.el.
+
+See `nxhtmlmaint-start-byte-compilation' for byte compiling."
   (interactive)
+  (nxhtmlmaint-get-all-autoloads)
   (let ((dummy-debug-on-error t))
     (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir t t))
   (message "Byte uncompiling is ready, restart Emacs to use the elisp files"))
 
 (defconst nxhtmlmaint-nonbyte-compile-dirs '("." ".." "alts" "nxml-mode-20041004" "old" "xtests"))
 
+;; Fix-me: simplify this now that nxml is not included
 (defun nxhtmlmaint-byte-compile-dir (dir force del-elc)
   "Byte compile or uncompile directory tree DIR.
 If FORCE is non-nil byte recompile the elisp file even if the

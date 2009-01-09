@@ -52,9 +52,9 @@
 
 (eval-when-compile (require 'cl))
 (eval-when-compile (add-to-list 'load-path default-directory load-path))
-(require 'fupd)
+(eval-when-compile (require 'fupd))
 ;;(require 'html-move)
-(require 'html-site)
+(eval-when-compile (require 'html-site))
 ;;(require 'dom)
 (require 'xml)
 

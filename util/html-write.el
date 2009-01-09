@@ -47,8 +47,8 @@
 ;;
 ;;; Code:
 
-(require 'mumamo) ;; Just for the defmacro ...
-(require 'mlinks nil t)
+;;(require 'mumamo) ;; Just for the defmacro ...
+;;(require 'mlinks nil t)
 
 (defgroup html-write nil
   "Customization group for html-write."

@@ -46,7 +46,7 @@
 ;;
 ;;; Code:
 
-(require 'udev)
+(eval-when-compile (require 'udev))
 
 (defgroup udev-cedet nil
   "Customization group for udev-cedet."
@@ -137,7 +137,7 @@
 
 (defun udev-cedet-buffer-name (mode)
   "Return a name for current compilation buffer ignoring MODE."
-  (udev-buffer-name " *Updating CEDET %s*" udev-cedet-update-buffer mode))
+  (udev-buffer-name "*Updating CEDET %s*" udev-cedet-update-buffer mode))
 
 (defvar udev-cedet-update-buffer nil)
 
@@ -201,9 +201,17 @@ For how to start CEDET see `udev-cedet-load-cedet'."
                                           (udev-cedet-cvs-dir))
                         udev-cedet-update-buffer))
 
+(defun udev-cedet-install-add-debug ()
+  (with-current-buffer (find-file-noselect "cedet-build.el")
+    (widen)
+    (goto-char (point-min))
+    (insert "(setq debug-on-error t)\n")
+    (basic-save-buffer)))
+
 (defun udev-cedet-install (log-buffer)
   "Install the CEDET sources just fetched.
 Note that they will not be installed in current Emacs session."
+  (udev-cedet-install-add-debug)
   (udev-batch-compile "-l cedet-build.el -f cedet-build"
                       (udev-cedet-cvs-dir)
                       'udev-cedet-buffer-name))

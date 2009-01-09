@@ -73,6 +73,84 @@
             (symbol-name (car rec)))
           chart-types))
 
+(defvar chart-mode-keywords-and-states
+  '(("Output-file:" (accept file-name))
+    ("Size:" (accept number))
+    ("Data:" (accept number))
+    ("Type:" (accept chart-type))
+    ))
+
+(defvar chart-mode-keywords
+  (mapcar (lambda (rec)
+            (car rec))
+          chart-mode-keywords-and-states))
+
+;; Fix-me: I started to implement a parser, but I think I will drop it
+;; and wait for Semantic to be easily available instead.
+
+(defvar chart-intermediate-states
+  '((end-or-label (or end-of-file label))
+    ))
+
+(defvar chart-extra-keywords-and-states
+  '(
+    ;;("Provider:")
+    ("Colors:")
+    ("Solid-fill:")
+    ("Linear-gradient:")
+    ("Linear-stripes:")
+    ("Chart-title:" (and string end-or-label))
+    ("Legends:" (accept string))
+    ("Axis-types:")
+    ("Axis-labels:")
+    ("Axis-ranges:")
+    ("Axis-styles:")
+    ("Bar-thickness:")
+    ("Bar-chart-zero-line:")
+    ("Bar-chart-zero-line-2:")
+    ("Line-styles-1:")
+    ("Line-styles-2:")
+    ("Grid-lines:")
+    ("Shape-markers:")
+    ("Range-markers:")
+    ))
+
+(defvar chart-extra-keywords
+  (mapcar (lambda (rec)
+            (car rec))
+          chart-extra-keywords-and-states))
+
+(defvar chart-raw-keywords-and-states
+  '(
+    ("Google-chart-raw:" (accept string))
+    ))
+
+(defvar chart-raw-keywords
+  (mapcar (lambda (rec)
+            (car rec))
+          chart-raw-keywords-and-states))
+
+(defvar chart-mode-keywords-re (regexp-opt chart-mode-keywords))
+(defvar chart-extra-keywords-re (regexp-opt chart-extra-keywords))
+(defvar chart-types-keywords-re (regexp-opt chart-types-keywords))
+(defvar chart-raw-keywords-re (regexp-opt chart-raw-keywords))
+
+(defvar chart-font-lock-keywords
+  `((,chart-mode-keywords-re . font-lock-keyword-face)
+    (,chart-extra-keywords-re . font-lock-variable-name-face)
+    (,chart-types-keywords-re . font-lock-function-name-face)
+    (,chart-raw-keywords-re . font-lock-preprocessor-face)
+    ))
+
+(defvar chart-font-lock-defaults
+  '(chart-font-lock-keywords nil t))
+
+(defvar chart-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    (modify-syntax-entry ?\n ">   " table)
+    (modify-syntax-entry ?\; "<   " table)
+    table))
+
 (defun chart-create (provider out-file size data type
                               title legends &optional extras)
   "Create a chart image.
@@ -181,7 +259,6 @@ be a list
   (list COLOR START-INDEX END-INDEX)
 
 "
-  (interactive)
   (unless (symbolp type)
     (error "Argument TYPE should be a symbol"))
   (unless (assoc type chart-types)
@@ -223,11 +300,11 @@ be a list
                (scale-str (when rec-scale (format "%s,%s" rec-min rec-max)))
                )
           (if (not numbers)
-            (progn
-              (setq numbers (concat "&chd=t:" number-str))
-              (when scale-str
-                (setq scales (concat "&chds=" scale-str))))
-          (setq numbers (concat numbers "|" number-str)))
+              (progn
+                (setq numbers (concat "&chd=t:" number-str))
+                (when scale-str
+                  (setq scales (concat "&chds=" scale-str))))
+            (setq numbers (concat numbers "|" number-str)))
           (when scale-str
             (setq scales (concat scales "," scale-str)))))
       (setq url (concat url numbers))
@@ -239,7 +316,7 @@ be a list
               (arg (if (memq g-type '(p p3 gom))
                        "&chl="
                      "&chdl=")))
-        (setq url (concat url arg url-legends))))
+          (setq url (concat url arg url-legends))))
       (dolist (extra extras)
         (let ((extra-type (car extra))
               (extra-value (cdr extra)))
@@ -281,60 +358,6 @@ be a list
    (t (error "Unknown provider: %s" provider)))
   )
 
-(defvar chart-mode-keywords
-  '("Output-file:"
-    ;;"Provider:"
-    "Size:" "Data:" "Type:")
-  )
-
-(defvar chart-extra-keywords
-  '(
-    "Colors:"
-    "Solid-fill:"
-    "Linear-gradient:"
-    "Linear-stripes:"
-    "Chart-title:"
-    "Legends:"
-    "Axis-types:"
-    "Axis-labels:"
-    "Axis-ranges:"
-    "Axis-styles:"
-    "Bar-thickness:"
-    "Bar-chart-zero-line:"
-    "Bar-chart-zero-line-2:"
-    "Line-styles-1:"
-    "Line-styles-2:"
-    "Grid-lines:"
-    "Shape-markers:"
-    "Range-markers:"
-    ))
-
-(defvar chart-raw-keywords
-  '(
-    "Google-chart-raw:"
-    ))
-
-(defvar chart-mode-keywords-re (regexp-opt chart-mode-keywords))
-(defvar chart-extra-keywords-re (regexp-opt chart-extra-keywords))
-(defvar chart-types-keywords-re (regexp-opt chart-types-keywords))
-(defvar chart-raw-keywords-re (regexp-opt chart-raw-keywords))
-
-(defvar chart-font-lock-keywords
-  `((,chart-mode-keywords-re . font-lock-keyword-face)
-    (,chart-extra-keywords-re . font-lock-variable-name-face)
-    (,chart-types-keywords-re . font-lock-function-name-face)
-    (,chart-raw-keywords-re . font-lock-preprocessor-face)
-    ))
-
-(defvar chart-font-lock-defaults
-  '(chart-font-lock-keywords nil t))
-
-(defvar chart-mode-syntax-table
-  (let ((table (make-syntax-table)))
-    (modify-syntax-entry ?\n ">   " table)
-    (modify-syntax-entry ?\; "<   " table)
-    table))
-
 (defvar chart-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [(meta tab)] 'chart-complete)
@@ -353,6 +376,7 @@ be a list
                         collection)))))
     collection))
 
+;;;###autoload
 (defun chart-complete ()
   (interactive)
   (let* ((here (point))
@@ -372,16 +396,17 @@ be a list
          res)
     (when state
       (cond
-       ((equal state '(accept number))
-        (setq res nil)
-        (setq msg (propertize "Needs a number here!"
-                              'face 'secondary-selection)))
-       ((equal state 'need-label)
+       ((or (= (current-column) 0)
+            (equal state 'need-label))
         (setq collection (append (chart-missing-keywords)
                                  chart-extra-keywords
                                  chart-raw-keywords
                                  nil))
         (setq prompt "Label: "))
+       ((equal state '(accept number))
+        (setq res nil)
+        (setq msg (propertize "Needs a number here!"
+                              'face 'secondary-selection)))
        ((equal state '(accept chart-type))
         (setq collection chart-types-keywords)
         (setq prompt "Chart type: "))
@@ -419,183 +444,184 @@ be a list
          pos-state
          (state 'need-label)
          (problems
-         (catch 'problems
-             (save-restriction
-               (widen)
-               (if want-pos-state
-                   (unless (re-search-backward chart-mode-keywords-re nil t)
-                     (goto-char (point-min)))
-                 (goto-char (point-min)))
-               (let (this-keyword
-                     this-start
-                     this-end
-                     params
-                     token
-                     token-pos
-                     next-token
-                     found-labels
-                     current-label)
-                 (while (or token
-                            (progn
-                              (setq pos-state state)
-                              (setq token-before-pos (point))
-                              (condition-case err
-                                  (setq token (read (current-buffer)))
-                                (error
-                                 (if (eq (car err) 'end-of-file)
-                                     (unless (eq state 'need-label)
-                                       (throw 'problems (format "Unexpected end, state=%s" state)))
-                                   (throw 'problems
-                                          (error-message-string err)))))))
-                   (message "token=%s, label=%s, state=%s" token current-label state)
-                   (when (and want-pos-state
-                              (>= (point) want-pos-state))
-                     (when (= (point) want-pos-state)
-                       ;; right after item
-                       (setq pos-state nil))
-                     (goto-char here)
-                     (throw 'pos-state pos-state))
-                   (cond ;; state
-                    ;; Label
-                    ((eq state 'need-label)
-                      (unless (symbolp token)
-                       (throw 'problems (format "Expected label, got %s" token)))
-                      (unless (member (symbol-name token)
-                                      (append chart-mode-keywords
-                                              chart-extra-keywords
-                                              chart-raw-keywords
-                                              nil))
-                        (throw 'problems (format "Unknown label %s" token)))
-                      (when (member (symbol-name token) found-labels)
-                        (throw 'problems (format "Label %s defined twice" token)))
-                      (setq current-label token)
-                      (setq found-labels (cons current-label found-labels))
-                      (setq token nil)
-                      ;;(setq state 'need-value)
-                      (case current-label
-                        ('Output-file:
-                         (setq state '(accept file-name)))
-                        ('Size:
-                         (setq state '(accept number)))
-                        ('Data:
-                         (setq state '(accept number)))
-                        ('Type:
-                         (setq state '(accept chart-type)))
-                        ('Chart-title:
-                         (setq state '(accept string)))
-                        ('Legends:
-                         (setq state '(accept string)))
-                        ('Google-chart-raw:
-                         (setq state '(accept string)))
-                        ))
+          (catch 'problems
+            (save-restriction
+              (widen)
+              (if want-pos-state
+                  (unless (re-search-backward chart-mode-keywords-re nil t)
+                    (goto-char (point-min)))
+                (goto-char (point-min)))
+              (let (this-keyword
+                    this-start
+                    this-end
+                    params
+                    token
+                    token-pos
+                    next-token
+                    found-labels
+                    current-label)
+                (while (or token
+                           (progn
+                             (setq pos-state state)
+                             (setq token-before-pos (point))
+                             (condition-case err
+                                 (setq token (read (current-buffer)))
+                               (error
+                                (if (eq (car err) 'end-of-file)
+                                    (unless (or (eq state 'need-label)
+                                                (member '(quote |) state))
+                                      (throw 'problems (format "Unexpected end, state=%s" state)))
+                                  (throw 'problems
+                                         (error-message-string err)))))))
+                  (message "token=%s, label=%s, state=%s" token current-label state)
+                  (when (and want-pos-state
+                             (>= (point) want-pos-state))
+                    (when (= (point) want-pos-state)
+                      ;; right after item
+                      (setq pos-state nil))
+                    (goto-char here)
+                    (throw 'pos-state pos-state))
+                  (cond ;; state
+                   ;; Label
+                   ((eq state 'need-label)
+                    (unless (symbolp token)
+                      (throw 'problems (format "Expected label, got %s" token)))
+                    (unless (member (symbol-name token)
+                                    (append chart-mode-keywords
+                                            chart-extra-keywords
+                                            chart-raw-keywords
+                                            nil))
+                      (throw 'problems (format "Unknown label %s" token)))
+                    (when (member (symbol-name token) found-labels)
+                      (throw 'problems (format "Label %s defined twice" token)))
+                    (setq current-label token)
+                    (setq found-labels (cons current-label found-labels))
+                    (setq token nil)
+                    ;;(setq state 'need-value)
+                    (case current-label
+                      ('Output-file:
+                       (setq state '(accept file-name)))
+                      ('Size:
+                       (setq state '(accept number)))
+                      ('Data:
+                       (setq state '(accept number)))
+                      ('Type:
+                       (setq state '(accept chart-type)))
+                      ('Chart-title:
+                       (setq state '(accept string)))
+                      ('Legends:
+                       (setq state '(accept string)))
+                      ('Google-chart-raw:
+                       (setq state '(accept string)))
+                      ))
                     ;;;; Values
-                    ;; Alt
-                    ((equal state '(accept '| symbol))
-                     (if (eq '| token)
-                         (case current-label
-                           ('Legends:
-                            (setq token nil)
-                            (setq state '(accept string)))
-                           (t (error "internal error, current-label=%s, state=%s" current-label state)))
-                       (if (symbolp token)
-                           (progn
-                             ;;(setq token nil)
-                             (setq state 'need-label))
-                         (throw 'problems (format "Expected | or label, got %s" token)))))
-                    ;; Strings
-                    ((equal state '(accept string))
-                     (unless (stringp token)
-                       (throw 'problems "Expected string"))
-                     (case current-label
-                       ('Chart-title:
-                        (setq par-title token)
-                        (setq token nil)
-                        (setq state 'need-label))
-                       ('Legends:
-                        (setq par-legends (reverse (cons token par-legends)))
-                        (setq token nil)
-                        (setq state '(accept '| symbol)))
-                       ('Google-chart-raw:
-                        (setq par-google-raw token)
-                        (setq token nil)
-                        (setq state '(accept '| symbol)))
-                       (t (error "internal error, current-label=%s, state=%s" current-label state))))
-                    ;; Output file
-                    ((equal state '(accept file-name))
-                     (unless (stringp token)
-                       (throw 'problems "Expected file name string"))
-                     (assert (eq current-label 'Output-file:))
-                     (setq par-output-file token)
-                     (setq token nil)
-                     (setq state 'need-label))
-                    ;; Numbers
-                    ((equal state '(accept number))
-                     (unless (numberp token)
-                       (throw 'problems "Expected number"))
-                     (case current-label
-                       ('Size:
-                        (if (not par-size)
-                            (progn
-                              (setq par-size token)
-                              (setq token nil)
-                              (setq state '(accept number 'x 'X)))
-                          (setq par-size (cons par-size token))
-                          (setq token nil)
-                          (setq state 'need-label)))
-                       ('Data:
-                        ;;(assert (not par-data-temp))
-                        (setq par-data-temp (cons token par-data-temp))
-                        (setq token nil)
-                        (setq state '(accept number ', '| symbol))
-                        )
-                       (t (error "internal error, state=%s, current-label=%s" state current-label)))
-                     )
-                    ;; Numbers or |
-                    ((equal state '(accept number ', '| symbol))
-                     (if (numberp token)
-                         (progn
-                           (setq par-data-temp (cons token par-data-temp))
-                           (setq token nil))
-                       (if (eq ', token)
+                   ;; Alt
+                   ((equal state '(accept '| symbol))
+                    (if (eq '| token)
+                        (case current-label
+                          ('Legends:
                            (setq token nil)
-                         (if (or (eq '| token)
-                                 (symbolp token))
-                             (progn
-                               (unless par-data-temp
-                                 (throw 'problems "Empty data set"))
-                               (setq par-data (cons (list (reverse par-data-temp)) par-data))
-                               (setq par-data-temp nil)
-                               (if (not (eq '| token))
-                                   (setq state 'need-label)
-                                 (setq state '(accept number))
-                                 (setq token nil)))
-                           (throw 'problems "Expected | or EOF")
-                           ))))
-                    ;; Numbers or x/X
-                    ((equal state '(accept number 'x 'X))
-                     (assert (eq current-label 'Size:))
-                     (let ((is-n (numberp token))
-                           (is-x (memq token '(x X))))
-                       (unless (or is-n is-x)
-                         (throw 'problems "Expected X or number"))
-                       (if is-x
+                           (setq state '(accept string)))
+                          (t (error "internal error, current-label=%s, state=%s" current-label state)))
+                      (if (symbolp token)
+                          (progn
+                            ;;(setq token nil)
+                            (setq state 'need-label))
+                        (throw 'problems (format "Expected | or label, got %s" token)))))
+                   ;; Strings
+                   ((equal state '(accept string))
+                    (unless (stringp token)
+                      (throw 'problems "Expected string"))
+                    (case current-label
+                      ('Chart-title:
+                       (setq par-title token)
+                       (setq token nil)
+                       (setq state 'need-label))
+                      ('Legends:
+                       (setq par-legends (reverse (cons token par-legends)))
+                       (setq token nil)
+                       (setq state '(accept '| symbol)))
+                      ('Google-chart-raw:
+                       (setq par-google-raw token)
+                       (setq token nil)
+                       (setq state 'need-label))
+                      (t (error "internal error, current-label=%s, state=%s" current-label state))))
+                   ;; Output file
+                   ((equal state '(accept file-name))
+                    (unless (stringp token)
+                      (throw 'problems "Expected file name string"))
+                    (assert (eq current-label 'Output-file:))
+                    (setq par-output-file token)
+                    (setq token nil)
+                    (setq state 'need-label))
+                   ;; Numbers
+                   ((equal state '(accept number))
+                    (unless (numberp token)
+                      (throw 'problems "Expected number"))
+                    (case current-label
+                      ('Size:
+                       (if (not par-size)
                            (progn
+                             (setq par-size token)
                              (setq token nil)
-                             (setq state '(accept number)))
+                             (setq state '(accept number 'x 'X)))
                          (setq par-size (cons par-size token))
                          (setq token nil)
-                         (setq state 'need-label))))
-                    ;; Chart type
-                    ((equal state '(accept chart-type))
-                     (setq par-type token)
-                     (unless (assoc par-type chart-types)
-                       (throw 'problems (format "Unknown chart type: %s" par-type)))
-                     (setq token nil)
-                     (setq state 'need-label))
-                    (t (error "internal error, state=%s" state))))))
-           ;; fix-me here
+                         (setq state 'need-label)))
+                      ('Data:
+                       ;;(assert (not par-data-temp))
+                       (setq par-data-temp (cons token par-data-temp))
+                       (setq token nil)
+                       (setq state '(accept number ', '| symbol))
+                       )
+                      (t (error "internal error, state=%s, current-label=%s" state current-label)))
+                    )
+                   ;; Numbers or |
+                   ((equal state '(accept number ', '| symbol))
+                    (if (numberp token)
+                        (progn
+                          (setq par-data-temp (cons token par-data-temp))
+                          (setq token nil))
+                      (if (eq ', token)
+                          (setq token nil)
+                        (if (or (eq '| token)
+                                (symbolp token))
+                            (progn
+                              (unless par-data-temp
+                                (throw 'problems "Empty data set"))
+                              (setq par-data (cons (list (reverse par-data-temp)) par-data))
+                              (setq par-data-temp nil)
+                              (if (not (eq '| token))
+                                  (setq state 'need-label)
+                                (setq state '(accept number))
+                                (setq token nil)))
+                          (throw 'problems "Expected | or EOF")
+                          ))))
+                   ;; Numbers or x/X
+                   ((equal state '(accept number 'x 'X))
+                    (assert (eq current-label 'Size:))
+                    (let ((is-n (numberp token))
+                          (is-x (memq token '(x X))))
+                      (unless (or is-n is-x)
+                        (throw 'problems "Expected X or number"))
+                      (if is-x
+                          (progn
+                            (setq token nil)
+                            (setq state '(accept number)))
+                        (setq par-size (cons par-size token))
+                        (setq token nil)
+                        (setq state 'need-label))))
+                   ;; Chart type
+                   ((equal state '(accept chart-type))
+                    (setq par-type token)
+                    (unless (assoc par-type chart-types)
+                      (throw 'problems (format "Unknown chart type: %s" par-type)))
+                    (setq token nil)
+                    (setq state 'need-label))
+                   (t (error "internal error, state=%s" state))))))
+            ;; fix-me here
 
-           nil)))
+            nil)))
     (when want-pos-state
       (goto-char here)
       (throw 'pos-state state))
@@ -611,7 +637,8 @@ be a list
                          (nth 0 problems)
                        token-before-pos)))
           (goto-char where)
-          (message msg))
+          (skip-chars-forward " \t")
+          (error msg))
       (goto-char here)
       ;;(defun chart-create (out-file provider size data type &rest extras)
       (setq par-provider 'google)
@@ -622,12 +649,45 @@ be a list
                       par-data par-type par-title par-legends extras))
       nil)))
 
+;;;###autoload
 (defun chart-make-chart ()
+  "Try to make a new chart.
+If current buffer is in `chart-mode' then do it from the chart
+specifications in this buffer.  Otherwise create a new buffer and
+initialize it with `chart-mode'.
+
+If the chart specifications are complete enough to make a chart
+then do it and show the resulting chart image.  If not then tell
+user what is missing."
   (interactive)
+  (unless (eq major-mode 'chart-mode)
+    (switch-to-buffer (generate-new-buffer "Chart"))
+    (chart-mode))
   (chart-get-state nil))
 
 (define-derived-mode chart-mode fundamental-mode "Chart"
-  "Mode for specifying charts."
+  "Mode for specifying charts.
+\\{chart-mode-map}
+
+* Example:
+
+  Output-file: \"c:/somewhere/temp.png\"
+  Size: 200 200
+  Data: 3 8 5 | 13 7
+  Type: line-chart-xy
+
+* Example using raw:
+
+  Output-file: \"c:/somewhere/slipsen-kostar.png\"
+  Size: 400 130
+  Data: 300 1000 30000
+  Type: bar-chart-horizontal
+  Chart-title: \"Vad killen i slips tjänar jämfört med dig och mig\"
+  ;; Note: wrapped for the help text only!
+  Google-chart-raw: \"&chds=0,30000&chco=00cd00|ff4500|
+            483d8b&chxt=y,x&chxl=0:|Killen+i+slips|
+            Partiledarna|Du+och+jag&chf=bg,s,ffd700\"
+"
   (set (make-local-variable 'font-lock-defaults) chart-font-lock-defaults)
   (set (make-local-variable 'comment-start) ";")
   ;; Look within the line for a ; following an even number of backslashes
@@ -642,17 +702,18 @@ be a list
   (set (make-local-variable 'comment-use-global-state) t)
   (set-syntax-table chart-mode-syntax-table)
   (when (looking-at (rx buffer-start (0+ whitespace) buffer-end))
-    (insert ";; Type C-c C-c to make a chart\n"))
+    (insert ";; Type C-c C-c to make a chart, M-Tab to complete\n"))
   (let ((missing (chart-missing-keywords)))
     (when missing
       (save-excursion
         (goto-char (point-max))
         (dolist (miss missing)
-          (insert "\n\n" miss))))))
+          (insert "\n" miss " "))))))
 
 ;; Tests
-;;(chart-create 'google "temp.png" '(200 . 150) '(((90 70) . nil)) 'p3 '(colors "FFFFFF" "00FF00"))
+;;(chart-create 'google "temp.png" '(200 . 150) '(((90 70) . nil)) 'pie-3-dimensional "test title" nil '((colors "FFFFFF" "00FF00")))
 
+;; Fix-me
 (add-to-list 'auto-mode-alist '("\\.mx-chart\\'" . chart-mode))
 
 (provide 'chart)

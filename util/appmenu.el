@@ -106,6 +106,7 @@ For an example of use see mlinks.el.")
                   (when (symbolp priB) (setq priB (symbol-value priB)))
                   (< priA priB))))))
 
+;;;###autoload
 (defun appmenu-add (id priority test title definition)
   "Add entry to `appmenu-alist'.
 Add an entry to this list with ID, PRIORITY, TEST, TITLE and

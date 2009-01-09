@@ -3,14 +3,14 @@
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-09-02T11:46:03+0200 Tue
 ;; Version:
-;; Last-Updated:
+;; Last-Updated: 2009-01-06 Tue
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   None
+;;   Cannot open load file: ert2.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -46,7 +46,8 @@
 
 (let* ((this-dir
         (file-name-directory (if load-file-name load-file-name buffer-file-name)))
-       (load-path (copy-list load-path)))
+       ;;(load-path (copy-list load-path)))
+       (load-path (copy-sequence load-path)))
   (add-to-list 'load-path this-dir)
   (require 'ert))
 
@@ -218,7 +219,8 @@ Run the hook `ert-simulate-command-post-hook' at the very end."
     (when (and deactivate-mark transient-mark-mode) (deactivate-mark))
     ;;(message "ert-simulate-command.before idle-timers, point=%s" (point))
     (when run-idle-timers
-      (dolist (timer (copy-list timer-idle-list))
+      ;;(dolist (timer (copy-list timer-idle-list))
+      (dolist (timer (copy-sequence timer-idle-list))
         (timer-event-handler timer)
         ;;(message "   after timer=%s, point=%s" timer (point))
         )

@@ -3,7 +3,7 @@
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-06-01T18:41:50+0200 Sun
 (defconst sex-mode:version "0.71")
-;; Last-Updated: 2008-08-01T20:03:51+0200 Fri
+;; Last-Updated: 2009-01-06 Tue
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
@@ -362,6 +362,7 @@ informational message."
 (defvar sex-old-url-insert-file-contents nil)
 (defvar sex-old-url-handler-mode nil)
 
+;;;###autoload
 (define-minor-mode sex-mode
   "Open certain files in external programs.
 See `sex-get-file-open-cmd' for how to determine which files to
@@ -420,12 +421,14 @@ handled is governed by `sex-keep-dummy-buffer'."
             ;;(message "after url-handler-mode 1")
             )))
     ;; Remove from the lists:
-    (let ((handler-list (copy-list file-name-handler-alist)))
+    ;;(let ((handler-list (copy-list file-name-handler-alist)))
+    (let ((handler-list (copy-sequence file-name-handler-alist)))
       (dolist (handler handler-list)
         (when (eq 'sex-file-handler (cdr handler))
           (setq file-name-handler-alist
                 (delete handler file-name-handler-alist)))))
-    (let ((mode-alist (copy-list auto-mode-alist)))
+    ;;(let ((mode-alist (copy-list auto-mode-alist)))
+    (let ((mode-alist (copy-sequence auto-mode-alist)))
       (dolist (auto-mode mode-alist)
         (when (eq 'sex-file-mode (cdr auto-mode))
           (setq auto-mode-alist

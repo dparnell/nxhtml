@@ -252,7 +252,8 @@
 (eval-when-compile
   (when (featurep 'nxml-mode)
     (require 'rng-valid nil t)
-    (require 'rngalt nil t)))
+    ;;(require 'rngalt nil t)
+    ))
 (eval-when-compile (require 'sgml-mode)) ;; For sgml-xml-mode
 ;; For `define-globalized-minor-mode-with-on-off':
 ;;(require 'ourcomments-util)
@@ -1090,7 +1091,7 @@ This should be run after a buffer change.  For MIN see
   (setq mumamo-last-chunk-change-pos
         (if mumamo-last-chunk-change-pos
             (let* ((old-min (car mumamo-last-chunk-change-pos))
-                   (old-nax (cdr mumamo-last-chunk-change-pos))
+                   (old-max (cdr mumamo-last-chunk-change-pos))
                    (new-min (min min old-min))
                    (new-max (max max old-max)))
               (cons new-min new-max))
@@ -2872,7 +2873,7 @@ See `mumamo-chunk-syntax-min'."
   (- (overlay-end chunk)
      (or (overlay-get chunk 'syntax-max-d)
          0)
-     ;; Note: We must subtract one here because overlay-end is +1 from
+     ;; Note: We must subtract one here because overlay-end is -1 from
      ;; the last point in the overlay. (This cured the problem with
      ;; kubica-freezing-i.html that made Emacs loop in
      ;; font-lock-extend-region-multiline.)
@@ -3183,7 +3184,7 @@ See also `mumamo-quick-static-chunk'."
   ;;(message "\nmumamo-find-possible-chunk %s %s %s %s %s\n%s %s %s %s %s" pos min max (point-min) (point-max) bw-exc-start-fun bw-exc-end-fun fw-exc-start-fun fw-exc-end-fun find-borders-fun)
   ;;(message "\nmumamo-find-possible-chunk %s %s %s %s %s" pos min max (point-min) (point-max))
   ;;(message "\nmumamo-find-possible-chunk.debugger=%s" debugger)
-  (setq err nil)
+  ;;(setq err nil)
   (mumamo-condition-case err
       (progn
         (assert (and (<= min pos) (<= pos max))

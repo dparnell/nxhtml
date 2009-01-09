@@ -43,7 +43,7 @@
 ;;
 ;;; Code:
 
-(require 'ourcomments-util)
+(eval-when-compile (require 'ourcomments-util))
 
 (defgroup popcmp nil
   "Customization group for popup completion."
@@ -192,7 +192,6 @@ This works in the same circumstances as
           (message "No alternative found")
           nil)
       (let ((pop-map (make-sparse-keymap prompt))
-            (where (point-to-coord (point)))
             (sets (when (and popcmp-group-alternatives alt-sets)
                     (popcmp-getsets matching-alts alt-sets)))
             (add-alt (lambda (k tg)

@@ -49,7 +49,7 @@
 ;;; Code:
 
 (require 'fold-dwim nil t)
-(require 'appmenu)
+(eval-when-compile (require 'appmenu))
 
 (when (featurep 'fold-dwim)
 

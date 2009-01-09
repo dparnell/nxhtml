@@ -70,7 +70,7 @@
     (require 'nxhtml)
     (require 'nxhtml-mumamo)))
 (eval-when-compile (require 'wikipedia-mode))
-(require 'server)
+(eval-when-compile (require 'server))
 
 (defgroup as-external nil
   "Settings related to Emacs as external editor."
@@ -155,11 +155,13 @@ blog.  Therefore turn on these:
 Also bypass the question for line end conversion when using
 emacsw32-eol."
   (interactive)
-  (if (not (fboundp 'nxhtml-mumamo-mode))
+  ;;(if (not (fboundp 'nxhtml-mumamo-mode))
+  (if (not (fboundp 'nxhtml-mode))
       (as-external-fall-back "Can't find nXhtml")
-    (nxhtml-mumamo-mode)
+    ;;(nxhtml-mumamo-mode)
+    (nxhtml-mode)
     (nxhtml-validation-header-mode 1)
-    (mumamo-post-command)
+    ;;(mumamo-post-command)
     (set (make-local-variable 'wrap-to-fill-left-marg-modes)
          '(nxhtml-mode fundamental-mode))
     (wrap-to-fill-column-mode 1)
@@ -244,6 +246,7 @@ See `as-external-alist' for more information."
           as-external-its-all-text-regexp
           (cons as-external-its-all-text-coding
                 as-external-its-all-text-coding))))
+    ;;(message "as-external-mode=%s" as-external-mode)
     (if as-external-mode
         (progn
           (add-to-list 'file-coding-system-alist coding-entry)

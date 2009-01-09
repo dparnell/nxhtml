@@ -44,7 +44,7 @@
 ;;
 ;;; Code:
 
-(require 'udev)
+(eval-when-compile (require 'udev))
 
 (defvar udev-nxhtml-install-dir nil)
 
