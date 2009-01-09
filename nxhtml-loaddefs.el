@@ -2054,7 +2054,7 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/vline.el" "util/whelp.el"
-;;;;;;  "util/winsav.el" "util/zen-mode.el") (18790 44812 312000))
+;;;;;;  "util/winsav.el" "util/zen-mode.el") (18790 45760 187000))
 
 ;;;***
 
