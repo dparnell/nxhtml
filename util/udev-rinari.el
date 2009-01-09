@@ -44,7 +44,7 @@
 ;;
 ;;; Code:
 
-(require 'udev)
+(eval-when-compile (require 'udev))
 
 (defgroup udev-rinari nil
   "Customization group for udev-rinari."

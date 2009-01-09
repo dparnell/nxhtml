@@ -722,7 +722,9 @@ Use the entry with this name in `html-site-list'."
 
 ;; Provide here to be able to load the files in any order
 (provide 'html-site)
-(require 'html-upl nil t)
+
+(eval-when-compile (require 'html-upl nil t))
+
 (defvar html-site-mode-menu-map
   (let ((map (make-sparse-keymap "html-site-mode-menu-map")))
 

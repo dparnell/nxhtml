@@ -259,8 +259,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-;;(require 'popcmp nil t)
-(require 'appmenu nil t)
+(eval-when-compile (require 'appmenu nil t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Custom

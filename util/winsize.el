@@ -65,7 +65,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'windmove))
-(require 'winsav nil t)
+(eval-when-compile (require 'winsav nil t))
 
 ;;; Custom variables
 

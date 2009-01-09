@@ -51,10 +51,10 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'ourcomments-util)
+(eval-when-compile (require 'ourcomments-util))
 (require 'url-parse)
 (require 'url-expand)
-(require 'appmenu nil t)
+(eval-when-compile (require 'appmenu nil t))
 
 (defgroup mlinks-mode nil
   "Customization group for `mlinks-mode'."

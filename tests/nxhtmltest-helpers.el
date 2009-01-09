@@ -107,7 +107,8 @@
   )
 
 (defun nxhtmltest-fontify-w-timers-handlers ()
-    (dolist (timer (copy-list timer-idle-list))
+    ;;(dolist (timer (copy-list timer-idle-list))
+    (dolist (timer (copy-sequence timer-idle-list))
       (timer-event-handler timer))
     (redisplay t))
 

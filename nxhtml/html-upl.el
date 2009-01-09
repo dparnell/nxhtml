@@ -46,7 +46,7 @@
 ;;
 ;;; Code:
 (eval-when-compile (add-to-list 'load-path default-directory load-path))
-(require 'html-site)
+(eval-when-compile (require 'html-site))
 
 (defgroup html-upl nil
   "Customization group for html-upl."

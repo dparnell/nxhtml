@@ -4,7 +4,7 @@
 ;; Author: By: Lennart Borgman
 ;; Created: Fri Dec 15 10:22:41 2006
 ;; Version:
-;; Last-Updated: 2008-03-06T23:49:43+0100 Thu
+;; Last-Updated: 2009-01-06 Tue
 ;; Keywords:
 ;; Compatibility:
 ;;
@@ -42,11 +42,6 @@
 
 (message "Nxml/Nxhtml Autostart.el loading ...")
 
-;; ;; In case an old Emacs 22 beta is used, ie mostly for Debian/Ubuntu
-;; ;; at the moment. Suggested by Hadron Quark, thanks.
-;; (unless (fboundp 'define-globalized-minor-mode)
-;;   (defalias 'define-globalized-minor-mode 'define-global-minor-mode))
-
 (defvar nxhtml-install-dir
   (file-name-directory (or load-file-name
                            (when (boundp 'bytecomp-filename) bytecomp-filename)
@@ -57,15 +52,76 @@
                               (when (boundp 'bytecomp-filename) bytecomp-filename)
                               buffer-file-name)))
 
+(defun nxhtml-custom-autoload (symbol load &optional noset)
+  "Like `custom-autoload', but also run :set for defcustoms etc."
+  ;; Fix-me: is-boundp is currently always t because of the order in
+  ;; loaddefs.
+  (let* ((is-boundp (prog1 (boundp symbol)
+                      (custom-autoload symbol load noset)))
+         (standard (get symbol 'standard-value))
+         (saved (get symbol 'saved-value))
+         ;; Fix-me: property custom-set etc are not available
+         (custom-set (get symbol 'custom-set))
+         (custom-initialize (get symbol 'custom-initialize))
+         (set (or custom-set 'custom-set-default))) ;; Fix-me: initialize
+    ;;(message "nx:symbol = %s, standard/saved=%s/%s, custom-set=%s, boundp=%s,val=%s" symbol standard saved custom-set is-boundp (when is-boundp (symbol-value symbol)))
+    (setq custom-set t) ;; Not available here
+    (when (or custom-initialize
+              (and saved
+                   (not (equal (car saved) (symbol-value symbol)))
+                   custom-set))
+      ;;(message "nx:custom-load-symbol %s" symbol)
+      (funcall set symbol (car saved))
+      (custom-load-symbol symbol)
+      )))
+
+(defun nxhtml-list-loaded-features ()
+  (interactive)
+  (let ((buf (when (called-interactively-p)
+               (get-buffer-create "*nXhtml loaded features*"))))
+    (if buf
+        (with-current-buffer buf (erase-buffer))
+      (message "")
+      (message "=== Loaded at nxhtml/autostart.el end:"))
+    (dolist (feature '(
+                       as-external
+                       html-chklnk
+                       html-imenu
+                       html-move
+                       html-pagetoc
+                       html-quote
+                       html-site
+                       html-toc
+                       html-upl
+                       html-wtoc
+                       inlimg
+                       mumamo
+                       nxhtml-bug
+                       nxhtml-menu
+                       nxhtml-mode
+                       nxhtml-mumamo
+                       nxhtml-strval
+                       nxhtml
+                       nxhtml-js
+                       nxml-where
+                       outline-magic
+                       rngalt
+                       tidy-xhtml
+                       xhtml-help
+                       ))
+      (when (featurep feature)
+        (if buf
+            (with-current-buffer buf
+              (insert (format "(feature '%s)=%s\n" feature (featurep feature))))
+          (message "(feature '%s)=%s" feature (featurep feature)))))
+    (if buf
+        (display-buffer buf)
+      (message ""))))
+
 (unless (featurep 'nxhtml-autostart)
-  ;; Provide the feature to avoid loading looping on error.
+  ;; Provide the feature here to avoid loading looping on error.
   (provide 'nxhtml-autostart)
-  ;; ;; Use the css-mode that comes with Emacs if there is one.
-  ;; ;; Fix-me: remove this loading later:
-  ;; (when (and (or (not (boundp 'bytecomp-filename))
-  ;;                (not bytecomp-filename))
-  ;;            (fboundp 'css-mode))
-  ;;   (require 'css-mode))
+
   (let* ((util-dir (file-name-as-directory (expand-file-name "util" nxhtml-install-dir)))
          (related-dir (file-name-as-directory (expand-file-name "related" nxhtml-install-dir)))
          (nxhtml-dir (file-name-as-directory (expand-file-name "nxhtml" nxhtml-install-dir))))
@@ -77,28 +133,29 @@
     ;; Autoloading etc
 
     ;; Fix-me: Why must as-external be loaded? Why doesn't it work in batch?
-    (unless noninteractive (require 'as-external))
+    ;;(unless noninteractive (require 'as-external))
 
-    (load (expand-file-name "nxhtml-loaddefs.el" nxhtml-install-dir))
+    (load (expand-file-name "nxhtml-loaddefs" nxhtml-install-dir))
 
-    ;; Turn on `nxhtml-global-minor-mode'
+    ;; Turn on `nxhtml-global-minor-mode' unconditionally
     (nxhtml-global-minor-mode 1)
 
-    ;; Use the nxml-mode that comes with Emacs if available:
-    ;; Load nXhtml
-    ;; (unless (fboundp 'nxml-mode)
-    ;;   (load (expand-file-name "nxml-mode-20041004/rng-auto"
-    ;;                           nxhtml-install-dir)))
     (when (< emacs-major-version 23)
-      (load-file (expand-file-name "autostart22.el" nxhtml-install-dir)))
+      (load (expand-file-name "autostart22" nxhtml-install-dir)))
+
+    ;; Patch the rnc include paths
     (when (fboundp 'nxml-mode)
-      ;; Patch the rnc include paths
-      (load-file (expand-file-name "etc/schema/schema-path-patch.el"
-                                   nxhtml-install-dir))
+      (load (expand-file-name "etc/schema/schema-path-patch"
+                              nxhtml-install-dir))
       (rncpp-patch-xhtml-loader))
+
     ;; Load nXhtml
     (load (expand-file-name "nxhtml/nxhtml-autoload"
-                              nxhtml-install-dir))))
+                            nxhtml-install-dir)))
+
+  ;; Tell what have been loaded of nXhtml:
+  (nxhtml-list-loaded-features)
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; autostart.el ends here

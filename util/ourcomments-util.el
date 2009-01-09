@@ -1079,7 +1079,8 @@ Key bindings added by this minor mode:
              bottom-right-angle bottom-right-angle
              bottom-left-angle bottom-left-angle
              ))
-          (indicators (copy-list fringe-indicator-alist)))
+          ;;(indicators (copy-list fringe-indicator-alist)))
+          (indicators (copy-sequence fringe-indicator-alist)))
       (setq indicators (assq-delete-all 'bottom indicators))
       (set-default 'fringe-indicator-alist (cons better indicators)))))
 
@@ -1597,6 +1598,7 @@ function."
   (setq ourcomments-ido-old-state ido-mode)
   (ido-mode (or ido-mode 'buffer)))
 
+;;;###autoload
 (defcustom ourcomments-ido-ctrl-tab nil
   "Enable buffer switching using C-Tab with function `ido-mode'.
 This changes buffer switching with function `ido-mode' the

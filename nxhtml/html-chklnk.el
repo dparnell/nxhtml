@@ -57,7 +57,7 @@
       (require 'w32shell nil t))))
 
 
-(require 'html-site)
+(eval-when-compile (require 'html-site))
 (require 'compile)
 
 (defgroup html-chklnk nil

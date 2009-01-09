@@ -46,18 +46,12 @@
 ;;
 ;;; Code:
 
-(eval-when-compile
-  ;; (unless (featurep 'nxhtml-autostart)
-  ;;   (let* ((this-dir (or load-file-name
-  ;;                       (when (boundp 'bytecomp-file-name) bytecomp-file-name)
-  ;;                       buffer-file-name))
-  ;;         (efn (expand-file-name "../../autostart.el" this-dir)))
-  ;;     (load efn))
-    (require 'rng-valid)
-    (require 'rng-nxml))
+(eval-when-compile (require 'rng-valid))
+(eval-when-compile (require 'rng-nxml))
+(eval-when-compile (unless load-file-name (require 'nxhtml-mode)))
 
-(require 'rng-valid)
-(require 'ourcomments-util)
+;;(require 'rng-valid)
+;;(require 'ourcomments-util)
 
 (defvar rngalt-complete-first-try nil
   "First function to try for completion.
@@ -676,6 +670,9 @@ except when `rngalt-validation-header' is non-nil."
 ;;                           (goto-char pos))
 ;;                          (t (rng-set-initial-state))))))))))
 
+
+;; For as-external.el
+;;;###autoload
 (defun rngalt-set-validation-header (start-of-doc)
   (rng-validate-mode -1)
   (if start-of-doc

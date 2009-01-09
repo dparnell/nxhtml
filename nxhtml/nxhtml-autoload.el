@@ -45,62 +45,39 @@
 ;;
 ;;; Code:
 
-(message "nxhtml-autoload starting ... (hm, should be renamed ...)")
+(message "nxhtml-autoload starting ... (hm, should maybe be renamed ...)")
 
-;;(require 'ourcomments-util)
 (eval-when-compile (require 'majmodpri))
 (eval-when-compile (require 'moz))
 
-;; This is for the case when nXml is included in Emacs
-;;(unless (featurep 'nxml-enc) (require 'nxml-mode))
+;; Add entries similar to those that are already there for html-mode
+;; and xml-mode.
+(dolist (mode-list '(auto-mode-alist magic-fallback-mode-alist))
+  (dolist (rec (symbol-value mode-list))
+    (when (eq (cdr rec) 'html-mode)
+      (add-to-list mode-list (cons (car rec) 'nxhtml-mode)))
+    (when (eq (cdr rec) 'html-mode)
+      (add-to-list mode-list (cons (car rec) 'nxhtml-mumamo-mode)))
+    (when (eq (cdr rec) 'html-mode)
+      (add-to-list mode-list (cons (car rec) 'html-mumamo-mode)))
+    (when (eq (cdr rec) 'xml-mode)
+      (add-to-list mode-list (cons (car rec) 'nxml-mode)))
+    ))
 
-;;(if (not (or (featurep 'nxml-enc) ;; nXml not in Emacs
-;;             (featurep 'nxml-mode))) ;; nXml in Emacs
-(if nil
-    (progn
-      (lwarn
-       '(nxhtml-autoload)
-       :emergency
-       (concat
-        "\n\n\nERROR: nxml not loaded!\n\n"
-        "    Please load nxml before loading nxhtml!\n"
-        "    Load nxml by loading rng-auto.el in the nxml distribution.\n\n\n\n"))
-      (sit-for 10))
+;;; Change below if you need to:
+(eval-after-load 'nxml-mode
+  '(progn
+     (define-key nxml-mode-map [C-M-left]  'nxml-backward-element)
+     (define-key nxml-mode-map [C-M-right] 'nxml-forward-element)
+     (define-key nxml-mode-map [C-M-up]    'nxml-backward-up-element)
+     (define-key nxml-mode-map [C-M-down]  'nxml-down-element)))
 
-  ;; Add entries similar to those that are already there for html-mode
-  ;; and xml-mode.
-  (dolist (mode-list '(auto-mode-alist magic-fallback-mode-alist))
-    (dolist (rec (symbol-value mode-list))
-      (when (eq (cdr rec) 'html-mode)
-        (add-to-list mode-list (cons (car rec) 'nxhtml-mode)))
-      (when (eq (cdr rec) 'html-mode)
-        (add-to-list mode-list (cons (car rec) 'nxhtml-mumamo-mode)))
-      (when (eq (cdr rec) 'html-mode)
-        (add-to-list mode-list (cons (car rec) 'html-mumamo-mode)))
-      (when (eq (cdr rec) 'xml-mode)
-        (add-to-list mode-list (cons (car rec) 'nxml-mode)))
-      ))
-
-  ;;; Change below if you need to:
-  (eval-after-load 'nxml-mode
-    '(progn
-      (define-key nxml-mode-map [C-M-left]  'nxml-backward-element)
-      (define-key nxml-mode-map [C-M-right] 'nxml-forward-element)
-      (define-key nxml-mode-map [C-M-up]    'nxml-backward-up-element)
-      (define-key nxml-mode-map [C-M-down]  'nxml-down-element)))
-
-  ;; MozLab support, for more info see moz.el
-  ;;(autoload 'inferior-moz-mode "moz" "MozRepl Inferior Mode" t)
-  ;;(autoload 'moz-minor-mode "moz" "MozRepl Minor Mode" t)
-  (defun javascript-moz-setup () (moz-minor-mode 1))
-  (add-hook 'javascript-mode-hook 'javascript-moz-setup)
-  (add-hook 'js2-fl-mode          'javascript-moz-setup)
-
-  ;; Development versions support
-  ;;(autoload 'udev-rinari-update "udev-rinari" "Fetch and install rinari from the devel sources." t)
-  ;;(autoload 'udev-cedet-update "udev-cedet" "Fetch and install CEDET from the devel sources." t)
-  ;;(autoload 'udev-ecb-update "udev-ecb" "Fetch and install ECB from the devel sources." t)
-  )
+;; MozLab support, for more info see moz.el
+;;(autoload 'inferior-moz-mode "moz" "MozRepl Inferior Mode" t)
+;;(autoload 'moz-minor-mode "moz" "MozRepl Minor Mode" t)
+(defun javascript-moz-setup () (moz-minor-mode 1))
+(add-hook 'javascript-mode-hook 'javascript-moz-setup)
+(add-hook 'js2-fl-mode          'javascript-moz-setup)
 
 (add-to-list 'magic-mode-alist
              '("\\(?:.\\|\n\\)\\{,200\\}xmlns:py=\"http://genshi.edgewall.org/\""
@@ -135,6 +112,6 @@
 
 (message "nxhtml-autoload finished")
 
-(provide `nxhtml-autoload)
+(provide 'nxhtml-autoload)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; nxhtml-autoload.el ends here
