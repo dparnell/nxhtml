@@ -52,6 +52,10 @@
                               (when (boundp 'bytecomp-filename) bytecomp-filename)
                               buffer-file-name)))
 
+;; (defun nxhtml-custom-load-and-get-value (symbol)
+;;   (custom-load-symbol symbol)
+;;   (symbol-value symbol))
+
 (defun nxhtml-custom-autoload (symbol load &optional noset)
   "Like `custom-autoload', but also run :set for defcustoms etc."
   ;; Fix-me: is-boundp is currently always t because of the order in

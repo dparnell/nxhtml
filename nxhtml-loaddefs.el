@@ -76,7 +76,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18790 44033))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18791 57972))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -1090,7 +1090,7 @@ See `as-external-alist' for more information.
 ;;;***
 
 ;;;### (autoloads (chart-make-chart chart-complete) "chart" "util/chart.el"
-;;;;;;  (18789 22107))
+;;;;;;  (18792 27549))
 ;;; Generated autoloads from util/chart.el
 
 (autoload 'chart-complete "chart" "\
@@ -1100,13 +1100,91 @@ Not documented
 
 (autoload 'chart-make-chart "chart" "\
 Try to make a new chart.
-If current buffer is in `chart-mode' then do it from the chart
-specifications in this buffer.  Otherwise create a new buffer and
-initialize it with `chart-mode'.
+If region is active then make a new chart from data in the
+selected region.
+
+Else if current buffer is in `chart-mode' then do it from the
+chart specifications in this buffer.  Otherwise create a new
+buffer and initialize it with `chart-mode'.
 
 If the chart specifications are complete enough to make a chart
 then do it and show the resulting chart image.  If not then tell
 user what is missing.
+
+NOTE: This is beta, no alpha code. It is not ready.
+
+Below are some examples.  To test them mark an example and do
+
+  M-x chart-make-chart
+
+* Example, simple x-y chart:
+
+  Output-file: \"~/temp-chart.png\"
+  Size: 200 200
+  Data: 3 8 5 | 10 20 30
+  Type: line-chart-xy
+
+* Example, pie:
+
+  Output-file: \"~/temp-depression.png\"
+  Size: 400 200
+  Data:
+  2,160,000
+  3,110,000
+  1,510,000
+  73,600
+  775,000
+  726,000
+  8,180,000
+  419,000
+  Type: pie-3-dimensional
+  Chart-title: \"Depression hits on Google\"
+  Legends:
+  \"SSRI\"
+  | \"Psychotherapy\"
+  | \"CBT\"
+  | \"IPT\"
+  | \"Psychoanalysis\"
+  | \"Mindfulness\"
+  | \"Meditation\"
+  | \"Exercise\"
+
+
+* Example, pie:
+
+  Output-file: \"~/temp-panic.png\"
+  Size: 400 200
+  Data:
+  979,000
+  969,000
+  500,000
+  71,900
+  193,000
+  154,000
+  2,500,000
+  9,310,000
+  Type: pie-3-dimensional
+  Chart-title: \"Depression hits on Google\"
+  Legends:
+  \"SSRI\"
+  | \"Psychotherapy\"
+  | \"CBT\"
+  | \"IPT\"
+  | \"Psychoanalysis\"
+  | \"Mindfulness\"
+  | \"Meditation\"
+  | \"Exercise\"
+
+
+* Example using raw:
+
+  Output-file: \"~/temp-chart-slipsen-kostar.png\"
+  Size: 400 130
+  Data: 300 1000 30000
+  Type: bar-chart-horizontal
+  Chart-title: \"Vad killen i slips tjänar jämfört med dig och mig\"
+  Google-chart-raw: \"&chds=0,30000&chco=00cd00|ff4500|483d8b&chxt=y,x&chxl=0:|Killen+i+slips|Partiledarna|Du+och+jag&chf=bg,s,ffd700\"
+
 
 \(fn)" t nil)
 
@@ -2054,12 +2132,12 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/vline.el" "util/whelp.el"
-;;;;;;  "util/winsav.el" "util/zen-mode.el") (18790 45760 187000))
+;;;;;;  "util/winsav.el" "util/zen-mode.el") (18792 32013 406000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (18787 36411))
+;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (18791 43496))
 ;;; Generated autoloads from nxhtmlmaint.el
 
 (autoload 'nxhtmlmaint-start-byte-compilation "../nxhtmlmaint" "\
