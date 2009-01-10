@@ -432,11 +432,13 @@
       (let ((img-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-img-map]
           (list 'menu-item "Images" img-map))
+        (define-key img-map [nxhtml-chart]
+          (list 'menu-item "Make Chart" 'chart-make-chart))
+        (define-key img-map [nxhtml-chart-separator] (list 'menu-item "--"))
         (define-key img-map [nxhtml-gimp-edit]
           (list 'menu-item "Edit with GIMP" 'nxhtml-edit-with-gimp
                 :enable '(nxhtml-gimp-can-edit)))
-        (define-key img-map [nxhtml-gimp-separator]
-          (list 'menu-item "--"))
+        (define-key img-map [nxhtml-gimp-separator] (list 'menu-item "--"))
         (define-key img-map [nxhtml-inlimg-toggle-img]
           (list 'menu-item "Toggle Display of Image" 'inlimg-toggle-img-display))
         (define-key img-map [nxhtml-inlimg-mode]

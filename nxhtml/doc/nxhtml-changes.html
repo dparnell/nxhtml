@@ -2514,10 +2514,15 @@
           <dd id="v1.73-dd">
             <ul>
               <li>
-                Replace copy-list with copy-sequence to avoid cl at runtime.
+                Worked a bit more on byte compilation and elisp
+                libraries loading.  If you byte compile nXhtml it will
+                now load very few modules by default. It loads more
+                modules if you don't.
               </li>
               <li>
-                Avoid loading mumamo at startup.
+                Added chart.el, a small elisp library to create charts.
+                This works by calling google charts library.
+                Chart.el is a bit beta, eh alpha, but still useful I believe.
               </li>
             </ul>
           </dd>

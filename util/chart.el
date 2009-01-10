@@ -86,7 +86,8 @@
           chart-mode-keywords-and-states))
 
 ;; Fix-me: I started to implement a parser, but I think I will drop it
-;; and wait for Semantic to be easily available instead.
+;; and wait for Semantic to be easily available instead. Or just use
+;; Calc/Org Tables.
 
 (defvar chart-intermediate-states
   '((end-or-label (or end-of-file label))
@@ -259,6 +260,8 @@ be a list
   (list COLOR START-INDEX END-INDEX)
 
 "
+  (message "(chart-create %s %s %s %s %s %s %s" provider out-file size data type
+                              title legends)
   (unless (symbolp type)
     (error "Argument TYPE should be a symbol"))
   (unless (assoc type chart-types)
@@ -294,7 +297,7 @@ be a list
                               (number-to-string num)
                             (concat str "," (number-to-string num)))))
                   str))
-               (rec-scale (cdr rec))
+               (rec-scale (cadr rec))
                (rec-min  (car rec-scale))
                (rec-max  (cdr rec-scale))
                (scale-str (when rec-scale (format "%s,%s" rec-min rec-max)))
@@ -302,11 +305,12 @@ be a list
           (if (not numbers)
               (progn
                 (setq numbers (concat "&chd=t:" number-str))
-                (when scale-str
+                (when (or scale-str
+                          (memq g-type '(p p3 gom)))
                   (setq scales (concat "&chds=" scale-str))))
-            (setq numbers (concat numbers "|" number-str)))
-          (when scale-str
-            (setq scales (concat scales "," scale-str)))))
+            (setq numbers (concat numbers "|" number-str))
+            (when scale-str
+              (setq scales (concat scales "," scale-str))))))
       (setq url (concat url numbers))
       (when scales (setq url (concat url scales)))
       ;; fix-me: encode the url
@@ -343,7 +347,12 @@ be a list
                   (buffer-substring-no-properties (point) (point-max))
                 (view-buffer-other-window (current-buffer))
                 (error "Bad content"))))
-      (let* ((fname (expand-file-name out-file))
+      (let* ((is-html (string-match-p "</body></html>" content))
+             (fname (progn
+                      (when is-html
+                        (setq out-file (concat (file-name-sans-extension out-file) ".html")))
+                      (expand-file-name out-file)
+                      ))
              (do-it (or (not (file-exists-p fname))
                         (y-or-n-p
                          (concat "File " fname " exists. Replace it? "))))
@@ -353,10 +362,23 @@ be a list
           (when buf (kill-buffer buf))
           (with-temp-file fname
             (insert content))
-          (view-file-other-window fname)
+          (if (not is-html)
+              (view-file-other-window fname)
+            (chart-show-last-error-file fname))
           (select-window this-window)))))
    (t (error "Unknown provider: %s" provider)))
   )
+
+(defun chart-show-last-error-file (fname)
+  (interactive)
+  (with-output-to-temp-buffer (help-buffer)
+    (help-setup-xref (list #'chart-show-last-error-file fname) (interactive-p))
+    (with-current-buffer (help-buffer)
+      (insert "Error, see ")
+      (insert-text-button "result error page"
+                          'action
+                          `(lambda (btn)
+                             (browse-url ,fname))))))
 
 (defvar chart-mode-map
   (let ((map (make-sparse-keymap)))
@@ -435,6 +457,7 @@ be a list
          par-provider
          par-size
          par-data par-data-temp
+         par-data-min par-data-max
          par-type
          par-title
          par-legends
@@ -446,7 +469,7 @@ be a list
          (problems
           (catch 'problems
             (save-restriction
-              (widen)
+              ;;(widen)
               (if want-pos-state
                   (unless (re-search-backward chart-mode-keywords-re nil t)
                     (goto-char (point-min)))
@@ -481,6 +504,13 @@ be a list
                       (setq pos-state nil))
                     (goto-char here)
                     (throw 'pos-state pos-state))
+                  (when (and (listp state) (memq 'number state))
+                    (unless (numberp token)
+                      (save-match-data
+                        (let ((token-str (format "%s" token)))
+                          (setq token-str (replace-regexp-in-string "\\([0-9]\\),\\([0-9]\\)" "\\1\\2" token-str))
+                          (when (string-match-p "^[0-9]+$" token-str)
+                            (setq token (string-to-number token-str)))))))
                   (cond ;; state
                    ;; Label
                    ((eq state 'need-label)
@@ -538,7 +568,7 @@ be a list
                        (setq token nil)
                        (setq state 'need-label))
                       ('Legends:
-                       (setq par-legends (reverse (cons token par-legends)))
+                       (setq par-legends (cons token par-legends))
                        (setq token nil)
                        (setq state '(accept '| symbol)))
                       ('Google-chart-raw:
@@ -571,6 +601,8 @@ be a list
                       ('Data:
                        ;;(assert (not par-data-temp))
                        (setq par-data-temp (cons token par-data-temp))
+                       (setq par-data-min token)
+                       (setq par-data-max token)
                        (setq token nil)
                        (setq state '(accept number ', '| symbol))
                        )
@@ -580,7 +612,10 @@ be a list
                    ((equal state '(accept number ', '| symbol))
                     (if (numberp token)
                         (progn
+                          (setq par-data-min (if par-data-min (min par-data-min token) token))
+                          (setq par-data-max (if par-data-max (max par-data-max token) token))
                           (setq par-data-temp (cons token par-data-temp))
+                          (message "par-data-min/max=%s/%s, token=%s -- %s" par-data-min par-data-max token par-data-temp)
                           (setq token nil))
                       (if (eq ', token)
                           (setq token nil)
@@ -589,8 +624,10 @@ be a list
                             (progn
                               (unless par-data-temp
                                 (throw 'problems "Empty data set"))
-                              (setq par-data (cons (list (reverse par-data-temp)) par-data))
+                              (setq par-data (cons (list (reverse par-data-temp) (cons par-data-min par-data-max)) par-data))
                               (setq par-data-temp nil)
+                              (setq par-data-min nil)
+                              (setq par-data-max nil)
                               (if (not (eq '| token))
                                   (setq state 'need-label)
                                 (setq state '(accept number))
@@ -642,6 +679,7 @@ be a list
       (goto-char here)
       ;;(defun chart-create (out-file provider size data type &rest extras)
       (setq par-provider 'google)
+      (setq par-legends (nreverse par-legends))
       (let ((extras nil))
         (when par-google-raw
           (setq extras (cons (cons 'GOOGLE-RAW par-google-raw) extras)))
@@ -652,41 +690,127 @@ be a list
 ;;;###autoload
 (defun chart-make-chart ()
   "Try to make a new chart.
-If current buffer is in `chart-mode' then do it from the chart
-specifications in this buffer.  Otherwise create a new buffer and
-initialize it with `chart-mode'.
+If region is active then make a new chart from data in the
+selected region.
+
+Else if current buffer is in `chart-mode' then do it from the
+chart specifications in this buffer.  Otherwise create a new
+buffer and initialize it with `chart-mode'.
 
 If the chart specifications are complete enough to make a chart
 then do it and show the resulting chart image.  If not then tell
-user what is missing."
+user what is missing.
+
+NOTE: This is beta, no alpha code. It is not ready.
+
+Below are some examples.  To test them mark an example and do
+
+  M-x chart-make-chart
+
+* Example, simple x-y chart:
+
+  Output-file: \"~/temp-chart.png\"
+  Size: 200 200
+  Data: 3 8 5 | 10 20 30
+  Type: line-chart-xy
+
+* Example, pie:
+
+  Output-file: \"~/temp-depression.png\"
+  Size: 400 200
+  Data:
+  2,160,000
+  3,110,000
+  1,510,000
+  73,600
+  775,000
+  726,000
+  8,180,000
+  419,000
+  Type: pie-3-dimensional
+  Chart-title: \"Depression hits on Google\"
+  Legends:
+  \"SSRI\"
+  | \"Psychotherapy\"
+  | \"CBT\"
+  | \"IPT\"
+  | \"Psychoanalysis\"
+  | \"Mindfulness\"
+  | \"Meditation\"
+  | \"Exercise\"
+
+
+* Example, pie:
+
+  Output-file: \"~/temp-panic.png\"
+  Size: 400 200
+  Data:
+  979,000
+  969,000
+  500,000
+  71,900
+  193,000
+  154,000
+  2,500,000
+  9,310,000
+  Type: pie-3-dimensional
+  Chart-title: \"Depression hits on Google\"
+  Legends:
+  \"SSRI\"
+  | \"Psychotherapy\"
+  | \"CBT\"
+  | \"IPT\"
+  | \"Psychoanalysis\"
+  | \"Mindfulness\"
+  | \"Meditation\"
+  | \"Exercise\"
+
+
+* Example using raw:
+
+  Output-file: \"~/temp-chart-slipsen-kostar.png\"
+  Size: 400 130
+  Data: 300 1000 30000
+  Type: bar-chart-horizontal
+  Chart-title: \"Vad killen i slips tjänar jämfört med dig och mig\"
+  Google-chart-raw: \"&chds=0,30000&chco=00cd00|ff4500|483d8b&chxt=y,x&chxl=0:|Killen+i+slips|Partiledarna|Du+och+jag&chf=bg,s,ffd700\"
+
+
+"
   (interactive)
-  (unless (eq major-mode 'chart-mode)
-    (switch-to-buffer (generate-new-buffer "Chart"))
-    (chart-mode))
+  (if mark-active
+      (let* ((rb (region-beginning))
+             (re (region-end))
+             (data (buffer-substring-no-properties rb re))
+             (buf (generate-new-buffer "*Chart from region*")))
+        (switch-to-buffer buf)
+        (insert data)
+        (chart-mode))
+    (unless (eq major-mode 'chart-mode)
+      (switch-to-buffer (generate-new-buffer "*Chart*"))
+      (chart-mode)))
   (chart-get-state nil))
+
+;; (defun chart-from-region (min max)
+;;   "Try to make a new chart from data in selected region.
+;; See `chart-mode' for examples you can test with this function."
+;;   (interactive "r")
+;;   (unless mark-active (error "No region selected"))
+;;   (let* ((rb (region-beginning))
+;;          (re (region-end))
+;;          (data (buffer-substring-no-properties rb re))
+;;          (buf (generate-new-buffer "*Chart from region*")))
+;;     (switch-to-buffer buf)
+;;     (insert data)
+;;     (chart-mode)
+;;     (chart-get-state nil)))
 
 (define-derived-mode chart-mode fundamental-mode "Chart"
   "Mode for specifying charts.
 \\{chart-mode-map}
 
-* Example:
+To make a chart see `chart-make-chart'.
 
-  Output-file: \"c:/somewhere/temp.png\"
-  Size: 200 200
-  Data: 3 8 5 | 13 7
-  Type: line-chart-xy
-
-* Example using raw:
-
-  Output-file: \"c:/somewhere/slipsen-kostar.png\"
-  Size: 400 130
-  Data: 300 1000 30000
-  Type: bar-chart-horizontal
-  Chart-title: \"Vad killen i slips tjänar jämfört med dig och mig\"
-  ;; Note: wrapped for the help text only!
-  Google-chart-raw: \"&chds=0,30000&chco=00cd00|ff4500|
-            483d8b&chxt=y,x&chxl=0:|Killen+i+slips|
-            Partiledarna|Du+och+jag&chf=bg,s,ffd700\"
 "
   (set (make-local-variable 'font-lock-defaults) chart-font-lock-defaults)
   (set (make-local-variable 'comment-start) ";")
