@@ -50,7 +50,7 @@
 (eval-when-compile (require 'rng-nxml))
 (eval-when-compile (unless load-file-name (require 'nxhtml-mode)))
 
-;;(require 'rng-valid)
+(require 'rng-valid)
 ;;(require 'ourcomments-util)
 
 (defvar rngalt-complete-first-try nil
@@ -622,10 +622,13 @@ See also `rngalt-display-validation-header'."
   "Face first line of validation header."
   :group 'nxhtml)
 
-(defun rng-set-initial-state ()
-  "Internal use.
-This is exactly the same as the original `rng-set-initial-state'
-except when `rngalt-validation-header' is non-nil."
+;; This is exactly the same as the original `rng-set-initial-state'
+;; except when `rngalt-validation-header' is non-nil."
+(defadvice rng-set-initial-state (around
+                                  rngalt-set-initial-state
+                                  activate
+                                  compile
+                                  )
   (nxml-ns-init)
   (rng-match-start-document)
   (setq rng-open-elements nil)
@@ -728,13 +731,26 @@ except when `rngalt-validation-header' is non-nil."
       (when rng-validate-mode (rng-validate-mode -1))
       (erase-buffer)
       (insert start-of-doc)
+      ;; From rng-get-state
+      (setq rng-match-state nil)
+      (setq nxml-ns-state nil)
+      (setq rng-open-elements nil)
+      ;; From rng-match-init-buffer
+      (setq rng-compile-table nil)
+      (setq rng-ipattern-table nil)
+      (setq rng-last-ipattern-index nil)
+
       (nxml-mode)
       (rng-validate-mode 1)
       (rngalt-validate)
-      (let ((state (rng-get-state)))
-        (list (reverse (reverse state))
-              (rng-locate-schema-file)
-              start-of-doc)))))
+      (let* ((state (rng-get-state))
+             (cp-state (copy-tree state)))
+        ;;(if (equal state cp-state) (message "(equal state cp-state)=t") (message "(equal state cp-state)=nil"))
+        ;; Fix-me: is the copy-tree necessary here?
+        (list
+         cp-state
+         (rng-locate-schema-file)
+         start-of-doc)))))
 
 (defun rngalt-show-validation-header ()
   "Show XML validation header used in current buffer.

@@ -81,9 +81,10 @@
 (defun nxml-where-update-buffers ()
   (when (boundp 'nxml-where-mode)
     (dolist (buf (buffer-list))
-      (when nxml-where-mode
-        (nxml-where-mode -1)
-        (nxml-where-mode 1)))))
+      (with-current-buffer buf
+        (when nxml-where-mode
+          (nxml-where-mode -1)
+          (nxml-where-mode 1))))))
 
 (defvar nxml-where-last-point nil)
 (make-variable-buffer-local 'nxml-where-last-point)
@@ -407,7 +408,7 @@ This is possible if `major-mode' in the buffer is derived from
 (defun nxml-where-delete-rec (rec)
   ;;(message "delete-overlay rec=%s" rec)
   (let ((ovl (nth 3 rec)))
-    (when ovl
+    (when (and ovl (overlay-buffer ovl))
       (assert (overlayp ovl) t)
       ;;(message "delete-overlay %s" ovl)
       (delete-overlay ovl))))
@@ -578,79 +579,80 @@ This is possible if `major-mode' in the buffer is derived from
 
 (defun nxml-where-do-marking (this-point buffer)
   ;;(message "nxml-where-do-marking %s %s, point=%s" this-point buffer (point))
-  (with-current-buffer buffer
-    (save-restriction
-      (when nxml-where-widen (widen))
-      (let (ovl
-            (here (point))
-            next-point
-            (is-first (not this-point))
-            same-as-last)
-        ;; If on beginning of tag step forward one char.
-        (unless (or (eobp)
-                    this-point
-                    (not (eq  ?< (char-after))))
-          (forward-char))
-        (unless this-point (setq nxml-where-last-added nil))
-        (unless this-point (setq this-point (point)))
-        (goto-char this-point)
-        (setq next-point
-              (catch 'cnext-point
-                ;; Are we ready?
-                (condition-case err
-                    (nxml-backward-up-element)
-                  (error
-                   (if (equal err '(error "No parent element"))
-                       (throw 'cnext-point nil)
-                     (nxml-where-error-message "nxml-where error: %S" err)
-                     (throw 'cnext-point "uh?"))))
-                ;; Is this the first call
-                (when is-first
-                  ;;(message "is-first=%s, (last nxml-where-path=%s" is-first (last nxml-where-path))
-                  (setq same-as-last
-                        (and nxml-where-path
-                             nxml-where-last-finished
-                             (= (point) (caar (last nxml-where-path)))))
-                  (when same-as-last
-                    (throw 'cnext-point 'same-as-last)))
-                (save-match-data
-                  (when (looking-at nxml-where-tag+id-pattern)
-                    (let ((start (point))
-                          (end (match-end 0))
-                          (tag (match-string-no-properties 1))
-                          (all (match-string-no-properties 0))
-                          result)
-                      (when nxml-where-tag+id
-                        (when (string-match nxml-where-get-id-pattern all)
-                          (setq tag (concat tag (match-string 0 all)))))
-                      (setq tag (concat "<" tag ">"))
-                      (setq result (nxml-where-update-where-path start end tag t))
-                      (when (or (eq result 'ready)
-                                nxml-where-only-inner)
-                        (throw 'cnext-point nil))
-                      ;;(message "here 2")
-                      )))
-                (throw 'cnext-point (max (1- (point)) (point-min)))))
+  (when (buffer-live-p buffer)
+    (with-current-buffer buffer
+      (save-restriction
+        (when nxml-where-widen (widen))
+        (let (ovl
+              (here (point))
+              next-point
+              (is-first (not this-point))
+              same-as-last)
+          ;; If on beginning of tag step forward one char.
+          (unless (or (eobp)
+                      this-point
+                      (not (eq  ?< (char-after))))
+            (forward-char))
+          (unless this-point (setq nxml-where-last-added nil))
+          (unless this-point (setq this-point (point)))
+          (goto-char this-point)
+          (setq next-point
+                (catch 'cnext-point
+                  ;; Are we ready?
+                  (condition-case err
+                      (nxml-backward-up-element)
+                    (error
+                     (if (equal err '(error "No parent element"))
+                         (throw 'cnext-point nil)
+                       (nxml-where-error-message "nxml-where error: %S" err)
+                       (throw 'cnext-point "uh?"))))
+                  ;; Is this the first call
+                  (when is-first
+                    ;;(message "is-first=%s, (last nxml-where-path=%s" is-first (last nxml-where-path))
+                    (setq same-as-last
+                          (and nxml-where-path
+                               nxml-where-last-finished
+                               (= (point) (caar (last nxml-where-path)))))
+                    (when same-as-last
+                      (throw 'cnext-point 'same-as-last)))
+                  (save-match-data
+                    (when (looking-at nxml-where-tag+id-pattern)
+                      (let ((start (point))
+                            (end (match-end 0))
+                            (tag (match-string-no-properties 1))
+                            (all (match-string-no-properties 0))
+                            result)
+                        (when nxml-where-tag+id
+                          (when (string-match nxml-where-get-id-pattern all)
+                            (setq tag (concat tag (match-string 0 all)))))
+                        (setq tag (concat "<" tag ">"))
+                        (setq result (nxml-where-update-where-path start end tag t))
+                        (when (or (eq result 'ready)
+                                  nxml-where-only-inner)
+                          (throw 'cnext-point nil))
+                        ;;(message "here 2")
+                        )))
+                  (throw 'cnext-point (max (1- (point)) (point-min)))))
                                         ;)
-        (goto-char here)
-        ;;(message "next-point=%s" next-point)
-        (if next-point
-            (cond
-             ((stringp next-point) (message "%s" next-point) ;; Some error
-              (when nxml-where-header (setq header-line-format next-point)))
-             ((eq 'same-as-last next-point)
-              nil)
-             (t
-              (unless nxml-where-only-inner
-                (setq nxml-where-once-update-timer
-                      (run-with-timer (* 0.2 idle-update-delay)
-                                      nil
-                                      'nxml-where-start-second-in-timer
-                                      next-point (current-buffer))))))
-          (setq nxml-where-last-point (point))
-          (when (and nxml-where-header
-                     (not nxml-where-only-inner))
-            (nxml-where-write-header)))))))
+          (goto-char here)
+          ;;(message "next-point=%s" next-point)
+          (if next-point
+              (cond
+               ((stringp next-point) (message "%s" next-point) ;; Some error
+                (when nxml-where-header (setq header-line-format next-point)))
+               ((eq 'same-as-last next-point)
+                nil)
+               (t
+                (unless nxml-where-only-inner
+                  (setq nxml-where-once-update-timer
+                        (run-with-timer (* 0.2 idle-update-delay)
+                                        nil
+                                        'nxml-where-start-second-in-timer
+                                        next-point (current-buffer))))))
+            (setq nxml-where-last-point (point))
+            (when (and nxml-where-header
+                       (not nxml-where-only-inner))
+              (nxml-where-write-header))))))))
 
 (defun nxml-where-write-header ()
   (let ((path (mapcar (lambda (elt)
