@@ -248,7 +248,7 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
         (auto-file (expand-file-name "autostart.el" nxhtmlmaint-dir)))
     ;;(message "this-file=%s" this-file)
     (nxhtmlmaint-byte-uncompile-all)
-    (nxhtmlmaint-get-all-autoloads)
+    ;;(nxhtmlmaint-get-all-autoloads)
     (require 'ourcomments-util)
     (call-process (ourcomments-find-emacs) nil 0 nil "-Q"
                   "-l" this-file

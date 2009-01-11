@@ -5,7 +5,7 @@
 
 ;;;### (autoloads (html-site-query-replace html-site-rgrep html-site-find-file
 ;;;;;;  html-site-dired-current html-site-set-site html-site-buffer-or-dired-file-name)
-;;;;;;  "../nxhtml/html-site" "nxhtml/html-site.el" (18790 36124))
+;;;;;;  "../nxhtml/html-site" "nxhtml/html-site.el" (18790 45398))
 ;;; Generated autoloads from nxhtml/html-site.el
 
 (autoload 'html-site-buffer-or-dired-file-name "../nxhtml/html-site" "\
@@ -76,7 +76,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18791 57972))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18793 58643))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -115,7 +115,7 @@ See `nxhtml-minor-mode' for more information on Nxhtml minor mode.
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
 ;;;;;;  nxhtml-mode) "../nxhtml/nxhtml-mode" "nxhtml/nxhtml-mode.el"
-;;;;;;  (18790 44471))
+;;;;;;  (18790 45398))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 
 (when (fboundp 'nxml-mode)
@@ -249,7 +249,7 @@ This mode may be turned on automatically in two ways:
 ;;;;;;  eruby-nxhtml-mumamo-mode jsp-nxhtml-mumamo-mode smarty-nxhtml-mumamo-mode
 ;;;;;;  mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode django-nxhtml-mumamo-mode
 ;;;;;;  embperl-nxhtml-mumamo-mode nxhtml-mumamo-mode) "../nxhtml/nxhtml-mumamo"
-;;;;;;  "nxhtml/nxhtml-mumamo.el" (18790 37842))
+;;;;;;  "nxhtml/nxhtml-mumamo.el" (18790 45398))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 
 (autoload 'nxhtml-mumamo-mode "../nxhtml/nxhtml-mumamo" "\
@@ -295,7 +295,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxml-where-global-mode) "../nxhtml/nxml-where"
-;;;;;;  "nxhtml/nxml-where.el" (18787 36920))
+;;;;;;  "nxhtml/nxml-where.el" (18793 51298))
 ;;; Generated autoloads from nxhtml/nxml-where.el
 
 (defvar nxml-where-global-mode nil "\
@@ -318,7 +318,7 @@ See `nxml-where-mode' for more information on Nxml-Where mode.
 ;;;***
 
 ;;;### (autoloads (rngalt-set-validation-header) "../nxhtml/rngalt"
-;;;;;;  "nxhtml/rngalt.el" (18790 38391))
+;;;;;;  "nxhtml/rngalt.el" (18793 56106))
 ;;; Generated autoloads from nxhtml/rngalt.el
 
 (autoload 'rngalt-set-validation-header "../nxhtml/rngalt" "\
@@ -329,7 +329,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (tidy-build-menu) "../nxhtml/tidy-xhtml" "nxhtml/tidy-xhtml.el"
-;;;;;;  (18790 43820))
+;;;;;;  (18790 45398))
 ;;; Generated autoloads from nxhtml/tidy-xhtml.el
 
 (autoload 'tidy-build-menu "../nxhtml/tidy-xhtml" "\
@@ -341,7 +341,7 @@ Used to set up a Tidy menu in your favourite mode.
 ;;;***
 
 ;;;### (autoloads (xhtml-help-show-tag-ref xhtml-help-show-css-ref)
-;;;;;;  "../nxhtml/xhtml-help" "nxhtml/xhtml-help.el" (18790 40945))
+;;;;;;  "../nxhtml/xhtml-help" "nxhtml/xhtml-help.el" (18790 45398))
 ;;; Generated autoloads from nxhtml/xhtml-help.el
 
 (autoload 'xhtml-help-show-css-ref "../nxhtml/xhtml-help" "\
@@ -857,7 +857,7 @@ Major mode for editing Template Toolkit files.
 
 ;;;### (autoloads (wikipedia-draft-buffer wikipedia-draft-page wikipedia-draft
 ;;;;;;  wikipedia-mode) "../related/wikipedia-mode" "related/wikipedia-mode.el"
-;;;;;;  (18786 49356))
+;;;;;;  (18790 45400))
 ;;; Generated autoloads from related/wikipedia-mode.el
 
 (autoload 'wikipedia-mode "../related/wikipedia-mode" "\
@@ -1013,8 +1013,8 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 
 ;;;***
 
-;;;### (autoloads (appmenu-add) "appmenu" "util/appmenu.el" (18786
-;;;;;;  12030))
+;;;### (autoloads (appmenu-add) "appmenu" "util/appmenu.el" (18790
+;;;;;;  45400))
 ;;; Generated autoloads from util/appmenu.el
 
 (autoload 'appmenu-add "appmenu" "\
@@ -1028,7 +1028,7 @@ DEFINITION as explained there.
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-mail
 ;;;;;;  as-external-for-xhtml) "as-external" "util/as-external.el"
-;;;;;;  (18790 39516))
+;;;;;;  (18790 45400))
 ;;; Generated autoloads from util/as-external.el
 
 (autoload 'as-external-for-xhtml "as-external" "\
@@ -1090,7 +1090,7 @@ See `as-external-alist' for more information.
 ;;;***
 
 ;;;### (autoloads (chart-make-chart chart-complete) "chart" "util/chart.el"
-;;;;;;  (18792 27549))
+;;;;;;  (18792 27548))
 ;;; Generated autoloads from util/chart.el
 
 (autoload 'chart-complete "chart" "\
@@ -1244,7 +1244,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (html-write-mode) "html-write" "util/html-write.el"
-;;;;;;  (18785 55719))
+;;;;;;  (18790 45400))
 ;;; Generated autoloads from util/html-write.el
 
 (autoload 'html-write-mode "html-write" "\
@@ -1275,7 +1275,7 @@ you edit the buffer you may also change the hidden parts.
 ;;;***
 
 ;;;### (autoloads (htmlfontify-buffer) "htmlfontify" "util/htmlfontify.el"
-;;;;;;  (18786 12509))
+;;;;;;  (18790 45400))
 ;;; Generated autoloads from util/htmlfontify.el
 
 (autoload 'htmlfontify-buffer "htmlfontify" "\
@@ -1329,7 +1329,7 @@ before applying.
 ;;;***
 
 ;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18790
-;;;;;;  36327))
+;;;;;;  45400))
 ;;; Generated autoloads from util/mlinks.el
 
 (autoload 'mlinks-mode "mlinks" "\
@@ -1369,7 +1369,7 @@ By default the link moved to will be active, see
 ;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode smarty-html-mumamo-mode
 ;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
 ;;;;;;  embperl-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18790 37852))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18784 6872))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1464,7 +1464,7 @@ This also covers inlined style and javascript." t)
 ;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
 ;;;;;;  major-modep multi-major-modep major-or-multi-majorp unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (18786 19926))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (18790 45400))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -1753,8 +1753,8 @@ Display a form for search and replace.
 
 ;;;***
 
-;;;### (autoloads (sex-mode) "sex-mode" "util/sex-mode.el" (18787
-;;;;;;  45488))
+;;;### (autoloads (sex-mode) "sex-mode" "util/sex-mode.el" (18790
+;;;;;;  45400))
 ;;; Generated autoloads from util/sex-mode.el
 
 (defvar sex-mode nil "\
@@ -1790,8 +1790,8 @@ handled is governed by `sex-keep-dummy-buffer'.
 
 ;;;***
 
-;;;### (autoloads (tabkey2-mode) "tabkey2" "util/tabkey2.el" (18786
-;;;;;;  12205))
+;;;### (autoloads (tabkey2-mode) "tabkey2" "util/tabkey2.el" (18790
+;;;;;;  45400))
 ;;; Generated autoloads from util/tabkey2.el
 
 (defvar tabkey2-mode nil "\
@@ -1855,7 +1855,7 @@ be opened in your webbrowser with WORD looked up.
 ;;;***
 
 ;;;### (autoloads (udev-cedet-update) "udev-cedet" "util/udev-cedet.el"
-;;;;;;  (18790 36384))
+;;;;;;  (18790 45400))
 ;;; Generated autoloads from util/udev-cedet.el
 
 (autoload 'udev-cedet-update "udev-cedet" "\
@@ -1868,7 +1868,7 @@ For how to start CEDET see `udev-cedet-load-cedet'.
 ;;;***
 
 ;;;### (autoloads (udev-ecb-update) "udev-ecb" "util/udev-ecb.el"
-;;;;;;  (18790 36393))
+;;;;;;  (18790 45400))
 ;;; Generated autoloads from util/udev-ecb.el
 
 (autoload 'udev-ecb-update "udev-ecb" "\
@@ -1881,7 +1881,7 @@ For how to start ECB see `udev-ecb-load-ecb'.
 ;;;***
 
 ;;;### (autoloads (udev-rinari-update) "udev-rinari" "util/udev-rinari.el"
-;;;;;;  (18790 36410))
+;;;;;;  (18790 45400))
 ;;; Generated autoloads from util/udev-rinari.el
 
 (autoload 'udev-rinari-update "udev-rinari" "\
@@ -1912,7 +1912,7 @@ later.
 ;;;***
 
 ;;;### (autoloads (winsize-save-window-configuration winsize-balance-siblings
-;;;;;;  resize-windows) "winsize" "util/winsize.el" (18790 36429))
+;;;;;;  resize-windows) "winsize" "util/winsize.el" (18790 45400))
 ;;; Generated autoloads from util/winsize.el
 
 (autoload 'resize-windows "winsize" "\
@@ -2114,30 +2114,31 @@ Not documented
 ;;;***
 
 ;;;### (autoloads nil nil ("autostart.el" "autostart22.el" "etc/schema/schema-path-patch.el"
-;;;;;;  "nxhtml/html-chklnk.el" "nxhtml/html-imenu.el" "nxhtml/html-move.el"
-;;;;;;  "nxhtml/html-pagetoc.el" "nxhtml/html-quote.el" "nxhtml/html-toc.el"
-;;;;;;  "nxhtml/html-upl.el" "nxhtml/html-wtoc.el" "nxhtml/nxhtml-anything-1.el"
-;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el" "nxhtml/nxhtml.el"
-;;;;;;  "nxhtml/nxhtmljs.el" "nxhtml/outline-magic.el" "nxhtml/wtest.el"
-;;;;;;  "related/flymake-helpers.el" "related/flymake-js.el" "related/flymake-keys.el"
-;;;;;;  "related/flymake-php.el" "related/flymu.el" "related/fold-dwim.el"
-;;;;;;  "related/php-imenu.el" "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
+;;;;;;  "nxhtml/doc/cedet-build.el" "nxhtml/html-chklnk.el" "nxhtml/html-imenu.el"
+;;;;;;  "nxhtml/html-move.el" "nxhtml/html-pagetoc.el" "nxhtml/html-quote.el"
+;;;;;;  "nxhtml/html-toc.el" "nxhtml/html-upl.el" "nxhtml/html-wtoc.el"
+;;;;;;  "nxhtml/nxhtml-anything-1.el" "nxhtml/nxhtml-autoload.el"
+;;;;;;  "nxhtml/nxhtml-strval.el" "nxhtml/nxhtml.el" "nxhtml/nxhtmljs.el"
+;;;;;;  "nxhtml/outline-magic.el" "nxhtml/wtest.el" "related/flymake-helpers.el"
+;;;;;;  "related/flymake-js.el" "related/flymake-keys.el" "related/flymake-php.el"
+;;;;;;  "related/flymu.el" "related/fold-dwim.el" "related/php-imenu.el"
+;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
-;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/custsets.el"
-;;;;;;  "util/ecb-batch-compile.el" "util/ffip.el" "util/fmode.el"
-;;;;;;  "util/fupd.el" "util/hexcolor.el" "util/hfyview.el" "util/hl-needed.el"
-;;;;;;  "util/htmlfontify.21.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
-;;;;;;  "util/mumamo.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
+;;;;;;  "util/buffer-bg.el" "util/custsets.el" "util/ecb-batch-compile.el"
+;;;;;;  "util/ffip.el" "util/fmode.el" "util/fupd.el" "util/hexcolor.el"
+;;;;;;  "util/hfyview.el" "util/hl-needed.el" "util/htmlfontify.21.el"
+;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/mumamo.el"
+;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/vline.el" "util/whelp.el"
-;;;;;;  "util/winsav.el" "util/zen-mode.el") (18792 32013 406000))
+;;;;;;  "util/winsav.el" "util/zen-mode.el") (18793 58785 750000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (18791 43496))
+;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (18793 53251))
 ;;; Generated autoloads from nxhtmlmaint.el
 
 (autoload 'nxhtmlmaint-start-byte-compilation "../nxhtmlmaint" "\
