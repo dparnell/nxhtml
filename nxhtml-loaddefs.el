@@ -76,7 +76,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18793 58643))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18794 36706))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -318,7 +318,7 @@ See `nxml-where-mode' for more information on Nxml-Where mode.
 ;;;***
 
 ;;;### (autoloads (rngalt-set-validation-header) "../nxhtml/rngalt"
-;;;;;;  "nxhtml/rngalt.el" (18793 56106))
+;;;;;;  "nxhtml/rngalt.el" (18793 58957))
 ;;; Generated autoloads from nxhtml/rngalt.el
 
 (autoload 'rngalt-set-validation-header "../nxhtml/rngalt" "\
@@ -1190,6 +1190,136 @@ Below are some examples.  To test them mark an example and do
 
 ;;;***
 
+;;;### (autoloads (css-color-mode css-color-global-mode css-color)
+;;;;;;  "css-color" "util/css-color.el" (18795 27108))
+;;; Generated autoloads from util/css-color.el
+
+(let ((loads (get 'css-color 'custom-loads))) (if (member '"css-color" loads) nil (put 'css-color 'custom-loads (cons '"css-color" loads))))
+
+(defvar css-color-global-mode nil "\
+Non-nil if Css-Color-Global mode is enabled.
+See the command `css-color-global-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `css-color-global-mode'.")
+
+(nxhtml-custom-autoload 'css-color-global-mode "css-color" nil)
+
+(autoload 'css-color-global-mode "css-color" "\
+Toggle Css-Color mode in every possible buffer.
+With prefix ARG, turn Css-Color-Global mode on if and only if ARG is positive.
+Css-Color mode is enabled in all buffers where `css-color-turn-on-in-buffer' would do it.
+See `css-color-mode' for more information on Css-Color mode.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'css-color-mode "css-color" "\
+Show hex color literals with the given color as background.
+In this mode hexadecimal colour specifications like #3253ff are
+displayed with the specified colour as background.
+
+Certain keys are bound to special colour editing commands when
+point is at a hexadecimal colour:
+
+\\{css-color-map}
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads (css-palette-global-mode css-palette css-palette-mode)
+;;;;;;  "css-palette" "util/css-palette.el" (18794 36604))
+;;; Generated autoloads from util/css-palette.el
+
+(autoload 'css-palette-mode "css-palette" "\
+Minor mode for palettes in CSS.
+
+The mode `css-palette-mode' acts on the first COLORS declaration in your
+  file of the form:
+
+COLORS:
+\(
+c0 \"#6f5d25\"	;tainted sand
+c1 \"#000000\"	;Black
+c2 \"#cca42b\"	;goldenslumber
+c3 \"#6889cb\"	;far off sky
+c4 \"#fff\"	;strange aeons
+)
+
+Such declarations should appear inside a block comment, in order
+  to be parsed properly by the LISP reader.
+
+Type \\[css-palette-update-all], and any occurence of
+
+  color: #f55; /*[c3]*/
+
+will be updated with
+
+  color: #6899cb; /*[c3]*/
+
+The following commands are available to insert key-value pairs
+  and palette declarations:
+  \\{css-palette-mode-map}
+
+You can extend or redefine the types of palettes by defining a
+  new palette specification of the form (PATTERN REGEXP
+  REF-FOLLOWS-VALUE), named according to the naming scheme
+  css-palette:my-type, where
+
+PATTERN is a pattern containing two (%s) format directives which
+  will be filled in with the variable and its value,
+
+REGEXP is a regular expression to match a value - variable
+  pattern,
+
+and REF-FOLLOWS-VALUE defined whether or not the reference comes
+  after the value. This allows for more flexibility.
+
+Note that, although the w3c spec at URL
+  `http://www.w3.org/TR/CSS2/syndata.html#comments' says that
+  comments \" may occur anywhere between tokens, and their
+  contents have no influence on the rendering\", Internet
+  Explorer does not think so. Better keep all your comments after
+  a \"statement\", as per the default. This means `css-palette'
+  is ill-suited for use within shorthands.
+
+See variable `css-palette:colors' for an example of a palette
+  type.
+
+The extension mechanism means that palette types can be used to
+  contain arbitrary key-value mappings.
+
+Besides the colors palette, css-palette defines the palette
+  definition variables `css-palette:colors-outside' and
+  `css-palette:files', for colors with the reference outside and
+  for file url()'s respectively.
+
+You can fine-control which palette types css-palette should look
+  at via the variable `css-palette-types'.
+
+\(fn &optional ARG)" t nil)
+
+(let ((loads (get 'css-palette 'custom-loads))) (if (member '"css-palette" loads) nil (put 'css-palette 'custom-loads (cons '"css-palette" loads))))
+
+(defvar css-palette-global-mode nil "\
+Non-nil if Css-Palette-Global mode is enabled.
+See the command `css-palette-global-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `css-palette-global-mode'.")
+
+(nxhtml-custom-autoload 'css-palette-global-mode "css-palette" nil)
+
+(autoload 'css-palette-global-mode "css-palette" "\
+Toggle Css-Palette mode in every possible buffer.
+With prefix ARG, turn Css-Palette-Global mode on if and only if ARG is positive.
+Css-Palette mode is enabled in all buffers where `css-palette-turn-on-in-buffer' would do it.
+See `css-palette-mode' for more information on Css-Palette mode.
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
 ;;;### (autoloads (freemind-to-org-mode freemind-from-org-sparse-tree
 ;;;;;;  freemind-from-org-mode freemind-from-org-mode-node freemind-show)
 ;;;;;;  "freemind" "util/freemind.el" (18659 17016))
@@ -1240,6 +1370,24 @@ Edit image file in current buffer with GIMP.
 Not documented
 
 \(fn FILE-NAME)" nil nil)
+
+;;;***
+
+;;;### (autoloads (gpl-mode) "gpl" "util/gpl.el" (18794 33000))
+;;; Generated autoloads from util/gpl.el
+
+(autoload 'gpl-mode "gpl" "\
+Mode for font-locking and editing color palettes of the GPL format.
+
+Such palettes are used and produced by free software applications
+such as the GIMP, Inkscape, Scribus, Agave and on-line tools such
+as http://colourlovers.com.
+
+You can also use
+URL `http://niels.kicks-ass.org/public/elisp/css-palette.el' to import
+such palette into a css-file as hexadecimal color palette.
+
+\(fn)" t nil)
 
 ;;;***
 
@@ -2126,14 +2274,14 @@ Not documented
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
 ;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
 ;;;;;;  "util/buffer-bg.el" "util/custsets.el" "util/ecb-batch-compile.el"
-;;;;;;  "util/ffip.el" "util/fmode.el" "util/fupd.el" "util/hexcolor.el"
-;;;;;;  "util/hfyview.el" "util/hl-needed.el" "util/htmlfontify.21.el"
-;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/mumamo.el"
-;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
-;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
-;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
-;;;;;;  "util/useful-commands.el" "util/vline.el" "util/whelp.el"
-;;;;;;  "util/winsav.el" "util/zen-mode.el") (18793 58785 750000))
+;;;;;;  "util/ffip.el" "util/fmode.el" "util/fupd.el" "util/hfyview.el"
+;;;;;;  "util/hl-needed.el" "util/htmlfontify.21.el" "util/mumamo-aspnet.el"
+;;;;;;  "util/mumamo-trace.el" "util/mumamo.el" "util/new-key-seq-widget.el"
+;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
+;;;;;;  "util/pause.el" "util/popcmp.el" "util/rebind.el" "util/rxi.el"
+;;;;;;  "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
+;;;;;;  "util/vline.el" "util/whelp.el" "util/winsav.el" "util/zen-mode.el")
+;;;;;;  (18795 27165 62000))
 
 ;;;***
 
