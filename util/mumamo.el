@@ -1241,6 +1241,7 @@ Do not record undo information during evaluation of BODY."
        (unless ,modified
          (restore-buffer-modified-p nil)))))
 
+;;;###autoload
 (defun mumamo-mark-for-refontification (min max)
   "Mark region between MIN and MAX for refontification."
   (mumamo-msgfntfy "mumamo-mark-for-refontification A min,max=%s,%s point-min,max=%s,%s modified=%s" min max (point-min) (point-max) (buffer-modified-p) )

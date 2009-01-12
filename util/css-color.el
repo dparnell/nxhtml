@@ -375,7 +375,10 @@ point is at a hexadecimal colour:
         (add-hook 'font-lock-mode-hook 'css-color-font-lock-hook-fun nil t))
     (remove-hook 'font-lock-mode-hook 'css-color-font-lock-hook-fun t)
     (font-lock-remove-keywords nil css-color-keywords))
-  (font-lock-fontify-buffer))
+  ;;(font-lock-fontify-buffer)
+  (save-restriction
+    (widen)
+    (mumamo-mark-for-refontification (point-min) (point-max))))
 
 (put 'css-color-mode 'permanent-local t)
 
