@@ -1978,7 +1978,7 @@ most major modes."
   '(
     font-lock-mode-hook
     ;;
-    hexcolor-mode
+    css-color-mode
     hi-lock-mode
     hi-lock-file-patterns
     hi-lock-interactive-patterns

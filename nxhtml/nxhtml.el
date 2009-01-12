@@ -88,7 +88,7 @@
            (sex-mode     "Send to EXternal program" "sex-mode.el" "0.71")
            "Images and Colors"
            (gimp         "Edit images with GIMP" "gimp.el" "0.2")
-           (hexcolor     "Hex color help functions" "hexcolor.el" "0.51")
+	   (css-color 	 "Css color help functions" "css-color.el" "0.02")
            "Fetching and using elisp from repositories"
            (udev         "Fetch and load from elisp repostories" "udev.el" "0.5")
            (udev-cedet   "CEDET fetcher and loader" "udev-cedet.el" "0.2")

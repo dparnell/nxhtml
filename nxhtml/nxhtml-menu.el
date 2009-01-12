@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 2007
-(defconst nxhtml-menu:version "1.74") ;;Version:
+(defconst nxhtml-menu:version "1.75") ;;Version:
 ;; Last-Updated: 2009-12-31 Wed
 ;; URL:
 ;; Keywords:
@@ -10,7 +10,7 @@
 ;;
 ;; Features that might be required by this library:
 ;;
-  ;; `compile', `flymake', `flymake-js', `flymake-php', `hexcolor',
+  ;; `compile', `flymake', `flymake-js', `flymake-php', `css-color',
   ;; `tool-bar', `xhtml-help'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -51,7 +51,7 @@
 (eval-when-compile (require 'gimp))
 (eval-when-compile (require 'html-site))
 (eval-when-compile (when (fboundp 'nxml-mode) (require 'nxhtml-mode)))
-(eval-when-compile (require 'hexcolor))
+(eval-when-compile (require 'css-color))
 (eval-when-compile (require 'flymake))
 (eval-when-compile (require 'flymake-php))
 (eval-when-compile (require 'flymake-js))
@@ -399,7 +399,6 @@
         (list 'menu-item "--" nil))
       (define-key tools-map [nxhtml-tidy-map]
         (list 'menu-item "Tidy XHTML" 'tidy-menu-symbol
-              :filter 'nxhtml-insert-menu-dynamically
               :visible '(and (fboundp 'tidy-build-menu)
                              (tidy-build-menu))
               :enable '(and (fboundp 'tidy-build-menu)
@@ -454,21 +453,19 @@
         (define-key some-help-map [nxhtml-tag-help]
           (list 'menu-item "XHTML Tag Help" 'nxhtml-short-tag-help)))
 
-      (let ((hexclr-map (make-sparse-keymap)))
-        (define-key tools-map [nxhtml-hexcolor]
-          (list 'menu-item "Color Help" hexclr-map))
-        (define-key hexclr-map [nxhtml-hexcolor-mode]
-          (list 'menu-item "Hex Color Mode"
-                'hexcolor-mode
-                :filter 'nxhtml-insert-menu-dynamically
-                :enable '(and font-lock-mode
+      (let ((cssclr-map (make-sparse-keymap)))
+        (define-key tools-map [nxhtml-css-color]
+          (list 'menu-item "Color Help" cssclr-map))
+        (define-key cssclr-map [nxhtml-css-color-mode]
+          (list 'menu-item "Css Color Mode" 'css-color-mode
+		:enable '(and font-lock-mode
                               (or (not (boundp 'mumamo-multi-major-mode))
                                   (not mumamo-multi-major-mode))
-                              (featurep 'hexcolor))
-                :button '(:toggle . (and (boundp 'hexcolor-mode) hexcolor-mode))))
-        (define-key hexclr-map [nxhtml-hexcolor-test]
-          (list 'menu-item "Color Test" 'hexcolor-test
-                :enable '(featurep 'hexcolor))))
+                              (featurep 'css-color))
+                :button '(:toggle . (and (boundp 'css-color-mode) css-color-mode))))
+        (define-key cssclr-map [nxhtml-css-color-test]
+          (list 'menu-item "Color Test" 'css-color-test
+                :enable '(featurep 'css-color))))
 
       (let ((where-map (make-sparse-keymap)))
         (define-key tools-map [nxml-where]
