@@ -1191,7 +1191,7 @@ Below are some examples.  To test them mark an example and do
 ;;;***
 
 ;;;### (autoloads (css-color-mode css-color-global-mode css-color)
-;;;;;;  "css-color" "util/css-color.el" (18795 27108))
+;;;;;;  "css-color" "util/css-color.el" (18795 27801))
 ;;; Generated autoloads from util/css-color.el
 
 (let ((loads (get 'css-color 'custom-loads))) (if (member '"css-color" loads) nil (put 'css-color 'custom-loads (cons '"css-color" loads))))
@@ -1508,6 +1508,17 @@ By default the link moved to will be active, see
 `mlinks-active-links'.
 
 \(fn &optional ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads (mumamo-mark-for-refontification) "mumamo" "util/mumamo.el"
+;;;;;;  (18795 27755))
+;;; Generated autoloads from util/mumamo.el
+
+(autoload 'mumamo-mark-for-refontification "mumamo" "\
+Mark region between MIN and MAX for refontification.
+
+\(fn MIN MAX)" nil nil)
 
 ;;;***
 
@@ -2276,12 +2287,11 @@ Not documented
 ;;;;;;  "util/buffer-bg.el" "util/custsets.el" "util/ecb-batch-compile.el"
 ;;;;;;  "util/ffip.el" "util/fmode.el" "util/fupd.el" "util/hfyview.el"
 ;;;;;;  "util/hl-needed.el" "util/htmlfontify.21.el" "util/mumamo-aspnet.el"
-;;;;;;  "util/mumamo-trace.el" "util/mumamo.el" "util/new-key-seq-widget.el"
-;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
-;;;;;;  "util/pause.el" "util/popcmp.el" "util/rebind.el" "util/rxi.el"
-;;;;;;  "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
-;;;;;;  "util/vline.el" "util/whelp.el" "util/winsav.el" "util/zen-mode.el")
-;;;;;;  (18795 27165 62000))
+;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
+;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
+;;;;;;  "util/useful-commands.el" "util/vline.el" "util/whelp.el"
+;;;;;;  "util/winsav.el" "util/zen-mode.el") (18795 27812 921000))
 
 ;;;***
 
