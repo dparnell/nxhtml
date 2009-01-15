@@ -340,6 +340,7 @@ FORMAT-STRING and ARGS have the same meaning as for the function
   ;;(list 'apply (list 'quote 'message) format-string (append '(list) args))
   ;;(list 'apply (list 'quote 'message) (list 'concat "%s: " format-string)
   ;;   (list 'get-internal-run-time) (append '(list) args))
+  nil
   )
 ;;(mumamo-msgfntfy "my-format=%s" (get-internal-run-time))
 
@@ -1088,6 +1089,7 @@ in this part of the buffer."
   "Save change position after a buffer change.
 This should be run after a buffer change.  For MIN see
 `after-change-functions'."
+  (mumamo-start-find-chunks-timer)
   (setq mumamo-last-chunk-change-pos
         (if mumamo-last-chunk-change-pos
             (let* ((old-min (car mumamo-last-chunk-change-pos))
@@ -3214,6 +3216,8 @@ See also `mumamo-quick-static-chunk'."
           ;;
           ;;(message "here a1, bw-exc-end-fun=(%s %s %s) debugger=%s" bw-exc-end-fun pos min debugger)
           (setq start-out (funcall bw-exc-end-fun pos min))
+          ;;(setq start-out pos)
+          ;;(message "find-possible-chunk, pos=%s, start-out=%s" pos start-out)
           ;;(message "here a1b, start-out=%s debugger=%s" start-out debugger)
           (when start-out
             (assert (<= start-out pos))
@@ -3253,6 +3257,7 @@ See also `mumamo-quick-static-chunk'."
             (setq start-in 1)
             (setq start 1)
             (setq exc-mode nil)))
+          ;;(message "start=%s" start)
           (when (and exc-mode
                      (listp exc-mode))
             (setq parseable-by (cadr exc-mode))
@@ -3277,8 +3282,9 @@ See also `mumamo-quick-static-chunk'."
             (when (or (not wants-end-type)
                       (eq wants-end-type 'end-normal))
               ;; 1+ is for zero length chunks (that will never be created)
-              (setq end-out (funcall fw-exc-start-fun (1+ pos) max)))
-            ;;(message "=========================== fw-exc-start-fun=%s end-out=%s end-in=%s" fw-exc-start-fun end-out end-in)
+              (setq end-out (funcall fw-exc-start-fun (1+ pos) max))
+              ;;(message "=========================== fw-exc-start-fun=%s end-out=%s end-in=%s" fw-exc-start-fun end-out end-in)
+              )
             ;; compare
             (cond
              ((and end-in end-out)
@@ -3391,9 +3397,10 @@ See also `mumamo-quick-static-chunk'."
                     (setq exc-mode nil)
                     (setq borders nil)
                     (setq parseable-by nil))))))
-          
+
           (when (or start end exc-mode borders parseable-by)
             (mumamo-msgfntfy "--- mumamo-find-possible-chunk %s" (list start end exc-mode borders parseable-by))
+            ;;(message "--- mumamo-find-possible-chunk %s" (list start end exc-mode borders parseable-by))
             (list start end exc-mode borders parseable-by))))
     (error
      (mumamo-display-error 'mumamo-chunk "%s"
@@ -5886,17 +5893,18 @@ mumamo is used."
                                     )
   "Support for mumamo.
 See the defadvice for `syntax-ppss' for an explanation."
-  (let ((pos (ad-get-arg 0)))
-    ;;(let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-get-existing-chunk-at pos))))
-    (let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-find-chunks pos "syntax-ppss-flush-cache"))))
-      (if chunk-at-pos
-          (let* ((syntax-ppss-last  (overlay-get chunk-at-pos 'syntax-ppss-last))
-                 (syntax-ppss-cache (overlay-get chunk-at-pos 'syntax-ppss-cache)))
-            (setq ad-return-value ad-do-it)
-            (overlay-put chunk-at-pos 'syntax-ppss-last syntax-ppss-last)
-            (overlay-put chunk-at-pos 'syntax-ppss-cache syntax-ppss-cache)
-            )
-        (setq ad-return-value ad-do-it)))))
+  (if (not mumamo-multi-major-mode)
+      ad-do-it
+    (let ((pos (ad-get-arg 0)))
+      ;;(let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-get-existing-chunk-at pos))))
+      (let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-find-chunks pos "syntax-ppss-flush-cache"))))
+        (if chunk-at-pos
+            (let* ((syntax-ppss-last  (overlay-get chunk-at-pos 'syntax-ppss-last))
+                   (syntax-ppss-cache (overlay-get chunk-at-pos 'syntax-ppss-cache)))
+              (setq ad-return-value ad-do-it)
+              (overlay-put chunk-at-pos 'syntax-ppss-last syntax-ppss-last)
+              (overlay-put chunk-at-pos 'syntax-ppss-cache syntax-ppss-cache))
+          (setq ad-return-value ad-do-it))))))
 
 (defvar mumamo-syntax-chunk-at-pos nil
   "Internal use.")
@@ -5914,10 +5922,9 @@ See the defadvice for `syntax-ppss' for an explanation."
   (if mumamo-syntax-chunk-at-pos
       (let* ((syntax-ppss-stats
               (overlay-get mumamo-syntax-chunk-at-pos 'syntax-ppss-stats)))
-        (setq ad-return-value ad-do-it)
-        (overlay-put mumamo-syntax-chunk-at-pos 'syntax-ppss-stats syntax-ppss-stats)
-        )
-    (setq ad-return-value ad-do-it)))
+        ad-do-it
+        (overlay-put mumamo-syntax-chunk-at-pos 'syntax-ppss-stats syntax-ppss-stats))
+    ad-do-it))
 
 (defvar mumamo-syntax-ppss-major nil)
 
@@ -5982,124 +5989,126 @@ Put this at next chunk's beginning.
 - Otherwise set the state at the beginning of the chunk to nil.
 
 Do here also other necessary adjustments for this."
-  (let ((pos (ad-get-arg 0)))
-    (unless pos (setq pos (point)))
-    ;;(let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-get-existing-chunk-at pos)))
-    (let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-find-chunks pos "syntax-ppss")))
-           (dump2 (and (boundp 'dump-quote-hunt)
-                      dump-quote-hunt
-                      (boundp 'start)
-                      ;;(= 1109 start)
-                      )))
-      ;;(setq dump2 t)
-      (setq mumamo-syntax-chunk-at-pos chunk-at-pos)
-      (when dump2 (msgtrc "\npos=%s point-min=%s mumamo-syntax-ppss.chunk-at-pos=%s" pos (point-min) chunk-at-pos))
-      (if chunk-at-pos
-          (let* ((chunk-syntax-min (mumamo-chunk-syntax-min chunk-at-pos))
-                 (chunk-major (mumamo-chunk-major-mode chunk-at-pos))
-                 (syntax-ppss-last  (overlay-get chunk-at-pos 'syntax-ppss-last))
-                 (syntax-ppss-cache (overlay-get chunk-at-pos 'syntax-ppss-cache))
-                 (syntax-ppss-last-min  (overlay-get chunk-at-pos 'syntax-ppss-last-min))
-                 (syntax-ppss-cache-min (list syntax-ppss-last-min))
-                 ;; This must be fetch the same way as in syntax-ppss:
-                 (syntax-begin-function (overlay-get chunk-at-pos 'syntax-begin-function))
-                 (syntax-ppss-max-span (if chunk-syntax-min
-                                           (/ (- pos chunk-syntax-min -2) 2)
-                                         syntax-ppss-max-span))
-                 (syntax-ppss-stats (let ((stats (overlay-get chunk-at-pos 'syntax-ppss-stats)))
-                                      (if stats
-                                          stats
-                                        (default-value 'syntax-ppss-stats))))
-                 (last-min-pos (or (car syntax-ppss-last-min)
-                                   1))
-                 )
-            ;; If chunk has moved the cached values are invalid.
-            (unless (= chunk-syntax-min last-min-pos)
-              (setq syntax-ppss-last nil)
-              (setq syntax-ppss-last-min nil)
-              (setq syntax-ppss-cache nil)
-              (setq syntax-ppss-cache-min nil)
-              (setq syntax-ppss-stats (default-value 'syntax-ppss-stats)))
-            (when dump2
-              (msgtrc " get syntax-ppss-last-min=%s len=%s chunk=%s" syntax-ppss-last-min (length syntax-ppss-last-min) chunk-at-pos)
-              (msgtrc " prop syntax-ppss-last-min=%s" (overlay-properties chunk-at-pos))
-              (msgtrc " chunk-major=%s, %s, syntax-min=%s\n last-min=%s" chunk-major major-mode chunk-syntax-min syntax-ppss-last-min))
-            ;;(setq dump2 nil)
-            (when syntax-ppss-last-min
-              (unless (car syntax-ppss-last-min)
-                ;;(msgtrc "fix-me: emacs bug workaround, setting car of syntax-ppss-last-min")
-                ;;(setcar syntax-ppss-last-min (1- chunk-syntax-min))
-                (msgtrc "fix-me: emacs bug workaround, need new syntax-ppss-last-min because car is nil")
+  (if (not mumamo-multi-major-mode)
+      ad-do-it
+    (let ((pos (ad-get-arg 0)))
+      (unless pos (setq pos (point)))
+      ;;(let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-get-existing-chunk-at pos)))
+      (let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-find-chunks pos "syntax-ppss")))
+             (dump2 (and (boundp 'dump-quote-hunt)
+                         dump-quote-hunt
+                         (boundp 'start)
+                         ;;(= 1109 start)
+                         )))
+        ;;(setq dump2 t)
+        (setq mumamo-syntax-chunk-at-pos chunk-at-pos)
+        (when dump2 (msgtrc "\npos=%s point-min=%s mumamo-syntax-ppss.chunk-at-pos=%s" pos (point-min) chunk-at-pos))
+        (if chunk-at-pos
+            (let* ((chunk-syntax-min (mumamo-chunk-syntax-min chunk-at-pos))
+                   (chunk-major (mumamo-chunk-major-mode chunk-at-pos))
+                   (syntax-ppss-last  (overlay-get chunk-at-pos 'syntax-ppss-last))
+                   (syntax-ppss-cache (overlay-get chunk-at-pos 'syntax-ppss-cache))
+                   (syntax-ppss-last-min  (overlay-get chunk-at-pos 'syntax-ppss-last-min))
+                   (syntax-ppss-cache-min (list syntax-ppss-last-min))
+                   ;; This must be fetch the same way as in syntax-ppss:
+                   (syntax-begin-function (overlay-get chunk-at-pos 'syntax-begin-function))
+                   (syntax-ppss-max-span (if chunk-syntax-min
+                                             (/ (- pos chunk-syntax-min -2) 2)
+                                           syntax-ppss-max-span))
+                   (syntax-ppss-stats (let ((stats (overlay-get chunk-at-pos 'syntax-ppss-stats)))
+                                        (if stats
+                                            stats
+                                          (default-value 'syntax-ppss-stats))))
+                   (last-min-pos (or (car syntax-ppss-last-min)
+                                     1))
+                   )
+              ;; If chunk has moved the cached values are invalid.
+              (unless (= chunk-syntax-min last-min-pos)
+                (setq syntax-ppss-last nil)
                 (setq syntax-ppss-last-min nil)
-                ))
-            (unless syntax-ppss-last-min
-              (setq syntax-ppss-last nil)
-              (save-restriction
-                (widen)
-                (let* ((min-pos chunk-syntax-min)
-                       (chunk-sub-major (mumamo-chunk-major-mode chunk-at-pos))
-                       (main-major (mumamo-main-major-mode))
-                       (is-main-mode-chunk (eq chunk-sub-major main-major)))
-                  (when dump2 (msgtrc " min-pos=%s, is-main-mode-chunk=%s" min-pos is-main-mode-chunk))
-                  ;; Looks like assert can not be used here for some reason???
-                  ;;(assert (and min-pos) t)
-                  (unless (and min-pos) (error "defadvice syntax-ppss: (and min-pos=%s)" min-pos))
-                  (setq syntax-ppss-last-min
-                        (cons min-pos ;;(1- min-pos)
-                              (if nil ;is-main-mode-chunk
-                                  ;; Fix-me: previous chunks as a cache?
-                                  (mumamo-with-major-mode-fontification main-major
-                                    `(parse-partial-sexp 1 ,min-pos nil nil nil nil))
-                                (parse-partial-sexp 1 1))))
-                  (setq syntax-ppss-cache-min (list syntax-ppss-last-min))
-                  (when dump2 (msgtrc " put syntax-ppss-last-min=%s len=%s chunk=%s" syntax-ppss-last-min (length syntax-ppss-last-min) chunk-at-pos))
-                  (when dump2 (msgtrc " prop syntax-ppss-last-min=%s" (overlay-properties chunk-at-pos)))
-                  (overlay-put chunk-at-pos 'syntax-ppss-last-min syntax-ppss-last-min)
-                  (let ((test-syntax-ppss-last-min
-                         (overlay-get chunk-at-pos 'syntax-ppss-last-min)))
-                    (when dump2 (msgtrc " test syntax-ppss-last-min=%s len=%s" test-syntax-ppss-last-min (length test-syntax-ppss-last-min)))
-                    (when dump2 (msgtrc " propt syntax-ppss-last-min=%s" (overlay-properties chunk-at-pos)))
-                  ))))
-            (when dump2 (msgtrc " here 0, syntax-ppss-last=%s" syntax-ppss-last))
-            (unless syntax-ppss-last
-              (setq syntax-ppss-last syntax-ppss-last-min)
-              (setq syntax-ppss-cache syntax-ppss-cache-min))
-            ;;(syntax-ppss pos)
-            (when dump2 (msgtrc " at 1, syntax-ppss-last=%s" syntax-ppss-last))
-            (when dump2 (msgtrc " at 1, syntax-ppss-cache=%s" syntax-ppss-cache))
-            (let (ret-val
-                  (by-pass-cache t)
-                  (dump2 dump2))
-              (if (not by-pass-cache)
-                  (progn
+                (setq syntax-ppss-cache nil)
+                (setq syntax-ppss-cache-min nil)
+                (setq syntax-ppss-stats (default-value 'syntax-ppss-stats)))
+              (when dump2
+                (msgtrc " get syntax-ppss-last-min=%s len=%s chunk=%s" syntax-ppss-last-min (length syntax-ppss-last-min) chunk-at-pos)
+                (msgtrc " prop syntax-ppss-last-min=%s" (overlay-properties chunk-at-pos))
+                (msgtrc " chunk-major=%s, %s, syntax-min=%s\n last-min=%s" chunk-major major-mode chunk-syntax-min syntax-ppss-last-min))
+              ;;(setq dump2 nil)
+              (when syntax-ppss-last-min
+                (unless (car syntax-ppss-last-min)
+                  ;;(msgtrc "fix-me: emacs bug workaround, setting car of syntax-ppss-last-min")
+                  ;;(setcar syntax-ppss-last-min (1- chunk-syntax-min))
+                  (msgtrc "fix-me: emacs bug workaround, need new syntax-ppss-last-min because car is nil")
+                  (setq syntax-ppss-last-min nil)
+                  ))
+              (unless syntax-ppss-last-min
+                (setq syntax-ppss-last nil)
+                (save-restriction
+                  (widen)
+                  (let* ((min-pos chunk-syntax-min)
+                         (chunk-sub-major (mumamo-chunk-major-mode chunk-at-pos))
+                         (main-major (mumamo-main-major-mode))
+                         (is-main-mode-chunk (eq chunk-sub-major main-major)))
+                    (when dump2 (msgtrc " min-pos=%s, is-main-mode-chunk=%s" min-pos is-main-mode-chunk))
+                    ;; Looks like assert can not be used here for some reason???
+                    ;;(assert (and min-pos) t)
+                    (unless (and min-pos) (error "defadvice syntax-ppss: (and min-pos=%s)" min-pos))
+                    (setq syntax-ppss-last-min
+                          (cons min-pos ;;(1- min-pos)
+                                (if nil ;is-main-mode-chunk
+                                    ;; Fix-me: previous chunks as a cache?
+                                    (mumamo-with-major-mode-fontification main-major
+                                      `(parse-partial-sexp 1 ,min-pos nil nil nil nil))
+                                  (parse-partial-sexp 1 1))))
+                    (setq syntax-ppss-cache-min (list syntax-ppss-last-min))
+                    (when dump2 (msgtrc " put syntax-ppss-last-min=%s len=%s chunk=%s" syntax-ppss-last-min (length syntax-ppss-last-min) chunk-at-pos))
+                    (when dump2 (msgtrc " prop syntax-ppss-last-min=%s" (overlay-properties chunk-at-pos)))
+                    (overlay-put chunk-at-pos 'syntax-ppss-last-min syntax-ppss-last-min)
+                    (let ((test-syntax-ppss-last-min
+                           (overlay-get chunk-at-pos 'syntax-ppss-last-min)))
+                      (when dump2 (msgtrc " test syntax-ppss-last-min=%s len=%s" test-syntax-ppss-last-min (length test-syntax-ppss-last-min)))
+                      (when dump2 (msgtrc " propt syntax-ppss-last-min=%s" (overlay-properties chunk-at-pos)))
+                      ))))
+              (when dump2 (msgtrc " here 0, syntax-ppss-last=%s" syntax-ppss-last))
+              (unless syntax-ppss-last
+                (setq syntax-ppss-last syntax-ppss-last-min)
+                (setq syntax-ppss-cache syntax-ppss-cache-min))
+              ;;(syntax-ppss pos)
+              (when dump2 (msgtrc " at 1, syntax-ppss-last=%s" syntax-ppss-last))
+              (when dump2 (msgtrc " at 1, syntax-ppss-cache=%s" syntax-ppss-cache))
+              (let (ret-val
+                    (by-pass-cache t)
+                    (dump2 dump2))
+                (if (not by-pass-cache)
+                    (progn
+                      (when dump2
+                        (let ((old-ppss (cdr syntax-ppss-last))
+                              (old-pos (car syntax-ppss-last)))
+                          ;;(assert (and old-pos pos) t)
+                          (unless (and old-pos pos) (error "defadvice syntax-ppss: (and old-pos=%s pos=%s)" old-pos pos))
+                          (msgtrc "parse-partial-sexp=>%s" (parse-partial-sexp old-pos pos nil nil old-ppss))))
+                      (let (dump2)
+                        (setq ret-val ad-do-it)))
+                  (let ((old-ppss (cdr syntax-ppss-last))
+                        (old-pos (car syntax-ppss-last)))
                     (when dump2
-                      (let ((old-ppss (cdr syntax-ppss-last))
-                            (old-pos (car syntax-ppss-last)))
-                        ;;(assert (and old-pos pos) t)
-                        (unless (and old-pos pos) (error "defadvice syntax-ppss: (and old-pos=%s pos=%s)" old-pos pos))
-                        (msgtrc "parse-partial-sexp=>%s" (parse-partial-sexp old-pos pos nil nil old-ppss))))
-                    (let (dump2)
-                      (setq ret-val ad-do-it)))
-                (let ((old-ppss (cdr syntax-ppss-last))
-                      (old-pos (car syntax-ppss-last)))
-                  (when dump2
-                    (msgtrc "Xparse-partial-sexp %s %s nil nil %s" old-pos pos old-ppss)
-                    (let (dump2)
-                      (msgtrc "ad-do-it=>%s" ad-do-it)))
-                  (save-restriction
-                    (widen)
-                    ;;(assert (and old-pos pos) t)
-                    (unless (and old-pos pos) (error "defadvice syntax-ppss 2 (and old-pos=%s pos=%s)" old-pos pos))
-                    (when dump2
-                      (msgtrc "parse-partial-sexp %s %s nil nil %s" old-pos pos old-ppss))
-                    (setq ret-val (parse-partial-sexp old-pos pos nil nil old-ppss)))))
-              (when dump2 (msgtrc " ==>ret-val=%s" ret-val))
-              (setq ad-return-value ret-val))
-            (overlay-put chunk-at-pos 'syntax-ppss-last syntax-ppss-last)
-            (overlay-put chunk-at-pos 'syntax-ppss-cache syntax-ppss-cache)
-            (overlay-put chunk-at-pos 'syntax-ppss-stats syntax-ppss-stats)
-            )
-        (setq ad-return-value ad-do-it)))))
+                      (msgtrc "Xparse-partial-sexp %s %s nil nil %s" old-pos pos old-ppss)
+                      (let (dump2)
+                        (msgtrc "ad-do-it=>%s" ad-do-it)))
+                    (save-restriction
+                      (widen)
+                      ;;(assert (and old-pos pos) t)
+                      (unless (and old-pos pos) (error "defadvice syntax-ppss 2 (and old-pos=%s pos=%s)" old-pos pos))
+                      (when dump2
+                        (msgtrc "parse-partial-sexp %s %s nil nil %s" old-pos pos old-ppss))
+                      (setq ret-val (parse-partial-sexp old-pos pos nil nil old-ppss)))))
+                (when dump2 (msgtrc " ==>ret-val=%s" ret-val))
+                (setq ad-return-value ret-val))
+              (overlay-put chunk-at-pos 'syntax-ppss-last syntax-ppss-last)
+              (overlay-put chunk-at-pos 'syntax-ppss-cache syntax-ppss-cache)
+              (overlay-put chunk-at-pos 'syntax-ppss-stats syntax-ppss-stats)
+              )
+          ad-do-it)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -6141,40 +6150,40 @@ For more info see also `rng-get-major-mode-chunk-function'.")
 (defadvice rng-mark-error (around
                            mumamo-advice-rng-mark-error
                            activate
-                           compile
-                           )
+                           compile)
   "Adjust range for error to chunks."
-  (let* ((beg (ad-get-arg 1))
-         (end (ad-get-arg 2))
-         (ovls-beg-end (overlays-in beg end))
-         (xml-parts nil)
-         chunks
-         )
-    (dolist (ovl ovls-beg-end)
-      (when (mumamo-chunk-major-mode ovl)
-        (setq chunks (cons ovl chunks))))
-    ;;(message "rng-mark-error advice, beg,end=%s,%s" beg end)
-    ;;(message "chunks=%s" chunks)
-    (if (not chunks)
-        ad-do-it
-      (dolist (chunk chunks)
-        (when (mumamo-valid-nxml-chunk chunk)
-          ;; rng-error
-          (let ((part-beg (max (overlay-start chunk)
-                               beg))
-                (part-end (min (overlay-end chunk)
-                               end)))
-            ;;(message "   part-beg/end=%s/%s" part-beg part-end)
-            (when (< part-beg part-end)
-              (ad-set-arg 1 part-beg)
-              (ad-set-arg 2 part-end)
-              ad-do-it)))))))
+  (if (not mumamo-multi-major-mode)
+      ad-do-it
+    (let* ((beg (ad-get-arg 1))
+           (end (ad-get-arg 2))
+           (ovls-beg-end (overlays-in beg end))
+           (xml-parts nil)
+           chunks
+           )
+      (dolist (ovl ovls-beg-end)
+        (when (mumamo-chunk-major-mode ovl)
+          (setq chunks (cons ovl chunks))))
+      ;;(message "rng-mark-error advice, beg,end=%s,%s" beg end)
+      ;;(message "chunks=%s" chunks)
+      (if (not chunks)
+          ad-do-it
+        (dolist (chunk chunks)
+          (when (mumamo-valid-nxml-chunk chunk)
+            ;; rng-error
+            (let ((part-beg (max (overlay-start chunk)
+                                 beg))
+                  (part-end (min (overlay-end chunk)
+                                 end)))
+              ;;(message "   part-beg/end=%s/%s" part-beg part-end)
+              (when (< part-beg part-end)
+                (ad-set-arg 1 part-beg)
+                (ad-set-arg 2 part-end)
+                ad-do-it))))))))
 
 (defadvice rng-do-some-validation-1 (around
                                      mumamo-advice-rng-do-some-validation-1
                                      activate
-                                     compile
-                                     )
+                                     compile)
   "Adjust validation to chunks."
   (if (not mumamo-multi-major-mode)
       ad-do-it
@@ -6337,7 +6346,7 @@ For more info see also `rng-get-major-mode-chunk-function'.")
                                           pos))))))))))
       ;;(message "--- exit rng-do-some-validation-1, have-remaining-chars=%s" have-remaining-chars)
       (setq have-remaining-chars (< (point) point-max))
-      have-remaining-chars)))
+      (setq ad-return-value have-remaining-chars))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; xmltok.el
