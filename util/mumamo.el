@@ -1542,9 +1542,10 @@ this to ensure that the whole buffer is fontified."
         (syntax-min (mumamo-chunk-syntax-min chunk))
         (syntax-max (mumamo-chunk-syntax-max chunk))
         (font-lock-dont-widen t))
-    (save-restriction
-      (narrow-to-region syntax-min syntax-max)
-      (mumamo-unfontify-region-with syntax-min syntax-max major))))
+    (when (< syntax-min syntax-max)
+      (save-restriction
+        (narrow-to-region syntax-min syntax-max)
+        (mumamo-unfontify-region-with syntax-min syntax-max major)))))
 
 (defvar mumamo-just-changed-major nil
   "Avoid refontification when switching major mode.
@@ -1641,8 +1642,12 @@ See also `mumamo-chunk-value-set-min'."
 See also `mumamo-chunk-value-set-min'.
 For parseable-by see `mumamo-find-possible-chunk'."
   (nth 5 chunk-values))
-(defsubst mumamo-chunk-prev-chunk (chunk-values)
-  "Get prevous chunk from CHUNK-VALUES.
+;; (defsubst mumamo-chunk-prev-chunk (chunk-values)
+;;   "Get previous chunk from CHUNK-VALUES.
+;; See also `mumamo-chunk-value-set-min'."
+;;   (nth 6 chunk-values))
+(defsubst mumamo-chunk-value-fw-exc-fun (chunk-values)
+  "Get function that find chunk end from CHUNK-VALUES.
 See also `mumamo-chunk-value-set-min'."
   (nth 6 chunk-values))
 
@@ -2490,6 +2495,7 @@ MIN to MAX, otherwise MIN to MAX."
          border-min
          border-max
          parseable
+         fw-exc-fun
          (max-found nil)
          major-sub)
     ;; Fix-me: maybe assume previous chunk is trustworthy if it ends
@@ -2520,11 +2526,12 @@ MIN to MAX, otherwise MIN to MAX."
     (dolist (fn chunk-fns)
       (let* (
              (r (funcall fn pos (point-min) (point-max)))
-             (rmin       (nth 0 r))
-             (rmax       (nth 1 r))
-             (rmajor-sub (nth 2 r))
-             (rborder    (nth 3 r))
-             (rparseable (nth 4 r))
+             (rmin        (nth 0 r))
+             (rmax        (nth 1 r))
+             (rmajor-sub  (nth 2 r))
+             (rborder     (nth 3 r))
+             (rparseable  (nth 4 r))
+             (rfw-exc-fun (nth 5 r))
              (rborder-min (when rborder (nth 0 rborder)))
              (rborder-max (when rborder (nth 1 rborder)))
              (rmax-found rmax))
@@ -2554,6 +2561,7 @@ MIN to MAX, otherwise MIN to MAX."
                 (setq border-max rborder-max)
                 (setq max-found rmax-found)
                 (setq parseable rparseable)
+                (setq fw-exc-fun rfw-exc-fun)
                 (setq major-sub rmajor-sub))
             (if rmajor-sub
                 (if major-sub
@@ -2565,6 +2573,7 @@ MIN to MAX, otherwise MIN to MAX."
                       (setq border-max rborder-max)
                       (when rmax-found (setq max-found t))
                       (setq parseable rparseable)
+                      (setq fw-exc-fun rfw-exc-fun)
                       (setq major-sub rmajor-sub))
                   (setq min rmin)
                   (setq border-min rborder-min)
@@ -2572,6 +2581,7 @@ MIN to MAX, otherwise MIN to MAX."
                   (setq border-max rborder-max)
                   (when rmax-found (setq max-found t))
                   (setq parseable rparseable)
+                  (setq fw-exc-fun rfw-exc-fun)
                   (setq major-sub rmajor-sub))
               (unless major-sub
                 (when (< min rmin)
@@ -2595,7 +2605,7 @@ MIN to MAX, otherwise MIN to MAX."
             (assert (< border-max max) t)))))
     ;;(list min (when max-found max) major-sub syntax-min syntax-max)
     (goto-char here)
-    (list min (when max-found max) major-sub border-min border-max parseable)
+    (list min (when max-found max) major-sub border-min border-max parseable fw-exc-fun)
     ))
 
 (defun mumamo-define-no-mode (mode-sym)
@@ -2695,12 +2705,13 @@ chunk to PREV-CHUNK."
   (mumamo-msgfntfy "mumamo-create-chunk-from-chunk-values %s" chunk-values)
   ;; Fix-me: Move adjusting of old chunks to here since it must always
   ;; be done.
-  (let* ((min           (mumamo-chunk-value-min    chunk-values))
-         (max           (mumamo-chunk-value-max    chunk-values))
-         (syntax-min    (mumamo-chunk-value-syntax-min chunk-values))
-         (syntax-max    (mumamo-chunk-value-syntax-max chunk-values))
-         (major-sub     (mumamo-chunk-value-major  chunk-values))
-         (parseable-by  (mumamo-chunk-value-parseable-by  chunk-values))
+  (let* ((min           (mumamo-chunk-value-min          chunk-values))
+         (max           (mumamo-chunk-value-max          chunk-values))
+         (syntax-min    (mumamo-chunk-value-syntax-min   chunk-values))
+         (syntax-max    (mumamo-chunk-value-syntax-max   chunk-values))
+         (major-sub     (mumamo-chunk-value-major        chunk-values))
+         (parseable-by  (mumamo-chunk-value-parseable-by chunk-values))
+         (fw-exc-fun    (mumamo-chunk-value-fw-exc-fun   chunk-values))
          ;;(prev-chunk    (mumamo-chunk-prev-chunk   chunk-values))
          (major-normal (mumamo-main-major-mode))
          (max-found    (when max t))
@@ -2724,6 +2735,13 @@ chunk to PREV-CHUNK."
     (setq chunk-ovl (make-overlay min max))
     (overlay-put chunk-ovl 'mumamo-prev-chunk prev-chunk)
     (overlay-put chunk-ovl 'mumamo-is-closed max-found)
+    ;; Add the forward chunk functions. First part is what ends
+    ;; current and steps up to previous chunk in the chunk
+    ;; hierachy. The second tells what sub-chunks functions can be
+    ;; used. (Fix-me: This currently only have the values 'none and
+    ;; 'top.)
+    (overlay-put chunk-ovl 'mumamo-fw-funs (list fw-exc-fun
+                                                 (if fw-exc-fun 'none 'top)))
     ;; Make syntax border width positive integers:
     (overlay-put chunk-ovl 'syntax-min-d (when syntax-min (- syntax-min min)))
     (overlay-put chunk-ovl 'syntax-max-d (when syntax-max (- max syntax-max)))
@@ -2978,7 +2996,7 @@ meaning of POS, MAX and MARKER."
   "General chunk function helper.
 See `mumamo-chunk-start-fw-str' for more information and the
 meaning of POS, MIN and MARKER."
-  (assert (stringp marker))
+  ;;(assert (stringp marker))
   (let (start-in)
     (goto-char pos)
     (setq start-in (search-backward marker min t))
@@ -3113,7 +3131,175 @@ Otherwise return nil."
 ;; surrounding chunks syntax. Patterns that possibly could be chunk
 ;; borders might instead be parts of comments or strings in cases
 ;; where they should not be valid borders there.
+(defvar mumamo-find-possible-chunk-new nil)
 (defun mumamo-find-possible-chunk (pos
+                                   min max
+                                   bw-exc-start-fun
+                                   bw-exc-end-fun
+                                   fw-exc-start-fun
+                                   fw-exc-end-fun
+                                   &optional find-borders-fun)
+  (if (not mumamo-find-possible-chunk-new)
+      (mumamo-find-possible-chunk-old pos min max
+                                      bw-exc-start-fun
+                                      bw-exc-end-fun
+                                      fw-exc-start-fun
+                                      fw-exc-end-fun
+                                      find-borders-fun)
+    (mumamo-find-possible-chunk-new pos
+                                    ;;min
+                                    max
+                                    bw-exc-start-fun
+                                    ;;bw-exc-end-fun
+                                    fw-exc-start-fun
+                                    fw-exc-end-fun
+                                    find-borders-fun)
+    ))
+
+(defun mumamo-find-possible-chunk-new (pos
+                                       ;;min
+                                       max
+                                       bw-exc-start-fun
+                                       ;;bw-exc-end-fun
+                                       fw-exc-start-fun
+                                       fw-exc-end-fun
+                                       &optional find-borders-fun)
+  ;; This should return no end value!
+
+  ;;(mumamo-condition-case err
+      (progn
+        (assert (and (<= pos max)) nil
+                "mumamo-chunk: pos=%s, max=%s, bt=%S"
+                pos max (with-output-to-string (backtrace)))
+        ;; "in" refers to "in exception" and "out" is then in main
+        ;; major mode.
+        (let (start-in-cons
+              exc-mode
+              fw-exc-mode
+              fw-exc-fun
+              parseable-by
+              start-in start-out
+              end-in end-out
+              start end
+              ;;end-of-exception
+              wants-end-type
+              found-valid-end
+              (main-major (mumamo-main-major-mode))
+              borders
+              border-beg
+              border-end)
+          ;;;; find start of range
+          ;;
+          ;; start normal
+          ;;
+          ;;(setq start-out (funcall bw-exc-end-fun pos min))
+          (setq start-out (funcall fw-exc-end-fun pos max))
+          ;; start exception
+          (setq start-in (funcall fw-exc-start-fun pos max))
+          ;; compare
+          (when (and start-in start-out)
+            (if (> start-in start-out)
+                (setq start-in nil)
+              (setq start-out nil)))
+          (cond
+           (start-in
+            (setq start-in-cons (funcall bw-exc-start-fun start-in pos))
+            (message "start-in=%s start-in-cons=%s" start-in start-in-cons)
+            (when start-in-cons
+              (assert (= start-in (car start-in-cons)))
+              (setq exc-mode (cdr start-in-cons)))
+            (setq start start-in))
+           (start-out
+            (setq start start-out))
+           )
+          (when (and exc-mode
+                     (listp exc-mode))
+            (setq parseable-by (cadr exc-mode))
+            (setq exc-mode (car exc-mode)))
+          ;; borders
+          (when find-borders-fun
+            (let ((start-border (when start (unless (and (= 1 start)
+                                                         (not exc-mode))
+                                              start)))
+                  (end-border (when end (unless (and (= (point-max) end)
+                                                     (not exc-mode))
+                                          end))))
+              (setq borders (funcall find-borders-fun start-border end-border exc-mode))))
+          ;; check
+          (setq border-beg (nth 0 borders))
+          (setq border-end (nth 1 borders))
+          ;;(when start (assert (<= start pos)))
+          (when border-beg
+            (assert (<= start border-beg)))
+          ;; This is just totally wrong in some pieces and a desperate
+          ;; try after seeing the problems with wp-app.php around line
+          ;; 1120.  Maybe this can be used when cutting chunks from
+          ;; top to bottom however.
+          (when nil ;end
+            (let ((here (point))
+                  end-line-beg
+                  end-in-string
+                  start-in-string
+                  (start-border (or (nth 0 borders) start))
+                  (end-border   (or (nth 1 borders) end)))
+              ;; Check if in string
+              ;; Fix-me: add comments about why and examples + tests
+              ;; Fix-me: must loop to find good borders ....
+              (when end
+                ;; Fix-me: more careful positions for guess
+                (setq end-in-string
+                      (mumamo-guess-in-string
+                       ;;(+ end 2)
+                       (1+ end-border)
+                       ))
+                (when end-in-string
+                  (when start
+                    (setq start-in-string
+                          (mumamo-guess-in-string
+                           ;;(- start 2)
+                           (1- start-border)
+                           )))
+                  (if (not start-in-string)
+                      (setq end nil)
+                    (if exc-mode
+                        (if (and start-in-string end-in-string)
+                            ;; If both are in a string and on the same line then
+                            ;; guess this is actually borders, otherwise not.
+                            (unless (= start-in-string end-in-string)
+                              (setq start nil)
+                              (setq end nil))
+                          (when start-in-string (setq start nil))
+                          (when end-in-string (setq end nil)))
+                      ;; Fix-me: ???
+                      (when start-in-string (setq start nil))
+                      ))
+                  (unless (or start end)
+                    (setq exc-mode nil)
+                    (setq borders nil)
+                    (setq parseable-by nil))))))
+
+          (when (or start end exc-mode borders parseable-by)
+            (setq fw-exc-fun (if exc-mode
+                                 ;; Fix-me: this is currently correct,
+                                 ;; but will change if exc mode in exc
+                                 ;; mode is allowed.
+                                 fw-exc-end-fun
+                               ;; Fix-me: these should be collected later
+                               ;;fw-exc-start-fun
+                               nil
+                               ))
+            (mumamo-msgfntfy "--- mumamo-find-possible-chunk-new %s" (list start end exc-mode borders parseable-by fw-exc-fun))
+            (message "--- mumamo-find-possible-chunk-new %s" (list start end exc-mode borders parseable-by fw-exc-fun))
+            (when fw-exc-mode
+              (unless (eq fw-exc-mode exc-mode)
+                ;;(message "fw-exc-mode=%s NEQ exc-mode=%s" fw-exc-mode exc-mode)
+                ))
+            (list start end exc-mode borders parseable-by fw-exc-fun))))
+    ;;(error (mumamo-display-error 'mumamo-chunk "%s" (error-message-string err)))
+
+  ;;)
+  )
+(defun mumamo-find-possible-chunk-old (pos
                                    min max
                                    bw-exc-start-fun
                                    bw-exc-end-fun
@@ -3169,7 +3355,7 @@ which takes three parameters, START, END and EXCEPTION-MODE in
 the return values above.  BORDERS may be nil and otherwise has
 this format:
 
-  \(START-BORDER END-BORDER EXCEPTION-MODE)
+  \(START-BORDER END-BORDER EXCEPTION-MODE FW-EXC-FUN)
 
 START-BORDER and END-BORDER may be nil.  Otherwise they should be
 the position where the border ends respectively start at the
@@ -3177,6 +3363,9 @@ corresponding end of the chunk.
 
 PARSEABLE-BY is a list of major modes with parsers that can parse
 the chunk.
+
+FW-EXC-FUN is the function that finds the end of the chunk.  This
+is either FW-EXC-START-FUN or FW-EXC-END-FUN.
 
 ---- * Note: This routine is used by to create new members for
 chunk families.  If you want to add a new chunk family you could
@@ -3199,6 +3388,8 @@ See also `mumamo-quick-static-chunk'."
         ;; major mode.
         (let (start-in-cons
               exc-mode
+              fw-exc-mode
+              fw-exc-fun
               parseable-by
               start-in start-out
               end-in end-out
@@ -3284,6 +3475,9 @@ See also `mumamo-quick-static-chunk'."
               ;; 1+ is for zero length chunks (that will never be created)
               (setq end-out (funcall fw-exc-start-fun (1+ pos) max))
               ;;(message "=========================== fw-exc-start-fun=%s end-out=%s end-in=%s" fw-exc-start-fun end-out end-in)
+              (when (listp end-out)
+                (setq fw-exc-mode (nth 1 end-out))
+                (setq end-out (car end-out)))
               )
             ;; compare
             (cond
@@ -3399,12 +3593,135 @@ See also `mumamo-quick-static-chunk'."
                     (setq parseable-by nil))))))
 
           (when (or start end exc-mode borders parseable-by)
-            (mumamo-msgfntfy "--- mumamo-find-possible-chunk %s" (list start end exc-mode borders parseable-by))
-            ;;(message "--- mumamo-find-possible-chunk %s" (list start end exc-mode borders parseable-by))
-            (list start end exc-mode borders parseable-by))))
+            (setq fw-exc-fun (if exc-mode
+                                 ;; Fix-me: this is currently correct,
+                                 ;; but will change if exc mode in exc
+                                 ;; mode is allowed.
+                                 fw-exc-end-fun
+                               ;; Fix-me: these should be collected later
+                               ;;fw-exc-start-fun
+                               nil
+                               ))
+            (mumamo-msgfntfy "--- mumamo-find-possible-chunk-old %s" (list start end exc-mode borders parseable-by fw-exc-fun))
+            ;;(message "--- mumamo-find-possible-chunk-old %s" (list start end exc-mode borders parseable-by fw-exc-fun))
+            (when fw-exc-mode
+              (unless (eq fw-exc-mode exc-mode)
+                ;;(message "fw-exc-mode=%s NEQ exc-mode=%s" fw-exc-mode exc-mode)
+                ))
+            (list start end exc-mode borders parseable-by fw-exc-fun))))
     (error
      (mumamo-display-error 'mumamo-chunk "%s"
                            (error-message-string err)))))
+
+;; Fix-me: new chunk finding routine
+(defun mumamo-find-next-chunk-values (after-chunk)
+  "Search forward for start of next chunk.
+Return chunk values for next chunk.
+"
+  (let* ((here (point))
+         min
+         max
+         (pos (if after-chunk (overlay-start after-chunk) 1))
+         (mumamo-find-possible-chunk-new t)
+         (fw-funs
+          (if after-chunk
+              (overlay-get after-chunk 'mumamo-fw-funs)
+            (let ((chunk-info (cdr mumamo-current-chunk-family)))
+              (cadr chunk-info)))))
+    ;;(cadr (cdr mumamo-current-chunk-family))
+    ;;(list fw-exc-fun (if fw-exc-fun 'none 'top)))
+    ;;(fw-exc-end-fun    (nth 0 fw-funs))
+    ;;(fw-exc-start-funs (nth 1 fw-funs))
+    ;;(find-borders-fun  (nth 2 fw-funs)))
+    ;; Fix-me: like mumamo-create-chunk-values-at, but simplified:
+    (dolist (fn fw-funs)
+      (let* (
+             (r (funcall fn pos (point-min) (point-max)))
+             (rmin        (nth 0 r))
+             (rmax        (nth 1 r))
+             (rmajor-sub  (nth 2 r))
+             (rborder     (nth 3 r))
+             (rparseable  (nth 4 r))
+             (rfw-exc-fun (nth 5 r))
+             (rborder-min (when rborder (nth 0 rborder)))
+             (rborder-max (when rborder (nth 1 rborder)))
+             (rmax-found rmax))
+        (when r
+          (mumamo-msgfntfy "  fn=%s, r=%s" fn r)
+          (message "  fn=%s, r=%s" fn r)
+          (unless rmin (setq rmin (point-max)))
+          (unless rmax (setq rmax (point-min)))
+          ;; Do not allow zero length chunks
+          (unless (and (> rmin 1) (= rmin rmax))
+            ;; comparision have to be done differently if we are in an
+            ;; exception part or not.  since we are doing this from top to
+            ;; bottom the rules are:
+            ;;
+            ;; - exception parts always outrules non-exception part.  when
+            ;;   in exception part the min start point should be used.
+            ;; - when in non-exception part the max start point and the
+            ;;   min end point should be used.
+            ;;
+            ;; check if first run:
+
+            ;; Fix-me: there is some bug here when borders are not
+            ;; included and are not 0 width.
+            (if (not min)
+                (progn
+                  (setq min rmin)
+                  (setq border-min rborder-min)
+                  (setq max rmax)
+                  (setq border-max rborder-max)
+                  (setq max-found rmax-found)
+                  (setq parseable rparseable)
+                  (setq fw-exc-fun rfw-exc-fun)
+                  (setq major-sub rmajor-sub))
+              (if rmajor-sub
+                  (if major-sub
+                      (when (or (not min)
+                                (< rmin min))
+                        (setq min rmin)
+                        (setq border-min rborder-min)
+                        (setq max rmax)
+                        (setq border-max rborder-max)
+                        (when rmax-found (setq max-found t))
+                        (setq parseable rparseable)
+                        (setq fw-exc-fun rfw-exc-fun)
+                        (setq major-sub rmajor-sub))
+                    (setq min rmin)
+                    (setq border-min rborder-min)
+                    (setq max rmax)
+                    (setq border-max rborder-max)
+                    (when rmax-found (setq max-found t))
+                    (setq parseable rparseable)
+                    (setq fw-exc-fun rfw-exc-fun)
+                    (setq major-sub rmajor-sub))
+                (unless major-sub
+                  (when (> min rmin)
+                    (setq min rmin)
+                    (setq border-min rborder-min))
+                  (when (> rmax max)
+                    (setq max-found rmax-found)
+                    (setq max rmax)
+                    (setq border-max rborder-max))
+                  ))))
+          (mumamo-msgfntfy "min/max=%s/%s border=%s/%s pos=%s" min max border-min border-max pos)
+          (message "min/max=%s/%s border=%s/%s pos=%s" min max border-min border-max pos)
+          ;; check!
+          (when (and min max)
+            (assert (>= min pos) t)
+            (assert (<= pos max) t)
+            (when border-min
+              (assert (< min border-min) t)
+              (assert (<= border-min max) t))
+            (when border-max
+              (assert (<= min border-max) t)
+              (assert (< border-max max) t))))
+        ))
+    ;;(list min (when max-found max) major-sub syntax-min syntax-max)
+    (goto-char here)
+    (list min (when max-found max) major-sub border-min border-max parseable fw-exc-fun)
+    ))
 
 ;; Fix-me: This should check if the new chunk should be
 ;; parsed or not
