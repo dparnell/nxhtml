@@ -3700,7 +3700,8 @@ The first two are used when the bottom:
       ;;(overlay-put this-chunk 'mumamo-this-border-funs borders-fun)
     (overlay-put this-chunk 'mumamo-next-major next-major)
     (overlay-put this-chunk 'mumamo-next-chunk-funs next-chunk-funs)
-      (overlay-put this-chunk 'mumamo-after-chunk after-chunk)
+    (overlay-put this-chunk 'mumamo-prev-chunk after-chunk)
+    (when after-chunk (overlay-put after-chunk 'mumamo-next-chunk this-chunk))
     (overlay-put this-chunk 'mumamo-major-mode maj)
       ;;(overlay-put this-chunk 'mumamo-fw-funs fw-funs)
       )
@@ -3777,11 +3778,6 @@ information.
          curr-border-fun
          next-border-fun
          )
-    (unless curr-chunk-funs
-      ;; (setq curr-chunk-funs
-      ;;       (let ((chunk-info (cdr mumamo-current-chunk-family)))
-      ;;         (cadr chunk-info)))
-      )
     ;; Fix-me: like mumamo-create-chunk-values-at, but simplified:
     (message "  curr-chunk-funs=%s" curr-chunk-funs)
     (when curr-end-fun
@@ -3807,9 +3803,11 @@ information.
           (mumamo-msgfntfy "  fn=%s, r=%s" fn r)
           (message "  fn=%s, r=%s, max=%s" fn r max)
           (unless rmin (setq rmin (point-max)))
-          (unless rmax (setq rmax (point-min)))
+          ;;(unless rmax (setq rmax (point-min)))
           ;; Do not allow zero length chunks
-          (unless (and (> rmin 1) (= rmin rmax))
+          (unless (and (> rmin 1)
+                       rmax
+                       (= rmin rmax))
             ;; comparision have to be done differently if we are in an
             ;; exception part or not.  since we are doing this from top to
             ;; bottom the rules are:
@@ -3860,7 +3858,8 @@ information.
                   (when (> next-min rmin)
                     (setq next-min rmin)
                     (setq border-min rborder-min))
-                  (when (> rmax max)
+                  (when (and rmax max
+                             (> rmax max))
                     (setq max-found rmax-found)
                     (setq max rmax)
                     (setq border-max rborder-max))
@@ -3882,8 +3881,9 @@ information.
     (goto-char here)
     (list next-min (when max-found max) next-major border-min border-max parseable fw-exc-fun)
     (message "border-min=%s border-max=%s" border-min border-max)
-    (setq curr-max (min (if next-min next-min max)
-                        (if next-end-fun-end next-end-fun-end max)))
+    (setq curr-max (if max max (point-max)))
+    (setq curr-max (min (if next-min next-min curr-max)
+                        (if next-end-fun-end next-end-fun-end curr-max)))
     (when border-min (setq next-border-min border-min))
     (when border-max (setq next-border-max border-max))
     (setq next-fw-exc-fun fw-exc-fun)
