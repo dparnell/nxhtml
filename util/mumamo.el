@@ -960,6 +960,7 @@ in this part of the buffer."
       (let* ((change-min (car mumamo-last-chunk-change-pos))
              (change-max (cdr mumamo-last-chunk-change-pos))
              (this-chunk (mumamo-get-existing-chunk-at change-min))
+             (this-new-chunk (mumamo-get-existing-new-chunk-at change-min))
              ;; Check if near border
              (this-syntax-min (when this-chunk (mumamo-chunk-syntax-min this-chunk)))
              (this-syntax-max (when this-chunk (mumamo-chunk-syntax-max this-chunk)))
@@ -980,8 +981,11 @@ in this part of the buffer."
           (end (or end (point-max)))
           narpos
           this-values
+          this-new-values
           this-chunk
+          this-new-chunk
           prev-chunk
+          prev-new-chunk
           first-change-pos
           interrupted
           (point-max (1+ (buffer-size)))
@@ -999,6 +1003,8 @@ in this part of the buffer."
           (mumamo-stop-find-chunks-timer)
           (mumamo-save-buffer-state nil
             (setq this-chunk mumamo-last-chunk)
+            (when mumamo-last-chunk
+              (setq this-new-chunk (mumamo-get-existing-new-chunk-at (overlay-start mumamo-last-chunk))))
             (while (and (or (not end)
                             (<= ok-pos end))
                         (< ok-pos (point-max))
@@ -1012,8 +1018,11 @@ in this part of the buffer."
               (narrow-to-region narpos point-max)
               ;;(msgtrc "narrow-to-region %s %s, ok-pos=%s, end=%s, this-chunk=%s" narpos point-max ok-pos end this-chunk)
               (setq prev-chunk this-chunk)
+              (setq prev-new-chunk this-new-chunk)
               (setq this-chunk nil)
+              (setq this-new-chunk nil)
               (setq this-values (mumamo-create-chunk-values-at ok-pos))
+              (setq this-new-values (mumamo-find-next-chunk-values prev-new-chunk))
               (setq ok-pos (or (mumamo-chunk-value-max this-values) ;;(overlay-end this-chunk)
                                (point-max)))
               (mumamo-msgfntfy "!!!new ok-pos=%s, this-values=%s" ok-pos this-values)
@@ -1025,6 +1034,13 @@ in this part of the buffer."
                                             (overlayp prev-chunk)
                                             (overlay-buffer prev-chunk))
                                    (overlay-get prev-chunk 'mumamo-next-chunk))))
+                    ;; fix-me: continue here
+                    (old-new-chunk (if (not prev-new-chunk)
+                                       (mumamo-get-existing-new-chunk-at 1)
+                                     (when (and prev-new-chunk
+                                                (overlayp prev-new-chunk)
+                                                (overlay-buffer prev-new-chunk))
+                                       (overlay-get prev-new-chunk 'mumamo-next-chunk))))
                     next-old-chunk)
                 (when old-chunk
                   (mumamo-msgfntfy "old-chunk=%s" old-chunk)
@@ -2842,6 +2858,21 @@ There must not be an old chunk there.  Mark for refontification."
     ;;(message "mumamo-get-existing-chunk-at EXIT chunk-ovl=%s" chunk-ovl)
     chunk-ovl))
 
+(defun mumamo-get-existing-new-chunk-at (pos)
+  "Return existing chunk at POS if any."
+  ;;(message "mumamo-get-existing-new-chunk-at pos=%s" pos)
+  (let ((chunk-ovl))
+    (when (= pos (point-max))
+      (setq pos (1- pos)))
+    (dolist (o (overlays-at pos))
+      (unless chunk-ovl
+        (when ;;(mumamo-chunk-major-mode o)
+            (and (overlay-get o 'mumamo-major-mode)
+                 (overlay-get o 'mumamo-is-new))
+          (setq chunk-ovl o))))
+    ;;(message "mumamo-get-existing-chunk-at EXIT chunk-ovl=%s" chunk-ovl)
+    chunk-ovl))
+
 (defun mumamo-get-chunk-save-buffer-state (pos)
   "Return chunk overlay at POS.  Preserve state."
   (let (chunk)
@@ -3630,11 +3661,11 @@ See also `mumamo-quick-static-chunk'."
   (interactive)
   (mumamo-new-delete-chunks)
   (setq x1 nil)
-  (setq x2 nil)
-  (setq x3 nil)
-  (setq x4 nil)
-  (setq x5 nil)
-  (setq x6 nil)
+  ;; (setq x2 nil)
+  ;; (setq x3 nil)
+  ;; (setq x4 nil)
+  ;; (setq x5 nil)
+  ;; (setq x6 nil)
   ;; (setq x1 (mumamo-new-create-chunk (mumamo-find-next-chunk-values nil)))
   ;; (setq x2 (mumamo-new-create-chunk (mumamo-find-next-chunk-values x1)))
   ;; (setq x3 (mumamo-new-create-chunk (mumamo-find-next-chunk-values x2)))
@@ -3695,19 +3726,28 @@ The first two are used when the bottom:
     ;;(message "fw-funs=%s" fw-funs)
     (when this-chunk
     (overlay-put this-chunk 'mumamo-is-new t)
-    ;;(overlay-put this-chunk 'mumamo-next-values next-values)
+      ;; Values for next chunk
     (overlay-put this-chunk 'mumamo-next-end-fun next-end-fun)
-      ;;(overlay-put this-chunk 'mumamo-this-border-funs borders-fun)
     (overlay-put this-chunk 'mumamo-next-major next-major)
     (overlay-put this-chunk 'mumamo-next-chunk-funs next-chunk-funs)
+      ;; Values for this chunk
     (overlay-put this-chunk 'mumamo-prev-chunk after-chunk)
     (when after-chunk (overlay-put after-chunk 'mumamo-next-chunk this-chunk))
     (overlay-put this-chunk 'mumamo-major-mode maj)
-      ;;(overlay-put this-chunk 'mumamo-fw-funs fw-funs)
+      (overlay-put this-chunk 'mumamo-parseable-by pable)
       )
     this-chunk
     )
   )
+
+(defun mumamo-new-chunk-equal-chunk-values (chunk values)
+  (let ((is-new (overlay-get chunk 'mumamo-is-new))
+        (next-end-fun (overlay-get chunk 'mumamo-next-end-fun))
+        (next-major (overlay-get chunk 'mumamo-next-major))
+        (next-chunk-funs (overlay-get chunk 'mumamo-next-chunk-funs))
+        (next-chunk-funs (overlay-get chunk 'mumamo-next-chunk-funs))
+  )))
+
 (defun mumamo-find-next-chunk-values (after-chunk)
 ;(mumamo-find-next-chunk-values nil)
   "Search forward for start of next chunk.
@@ -3888,6 +3928,7 @@ information.
     (when border-max (setq next-border-max border-max))
     (setq next-fw-exc-fun fw-exc-fun)
     (setq next-border-fun border-fun)
+    (setq curr-parseable parseable)
     (unless next-major (setq next-chunk-funs nil))
     (let ((current (list curr-min curr-max curr-major curr-border-min curr-border-max curr-parseable
                          curr-chunk-funs
