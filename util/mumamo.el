@@ -3,7 +3,7 @@
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Maintainer:
 ;; Created: Fri Mar 09 18:15:25 2007
-(defconst mumamo:version "0.88") ;;Version:
+(defconst mumamo:version "0.89") ;;Version:
 ;; Last-Updated: 2008-09-23T19:09:11+0200 Tue
 ;; URL: http://OurComments.org/Emacs/Emacs.html
 ;; Keywords:
@@ -682,6 +682,49 @@ default."
   :type 'face
   :group 'mumamo)
 
+;; Fix-me: use and enhance this
+(defcustom mumamo-background-colors '(mumamo-background-chunk-major
+                                      mumamo-background-chunk-submode)
+  "List of background colors in order of use.
+First color is for main major mode chunks, then for submode
+chunks, sub-submode chunks etc.  Colors are reused in cyclic
+order.
+
+The values in the list should be symbols. Each symbol should either be
+
+  1: a variable symbol pointing to a face (or beeing nil)
+  2: a face symbol
+  3: a function with one argument (subchunk depth) returning a
+     face symbol
+
+The first useful interpretation in this list will be used."
+  :type '(repeat symbol)
+  :group 'mumamo)
+
+;;(mumamo-background-color 0)
+;;(mumamo-background-color 1)
+;;(mumamo-background-color 2)
+(defun mumamo-background-color (sub-chunk-depth)
+  (let* ((idx (when mumamo-background-colors
+                (mod sub-chunk-depth (length mumamo-background-colors))))
+         (sym (when idx (nth idx mumamo-background-colors)))
+         fac)
+    (when sym
+      (when (boundp sym)
+        (setq fac (symbol-value sym))
+        (unless (facep fac) (setq fac nil)))
+      (unless fac
+        (when (facep sym)
+          (setq fac sym)))
+      (unless fac
+        (when (fboundp sym)
+          (setq fac (funcall sym sub-chunk-depth))))
+      (when fac
+        (unless (facep fac)
+          (setq fac nil)))
+      fac
+      )))
+
 (defcustom mumamo-chunk-coloring 'both-colored
   "What chunks to color."
   :type '(choice (const :tag "Color only submode chunks" submode-colored)
@@ -920,6 +963,10 @@ Preserves the `buffer-modified-p' state of the current buffer."
 (make-variable-buffer-local 'mumamo-last-chunk)
 (put 'mumamo-last-chunk 'permanent-local t)
 
+(defvar mumamo-last-new-chunk nil)
+(make-variable-buffer-local 'mumamo-last-new-chunk)
+(put 'mumamo-last-new-chunk 'permanent-local t)
+
 (defvar mumamo-last-chunk-change-pos nil)
 (make-variable-buffer-local 'mumamo-last-chunk-change-pos)
 (put 'mumamo-last-chunk-change-pos 'permanent-local t)
@@ -933,6 +980,31 @@ Preserves the `buffer-modified-p' state of the current buffer."
 ;; multiple lines.
 (defvar mumamo-find-chunk-is-active nil
   "Protect from recursive calls.")
+
+;; Fix-me: temporary things for testing new chunk routines.
+(defvar mumamo-use-new-chunks nil)
+(defun mumamo-toggle-use-new-chunks ()
+  (interactive)
+  (setq mumamo-use-new-chunks (not mumamo-use-new-chunks))
+  (message "mumamo-use-new-chunks=%s" mumamo-use-new-chunks))
+(defvar mumamo-use-both-chunks t)
+(defun mumamo-toggle-use-both-chunks ()
+  (interactive)
+  (setq mumamo-use-both-chunks (not mumamo-use-both-chunks))
+  (message "mumamo-use-both-chunks=%s" mumamo-use-both-chunks))
+(defun mumamo-use-old-chunks ()
+  (or (not mumamo-use-new-chunks) mumamo-use-both-chunks))
+(defun mumamo-use-new-chunks ()
+  (or mumamo-use-new-chunks mumamo-use-both-chunks))
+
+(defun mumamo-toggle-and-normal-mode-and-what-at-cursor ()
+  (interactive)
+  (mumamo-toggle-use-new-chunks)
+  (normal-mode)
+  (temp-cursor-pos)
+  (message "mumamo-use-new-chunks=%s" mumamo-use-new-chunks))
+(global-set-key [(shift f9)] 'mumamo-toggle-and-normal-mode-and-what-at-cursor)
+
 (defun mumamo-find-chunks (end tracer) ;; min max)
   "Find or create chunks from last known chunk.
 Ie, start from the end of `mumamo-last-chunk' if this is non-nil,
@@ -970,13 +1042,21 @@ in this part of the buffer."
         ;; Fix-me:
         (when (or in-min-border in-max-border)
           (setq mumamo-last-chunk (overlay-get this-chunk 'mumamo-prev-chunk))
+          (setq mumamo-last-new-chunk (overlay-get this-new-chunk 'mumamo-prev-chunk))
           (when mumamo-last-chunk
             (setq mumamo-last-chunk
-                  (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))))
+                  (overlay-get mumamo-last-chunk 'mumamo-prev-chunk)))
+          (when mumamo-last-new-chunk
+            (setq mumamo-last-new-chunk
+                  (overlay-get mumamo-last-new-chunk 'mumamo-prev-chunk)))
+          )
         (setq mumamo-last-chunk-change-pos nil)))
     (unless (and (overlayp mumamo-last-chunk) (overlay-buffer mumamo-last-chunk))
       (setq mumamo-last-chunk nil))
+    (unless (and (overlayp mumamo-last-new-chunk) (overlay-buffer mumamo-last-new-chunk))
+      (setq mumamo-last-new-chunk nil))
     (let ((ok-pos (if mumamo-last-chunk (overlay-end mumamo-last-chunk) 1))
+          (ok-pos-new-chunk (if mumamo-last-new-chunk (overlay-end mumamo-last-new-chunk) 1))
           (end-param end)
           (end (or end (point-max)))
           narpos
@@ -991,20 +1071,27 @@ in this part of the buffer."
           (point-max (1+ (buffer-size)))
           (here (point)))
       ;;(msgtrc "mumamo-find-chunks.here=%s ok-pos=%s end=%s" here ok-pos end)
-      (if (> ok-pos end)
-          (progn
-            ;;(msgtrc "mumamo-find-chunks before getting existing")
-            (setq this-chunk (mumamo-get-existing-chunk-at end))
-            ;;(msgtrc "mumamo-find-chunks EXIT with existing=%s" this-chunk)
-            (unless this-chunk (error "Could not find chunk though ok-pos=%s > end=%s" ok-pos end))
-            this-chunk)
+      (when (> ok-pos end)
+        (progn
+          ;;(msgtrc "mumamo-find-chunks before getting existing")
+          (setq this-chunk (mumamo-get-existing-chunk-at end))
+          ;;(msgtrc "mumamo-find-chunks EXIT with existing=%s" this-chunk)
+          (unless this-chunk (error "Could not find chunk though ok-pos=%s > end=%s" ok-pos end))
+          (if mumamo-use-new-chunks this-new-chunk this-chunk)
+          ))
+      (when (> ok-pos-new-chunk end)
+        (setq this-new-chunk (mumamo-get-existing-new-chunk-at end))
+        (unless this-new-chunk (error "Could not find new chunk though ok-pos-new=%s > end=%s" ok-pos-new-chunk end))
+        )
+      ;;(message "(and this-chunk=%s this-new-chunk=%s)" this-chunk this-new-chunk)
+      (unless (and this-chunk this-new-chunk)
         (unless  mumamo-find-chunk-is-active
           (setq  mumamo-find-chunk-is-active t)
           (mumamo-stop-find-chunks-timer)
           (mumamo-save-buffer-state nil
             (setq this-chunk mumamo-last-chunk)
-            (when mumamo-last-chunk
-              (setq this-new-chunk (mumamo-get-existing-new-chunk-at (overlay-start mumamo-last-chunk))))
+            (setq this-new-chunk mumamo-last-new-chunk)
+            ;;(when mumamo-last-chunk (setq this-new-chunk (mumamo-get-existing-new-chunk-at (overlay-start mumamo-last-chunk))))
             (while (and (or (not end)
                             (<= ok-pos end))
                         (< ok-pos (point-max))
@@ -1034,14 +1121,14 @@ in this part of the buffer."
                                             (overlayp prev-chunk)
                                             (overlay-buffer prev-chunk))
                                    (overlay-get prev-chunk 'mumamo-next-chunk))))
-                    ;; fix-me: continue here
                     (old-new-chunk (if (not prev-new-chunk)
                                        (mumamo-get-existing-new-chunk-at 1)
                                      (when (and prev-new-chunk
                                                 (overlayp prev-new-chunk)
                                                 (overlay-buffer prev-new-chunk))
                                        (overlay-get prev-new-chunk 'mumamo-next-chunk))))
-                    next-old-chunk)
+                    next-old-chunk
+                    next-old-new-chunk)
                 (when old-chunk
                   (mumamo-msgfntfy "old-chunk=%s" old-chunk)
                   ;;(msgtrc "old-chunk=%s" old-chunk)
@@ -1058,6 +1145,22 @@ in this part of the buffer."
                       (setq old-chunk next-old-chunk))
                     (when end-param (mumamo-start-find-chunks-timer))
                     ))
+                (when old-new-chunk
+                  (mumamo-msgfntfy "old-new-chunk=%s" old-new-chunk)
+                  ;;(msgtrc "old-new-chunk=%s" old-new-chunk)
+                  (if (mumamo-new-chunk-equal-chunk-values old-new-chunk this-new-values)
+                      (progn
+                        ;;(msgtrc "setting this-chunk to old-chunk")
+                        (setq this-new-chunk old-new-chunk))
+                    ;; Fix-me: delete just until next old chunk fits again
+                    (while old-new-chunk
+                      (setq next-old-new-chunk
+                            (overlay-get old-new-chunk 'mumamo-next-chunk))
+                      ;;(msgtrc "deleting old-new-chunk %s" old-new-chunk)
+                      (delete-overlay old-new-chunk)
+                      (setq old-new-chunk next-old-new-chunk))
+                    (when end-param (mumamo-start-find-chunks-timer))
+                    ))
                 (unless this-chunk
                   ;; Create chunk and chunk links
                   ;; Fix-me: Mark chunk borders here??? Won't work
@@ -1070,6 +1173,18 @@ in this part of the buffer."
                   (unless first-change-pos
                     (setq first-change-pos (mumamo-chunk-value-min this-values)))
                   )
+                (unless this-new-chunk
+                  ;; Create chunk and chunk links
+                  ;; Fix-me: Mark chunk borders here??? Won't work
+                  ;; well with font lock turn on/off.
+                  (setq this-new-chunk (mumamo-new-create-chunk this-new-values))
+                  ;;(msgtrc "created this-new-chunk=%s" this-new-chunk)
+                  ;;(when prev-new-chunk (overlay-put prev-new-chunk 'mumamo-next-chunk this-new-chunk))
+                  ;;(overlay-put this-chunk 'mumamo-prev-chunk prev-chunk)
+                  (unless first-change-pos
+                    (setq first-change-pos (mumamo-new-chunk-value-min this-new-values)))
+                  )
+                (setq mumamo-last-new-chunk this-new-chunk)
                 (setq mumamo-last-chunk this-chunk))
               ;; Cache ppss syntax
               ;;(syntax-ppss (1+ (mumamo-chunk-syntax-min this-chunk)))
@@ -1081,6 +1196,13 @@ in this part of the buffer."
                     (and mumamo-last-chunk
                          (overlayp mumamo-last-chunk)
                          (< (overlay-end mumamo-last-chunk) (point-max))))
+            ;;(msgtrc "find-chunks: start timer, mumamo-last-chunk=%s, o-end=%s, point-max=%s" mumamo-last-chunk (overlay-end mumamo-last-chunk) (point-max))
+            (mumamo-start-find-chunks-timer)
+            )
+          (when (or interrupted
+                    (and mumamo-last-new-chunk
+                         (overlayp mumamo-last-new-chunk)
+                         (< (overlay-end mumamo-last-new-chunk) (point-max))))
             ;;(msgtrc "find-chunks: start timer, mumamo-last-chunk=%s, o-end=%s, point-max=%s" mumamo-last-chunk (overlay-end mumamo-last-chunk) (point-max))
             (mumamo-start-find-chunks-timer)
             )
@@ -1098,8 +1220,11 @@ in this part of the buffer."
         ;;(msgtrc "mumamo-find-chunks.here=%s => point=%s, min/max=%s/%s" here (point) (point-min) (point-max))
         (mumamo-msgfntfy "!!!! EXIT mumamo-find-chunks, this-chunk=%s, this-values=%s" this-chunk this-values)
         ;;(msgtrc "!!!!mumamo-find-chunks, this-chunk=%s, this-values=%s" this-chunk this-values)
-        (setq  mumamo-find-chunk-is-active nil)
-        this-chunk))))
+        (setq  mumamo-find-chunk-is-active nil))
+      ;; fix-me: continue here
+      ;;(message "(if mumamo-use-new-chunks=%s this-new-chunk=%s this-chunk=%s)" mumamo-use-new-chunks this-new-chunk this-chunk)
+      (if mumamo-use-new-chunks this-new-chunk this-chunk)
+      )))
 
 (defun mumamo-find-chunk-after-change (min max)
   "Save change position after a buffer change.
@@ -2474,6 +2599,8 @@ MIN to MAX, otherwise MIN to MAX."
   "Remove all CHUNK overlays from the current buffer."
   (save-restriction
     (widen)
+    (mumamo-delete-new-chunks)
+    (setq mumamo-last-chunk nil)
     (mumamo-remove-chunk-overlays (point-min) (point-max))
     (mumamo-remove-old-overlays)))
 
@@ -3197,8 +3324,8 @@ Otherwise return nil."
                                        fw-exc-end-fun
                                        &optional find-borders-fun)
   ;; This should return no end value!
-  (message "====")
-  (message "mumamo-find-possible-chunk-new %s %s %s %s %s %s" pos max bw-exc-start-fun fw-exc-start-fun fw-exc-end-fun find-borders-fun)
+  ;;(message "====")
+  ;;(message "mumamo-find-possible-chunk-new %s %s %s %s %s %s" pos max bw-exc-start-fun fw-exc-start-fun fw-exc-end-fun find-borders-fun)
 
   ;;(mumamo-condition-case err
       (progn
@@ -3228,7 +3355,7 @@ Otherwise return nil."
           ;;
           ;;(setq start-out (funcall bw-exc-end-fun pos min))
           (setq start-out (funcall fw-exc-end-fun pos max))
-          (message "find-poss-new.start-out=%s" start-out)
+          ;;(message "find-poss-new.start-out=%s" start-out)
           ;; start exception
           (setq start-in (funcall fw-exc-start-fun pos max))
           (when (listp start-in)
@@ -3242,7 +3369,7 @@ Otherwise return nil."
           (cond
            (start-in
             (setq start-in-cons (funcall bw-exc-start-fun start-in pos))
-            (message "start-in=%s start-in-cons=%s" start-in start-in-cons)
+            ;;(message "start-in=%s start-in-cons=%s" start-in start-in-cons)
             (when start-in-cons
               (assert (= start-in (car start-in-cons)))
               (setq exc-mode (cdr start-in-cons)))
@@ -3327,12 +3454,12 @@ Otherwise return nil."
                                nil
                                ))
             (mumamo-msgfntfy "--- mumamo-find-possible-chunk-new %s" (list start end exc-mode borders parseable-by fw-exc-fun))
-            (message "--- mumamo-find-possible-chunk-new %s" (list start end exc-mode borders parseable-by fw-exc-fun))
+            ;;(message "--- mumamo-find-possible-chunk-new %s" (list start end exc-mode borders parseable-by fw-exc-fun))
             (when fw-exc-mode
               (unless (eq fw-exc-mode exc-mode)
                 ;;(message "fw-exc-mode=%s NEQ exc-mode=%s" fw-exc-mode exc-mode)
                 ))
-            (message "new returns %s" (list start end exc-mode borders parseable-by fw-exc-fun find-borders-fun))
+            ;;(message "new returns %s" (list start end exc-mode borders parseable-by fw-exc-fun find-borders-fun))
             (list start end exc-mode borders parseable-by fw-exc-fun find-borders-fun))))
     ;;(error (mumamo-display-error 'mumamo-chunk "%s" (error-message-string err)))
 
@@ -3659,7 +3786,7 @@ See also `mumamo-quick-static-chunk'."
 (global-set-key [f9] 'temp-cursor-pos)
 (defun temp-test-new-create-chunk ()
   (interactive)
-  (mumamo-new-delete-chunks)
+  (mumamo-delete-new-chunks)
   (setq x1 nil)
   ;; (setq x2 nil)
   ;; (setq x3 nil)
@@ -3679,7 +3806,8 @@ See also `mumamo-quick-static-chunk'."
       (setq x1 (mumamo-new-create-chunk (mumamo-find-next-chunk-values x1)))))
   )
 
-(defun mumamo-new-delete-chunks ()
+(defun mumamo-delete-new-chunks ()
+  (setq mumamo-last-new-chunk nil)
   (save-restriction
     (widen)
     (let ((ovls (overlays-in (point-min) (point-max))))
@@ -3688,7 +3816,7 @@ See also `mumamo-quick-static-chunk'."
           (delete-overlay ovl))))))
 
 (defun mumamo-new-create-chunk (new-chunk-values)
-  "Create a chunk from NEW-CHUNK-VALUES.
+  "Create and return a chunk from NEW-CHUNK-VALUES.
 The values for this are stored in the properties
 below:
 
@@ -3704,49 +3832,114 @@ The first two are used when the bottom:
   ;;((1 696 nxhtml-mode nil nil nil nil) (696 nil php-mode nil nil nil nil))
   ;;(current (list curr-min curr-max curr-major curr-border-min curr-border-max curr-parseable curr-fw-exc-fun))
   ;;(next    (list next-min next-max next-major next-border-min next-border-max next-parseable next-fw-exc-fun)))
-  (message "######new-create.chunk.new-chunk-values=%s" new-chunk-values)
+  ;;(message "######new-create.chunk.new-chunk-values=%s" new-chunk-values)
   (let* ((this-values (nth 0 new-chunk-values))
          (next-values (nth 1 new-chunk-values))
          (next-major      (nth 0 next-values))
          (next-end-fun    (nth 1 next-values))
          (next-border-fun (nth 2 next-values))
          (next-chunk-funs (nth 3 next-values))
-         (beg (nth 0 this-values))
-         (end (nth 1 this-values))
-         (maj (nth 2 this-values))
-         (bmin (nth 3 this-values))
-         (bmax (nth 4 this-values))
-         (pable (nth 5 this-values))
+         (beg         (nth 0 this-values))
+         (end         (nth 1 this-values))
+         (maj         (nth 2 this-values))
+         (bmin        (nth 3 this-values))
+         (bmax        (nth 4 this-values))
+         (pable       (nth 5 this-values))
          (after-chunk (nth 7 this-values))
+         (after-chunk-depth (when after-chunk
+                              (overlay-get after-chunk 'mumamo-depth)))
+         (depth (if after-chunk-depth
+                    (1+ after-chunk-depth)
+                  0))
          ;;(fw-funs (nth 6 this-values))
          ;;(borders-fun (nth 7 this-values))
          (this-chunk (when (< beg end) (make-overlay beg end)))
          )
-    (when after-chunk (message "after-chunk.end=%s, beg=%s, end=%s" (overlay-end after-chunk) beg end))
+    ;;(when after-chunk (message "after-chunk.end=%s, beg=%s, end=%s" (overlay-end after-chunk) beg end))
     ;;(message "fw-funs=%s" fw-funs)
     (when this-chunk
-    (overlay-put this-chunk 'mumamo-is-new t)
+      (overlay-put this-chunk 'mumamo-is-new t)
+      (overlay-put this-chunk 'face (mumamo-background-color depth))
+      (overlay-put this-chunk 'mumamo-depth depth)
       ;; Values for next chunk
-    (overlay-put this-chunk 'mumamo-next-end-fun next-end-fun)
-    (overlay-put this-chunk 'mumamo-next-major next-major)
-    (overlay-put this-chunk 'mumamo-next-chunk-funs next-chunk-funs)
+      (overlay-put this-chunk 'mumamo-next-major next-major)
+      (overlay-put this-chunk 'mumamo-next-end-fun next-end-fun)
+      (overlay-put this-chunk 'mumamo-next-border-fun next-border-fun)
+      (overlay-put this-chunk 'mumamo-next-chunk-funs next-chunk-funs)
       ;; Values for this chunk
-    (overlay-put this-chunk 'mumamo-prev-chunk after-chunk)
-    (when after-chunk (overlay-put after-chunk 'mumamo-next-chunk this-chunk))
-    (overlay-put this-chunk 'mumamo-major-mode maj)
+      (overlay-put this-chunk 'mumamo-syntax-min-d bmin)
+      (overlay-put this-chunk 'mumamo-syntax-max-d bmax)
+      (overlay-put this-chunk 'mumamo-prev-chunk after-chunk)
+      (when after-chunk (overlay-put after-chunk 'mumamo-next-chunk this-chunk))
+      (overlay-put this-chunk 'mumamo-major-mode maj)
       (overlay-put this-chunk 'mumamo-parseable-by pable)
+      ;; Get syntax-begin-function for syntax-ppss:
+      (let* ((syntax-begin-function
+              (mumamo-with-major-mode-fontification maj
+                ;; Do like in syntax.el:
+                '(if syntax-begin-function
+                     (progn
+                       syntax-begin-function)
+                   (when (and (not syntax-begin-function)
+                              ;; fix-me: How to handle boundp here?
+                              (boundp 'font-lock-beginning-of-syntax-function)
+                              font-lock-beginning-of-syntax-function)
+                     font-lock-beginning-of-syntax-function)))))
+        (mumamo-msgfntfy "Got syntax-begin-function, modified=%s" (buffer-modified-p))
+        (overlay-put this-chunk 'syntax-begin-function syntax-begin-function))
       )
     this-chunk
     )
   )
 
+(defun mumamo-new-chunk-value-min (values)
+  (let ((this-values (nth 0 values)))
+    (nth 0 this-values)))
+
 (defun mumamo-new-chunk-equal-chunk-values (chunk values)
-  (let ((is-new (overlay-get chunk 'mumamo-is-new))
-        (next-end-fun (overlay-get chunk 'mumamo-next-end-fun))
-        (next-major (overlay-get chunk 'mumamo-next-major))
-        (next-chunk-funs (overlay-get chunk 'mumamo-next-chunk-funs))
-        (next-chunk-funs (overlay-get chunk 'mumamo-next-chunk-funs))
-  )))
+  (let* (;; Chunk
+        (chunk-is-new          (overlay-get chunk 'mumamo-is-new))
+        (chunk-next-major      (overlay-get chunk 'mumamo-next-major))
+        (chunk-next-end-fun    (overlay-get chunk 'mumamo-next-end-fun))
+        (chunk-next-border-fun    (overlay-get chunk 'mumamo-next-border-fun))
+        (chunk-next-chunk-funs (overlay-get chunk 'mumamo-next-chunk-funs))
+        (chunk-beg (overlay-start chunk))
+        (chunk-end (overlay-end chunk))
+        (chunk-bmin       (overlay-get chunk 'mumamo-syntax-min-d))
+        (chunk-bmax       (overlay-get chunk 'mumamo-syntax-max-d))
+        (chunk-prev-chunk (overlay-get chunk 'mumamo-prev-chunk))
+        (chunk-major-mode (overlay-get chunk 'mumamo-major-mode))
+        (chunk-pable      (overlay-get chunk 'mumamo-parseable-by))
+        ;; Values
+        (this-values (nth 0 values))
+        (next-values (nth 1 values))
+        (values-next-major      (nth 0 next-values))
+        (values-next-end-fun    (nth 1 next-values))
+        (values-next-border-fun (nth 2 next-values))
+        (values-next-chunk-funs (nth 3 next-values))
+        (values-beg         (nth 0 this-values))
+        (values-end         (nth 1 this-values))
+        (values-major-mode  (nth 2 this-values))
+        (values-bmin        (nth 3 this-values))
+        (values-bmax        (nth 4 this-values))
+        (values-pable       (nth 5 this-values))
+        (values-prev-chunk  (nth 7 this-values))
+        )
+    (and chunk-is-new
+         (eq chunk-next-major      values-next-major)
+         (eq chunk-next-end-fun    values-next-end-fun)
+         (eq chunk-next-border-fun values-next-border-fun)
+         (equal chunk-next-chunk-funs values-next-chunk-funs)
+         (= chunk-beg values-beg)
+         (= chunk-end values-end)
+         (eq chunk-major-mode values-major-mode)
+         (equal chunk-pable values-pable)
+         (eq chunk-prev-chunk values-prev-chunk)
+         ;; fix-me: bmin bmax
+         ;;(and chunk-bmin values-bmin (= chunk-bmin values-bmin))
+         ;;(and chunk-bmax values-bmax (= chunk-bmax values-bmax))
+         )
+  ))
 
 (defun mumamo-find-next-chunk-values (after-chunk)
 ;(mumamo-find-next-chunk-values nil)
@@ -3819,108 +4012,110 @@ information.
          next-border-fun
          )
     ;; Fix-me: like mumamo-create-chunk-values-at, but simplified:
-    (message "  curr-chunk-funs=%s" curr-chunk-funs)
+    ;;(message "  curr-chunk-funs=%s" curr-chunk-funs)
     (when curr-end-fun
-      (message "curr-end-fun=%s" curr-end-fun)
+      ;;(message "curr-end-fun=%s" curr-end-fun)
       (setq next-end-fun-end (funcall curr-end-fun pos max))
       )
     (when (listp curr-chunk-funs)
+      ;;(message "curr-chunk-funs=%s" curr-chunk-funs)
       (dolist (fn curr-chunk-funs)
-      (let* (
-             ;;(r (funcall fn pos (point-min) (point-max)))
-             (r (funcall fn pos pos max))
-             (rmin        (nth 0 r))
-             (rmax        (nth 1 r))
-             (rmajor-sub  (nth 2 r))
-             (rborder     (nth 3 r))
-             (rparseable  (nth 4 r))
-             (rfw-exc-fun (nth 5 r))
-             (rborder-fun (nth 6 r))
-             (rborder-min (when rborder (nth 0 rborder)))
-             (rborder-max (when rborder (nth 1 rborder)))
-             (rmax-found rmax))
-        (when r
-          (mumamo-msgfntfy "  fn=%s, r=%s" fn r)
-          (message "  fn=%s, r=%s, max=%s" fn r max)
-          (unless rmin (setq rmin (point-max)))
+        ;;(message "before (r (funcall fn pos pos max)), fn=%s pos=%s, max=%s" fn pos max)
+        (let* (
+               ;;(r (funcall fn pos (point-min) (point-max)))
+               (r (funcall fn pos pos max))
+               (rmin        (nth 0 r))
+               (rmax        (nth 1 r))
+               (rmajor-sub  (nth 2 r))
+               (rborder     (nth 3 r))
+               (rparseable  (nth 4 r))
+               (rfw-exc-fun (nth 5 r))
+               (rborder-fun (nth 6 r))
+               (rborder-min (when rborder (nth 0 rborder)))
+               (rborder-max (when rborder (nth 1 rborder)))
+               (rmax-found rmax))
+          (when r
+            (mumamo-msgfntfy "  fn=%s, r=%s" fn r)
+            ;;(message "  fn=%s, r=%s, max=%s" fn r max)
+            (unless rmin (setq rmin (point-max)))
           ;;(unless rmax (setq rmax (point-min)))
-          ;; Do not allow zero length chunks
+            ;; Do not allow zero length chunks
           (unless (and (> rmin 1)
                        rmax
                        (= rmin rmax))
-            ;; comparision have to be done differently if we are in an
-            ;; exception part or not.  since we are doing this from top to
-            ;; bottom the rules are:
-            ;;
-            ;; - exception parts always outrules non-exception part.  when
-            ;;   in exception part the min start point should be used.
-            ;; - when in non-exception part the max start point and the
-            ;;   min end point should be used.
-            ;;
-            ;; check if first run:
+              ;; comparision have to be done differently if we are in an
+              ;; exception part or not.  since we are doing this from top to
+              ;; bottom the rules are:
+              ;;
+              ;; - exception parts always outrules non-exception part.  when
+              ;;   in exception part the min start point should be used.
+              ;; - when in non-exception part the max start point and the
+              ;;   min end point should be used.
+              ;;
+              ;; check if first run:
 
-            ;; Fix-me: there is some bug here when borders are not
-            ;; included and are not 0 width.
-            (if (not next-min)
-                (progn
-                  (setq next-min rmin)
-                  (setq border-min rborder-min)
-                  (setq next-max rmax)
-                  (setq border-max rborder-max)
-                  (setq max-found rmax-found)
-                  (setq parseable rparseable)
-                  (setq fw-exc-fun rfw-exc-fun)
-                  (setq border-fun rborder-fun)
-                  (setq next-major rmajor-sub))
-              (if rmajor-sub
-                  (if next-major
-                      (when (or (not next-min)
-                                (< rmin next-min))
-                        (setq next-min rmin)
-                        (setq border-min rborder-min)
-                        (setq max rmax)
-                        (setq border-max rborder-max)
-                        (when rmax-found (setq max-found t))
-                        (setq parseable rparseable)
-                        (setq fw-exc-fun rfw-exc-fun)
-                        (setq border-fun rborder-fun)
-                        (setq next-major rmajor-sub))
+              ;; Fix-me: there is some bug here when borders are not
+              ;; included and are not 0 width.
+              (if (not next-min)
+                  (progn
                     (setq next-min rmin)
                     (setq border-min rborder-min)
-                    (setq max rmax)
+                    (setq next-max rmax)
                     (setq border-max rborder-max)
-                    (when rmax-found (setq max-found t))
+                    (setq max-found rmax-found)
                     (setq parseable rparseable)
                     (setq fw-exc-fun rfw-exc-fun)
                     (setq border-fun rborder-fun)
                     (setq next-major rmajor-sub))
-                (unless next-major
-                  (when (> next-min rmin)
-                    (setq next-min rmin)
-                    (setq border-min rborder-min))
+                (if rmajor-sub
+                    (if next-major
+                        (when (or (not next-min)
+                                  (< rmin next-min))
+                          (setq next-min rmin)
+                          (setq border-min rborder-min)
+                          (when rmax (setq max rmax))
+                          (setq border-max rborder-max)
+                          (when rmax-found (setq max-found t))
+                          (setq parseable rparseable)
+                          (setq fw-exc-fun rfw-exc-fun)
+                          (setq border-fun rborder-fun)
+                          (setq next-major rmajor-sub))
+                      (setq next-min rmin)
+                      (setq border-min rborder-min)
+                      (when rmax (setq max rmax))
+                      (setq border-max rborder-max)
+                      (when rmax-found (setq max-found t))
+                      (setq parseable rparseable)
+                      (setq fw-exc-fun rfw-exc-fun)
+                      (setq border-fun rborder-fun)
+                      (setq next-major rmajor-sub))
+                  (unless next-major
+                    (when (> next-min rmin)
+                      (setq next-min rmin)
+                      (setq border-min rborder-min))
                   (when (and rmax max
                              (> rmax max))
-                    (setq max-found rmax-found)
-                    (setq max rmax)
-                    (setq border-max rborder-max))
-                  ))))
-          (mumamo-msgfntfy "next-min/max=%s/%s border=%s/%s pos=%s" next-min max border-min border-max pos)
-          (message "next-min/max=%s/%s border=%s/%s pos=%s" next-min max border-min border-max pos)
-          ;; check!
-          (when (and next-min max)
-            (assert (>= next-min pos) t)
-            (assert (<= pos max) t)
-            (when border-min
-              (assert (< next-min border-min) t)
-              (assert (<= border-min max) t))
-            (when border-max
-              (assert (<= min border-max) t)
-              (assert (< border-max max) t))))
+                      (setq max-found rmax-found)
+                      (when rmax (setq max rmax))
+                      (setq border-max rborder-max))
+                    ))))
+            (mumamo-msgfntfy "next-min/max=%s/%s border=%s/%s pos=%s" next-min max border-min border-max pos)
+            ;;(message "next-min/max=%s/%s border=%s/%s pos=%s" next-min max border-min border-max pos)
+            ;; check!
+            (when (and next-min max)
+              (assert (>= next-min pos) t)
+              (assert (<= pos max) t)
+              (when border-min
+                (assert (< next-min border-min) t)
+                (assert (<= border-min max) t))
+              (when border-max
+                (assert (<= min border-max) t)
+                (assert (< border-max max) t))))
           )))
     ;;(list next-min (when max-found max) next-major syntax-min syntax-max)
     (goto-char here)
     (list next-min (when max-found max) next-major border-min border-max parseable fw-exc-fun)
-    (message "border-min=%s border-max=%s" border-min border-max)
+    ;;(message "border-min=%s border-max=%s" border-min border-max)
     (setq curr-max (if max max (point-max)))
     (setq curr-max (min (if next-min next-min curr-max)
                         (if next-end-fun-end next-end-fun-end curr-max)))
@@ -4002,8 +4197,8 @@ the sexp syntax using major mode MAJOR."
 ;;;; Easy chunk defining
 
 (defun mumamo-quick-static-chunk (pos min max
-                                  begin-mark end-mark inc mode
-                                  mark-is-border)
+                                      begin-mark end-mark inc mode
+                                      mark-is-border)
   "Quick way to make a chunk function with static dividers.
 Here is an example of how to use it:
 
@@ -4022,50 +4217,50 @@ MODE should be the major mode for the chunk.
 If MARK-IS-BORDER is non-nil then the marks are made borders."
   (mumamo-msgfntfy "quick.pos=%s min,max=%s,%s begin-mark/end=%s/%s mark-is-border=%s" pos min max begin-mark end-mark mark-is-border)
   (let ((search-bw-exc-start
-         (lambda (pos min)
+         `(lambda (pos min)
            (let ((exc-start
-                  (if inc
+                  (if ,inc
                       (mumamo-chunk-start-bw-str-inc pos min begin-mark)
                     (mumamo-chunk-start-bw-str pos min begin-mark))))
              (when (and exc-start
                         (<= exc-start pos))
                (cons exc-start mode)))))
         (search-bw-exc-end
-         (lambda (pos min)
-           (if inc
-               (mumamo-chunk-end-bw-str-inc pos min end-mark)
-             (mumamo-chunk-end-bw-str pos min end-mark))))
+         `(lambda (pos min)
+           (if ,inc
+               (mumamo-chunk-end-bw-str-inc pos min ,end-mark)
+             (mumamo-chunk-end-bw-str pos min ,end-mark))))
         (search-fw-exc-start
-         (lambda (pos max)
-           (if inc
-               (mumamo-chunk-start-fw-str-inc pos max begin-mark)
-             (mumamo-chunk-start-fw-str pos max begin-mark))))
+         `(lambda (pos max)
+           (if ,inc
+               (mumamo-chunk-start-fw-str-inc pos max ,begin-mark)
+             (mumamo-chunk-start-fw-str pos max ,begin-mark))))
         (search-fw-exc-end
-         (lambda (pos max)
-           (if inc
-               (mumamo-chunk-end-fw-str-inc pos max end-mark)
-             (mumamo-chunk-end-fw-str pos max end-mark))))
+         `(lambda (pos max)
+           (if ,inc
+               (mumamo-chunk-end-fw-str-inc pos max ,end-mark)
+             (mumamo-chunk-end-fw-str pos max ,end-mark))))
         (find-borders
          (when mark-is-border
-           (lambda (start end exc-mode)
+           `(lambda (start end exc-mode)
              (let ((start-border)
                    (end-border))
-               (if (and inc exc-mode)
+               (if (and ,inc exc-mode)
                    (progn
                      (when start
                        (setq start-border
-                             (+ start (length begin-mark))))
+                             (+ start (length ,begin-mark))))
                      (when end
                        (setq end-border
-                             (- end (length end-mark)))))
-                 (if (and (not inc) (not exc-mode))
+                             (- end (length ,end-mark)))))
+                 (if (and (not ,inc) (not exc-mode))
                      (progn
                        (when start
                          (setq start-border
-                               (+ start (length end-mark))))
+                               (+ start (length ,end-mark))))
                        (when end
                          (setq end-border
-                               (- end (length begin-mark)))))))
+                               (- end (length ,begin-mark)))))))
                (when (or start-border end-border)
                  (mumamo-msgfntfy "quick.start-border/end=%s/%s, start/end=%s/%s exc-mode=%s" start-border end-border start end exc-mode)
                  (list start-border end-border)))))))
