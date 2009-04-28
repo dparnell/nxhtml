@@ -320,6 +320,7 @@ and the file is invalid then."
     (nxhtmltest-fontify-default-way 2 "hili")
     (goto-char 44)
     (nxhtmltest-should-no-mumamo-errors)
+    (message "face at 44=%s" (get-text-property 44 'face))
     (ert-should
      (eq (get-text-property 44 'face)
          'font-lock-function-name-face))))

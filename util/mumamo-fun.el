@@ -151,9 +151,11 @@ See `mumamo-chunk-style=' for an example of use."
           (when start (assert (<= start pos) t))
           (when end   (assert (<= pos end) t))
           (goto-char pos)
-          (setq borders (list start-border end-border nil))
+          (when (or start-border end-border)
+            (setq borders (list start-border end-border nil)))
           ;;(message "ret=%s" (list start end exc-mode borders))
-          (list start end exc-mode borders)
+          (when (or start end exc-mode borders)
+            (list start end exc-mode borders))
           ;;nil
           ))
     (error
