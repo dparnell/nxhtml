@@ -473,6 +473,11 @@
                 :enable '(and (fboundp 'nxml-where-mode)
                               (or (derived-mode-p 'nxml-mode)
                                   (nxhtml-nxhtml-in-buffer)))))
+        (define-key where-map [nxhtml-nxml-where-cust]
+          (list 'menu-item "Customize display of XML Path"
+                (lambda () (interactive)
+                  (customize-group-other-window 'nxml-where))))
+        (define-key where-map [where-separator-2] (list 'menu-item "--"))
         (define-key where-map [nxml-where-id]
           (list 'menu-item "Show tag ids in path" 'nxml-where-tag+id-toggle
                 :enable '(boundp 'nxml-where-tag+id)
