@@ -2572,6 +2572,11 @@
           <dt id="v1.77">1.77</dt>
           <dd id="v1.77-dd">
             <ul>
+              <li>Fixed bug <a href="https://bugs.launchpad.net/nxhtml/+bug/300946">300946</a>.</li>
+              <li>Fixed bug <a href="https://bugs.launchpad.net/nxhtml/+bug/363714">363714</a>.</li>
+              <li>Fixed bug <a href="https://bugs.launchpad.net/nxhtml/+bug/347349">347349</a>.</li>
+              <li>Fixed bug <a href="https://bugs.launchpad.net/nxhtml/+bug/349233">349233</a>.</li>
+              <li>Fixed bug <a href="https://bugs.launchpad.net/nxhtml/+bug/329688">329688</a>.</li>
               <li>
                 MuMaMo:
                 <ul>
@@ -2580,6 +2585,22 @@
                     This should make chunk creation more stable.
                     It also opens up for chunks in chunks.
                     (The code still need work...)
+                  </li>
+                </ul>
+              </li>
+              <li>
+                majmodpri:
+                <ul>
+                  <li>
+                    To restore multi major modes in files loaded by
+                    desktop-save-mode the new
+                    function <i>majmodpri-apply</i> can be added
+                    to <i>desktop-after-read-hook</i>.
+                  </li>
+                  <li>
+                    New default for <i>majmodpri-sort-after-load</i>:
+                    Sort after loading certain features/libraries and
+                    apply to current buffer.
                   </li>
                 </ul>
               </li>

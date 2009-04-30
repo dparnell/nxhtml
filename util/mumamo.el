@@ -1067,9 +1067,12 @@ in this part of the buffer."
            (here (point))
            (first-check-from (when change-min
                                (goto-char change-min)
+                               (move-beginning-of-line nil)
+                               (unless (bobp) (backward-char))
+                               ;;(msgtrc "change-min=%s, point=%s" change-min (point))
                                (prog1
-                                (line-beginning-position)
-                                (goto-char here))))
+                                   (point)
+                                 (goto-char here))))
            )
       (when mumamo-last-chunk-change-pos
         ;; Fix-me:
@@ -1158,7 +1161,7 @@ in this part of the buffer."
                       (msgtrc "old-chunk=%s" old-chunk)
                       (if (mumamo-chunk-equal-chunk-values old-chunk this-values)
                           (progn
-                            (msgtrc "setting this-chunk to old-chunk")
+                            ;;(msgtrc "setting this-chunk to old-chunk")
                             (setq this-chunk old-chunk))
                         ;; Fix-me: delete just until next old chunk fits again
                         (while old-chunk
@@ -1221,7 +1224,7 @@ in this part of the buffer."
                       ;;(msgtrc "old-new-chunk=%s" old-new-chunk)
                       (if (mumamo-new-chunk-equal-chunk-values old-new-chunk this-new-values)
                           (progn
-                            (msgtrc "setting this-new-chunk to old-new-chunk")
+                            ;;(msgtrc "setting this-new-chunk to old-new-chunk")
                             (setq this-new-chunk old-new-chunk))
                         ;; Fix-me: delete just until next old chunk fits again
                         (while old-new-chunk
