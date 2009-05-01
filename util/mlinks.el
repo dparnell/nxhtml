@@ -1,9 +1,9 @@
 ;;; mlinks.el --- Minor mode making major mode dependent links
 ;;
 ;; Author: Lennar Borgman
-;; Created: Tue Jan 16 22:17:34 2007
+;; Created: Tue Jan 16 2007
 (defconst mlinks:version "0.28") ;;Version:
-;; Lxast-Updated: Mon Apr 09 14:31:03 2007 (7200 +0200)
+;; Last-Updated: 2009-05-01 Fri
 ;; Keywords:
 ;; Compatibility:
 ;;
@@ -1131,7 +1131,7 @@ Any command cancels this state."
                        (stralts (mapcar (lambda (elt)
                                           (car elt))
                                         alts))
-                       (case-fold-search t)
+                       (completion-ignore-case t)
                        (stralt (completing-read "Type: " stralts nil t))
                        (alt (assoc stralt alts)))
                   (setq def (cdr alt))))))

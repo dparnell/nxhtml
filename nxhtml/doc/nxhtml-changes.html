@@ -2578,18 +2578,26 @@
               <li>Fixed bug <a href="https://bugs.launchpad.net/nxhtml/+bug/349233">349233</a>.</li>
               <li>Fixed bug <a href="https://bugs.launchpad.net/nxhtml/+bug/329688">329688</a>.</li>
               <li>
+                Added a test that the <i>nxml-mode libraries included
+                in Emacs</i> are used and not the old ones.  (If I
+                understand it correctly this might have been a problem
+                for Debian/Ubuntu Emacs 23 snap-shots users where the
+                old nxml-mode has been a left over from earlier
+                snap-shots where it was needed.)
+              </li>
+              <li>
                 MuMaMo:
                 <ul>
                   <li>
                     Chunks are now always created from top to bottom.
                     This should make chunk creation more stable.
-                    It also opens up for chunks in chunks.
+                    It also opens up for chunks in chunks in the future.
                     (The code still need work...)
                   </li>
                 </ul>
               </li>
               <li>
-                majmodpri:
+                majmodpri.el:
                 <ul>
                   <li>
                     To restore multi major modes in files loaded by
@@ -2599,8 +2607,23 @@
                   </li>
                   <li>
                     New default for <i>majmodpri-sort-after-load</i>:
-                    Sort after loading certain features/libraries and
-                    apply to current buffer.
+                    Sort after loading certain features/libraries that
+                    are known to change <i>auto-mode-alist</i> and
+                    apply to current buffer.  This new default should
+                    hopefully make major mode selection less
+                    confusing.
+                  </li>
+                </ul>
+              </li>
+              <li>
+                winsav.el:
+                <ul>
+                  <li>
+                    Added save and restore between Emacs sessions for frame configuration.
+                    I am not sure how this works with special frames yet.
+                  </li>
+                  <li>
+                    Added saving and resting of named frame configurations.
                   </li>
                 </ul>
               </li>

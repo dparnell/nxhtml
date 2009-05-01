@@ -5895,6 +5895,9 @@ mode in the chunk family is nil."
     (mumamo-get-chunk-save-buffer-state (point))
     ;;(message "(benchmark 1 '(mumamo-find-chunks nil benchmark))") (benchmark 1 '(mumamo-find-chunks nil "benchmark"))
     ;;(setq mumamo-end-last-chunk-pos nil)
+    (let* ((ovl (mumamo-find-chunks (point) "mumamo-turn-on-actions"))
+           (major (mumamo-chunk-major-mode ovl)))
+      (mumamo-set-major major))
     (mumamo-find-chunks nil "mumamo-turn-on-actions")
     ))
 

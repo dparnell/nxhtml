@@ -76,7 +76,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18794 36706))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18936 58700))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -115,7 +115,7 @@ See `nxhtml-minor-mode' for more information on Nxhtml minor mode.
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
 ;;;;;;  nxhtml-mode) "../nxhtml/nxhtml-mode" "nxhtml/nxhtml-mode.el"
-;;;;;;  (18790 45398))
+;;;;;;  (18799 50784))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 
 (when (fboundp 'nxml-mode)
@@ -238,8 +238,8 @@ This mode may be turned on automatically in two ways:
   `nxthml-mode' may ask you if you want to turn this mode on if
   needed.
 - You can also choose to have it turned on automatically whenever
-  mumamo is used, see `nxhtml-validation-header-if-mumamo' for
-  further information.
+  a mumamo multi major mode is used, see
+  `nxhtml-validation-header-if-mumamo' for further information.
 
 \(fn &optional ARG)" t nil))
 
@@ -295,7 +295,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxml-where-global-mode) "../nxhtml/nxml-where"
-;;;;;;  "nxhtml/nxml-where.el" (18793 51298))
+;;;;;;  "nxhtml/nxml-where.el" (18793 59116))
 ;;; Generated autoloads from nxhtml/nxml-where.el
 
 (defvar nxml-where-global-mode nil "\
@@ -318,7 +318,7 @@ See `nxml-where-mode' for more information on Nxml-Where mode.
 ;;;***
 
 ;;;### (autoloads (rngalt-set-validation-header) "../nxhtml/rngalt"
-;;;;;;  "nxhtml/rngalt.el" (18793 58957))
+;;;;;;  "nxhtml/rngalt.el" (18799 50784))
 ;;; Generated autoloads from nxhtml/rngalt.el
 
 (autoload 'rngalt-set-validation-header "../nxhtml/rngalt" "\
@@ -991,7 +991,7 @@ See `nxhtmltest-run' for more information about the tests.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "../tests/nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (18781 14068))
+;;;;;;  "tests/nxhtmltest-suites.el" (18935 45820))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 
 (autoload 'nxhtmltest-run-indent "../tests/nxhtmltest-suites" "\
@@ -1090,7 +1090,7 @@ See `as-external-alist' for more information.
 ;;;***
 
 ;;;### (autoloads (chart-make-chart chart-complete) "chart" "util/chart.el"
-;;;;;;  (18792 27548))
+;;;;;;  (18792 32230))
 ;;; Generated autoloads from util/chart.el
 
 (autoload 'chart-complete "chart" "\
@@ -1191,7 +1191,7 @@ Below are some examples.  To test them mark an example and do
 ;;;***
 
 ;;;### (autoloads (css-color-mode css-color-global-mode css-color)
-;;;;;;  "css-color" "util/css-color.el" (18795 28447))
+;;;;;;  "css-color" "util/css-color.el" (18799 50784))
 ;;; Generated autoloads from util/css-color.el
 
 (let ((loads (get 'css-color 'custom-loads))) (if (member '"css-color" loads) nil (put 'css-color 'custom-loads (cons '"css-color" loads))))
@@ -1228,7 +1228,7 @@ point is at a hexadecimal colour:
 ;;;***
 
 ;;;### (autoloads (css-palette-global-mode css-palette css-palette-mode)
-;;;;;;  "css-palette" "util/css-palette.el" (18794 36604))
+;;;;;;  "css-palette" "util/css-palette.el" (18795 27308))
 ;;; Generated autoloads from util/css-palette.el
 
 (autoload 'css-palette-mode "css-palette" "\
@@ -1322,7 +1322,7 @@ See `css-palette-mode' for more information on Css-Palette mode.
 
 ;;;### (autoloads (freemind-to-org-mode freemind-from-org-sparse-tree
 ;;;;;;  freemind-from-org-mode freemind-from-org-mode-node freemind-show)
-;;;;;;  "freemind" "util/freemind.el" (18659 17016))
+;;;;;;  "freemind" "util/freemind.el" (18854 47204))
 ;;; Generated autoloads from util/freemind.el
 
 (autoload 'freemind-show "freemind" "\
@@ -1373,7 +1373,7 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (gpl-mode) "gpl" "util/gpl.el" (18794 33000))
+;;;### (autoloads (gpl-mode) "gpl" "util/gpl.el" (18795 27308))
 ;;; Generated autoloads from util/gpl.el
 
 (autoload 'gpl-mode "gpl" "\
@@ -1447,11 +1447,10 @@ hyperlinks as appropriate.
 
 ;;;***
 
-;;;### (autoloads (majmodpri-apply-priorities majmodpri-sort-lists
-;;;;;;  majmodpri) "majmodpri" "util/majmodpri.el" (18781 14068))
+;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
+;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (18937
+;;;;;;  62914))
 ;;; Generated autoloads from util/majmodpri.el
-
-(let ((loads (get 'majmodpri 'custom-loads))) (if (member '"majmodpri" loads) nil (put 'majmodpri 'custom-loads (cons '"majmodpri" loads))))
 
 (autoload 'majmodpri-sort-lists "majmodpri" "\
 Sort the list used when selecting major mode.
@@ -1466,6 +1465,14 @@ See also `majmodpri-apply-priorities'.
 
 \(fn)" t nil)
 
+(autoload 'majmodpri-apply "majmodpri" "\
+Sort major mode lists and apply to existing buffers.
+Note: This function is suitable to add to
+`desktop-after-read-hook'. It will restore the multi major modes
+in buffers.
+
+\(fn)" nil nil)
+
 (autoload 'majmodpri-apply-priorities "majmodpri" "\
 Apply major mode priorities.
 First run `majmodpri-sort-lists' and then if CHANGE-MODES is
@@ -1473,6 +1480,8 @@ non-nil apply to existing file buffers.  If interactive ask
 before applying.
 
 \(fn CHANGE-MODES)" t nil)
+
+(let ((loads (get 'majmodpri 'custom-loads))) (if (member '"majmodpri" loads) nil (put 'majmodpri 'custom-loads (cons '"majmodpri" loads))))
 
 ;;;***
 
@@ -1512,7 +1521,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-mark-for-refontification) "mumamo" "util/mumamo.el"
-;;;;;;  (18795 27755))
+;;;;;;  (18938 278))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -1528,7 +1537,7 @@ Mark region between MIN and MAX for refontification.
 ;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode smarty-html-mumamo-mode
 ;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
 ;;;;;;  embperl-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18784 6872))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18935 29598))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1623,7 +1632,7 @@ This also covers inlined style and javascript." t)
 ;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
 ;;;;;;  major-modep multi-major-modep major-or-multi-majorp unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (18790 45400))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (18799 50784))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2014,7 +2023,7 @@ be opened in your webbrowser with WORD looked up.
 ;;;***
 
 ;;;### (autoloads (udev-cedet-update) "udev-cedet" "util/udev-cedet.el"
-;;;;;;  (18790 45400))
+;;;;;;  (18935 29598))
 ;;; Generated autoloads from util/udev-cedet.el
 
 (autoload 'udev-cedet-update "udev-cedet" "\
@@ -2067,6 +2076,50 @@ in the buffer is saved so that the tutorial may be resumed
 later.
 
 \(fn PART &optional DONT-ASK-FOR-REVERT)" t nil)
+
+;;;***
+
+;;;### (autoloads (winsav-save-mode winsav-restore-frames winsav-put-window-tree)
+;;;;;;  "winsav" "util/winsav.el" (18938 17895))
+;;; Generated autoloads from util/winsav.el
+
+(autoload 'winsav-put-window-tree "winsav" "\
+Put window structure SAVED-TREE into WINDOW.
+Restore a structure SAVED-TREE returned from
+`winsav-get-window-tree' into window WINDOW.
+
+If COPY-WIN-OVL is non-nil then overlays having a 'window
+property pointing to one of the windows in SAVED-TREE where this
+window still is shown will be copied to a new overlay with
+'window property pointing to the corresponding new window.
+
+If WIN-OVL-ALL-BUFS is non-nil then all buffers will be searched
+for overlays with a 'window property of the kind above.
+
+At the very end of this function the hook `winsav-after-put' is
+run.
+
+\(fn SAVED-TREE WINDOW &optional COPY-WIN-OVL WIN-OVL-ALL-BUFS)" nil nil)
+
+(autoload 'winsav-restore-frames "winsav" "\
+Not documented
+
+\(fn)" t nil)
+
+(defvar winsav-save-mode nil "\
+Non-nil if Winsav-Save mode is enabled.
+See the command `winsav-save-mode' for a description of this minor mode.")
+
+(nxhtml-custom-autoload 'winsav-save-mode "winsav" nil)
+
+(autoload 'winsav-save-mode "winsav" "\
+Toggle winsav saving mode.
+With numeric ARG, turn winsav saving on if ARG is positive, off
+otherwise.  If winsav saving is turned on, the frames and windows
+are saved from one session to another.  See variable
+`desktop-save' and function `desktop-read' for details.
+
+\(fn &optional ARG)" t nil)
 
 ;;;***
 
@@ -2283,20 +2336,21 @@ Not documented
 ;;;;;;  "related/flymu.el" "related/fold-dwim.el" "related/php-imenu.el"
 ;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
-;;;;;;  "util/buffer-bg.el" "util/custsets.el" "util/ecb-batch-compile.el"
-;;;;;;  "util/ffip.el" "util/fmode.el" "util/fupd.el" "util/hfyview.el"
-;;;;;;  "util/hl-needed.el" "util/htmlfontify.21.el" "util/mumamo-aspnet.el"
-;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
-;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
-;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
-;;;;;;  "util/useful-commands.el" "util/vline.el" "util/whelp.el"
-;;;;;;  "util/winsav.el" "util/zen-mode.el") (18795 28504 296000))
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
+;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/custsets.el"
+;;;;;;  "util/ecb-batch-compile.el" "util/ffip.el" "util/fmode.el"
+;;;;;;  "util/fupd.el" "util/hfyview.el" "util/hl-needed.el" "util/htmlfontify.21.el"
+;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
+;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
+;;;;;;  "util/pause.el" "util/popcmp.el" "util/rebind.el" "util/rxi.el"
+;;;;;;  "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
+;;;;;;  "util/vline.el" "util/whelp.el" "util/zen-mode.el") (18938
+;;;;;;  17906 328000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (18793 53251))
+;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (18793 59116))
 ;;; Generated autoloads from nxhtmlmaint.el
 
 (autoload 'nxhtmlmaint-start-byte-compilation "../nxhtmlmaint" "\
