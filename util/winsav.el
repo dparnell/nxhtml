@@ -64,8 +64,8 @@
 ;;   (desktop-save-mode 1)
 ;;   (winsav-save-mode 1)
 ;;
-;; You can also use this to save configurations that you later switch
-;; between.  See the functions
+;; You can also save configurations that you later switch between.  As
+;; above desktop will take care of the buffers.  See the functions
 ;;
 ;;   `winsav-save-named-config', `winsav-change-config'
 ;;
@@ -267,6 +267,13 @@ run."
     winsav-put-return))
 
 (defun winsav-put-window-tree-1 (saved-tree window scale-w scale-h first-call level)
+  "Helper for `winsav-put-window-tree'.
+For the arguments SAVED-TREE and WINDOW see that function.
+
+The arguments SCALE-W and SCALE-H are used to make the saved
+window config fit into its new place.  FIRST-CALL is a state
+variable telling if this is the first round.  LEVEL helps
+debugging by tells how far down we are in the call chain."
   (if (or (bufferp (car saved-tree))
           ;;(not (car saved-tree))
           (eq 'buffer (car saved-tree))
@@ -350,7 +357,7 @@ run."
       (when first-call
         (dolist (subtree (cdddr saved-tree))
           (setq pwin nwin)
-          (message "nwin edges=%s, ver=%s" (window-edges nwin) ver)
+          ;;(message "nwin edges=%s, ver=%s" (window-edges nwin) ver)
           (let ((split-err nil)
                 (window-min-height 1)
                 (window-min-width 1))
@@ -438,6 +445,7 @@ run."
                           (overlay-put newovl key val))))))))))))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Window rotating and mirroring
 
 (defun winsav-rotate (mirror transpose)
@@ -477,6 +485,7 @@ quarter clockwise (or counter clockwise with prefix)."
     ))
 
 (defun winsav-transform-edges (edges)
+  "Just rotate the arguments in EDGES to make them fit next function."
   (let ((le (nth 0 edges))
         (te (nth 1 edges))
         (re (nth 2 edges))
@@ -484,6 +493,10 @@ quarter clockwise (or counter clockwise with prefix)."
     (list te le be re)))
 
 (defun winsav-transform-1 (tree mirror transpose)
+  "Mirroring of the window tree TREE.
+MIRROR could be 'mirror-top-bottom or 'mirror-left-right which I
+think explain what it does here.  TRANSPOSE shifts the tree
+between a horisontal and vertical tree."
   (let* ((vertical (nth 0 tree))
          (edges    (nth 1 tree))
          (subtrees (nthcdr 2 tree))
@@ -517,83 +530,75 @@ quarter clockwise (or counter clockwise with prefix)."
       )
     ))
 
-;;(global-set-key [f11] 'winsav-rotate)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; winsav+.el ends here
+;;; Session saving and restore etc
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;; TEST ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defgroup winsav nil
+  "Save frames and windows when you exit Emacs."
+  :group 'frames)
 
-;; (defun winsav-log-buffer ()
-;;   (get-buffer-create "winsav log buffer"))
+;;;###autoload
+(define-minor-mode winsav-save-mode
+  "Toggle winsav saving mode.
+With numeric ARG, turn winsav saving on if ARG is positive, off
+otherwise.  If winsav saving is turned on, the frames and windows
+are saved from one session to another.  See variable
+`desktop-save' and function `desktop-read' for details."
+  :global t
+  :group 'winsav)
 
-;; (defun winsav-log (mark obj)
-;;   (with-current-buffer (winsav-log-buffer)
-;;     (insert "=== " mark "===\n" (pp-to-string obj))))
+(defun winsav-save-mode-off ()
+  "Disable option `winsav-save-mode'.  Provided for use in hooks."
+  (winsav-save-mode 0))
 
-;; (global-set-key [f2] 'winsav-test-get)
-;; (global-set-key [f3] 'winsav-test-put)
-;; (defvar winsav-saved-window-tree nil)
+(defcustom winsav-base-file-name
+  (convert-standard-filename ".emacs.winsav")
+  "Name of file for Emacs winsav, excluding the directory part."
+  :type 'file
+  :group 'winsav)
 
-;; (defun winsav-test-get()
-;;   (interactive)
-;;   (setq winsav-saved-window-tree (winsav-get-window-tree)))
+(defun winsav-find-file-noselect (filename)
+  "Read file FILENAME into a buffer and return the buffer.
+Like `find-file-noselect', but if file is not find then creates a
+buffer with a message about that."
+  (let ((buf (find-file-noselect filename)))
+    (unless buf
+      (setq buf (generate-new-buffer filename))
+      (with-current-buffer buf
+        (insert "Winsav could not find the file " filename)
+        (set-buffer-modified-p nil)))
+    buf))
 
-;; (defun winsav-test-put()
-;;   (interactive)
-;;   (let ((ret (winsav-put-window-tree winsav-saved-window-tree
-;;                                      (selected-window))))
-;;     ;;(message "ret=%s" ret)
-;;     ))
+(defun winsav-full-file-name (&optional dirname)
+  "Return the full name of the winsav session file in DIRNAME.
+DIRNAME omitted or nil means use `desktop-dirname'."
+  (expand-file-name winsav-base-file-name (or dirname
+                                              ;;winsav-dirname
+                                              "~/"
+                                              )))
+
+
 
 (defun winsav-serialize (obj)
+  "Return a string with the printed representation of OBJ.
+This should be possible to eval and get a similar object like OBJ
+again."
   (prin1-to-string obj))
 
-(defun winsav-de-serialize-window-tree (str)
-  (save-match-data
-    (let ((read-str
-           (replace-regexp-in-string (rx "#<buffer "
-                                         (1+ (not (any ">")))
-                                         ">")
-                                     "buffer"
-                                     str))
-          obj-last
-          obj
-          last)
-      (setq read-str
-            (replace-regexp-in-string (rx "#<window "
-                                          (1+ (not (any ">")))
-                                          ">")
-                                      "nil"
-                                      read-str))
-      (setq obj-last (read-from-string read-str))
-      (setq obj (car obj-last))
-      (setq last (cdr obj-last))
-      ;; Fix me, maby check there are only spaces left (or trim them above...)
-      obj)))
-
-(defun winsav-serialize-to-file (obj file)
-  (with-current-buffer (find-file-noselect file)
-    ;;(erase-buffer)
-    (save-restriction
-      (widen)
-      (goto-char (point-max))
-      (insert (winsav-serialize obj)
-              "\n"))
-    ;;(basic-save-buffer)
-    ))
-
-(defvar winsave-serialize-window-tree-hook nil
+(defvar winsav-save-frame-hook nil
   "Called after saving a frame.
-The functions in this hook should take two parameters, the frame
-and the buffer to write information too.  The information should
-be written as elisp code to exectute after restoring the frame.
-When loading the file the symbol `winsav-last-loaded-frame' will
-be the restored frame.")
+The functions in this hook is for writing extra information about
+a frame and it should take two parameters, the frame just saved
+and the buffer to write information too.
 
-(defun winsav-serialize-window-tree-to-file (frame file)
+The information should be written as elisp code to execute after
+restoring the frame.  When executing this code the symbol
+`winsav-last-loaded-frame' will be the just created frame.")
+
+(defun winsav-save-frame (file frame)
+  "Write into file FILE elisp code to recreate frame FRAME."
   (with-current-buffer (find-file-noselect file)
     (save-restriction
       (widen)
@@ -681,84 +686,57 @@ be the restored frame.")
                         nil start end)
         (goto-char end)
         (insert "    win)\n\n")
-        (dolist (fun winsave-serialize-window-tree-hook)
+        (dolist (fun winsav-save-frame-hook)
           (funcall fun frame (current-buffer)))
         (insert "  )\n\n\n")
         ))))
 
-(defun winsav-de-serialize-window-tree-from-file (file)
-  (with-current-buffer (find-file-noselect file)
-    (save-restriction
-      (widen)
-      (let ((start (point))
-            (end nil))
-        (forward-list)
-        (setq end (point))
-        ;;(goto-char (point-min))
-        (winsav-de-serialize-window-tree (buffer-substring-no-properties start end))))))
-
-(defun winsav-save-frame-to-file (file frame)
-  (winsav-serialize-window-tree-to-file
-   frame
-   file))
-
-(defun winsav-restore-from-file (file)
-  (winsav-put-window-tree
-   (winsav-de-serialize-window-tree-from-file file)
-   (selected-window)))
-
-(defun winsav-find-file-noselect (filename)
-  (let ((buf (find-file-noselect filename)))
-    (unless buf
-      (setq buf (generate-new-buffer filename))
-      (with-current-buffer buf
-        (insert "Winsav could not find the file " filename)
-        (set-buffer-modified-p nil)))
-    buf))
-
-(defun winsav-full-file-name (&optional dirname)
-  "Return the full name of the winsav file in DIRNAME.
-DIRNAME omitted or nil means use `desktop-dirname'."
-  (expand-file-name winsav-base-file-name (or dirname
-                                              ;;desktop-dirname
-                                              "~/"
-                                              )))
-
 (defun winsav-save-frames (&optional dirname)
-  ;;(interactive)
+  "Write elisp code to recreate all frames.
+Write into the file name computed by `winsav-full-file-name'
+given the argument DIRNAME."
   (let ((file (winsav-full-file-name dirname)))
     (with-current-buffer (find-file-noselect file)
       (erase-buffer)
       (dolist (frm (frame-list))
-        (winsav-save-frame-to-file file frm))
+        (winsav-save-frame file frm))
       (save-buffer 0) ;; No backups
       )))
 
-;;(winsav-tell-restored-1 "hi")
-(defun winsav-tell-restored-1 (dirname)
-  (momentary-string-display
-   (propertize
-    (format "\n\n\n  Changed to winsav config '%s'\n\n\n" dirname)
-    'face 'secondary-selection)
-   (window-start)
-   ;;nil "Type RET when done reading"
-   ))
-
-(defun winsav-tell-restored (dirname)
-  (run-with-idle-timer 1 nil 'winsav-tell-restored-1 dirname))
+(defvar winsav-current-config-name nil)
 
 ;;(winsav-restore-frames)
-;;;###autoload
+;;(winsav-full-file-name "~")
 (defun winsav-restore-frames (&optional dirname)
-  ;;(interactive)
+  "Restore frames from file in directory DIRNAME.
+The file was probably written by `winsav-save-frames'.
+Delete the frames that were used before."
   (let ((old-frames (frame-list)))
     (load (winsav-full-file-name dirname))
     (dolist (old old-frames)
       (delete-frame old))
     (winsav-maximize-all-nearly-max-frames)
-    (winsav-tell-restored (file-name-nondirectory
-                           (directory-file-name dirname)))
     t))
+
+;;(winsav-tell-restored-1)
+(defun winsav-tell-restored-1 ()
+  "Tell user that config CONFNAME is now used."
+  (let ((confname (or winsav-current-config-name
+                      "(default)")))
+    (save-window-excursion
+      (delete-other-windows)
+      (set-window-buffer (selected-window)
+                         (get-buffer-create "*winsav*"))
+      (with-current-buffer (window-buffer)
+        (momentary-string-display
+         (propertize
+          (format "\n\n\n  Current winsav config is '%s'\n\n\n" confname)
+          'face 'secondary-selection)
+         (window-start)
+         )))))
+
+(defun winsav-tell-restored ()
+  (run-with-idle-timer 1 nil 'winsav-tell-restored-1))
 
 (defun winsav-nearly-maximized (frame)
   (let* ((top (frame-parameter frame 'top))
@@ -785,7 +763,7 @@ DIRNAME omitted or nil means use `desktop-dirname'."
     (let ((terminal-type (framep frame)))
       (cond
        ((eq 'w32 terminal-type)
-        (message "max %s" frame)
+        ;;(message "max %s" frame)
         ;;(select-frame-set-input-focus frame)
         (select-frame frame)
         (w32-send-sys-command 61488))))))
@@ -797,32 +775,8 @@ DIRNAME omitted or nil means use `desktop-dirname'."
       (winsav-maximize-nearly-maximized frame))
     (run-with-idle-timer 0 nil 'select-frame-set-input-focus sel-frm)))
 
-(defgroup winsav nil
-  "Save frames and windows when you exit Emacs."
-  :group 'frames)
-
-;;;###autoload
-(define-minor-mode winsav-save-mode
-  "Toggle winsav saving mode.
-With numeric ARG, turn winsav saving on if ARG is positive, off
-otherwise.  If winsav saving is turned on, the frames and windows
-are saved from one session to another.  See variable
-`desktop-save' and function `desktop-read' for details."
-  :global t
-  :group 'winsav)
-
-(defun winsav-save-mode-off ()
-  "Disable `winsav-save-mode'.  Provided for use in hooks."
-  (winsav-save-mode 0))
-
-;; Put us before desktop to allow killing non-visible buffers before exit
-(require 'desktop)
-(add-hook 'kill-emacs-hook 'winsav-kill)
-
-(defun winsav-kill ()
-  (when winsav-save-mode
-    (winsav-save-frames)
-    ))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Startup and shut down
 
 ;; Run after desktop at startup
 (defun winsav-after-init ()
@@ -831,12 +785,17 @@ are saved from one session to another.  See variable
 
 (add-hook 'after-init-hook 'winsav-after-init t)
 
-(defcustom winsav-base-file-name
-  (convert-standard-filename ".emacs.winsav")
-  "Name of file for Emacs winsav, excluding the directory part."
-  :type 'file
-  :group 'winsav)
+;; Put us before desktop to allow killing non-visible buffers before exit
+(require 'desktop)
+(add-hook 'kill-emacs-hook 'winsav-kill)
 
+(defun winsav-kill ()
+  (when winsav-save-mode
+    (let ((conf-dir (when winsav-current-config-name
+                      (winsav-full-config-dir-name winsav-current-config-name))))
+      (winsav-save-frames conf-dir))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Switching configurations
 
 ;; fix-me: defadvice this to keep track of opened files
@@ -844,54 +803,77 @@ are saved from one session to another.  See variable
 ;;                                     desktop-buffer-name
 ;;                                     desktop-buffer-misc)
 
-(defvar winsav-desktop-restored-buffers nil)
+;;(defvar winsav-desktop-buffers nil "Desktop file buffers.")
+;;(defvar winsav-desktop-prev-buffers nil "Desktop previous file buffers.")
 
-(defadvice desktop-restore-file-buffer (after
-                                        winsav-advice-desktop-restore-file-buffer
-                                        disabled
-                                        compile
-                                        )
-  (setq winsav-desktop-restored-buffers
-        (cons ad-return-value winsav-desktop-restored-buffers))
-  )
+;; (defadvice desktop-restore-file-buffer (after
+;;                                         winsav-advice-desktop-restore-file-buffer
+;;                                         disable
+;;                                         compile
+;;                                         )
+;;   (setq winsav-desktop-buffers (cons ad-return-value winsav-desktop-buffers))
+;;   )
 
 ;; (winsav-save-named-config "testing")
 ;; (winsav-save-named-config "testing2")
+;;;###autoload
 (defun winsav-save-named-config (name)
   (interactive "swinsav - Save current frame and buffer config under name: ")
-  (let* ((conf-dir (winsav-full-config-dir-name name))
-         desktop-dirname ;; We do not want to change it
-        )
-    (mkdir conf-dir t)
-    (desktop-save conf-dir t) ;; Do not lock the file
+  (let* ((conf-dir (when (and name
+                              (not (string= "" name)))
+                     (winsav-full-config-dir-name name)))
+         ;;(desktop-dirname desktop-dirname) ;; We do not want to change it
+         )
+    (when conf-dir (mkdir conf-dir t))
+    (desktop-save (if conf-dir conf-dir desktop-dirname)
+                  conf-dir) ;; Do not lock the file if not the default file
     (winsav-save-frames conf-dir)
-  ))
+    ;; (dolist (buf (buffer-list))
+    ;;   (when (buffer-file-name buf)
+    ;;     (setq winsav-desktop-buffers (cons buf winsav-desktop-buffers))))
+    ))
 
 ;; (winsav-restore-named-config "testing")
 (defun winsav-restore-named-config (name)
-  (let* ((conf-dir (winsav-full-config-dir-name name))
-         desktop-dirname ;; We do not want to change it
-         desktop-file-modtime
-         )
-    ;; Let desktop read the files and record them
-    (ad-enable-advise 'desktop-restore-file-buffer 'after 'winsav-advice-desktop-restore-file-buffer)
-    (ad-activate 'desktop-restore-file-buffer)
-    (desktop-read conf-dir)
-    (desktop-release-lock conf-dir)
-    (ad-disable-advise 'desktop-restore-file-buffer 'after 'winsav-advice-desktop-restore-file-buffer)
-    (ad-deactivate 'desktop-restore-file-buffer)
-    ;; Delete file buffers that we do not use now.
-    (winsav-restore-frames conf-dir)))
+  (let ((conf-dir (if name
+                      (winsav-full-config-dir-name name)
+                    "~")))
+      ;; Let desktop read the files and record them
+      ;; (setq winsav-desktop-prev-buffers (copy-sequence winsav-desktop-buffers))
+      ;; (setq winsav-desktop-buffers nil)
+      ;; (ad-enable-advice 'desktop-restore-file-buffer 'after 'winsav-advice-desktop-restore-file-buffer)
+      ;; (ad-activate 'desktop-restore-file-buffer)
+      ;; (desktop-read conf-dir)
+      ;; (desktop-release-lock conf-dir)
+      ;; (ad-disable-advice 'desktop-restore-file-buffer 'after 'winsav-advice-desktop-restore-file-buffer)
+      ;; (ad-deactivate 'desktop-restore-file-buffer)
+      ;; Delete file buffers that we do not use now.
+      ;; (dolist (old-buf winsav-desktop-prev-buffers)
+      ;;   (or (memq old-buf winsav-desktop-buffers)
+      ;;       (buffer-modified-p old-buf)
+      ;;       (kill-buffer old-buf)))
+    (desktop-change-dir conf-dir)
+      ;; Frames
+    (winsav-restore-frames conf-dir))
+  (setq winsav-current-config-name name)
+  (winsav-tell-restored))
 
 (defun winsav-full-config-dir-name (name)
   (let* ((base-dir (concat (winsav-full-file-name) ".d"))
          (conf-dir (expand-file-name name base-dir)))
     (setq conf-dir (file-name-as-directory conf-dir))
-    (message "conf-dir=%s" conf-dir)
+    ;;(message "conf-dir=%s" conf-dir)
     conf-dir))
 
-(defun winsav-change-config ()
-  (interactive)
+;;;###autoload
+(defun winsav-change-config (save-old)
+  (interactive (list
+                (y-or-n-p
+                 (format "Save current config, %s, first? "
+                         (if winsav-current-config-name
+                             winsav-current-config-name
+                           "the startup config")))))
+  (when save-old (winsav-save-named-config winsav-current-config-name))
   (let* ((base-dir (concat (winsav-full-file-name) ".d"))
          hist
          (dirs (directory-files base-dir t))
@@ -906,13 +888,87 @@ are saved from one session to another.  See variable
     (setq hist dirs)
     (setq config (completing-read "winsav - Choose configuration (default startup config): "
                                   dirs nil t nil 'hist))
-    (if (string= "" config)
-        (progn
-          (desktop-read)
-          (winsav-after-init)
-          )
-      (winsav-restore-named-config config)
-      )))
+    (when (string= "" config) (setq config nil))
+    (winsav-restore-named-config config)))
+
+
+
+
+;;; Old things
+
+;; (defun winsav-log-buffer ()
+;;   (get-buffer-create "winsav log buffer"))
+
+;; (defun winsav-log (mark obj)
+;;   (with-current-buffer (winsav-log-buffer)
+;;     (insert "=== " mark "===\n" (pp-to-string obj))))
+
+;; (global-set-key [f2] 'winsav-test-get)
+;; (global-set-key [f3] 'winsav-test-put)
+;; (defvar winsav-saved-window-tree nil)
+
+;; (defun winsav-test-get()
+;;   (interactive)
+;;   (setq winsav-saved-window-tree (winsav-get-window-tree)))
+
+;; (defun winsav-test-put()
+;;   (interactive)
+;;   (let ((ret (winsav-put-window-tree winsav-saved-window-tree
+;;                                      (selected-window))))
+;;     ;;(message "ret=%s" ret)
+;;     ))
+
+;; (defun winsav-serialize-to-file (obj file)
+;;   (with-current-buffer (find-file-noselect file)
+;;     ;;(erase-buffer)
+;;     (save-restriction
+;;       (widen)
+;;       (goto-char (point-max))
+;;       (insert (winsav-serialize obj)
+;;               "\n"))
+;;     ;;(basic-save-buffer)
+;;     ))
+
+;;(global-set-key [f11] 'winsav-rotate)
+
+;; (defun winsav-de-serialize-window-tree-from-file (file)
+;;   (with-current-buffer (find-file-noselect file)
+;;     (save-restriction
+;;       (widen)
+;;       (let ((start (point))
+;;             (end nil))
+;;         (forward-list)
+;;         (setq end (point))
+;;         ;;(goto-char (point-min))
+;;         (winsav-de-serialize-window-tree (buffer-substring-no-properties start end))))))
+
+;; (defun winsav-restore-from-file (file)
+;;   (winsav-put-window-tree
+;;    (winsav-de-serialize-window-tree-from-file file)
+;;    (selected-window)))
+
+;; (defun winsav-de-serialize-window-tree (str)
+;;   (save-match-data
+;;     (let ((read-str
+;;            (replace-regexp-in-string (rx "#<buffer "
+;;                                          (1+ (not (any ">")))
+;;                                          ">")
+;;                                      "buffer"
+;;                                      str))
+;;           obj-last
+;;           obj
+;;           last)
+;;       (setq read-str
+;;             (replace-regexp-in-string (rx "#<window "
+;;                                           (1+ (not (any ">")))
+;;                                           ">")
+;;                                       "nil"
+;;                                       read-str))
+;;       (setq obj-last (read-from-string read-str))
+;;       (setq obj (car obj-last))
+;;       (setq last (cdr obj-last))
+;;       ;; Fix me, maby check there are only spaces left (or trim them above...)
+;;       obj)))
 
 (provide 'winsav)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
