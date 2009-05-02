@@ -2,8 +2,8 @@
 ;;
 ;; Author: Lennart Borgman
 ;; Created: Sun Jan 14 2007
-;; Version: 0.72
-;; Last-Updated: 2009-05-01 Fri
+;; Version: 0.73
+;; Last-Updated: 2009-05-02 Sat
 ;; Keywords:
 ;; Compatibility:
 ;;
@@ -16,7 +16,9 @@
 ;;; Commentary:
 ;;
 ;; This library was orignally written to solve the problem of adding a
-;; window to the left of some windows in a frame
+;; window to the left of some windows in a frame (but see below for
+;; saving and restoring frame, window, files and buffer configurations
+;; with named configurations and between sessions).
 ;;
 ;; ___________
 ;; |    |    |
@@ -65,9 +67,10 @@
 ;;   (winsav-save-mode 1)
 ;;
 ;; You can also save configurations that you later switch between.  As
-;; above desktop will take care of the buffers.  See the functions
+;; above desktop will take care of the buffers.  For more information
+;; see the function
 ;;
-;;   `winsav-save-named-config', `winsav-change-config'
+;;   `winsav-switch-config'
 ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -541,11 +544,14 @@ between a horisontal and vertical tree."
 
 ;;;###autoload
 (define-minor-mode winsav-save-mode
-  "Toggle winsav saving mode.
+  "Toggle winsav configuration saving mode.
 With numeric ARG, turn winsav saving on if ARG is positive, off
-otherwise.  If winsav saving is turned on, the frames and windows
-are saved from one session to another.  See variable
-`desktop-save' and function `desktop-read' for details."
+otherwise.
+
+When this mode is turned on, the frames and windows are saved
+from one session to another.
+
+See the command `winsav-switch-config' for more information."
   :global t
   :group 'winsav)
 
@@ -573,7 +579,7 @@ buffer with a message about that."
 
 (defun winsav-full-file-name (&optional dirname)
   "Return the full name of the winsav session file in DIRNAME.
-DIRNAME omitted or nil means use `desktop-dirname'."
+DIRNAME omitted or nil means use `~'."
   (expand-file-name winsav-base-file-name (or dirname
                                               ;;winsav-dirname
                                               "~/"
@@ -701,6 +707,7 @@ given the argument DIRNAME."
       (dolist (frm (frame-list))
         (winsav-save-frame file frm))
       (save-buffer 0) ;; No backups
+      (kill-buffer)
       )))
 
 (defvar winsav-current-config-name nil)
@@ -718,27 +725,33 @@ Delete the frames that were used before."
     (winsav-maximize-all-nearly-max-frames)
     t))
 
-;;(winsav-tell-restored-1)
-(defun winsav-tell-restored-1 ()
-  "Tell user that config CONFNAME is now used."
+;;(winsav-tell-configuration)
+(defun winsav-tell-configuration ()
+  "Tell which winsav configuration that is used."
+  (interactive)
   (let ((confname (or winsav-current-config-name
                       "(default)")))
+    (if t ;;(called-interactively-p)
+        (message (propertize (format "Current winsav config is '%s'" confname)
+                             'face 'secondary-selection))
     (save-window-excursion
       (delete-other-windows)
       (set-window-buffer (selected-window)
-                         (get-buffer-create "*winsav*"))
+                           (get-buffer-create " *winsav*"))
       (with-current-buffer (window-buffer)
         (momentary-string-display
          (propertize
-          (format "\n\n\n  Current winsav config is '%s'\n\n\n" confname)
+            (format "\n\n\n  Current winsav config is '%s'\n\n\n\n" confname)
           'face 'secondary-selection)
          (window-start)
-         )))))
+           (kill-buffer)))))))
 
-(defun winsav-tell-restored ()
-  (run-with-idle-timer 1 nil 'winsav-tell-restored-1))
+(defun winsav-tell-configuration-request ()
+  "Start an idle timer to call `winsav-tell-configuration'."
+  (run-with-idle-timer 1 nil 'winsav-tell-configuration))
 
 (defun winsav-nearly-maximized (frame)
+  "Return non-nil if size of frame FRAME is nearly full screen."
   (let* ((top (frame-parameter frame 'top))
          (left (frame-parameter frame 'left))
          (width (frame-pixel-width frame))
@@ -747,8 +760,7 @@ Delete the frames that were used before."
          (display-height (display-pixel-height))
          (char-height (frame-char-height frame))
          (height-diff (- display-height height))
-         (terminal-type (framep frame))
-         )
+         (terminal-type (framep frame)))
     ;;(message "w=%s/%s, h=%s/%s, ch=%s, hd=%s" width display-width height display-height char-height height-diff)
     (cond
      ((eq 'w32 terminal-type)
@@ -759,6 +771,7 @@ Delete the frames that were used before."
            )))))
 
 (defun winsav-maximize-nearly-maximized (frame)
+  "Maximize frame FRAME if size is nearly full screen."
   (when (winsav-nearly-maximized frame)
     (let ((terminal-type (framep frame)))
       (cond
@@ -770,6 +783,7 @@ Delete the frames that were used before."
 
 ;;(winsav-maximize-all-nearly-max-frames)
 (defun winsav-maximize-all-nearly-max-frames ()
+  "Maximizes all frames whose size is nearly full screen."
   (let ((sel-frm (selected-frame)))
     (dolist (frame (frame-list))
       (winsav-maximize-nearly-maximized frame))
@@ -778,106 +792,105 @@ Delete the frames that were used before."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Startup and shut down
 
-;; Run after desktop at startup
+;; Run after desktop at startup so that desktop has loaded files and
+;; buffers.
 (defun winsav-after-init ()
+  "Restore frames and windows.
+Run this once after Emacs startup, after desktop in the
+`after-init-hook'."
   (when winsav-save-mode
     (run-with-idle-timer 0.1 nil 'winsav-restore-frames)))
 
 (add-hook 'after-init-hook 'winsav-after-init t)
 
-;; Put us before desktop to allow killing non-visible buffers before exit
-(require 'desktop)
 (add-hook 'kill-emacs-hook 'winsav-kill)
 
 (defun winsav-kill ()
+  "Save frame and window configurations.
+Run this before Emacs exits."
   (when winsav-save-mode
     (let ((conf-dir (when winsav-current-config-name
                       (winsav-full-config-dir-name winsav-current-config-name))))
       (winsav-save-frames conf-dir))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Switching configurations
 
-;; fix-me: defadvice this to keep track of opened files
-;; (defun desktop-restore-file-buffer (desktop-buffer-file-name
-;;                                     desktop-buffer-name
-;;                                     desktop-buffer-misc)
-
-;;(defvar winsav-desktop-buffers nil "Desktop file buffers.")
-;;(defvar winsav-desktop-prev-buffers nil "Desktop previous file buffers.")
-
-;; (defadvice desktop-restore-file-buffer (after
-;;                                         winsav-advice-desktop-restore-file-buffer
-;;                                         disable
-;;                                         compile
-;;                                         )
-;;   (setq winsav-desktop-buffers (cons ad-return-value winsav-desktop-buffers))
-;;   )
-
-;; (winsav-save-named-config "testing")
-;; (winsav-save-named-config "testing2")
-;;;###autoload
-(defun winsav-save-named-config (name)
-  (interactive "swinsav - Save current frame and buffer config under name: ")
-  (let* ((conf-dir (when (and name
-                              (not (string= "" name)))
-                     (winsav-full-config-dir-name name)))
-         ;;(desktop-dirname desktop-dirname) ;; We do not want to change it
-         )
-    (when conf-dir (mkdir conf-dir t))
-    (desktop-save (if conf-dir conf-dir desktop-dirname)
-                  conf-dir) ;; Do not lock the file if not the default file
-    (winsav-save-frames conf-dir)
-    ;; (dolist (buf (buffer-list))
-    ;;   (when (buffer-file-name buf)
-    ;;     (setq winsav-desktop-buffers (cons buf winsav-desktop-buffers))))
-    ))
-
 ;; (winsav-restore-named-config "testing")
 (defun winsav-restore-named-config (name)
+  "Restore the winsav configuration named NAME.
+If NAME is nil then restore the startup configuration."
   (let ((conf-dir (if name
                       (winsav-full-config-dir-name name)
                     "~")))
-      ;; Let desktop read the files and record them
-      ;; (setq winsav-desktop-prev-buffers (copy-sequence winsav-desktop-buffers))
-      ;; (setq winsav-desktop-buffers nil)
-      ;; (ad-enable-advice 'desktop-restore-file-buffer 'after 'winsav-advice-desktop-restore-file-buffer)
-      ;; (ad-activate 'desktop-restore-file-buffer)
-      ;; (desktop-read conf-dir)
-      ;; (desktop-release-lock conf-dir)
-      ;; (ad-disable-advice 'desktop-restore-file-buffer 'after 'winsav-advice-desktop-restore-file-buffer)
-      ;; (ad-deactivate 'desktop-restore-file-buffer)
-      ;; Delete file buffers that we do not use now.
-      ;; (dolist (old-buf winsav-desktop-prev-buffers)
-      ;;   (or (memq old-buf winsav-desktop-buffers)
-      ;;       (buffer-modified-p old-buf)
-      ;;       (kill-buffer old-buf)))
-    (desktop-change-dir conf-dir)
-      ;; Frames
+    ;;(desktop-change-dir conf-dir)
+    (when desktop-save-mode
+      (when (eq (emacs-pid) (desktop-owner)) (desktop-release-lock))
+      (desktop-clear)
+      (desktop-read conf-dir))
     (winsav-restore-frames conf-dir))
   (setq winsav-current-config-name name)
-  (winsav-tell-restored))
+  (winsav-tell-configuration-request))
 
 (defun winsav-full-config-dir-name (name)
+  "Return full directory path where configuration NAME is stored."
   (let* ((base-dir (concat (winsav-full-file-name) ".d"))
          (conf-dir (expand-file-name name base-dir)))
     (setq conf-dir (file-name-as-directory conf-dir))
     ;;(message "conf-dir=%s" conf-dir)
     conf-dir))
 
+;; (winsav-save-named-config "testing")
+;; (winsav-save-named-config "testing2")
 ;;;###autoload
-(defun winsav-change-config (save-old)
-  (interactive (list
-                (y-or-n-p
-                 (format "Save current config, %s, first? "
-                         (if winsav-current-config-name
-                             winsav-current-config-name
-                           "the startup config")))))
-  (when save-old (winsav-save-named-config winsav-current-config-name))
+(defun winsav-save-named-config (name)
+  "Saved current winsav configuration under name NAME.
+Then change to configuration NAME.  If NAME is nil or \"\" then
+it means the startup configuration.
+
+See also `winsav-switch-config'."
+  (when (string= "" name) (setq name nil))
+  (let* ((conf-dir (if name
+                       (winsav-full-config-dir-name name)
+                     "~")))
+    (when name (mkdir conf-dir t))
+    (when desktop-save-mode
+      (desktop-release-lock)
+      (desktop-save conf-dir))
+    (winsav-save-frames conf-dir)
+    (unless (string= winsav-current-config-name name)
+      (setq winsav-current-config-name name)
+      (winsav-tell-configuration-request))))
+
+;;;###autoload
+(defun winsav-switch-config ()
+  "Change to a new winsav configuration.
+A winsav configuration consists buffers and files managed by the
+functions used by `desktop-save-mode' plus windows and frames
+configurations.
+
+Prompt for the name of the winsav configuration.
+If that given name does not exist offer to create it.
+
+If the name is the current winsav configuration then offer to
+save it or restore it from saved values.
+
+Otherwise, before switching offer to save the current winsav
+configuration.  Then finally switch to the new winsav
+configuration, creating it if it does not exist.
+
+If `desktop-save-mode' is on then buffers and files are also
+restored and saved the same way.
+
+See also `winsav-save-mode' and `winsav-tell-configuration'."
+  (interactive)
+  (catch 'stop
   (let* ((base-dir (concat (winsav-full-file-name) ".d"))
          hist
          (dirs (directory-files base-dir t))
-         config)
+           config
+           config-exists)
     (setq dirs (mapcar (lambda (f)
                          (when (file-directory-p f)
                            (let ((name (file-name-nondirectory f)))
@@ -887,9 +900,27 @@ Delete the frames that were used before."
     (setq dirs (delq nil dirs))
     (setq hist dirs)
     (setq config (completing-read "winsav - Choose configuration (default startup config): "
-                                  dirs nil t nil 'hist))
+                                    dirs nil nil nil 'hist))
     (when (string= "" config) (setq config nil))
+      (if (or (not config) (member config dirs))
+          (setq config-exists t)
+        (unless (y-or-n-p (format "Configuration %s was not found. Create it? " config))
+          (throw 'stop)))
+      (if (equal winsav-current-config-name config)
+          (if (y-or-n-p "You are already using this winsav configuration, save it? ")
+              (winsav-save-named-config winsav-current-config-name)
+            (when (y-or-n-p "Restore this configuration from saved values? ")
     (winsav-restore-named-config config)))
+        (when (y-or-n-p
+               (format "Save current config, %s, first before switching to %s? "
+                       (if winsav-current-config-name
+                           winsav-current-config-name
+                         "the startup config")
+                       config))
+          (winsav-save-named-config winsav-current-config-name))
+        (if config-exists
+            (winsav-restore-named-config config)
+          (winsav-save-named-config config))))))
 
 
 

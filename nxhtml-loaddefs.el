@@ -76,7 +76,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18936 58700))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18936 59210))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -991,7 +991,7 @@ See `nxhtmltest-run' for more information about the tests.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "../tests/nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (18935 45820))
+;;;;;;  "tests/nxhtmltest-suites.el" (18936 59210))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 
 (autoload 'nxhtmltest-run-indent "../tests/nxhtmltest-suites" "\
@@ -1449,7 +1449,7 @@ hyperlinks as appropriate.
 
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
 ;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (18937
-;;;;;;  62914))
+;;;;;;  65146))
 ;;; Generated autoloads from util/majmodpri.el
 
 (autoload 'majmodpri-sort-lists "majmodpri" "\
@@ -1485,8 +1485,8 @@ before applying.
 
 ;;;***
 
-;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18790
-;;;;;;  45400))
+;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18939
+;;;;;;  34634))
 ;;; Generated autoloads from util/mlinks.el
 
 (autoload 'mlinks-mode "mlinks" "\
@@ -1521,7 +1521,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-mark-for-refontification) "mumamo" "util/mumamo.el"
-;;;;;;  (18938 278))
+;;;;;;  (18939 34634))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -2079,8 +2079,9 @@ later.
 
 ;;;***
 
-;;;### (autoloads (winsav-save-mode winsav-restore-frames winsav-put-window-tree)
-;;;;;;  "winsav" "util/winsav.el" (18938 17895))
+;;;### (autoloads (winsav-change-config winsav-save-named-config
+;;;;;;  winsav-save-mode winsav-put-window-tree) "winsav" "util/winsav.el"
+;;;;;;  (18940 3442))
 ;;; Generated autoloads from util/winsav.el
 
 (autoload 'winsav-put-window-tree "winsav" "\
@@ -2101,11 +2102,6 @@ run.
 
 \(fn SAVED-TREE WINDOW &optional COPY-WIN-OVL WIN-OVL-ALL-BUFS)" nil nil)
 
-(autoload 'winsav-restore-frames "winsav" "\
-Not documented
-
-\(fn)" t nil)
-
 (defvar winsav-save-mode nil "\
 Non-nil if Winsav-Save mode is enabled.
 See the command `winsav-save-mode' for a description of this minor mode.")
@@ -2120,6 +2116,16 @@ are saved from one session to another.  See variable
 `desktop-save' and function `desktop-read' for details.
 
 \(fn &optional ARG)" t nil)
+
+(autoload 'winsav-save-named-config "winsav" "\
+Not documented
+
+\(fn NAME)" t nil)
+
+(autoload 'winsav-change-config "winsav" "\
+Not documented
+
+\(fn SAVE-OLD)" t nil)
 
 ;;;***
 
@@ -2336,21 +2342,20 @@ Not documented
 ;;;;;;  "related/flymu.el" "related/fold-dwim.el" "related/php-imenu.el"
 ;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
-;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/custsets.el"
-;;;;;;  "util/ecb-batch-compile.el" "util/ffip.el" "util/fmode.el"
-;;;;;;  "util/fupd.el" "util/hfyview.el" "util/hl-needed.el" "util/htmlfontify.21.el"
-;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
-;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
-;;;;;;  "util/pause.el" "util/popcmp.el" "util/rebind.el" "util/rxi.el"
-;;;;;;  "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
-;;;;;;  "util/vline.el" "util/whelp.el" "util/zen-mode.el") (18938
-;;;;;;  17906 328000))
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
+;;;;;;  "util/buffer-bg.el" "util/custsets.el" "util/ecb-batch-compile.el"
+;;;;;;  "util/ffip.el" "util/fmode.el" "util/fupd.el" "util/hfyview.el"
+;;;;;;  "util/hl-needed.el" "util/htmlfontify.21.el" "util/mumamo-aspnet.el"
+;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
+;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
+;;;;;;  "util/useful-commands.el" "util/vline.el" "util/whelp.el"
+;;;;;;  "util/zen-mode.el") (18940 21217 625000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (18793 59116))
+;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (18940 21041))
 ;;; Generated autoloads from nxhtmlmaint.el
 
 (autoload 'nxhtmlmaint-start-byte-compilation "../nxhtmlmaint" "\
