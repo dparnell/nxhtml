@@ -2079,9 +2079,9 @@ later.
 
 ;;;***
 
-;;;### (autoloads (winsav-change-config winsav-save-named-config
+;;;### (autoloads (winsav-switch-config winsav-save-named-config
 ;;;;;;  winsav-save-mode winsav-put-window-tree) "winsav" "util/winsav.el"
-;;;;;;  (18940 3442))
+;;;;;;  (18940 50150))
 ;;; Generated autoloads from util/winsav.el
 
 (autoload 'winsav-put-window-tree "winsav" "\
@@ -2109,23 +2109,49 @@ See the command `winsav-save-mode' for a description of this minor mode.")
 (nxhtml-custom-autoload 'winsav-save-mode "winsav" nil)
 
 (autoload 'winsav-save-mode "winsav" "\
-Toggle winsav saving mode.
+Toggle winsav configuration saving mode.
 With numeric ARG, turn winsav saving on if ARG is positive, off
-otherwise.  If winsav saving is turned on, the frames and windows
-are saved from one session to another.  See variable
-`desktop-save' and function `desktop-read' for details.
+otherwise.
+
+When this mode is turned on, the frames and windows are saved
+from one session to another.
+
+See the command `winsav-switch-config' for more information and
+other possibilities.
 
 \(fn &optional ARG)" t nil)
 
 (autoload 'winsav-save-named-config "winsav" "\
-Not documented
+Saved current winsav configuration under name NAME.
+Then change to configuration NAME.  If NAME is nil or \"\" then
+it means the startup configuration.
 
-\(fn NAME)" t nil)
+See also `winsav-switch-config'.
 
-(autoload 'winsav-change-config "winsav" "\
-Not documented
+\(fn NAME)" nil nil)
 
-\(fn SAVE-OLD)" t nil)
+(autoload 'winsav-switch-config "winsav" "\
+Change to a new winsav configuration.
+A winsav configuration consists buffers and files managed by the
+functions used by `desktop-save-mode' plus windows and frames
+configurations.
+
+Prompt for the name of the winsav configuration.
+If that given name does not exist offer to create it.
+
+If the name is the current winsav configuration then offer to
+save it or restore it from saved values.
+
+Otherwise, before switching offer to save the current winsav
+configuration.  Then finally switch to the new winsav
+configuration, creating it if it does not exist.
+
+If `desktop-save-mode' is on then buffers and files are also
+restored and saved the same way.
+
+See also `winsav-save-mode' and `winsav-tell-configuration'.
+
+\(fn)" t nil)
 
 ;;;***
 
@@ -2350,12 +2376,12 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/vline.el" "util/whelp.el"
-;;;;;;  "util/zen-mode.el") (18940 21217 625000))
+;;;;;;  "util/zen-mode.el") (18940 50375 546000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (18940 21041))
+;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (18940 21223))
 ;;; Generated autoloads from nxhtmlmaint.el
 
 (autoload 'nxhtmlmaint-start-byte-compilation "../nxhtmlmaint" "\

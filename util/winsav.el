@@ -109,6 +109,8 @@
 ;; - Format of window structure changed in Emacs 23. Adopted to that.
 ;; - Added save and restore of frame/window configurations between
 ;;   Emacs sessions.
+;; - Added named winsav configurations for save and restore of frames,
+;;   windows, buffers and files.
 ;;
 ;; Version 0.71:
 ;;
@@ -143,12 +145,12 @@
 
 (eval-when-compile (require 'cl))
 
-(defun winsav-upper-left-window(&optional frame w)
-  (let* ((tree (if w w (car (window-tree frame))))
-         (is-split (not (windowp tree))))
-    (if (not is-split)
-        tree
-      (winsav-upper-left-window frame (nth 2 tree)))))
+;; (defun winsav-upper-left-window(&optional frame w)
+;;   (let* ((tree (if w w (car (window-tree frame))))
+;;          (is-split (not (windowp tree))))
+;;     (if (not is-split)
+;;         tree
+;;       (winsav-upper-left-window frame (nth 2 tree)))))
 
 
 (defvar winsav-after-get-hooks nil
@@ -173,7 +175,8 @@ FRAME is the frame to save structure from. If nil use selected.
 
 At the very end of this function the hook `winsav-after-get' is
 run."
-  (let* ((upper-left (winsav-upper-left-window frame))
+  ;;(let* ((upper-left (winsav-upper-left-window frame))
+  (let* ((upper-left (frame-first-window frame))
          (num -1)
          sel-num)
     (dolist (w (window-list frame nil upper-left))
@@ -551,7 +554,8 @@ otherwise.
 When this mode is turned on, the frames and windows are saved
 from one session to another.
 
-See the command `winsav-switch-config' for more information."
+See the command `winsav-switch-config' for more information and
+other possibilities."
   :global t
   :group 'winsav)
 
@@ -593,8 +597,21 @@ This should be possible to eval and get a similar object like OBJ
 again."
   (prin1-to-string obj))
 
-(defvar winsav-save-frame-hook nil
-  "Called after saving a frame.
+(defvar winsav-before-save-configuration-hook nil
+  "Called before saving frames.
+This is a normal hook.  When calling this hook the current buffer
+is where the code should be written.")
+
+(defvar winsav-after-save-configuration-hook nil
+  "Called after saving frames.
+This is a normal hook.  When calling this hook the current buffer
+is where the code should be written.")
+
+(defvar winsav-after-save-frame-hook nil
+  "Called when saving a frame after saving frame data.
+The frame window structures and buffer information is not yet
+saved.
+
 The functions in this hook is for writing extra information about
 a frame and it should take two parameters, the frame just saved
 and the buffer to write information too.
@@ -603,8 +620,12 @@ The information should be written as elisp code to execute after
 restoring the frame.  When executing this code the symbol
 `winsav-last-loaded-frame' will be the just created frame.")
 
-(defun winsav-save-frame (file frame)
-  "Write into file FILE elisp code to recreate frame FRAME."
+(defvar winsav-loaded-frames nil)
+
+(defun winsav-save-frame (file frame mb-frm-nr)
+  "Write into file FILE elisp code to recreate frame FRAME.
+If MB-FRM-NR is a number then it is the order number of the frame
+whose minibuffer should be used."
   (with-current-buffer (find-file-noselect file)
     (save-restriction
       (widen)
@@ -671,59 +692,197 @@ restoring the frame.  When executing this code the symbol
                                       (cons 'minibuffer nil)))))
                                ))
                             frm-par)))
-        (insert "(let* ((winsav-last-loaded-frame (make-frame '"
+        (insert "(let* ((default-minibuffer-frame ")
+        (when mb-frm-nr
+          (insert (format "(nth %s (reverse winsav-loaded-frames))" mb-frm-nr)))
+        (insert ")\n")
+        (insert "       (winsav-last-loaded-frame (make-frame '"
                 (winsav-serialize frm-par)
                 "))\n"
-                "       (win (frame-first-window winsav-last-loaded-frame)))\n"
-                "  (winsav-put-window-tree\n"
+                "       (win (frame-first-window winsav-last-loaded-frame)))\n")
+        (insert "    (setq winsav-loaded-frames (cons winsav-last-loaded-frame winsav-loaded-frames))\n")
+        (insert "    ;; ---- before after-save-frame-hook ----\n")
+        (dolist (fun winsav-after-save-frame-hook)
+          (funcall fun frame (current-buffer)))
+        (insert "    ;; ---- after after-save-frame-hook  ----\n")
+        (insert "  (winsav-put-window-tree\n"
                 "  '")
         (setq start (point))
         (insert (winsav-serialize obj) "\n")
         (setq end (copy-marker (point) t))
         (replace-regexp (rx "#<buffer "
                             (1+ (not (any ">")))
-                            ">")
+                            (1+ ">")) ;; 1+ for indirect buffers ...
                         "buffer"
                         nil start end)
         (replace-regexp (rx "#<window "
                             (1+ (not (any ">")))
-                            ">")
+                            (1+ ">"))
                         "nil"
                         nil start end)
         (goto-char end)
         (insert "    win)\n\n")
-        (dolist (fun winsav-save-frame-hook)
-          (funcall fun frame (current-buffer)))
         (insert "  )\n\n\n")
         ))))
 
-(defun winsav-save-frames (&optional dirname)
+(defvar winsav-file-version "1"
+  "Version number of winsav file format.
+Written into the winsav file and used at winsav read to provide
+backward compatibility.")
+
+(defun winsav-restore-indirect-buffer (file name)
+  (let* ((fbuf (find-file-noselect file)))
+    (when fbuf
+      (make-indirect-buffer fbuf name))))
+
+;; fix-me: This should be in desktop.el
+(defun winsav-save-indirect-buffers ()
+  "Save information about indirect buffers.
+Only file visiting buffers currently.  Clone the base buffers."
+  (dolist (buf (buffer-list))
+    (when (buffer-base-buffer buf)
+      (let* ((base-buf (buffer-base-buffer buf))
+             (file (buffer-file-name base-buf))
+             )
+        (when file
+          (insert "(winsav-restore-indirect-buffer "
+                  file " " (buffer-name buf) ")\n"))))))
+
+;; Fix-me: test
+;; (defun winsav-restore-minibuffer (frame-num frm-num win-num)
+;;   (let* ((frame (nth (1- frame-num) winsav-loaded-frames))
+;;          (mini-frm (nth (1- frm-num) winsav-loaded-frames))
+;;          (mini-win (nth (1- win-num) (reverse (window-list mini-frm))))
+;;          )
+;;     (with-selected-frame frame
+;;       (set-minibuffer-window mini-win))))
+
+(defvar winsav-minibuffer-alist nil)
+(defun winsav-save-minibuffers (sorted-frames)
+  (setq winsav-minibuffer-alist nil)
+  (dolist (frame sorted-frames)
+    (let* ((num-frames (length sorted-frames))
+           (mini-win (minibuffer-window frame))
+           (mini-frm (window-frame mini-win))
+           (win-num (length
+                     (memq mini-win
+                           (window-list mini-frm t (frame-first-window mini-frm)))))
+           (frm-num (- num-frames (length (memq mini-frm sorted-frames))))
+           (frame-num (- num-frames (length (memq frame sorted-frames))))
+           )
+      (unless (and (eq mini-frm frame)
+                   (= win-num 1))
+        ;; Not the normal minibuffer window
+        ;;(insert (format ";;(winsav-restore-minibuffer %s %s %s)\n"
+        ;;(insert (format "'(%s %s)\n" frame-num frm-num)))))
+        (setq winsav-minibuffer-alist (cons (list frame-num frm-num) winsav-minibuffer-alist))
+        ))))
+
+(defun winsav-restore-dedicated-window (frame-num win-num dedicate-flag)
+  (let* ((frame (nth (1- frame-num) winsav-loaded-frames))
+         (win (nth (1- win-num) (reverse (window-list frame t
+                                                      (frame-first-window frame))))))
+    (set-window-dedicated-p win dedicate-flag)))
+
+(defun winsav-save-dedicated-windows (sorted-frames)
+  (dolist (frame sorted-frames)
+    (dolist (win (window-list frame))
+      (when (window-dedicated-p win)
+        (let ((frame-num (length (memq frame sorted-frames)))
+              (win-num (length
+                        (memq win
+                              (window-list frame t (frame-first-window frame)))))
+              (flag (window-dedicated-p win)))
+          (insert (format "(winsav-restore-dedicated-window %s %s %S)\n" frame-num win-num flag))
+          )))))
+
+;; (make-frame '((minibuffer)))
+;; (sort (frame-list) 'winsav-frame-sort-predicate)
+(defun winsav-frame-sort-predicate (a b)
+  "Sort in the order frames can be created.
+Frames without minibuffers will come later."
+  (let* ((a-mbw (minibuffer-window a))
+         (a-mbw-frm (window-frame a-mbw))
+         (b-mbw (minibuffer-window b))
+         (b-mbw-frm (window-frame b-mbw))
+         )
+    ;;(message "a-mbw-frm=%s, b=%s" a-mbw-frm b)
+    ;;(message "b-mbw-frm=%s, a=%s" a-mbw-frm b)
+    (when (or (eq a-mbw-frm b)
+              (not (eq b-mbw-frm b)))
+      ;;(message "a > b")
+      t
+      )))
+
+(defun winsav-save-configuration (&optional dirname)
   "Write elisp code to recreate all frames.
 Write into the file name computed by `winsav-full-file-name'
 given the argument DIRNAME."
-  (let ((file (winsav-full-file-name dirname)))
+  (let ((file (winsav-full-file-name dirname))
+        start
+        end
+        (sorted-frames (sort (frame-list) 'winsav-frame-sort-predicate))
+        (frm-nr 0)
+        )
     (with-current-buffer (find-file-noselect file)
       (erase-buffer)
-      (dolist (frm (frame-list))
-        (winsav-save-frame file frm))
+      (insert
+       ";; -*- mode: emacs-lisp;-*-\n"
+       ";; --------------------------------------------------------------------------\n"
+       ";; Winsav File for Emacs\n"
+       ";; --------------------------------------------------------------------------\n"
+       ";; Created " (current-time-string) "\n"
+       ";; Winsav file format version " winsav-file-version "\n"
+       ";; Emacs version " emacs-version "\n\n")
+      (insert ";; ---- indirect buffers ------------------------\n")
+      (winsav-save-indirect-buffers)
+      ;;(insert ";; ---- special minibuffers ------------------------\n")
+      (winsav-save-minibuffers sorted-frames)
+      (insert "(setq winsav-loaded-frames nil)\n")
+      (insert ";; ---- before winsav-before-save-configuration-hook ------------------------\n")
+      (run-hooks 'winsav-before-save-configuration-hook)
+      (insert ";; ---- after winsav-before-save-configuration-hook  ------------------------\n\n")
+      (dolist (frm sorted-frames)
+        (setq frm-nr (1+ frm-nr))
+        (let ((mb-frm-nr (cadr (assoc (1- frm-nr) winsav-minibuffer-alist)))
+              ;;(mb-frm (when mb-frm-nr (nth mb-frm-nr sorted-frames)))
+              )
+          (winsav-save-frame file frm mb-frm-nr)))
+      (insert ";; ---- dedicated windows ------------------------\n")
+      (winsav-save-dedicated-windows sorted-frames)
+      (insert "\n\n;; ---- before winsav-after-save-configuration-hook  ------------------------\n")
+      (run-hooks 'winsav-after-save-configuration-hook)
+      (insert ";; ---- after winsav-after-save-configuration-hook   ------------------------\n")
+      (emacs-lisp-mode)
+      (pp-buffer)
+      (indent-region (point-min) (point-max))
       (save-buffer 0) ;; No backups
       (kill-buffer)
       )))
 
 (defvar winsav-current-config-name nil)
 
-;;(winsav-restore-frames)
+;;(winsav-restore-configuration)
 ;;(winsav-full-file-name "~")
-(defun winsav-restore-frames (&optional dirname)
+(defun winsav-restore-configuration (&optional dirname)
   "Restore frames from file in directory DIRNAME.
-The file was probably written by `winsav-save-frames'.
+The file was probably written by `winsav-save-configuration'.
 Delete the frames that were used before."
-  (let ((old-frames (frame-list)))
+  (let ((old-frames (sort (frame-list) 'winsav-frame-sort-predicate)))
     (load (winsav-full-file-name dirname))
-    (dolist (old old-frames)
+    (dolist (old (reverse old-frames))
       (delete-frame old))
     (winsav-maximize-all-nearly-max-frames)
+    (message "Winsav: %s frame(s) restored" (length winsav-loaded-frames))
     t))
+
+(defun winsav-restore-configuration-protected (&optional dirname)
+  "Like `winsav-restore-configuration' but protect for errors.
+DIRNAME has the same meaning."
+  (condition-case err
+      (winsav-restore-configuration dirname)
+    (error
+     (message "winsav-restore-configuration: %s" err))))
 
 ;;(winsav-tell-configuration)
 (defun winsav-tell-configuration ()
@@ -799,7 +958,7 @@ Delete the frames that were used before."
 Run this once after Emacs startup, after desktop in the
 `after-init-hook'."
   (when winsav-save-mode
-    (run-with-idle-timer 0.1 nil 'winsav-restore-frames)))
+    (run-with-idle-timer 0.1 nil 'winsav-restore-configuration-protected)))
 
 (add-hook 'after-init-hook 'winsav-after-init t)
 
@@ -811,7 +970,7 @@ Run this before Emacs exits."
   (when winsav-save-mode
     (let ((conf-dir (when winsav-current-config-name
                       (winsav-full-config-dir-name winsav-current-config-name))))
-      (winsav-save-frames conf-dir))))
+      (winsav-save-configuration conf-dir))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -829,7 +988,7 @@ If NAME is nil then restore the startup configuration."
       (when (eq (emacs-pid) (desktop-owner)) (desktop-release-lock))
       (desktop-clear)
       (desktop-read conf-dir))
-    (winsav-restore-frames conf-dir))
+    (winsav-restore-configuration conf-dir))
   (setq winsav-current-config-name name)
   (winsav-tell-configuration-request))
 
@@ -855,10 +1014,10 @@ See also `winsav-switch-config'."
                        (winsav-full-config-dir-name name)
                      "~")))
     (when name (mkdir conf-dir t))
+    (winsav-save-configuration conf-dir)
     (when desktop-save-mode
       (desktop-release-lock)
       (desktop-save conf-dir))
-    (winsav-save-frames conf-dir)
     (unless (string= winsav-current-config-name name)
       (setq winsav-current-config-name name)
       (winsav-tell-configuration-request))))
