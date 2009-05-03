@@ -2,14 +2,14 @@
 ;;
 ;; Author: Lennart Borgman
 ;; Created: Sun Jan 14 2007
-;; Version: 0.73
-;; Last-Updated: 2009-05-02 Sat
+;; Version: 0.74
+;; Last-Updated: 2009-05-03 Sun
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-  ;; `cl', `desktop'.
+  ;; `cl'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -311,8 +311,11 @@ debugging by tells how far down we are in the call chain."
             (when filnam
               (setq buffer (winsav-find-file-noselect filnam)))
             (if (buffer-live-p buffer)
-                (unless (string= bufnam (buffer-name buffer))
-                  (rename-buffer bufnam))
+                (or (string= bufnam (buffer-name buffer))
+                    (eq (string-to-char bufnam) 32) ;; Avoid system buffer names
+                    (rename-buffer bufnam))
+              (when (eq (string-to-char bufnam) 32)
+                (setq bufnam " *Winsav dummy buffer*"))
               (setq buffer (get-buffer-create bufnam))))
           (set-window-buffer window buffer)
           (set-window-dedicated-p window dedic)
@@ -705,23 +708,27 @@ whose minibuffer should be used."
         (dolist (fun winsav-after-save-frame-hook)
           (funcall fun frame (current-buffer)))
         (insert "    ;; ---- after after-save-frame-hook  ----\n")
-        (insert "  (winsav-put-window-tree\n"
-                "  '")
-        (setq start (point))
-        (insert (winsav-serialize obj) "\n")
-        (setq end (copy-marker (point) t))
-        (replace-regexp (rx "#<buffer "
-                            (1+ (not (any ">")))
-                            (1+ ">")) ;; 1+ for indirect buffers ...
-                        "buffer"
-                        nil start end)
-        (replace-regexp (rx "#<window "
-                            (1+ (not (any ">")))
-                            (1+ ">"))
-                        "nil"
-                        nil start end)
-        (goto-char end)
-        (insert "    win)\n\n")
+
+        ;; Do not touch minibuffer only frames
+        (unless (member '(minibuffer . only) frm-par)
+          (insert "  (winsav-put-window-tree\n"
+                  "  '")
+          (setq start (point))
+          (insert (winsav-serialize obj) "\n")
+          (setq end (copy-marker (point) t))
+          (replace-regexp (rx "#<buffer "
+                              (1+ (not (any ">")))
+                              (1+ ">")) ;; 1+ for indirect buffers ...
+                          "buffer"
+                          nil start end)
+          (replace-regexp (rx "#<window "
+                              (1+ (not (any ">")))
+                              (1+ ">"))
+                          "nil"
+                          nil start end)
+          (goto-char end)
+          (insert "    win)\n\n"))
+
         (insert "  )\n\n\n")
         ))))
 
@@ -868,12 +875,16 @@ given the argument DIRNAME."
   "Restore frames from file in directory DIRNAME.
 The file was probably written by `winsav-save-configuration'.
 Delete the frames that were used before."
-  (let ((old-frames (sort (frame-list) 'winsav-frame-sort-predicate)))
-    (load (winsav-full-file-name dirname))
-    (dolist (old (reverse old-frames))
-      (delete-frame old))
-    (winsav-maximize-all-nearly-max-frames)
-    (message "Winsav: %s frame(s) restored" (length winsav-loaded-frames))
+  (let ((old-frames (sort (frame-list) 'winsav-frame-sort-predicate))
+        (conf-file (winsav-full-file-name dirname)))
+    (if (or (not conf-file)
+            (not (file-exists-p conf-file)))
+        (message "Winsav: No default configuration file found")
+      (load conf-file)
+      (dolist (old (reverse old-frames))
+        (delete-frame old))
+      (winsav-maximize-all-nearly-max-frames)
+      (message "Winsav: %s frame(s) restored" (length winsav-loaded-frames)))
     t))
 
 (defun winsav-restore-configuration-protected (&optional dirname)
