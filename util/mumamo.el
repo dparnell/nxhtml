@@ -7251,6 +7251,9 @@ a narrow-to-multiple-regions function!"
  'emacs-lisp-mode
  '(("\\<define-mumamo-multi-major-mode\\>" . font-lock-keyword-face)))
 
+(when buffer-file-name (message "\nFinished evaluating %s\n" buffer-file-name))
+(when load-file-name (message "\nFinished loading %s\n" load-file-name))
+
 (provide 'mumamo)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; mumamo.el ends here
