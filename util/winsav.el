@@ -66,6 +66,9 @@
 ;;   (desktop-save-mode 1)
 ;;   (winsav-save-mode 1)
 ;;
+;; If you want to avoid saving when you exit just turn off these minor
+;; modes.
+;;
 ;; You can also save configurations that you later switch between.  As
 ;; above desktop will take care of the buffers.  For more information
 ;; see the function
@@ -624,6 +627,47 @@ restoring the frame.  When executing this code the symbol
 `winsav-last-loaded-frame' will be the just created frame.")
 
 (defvar winsav-loaded-frames nil)
+(defvar winsav-last-loaded-frame nil)
+
+(defun winsav-restore-frame (make-frame-params
+                             window-tree-params
+                             use-minibuffer-frame)
+  (let* ((default-minibuffer-frame use-minibuffer-frame)
+         (frame-name (cdr (assoc 'name make-frame-parameters)))
+         (minibuffer-val (cdr (assoc 'minibuffer make-frame-params)))
+         (minibuffer-only (eq 'only minibuffer-val))
+         (frame-with-that-name
+          (when minibuffer-only
+            (catch 'frame
+              (dolist (frame (frame-list))
+                (when (string= frame-name (frame-parameter frame 'name))
+                  (throw 'frame frame))))))
+         ;; If this is a minibuffer only frame then if it is already
+         ;; there under a correct name then do not create it because
+         ;; there might be variables pointing to it; just set the
+         ;; parameters. Perhaps even better: if it is not already
+         ;; there give an error - because it might be impossible to
+         ;; set things up correctly then.
+         (frame-with-that-name-has-mini
+          (when frame-with-that-name
+            (eq 'only
+                (frame-parameter frame-with-that-name 'minibuffer))))
+         (create-new
+          (if minibuffer-only
+              (if frame-with-that-name-has-mini
+                  nil
+                (error "Winsav: Can't find minibuffer only frame with name %s"
+                       frame-name))
+            t))
+         (this-frame (if create-new
+                         (make-frame make-frame-params)
+                       frame-with-that-name))
+         (win (frame-first-window this-frame)))
+    (when create-new
+      (winsav-put-window-tree window-tree-marams win))
+    (setq winsav-last-loaded-frame this-frame)
+    (setq winsav-loaded-frames (cons this-frame winsav-loaded-frames))
+    ))
 
 (defun winsav-save-frame (file frame mb-frm-nr)
   "Write into file FILE elisp code to recreate frame FRAME.
@@ -969,7 +1013,9 @@ DIRNAME has the same meaning."
 Run this once after Emacs startup, after desktop in the
 `after-init-hook'."
   (when winsav-save-mode
-    (run-with-idle-timer 0.1 nil 'winsav-restore-configuration-protected)))
+    ;;(run-with-idle-timer 0.1 nil 'winsav-restore-configuration-protected)
+    (winsav-restore-configuration-protected)
+    ))
 
 (add-hook 'after-init-hook 'winsav-after-init t)
 
