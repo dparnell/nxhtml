@@ -630,7 +630,7 @@ is called and `winsav-last-loaded-frame' points to it.
 
 The functions in this hook is for writing extra information about
 a frame. When calling this hook the point in the current buffer
-is where the code should be written."
+is where the code should be written.
 
 The information should be written as elisp code to execute after
 restoring the frame."
@@ -745,8 +745,7 @@ whose minibuffer should be used."
       (let ((start nil)
             (end nil)
             (obj (winsav-get-window-tree frame))
-            (frm-par (frame-parameters frame))
-            )
+            (frm-par (frame-parameters frame)))
         (setq frm-par
               (delq nil
                     (mapcar (lambda (elt)
@@ -755,13 +754,11 @@ whose minibuffer should be used."
                                 elt)
                                ((eq (car elt) 'minibuffer)
                                 (let ((val (cdr elt)))
-                                  ;;(message "elt=%s, val=%s, frame=%s same=%s" elt val frame (and (windowp val) (eq (window-frame val) frame)))
                                   (if (not (windowp val))
                                       elt
                                     (if (eq (window-frame val) frame)
                                         nil
-                                      (cons 'minibuffer nil)))))
-                               ))
+                                      (cons 'minibuffer nil)))))))
                             frm-par)))
         (if nil
             (progn ;; old version
@@ -774,7 +771,7 @@ whose minibuffer should be used."
                       "))\n"
                       "       (win (frame-first-window winsav-last-loaded-frame)))\n")
               (insert "    (setq winsav-loaded-frames (cons winsav-last-loaded-frame winsav-loaded-frames))\n")
-              
+
               ;; Do not touch minibuffer only frames
               (unless (member '(minibuffer . only) frm-par)
                 (insert "  (winsav-put-window-tree\n"
