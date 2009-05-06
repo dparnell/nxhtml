@@ -2,8 +2,8 @@
 ;;
 ;; Author: Lennart Borgman
 ;; Created: Sun Jan 14 2007
-;; Version: 0.75
-;; Last-Updated: Tue May  5 01:47:39 2009 (+0200)
+;; Version: 0.76
+;; Last-Updated: 2009-05-06 Wed
 ;; Keywords:
 ;; Compatibility:
 ;;
@@ -15,10 +15,32 @@
 ;;
 ;;; Commentary:
 ;;
+;; This library contains both user level commands and options and
+;; functions for use in other elisp libraries.
+;;
+;;;; User level commands and options
+;;
+;; The user level commands and options are for saving frame, windows
+;; and buffers between Emacs sessions.  To do that you can customize
+;; the options `desktop-save-mode' and `winsav-save-mode' or put this
+;; at the end of your .emacs:
+;;
+;;   (desktop-save-mode 1)
+;;   (winsav-save-mode 1)
+;;
+;; You can also save configurations that you later switch between.
+;; For more information see the command `winsav-save-mode'.
+;;
+;; (There is also a command in this library for rotating window
+;; borders in a frame, `winsav-rotate'.  It is here just because the
+;; needed support functions lives here.)
+;;
+;;
+;;
+;;;; Commands for other elisp libraries
+;;
 ;; This library was orignally written to solve the problem of adding a
-;; window to the left of some windows in a frame (but see below for
-;; saving and restoring frame, window, files and buffer configurations
-;; with named configurations and between sessions).
+;; window to the left of some windows in a frame like the one below
 ;;
 ;; ___________
 ;; |    |    |
@@ -58,20 +80,6 @@
 ;; structure into the right window.  (Of course you could have put BAR
 ;; above, under etc.)
 ;;
-;;
-;; You can use this library to restore frame configuration when you
-;; start Emacs.  To do that you can put this at the end of your
-;; .emacs:
-;;
-;;   (desktop-save-mode 1)
-;;   (winsav-save-mode 1)
-;;
-;; If you want to avoid saving when you exit just turn off these minor
-;; modes.
-;;
-;; You can also save configurations that you later switch between.
-;;
-;; For more information see the command `winsav-save-mode'.
 ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -566,16 +574,25 @@ buffer with a message about that."
 With numeric ARG, turn winsav saving on if ARG is positive, off
 otherwise.
 
-When this mode is turned on, the frames and windows are saved
-from one session to another.
+When this mode is turned on, winsav configurations are saved from
+one session to another.  A winsav configuration consists of
+frames, windows and visible buffers configurations plus
+optionally buffers and files managed by the functions used by
+option `desktop-save-mode'
 
-By default this is integrated with `desktop-save-mode' in the
-following way:
-
-- If `desktop-save-mode' is on and `winsav-save-also-desktop' is non-nil then 
+By default this is integrated with `desktop-save-mode'.  If
+`desktop-save-mode' is on and `winsav-handle-also-desktop' is
+non-nil then save and restore also desktop.
 
 See the command `winsav-switch-config' for more information and
-other possibilities."
+other possibilities.
+
+Note: If you want to avoid saving when you exit just turn off
+this minor mode.
+
+For information about what is saved and restored and how to save
+and restore additional information see the function
+`winsav-save-configuration'."
   :global t
   :group 'winsav)
 
@@ -599,7 +616,7 @@ Possible values are:
    ask-if-exists -- ask if winsav file exists, otherwise don't save.
    if-exists     -- save if winsav file exists, otherwise don't save.
    nil           -- never save.
-The winsav config is never saved when `winsav-save-mode' is nil.
+The winsav config is never saved when the option `winsav-save-mode' is nil.
 The variables `winsav-dirname' and `winsav-base-file-name'
 determine where the winsav config is saved."
   :type
@@ -612,11 +629,11 @@ determine where the winsav config is saved."
     (const :tag "Never save" nil))
   :group 'winsav)
 
-;; (defcustom winsav-integrate-with-desktop t
-;;   "Integrate with desktop.
-;; "
-;;   :type 'boolean
-;;   :group 'winsav)
+(defcustom winsav-handle-also-desktop t
+  "If this is non-nil then desktop is also saved and restored.
+See option `winsav-save-mode' for more information."
+  :type 'boolean
+  :group 'winsav)
 
 (defcustom winsav-base-file-name
   (convert-standard-filename ".emacs.winsav")
@@ -627,13 +644,15 @@ determine where the winsav config is saved."
 (defvar winsav-dirname nil
   "The directory in which the winsav file should be saved.")
 
+(defun winsav-current-default-dir ()
+  "Current winsav configuration directory."
+  (or winsav-dirname "~/"))
+
 (defun winsav-full-file-name (&optional dirname)
   "Return the full name of the winsav session file in DIRNAME.
 DIRNAME omitted or nil means use `~'."
   (expand-file-name winsav-base-file-name (or dirname
-                                              winsav-dirname
-                                              "~/"
-                                              )))
+                                              (winsav-current-default-dir))))
 
 
 
@@ -644,42 +663,55 @@ again."
   (prin1-to-string obj))
 
 (defcustom winsav-before-save-configuration-hook nil
-  "Called before saving frames.
-This is a normal hook.  When calling this hook the point in the
-current buffer is where the code should be written."
+  "Hook called before saving frames.
+Hook for writing elisp code at the beginning of a winsav
+configuration file.  When this hook is called the current buffer
+and point is where the code should be written.
+
+This is a normal hook.  For more information see
+`winsav-save-configuration'."
   :type 'hook
   :group 'winsav)
 
 (defcustom winsav-after-save-configuration-hook nil
-  "Called after saving frames.
-This is a normal hook.  When calling this hook the point in the
-current buffer is where the code should be written."
+  "Hook called after saving frames.
+Hook for writing elisp code at the end of a winsav configuration
+file.  When this hook is called the current buffer and point is
+where the code should be written.
+
+This is a normal hook.  For more information see
+`winsav-save-configuration'."
   :type 'hook
   :group 'winsav)
 
 (defcustom winsav-after-save-frame-hook nil
-  "Called when saving a frame after saving frame data.
-This is a normal hook. The frame has been restored when this hook
-is called and `winsav-last-loaded-frame' points to it.
+  "Hook called when saving a frame after saving frame data.
+Hook for writing elisp code in a winsav configuration file after
+each frame creation.  When this hook is called code for restoring
+a frame has been written and code that sets
+`winsav-last-loaded-frame' to point to it.  Point is in the
+configuration file buffer right after this.
 
-The functions in this hook is for writing extra information about
-a frame. When calling this hook the point in the current buffer
-is where the code should be written.
-
-The information should be written as elisp code to execute after
-restoring the frame."
+This is a normal hook.  For more information see
+`winsav-save-configuration'."
   :type 'hook
   :group 'winsav)
 
 (defvar winsav-loaded-frames nil)
 (defvar winsav-last-loaded-frame nil)
 
-(defun winsav-restore-frame (make-frame-params
+(defun winsav-restore-frame (frame-params
                              window-tree-params
                              use-minibuffer-frame)
+  "Restore a frame with specified values.
+If this is a minibuffer only frame then just apply the frame
+parameters FRAME-PARAMS.  Otherwise create a new frame using
+FRAME-PARAMS and set up windows and buffers according to
+WINDOW-TREE-PARAMS.  Also, if USE-MINIBUFFER-FRAME let the new
+frame have this minibuffer frame."
   (let* ((default-minibuffer-frame use-minibuffer-frame)
-         (frame-name (cdr (assoc 'name make-frame-params)))
-         (minibuffer-val (cdr (assoc 'minibuffer make-frame-params)))
+         (frame-name (cdr (assoc 'name frame-params)))
+         (minibuffer-val (cdr (assoc 'minibuffer frame-params)))
          (minibuffer-only (eq 'only minibuffer-val))
          (mini-frames
           (delq nil (mapcar (lambda (frm)
@@ -714,13 +746,13 @@ restoring the frame."
                        frame-name))
             t))
          (this-frame (if create-new
-                         (make-frame make-frame-params)
+                         (make-frame frame-params)
                        this-mini-frame))
          (win (frame-first-window this-frame)))
     (message "create-new=%s, frame-with-that-name=%s" create-new frame-with-that-name)
     (if create-new
         (winsav-put-window-tree window-tree-params win)
-      (modify-frame-parameters this-frame make-frame-params))
+      (modify-frame-parameters this-frame frame-params))
     (setq winsav-last-loaded-frame this-frame)
     (setq winsav-loaded-frames (cons this-frame winsav-loaded-frames))
     ))
@@ -766,7 +798,8 @@ restoring the frame."
     user-size
     vertical-scroll-bars
     visibility
-    ))
+    )
+  "Parameters saved for frames by `winsav-save-configuration'.")
 
 (defun winsav-save-frame (frame mb-frm-nr)
   "Write into current buffer elisp code to recreate frame FRAME.
@@ -862,6 +895,8 @@ Written into the winsav file and used at winsav read to provide
 backward compatibility.")
 
 (defun winsav-restore-indirect-buffer (file name)
+  "Make indirect buffer from file buffer visiting file FILE.
+Give it the name NAME."
   (let* ((fbuf (find-file-noselect file)))
     (when fbuf
       (make-indirect-buffer fbuf name))))
@@ -890,6 +925,9 @@ Only file visiting buffers currently.  Clone the base buffers."
 
 (defvar winsav-minibuffer-alist nil)
 (defun winsav-save-minibuffers (sorted-frames)
+  "Save information about minibuffer frames.
+SORTED-FRAMES should be a list of all frames sorted using
+`winsav-frame-sort-predicate'."
   (setq winsav-minibuffer-alist nil)
   (dolist (frame sorted-frames)
     (let* ((num-frames (length sorted-frames))
@@ -913,12 +951,17 @@ Only file visiting buffers currently.  Clone the base buffers."
           ")\n"))
 
 (defun winsav-restore-dedicated-window (frame-num win-num dedicate-flag)
+  "Set dedicated window flag.
+On frame number FRAME-NUM in `winsav-loaded-frames' set the
+dedicated flag on window number WIN-NUM to DEDICATE-FLAG."
   (let* ((frame (nth (1- frame-num) winsav-loaded-frames))
          (win (nth (1- win-num) (reverse (window-list frame t
                                                       (frame-first-window frame))))))
     (set-window-dedicated-p win dedicate-flag)))
 
 (defun winsav-save-dedicated-windows (sorted-frames)
+  "Save information about dedicated windows on frames in SORTED-FRAMES.
+Write this to current buffer."
   (dolist (frame sorted-frames)
     (dolist (win (window-list frame))
       (when (window-dedicated-p win)
@@ -933,8 +976,9 @@ Only file visiting buffers currently.  Clone the base buffers."
 ;; (make-frame '((minibuffer)))
 ;; (sort (frame-list) 'winsav-frame-sort-predicate)
 (defun winsav-frame-sort-predicate (a b)
-  "Sort in the order frames can be created.
-Frames without minibuffers will come later."
+  "Compare frame A and B for sorting.
+Sort in the order frames can be created.  Frames without
+minibuffers will come later."
   (let* ((a-mbw (minibuffer-window a))
          (a-mbw-frm (window-frame a-mbw))
          (b-mbw (minibuffer-window b))
@@ -948,8 +992,10 @@ Frames without minibuffers will come later."
       t
       )))
 
-(defun winsav-can-read-config (version)
-  t)
+(defun winsav-can-read-config (config-version)
+  "Return t we can read config file version CONFIG-VERSION."
+  (when (<= config-version 1)
+    t))
 
 ;; Like desktop-save, fix-me
 (defun winsav-save-configuration (&optional dirname release)
@@ -959,13 +1005,15 @@ given the argument DIRNAME.
 
 The information that is saved for each frame is its size and
 position, the window configuration including buffers and the
-parameters in `winsav-frame-parameters-to-save'. If you want save
+parameters in `winsav-frame-parameters-to-save'.  If you want save
 more information for frames you can do that in the hook
 `winsav-after-save-frame-hook'.
 
 See also the hook variables
 `winsav-before-save-configuration-hook' and
-`winsav-after-save-configuration-hook'."
+`winsav-after-save-configuration-hook'.
+
+Fix-me: RELEASE is not implemented."
   (let ((file (winsav-full-file-name dirname))
         start
         end
@@ -982,7 +1030,8 @@ See also the hook variables
        ";; Created " (current-time-string) "\n"
        ";; Winsav file format version " winsav-file-version "\n"
        ";; Emacs version " emacs-version "\n\n"
-       "(when (winsav-can-read-config " winsav-file-version ")\n\n")
+       "(if (not (winsav-can-read-config " winsav-file-version "))\n\n"
+       "    (message \"Winsav: Can't read config file with version " winsav-file-version "\")\n")
       (insert ";; ---- indirect buffers ------------------------\n")
       (winsav-save-indirect-buffers)
       ;;(insert ";; ---- special minibuffers ------------------------\n")
@@ -1013,7 +1062,7 @@ See also the hook variables
       (let ((coding-system-for-write 'utf-8))
         (write-region (point-min) (point-max) file nil 'nomessage))
       (setq winsav-file-modtime (nth 5 (file-attributes file)))
-      (setq winsav-dirname (file-name-as-directory (directory-file-name file)))
+      (setq winsav-dirname (file-name-as-directory (file-name-directory file)))
       )))
 
 (defvar winsav-current-config-name nil)
@@ -1082,23 +1131,23 @@ DIRNAME has the same meaning."
     (error
      (message "winsav-restore-configuration: %s" err))))
 
-;;(winsav-tell-configuration)
+(defun winsav-relative-~-or-full (dirname)
+  (let* ((rel-dir (file-relative-name dirname
+                                      (file-name-directory
+                                       (winsav-full-file-name "~"))))
+         (confname (if (string= ".." (substring rel-dir 0 2))
+                       winsav-dirname
+                     (if (string= rel-dir "./")
+                         "(default)"
+                       (concat "~/" rel-dir)))))
+    confname))
+
 (defun winsav-tell-configuration ()
   "Tell which winsav configuration that is used."
   (interactive)
-  ;; (let ((confname (or winsav-current-config-name
-  ;;                     "(default)")))
-  (let* ((rel-dir (when winsav-dirname
-                    (file-relative-name winsav-dirname
-                                        (file-name-directory
-                                         (winsav-full-file-name "~/")))))
-         (confname (if (not rel-dir)
-                       "(none)"
-                     (if (string= ".." (substring rel-dir 0 2))
-                         winsav-dirname
-                       (if (string= rel-dir "./")
-                           "(default)"
-                         rel-dir)))))
+  (let ((confname (if (not winsav-dirname)
+                      "(none)"
+                    (winsav-relative-~-or-full winsav-dirname))))
     (if t ;;(called-interactively-p)
         (message (propertize (format "Current winsav config is '%s'" confname)
                              'face 'secondary-selection))
@@ -1176,6 +1225,7 @@ Run this once after Emacs startup, after desktop in the
 (add-hook 'after-init-hook 'winsav-after-init t)
 
 (add-hook 'kill-emacs-hook 'winsav-kill)
+;;(remove-hook 'kill-emacs-hook 'winsav-kill)
 
 (defun winsav-kill ()
   "Save winsav frame configuration.
@@ -1209,7 +1259,7 @@ Run this before Emacs exits."
 	;;(winsav-save winsav-dirname t)
 	(winsav-save-configuration winsav-dirname)
       (file-error
-       (unless (yes-or-no-p "Error while saving the winsav.  Ignore? ")
+       (unless (yes-or-no-p "Error while saving winsav config.  Ignore? ")
 	 (signal (car err) (cdr err))))))
   ;; If we own it, we don't anymore.
   ;;(when (eq (emacs-pid) (winsav-owner)) (winsav-release-lock))
@@ -1219,20 +1269,16 @@ Run this before Emacs exits."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Switching configurations
 
-;; (winsav-restore-named-config "testing")
-(defun winsav-restore-named-config (name)
-  "Restore the winsav configuration named NAME.
+(defun winsav-restore-full-config (dirname)
+  "Restore the winsav configuration in directory DIRNAME.
 If NAME is nil then restore the startup configuration."
-  (let ((conf-dir (if name
-                      (winsav-full-config-dir-name name)
-                    "~")))
-    ;;(desktop-change-dir conf-dir)
-    (when desktop-save-mode
-      (when (eq (emacs-pid) (desktop-owner)) (desktop-release-lock))
-      (desktop-clear)
-      (desktop-read conf-dir))
-    (winsav-restore-configuration conf-dir))
-  (setq winsav-current-config-name name)
+  ;;(desktop-change-dir dirname)
+  (when (and winsav-handle-also-desktop desktop-save-mode)
+    (when (eq (emacs-pid) (desktop-owner)) (desktop-release-lock))
+    (desktop-clear)
+    (desktop-read dirname))
+  (winsav-restore-configuration dirname)
+  ;;(setq winsav-current-config-name name)
   (winsav-tell-configuration-request))
 
 (defun winsav-full-config-dir-name (name)
@@ -1243,89 +1289,84 @@ If NAME is nil then restore the startup configuration."
     ;;(message "conf-dir=%s" conf-dir)
     conf-dir))
 
-;; (winsav-save-named-config "testing")
-;; (winsav-save-named-config "testing2")
 ;;;###autoload
-(defun winsav-save-named-config (name)
-  "Saved current winsav configuration under name NAME.
-Then change to configuration NAME.  If NAME is nil or \"\" then
-it means the startup configuration.
+(defun winsav-save-full-config (dirname)
+  "Saved current winsav configuration in directory DIRNAME.
+Then change to this configuration.
 
 See also `winsav-switch-config'."
-  (when (string= "" name) (setq name nil))
-  (let* ((conf-dir (if name
-                       (winsav-full-config-dir-name name)
-                     "~")))
-    (when name (mkdir conf-dir t))
+  (unless (file-name-absolute-p dirname)
+    (error "Directory ame must be absolute: %s" dirname))
+  (let* ((conf-dir (or dirname "~"))
+         (old-conf-dir winsav-dirname))
+    (mkdir conf-dir t)
     (winsav-save-configuration conf-dir)
-    (when desktop-save-mode
+    (when (and winsav-handle-also-desktop desktop-save-mode)
       (desktop-release-lock)
       (desktop-save conf-dir))
-    (unless (string= winsav-current-config-name name)
-      (setq winsav-current-config-name name)
+    ;;(unless (string= winsav-current-config-name name)
+    (unless (string= old-conf-dir conf-dir)
+      ;;(setq winsav-current-config-name name)
       (winsav-tell-configuration-request))))
 
+;; Fix-me: remove named configurations, use just dir as desktop
+(defun winsav-switch-to-default-config ()
+  "Change to default winsav configuration.
+See also `winsav-switch-config'."
+  (interactive)
+  (winsav-switch-config "~"))
+
 ;;;###autoload
-(defun winsav-switch-config ()
-  "Change to a new winsav configuration.
-A winsav configuration consists buffers and files managed by the
-functions used by `desktop-save-mode' plus windows and frames
-configurations.
-
-Prompt for the name of the winsav configuration.
-If that given name does not exist offer to create it.
-
-If the name is the current winsav configuration then offer to
-save it or restore it from saved values.
+(defun winsav-switch-config (dirname)
+  "Change to winsav configuration in directory DIRNAME.
+If DIRNAME is the current winsav configuration directory then
+offer to save it or restore it from saved values.
 
 Otherwise, before switching offer to save the current winsav
 configuration.  Then finally switch to the new winsav
 configuration, creating it if it does not exist.
 
-If `desktop-save-mode' is on then buffers and files are also
+If option `desktop-save-mode' is on then buffers and files are also
 restored and saved the same way.
 
-See also `winsav-save-mode' and `winsav-tell-configuration'.
-
-For information about what is saved and restored and how to
-customize that see the function `winsav-save-configuration'."
-  (interactive)
+See also option `winsav-save-mode' and command
+`winsav-tell-configuration'."
+  (interactive
+   (list
+    (let ((default-directory (or winsav-dirname default-directory))
+          (base-dir (concat (winsav-full-file-name) ".d"))
+          new-dir)
+      (mkdir base-dir t)
+      (setq new-dir
+            (read-directory-name "Winsav: Switch config directory: "))
+      (when (string= "" new-dir) (setq new-dir nil))
+      (or new-dir
+          "~"))))
+  (setq dirname (file-name-as-directory (expand-file-name dirname)))
   (catch 'stop
-    (let* ((base-dir (concat (winsav-full-file-name) ".d"))
-           hist
-           (dirs (directory-files base-dir t))
-           config
-           config-exists)
-      (setq dirs (mapcar (lambda (f)
-                           (when (file-directory-p f)
-                             (let ((name (file-name-nondirectory f)))
-                               (unless (member name '("." ".."))
-                                 name))))
-                         (directory-files base-dir t)))
-      (setq dirs (delq nil dirs))
-      (setq hist dirs)
-      (setq config (completing-read "winsav - Choose configuration (default startup config): "
-                                    dirs nil nil nil 'hist))
-      (when (string= "" config) (setq config nil))
-      (if (or (not config) (member config dirs))
+    (let ((conf-file (expand-file-name winsav-base-file-name dirname))
+          config-exists)
+      (if (file-exists-p conf-file)
           (setq config-exists t)
-        (unless (y-or-n-p (format "Configuration %s was not found. Create it? " config))
+        (unless (y-or-n-p (format "%s was not found.  Create it? " conf-file))
           (throw 'stop)))
-      (if (equal winsav-current-config-name config)
-          (if (y-or-n-p "You are already using this winsav configuration, save it? ")
-              (winsav-save-named-config winsav-current-config-name)
-            (when (y-or-n-p "Restore this configuration from saved values? ")
-              (winsav-restore-named-config config)))
+      (if (string= winsav-dirname dirname)
+          (if (y-or-n-p "You are already using this configuration, restore it from saved values? ")
+              (winsav-restore-full-config winsav-dirname)
+            (when (y-or-n-p "You are already using this winsav configuration, save it? ")
+              (winsav-save-full-config winsav-dirname)))
         (when (y-or-n-p
-               (format "Save current config, %s, first before switching to %s? "
-                       (if winsav-current-config-name
-                           winsav-current-config-name
+               (format "Save current config, %s,\n first before switching to %s? "
+                       (if (and winsav-dirname
+                                (not (string= winsav-dirname
+                                              (file-name-directory (winsav-full-file-name "~")))))
+                           winsav-dirname
                          "the startup config")
-                       config))
-          (winsav-save-named-config winsav-current-config-name))
+                       dirname))
+          (winsav-save-full-config winsav-dirname))
         (if config-exists
-            (winsav-restore-named-config config)
-          (winsav-save-named-config config))))))
+            (winsav-restore-full-config dirname)
+          (winsav-save-full-config dirname))))))
 
 
 
