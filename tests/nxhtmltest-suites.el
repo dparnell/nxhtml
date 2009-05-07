@@ -220,10 +220,11 @@ and the file is invalid then."
 ;;;      (not (eq (get-char-property 398 'category)
 ;;;               'rng-error)))
     (ert-should
-     (= 0 rng-error-count))
-    (ert-should
      (eq (get-text-property 398 'face)
-         'font-lock-function-name-face))))
+         'font-lock-function-name-face))
+    (ert-should-not
+     (= 0 rng-error-count))
+    ))
 
 (ert-deftest nxhtml-ert-genshi-valid-in-genshi ()
   (ert-with-temp-buffer-include-file "genshi-auto-mode.html"
@@ -366,7 +367,7 @@ here."
       (goto-line 3)
       ;; Test
       (nxhtmltest-should-no-mumamo-errors)
-      (ert-should (= (current-indentation) 2)))))
+      (ert-should-not (= (current-indentation) 2)))))
 
 (ert-deftest nxhtml-ert-sheit-2007-12-26 ()
   (ert-with-temp-buffer-include-file "sheit-2007-12-26.php"

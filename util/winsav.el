@@ -749,7 +749,7 @@ frame have this minibuffer frame."
                          (make-frame frame-params)
                        this-mini-frame))
          (win (frame-first-window this-frame)))
-    (message "create-new=%s, frame-with-that-name=%s" create-new frame-with-that-name)
+    ;;(message "create-new=%s, frame-with-that-name=%s" create-new frame-with-that-name)
     (if create-new
         (winsav-put-window-tree window-tree-params win)
       (modify-frame-parameters this-frame frame-params))
@@ -1077,16 +1077,9 @@ Fix-me: RELEASE is not implemented."
   "Restore frames from file in directory DIRNAME.
 The file was probably written by `winsav-save-configuration'.
 Delete the frames that were used before."
-  (message "winsav-restore-configuration %s" dirname)
-  (let ((old-frames
-         ;;(unwind-protect
-             (progn
-               (message "before sort frame-list")
-               (sort (frame-list) 'winsav-frame-sort-predicate))
-           ;;nil)
-         )
+  ;;(message "winsav-restore-configuration %s" dirname)
+  (let ((old-frames (sort (frame-list) 'winsav-frame-sort-predicate))
         (conf-file (winsav-full-file-name dirname)))
-    (message "after sort frame-list")
     (if (or (not conf-file)
             (not (file-exists-p conf-file)))
         (progn
@@ -1217,7 +1210,7 @@ Run this once after Emacs startup, after desktop in the
 `after-init-hook'."
   (when winsav-save-mode
     ;;(run-with-idle-timer 0.1 nil 'winsav-restore-configuration-protected)
-    (message "winsav-after-init")
+    ;;(message "winsav-after-init")
     ;;(winsav-restore-configuration-protected)
     (winsav-restore-configuration)
     (setq inhibit-startup-screen t)))
@@ -1448,7 +1441,6 @@ See also option `winsav-save-mode' and command
 ;;       obj)))
 
 (provide 'winsav)
-(message "after provide 'winsav")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; winsav.el ends here

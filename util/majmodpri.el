@@ -207,7 +207,8 @@ See also `majmodpri-apply-priorities'."
   (when (memq 'auto-mode-alist majmodpri-lists-to-sort)
     (majmodpri-sort-auto-mode-alist))
   (when (memq 'magic-fallback-mode-alist majmodpri-lists-to-sort)
-    (majmodpri-sort-magic-list 'magic-fallback-mode-alist)))
+    (majmodpri-sort-magic-list 'magic-fallback-mode-alist))
+  (message "majmodpri-sort-lists running ... (done)"))
 
 
 ;;;###autoload
@@ -222,6 +223,34 @@ in buffers."
   "Sort lists and apply to current buffer."
   (majmodpri-sort-lists)
   (add-hook 'find-file-hook 'normal-mode t t))
+
+(defun majmodpri-check-normal-mode ()
+  "Like `normal-mode', but keep major mode if same."
+  (let ((old-major-mode major-mode)
+        (old-mumamo-multi-major-mode (when (boundp 'mumamo-multi-major-mode)
+                                       mumamo-multi-major-mode)))
+    (report-errors "File mode specification error: %s"
+      (set-auto-mode t))
+    (unless (and (eq old-major-mode major-mode)
+                 (eq old-mumamo-multi-major-mode mumamo-multi-major-mode))
+      (report-errors "File local-variables error: %s"
+        (hack-local-variables))
+      ;; Turn font lock off and on, to make sure it takes account of
+      ;; whatever file local variables are relevant to it.
+      (when (and font-lock-mode
+                 ;; Font-lock-mode (now in font-core.el) can be ON when
+                 ;; font-lock.el still hasn't been loaded.
+                 (boundp 'font-lock-keywords)
+                 (eq (car font-lock-keywords) t))
+        (setq font-lock-keywords (cadr font-lock-keywords))
+        (font-lock-mode 1))
+      (message "majmodpri-apply-priorities: buffer=%s, %s,%s => %s,%s"
+               buffer
+               old-major-mode
+               old-mumamo-multi-major-mode
+               major-mode
+               (when (boundp 'mumamo-multi-major-mode)
+                 mumamo-multi-major-mode)))))
 
 ;;;###autoload
 (defun majmodpri-apply-priorities (change-modes)
@@ -252,16 +281,9 @@ before applying."
           (dolist (buffer file-buffers)
             (with-current-buffer buffer
               (let ((old-major major-mode))
-                (normal-mode)
-                (message "majmodpri-apply-priorities: buffer=%s, %s => %s%s"
-                         buffer
-                         old-major
-                         major-mode
-                         (if (and (boundp 'mumamo-multi-major-mode)
-                                  mumamo-multi-major-mode)
-                             (format ", %s" mumamo-multi-major-mode)
-                           ""))
-                ))))))))
+                (majmodpri-check-normal-mode)
+                )))))))
+  (message "majmodpri-apply-priorities running ... (done)"))
 
 
 ;;;; Custom
@@ -379,7 +401,7 @@ See `majmodpri-sort-lists' for more information."
                                  rec))
                              after-load-alist)))
          (when val
-           (message "majmodpri-sort-after-load: val=%s" val)
+           ;;(message "majmodpri-sort-after-load: val=%s" val)
            (let ((sort-and-apply nil))
              (if (not (listp val))
                  (add-to-list 'after-load-alist
@@ -387,14 +409,14 @@ See `majmodpri-sort-lists' for more information."
                                   '(".*" (majmodpri-start-idle-sort))
                                 '("." (majmodpri-sort-lists))))
                (dolist (feat val)
-                 (message "feat=%s" feat)
+                 ;;(message "feat=%s" feat)
                  (if (featurep feat)
                      (setq sort-and-apply t)
                    (if (eq val t)
                        (eval-after-load feat '(majmodpri-start-idle-sort))
                      (eval-after-load feat '(majmodpri-sort-apply-to-current))))))
              (when sort-and-apply
-               (message "majmodpri-sort-after-load: sort-and-apply")
+               ;;(message "majmodpri-sort-after-load: sort-and-apply")
                (majmodpri-apply-priorities t))
              (if (eq val t)
                  (majmodpri-start-idle-sort)
