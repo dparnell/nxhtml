@@ -77,9 +77,18 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Chunk search routines for XHTML things
 
-(defun mumamo-chunk-attr=(pos min max attr= attr=is-regex attr-regex submode)
+(defun mumamo-chunk-attr= (pos min max attr= attr=is-regex attr-regex submode)
   "This should work similar to `mumamo-find-possible-chunk'.
 See `mumamo-chunk-style=' for an example of use."
+  (if (not mumamo-find-possible-chunk-new)
+      (mumamo-chunk-attr=-old pos min max attr= attr=is-regex attr-regex submode)
+    (when t ;;(and (boundp 'mumamo-test-mode) mumamo-test-mode)
+      (mumamo-chunk-attr=-new pos max attr= attr=is-regex attr-regex submode)
+      )
+    ))
+
+(defun mumamo-chunk-attr=-old (pos min max attr= attr=is-regex attr-regex submode)
+  ;; Fix-me: make version for new chunks!
   (mumamo-condition-case err
       (save-match-data
         (if (not attr=is-regex)
@@ -159,8 +168,141 @@ See `mumamo-chunk-style=' for an example of use."
           ;;nil
           ))
     (error
-     (mumamo-display-error 'mumamo-chunk-attr= "%s"
+     (mumamo-display-error 'mumamo-chunk-attr=-old "%s"
                            (error-message-string err)))))
+
+(defun mumamo-chunk-attr=-new-fw-exc-fun (pos max)
+  (let ((here (point))
+        first-dq
+        next-dq
+        (this-chunk (mumamo-get-existing-new-chunk-at pos))
+        )
+    (if this-chunk
+        (goto-char (overlay-end this-chunk))
+      (goto-char (overlay-end mumamo-last-new-chunk))
+      )
+    (setq first-dq (search-forward "\"" max t))
+    (backward-char)
+    (condition-case err
+        (setq next-dq (scan-sexps (point) 1))
+      (error nil))
+    (prog1
+        next-dq
+      (goto-char here))))
+
+(defun mumamo-chunk-attr=-new-find-borders-fun (start-border end-border dummy)
+  ;;(setq borders (funcall find-borders-fun start-border end-border exc-mode))
+  (let ((here (point))
+        (end2 (when end-border (1- end-border)))
+        start2
+        )
+    (goto-char start-border)
+    (setq start2 (search-forward "\"" (+ start-border 200) t))
+    (goto-char here)
+    (list start2 end2)
+    ))
+
+(defun mumamo-chunk-attr=-new (pos
+                               ;;min
+                               max
+                               attr=
+                               attr=is-regex
+                               attr-regex
+                               submode)
+  ;;(message "\n(mumamo-chunk-attr=-new %s %s %s %s %s %s)" pos max attr= attr=is-regex attr-regex submode)
+  ;;(mumamo-condition-case err
+  (condition-case err
+      (save-match-data
+        (let ((here (point))
+              (next-attr= (progn
+                            (if (not attr=is-regex)
+                                (goto-char (+ pos (length attr=)))
+                              (goto-char pos)
+                              (skip-chars-forward "a-zA-Z="))
+                            (goto-char pos)
+                            (if attr=is-regex
+                                (re-search-forward attr= max t)
+                              (search-forward attr= max t))))
+              next-attr-sure
+              ;;next-attr=
+              start start-border
+              end   end-border
+              exc-mode
+              borders
+              exc-start-next
+              exc-end-next
+              exc-start-next
+              exc-end-next
+              (tries 0)
+              )
+          ;; make sure if we have find prev-attr= or not
+          (while (and next-attr=
+                      (not next-attr-sure)
+                      (< tries 5))
+            (setq tries (1+ tries))
+            (if (not (search-backward "<" min t))
+                (setq next-attr= nil)
+              (if (looking-at attr-regex)
+                  (setq next-attr-sure 'found)
+                (backward-char)
+                (setq next-attr= (if attr=is-regex
+                                     (re-search-backward attr= min t)
+                                   (search-backward attr= min t))))))
+          ;; find prev change and if inside style= the next change
+          (when next-attr=
+              (setq exc-start-next (match-beginning 1))
+              (setq exc-end-next   (match-end 2))
+              (when (>= exc-start-next pos)
+                (if (> pos exc-end-next)
+                    (progn
+                      (setq start (+ (match-end 2) 1))
+                      ;;(setq start-border (+ (match-end 2) 2))
+                      )
+                  (setq exc-mode submode)
+                  (setq start (match-beginning 1))
+                  (setq start-border (match-beginning 2))
+                  (setq end (1+ (match-end 2)))
+                  (setq end-border (1- end)))
+                ))
+          ;; find next change
+          (unless end
+            (if start
+                (goto-char start)
+              (goto-char pos)
+              (search-backward "<" min t))
+            (setq next-attr= (if attr=is-regex
+                                 (re-search-forward attr= max t)
+                               (search-forward attr= max t)))
+            (when (and next-attr=
+                       (search-backward "<" min t))
+              (when (looking-at attr-regex)
+                (setq end (match-beginning 1)))))
+          (when start (assert (>= start pos) t))
+          (when end   (assert (<= pos end) t))
+          ;;(message "start-border=%s end-border=%s" start-border end-border)
+          (when (or start-border end-border)
+            (setq borders (list start-border end-border nil)))
+          ;; (message "mumamo-chunk-attr=-new: %s"
+          ;;          (list start
+          ;;                end
+          ;;                exc-mode
+          ;;                borders
+          ;;                nil ;; parseable-by
+          ;;                'mumamo-chunk-attr=-new-fw-exc-fun ;; fw-exc-fun
+          ;;                'mumamo-chunk-attr=-new-find-borders-fun ;; find-borders-fun
+          ;;                ))
+          (goto-char here)
+          (list start
+                end
+                exc-mode
+                borders
+                nil ;; parseable-by
+                'mumamo-chunk-attr=-new-fw-exc-fun ;; fw-exc-fun
+                'mumamo-chunk-attr=-new-find-borders-fun ;; find-borders-fun
+                )
+          ))
+    (error (mumamo-display-error 'mumamo-chunk-attr=-new "%s" (error-message-string err)))
+    ))
 
 ;;;; xml pi
 

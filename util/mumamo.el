@@ -1138,7 +1138,7 @@ in this part of the buffer."
                   ;; longer than 200 chars. fix-me.
                   (setq narpos (max (- ok-pos 200) 1))
                   (widen)
-                  (msgtrc "(narrow-to-region %s %s)" narpos point-max)
+                  ;;(msgtrc "(narrow-to-region %s %s)" narpos point-max)
                   (narrow-to-region narpos point-max)
                   ;;(msgtrc "narrow-to-region %s %s, ok-pos=%s, end=%s, this-chunk=%s" narpos point-max ok-pos end this-chunk)
                   (setq prev-chunk this-chunk)
@@ -1177,7 +1177,7 @@ in this part of the buffer."
                       ;; Fix-me: Mark chunk borders here??? Won't work
                       ;; well with font lock turn on/off.
                       (setq this-chunk (mumamo-create-chunk-from-chunk-values this-values prev-chunk))
-                      (msgtrc "created this-chunk=%s" this-chunk)
+                      ;;(msgtrc "created this-chunk=%s" this-chunk)
                       (when prev-chunk
                         (overlay-put prev-chunk 'mumamo-next-chunk this-chunk))
                       (overlay-put this-chunk 'mumamo-prev-chunk prev-chunk)
@@ -3071,7 +3071,7 @@ There must not be an old chunk there.  Mark for refontification."
     (dolist (o (overlays-at pos))
       (unless chunk-ovl
         (when ;;(mumamo-chunk-major-mode o)
-            (and (overlay-get o 'mumamo-major-mode)
+            (and t ;(overlay-get o 'mumamo-major-mode)
                  (overlay-get o 'mumamo-is-new))
           (setq chunk-ovl o))))
     ;;(message "mumamo-get-existing-chunk-at EXIT chunk-ovl=%s" chunk-ovl)
@@ -4122,7 +4122,9 @@ information.
       ;;(message "  curr-chunk-funs=%s" curr-chunk-funs)
       (when curr-end-fun
         ;;(message "curr-end-fun=%s" curr-end-fun)
-        (setq next-end-fun-end (funcall curr-end-fun pos max))
+        ;; Subtract 2 from the position here to find end. Fix-me: is
+        ;; this really correct???
+        (setq next-end-fun-end (funcall curr-end-fun (- pos 2) max))
         )
       (when (listp curr-chunk-funs)
         ;;(message "curr-chunk-funs=%s" curr-chunk-funs)
@@ -6742,15 +6744,19 @@ See the defadvice for `syntax-ppss' for an explanation."
   (if (not mumamo-multi-major-mode)
       ad-do-it
     (let ((pos (ad-get-arg 0)))
-      ;;(let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-get-existing-chunk-at pos))))
-      (let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-find-chunks pos "syntax-ppss-flush-cache"))))
+      (let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode)
+                                      mumamo-multi-major-mode)
+                             (mumamo-find-chunks pos "syntax-ppss-flush-cache"))))
         (if chunk-at-pos
             (let* ((syntax-ppss-last  (overlay-get chunk-at-pos 'syntax-ppss-last))
                    (syntax-ppss-cache (overlay-get chunk-at-pos 'syntax-ppss-cache)))
-              (setq ad-return-value ad-do-it)
+              ;;(setq ad-return-value ad-do-it)
+              ad-do-it
               (overlay-put chunk-at-pos 'syntax-ppss-last syntax-ppss-last)
               (overlay-put chunk-at-pos 'syntax-ppss-cache syntax-ppss-cache))
-          (setq ad-return-value ad-do-it))))))
+          ;;(setq ad-return-value ad-do-it)
+          ad-do-it
+          )))))
 
 (defvar mumamo-syntax-chunk-at-pos nil
   "Internal use.")
