@@ -4353,9 +4353,10 @@ If MARK-IS-BORDER is non-nil then the marks are made borders."
               (mumamo-chunk-start-fw-str pos max ,begin-mark))))
         (search-fw-exc-end
          `(lambda (pos max)
-            (if ,inc
-                (mumamo-chunk-end-fw-str-inc pos max ,end-mark)
-              (mumamo-chunk-end-fw-str pos max ,end-mark))))
+            (save-match-data
+              (if ,inc
+                  (mumamo-chunk-end-fw-str-inc pos max ,end-mark)
+                (mumamo-chunk-end-fw-str pos max ,end-mark)))))
         (find-borders
          (when mark-is-border
            `(lambda (start end exc-mode)
