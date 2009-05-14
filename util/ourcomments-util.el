@@ -479,7 +479,8 @@ line."
   (interactive "p")
   (or arg (setq arg 1))
   (let ((pos (point))
-        vis-pos)
+        vis-pos
+        eol-pos)
     (when line-move-visual
       (let (last-command) (line-move-visual 1 t))
       (end-of-line)
@@ -488,9 +489,12 @@ line."
     (call-interactively 'end-of-line arg)
     (when (and vis-pos
                (= vis-pos (point)))
+      (setq eol-pos (point))
       (beginning-of-line)
       (let (last-command) (line-move-visual 1 t))
-      (backward-char))
+      ;; move backwards if we moved to a new line
+      (unless (= (point) eol-pos)
+        (backward-char)))
     (when (= pos (point))
       (if (= (line-end-position) (point))
           (skip-chars-backward " \t")
