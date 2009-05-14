@@ -172,6 +172,8 @@ See `mumamo-chunk-style=' for an example of use."
                            (error-message-string err)))))
 
 (defun mumamo-chunk-attr=-new-fw-exc-fun (pos max)
+  ;;(msgtrc "(mumamo-chunk-attr=-new-fw-exc-fun %s %s)" pos max)
+  ;;(message "backtrace=\n%s" (with-output-to-string (backtrace)))
   (save-match-data
     (let ((here (point))
           first-dq
@@ -1983,7 +1985,6 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 
 
 
-;; Fix-me: does not work with new chunk div
 (defun mumamo-chunk-mako-% (pos min max)
   "Find % python EOL.  Return range and `python-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
@@ -1995,6 +1996,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (mumamo-whole-line-chunk pos min max "##" 'mumamo-comment-mode))
 
 ;; Fix-me: Move this to mumamo.el
+;; Fix-me: does not work with new chunk div
 (defun mumamo-whole-line-chunk (pos min max marker mode)
   (let ((here (point))
         (len-marker (length marker))
