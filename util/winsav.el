@@ -911,8 +911,8 @@ Only file visiting buffers currently.  Clone the base buffers."
              (file (buffer-file-name base-buf))
              )
         (when file
-          (insert "(winsav-restore-indirect-buffer "
-                  file " " (buffer-name buf) ")\n"))))))
+          (insert "(winsav-restore-indirect-buffer \""
+                  file "\" \"" (buffer-name buf) "\")\n"))))))
 
 ;; Fix-me: test
 ;; (defun winsav-restore-minibuffer (frame-num frm-num win-num)
