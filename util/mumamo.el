@@ -3423,6 +3423,71 @@ Otherwise return nil."
                                        fw-exc-end-fun
                                        &optional find-borders-fun)
   ;; This should return no end value!
+  "Return list describing a possible chunk that starts after POS.
+No notice is taken about existing chunks and no chunks are
+created.  The description returned is for the smallest possible
+chunk which is delimited by the function parameters.
+
+POS must be less than MAX.
+
+The function BW-EXC-START-FUN takes two parameters, POS and
+MIN.  It should search backward from POS, bound by MIN, for
+exception start and return a cons or a list:
+
+  \(FOUND-POS . EXCEPTION-MODE)
+  \(FOUND-POS EXCEPTION-MODE PARSEABLE-BY)
+
+Here FOUND-POS is the start of the chunk.  EXCEPTION-MODE is the
+major mode specifier for this chunk.  \(Note that this specifier
+is translated to a major mode through `mumamo-major-modes'.)
+
+PARSEABLE-BY is a list of parsers that can handle the chunk
+beside the one that may be used by the chunks major mode.
+Currently only the XML parser in `nxml-mode' is recognized.  In
+this list it should be the symbol `nxml-mode'.
+
+The functions FW-EXC-START-FUN and FW-EXC-END-FUN should search
+for exception start or end, forward resp backward.  Those three
+should return just the start respectively the end of the chunk.
+
+For all three functions the position returned should be nil if
+search fails.
+
+
+Return as a list with values
+
+  \(START END EXCEPTION-MODE BORDERS PARSEABLE-BY FR-EXC-FUN FIND-BORDERS-FUN)
+
+The bounds START and END are where the exception starts or stop.
+Either of them may be nil, in which case this is equivalent to
+`point-min' respectively `point-max'.
+
+If EXCEPTION-MODE is non-nil that is the submode for this
+range.  Otherwise the main major mode should be used for this
+chunk.
+
+BORDERS is the return value of the optional FIND-BORDERS-FUN
+which takes three parameters, START, END and EXCEPTION-MODE in
+the return values above.  BORDERS may be nil and otherwise has
+this format:
+
+  \(START-BORDER END-BORDER EXCEPTION-MODE FW-EXC-FUN)
+
+START-BORDER and END-BORDER may be nil.  Otherwise they should be
+the position where the border ends respectively start at the
+corresponding end of the chunk.
+
+PARSEABLE-BY is a list of major modes with parsers that can parse
+the chunk.
+
+FW-EXC-FUN is the function that finds the end of the chunk.  This
+is either FW-EXC-START-FUN or FW-EXC-END-FUN.
+
+---- * Note: This routine is used by to create new members for
+chunk families.  If you want to add a new chunk family you could
+most often do that by writing functions for this routine.  Please
+see the many examples in mumamo-fun.el for how this can be done.
+See also `mumamo-quick-static-chunk'."
   ;;(msgtrc "====")
   ;;(msgtrc "find-poss-new %s %s %s %s %s %s" pos max bw-exc-start-fun fw-exc-start-fun fw-exc-end-fun find-borders-fun)
 
@@ -3448,7 +3513,7 @@ Otherwise return nil."
           borders
           border-beg
           border-end)
-          ;;;; find start of range
+      ;;;; find start of range
       ;;
       ;; start normal
       ;;
@@ -3495,6 +3560,7 @@ Otherwise return nil."
       (setq border-beg (nth 0 borders))
       (setq border-end (nth 1 borders))
       ;;(when start (assert (<= start pos)))
+      ;;(assert (or (not start) (= start pos)))
       (when border-beg
         (assert (<= start border-beg)))
       ;; This is just totally wrong in some pieces and a desperate
@@ -3963,13 +4029,13 @@ The first two are used when the bottom:
            (this-borders (when this-border-fun
                            ;;(msgtrc "(funcall %s %s %s %s)" this-border-fun beg end maj)
                            (funcall this-border-fun beg end maj)))
+           (this-borders-min (nth 0 this-borders))
+           (this-borders-max (nth 1 this-borders))
            )
       (setq bmin nil)
       (setq bmax nil)
-      (when this-borders
-        (setq bmin (- (nth 0 this-borders) beg))
-        (setq bmax (- end (nth 1 this-borders)))
-        )
+      (when this-borders-min (setq bmin (- this-borders-min beg)))
+      (when this-borders-max (setq bmax (- end this-borders-max)))
       ;;(when after-chunk (message "after-chunk.end=%s, beg=%s, end=%s" (overlay-end after-chunk) beg end))
       ;;(message "fw-funs=%s" fw-funs)
       (when this-chunk
@@ -4095,26 +4161,27 @@ information.
   (let* ((mumamo-find-possible-chunk-new t)
          (here (point))
          (max (point-max))
+         (after-chunk-valid (and after-chunk (overlay-buffer after-chunk)))
          (pos (or nil ;from
-                  (if after-chunk
+                  (if after-chunk-valid
                       (1+ (overlay-end after-chunk))
                     1)))
          (main-chunk-funs (let ((chunk-info (cdr mumamo-current-chunk-family)))
                             (cadr chunk-info)))
-         (after-next-chunk-funs (when after-chunk (overlay-get after-chunk 'mumamo-next-chunk-funs)))
+         (after-next-chunk-funs (when after-chunk-valid (overlay-get after-chunk 'mumamo-next-chunk-funs)))
          ;; Note that "curr-*" values are fetched from "mumamo-next-*" values in after-chunk
-         (curr-major (if after-chunk
+         (curr-major (if after-chunk-valid
                          (or (overlay-get after-chunk 'mumamo-next-major)
                              (mumamo-main-major-mode))
                        (mumamo-main-major-mode)))
          (curr-chunk-funs
-          (if (and after-chunk
+          (if (and after-chunk-valid
                    after-next-chunk-funs)
               (if (listp after-next-chunk-funs)
                   after-next-chunk-funs
                 nil)
             main-chunk-funs))
-         (curr-end-fun (when after-chunk
+         (curr-end-fun (when after-chunk-valid
                          (overlay-get after-chunk 'mumamo-next-end-fun)))
          curr-max
          next-max
@@ -4278,7 +4345,7 @@ information.
       (setq curr-border-min border-min)
       (setq curr-border-max border-max)
       (unless next-major (setq next-chunk-funs nil))
-      (when after-chunk
+      (when after-chunk-valid
         (unless (= curr-min (overlay-end after-chunk))
           (error "curr-min is not right after after-chunk"))
         (when curr-max
