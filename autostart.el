@@ -1,3 +1,4 @@
+(setq message-log-max t)
 ;;; autostart.el --- Load nxhtml
 ;;
 ;; Author: By: Lennart Borgman
