@@ -894,14 +894,14 @@ whose minibuffer should be used."
 Written into the winsav file and used at winsav read to provide
 backward compatibility.")
 
-(defun winsav-restore-indirect-buffer (file name)
+
+;; fix-me: This should be in desktop.el
+(defun winsav-restore-indirect-file-buffer (file name)
   "Make indirect buffer from file buffer visiting file FILE.
 Give it the name NAME."
   (let* ((fbuf (find-file-noselect file)))
     (when fbuf
       (make-indirect-buffer fbuf name))))
-
-;; fix-me: This should be in desktop.el
 (defun winsav-save-indirect-buffers ()
   "Save information about indirect buffers.
 Only file visiting buffers currently.  Clone the base buffers."
@@ -911,7 +911,7 @@ Only file visiting buffers currently.  Clone the base buffers."
              (file (buffer-file-name base-buf))
              )
         (when file
-          (insert "(winsav-restore-indirect-buffer \""
+          (insert "(winsav-restore-indirect-file-buffer \""
                   file "\" \"" (buffer-name buf) "\")\n"))))))
 
 ;; Fix-me: test
