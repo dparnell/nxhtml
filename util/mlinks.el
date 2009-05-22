@@ -1166,7 +1166,8 @@ Any command cancels this state."
                                         (throw 'view-in-buf indirect-buf)
                                         ))
                                     ))))
-                        (mlinks-switch-to-buffer orig-buf)
+                        (when orig-buf
+                          (mlinks-switch-to-buffer orig-buf))
                         ;;(message "cb=%s" (current-buffer))
                 (if (or (< p (point-min))
                         (> p (point-max)))
