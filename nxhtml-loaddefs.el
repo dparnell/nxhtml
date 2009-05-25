@@ -41,6 +41,51 @@ Query replace in current site's files.
 
 ;;;***
 
+;;;### (autoloads (html-upl-ediff-file html-upl-edit-remote-file-with-toc
+;;;;;;  html-upl-edit-remote-file html-upl-upload-file html-upl-remote-dired
+;;;;;;  html-upl-upload-site html-upl-upload-site-with-toc) "../nxhtml/html-upl"
+;;;;;;  "nxhtml/html-upl.el" (18968 9322))
+;;; Generated autoloads from nxhtml/html-upl.el
+
+(autoload 'html-upl-upload-site-with-toc "../nxhtml/html-upl" "\
+Not documented
+
+\(fn)" t nil)
+
+(autoload 'html-upl-upload-site "../nxhtml/html-upl" "\
+Not documented
+
+\(fn)" t nil)
+
+(autoload 'html-upl-remote-dired "../nxhtml/html-upl" "\
+Start dired for remote directory or its parent/ancestor.
+
+\(fn DIRNAME)" t nil)
+
+(autoload 'html-upl-upload-file "../nxhtml/html-upl" "\
+Upload a single file in a site.
+For the definition of a site see `html-site-current'.
+
+\(fn FILENAME)" t nil)
+
+(autoload 'html-upl-edit-remote-file "../nxhtml/html-upl" "\
+Not documented
+
+\(fn)" t nil)
+
+(autoload 'html-upl-edit-remote-file-with-toc "../nxhtml/html-upl" "\
+Not documented
+
+\(fn)" t nil)
+
+(autoload 'html-upl-ediff-file "../nxhtml/html-upl" "\
+Run ediff on local and remote file.
+FILENAME could be either the remote or the local file.
+
+\(fn FILENAME)" t nil)
+
+;;;***
+
 ;;;### (autoloads (inlimg-toggle-img-display inlimg-mode) "../nxhtml/inlimg"
 ;;;;;;  "nxhtml/inlimg.el" (18775 60002))
 ;;; Generated autoloads from nxhtml/inlimg.el
@@ -76,7 +121,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18936 59210))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18968 9344))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -318,7 +363,7 @@ See `nxml-where-mode' for more information on Nxml-Where mode.
 ;;;***
 
 ;;;### (autoloads (rngalt-set-validation-header) "../nxhtml/rngalt"
-;;;;;;  "nxhtml/rngalt.el" (18799 50784))
+;;;;;;  "nxhtml/rngalt.el" (18969 62751))
 ;;; Generated autoloads from nxhtml/rngalt.el
 
 (autoload 'rngalt-set-validation-header "../nxhtml/rngalt" "\
@@ -388,10 +433,25 @@ This mode only provides syntax highlighting.
 ;;;***
 
 ;;;### (autoloads (javascript-mode) "../related/javascript" "related/javascript.el"
-;;;;;;  (18773 19028))
+;;;;;;  (18946 55162))
 ;;; Generated autoloads from related/javascript.el
 
 (autoload 'javascript-mode "../related/javascript" "\
+Major mode for editing JavaScript source text.
+
+Key bindings:
+
+\\{javascript-mode-map}
+
+\(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads (javascript-mode) "../related/javascript-old" "related/javascript-old.el"
+;;;;;;  (18945 47932))
+;;; Generated autoloads from related/javascript-old.el
+
+(autoload 'javascript-mode "../related/javascript-old" "\
 Major mode for editing JavaScript source text.
 
 Key bindings:
@@ -449,11 +509,13 @@ Major mode for editing PHP code.
 ;;;***
 
 ;;;### (autoloads (smarty-mode) "../related/smarty-mode" "related/smarty-mode.el"
-;;;;;;  (18775 60002))
+;;;;;;  (18968 8343))
 ;;; Generated autoloads from related/smarty-mode.el
 
 (autoload 'smarty-mode "../related/smarty-mode" "\
-Mode for editing php smarty files.
+Smarty Mode
+***********
+
 Smarty Mode is a GNU XEmacs major mode for editing Smarty templates.
 
 1 Introduction
@@ -484,6 +546,10 @@ Features (new features in bold) :
         - Variable Modifiers
 
         - Plugin (Functions)
+             * BlockRepeatPlugin
+
+             * ClipCache
+
              * Smarty Formtool
 
              * Smarty Paginate
@@ -501,7 +567,105 @@ Features (new features in bold) :
 
 
 
-This manual describes Smarty Mode version 0.0.4.
+This manual describes Smarty Mode version 0.0.5.
+
+2 Installation
+**************
+
+2.1 Requirements
+================
+
+Smarty Mode is a XEmacs major mode that needs the following
+software/packages:
+
+   * XEmacs (http://www.xemacs.org/).
+
+   * `font-lock' mode generaly installed with XEmacs.
+
+   * `assoc' mode generaly installed with XEmacs.
+
+   * `easymenu' mode generaly installed with XEmacs.
+
+   * `hippie-exp' mode generaly installed with XEmacs.
+
+Before continuing, you must be sure to have all this packages
+installed.
+
+2.2 Download
+============
+
+Two internet address to download Smarty Mode :
+
+   * Principal: Smarty-Mode 0.0.5
+     (http://deboutv.free.fr/lisp/smarty/download/smarty-0.0.5.tar.gz)
+     (http://deboutv.free.fr/lisp/smarty/)
+
+   * Secondary: Smarty-Mode 0.0.5
+     (http://www.morinie.fr/lisp/smarty/download/smarty-0.0.5.tar.gz)
+     (http://www.morinie.fr/lisp/smarty/)
+
+   * Old releases: Smarty-Mode
+     (http://deboutv.free.fr/lisp/smarty/download.php)
+     (http://deboutv.free.fr/lisp/smarty/)
+
+2.3 Installation
+================
+
+2.3.1 Installation
+------------------
+
+To install Smarty Mode you need to choose an installation directory
+\(for example `/usr/local/share/lisp' or `c:lisp'). The administrator
+must have the write rights on this directory.
+
+With your favorite unzip software, unzip the archive in the
+installation directory.
+
+Example:
+     cd /usr/local/share/lisp
+     tar zxvf smarty-0.0.5.tar.gz
+Now you have a `smarty' directory in the installation directory. This
+directory contains 2 files `smarty-mode.el' and `smarty-mode.elc' and
+another directory `docs' containing the documentation.
+
+You need to configure XEmacs. open you initialization file `init.el'
+\(open the file or start XEmacs then choose the Options menu and Edit
+Init File). Add the following lines (the installation directory in
+this example is `/usr/local/share/lisp') :
+
+     (setq load-path
+           (append (list \"/usr/local/share/lisp/\") load-path))
+     (autoload 'smarty-mode \"smarty-mode\" \"Smarty Mode\" t)
+
+2.3.2 Update
+------------
+
+The update is easy. You need to unzip the archive in the installation
+directory to remove the old release.
+
+Example:
+     cd /usr/local/share/lisp
+     rm -rf smarty
+     tar zxvf smarty-0.0.5.tar.gz
+
+2.4 Invoke Smarty-Mode
+======================
+
+You have two possibilities to invoke the Smarty Mode.
+
+   - Manually: At each file opening you need to launch Smarty Mode
+     with the following command:
+
+     `M-x smarty-mode'
+
+   - Automatically: Add the following linesin your initialization
+     file `init.el' :
+
+          (setq auto-mode-alist
+                (append
+                 '((\"\\.tpl$\" . smarty-mode))
+          	 auto-mode-alist))
+
 
 3 Customization
 ***************
@@ -681,16 +845,16 @@ part.
 
 4.1.1 Functions
 ---------------
-\\<smarty-mode-map>
+
 `smarty-show-messages'
      Menu: Smarty -> Show Messages
-     Keybinding: `C-c M-m' \\[smarty-show-messages]
+     Keybinding: `C-c M-m'
      Description: This function opens the *Messages* buffer to
      display previous error messages.
 
 `smarty-doc-mode'
      Menu: Smarty -> Smarty Mode Documentation
-     Keybinding: `C-c C-h' \\[smarty-doc-mode]
+     Keybinding: `C-c C-h'
      Description: This function opens the *Help* buffer and prints in
      it the Smarty Mode documentation.
 
@@ -991,7 +1155,7 @@ See `nxhtmltest-run' for more information about the tests.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "../tests/nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (18936 59210))
+;;;;;;  "tests/nxhtmltest-suites.el" (18946 55162))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 
 (autoload 'nxhtmltest-run-indent "../tests/nxhtmltest-suites" "\
@@ -1191,7 +1355,7 @@ Below are some examples.  To test them mark an example and do
 ;;;***
 
 ;;;### (autoloads (css-color-mode css-color-global-mode css-color)
-;;;;;;  "css-color" "util/css-color.el" (18799 50784))
+;;;;;;  "css-color" "util/css-color.el" (18968 10737))
 ;;; Generated autoloads from util/css-color.el
 
 (let ((loads (get 'css-color 'custom-loads))) (if (member '"css-color" loads) nil (put 'css-color 'custom-loads (cons '"css-color" loads))))
@@ -1322,7 +1486,7 @@ See `css-palette-mode' for more information on Css-Palette mode.
 
 ;;;### (autoloads (freemind-to-org-mode freemind-from-org-sparse-tree
 ;;;;;;  freemind-from-org-mode freemind-from-org-mode-node freemind-show)
-;;;;;;  "freemind" "util/freemind.el" (18854 47204))
+;;;;;;  "freemind" "util/freemind.el" (18968 34865))
 ;;; Generated autoloads from util/freemind.el
 
 (autoload 'freemind-show "freemind" "\
@@ -1448,8 +1612,8 @@ hyperlinks as appropriate.
 ;;;***
 
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
-;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (18937
-;;;;;;  65146))
+;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (18969
+;;;;;;  55719))
 ;;; Generated autoloads from util/majmodpri.el
 
 (autoload 'majmodpri-sort-lists "majmodpri" "\
@@ -1485,8 +1649,8 @@ before applying.
 
 ;;;***
 
-;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18939
-;;;;;;  34634))
+;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18967
+;;;;;;  10076))
 ;;; Generated autoloads from util/mlinks.el
 
 (autoload 'mlinks-mode "mlinks" "\
@@ -1521,7 +1685,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-mark-for-refontification) "mumamo" "util/mumamo.el"
-;;;;;;  (18939 34634))
+;;;;;;  (18969 61269))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -1537,7 +1701,7 @@ Mark region between MIN and MAX for refontification.
 ;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode smarty-html-mumamo-mode
 ;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
 ;;;;;;  embperl-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18935 29598))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18969 43874))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1623,16 +1787,17 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (info-open-file grep-query-replace emacs-Q-nxhtml
-;;;;;;  emacs-Q emacs--debug-init emacs-buffer-file emacs ourcomments-ido-ctrl-tab
-;;;;;;  ourcomments-ido-buffer-raise-frame ourcomments-ido-buffer-other-frame
-;;;;;;  ourcomments-ido-buffer-other-window describe-symbol describe-defstruct
-;;;;;;  describe-custom-group describe-command ourcomments-ediff-files
-;;;;;;  find-emacs-other-file better-fringes-mode wrap-to-fill-column-mode
-;;;;;;  wrap-to-fill-left-marg-modes wrap-to-fill-left-marg describe-key-and-map-briefly
-;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
-;;;;;;  major-modep multi-major-modep major-or-multi-majorp unfill-individual-paragraphs
-;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (18799 50784))
+;;;;;;  emacs-Q emacs--no-desktop emacs--debug-init emacs-buffer-file
+;;;;;;  emacs ourcomments-ido-ctrl-tab ourcomments-ido-buffer-raise-frame
+;;;;;;  ourcomments-ido-buffer-other-frame ourcomments-ido-buffer-other-window
+;;;;;;  describe-symbol describe-defstruct describe-custom-group
+;;;;;;  describe-command ourcomments-ediff-files find-emacs-other-file
+;;;;;;  better-fringes-mode wrap-to-fill-column-mode wrap-to-fill-left-marg-modes
+;;;;;;  wrap-to-fill-left-marg describe-key-and-map-briefly ourcomments-move-end-of-line
+;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
+;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
+;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
+;;;;;;  "util/ourcomments-util.el" (18969 62418))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -1873,6 +2038,11 @@ Not documented
 
 \(fn)" t nil)
 
+(autoload 'emacs--no-desktop "ourcomments-util" "\
+Not documented
+
+\(fn)" t nil)
+
 (autoload 'emacs-Q "ourcomments-util" "\
 Start new Emacs without any customization whatsoever.
 
@@ -2079,9 +2249,9 @@ later.
 
 ;;;***
 
-;;;### (autoloads (winsav-switch-config winsav-save-named-config
-;;;;;;  winsav-save-mode winsav-put-window-tree) "winsav" "util/winsav.el"
-;;;;;;  (18940 50150))
+;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
+;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (18968
+;;;;;;  11096))
 ;;; Generated autoloads from util/winsav.el
 
 (autoload 'winsav-put-window-tree "winsav" "\
@@ -2113,50 +2283,57 @@ Toggle winsav configuration saving mode.
 With numeric ARG, turn winsav saving on if ARG is positive, off
 otherwise.
 
-When this mode is turned on, the frames and windows are saved
-from one session to another.
+When this mode is turned on, winsav configurations are saved from
+one session to another.  A winsav configuration consists of
+frames, windows and visible buffers configurations plus
+optionally buffers and files managed by the functions used by
+option `desktop-save-mode'
+
+By default this is integrated with `desktop-save-mode'.  If
+`desktop-save-mode' is on and `winsav-handle-also-desktop' is
+non-nil then save and restore also desktop.
 
 See the command `winsav-switch-config' for more information and
 other possibilities.
 
+Note: If you want to avoid saving when you exit just turn off
+this minor mode.
+
+For information about what is saved and restored and how to save
+and restore additional information see the function
+`winsav-save-configuration'.
+
 \(fn &optional ARG)" t nil)
 
-(autoload 'winsav-save-named-config "winsav" "\
-Saved current winsav configuration under name NAME.
-Then change to configuration NAME.  If NAME is nil or \"\" then
-it means the startup configuration.
+(autoload 'winsav-save-full-config "winsav" "\
+Saved current winsav configuration in directory DIRNAME.
+Then change to this configuration.
 
 See also `winsav-switch-config'.
 
-\(fn NAME)" nil nil)
+\(fn DIRNAME)" nil nil)
 
 (autoload 'winsav-switch-config "winsav" "\
-Change to a new winsav configuration.
-A winsav configuration consists buffers and files managed by the
-functions used by `desktop-save-mode' plus windows and frames
-configurations.
-
-Prompt for the name of the winsav configuration.
-If that given name does not exist offer to create it.
-
-If the name is the current winsav configuration then offer to
-save it or restore it from saved values.
+Change to winsav configuration in directory DIRNAME.
+If DIRNAME is the current winsav configuration directory then
+offer to save it or restore it from saved values.
 
 Otherwise, before switching offer to save the current winsav
 configuration.  Then finally switch to the new winsav
 configuration, creating it if it does not exist.
 
-If `desktop-save-mode' is on then buffers and files are also
+If option `desktop-save-mode' is on then buffers and files are also
 restored and saved the same way.
 
-See also `winsav-save-mode' and `winsav-tell-configuration'.
+See also option `winsav-save-mode' and command
+`winsav-tell-configuration'.
 
-\(fn)" t nil)
+\(fn DIRNAME)" t nil)
 
 ;;;***
 
 ;;;### (autoloads (winsize-save-window-configuration winsize-balance-siblings
-;;;;;;  resize-windows) "winsize" "util/winsize.el" (18790 45400))
+;;;;;;  resize-windows) "winsize" "util/winsize.el" (18968 52189))
 ;;; Generated autoloads from util/winsize.el
 
 (autoload 'resize-windows "winsize" "\
@@ -2360,28 +2537,28 @@ Not documented
 ;;;### (autoloads nil nil ("autostart.el" "autostart22.el" "etc/schema/schema-path-patch.el"
 ;;;;;;  "nxhtml/doc/cedet-build.el" "nxhtml/html-chklnk.el" "nxhtml/html-imenu.el"
 ;;;;;;  "nxhtml/html-move.el" "nxhtml/html-pagetoc.el" "nxhtml/html-quote.el"
-;;;;;;  "nxhtml/html-toc.el" "nxhtml/html-upl.el" "nxhtml/html-wtoc.el"
-;;;;;;  "nxhtml/nxhtml-anything-1.el" "nxhtml/nxhtml-autoload.el"
-;;;;;;  "nxhtml/nxhtml-strval.el" "nxhtml/nxhtml.el" "nxhtml/nxhtmljs.el"
-;;;;;;  "nxhtml/outline-magic.el" "nxhtml/wtest.el" "related/flymake-helpers.el"
-;;;;;;  "related/flymake-js.el" "related/flymake-keys.el" "related/flymake-php.el"
-;;;;;;  "related/flymu.el" "related/fold-dwim.el" "related/php-imenu.el"
-;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
+;;;;;;  "nxhtml/html-toc.el" "nxhtml/html-wtoc.el" "nxhtml/nxhtml-anything-1.el"
+;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el" "nxhtml/nxhtml.el"
+;;;;;;  "nxhtml/nxhtmljs.el" "nxhtml/outline-magic.el" "nxhtml/wtest.el"
+;;;;;;  "related/flymake-helpers.el" "related/flymake-js.el" "related/flymake-keys.el"
+;;;;;;  "related/flymake-php.el" "related/flymu.el" "related/fold-dwim.el"
+;;;;;;  "related/php-imenu.el" "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
-;;;;;;  "util/buffer-bg.el" "util/custsets.el" "util/ecb-batch-compile.el"
-;;;;;;  "util/ffip.el" "util/fmode.el" "util/fupd.el" "util/hfyview.el"
-;;;;;;  "util/hl-needed.el" "util/htmlfontify.21.el" "util/mumamo-aspnet.el"
-;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
+;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/custsets.el"
+;;;;;;  "util/ecb-batch-compile.el" "util/ffip.el" "util/fmode.el"
+;;;;;;  "util/fupd.el" "util/hfyview.el" "util/hl-needed.el" "util/htmlfontify.21.el"
+;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
+;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/vline.el" "util/whelp.el"
-;;;;;;  "util/zen-mode.el") (18940 50375 546000))
+;;;;;;  "util/zen-mode.el") (18969 62921 312000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (18940 21223))
+;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (18940 22530))
 ;;; Generated autoloads from nxhtmlmaint.el
 
 (autoload 'nxhtmlmaint-start-byte-compilation "../nxhtmlmaint" "\
