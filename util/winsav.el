@@ -997,6 +997,8 @@ minibuffers will come later."
   (when (<= config-version 1)
     t))
 
+(defvar winsav-file-modtime nil)
+
 ;; Like desktop-save, fix-me
 (defun winsav-save-configuration (&optional dirname release)
   "Write elisp code to recreate all frames.
@@ -1342,7 +1344,7 @@ See also option `winsav-save-mode' and command
       (if (file-exists-p conf-file)
           (setq config-exists t)
         (unless (y-or-n-p (format "%s was not found.  Create it? " conf-file))
-          (throw 'stop)))
+          (throw 'stop nil)))
       (if (string= winsav-dirname dirname)
           (if (y-or-n-p "You are already using this configuration, restore it from saved values? ")
               (winsav-restore-full-config winsav-dirname)

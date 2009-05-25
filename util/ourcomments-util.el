@@ -1689,6 +1689,12 @@ If there is no buffer file start with `dired'."
   (message "Started 'emacs --debug-init' - it will be ready soon ..."))
 
 ;;;###autoload
+(defun emacs--no-desktop()
+  (interactive)
+  (call-process (ourcomments-find-emacs) nil 0 nil "--no-desktop")
+  (message "Started 'emacs --no-desktop' - it will be ready soon ..."))
+
+;;;###autoload
 (defun emacs-Q()
   "Start new Emacs without any customization whatsoever."
   (interactive)
