@@ -1285,7 +1285,8 @@ in this part of the buffer."
                           (setq old-new-chunk next-old-new-chunk))
                         (when end-param (mumamo-start-find-chunks-timer))
                         ))
-                    (unless this-new-chunk
+                    (unless (or this-new-chunk
+                                (not this-new-values))
                       ;; Create chunk and chunk links
                       ;; Fix-me: Mark chunk borders here??? Won't work
                       ;; well with font lock turn on/off.
