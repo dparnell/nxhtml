@@ -284,6 +284,10 @@
         (list 'menu-item "Tools" tools-map
               :visible `(not (derived-mode-p 'dired-mode))
               ))
+      (define-key tools-map [nxhtml-last-resort]
+        (list 'menu-item "Last Resort" 'n-back-game))
+      (define-key tools-map [nxhtml-last-resort-separator]
+        (list 'menu-item "--" nil))
       (let ((fill-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-filling]
           (list 'menu-item "Writing Text" fill-map))
