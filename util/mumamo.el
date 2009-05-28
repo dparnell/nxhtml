@@ -5951,6 +5951,9 @@ default values."
                      'mumamo-restore-most-buffer-locals-in-hook
                      t)))
 
+    (setq mumamo-major-mode-indent-line-function (cons major-mode indent-line-function))
+    (make-local-variable 'indent-line-function)
+
     (setq mode-name (concat (format-mode-line mode-name)
                             (save-match-data
                               (replace-regexp-in-string
@@ -6074,9 +6077,6 @@ default values."
   (make-local-variable 'font-lock-unfontify-buffer-function)
   (setq font-lock-unfontify-buffer-function 'mumamo-unfontify-buffer)
 
-
-  (setq mumamo-major-mode-indent-line-function indent-line-function)
-  (make-local-variable 'indent-line-function)
   (setq indent-line-function 'mumamo-indent-line-function)
 
   (set (make-local-variable 'fill-paragraph-function) 'mumamo-fill-paragraph-function)
@@ -6722,13 +6722,13 @@ The following rules are used when indenting:
         ;; indentation calling indent-line-function would give.
         (condition-case nil
             (atomic-change-group
-              (mumamo-call-indent-line)
+              (mumamo-call-indent-line (nth 0 this-line-chunks))
               (when (> want-indent (current-indentation))
                 (signal 'mumamo-error-ind-0 nil))
               (setq want-indent nil))
           (mumamo-error-ind-0)))
       (unless want-indent
-        (mumamo-call-indent-line))
+        (mumamo-call-indent-line (nth 0 this-line-chunks)))
       (mumamo-msgindent "  enter sub.want-indent=%s, curr=%s, last-main=%s" want-indent (current-indentation)
                         last-main-major-indent)
       ;;(unless (> want-indent (current-indentation)) (setq want-indent nil))
@@ -6752,7 +6752,7 @@ The following rules are used when indenting:
           ;; the code all belongs to the surrounding major mode.
           (progn
             (mumamo-msgindent "  In main major mode")
-            (mumamo-call-indent-line)
+            (mumamo-call-indent-line (nth 0 this-line-chunks))
             (setq last-main-major-indent (current-indentation)))
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;;;;; In sub major mode
@@ -6775,7 +6775,7 @@ The following rules are used when indenting:
             (save-restriction
               (condition-case nil
                   (atomic-change-group
-                    (mumamo-call-indent-line)
+                    (mumamo-call-indent-line (nth 0 this-line-chunks))
                     (when (= 0 (current-indentation))
                       (setq ind-zero t)
                       ;; It is maybe ok if indentation on first sub
@@ -6849,16 +6849,25 @@ The following rules are used when indenting:
              (funcall indent-line-function))
          (indent-to-column default-indent)))))
 
-(defun mumamo-call-indent-line ()
+(defun mumamo-call-indent-line (chunk)
   "Call the relevant `indent-line-function'."
-  ;; (mumamo-with-major-mode-indentation major-mode
-  ;;   `(save-restriction
-  ;;      (when (mumamo-indent-use-widen major-mode)
-  ;;        (mumamo-msgindent "=> indent-line did widen")
-  ;;        (widen))
-  ;;      (funcall indent-line-function)))
-  (funcall mumamo-major-mode-indent-line-function)
-  )
+  (if nil
+      (mumamo-with-major-mode-indentation major-mode
+        `(save-restriction
+           (when (mumamo-indent-use-widen major-mode)
+             (mumamo-msgindent "=> indent-line did widen")
+             (widen))
+           (funcall indent-line-function)))
+    (let ((maj (car mumamo-major-mode-indent-line-function))
+          (fun (cdr mumamo-major-mode-indent-line-function)))
+      (assert (eq maj major-mode))
+      (save-restriction
+        ;; (unless (mumamo-indent-use-widen major-mode)
+        ;;   (let ((syn-min-max (mumamo-chunk-syntax-min-max chunk)))
+        ;;     (narrow-to-region (car syn-min-max) (cdr syn-min-max))))
+        (when (mumamo-indent-use-widen major-mode) (widen))
+        (funcall fun)
+        ))))
 
 (defun mumamo-indent-region-function (start end)
   "Indent the region between START and END."
