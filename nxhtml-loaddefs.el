@@ -44,7 +44,7 @@ Query replace in current site's files.
 ;;;### (autoloads (html-upl-ediff-file html-upl-edit-remote-file-with-toc
 ;;;;;;  html-upl-edit-remote-file html-upl-upload-file html-upl-remote-dired
 ;;;;;;  html-upl-upload-site html-upl-upload-site-with-toc) "../nxhtml/html-upl"
-;;;;;;  "nxhtml/html-upl.el" (18968 9322))
+;;;;;;  "nxhtml/html-upl.el" (18969 63118))
 ;;; Generated autoloads from nxhtml/html-upl.el
 
 (autoload 'html-upl-upload-site-with-toc "../nxhtml/html-upl" "\
@@ -121,7 +121,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18968 9344))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18969 63118))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -363,7 +363,7 @@ See `nxml-where-mode' for more information on Nxml-Where mode.
 ;;;***
 
 ;;;### (autoloads (rngalt-set-validation-header) "../nxhtml/rngalt"
-;;;;;;  "nxhtml/rngalt.el" (18969 62751))
+;;;;;;  "nxhtml/rngalt.el" (18969 63118))
 ;;; Generated autoloads from nxhtml/rngalt.el
 
 (autoload 'rngalt-set-validation-header "../nxhtml/rngalt" "\
@@ -448,7 +448,7 @@ Key bindings:
 ;;;***
 
 ;;;### (autoloads (javascript-mode) "../related/javascript-old" "related/javascript-old.el"
-;;;;;;  (18945 47932))
+;;;;;;  (18972 23450))
 ;;; Generated autoloads from related/javascript-old.el
 
 (autoload 'javascript-mode "../related/javascript-old" "\
@@ -509,7 +509,7 @@ Major mode for editing PHP code.
 ;;;***
 
 ;;;### (autoloads (smarty-mode) "../related/smarty-mode" "related/smarty-mode.el"
-;;;;;;  (18968 8343))
+;;;;;;  (18969 63118))
 ;;; Generated autoloads from related/smarty-mode.el
 
 (autoload 'smarty-mode "../related/smarty-mode" "\
@@ -1355,7 +1355,7 @@ Below are some examples.  To test them mark an example and do
 ;;;***
 
 ;;;### (autoloads (css-color-mode css-color-global-mode css-color)
-;;;;;;  "css-color" "util/css-color.el" (18968 10737))
+;;;;;;  "css-color" "util/css-color.el" (18969 63118))
 ;;; Generated autoloads from util/css-color.el
 
 (let ((loads (get 'css-color 'custom-loads))) (if (member '"css-color" loads) nil (put 'css-color 'custom-loads (cons '"css-color" loads))))
@@ -1486,7 +1486,7 @@ See `css-palette-mode' for more information on Css-Palette mode.
 
 ;;;### (autoloads (freemind-to-org-mode freemind-from-org-sparse-tree
 ;;;;;;  freemind-from-org-mode freemind-from-org-mode-node freemind-show)
-;;;;;;  "freemind" "util/freemind.el" (18968 34865))
+;;;;;;  "freemind" "util/freemind.el" (18969 63118))
 ;;; Generated autoloads from util/freemind.el
 
 (autoload 'freemind-show "freemind" "\
@@ -1613,7 +1613,7 @@ hyperlinks as appropriate.
 
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
 ;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (18969
-;;;;;;  55719))
+;;;;;;  63118))
 ;;; Generated autoloads from util/majmodpri.el
 
 (autoload 'majmodpri-sort-lists "majmodpri" "\
@@ -1685,7 +1685,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-mark-for-refontification) "mumamo" "util/mumamo.el"
-;;;;;;  (18969 61269))
+;;;;;;  (18972 23450))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -1701,7 +1701,7 @@ Mark region between MIN and MAX for refontification.
 ;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode smarty-html-mumamo-mode
 ;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
 ;;;;;;  embperl-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18969 43874))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18969 63118))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1786,6 +1786,49 @@ This also covers inlined style and javascript." t)
 
 ;;;***
 
+;;;### (autoloads (n-back) "n-back" "util/n-back.el" (18973 64134))
+;;; Generated autoloads from util/n-back.el
+
+(autoload 'n-back "n-back" "\
+Start Emacs n-back game.
+Just follow the on screen instructions to play the game.
+
+This game is shamelessly modeled after Brain Workshop, see URL
+`http://brainworkshop.sourceforge.net/'. Not all features there
+are implemented here, but some new are maybe ...
+
+The game is supposed to increase your working memory and fluid
+intelligence.  The game resembles but it not the same as that
+used in the report by Jaeggi mentioned at the above url.
+
+
+-----
+Below is a short excerpt from the report by Jaeggi et al which
+gave the idea to the game:
+
+Training task.  For the training task, we used the same material
+as described by Jaeggi et al.  (33), which was a dual n-back task
+where squares at eight different locations were presented
+sequentially on a computer screen at a rate of 3 s (stimulus
+length, 500 ms; interstimulus interval, 2,500 ms).
+Simultaneously with the presentation of the squares, one of eight
+consonants was presented sequentially through headphones.  A
+response was required whenever one of the presented stimuli
+matched the one presented n positions back in the sequence.  The
+value of n was the same for both streams of stimuli.  There were
+six auditory and six visual targets per block (four appearing in
+only one modality, and two appearing in both modalities
+simultaneously), and their positions were determined randomly.
+Participants made responses manually by pressing on the letter
+‘‘A’’ of a standard keyboard with their left index finger for
+visual targets, and on the letter ‘‘L’’ with their right index
+finger for auditory targets.  No responses were required for
+non-targets.
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads (info-open-file grep-query-replace emacs-Q-nxhtml
 ;;;;;;  emacs-Q emacs--no-desktop emacs--debug-init emacs-buffer-file
 ;;;;;;  emacs ourcomments-ido-ctrl-tab ourcomments-ido-buffer-raise-frame
@@ -1797,7 +1840,7 @@ This also covers inlined style and javascript." t)
 ;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
 ;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
 ;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18969 62418))
+;;;;;;  "util/ourcomments-util.el" (18973 28380))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2232,7 +2275,7 @@ see `udev-rinari-dir' and `udev-rinari-load-rinari'.
 ;;;***
 
 ;;;### (autoloads (viper-tutorial) "viper-tut" "util/viper-tut.el"
-;;;;;;  (18775 60004))
+;;;;;;  (18973 28380))
 ;;; Generated autoloads from util/viper-tut.el
 
 (autoload 'viper-tutorial "viper-tut" "\
@@ -2249,9 +2292,34 @@ later.
 
 ;;;***
 
+;;;### (autoloads (vline-global-mode vline-mode) "vline" "util/vline.el"
+;;;;;;  (18973 28380))
+;;; Generated autoloads from util/vline.el
+
+(autoload 'vline-mode "vline" "\
+Display vertical line mode.
+
+\(fn &optional ARG)" t nil)
+
+(defvar vline-global-mode nil "\
+Non-nil if Vline-Global mode is enabled.
+See the command `vline-global-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `vline-global-mode'.")
+
+(nxhtml-custom-autoload 'vline-global-mode "vline" nil)
+
+(autoload 'vline-global-mode "vline" "\
+Display vertical line mode as globally.
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
-;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (18968
-;;;;;;  11096))
+;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (18969
+;;;;;;  63118))
 ;;; Generated autoloads from util/winsav.el
 
 (autoload 'winsav-put-window-tree "winsav" "\
@@ -2333,7 +2401,7 @@ See also option `winsav-save-mode' and command
 ;;;***
 
 ;;;### (autoloads (winsize-save-window-configuration winsize-balance-siblings
-;;;;;;  resize-windows) "winsize" "util/winsize.el" (18968 52189))
+;;;;;;  resize-windows) "winsize" "util/winsize.el" (18969 63118))
 ;;; Generated autoloads from util/winsize.el
 
 (autoload 'resize-windows "winsize" "\
@@ -2544,16 +2612,15 @@ Not documented
 ;;;;;;  "related/flymake-php.el" "related/flymu.el" "related/fold-dwim.el"
 ;;;;;;  "related/php-imenu.el" "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
-;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/custsets.el"
-;;;;;;  "util/ecb-batch-compile.el" "util/ffip.el" "util/fmode.el"
-;;;;;;  "util/fupd.el" "util/hfyview.el" "util/hl-needed.el" "util/htmlfontify.21.el"
-;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
-;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
-;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
-;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
-;;;;;;  "util/useful-commands.el" "util/vline.el" "util/whelp.el"
-;;;;;;  "util/zen-mode.el") (18969 62921 312000))
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
+;;;;;;  "util/buffer-bg.el" "util/custsets.el" "util/ecb-batch-compile.el"
+;;;;;;  "util/ffip.el" "util/fmode.el" "util/fupd.el" "util/hfyview.el"
+;;;;;;  "util/hl-needed.el" "util/htmlfontify.21.el" "util/key-cat.el"
+;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
+;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
+;;;;;;  "util/pause.el" "util/popcmp.el" "util/rebind.el" "util/rxi.el"
+;;;;;;  "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
+;;;;;;  "util/whelp.el" "util/zen-mode.el") (18973 64318 421000))
 
 ;;;***
 
