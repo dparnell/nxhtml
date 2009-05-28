@@ -162,7 +162,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18974 55441))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18974 63107))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -1832,44 +1832,43 @@ This also covers inlined style and javascript." t)
 
 ;;;***
 
-;;;### (autoloads (n-back) "n-back" "util/n-back.el" (18974 39974))
+;;;### (autoloads (n-back-game) "n-back" "util/n-back.el" (18974
+;;;;;;  62820))
 ;;; Generated autoloads from util/n-back.el
 
-(autoload 'n-back "n-back" "\
-Start Emacs n-back game.
-Just follow the on screen instructions to play the game.
+(autoload 'n-back-game "n-back" "\
+Emacs n-Back game.
+This game is supposed to increase your working memory and fluid
+intelligence.
 
-This game is shamelessly modeled after Brain Workshop, see URL
-`http://brainworkshop.sourceforge.net/'. Not all features there
-are implemented here, but some new are maybe ...
+In this game something is shown for half a second on the screen
+and mabye a sound is played.  You should then answer if parts of
+it is the same as you have seen or heard before.  This is
+repeated for about 20 trials.
 
-The game is supposed to increase your working memory and fluid
-intelligence.  The game resembles but it not the same as that
-used in the report by Jaeggi mentioned at the above url.
+You answer with the keys shown in the bottom window.
 
+In the easiest version of the game you should answer if you have
+just seen or heard what is shown now.  By default the game gets
+harder as you play it with success.  Then first the number of
+items presented in a trial grows.  After that it gets harder by
+that you have to somehow remember not the last item, but the item
+before that (or even earlier). That is what \"n-Back\" stands
+for.
 
------
-Below is a short excerpt from the report by Jaeggi et al which
-gave the idea to the game:
+Note that remember does not really mean remember clearly.  The
+game is for training your brain getting used to keep those things
+in the working memory, maybe as a cross-modal unit.  You are
+supposed to just nearly be able to do what you do in the game.
+And I assure you it is hard!
 
-Training task.  For the training task, we used the same material
-as described by Jaeggi et al.  (33), which was a dual n-back task
-where squares at eight different locations were presented
-sequentially on a computer screen at a rate of 3 s (stimulus
-length, 500 ms; interstimulus interval, 2,500 ms).
-Simultaneously with the presentation of the squares, one of eight
-consonants was presented sequentially through headphones.  A
-response was required whenever one of the presented stimuli
-matched the one presented n positions back in the sequence.  The
-value of n was the same for both streams of stimuli.  There were
-six auditory and six visual targets per block (four appearing in
-only one modality, and two appearing in both modalities
-simultaneously), and their positions were determined randomly.
-Participants made responses manually by pressing on the letter
-‘‘A’’ of a standard keyboard with their left index finger for
-visual targets, and on the letter ‘‘L’’ with their right index
-finger for auditory targets.  No responses were required for
-non-targets.
+The game is shamelessly modeled after Brain Workshop, see URL
+`http://brainworkshop.sourceforge.net/' just for the fun of
+getting it into Emacs.  The game resembles but it not the same as
+that used in the report by Jaeggi mentioned at the above url.
+
+Not all features in Brain Worskhop are implemented here, but some
+new are maybe ... - and you have it available here in Emacs.
 
 \(fn)" t nil)
 
@@ -2666,7 +2665,7 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (18974 58619 187000))
+;;;;;;  (18974 63148 312000))
 
 ;;;***
 
