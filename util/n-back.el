@@ -56,6 +56,18 @@
 (defvar n-back-info-window nil)
 (defvar n-back-info-buffer nil)
 
+(defvar n-back-trials-left nil)
+(defvar n-back-timer nil)
+(defvar n-back-clear-timer nil)
+
+(defvar n-back-result nil)
+(defvar n-back-this-result nil)
+
+(defvar n-back-ring nil)
+
+(defvar n-back-num-active nil)
+
+
 (defgroup n-back nil
   "Customizations for `n-back' game.
 Bug: does not work without this line???"
@@ -104,16 +116,16 @@ Bug: does not work without this line???"
            (n-back-update-info)))
   :group 'n-back)
 
+(defcustom n-back-auto-challenge t
+  "Automatic challenge decrease/increase."
+  :type 'boolean
+  :group 'n-back)
+
 (defun n-back-toggle-auto-challenge ()
   (interactive)
   (let ((val (not n-back-auto-challenge)))
     (customize-set-variable 'n-back-auto-challenge val)
     (customize-set-value 'n-back-auto-challenge val)))
-
-(defcustom n-back-auto-challenge t
-  "Automatic challenge decrease/increase."
-  :type 'boolean
-  :group 'n-back)
 
 (defcustom n-back-colors
   '("gold" "orange red" "lawn green" "peru" "pink" "gray" "light blue")
@@ -131,18 +143,18 @@ Bug: does not work without this line???"
   :type 'float
   :group 'n-back)
 
+(defcustom n-back-sounds '("c:/program files/brain workshop/res" "piano-")
+  "Random sounds location."
+  :type '(list (directory :tag "Directory")
+               (regexp :tag "File name regexp"))
+  :group 'n-back)
+
 (defvar n-back-sound-files nil)
 ;;(n-back-get-sound-files)
 (defun n-back-get-sound-files ()
   (let ((dir (nth 0 n-back-sounds))
         (regexp (nth 1 n-back-sounds)))
     (setq n-back-sound-files (directory-files dir nil regexp))))
-
-(defcustom n-back-sounds '("c:/program files/brain workshop/res" "piano-")
-  "Random sounds location."
-  :type '(list (directory :tag "Directory")
-               (regexp :tag "File name regexp"))
-  :group 'n-back)
 
 (defun n-back-toggle-position ()
   (interactive)
@@ -200,6 +212,15 @@ Bug: does not work without this line???"
 
 (defvar n-back-control-mode-map nil)
 
+(defcustom n-back-sec-per-trial 3.0
+  "Seconds per trial."
+  :type 'float
+  :set (lambda (sym val)
+         (set-default sym val)
+         (when (featurep 'n-back)
+           (n-back-update-info)))
+  :group 'n-back)
+
 (defun n-back-decrease-speed ()
   (interactive)
   (setq n-back-sec-per-trial (+ n-back-sec-per-trial 0.25))
@@ -225,9 +246,18 @@ Bug: does not work without this line???"
                           (>= last-input-event ?1)
                           (<= last-input-event ?9))
                      (list (- last-input-event ?0))
-                   (list (string-to-int (read-string "Level: "))))))
+                   (list (string-to-number (read-string "Level: "))))))
   (customize-set-variable 'n-back-level level)
   (customize-set-value 'n-back-level level))
+
+(defun n-back-key-binding (what)
+  (nth
+   (case what
+    (position 0)
+    (color    1)
+    (sound    2)
+    (word     3))
+   n-back-keys))
 
 (defun n-back-make-keymap ()
   (let ((map (make-sparse-keymap)))
@@ -267,15 +297,6 @@ Bug: does not work without this line???"
     ;;(define-key map [t] 'ignore)
     (setq n-back-control-mode-map map)))
 
-(defun n-back-key-binding (what)
-  (nth
-   (case what
-    (position 0)
-    (color    1)
-    (sound    2)
-    (word     3))
-   n-back-keys))
-
 (defcustom n-back-keys
   '(
     [?p]
@@ -293,15 +314,6 @@ Bug: does not work without this line???"
   :set (lambda (sym val)
          (set-default sym val)
          (n-back-make-keymap))
-  :group 'n-back)
-
-(defcustom n-back-sec-per-trial 3.0
-  "Seconds per trial."
-  :type 'float
-  :set (lambda (sym val)
-         (set-default sym val)
-         (when (featurep 'n-back)
-           (n-back-update-info)))
   :group 'n-back)
 
 (defvar n-back-frame nil)
@@ -428,6 +440,11 @@ non-targets."
             (goto-char 1))
         (goto-char 1)))))
 
+(defcustom n-back-trials 20
+  "Number of trials per session."
+  :type 'integer
+  :group 'n-back)
+
 ;;(n-back-compute-result-values n-back-result)
 (defvar n-back-result-values nil)
 (defun n-back-compute-single-result-value (entry)
@@ -454,8 +471,6 @@ non-targets."
 (defun n-back-view-threshold-discussion-page ()
   (interactive)
   (browse-url "http://groups.google.com/group/brain-training/browse_thread/thread/f4bfa452943c2a2d/ba31adfd0b97771c?lnk=gst&q=threshold#ba31adfd0b97771c"))
-
-(defvar n-back-num-active nil)
 
 ;;(n-back-set-next-challenge)
 (defvar n-back-worst nil)
@@ -815,8 +830,6 @@ non-targets."
 
 ;;; Answers
 
-(defvar n-back-result nil)
-(defvar n-back-this-result nil)
 ;;(defvar n-back-answers nil)
 
 (defun n-back-add-result ()
@@ -937,10 +950,6 @@ non-targets."
   (visual-line-mode 1)
   (n-back-make-keymap))
 
-(defvar n-back-trials-left nil)
-(defvar n-back-timer nil)
-(defvar n-back-clear-timer nil)
-
 (defun n-back-cancel-timers ()
   (when (timerp n-back-timer)
     (cancel-timer n-back-timer))
@@ -950,12 +959,6 @@ non-targets."
   (setq n-back-clear-timer nil)
   (winsize-set-mode-line-colors nil))
 
-(defcustom n-back-trials 20
-  "Number of trials per session."
-  :type 'integer
-  :group 'n-back)
-
-(defvar n-back-ring nil)
 (defun n-back-start-main-timer ()
   (n-back-cancel-timers)
   (winsize-set-mode-line-colors t)
