@@ -2076,7 +2076,8 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
     (let* ((here (point))
            (len-marker (length marker))
            ;;(pattern (rx bol (0+ blank) (eval marker) blank))
-           (pattern (rx-to-string (list 'and 'bol (list '0+ 'blank) marker 'blank) t))
+           ;;(pattern (rx-to-string (list 'and 'bol (list '0+ 'blank) marker 'blank) t))
+           (pattern (rx-to-string `(and bol (0+ blank) ,marker blank) t))
            (whole-line-chunk-borders-fun
             `(lambda (start-border end-border dummy)
                (let ((start-border (+ (point) ,len-marker)))
