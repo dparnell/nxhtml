@@ -3,6 +3,28 @@
 ;; This file should be updated by `nxhtmlmaint-get-file-autoloads',
 ;; `nxhtmlmaint-get-dir-autoloads' or `nxhtmlmaint-get-all-autoloads'.
 
+;;;### (autoloads (html-pagetoc-rebuild-toc html-pagetoc-insert-toc)
+;;;;;;  "../nxhtml/html-pagetoc" "nxhtml/html-pagetoc.el" (18974
+;;;;;;  42545))
+;;; Generated autoloads from nxhtml/html-pagetoc.el
+
+(autoload 'html-pagetoc-insert-toc "../nxhtml/html-pagetoc" "\
+Inserts a table of contents for the current html file.
+The html header tags h1-h6 found in the file are inserted into
+this table.  MIN-LEVEL and MAX-LEVEL specifies the minimum and
+maximum level of h1-h6 to include.  They should be integers.
+
+\(fn &optional MIN-LEVEL MAX-LEVEL)" t nil)
+
+(autoload 'html-pagetoc-rebuild-toc "../nxhtml/html-pagetoc" "\
+Update the table of contents inserted by `html-pagetoc-insert-toc'.
+
+\(fn)" t nil)
+
+(defconst html-pagetoc-menu-map (let ((map (make-sparse-keymap))) (define-key map [html-pagetoc-rebuild-toc] (list 'menu-item "Update Page TOC" 'html-pagetoc-rebuild-toc)) (define-key map [html-pagetoc-insert-style-guide] (list 'menu-item "Insert CSS Style for Page TOC" 'html-pagetoc-insert-style-guide)) (define-key map [html-pagetoc-insert-toc] (list 'menu-item "Insert Page TOC" 'html-pagetoc-insert-toc)) map))
+
+;;;***
+
 ;;;### (autoloads (html-site-query-replace html-site-rgrep html-site-find-file
 ;;;;;;  html-site-dired-current html-site-set-site html-site-buffer-or-dired-file-name)
 ;;;;;;  "../nxhtml/html-site" "nxhtml/html-site.el" (18790 45398))
@@ -38,6 +60,14 @@ See `rgrep' for the arguments REGEXP and FILES.
 Query replace in current site's files.
 
 \(fn FROM TO FILE-REGEXP DELIMITED)" t nil)
+
+;;;***
+
+;;;### (autoloads nil "../nxhtml/html-toc" "nxhtml/html-toc.el" (18974
+;;;;;;  42839))
+;;; Generated autoloads from nxhtml/html-toc.el
+
+(defconst html-toc-menu-map (let ((map (make-sparse-keymap))) (define-key map [html-toc-browse-frames-file] (list 'menu-item "Browse Frames File" 'html-toc-browse-frames-file)) (define-key map [html-toc-write-frames-file] (list 'menu-item "Write Frames File" 'html-toc-write-frames-file)) (define-key map [html-toc-write-toc-file] (list 'menu-item "Write TOC File for Frames" 'html-toc-write-toc-file)) (define-key map [html-toc-sep1] (list 'menu-item "--")) (define-key map [html-toc-edit-pages-file] (list 'menu-item "Edit List of Pages for TOC" 'html-site-edit-pages-file)) (define-key map [html-toc-create-pages-file] (list 'menu-item "Write List of Pages for TOC" 'html-toc-create-pages-file)) map))
 
 ;;;***
 
@@ -108,6 +138,17 @@ See also the command `inlimg-mode'.
 
 ;;;***
 
+;;;### (autoloads (nxhtml-customize) "../nxhtml/nxhtml" "nxhtml/nxhtml.el"
+;;;;;;  (18974 39209))
+;;; Generated autoloads from nxhtml/nxhtml.el
+
+(autoload 'nxhtml-customize "../nxhtml/nxhtml" "\
+Customize nXhtml.
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads (nxhtml-report-bug) "../nxhtml/nxhtml-bug" "nxhtml/nxhtml-bug.el"
 ;;;;;;  (18775 60002))
 ;;; Generated autoloads from nxhtml/nxhtml-bug.el
@@ -121,7 +162,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18969 63118))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18974 55441))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -339,9 +380,14 @@ This also covers inlined style and javascript." t)
 
 ;;;***
 
-;;;### (autoloads (nxml-where-global-mode) "../nxhtml/nxml-where"
-;;;;;;  "nxhtml/nxml-where.el" (18793 59116))
+;;;### (autoloads (nxml-where-global-mode nxml-where-mode) "../nxhtml/nxml-where"
+;;;;;;  "nxhtml/nxml-where.el" (18974 39308))
 ;;; Generated autoloads from nxhtml/nxml-where.el
+
+(autoload 'nxml-where-mode "../nxhtml/nxml-where" "\
+Shows path in mode line.
+
+\(fn &optional ARG)" t nil)
 
 (defvar nxml-where-global-mode nil "\
 Non-nil if Nxml-Where-Global mode is enabled.
@@ -374,7 +420,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (tidy-build-menu) "../nxhtml/tidy-xhtml" "nxhtml/tidy-xhtml.el"
-;;;;;;  (18790 45398))
+;;;;;;  (18974 47144))
 ;;; Generated autoloads from nxhtml/tidy-xhtml.el
 
 (autoload 'tidy-build-menu "../nxhtml/tidy-xhtml" "\
@@ -1685,7 +1731,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-mark-for-refontification) "mumamo" "util/mumamo.el"
-;;;;;;  (18972 23450))
+;;;;;;  (18974 37922))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -1701,7 +1747,7 @@ Mark region between MIN and MAX for refontification.
 ;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode smarty-html-mumamo-mode
 ;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
 ;;;;;;  embperl-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18969 63118))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18974 57908))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1786,7 +1832,7 @@ This also covers inlined style and javascript." t)
 
 ;;;***
 
-;;;### (autoloads (n-back) "n-back" "util/n-back.el" (18973 64134))
+;;;### (autoloads (n-back) "n-back" "util/n-back.el" (18974 39974))
 ;;; Generated autoloads from util/n-back.el
 
 (autoload 'n-back "n-back" "\
@@ -1840,7 +1886,7 @@ non-targets.
 ;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
 ;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
 ;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18973 28380))
+;;;;;;  "util/ourcomments-util.el" (18974 42333))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2318,8 +2364,8 @@ Display vertical line mode as globally.
 ;;;***
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
-;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (18969
-;;;;;;  63118))
+;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (18974
+;;;;;;  58531))
 ;;; Generated autoloads from util/winsav.el
 
 (autoload 'winsav-put-window-tree "winsav" "\
@@ -2604,23 +2650,23 @@ Not documented
 
 ;;;### (autoloads nil nil ("autostart.el" "autostart22.el" "etc/schema/schema-path-patch.el"
 ;;;;;;  "nxhtml/doc/cedet-build.el" "nxhtml/html-chklnk.el" "nxhtml/html-imenu.el"
-;;;;;;  "nxhtml/html-move.el" "nxhtml/html-pagetoc.el" "nxhtml/html-quote.el"
-;;;;;;  "nxhtml/html-toc.el" "nxhtml/html-wtoc.el" "nxhtml/nxhtml-anything-1.el"
-;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el" "nxhtml/nxhtml.el"
-;;;;;;  "nxhtml/nxhtmljs.el" "nxhtml/outline-magic.el" "nxhtml/wtest.el"
-;;;;;;  "related/flymake-helpers.el" "related/flymake-js.el" "related/flymake-keys.el"
-;;;;;;  "related/flymake-php.el" "related/flymu.el" "related/fold-dwim.el"
-;;;;;;  "related/php-imenu.el" "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
-;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
-;;;;;;  "util/buffer-bg.el" "util/custsets.el" "util/ecb-batch-compile.el"
-;;;;;;  "util/ffip.el" "util/fmode.el" "util/fupd.el" "util/hfyview.el"
-;;;;;;  "util/hl-needed.el" "util/htmlfontify.21.el" "util/key-cat.el"
-;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
-;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
-;;;;;;  "util/pause.el" "util/popcmp.el" "util/rebind.el" "util/rxi.el"
-;;;;;;  "util/udev-nxhtml.el" "util/udev.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el" "util/zen-mode.el") (18973 64318 421000))
+;;;;;;  "nxhtml/html-move.el" "nxhtml/html-quote.el" "nxhtml/html-wtoc.el"
+;;;;;;  "nxhtml/nxhtml-anything-1.el" "nxhtml/nxhtml-autoload.el"
+;;;;;;  "nxhtml/nxhtml-strval.el" "nxhtml/nxhtmljs.el" "nxhtml/outline-magic.el"
+;;;;;;  "nxhtml/wtest.el" "related/flymake-helpers.el" "related/flymake-js.el"
+;;;;;;  "related/flymake-keys.el" "related/flymake-php.el" "related/flymu.el"
+;;;;;;  "related/fold-dwim.el" "related/php-imenu.el" "tests/angus77-setup-jde.el"
+;;;;;;  "tests/emacstest-suites.el" "tests/ert2.el" "tests/hfy-test.el"
+;;;;;;  "tests/inemacs/bug1013.el" "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el"
+;;;;;;  "tests/temp-test.el" "util/appmenu-fold.el" "util/buffer-bg.el"
+;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/ffip.el"
+;;;;;;  "util/fmode.el" "util/fupd.el" "util/hfyview.el" "util/hl-needed.el"
+;;;;;;  "util/htmlfontify.21.el" "util/key-cat.el" "util/mumamo-aspnet.el"
+;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
+;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
+;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
+;;;;;;  (18974 58619 187000))
 
 ;;;***
 
