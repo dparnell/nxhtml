@@ -364,7 +364,7 @@ Note that remember does not really mean remember clearly.  The
 game is for training your brain getting used to keep those things
 in the working memory, maybe as a cross-modal unit.  You are
 supposed to just nearly be able to do what you do in the game.
-And I assure you it is hard!
+And you are supposed to have fun, that is what your brain like.
 
 The game is shamelessly modeled after Brain Workshop, see URL
 `http://brainworkshop.sourceforge.net/' just for the fun of
@@ -687,7 +687,10 @@ If type WORST is non-nil try to include that."
         (setq img (concat "Image not found: " src)))
       (if (stringp img)
           (insert img)
-        (insert-image img)))))
+        (insert-image img))
+      (insert (propertize "\n\nPlay for fun and maybe a somewhat better brain"
+                          'face '(:foreground "OliveDrab3")))
+      )))
 
 (defun n-back-setup-windows ()
   "Setup game frame and windows."
