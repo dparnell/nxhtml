@@ -5834,9 +5834,14 @@ default values."
   "Set major mode to MAJOR for mumamo."
   (mumamo-msgfntfy "mumamo-set-major %s, %s" major (current-buffer))
   ;;(message "mumamo-set-major %s, %s" major (current-buffer))
+  (remove-hook 'text-mode-hook 'viper-mode) ;; Fix-me: maybe add it back...
   (let ((start-time (get-internal-run-time))
         end-time
         used-time
+        ;; Viper
+        viper-vi-state-mode-list
+        viper-emacs-state-mode-list
+        viper-insert-state-mode-list
         ;; Tell `mumamo-change-major-function':
         (mumamo-set-major-running major)
         ;; Fix-me: Take care of the new values added to these hooks!
