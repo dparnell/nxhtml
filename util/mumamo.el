@@ -4,7 +4,7 @@
 ;; Maintainer:
 ;; Created: Fri Mar 09 2007
 (defconst mumamo:version "0.91") ;;Version:
-;; Last-Updated: 2009-05-23 Sat
+;; Last-Updated: 2009-05-28 Thu
 ;; URL: http://OurComments.org/Emacs/Emacs.html
 ;; Keywords:
 ;; Compatibility:
@@ -5533,6 +5533,7 @@ Save HOOK and the list of functions removed to
     buffer-read-only
     buffer-saved-size
     buffer-undo-list
+
     c++-template-syntax-table
     c-<-op-cont-regexp
     c-<>-multichar-token-regexp
@@ -5544,7 +5545,7 @@ Save HOOK and the list of functions removed to
     c-at-vsemi-p-fn
     c-backslash-column
     c-backslash-max-column
-    c-basic-offset
+    ;;c-basic-offset
     c-before-font-lock-function
     c-block-comment-prefix
     c-block-comment-start-regexp
@@ -5576,9 +5577,9 @@ Save HOOK and the list of functions removed to
     c-identifier-start
     c-identifier-syntax-modifications
     c-identifier-syntax-table
-    c-indent-comment-alist
-    c-indent-comments-syntactically-p
-    c-indentation-style
+    ;;c-indent-comment-alist
+    ;;c-indent-comments-syntactically-p
+    ;;c-indentation-style
     c-keywords-obarray
     c-keywords-regexp
     c-known-type-key
@@ -5592,7 +5593,7 @@ Save HOOK and the list of functions removed to
     c-nonsymbol-chars
     c-nonsymbol-token-regexp
     c-not-decl-init-keywords
-    c-offsets-alist
+    ;;c-offsets-alist
     c-old-BOM
     c-old-EOM
     c-opt-<>-arglist-start
@@ -5744,7 +5745,11 @@ Save HOOK and the list of functions removed to
 
     syntax-begin-function
     )
-  )
+  "Buffer local variables that is not saved/set per chunk.
+This is supposed to contain mostly buffer local variables
+specific to major modes and that are not meant to be customized
+by the user.
+")
 
 (defun mumamo-save-most-buffer-locals (major)
   "Save some local variables for major mode MAJOR.
@@ -6070,6 +6075,7 @@ default values."
   (setq font-lock-unfontify-buffer-function 'mumamo-unfontify-buffer)
 
 
+  (setq mumamo-major-mode-indent-line-function indent-line-function)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'mumamo-indent-line-function)
 
@@ -6087,6 +6093,8 @@ default values."
   )
 
 
+(defvar mumamo-major-mode-indent-line-function nil)
+(make-variable-buffer-local 'mumamo-major-mode-indent-line-function)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Turning on/off multi major modes
@@ -6843,12 +6851,14 @@ The following rules are used when indenting:
 
 (defun mumamo-call-indent-line ()
   "Call the relevant `indent-line-function'."
-  (mumamo-with-major-mode-indentation major-mode
-    `(save-restriction
-       (when (mumamo-indent-use-widen major-mode)
-         (mumamo-msgindent "=> indent-line did widen")
-         (widen))
-       (funcall indent-line-function))))
+  ;; (mumamo-with-major-mode-indentation major-mode
+  ;;   `(save-restriction
+  ;;      (when (mumamo-indent-use-widen major-mode)
+  ;;        (mumamo-msgindent "=> indent-line did widen")
+  ;;        (widen))
+  ;;      (funcall indent-line-function)))
+  (funcall mumamo-major-mode-indent-line-function)
+  )
 
 (defun mumamo-indent-region-function (start end)
   "Indent the region between START and END."

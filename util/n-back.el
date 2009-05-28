@@ -976,8 +976,8 @@ non-targets."
       n-back-active-match-types
       n-back-allowed-match-types
       n-back-auto-challenge
-      n-back-colors
-      n-back-words
+      ;;n-back-colors
+      ;;n-back-words
       ;;n-back-sound-volume
       ;;n-back-sounds
       n-back-sec-per-trial
