@@ -403,9 +403,12 @@ new are maybe ... - and you have it available here in Emacs."
   (when window-system
     (unless (frame-live-p n-back-frame)
       (setq n-back-frame (make-frame
-                          '((name . "n-back game")
-                            (background-color . "cornsilk")
-                            (width . 150)))))
+                          (list '(name . "n-back game")
+                                (case (frame-parameter nil 'background-mode)
+                                  ('light '(background-color . "cornsilk"))
+                                  ('dark  '(background-color . "MidnightBlue"))
+                                  (t nil))
+                                '(width . 150)))))
     (select-frame n-back-frame)
     (raise-frame n-back-frame))
   (n-back-cancel-timers)
