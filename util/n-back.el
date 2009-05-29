@@ -3,14 +3,14 @@
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2009-05-23 Sat
 (defconst n-back:version 0.5);; Version:
-;; Last-Updated: 2009-05-28 Thu
+;; Last-Updated: 2009-05-30 Sat
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-  ;; `cl', `cus-load', `cus-start', `windmove', `winsav', `winsize'.
+  ;; `winsize'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -459,6 +459,26 @@ new are maybe ... - and you have it available here in Emacs."
   "Return non-nil when game is active."
   (timerp n-back-timer))
 
+(defface n-back-do-now
+  '((((background dark)) (:foreground "yellow"))
+    (t (:foreground "blue")))
+  "doc")
+
+(defface n-back-header
+  '((((background dark)) (:background "OrangeRed4"))
+    (t (:background "gold")))
+  "doc")
+
+(defface n-back-keybinding
+  '((((background dark)) (:background "purple4"))
+    (t (:background "OliveDrab1")))
+  "doc")
+
+(defface n-back-welcome
+  '((((background dark)) (:foreground "OliveDrab3"))
+    (t (:foreground "OliveDrab4")))
+  "doc")
+
 ;;(n-back-update-control-buffer)
 (defun n-back-update-control-buffer ()
   "Update content of control buffer."
@@ -474,10 +494,12 @@ new are maybe ... - and you have it available here in Emacs."
                                      ((= 3 n) "Triple")
                                      ))
                                   n-back-level
-                                  ) 'face '(:background "gold"))
+                                  ;;) 'face '(:background "gold"))
+                                  ) 'face 'n-back-header)
               (propertize
                (if (n-back-is-playing) "  Press C-g to stop" "  Press SPACE to play")
-               'face '(:foreground "blue"))
+               ;;'face '(:foreground "blue"))
+               'face 'n-back-do-now)
               (if (n-back-is-playing) (format "  Left %s" n-back-trials-left) "")
               "\n")
       ;;(unless n-back-control-status (n-back-init-control-status))
@@ -611,10 +633,10 @@ If type WORST is non-nil try to include that."
       (customize-set-variable 'n-back-active-match-types types)
       (customize-set-value 'n-back-active-match-types types))))
 
-(defcustom n-back-keybinding-color "OliveDrab1"
-  "Background color for key binding hints."
-  :type 'color
-  :group 'n-back)
+;; (defcustom n-back-keybinding-color "OliveDrab1"
+;;   "Background color for key binding hints."
+;;   :type 'color
+;;   :group 'n-back)
 
 (defun n-back-update-info ()
   "Update info buffer."
@@ -622,66 +644,66 @@ If type WORST is non-nil try to include that."
     (when (window-live-p n-back-info-window)
       (set-window-buffer n-back-info-window n-back-info-buffer))
     (with-current-buffer n-back-info-buffer
-    (setq buffer-read-only nil)
-    (erase-buffer)
+      (setq buffer-read-only nil)
+      (erase-buffer)
 
-    (insert (propertize "n-back" 'face '(:background "gold"))
-            "  "
-            (propertize "Help: ?" 'face '(:background "OliveDrab1")))
+      ;;(insert (propertize "n-back" 'face '(:background "gold"))
+      (insert (propertize "n-back" 'face 'n-back-header)
+              "  "
+              (propertize "Help: ?" 'face 'n-back-keybinding))
 
-    ;; Auto challenging
-    (insert "\n\nAuto challenging: "
-            (if n-back-auto-challenge "on " "off ")
-            (propertize "toggle: Ta" 'face '(:background "Olivedrab1")))
+      ;; Auto challenging
+      (insert "\n\nAuto challenging: "
+              (if n-back-auto-challenge "on " "off ")
+              (propertize "toggle: Ta" 'face 'n-back-keybinding))
 
-    (insert "\n  Manually change challenging: "
-            (propertize "up-arrow/down-arrow" 'face '(:background "Olivedrab1")))
+      (insert "\n  Manually change challenging: "
+              (propertize "up-arrow/down-arrow" 'face 'n-back-keybinding))
 
-    (insert "\n  Allowed match types: ")
-    (dolist (type n-back-allowed-match-types)
-      (insert (format "%s " type)))
-    (insert (propertize "toggle: T" 'face '(:background "OliveDrab1")))
+      (insert "\n  Allowed match types: ")
+      (dolist (type n-back-allowed-match-types)
+        (insert (format "%s " type)))
+      (insert (propertize "toggle: T" 'face 'n-back-keybinding))
 
-    ;; Current game
-    (insert "\n\nCurrent game:")
+      ;; Current game
+      (insert "\n\nCurrent game:")
 
-    (insert (format "\n  n Back: %s " n-back-level)
-            (propertize "change: number 1-9" 'face '(:background "OliveDrab1")))
-    (insert "\n  Match types: ")
-    (dolist (type n-back-active-match-types)
-      (insert (format "%s " type)))
-    (insert (propertize "toggle: t" 'face '(:background "OliveDrab1")))
+      (insert (format "\n  n Back: %s " n-back-level)
+              (propertize "change: number 1-9" 'face 'n-back-keybinding))
+      (insert "\n  Match types: ")
+      (dolist (type n-back-active-match-types)
+        (insert (format "%s " type)))
+      (insert (propertize "toggle: t" 'face 'n-back-keybinding))
 
-    (insert (format "\n  %.2f seconds per trial " n-back-sec-per-trial)
-            (propertize "change: +/-" 'face '(:background "OliveDrab1")))
+      (insert (format "\n  %.2f seconds per trial " n-back-sec-per-trial)
+              (propertize "change: +/-" 'face 'n-back-keybinding))
 
-    ;; Save and restore
-    (insert "\n\n")
-    (insert "Game settings: "
-            (propertize "reset: C-r" 'face '(:background "Olivedrab1"))
-            " "
-            (propertize "save: C-s" 'face '(:background "Olivedrab1"))
-            )
+      ;; Save and restore
+      (insert "\n\n")
+      (insert "Game settings: "
+              (propertize "reset: C-r" 'face 'n-back-keybinding)
+              " "
+              (propertize "save: C-s" 'face 'n-back-keybinding))
 
-    (insert "\n\n")
-    (unless (or (n-back-is-playing)
-                (not n-back-result))
-      (insert (propertize (format "Last result, %s" n-back-challenge-change)
-                          'face '(:background "yellow"))
-              "\n  Good-Bad-Miss:")
-      (dolist (entry n-back-result)
-        (let* ((what (nth 0 entry))
-               (good (nth 1 entry))
-               (bad  (nth 2 entry))
-               (miss (nth 3 entry))
-               (tot  (+ good bad miss 0.0))
-               (res (n-back-compute-single-result-value entry)))
-          (insert (format "  %s: %s-%s-%s (%d%%)"
-                          (key-description (n-back-key-binding what))
-                          good
-                          bad
-                          miss
-                          (floor (* 100 (cdr res))))))))
+      (insert "\n\n")
+      (unless (or (n-back-is-playing)
+                  (not n-back-result))
+        (insert (propertize (format "Last result, %s" n-back-challenge-change)
+                            'face '(:background "yellow"))
+                "\n  Good-Bad-Miss:")
+        (dolist (entry n-back-result)
+          (let* ((what (nth 0 entry))
+                 (good (nth 1 entry))
+                 (bad  (nth 2 entry))
+                 (miss (nth 3 entry))
+                 (tot  (+ good bad miss 0.0))
+                 (res (n-back-compute-single-result-value entry)))
+            (insert (format "  %s: %s-%s-%s (%d%%)"
+                            (key-description (n-back-key-binding what))
+                            good
+                            bad
+                            miss
+                            (floor (* 100 (cdr res))))))))
 
     (setq buffer-read-only t))))
 
@@ -707,7 +729,7 @@ If type WORST is non-nil try to include that."
           (insert img)
         (insert-image img))
       (insert (propertize "\n\nPlay for fun and maybe a somewhat better brain"
-                          'face '(:foreground "OliveDrab3")))
+                          'face 'n-back-welcome))
       (when msg (insert "\n\n" msg))
       )))
 
