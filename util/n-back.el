@@ -157,7 +157,8 @@ Bug: does not work without this line???"
   "Get sound file names."
   (let ((dir (nth 0 n-back-sounds))
         (regexp (nth 1 n-back-sounds)))
-    (setq n-back-sound-files (directory-files dir nil regexp))))
+    (when (file-directory-p dir)
+      (setq n-back-sound-files (directory-files dir nil regexp)))))
 
 (defun n-back-toggle-position ()
   "Toggle use of position in `n-back-active-match-types'."
@@ -408,6 +409,12 @@ new are maybe ... - and you have it available here in Emacs."
     (select-frame n-back-frame)
     (raise-frame n-back-frame))
   (n-back-cancel-timers)
+  (n-back-get-sound-files)
+  (unless n-back-sound-files
+    (when (memq 'sound n-back-allowed-match-types)
+      (n-back-toggle-allowed-sound))
+    (when (memq 'sound n-back-active-match-types)
+      (n-back-toggle-sound)))
   (n-back-init-control-status)
   (n-back-setup-windows)
   )
@@ -816,7 +823,6 @@ MAX-STRLEN.  Display item with background color COLOR."
   ;;(n-back-setup-windows)
   (unless n-back-active-match-types
     (error "No active match types"))
-  (when (memq 'sound n-back-active-match-types) (n-back-get-sound-files))
   ;;(setq n-back-result nil)
   (n-back-init-control-status)
   (setq n-back-this-result nil)
