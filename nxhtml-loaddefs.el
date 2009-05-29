@@ -5,7 +5,7 @@
 
 ;;;### (autoloads (html-pagetoc-rebuild-toc html-pagetoc-insert-toc)
 ;;;;;;  "../nxhtml/html-pagetoc" "nxhtml/html-pagetoc.el" (18974
-;;;;;;  42545))
+;;;;;;  59066))
 ;;; Generated autoloads from nxhtml/html-pagetoc.el
 
 (autoload 'html-pagetoc-insert-toc "../nxhtml/html-pagetoc" "\
@@ -64,7 +64,7 @@ Query replace in current site's files.
 ;;;***
 
 ;;;### (autoloads nil "../nxhtml/html-toc" "nxhtml/html-toc.el" (18974
-;;;;;;  42839))
+;;;;;;  59066))
 ;;; Generated autoloads from nxhtml/html-toc.el
 
 (defconst html-toc-menu-map (let ((map (make-sparse-keymap))) (define-key map [html-toc-browse-frames-file] (list 'menu-item "Browse Frames File" 'html-toc-browse-frames-file)) (define-key map [html-toc-write-frames-file] (list 'menu-item "Write Frames File" 'html-toc-write-frames-file)) (define-key map [html-toc-write-toc-file] (list 'menu-item "Write TOC File for Frames" 'html-toc-write-toc-file)) (define-key map [html-toc-sep1] (list 'menu-item "--")) (define-key map [html-toc-edit-pages-file] (list 'menu-item "Edit List of Pages for TOC" 'html-site-edit-pages-file)) (define-key map [html-toc-create-pages-file] (list 'menu-item "Write List of Pages for TOC" 'html-toc-create-pages-file)) map))
@@ -139,7 +139,7 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (nxhtml-customize) "../nxhtml/nxhtml" "nxhtml/nxhtml.el"
-;;;;;;  (18974 39209))
+;;;;;;  (18974 59066))
 ;;; Generated autoloads from nxhtml/nxhtml.el
 
 (autoload 'nxhtml-customize "../nxhtml/nxhtml" "\
@@ -160,9 +160,9 @@ Report a bug in nXhtml.
 
 ;;;***
 
-;;;### (autoloads (nxhtml-global-minor-mode nxhtml-browse-region
+;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18974 63107))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18975 62351))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -197,11 +197,16 @@ See `nxhtml-minor-mode' for more information on Nxhtml minor mode.
 
 \(fn &optional ARG)" t nil)
 
+(autoload 'nxhtml-overview "../nxhtml/nxhtml-menu" "\
+Show a HTML page with an overview of nXhtml.
+
+\(fn)" t nil)
+
 ;;;***
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
 ;;;;;;  nxhtml-mode) "../nxhtml/nxhtml-mode" "nxhtml/nxhtml-mode.el"
-;;;;;;  (18799 50784))
+;;;;;;  (18975 5780))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 
 (when (fboundp 'nxml-mode)
@@ -381,7 +386,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxml-where-global-mode nxml-where-mode) "../nxhtml/nxml-where"
-;;;;;;  "nxhtml/nxml-where.el" (18974 39308))
+;;;;;;  "nxhtml/nxml-where.el" (18974 59066))
 ;;; Generated autoloads from nxhtml/nxml-where.el
 
 (autoload 'nxml-where-mode "../nxhtml/nxml-where" "\
@@ -420,7 +425,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (tidy-build-menu) "../nxhtml/tidy-xhtml" "nxhtml/tidy-xhtml.el"
-;;;;;;  (18974 47144))
+;;;;;;  (18974 59068))
 ;;; Generated autoloads from nxhtml/tidy-xhtml.el
 
 (autoload 'tidy-build-menu "../nxhtml/tidy-xhtml" "\
@@ -1658,8 +1663,8 @@ hyperlinks as appropriate.
 ;;;***
 
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
-;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (18969
-;;;;;;  63118))
+;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (18975
+;;;;;;  5780))
 ;;; Generated autoloads from util/majmodpri.el
 
 (autoload 'majmodpri-sort-lists "majmodpri" "\
@@ -1731,7 +1736,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-mark-for-refontification) "mumamo" "util/mumamo.el"
-;;;;;;  (18974 37922))
+;;;;;;  (18976 8767))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -1747,7 +1752,7 @@ Mark region between MIN and MAX for refontification.
 ;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode smarty-html-mumamo-mode
 ;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
 ;;;;;;  embperl-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18974 57908))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18975 5780))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1832,8 +1837,8 @@ This also covers inlined style and javascript." t)
 
 ;;;***
 
-;;;### (autoloads (n-back-game) "n-back" "util/n-back.el" (18974
-;;;;;;  62820))
+;;;### (autoloads (n-back-game) "n-back" "util/n-back.el" (18976
+;;;;;;  4030))
 ;;; Generated autoloads from util/n-back.el
 
 (autoload 'n-back-game "n-back" "\
@@ -1860,7 +1865,10 @@ Note that remember does not really mean remember clearly.  The
 game is for training your brain getting used to keep those things
 in the working memory, maybe as a cross-modal unit.  You are
 supposed to just nearly be able to do what you do in the game.
-And I assure you it is hard!
+And you are supposed to have fun, that is what your brain like.
+
+You should probably not overdue this. Half an hour a day playing
+might be an optimal time according to some people.
 
 The game is shamelessly modeled after Brain Workshop, see URL
 `http://brainworkshop.sourceforge.net/' just for the fun of
@@ -1885,7 +1893,7 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
 ;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
 ;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18974 42333))
+;;;;;;  "util/ourcomments-util.el" (18975 17798))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2364,7 +2372,7 @@ Display vertical line mode as globally.
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
 ;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (18974
-;;;;;;  58531))
+;;;;;;  59068))
 ;;; Generated autoloads from util/winsav.el
 
 (autoload 'winsav-put-window-tree "winsav" "\
@@ -2665,7 +2673,7 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (18974 63148 312000))
+;;;;;;  (18976 8818 187000))
 
 ;;;***
 
