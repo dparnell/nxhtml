@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 2007
-(defconst nxhtml-menu:version "1.78") ;;Version:
+(defconst nxhtml-menu:version "1.79") ;;Version:
 ;; Last-Updated: 2009-05-29 Fri
 ;; URL:
 ;; Keywords:
@@ -986,6 +986,7 @@ See `nxhtml-minor-mode-modes'."
 (defun nxhtml-docfile-url ()
   (concat "file://" (nxhtml-docfile)))
 
+;;;###autoload
 (defun nxhtml-overview ()
   "Show a HTML page with an overview of nXhtml."
   (interactive)

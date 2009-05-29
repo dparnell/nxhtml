@@ -2443,6 +2443,33 @@ An entry in the list looks like
 
   \(MAJOR-MODE LOCAL-KEYMAP)")
 
+;; (defun mumamo-font-lock-keyword-hook-symbol (major)
+;;   "Return hook symbol for adding font-lock keywords to MAJOR."
+;;   (intern (concat "mumamo-" (symbol-name major) "-font-lock-keyword-hook")))
+
+;; (defun mumamo-remove-font-lock-hook (major setup-fun)
+;;   "For mode MAJOR remove function SETUP-FUN.
+;; See `mumamo-add-font-lock-hook' for more information."
+;;   (remove-hook (mumamo-font-lock-keyword-hook-symbol major) setup-fun))
+
+(defun mumamo-refresh-multi-font-lock (major)
+  "Refresh font lock information for mode MAJOR in chunks.
+If multi fontification functions for major mode MAJOR is already
+setup up they will be refreshed.
+
+If MAJOR is nil then all font lock information for major modes
+used in chunks will be refreshed.
+
+After calling font-lock-add-keywords or changing the
+fontification in other ways you must call this function for the
+changes to take effect.  However already fontified buffers will
+not be refontified.  You can use `normal-mode' to refontify
+them."
+
+  (setq mumamo-internal-major-modes-alist
+        (if (not major)
+            nil
+          (assq-delete-all major mumamo-internal-major-modes-alist))))
 
 ;; RMS had the following idea:
 ;;
@@ -2482,6 +2509,7 @@ The main reasons for doing it this way is:
   ;; (info "(elisp) Other Font Lock Variables")
   ;; (info "(elisp) Syntactic Font Lock)
   (let ((func-sym (intern (concat "mumamo-eval-in-" (symbol-name major))))
+        ;;(add-keywords-hook (mumamo-font-lock-keyword-hook-symbol major))
         temp-buf-name
         temp-buf)
     ;; font-lock-mode can't be turned on in buffers whose names start
@@ -2516,6 +2544,7 @@ The main reasons for doing it this way is:
 ;;;      (run-hooks 'font-lock-mode-hook)
 
       (font-lock-set-defaults)
+      ;;(run-hooks add-keywords-hook)
 
       (add-to-list 'mumamo-major-modes-local-maps
                    (let ((local-map (current-local-map)))
@@ -2531,7 +2560,8 @@ The main reasons for doing it this way is:
               ;; Be XML compliant:
               (list
                (list 'sgml-xml-mode
-                     (when (mumamo-derived-from-mode ',major 'sgml-mode) t))
+                     ;;(when (mumamo-derived-from-mode ',major 'sgml-mode) t))
+                     (when (mumamo-derived-from-mode major 'sgml-mode) t))
 
                ;; We need to copy the variables that we need and
                ;; that are not automatically buffer local, but
@@ -6503,12 +6533,19 @@ There is a keymap specific to this multi major mode, but it is
 not returned by `current-local-map' which returns the chunk's
 major mode's local keymap.
 
-The keymap is named `" (symbol-name turn-on-map) "'.
+The multi mode keymap is named `" (symbol-name turn-on-map) "'.
+
+Note: When adding new font-lock keywords for major mode chunks
+you should use the function `mumamo-refresh-multi-font-lock'
+afterwards.
 
 This major mode has an alias `mumamo-alias-"
 (symbol-name turn-on-fun) "'.
-For more information see `define-mumamo-multi-major-mode'."
-)))
+
+The value of `mumamo-multi-major-mode' tells you which multi
+major mode if any has been turned on in a buffer.  For more
+information about multi major modes please see
+`define-mumamo-multi-major-mode'."  )))
 `(progn
 (add-to-list 'mumamo-defined-turn-on-functions (cons (car ',chunks2) ',turn-on-fun))
 (defvar ,turn-on-hook nil ,turn-on-hook-doc)
@@ -6786,9 +6823,9 @@ The following rules are used when indenting:
                       ;; It is maybe ok if indentation on first sub
                       ;; line is 0 so check that:
                       (goto-char (point-min))
+                      (widen)
                       (setq ind-on-first-sub-line (current-indentation))
                       (goto-char here)
-                      (widen)
                       (signal 'mumamo-error-ind-0 nil)))
                 (mumamo-error-ind-0)))
             ;; Unfortunately the indentation can sometimes get 0
