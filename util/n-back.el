@@ -265,7 +265,7 @@ Bug: does not work without this line???"
                           (>= last-input-event ?1)
                           (<= last-input-event ?9))
                      (list (- last-input-event ?0))
-                   (list (string-to-number (read-string "Level: "))))))
+                   (list (string-to-number (read-string "n Back: "))))))
   (customize-set-variable 'n-back-level level)
   (customize-set-value 'n-back-level level))
 
@@ -365,6 +365,9 @@ game is for training your brain getting used to keep those things
 in the working memory, maybe as a cross-modal unit.  You are
 supposed to just nearly be able to do what you do in the game.
 And you are supposed to have fun, that is what your brain like.
+
+You should probably not overdue this. Half an hour a day playing
+might be an optimal time according to some people.
 
 The game is shamelessly modeled after Brain Workshop, see URL
 `http://brainworkshop.sourceforge.net/' just for the fun of
@@ -556,23 +559,27 @@ new are maybe ... - and you have it available here in Emacs."
 (defun n-back-change-challenge (challenge-change)
   "Change game difficulty level by CHALLENGE-CHANGE."
   (let ((new-level n-back-level)
-        (new-num-active n-back-num-active))
+        (new-num-active n-back-num-active)
+        (num-allowed (length n-back-allowed-match-types)))
     (case challenge-change
       (down
        (if (= 1 n-back-num-active)
            (unless (= 1 n-back-level)
-             (setq new-num-active 3)
+             (setq new-num-active (min 3 num-allowed))
              (setq new-level (1- n-back-level)))
          (setq new-num-active (1- n-back-num-active))))
       (up
        (if (or (<= 3 n-back-num-active)
-               (<= (length n-back-allowed-match-types) n-back-num-active))
+               (<= num-allowed n-back-num-active))
            (progn
              (setq new-level (1+ n-back-level))
              (setq new-num-active 1))
-         (setq new-num-active (1+ n-back-num-active)))))
-    (when (= new-level 0) (setq new-level 1))
-    (when (= new-num-active 0) (setq new-num-active 1))
+         (setq new-num-active (min 3 (1+ n-back-num-active))))))
+    ;;(when (= new-level 0) (setq new-level 1))
+    ;;(when (= new-num-active 0) (setq new-num-active 1))
+    (when (and (= new-level n-back-level)
+               (= new-num-active n-back-num-active))
+      (setq n-back-challenge-change 'stay))
     (unless (= new-level n-back-level)
       (customize-set-variable 'n-back-level new-level)
       (customize-set-value 'n-back-level new-level))
@@ -582,6 +589,7 @@ new are maybe ... - and you have it available here in Emacs."
   "Select NUM random match types.
 If type WORST is non-nil try to include that."
   (let ((alen (length n-back-allowed-match-types))
+        (old-types n-back-active-match-types)
         types)
     (unless (<= num alen)
       (error "Too many match types required = %s" num))
@@ -589,9 +597,9 @@ If type WORST is non-nil try to include that."
     (while (< (length types) num)
       (add-to-list 'types (nth (random alen) n-back-allowed-match-types)))
     (setq types (n-back-sort-types types))
-    (customize-set-variable 'n-back-active-match-types types)
-    (customize-set-value 'n-back-active-match-types types)
-    ))
+    (unless (equal old-types types)
+      (customize-set-variable 'n-back-active-match-types types)
+      (customize-set-value 'n-back-active-match-types types))))
 
 (defcustom n-back-keybinding-color "OliveDrab1"
   "Background color for key binding hints."
@@ -627,7 +635,7 @@ If type WORST is non-nil try to include that."
     ;; Current game
     (insert "\n\nCurrent game:")
 
-    (insert (format "\n  Level: %s " n-back-level)
+    (insert (format "\n  n Back: %s " n-back-level)
             (propertize "change: number 1-9" 'face '(:background "OliveDrab1")))
     (insert "\n  Match types: ")
     (dolist (type n-back-active-match-types)
@@ -670,12 +678,12 @@ If type WORST is non-nil try to include that."
 (defun n-back-show-welcome (msg)
   "Show welcome startup info."
   (with-current-buffer n-back-game-buffer
-    (when msg (insert msg "\n\n"))
     (let ((src (or (when (boundp 'nxhtml-install-dir)
                      (expand-file-name "nxhtml/doc/img/fun-brain-2.png" nxhtml-install-dir))
                    "c:/program files/brain workshop/res/brain_graphic.png"))
           img
           buffer-read-only)
+      (erase-buffer)
       (insert (propertize "\nEmacs n-back game (after Brain Workshop)\n\n" 'face '(:height 2.0)))
       (if (file-exists-p src)
           (condition-case err
@@ -690,6 +698,7 @@ If type WORST is non-nil try to include that."
         (insert-image img))
       (insert (propertize "\n\nPlay for fun and maybe a somewhat better brain"
                           'face '(:foreground "OliveDrab3")))
+      (when msg (insert "\n\n" msg))
       )))
 
 (defun n-back-setup-windows ()
@@ -721,9 +730,8 @@ If type WORST is non-nil try to include that."
   (setq n-back-game-buffer (get-buffer-create "*n-back game*"))
   (set-window-buffer n-back-game-window n-back-game-buffer)
   (set-window-dedicated-p n-back-game-window t)
-  (n-back-clear-game-window)
-  (n-back-show-welcome "")
   (with-current-buffer n-back-game-buffer (n-back-control-mode))
+  (n-back-show-welcome nil)
   ;; Position in control window
   (select-window n-back-ctrl-window)
   )
@@ -742,7 +750,8 @@ MAX-STRLEN.  Display item with background color COLOR."
   (unless (< x cols) (error "Not x=%s < cols=%s" x cols))
   ;;(unless (< y rows) (error "Not y=%s < rows=%s" y rows))
   (with-current-buffer n-back-game-buffer
-    (let* ((tot-str "")
+    (let* (buffer-read-only
+           (tot-str "")
            ;; Pad spaces left, two right, four between
            (game-w (window-width n-back-game-window))
            (pad-x 0)
@@ -780,7 +789,7 @@ MAX-STRLEN.  Display item with background color COLOR."
            )
       ;;(message "scale=%s, game-w=%s, colstr='%s', lines-between=%s" scale game-w col-str lines-between)
       (setq show-trailing-whitespace nil)
-      (setq cursor-type nil)
+      ;;(setq cursor-type nil)
       (erase-buffer)
       (setq tot-str row-str)
       (setq tot-str (concat tot-str col-str))
@@ -797,7 +806,8 @@ MAX-STRLEN.  Display item with background color COLOR."
 (defun n-back-clear-game-window ()
   "Erase game buffer."
   (with-current-buffer n-back-game-buffer
-    (erase-buffer)))
+    (let (buffer-read-only)
+      (erase-buffer))))
 
 (defun n-back-play ()
   "Start playing."
@@ -812,13 +822,12 @@ MAX-STRLEN.  Display item with background color COLOR."
   (setq n-back-this-result nil)
   (n-back-cancel-timers)
   (n-back-start-main-timer)
-  (n-back-update-control-buffer)
-  )
+  (n-back-update-control-buffer))
 
 (defun n-back-display-in-timer ()
   "Display a trial in a timer."
   ;;(message "n-back-trials-left=%s" n-back-trials-left)
-  (condition-case nil
+  (condition-case err
       (progn
         (n-back-add-result)
         (if (>= 0 (setq n-back-trials-left (1- n-back-trials-left)))
@@ -832,7 +841,33 @@ MAX-STRLEN.  Display item with background color COLOR."
               (n-back-init-control-status)
               (n-back-clear-match-status)
               (n-back-update-control-buffer)
+              (n-back-show-welcome "Game over")
+              (with-current-buffer n-back-game-buffer
+                (let (buffer-read-only)
+                  (insert
+                   "\n\n"
+                   (case n-back-challenge-change
+                     (up "Congratulations! I see you need more challenge, raising difficulty!")
+                     (down "Making it a bit easier for now to make your playing more fun.")
+                     (t "This game challenges seems right for you now.")))
+                   (case n-back-challenge-change
+                     (up nil)
+                     (t
+                      (let ((src (when (boundp 'nxhtml-install-dir)
+                                   (expand-file-name "nxhtml/doc/img/continue-play.jpg" nxhtml-install-dir)))
+                            img)
+                        (when (and src (file-exists-p src))
+                          (condition-case err
+                              (setq img (create-image src nil nil
+                                                      :relief 0
+                                                      ))
+                            (error (setq img (error-message-string err)))))
+                        (if (stringp img)
+                            nil
+                          (insert "\n\n")
+                          (insert-image img)))))))
               (message "Game over"))
+          (when (current-message) (message ""))
           (let* ((use-position (memq 'position n-back-active-match-types))
                  (use-color (memq 'color n-back-active-match-types))
                  (use-sound (memq 'sound n-back-active-match-types))
@@ -890,8 +925,7 @@ MAX-STRLEN.  Display item with background color COLOR."
             (setq n-back-clear-timer (run-with-timer 0.5 nil 'n-back-clear-game-window))
             (when sound (run-with-timer 0.01 nil 'n-back-play-sound-in-timer sound))
             )))
-    ((debug error)
-     nil)))
+    (error (message "%s" (error-message-string err)))))
 
 (defun n-back-play-sound-in-timer (sound-file)
   "Play sound SOUND-FILE in a timer."
@@ -974,43 +1008,36 @@ MAX-STRLEN.  Display item with background color COLOR."
    ((eq what 'word)  (n-back-matches-word))
    (t (error "Unknown match type: %s" what))))
 
+(defun n-back-answer (what)
+  "Tell that you think WHAT matched."
+  (when (n-back-is-playing)
+    (if (and (memq what n-back-active-match-types)
+             (> (ring-length n-back-ring) n-back-level))
+        (let ((sts (if (n-back-matches what) 'ok 'bad)))
+          (n-back-set-match-status what sts)
+          (n-back-update-control-buffer))
+      (message "%s match is not active" what)
+      (ding t))))
+
 (defun n-back-position-answer ()
   "Tell that you think position matched."
   (interactive)
-  ;;(message "n-back-position-answer here a, ring-size=%s" (ring-size n-back-ring))
-  (when (and (memq 'position n-back-active-match-types)
-             (> (ring-length n-back-ring) n-back-level))
-    ;;(message "n-back-position-answer here b")
-    (let ((sts (if (n-back-matches-position) 'ok 'bad)))
-      (n-back-set-match-status 'position sts)
-      (n-back-update-control-buffer))))
+  (n-back-answer 'position))
 
 (defun n-back-color-answer ()
   "Tell that you think color matched."
   (interactive)
-  (when (and (memq 'color n-back-active-match-types)
-             (> (ring-length n-back-ring) n-back-level))
-    (let ((sts (if (n-back-matches-color) 'ok 'bad)))
-      (n-back-set-match-status 'color sts)
-      (n-back-update-control-buffer))))
+  (n-back-answer 'color))
 
 (defun n-back-sound-answer ()
   "Tell that you think sound matched."
   (interactive)
-  (when (and (memq 'sound n-back-active-match-types)
-             (> (ring-length n-back-ring) n-back-level))
-    (let ((sts (if (n-back-matches-sound) 'ok 'bad)))
-      (n-back-set-match-status 'sound sts)
-      (n-back-update-control-buffer))))
+  (n-back-answer 'sound))
 
 (defun n-back-word-answer ()
   "Tell that you think word matched."
   (interactive)
-  (when (and (memq 'word n-back-active-match-types)
-             (> (ring-length n-back-ring) n-back-level))
-    (let ((sts (if (n-back-matches-word) 'ok 'bad)))
-      (n-back-set-match-status 'word sts)
-      (n-back-update-control-buffer))))
+  (n-back-answer 'word))
 
 (defun n-back-stop ()
   "Stop playing."
@@ -1018,14 +1045,12 @@ MAX-STRLEN.  Display item with background color COLOR."
   (n-back-cancel-timers)
   (n-back-update-control-buffer)
   (message "Stopped n-back game")
-  (with-current-buffer n-back-game-buffer
-    (let ((buffer-read-only))
-      (erase-buffer)
-      (n-back-show-welcome "Stopped"))))
+  (n-back-show-welcome "Stopped"))
 
 (define-derived-mode n-back-control-mode nil "N-back"
   "Mode for controling n-back game."
   (setq cursor-type nil)
+  (setq buffer-read-only t)
   (set (make-local-variable 'viper-emacs-state-mode-list) '(n-back-control-mode))
   (set (make-local-variable 'viper-emacs-state-hook) nil) ;; invis cursor
   (abbrev-mode -1)
@@ -1048,7 +1073,7 @@ MAX-STRLEN.  Display item with background color COLOR."
   (n-back-cancel-timers)
   (winsize-set-mode-line-colors t)
   (setq n-back-ring (make-ring (1+ n-back-level)))
-  (with-current-buffer n-back-game-buffer (erase-buffer))
+  (n-back-clear-game-window)
   (setq n-back-trials-left (+ n-back-trials n-back-level 1))
   (random t)
   (setq n-back-timer
