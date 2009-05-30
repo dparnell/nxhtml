@@ -162,7 +162,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18975 62351))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18976 12176))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -1838,7 +1838,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (n-back-game) "n-back" "util/n-back.el" (18976
-;;;;;;  4030))
+;;;;;;  30191))
 ;;; Generated autoloads from util/n-back.el
 
 (autoload 'n-back-game "n-back" "\
@@ -2673,7 +2673,7 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (18976 8818 187000))
+;;;;;;  (18976 30324 556000))
 
 ;;;***
 
