@@ -70,9 +70,12 @@
 
 
 (defgroup n-back nil
-  "Customizations for `n-back-game' game.
-Bug: does not work without this line???"
+  "Customizations for `n-back-game' game."
   :group 'games)
+
+(defgroup n-back-feel nil
+  "Customizations for `n-back-game' game keys, faces etc."
+  :group 'n-back)
 
 (defcustom n-back-level 1
   "The n-Back level."
@@ -143,7 +146,7 @@ Bug: does not work without this line???"
 (defcustom n-back-sound-volume 0.2
   "Sound volume 0-1."
   :type 'float
-  :group 'n-back)
+  :group 'n-back-feel)
 
 (defcustom n-back-sounds '("c:/program files/brain workshop/res" "piano-")
   "Random sounds location."
@@ -336,7 +339,7 @@ Bug: does not work without this line???"
   :set (lambda (sym val)
          (set-default sym val)
          (n-back-make-keymap))
-  :group 'n-back)
+  :group 'n-back-feel)
 
 (defvar n-back-frame nil)
 
@@ -404,6 +407,8 @@ new are maybe ... - and you have it available here in Emacs."
     (unless (frame-live-p n-back-frame)
       (setq n-back-frame (make-frame
                           (list '(name . "n-back game")
+                                '(tool-bar-lines . 0)
+                                '(menu-bar-lines . 0)
                                 (case (frame-parameter nil 'background-mode)
                                   ('light '(background-color . "cornsilk"))
                                   ('dark  '(background-color . "MidnightBlue"))
@@ -463,52 +468,52 @@ new are maybe ... - and you have it available here in Emacs."
 (defface n-back-ok
   '((t (:foreground "black" :background "green")))
   "Face for ok answer."
-  :group 'n-back)
+  :group 'n-back-feel)
 
 (defface n-back-bad
   '((t (:foreground "black" :background "OrangeRed1")))
   "Face for bad answer."
-  :group 'n-back)
+  :group 'n-back-feel)
 
 (defface n-back-do-now
   '((((background dark)) (:foreground "yellow"))
     (t (:foreground "blue")))
   "Face for start and stop hints."
-  :group 'n-back)
+  :group 'n-back-feel)
 
 (defface n-back-game-word
   '((t (:foreground "black")))
   "Face for word displayed in game."
-  :group 'n-back)
+  :group 'n-back-feel)
 
 (defface n-back-header
   '((((background dark)) (:background "OrangeRed4"))
     (t (:background "gold")))
   "Face for headers."
-  :group 'n-back)
+  :group 'n-back-feel)
 
 (defface n-back-keybinding
   '((((background dark)) (:background "purple4"))
     (t (:background "OliveDrab1")))
   "Face for key bindings."
-  :group 'n-back)
+  :group 'n-back-feel)
 
 (defface n-back-last-result
   '((((background dark)) (:background "OliveDrab4"))
     (t (:background "yellow")))
   "Face for last game result header."
-  :group 'n-back)
+  :group 'n-back-feel)
 
 (defface n-back-welcome
   '((((background dark)) (:foreground "OliveDrab3"))
     (t (:foreground "OliveDrab4")))
   "Face for welcome string"
-  :group 'n-back)
+  :group 'n-back-feel)
 
 (defface n-back-welcome-header
   '((t (:height 2.0)))
   "Face for welcome header."
-  :group 'n-back)
+  :group 'n-back-feel)
 
 ;;(n-back-update-control-buffer)
 (defun n-back-update-control-buffer ()
@@ -569,8 +574,10 @@ new are maybe ... - and you have it available here in Emacs."
          ;;(gnum 6)
          ;;(weighted-err (* err (/ gnum tot)))
          )
-    (cons what (/ (- n-back-trials err 0.0)
-                  n-back-trials))))
+    (cons what (if (= 0 good)
+                   0
+                 (/ (- n-back-trials err 0.0)
+                    n-back-trials)))))
 
 (defun n-back-compute-result-values (result)
   "Compute result values from game result RESULT."
@@ -593,7 +600,7 @@ new are maybe ... - and you have it available here in Emacs."
 
 (defun n-back-set-next-challenge ()
   "Set next game difficulty level from last game result."
-  (let ((r 2.0))
+  (let ((r 0.8)) ;; stay as default
     (dolist (res n-back-result-values)
       (when (< (cdr res) r)
         (setq r (cdr res))
@@ -604,7 +611,6 @@ new are maybe ... - and you have it available here in Emacs."
                                     (if (> worst-result 0.91)
                                         'up
                                       'stay)))
-    ;;(message "worst=%s, change=%s" worst-result change)
     (n-back-change-challenge n-back-challenge-change)))
 
 (defun n-back-challenge-up ()
@@ -738,7 +744,7 @@ If type WORST is non-nil try to include that."
     (setq buffer-read-only t))))
 
 (defun n-back-show-welcome (msg)
-  "Show welcome startup info."
+  "Show welcome startup info and message MSG."
   (with-current-buffer n-back-game-buffer
     (let ((src (or (when (boundp 'nxhtml-install-dir)
                      (expand-file-name "nxhtml/doc/img/fun-brain-2.png" nxhtml-install-dir))
@@ -805,13 +811,9 @@ If type WORST is non-nil try to include that."
 Display item with text STR at column X in row Y using COLS
 columns and ROWS rows.  Strings to display have max length
 MAX-STRLEN.  Display item with background color COLOR."
-  ;;(message "(n-back-display %s %s %s %s %s %s %s)" str x y cols rows max-strlen color)
-  ;; (unless (and (window-live-p n-back-game-window)
-  ;;              (eq (window-frame n-back-game-window) (selected-frame))
-  ;;              )
-  ;;   (n-back-setup-windows))
   (unless (< x cols) (error "n-back: Not x=%s < cols=%s" x cols))
-  ;;(unless (< y rows) (error "Not y=%s < rows=%s" y rows))
+  (unless (< y rows) (error "Not y=%s < rows=%s" y rows))
+  (unless str (setq str ""))
   (with-current-buffer n-back-game-buffer
     (let* (buffer-read-only
            (tot-str "")
@@ -850,14 +852,11 @@ MAX-STRLEN.  Display item with background color COLOR."
                                     (floor (* y (1+ lines-between))))
                                  ?\n))
            )
-      ;;(message "scale=%s, game-w=%s, colstr='%s', lines-between=%s" scale game-w col-str lines-between)
       (setq show-trailing-whitespace nil)
       ;;(setq cursor-type nil)
       (erase-buffer)
       (setq tot-str row-str)
       (setq tot-str (concat tot-str col-str))
-      ;;(setq tot-str (concat tot-str str-disp))
-      ;;(message "len tot-str=%s" (length tot-str))
       (insert (propertize tot-str 'face (list :height scale)))
       (insert str-disp)
       )))
@@ -875,18 +874,18 @@ MAX-STRLEN.  Display item with background color COLOR."
 (defun n-back-play ()
   "Start playing."
   (interactive)
-  (message "=== n-back game started ==========================")
+  (message "  ") ;; For easier reading *Messages*
   ;;(n-back-setup-windows)
   (unless n-back-active-match-types
     (error "No active match types"))
   ;;(setq n-back-result nil)
   (n-back-init-control-status)
-  (setq n-back-this-result nil)
+  (n-back-init-this-result)
   (n-back-cancel-timers)
   (winsize-set-mode-line-colors t)
   (setq n-back-ring (make-ring (1+ n-back-level)))
   (n-back-clear-game-window)
-  (setq n-back-trials-left (+ n-back-trials n-back-level 1))
+  (setq n-back-trials-left (+ n-back-trials n-back-level))
   (random t)
   (n-back-start-main-timer)
   (n-back-update-control-buffer))
@@ -912,18 +911,33 @@ MAX-STRLEN.  Display item with background color COLOR."
   (n-back-update-control-buffer)
   (n-back-show-welcome "Game over")
   (with-current-buffer n-back-game-buffer
+    (setq n-back-challenge-change 'up)
     (let (buffer-read-only)
       (insert
        "\n\n"
        (case n-back-challenge-change
          (up "Congratulations! I see you need more challenge, raising difficulty!")
          (down "Making it a bit easier for now to make your playing more fun.")
-         (t "This game challenges seems right for you now.")))
+         (t "This game challenges seems the right way for you now.")))
       (let* ((dir (when (boundp 'nxhtml-install-dir)
                     (expand-file-name "nxhtml/doc/img/" nxhtml-install-dir)))
+             (up-imgs '("rembrandt-self-portrait.jpg"
+                        "bacchante2.jpg"
+                        "giraffe.jpg"
+                        "Las_Medulas.jpg"
+                        ))
+             (t-imgs '("continue-play.jpg"
+                       "Toco_toucan.jpg"
+                       "raindrops2.jpg"
+                       "divine2.jpg"
+                       ;;"butterflies.png"
+                       "volga.jpg"
+                       "healthy_feet2.jpg"
+                       ))
+             ;; (setq n-back-trials 1)
              (pic (when dir (case n-back-challenge-change
-                              (up "rembrandt-self-portrait.jpg")
-                              (t "continue-play.jpg"))))
+                              (up (nth (random (length up-imgs)) up-imgs))
+                              (t  (nth (random (length t-imgs))  t-imgs)))))
              (src (when dir (expand-file-name pic dir)))
              img)
            (when (and src (file-exists-p src))
@@ -933,12 +947,13 @@ MAX-STRLEN.  Display item with background color COLOR."
                                          ))
                (error (setq img (error-message-string err)))))
            (if (stringp img)
-               nil
+               img
              (insert "\n\n")
              (insert-image img)))))
   (message "Game over"))
 
 (defun n-back-display-random ()
+  "Display a random item."
   (when (current-message) (message ""))
   (let* ((use-position (memq 'position n-back-active-match-types))
          (use-color (memq 'color n-back-active-match-types))
@@ -999,7 +1014,6 @@ MAX-STRLEN.  Display item with background color COLOR."
 
 (defun n-back-display-in-timer ()
   "Display a trial in a timer."
-  ;;(message "n-back-trials-left=%s" n-back-trials-left)
   (condition-case err
       (progn
         (n-back-add-result)
@@ -1022,11 +1036,17 @@ MAX-STRLEN.  Display item with background color COLOR."
 
 ;;(defvar n-back-answers nil)
 
+(defun n-back-init-this-result ()
+  "Init `n-back-this-result'."
+  (setq n-back-this-result nil)
+  (dolist (sts-entry n-back-control-status)
+    (let* ((what (nth 0 sts-entry))
+           (res-entry (list what 0 0 0)))
+      (setq n-back-this-result (cons res-entry n-back-this-result)))))
+
 (defun n-back-add-result ()
   "Add result of last trial."
   (when (= (ring-length n-back-ring) (1+ n-back-level))
-    ;;((color "F: color match" nil) (position "A: position match" nil))
-    ;;(message "n-back-add-result: n-back-control-status=%s" n-back-control-status)
     (dolist (sts-entry n-back-control-status)
       (let* ((what (nth 0 sts-entry))
              (sts  (nth 2 sts-entry))
@@ -1039,11 +1059,10 @@ MAX-STRLEN.  Display item with background color COLOR."
              (res-entry (when num (assoc what n-back-this-result)))
              (lst (when num (nthcdr num res-entry))))
         (when num
-          ;;(message "n-back-add-result: %s %s %s" what sts num)
           (if res-entry
               (setcar lst (1+ (car lst)))
             (setq res-entry (list what 0 0 0))
-            (setq lst (nthcdr num res-entry))
+            ;;(setq lst (nthcdr num res-entry))
             (setq n-back-this-result (cons res-entry n-back-this-result))))))))
 
 (defun n-back-matches-position ()
@@ -1079,7 +1098,6 @@ MAX-STRLEN.  Display item with background color COLOR."
            (curr-item (ring-ref n-back-ring 0))
            (comp-word (nth 5 comp-item))
            (curr-word (nth 5 curr-item)))
-      ;;(message "n-back-matches-word: curr=%s, comp=%s" curr-item comp-item)
       (equal comp-word curr-word)))
 
 (defun n-back-matches (what)
@@ -1094,11 +1112,13 @@ MAX-STRLEN.  Display item with background color COLOR."
 (defun n-back-answer (what)
   "Tell that you think WHAT matched."
   (when (n-back-is-playing)
-    (if (and (memq what n-back-active-match-types)
-             (> (ring-length n-back-ring) n-back-level))
-        (let ((sts (if (n-back-matches what) 'ok 'bad)))
-          (n-back-set-match-status what sts)
-          (n-back-update-control-buffer))
+    (if (memq what n-back-active-match-types)
+        (if (> (ring-length n-back-ring) n-back-level)
+            (let ((sts (if (n-back-matches what) 'ok 'bad)))
+              (n-back-set-match-status what sts)
+              (n-back-update-control-buffer))
+          (message "%s n-back items must be displayed before anything can match"
+                   n-back-level))
       (message "%s match is not active" what)
       (ding t))))
 
