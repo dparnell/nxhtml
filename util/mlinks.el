@@ -289,7 +289,8 @@
   (if (or (not (bufferp buffer))
           (not (buffer-live-p buffer)))
       ;;(mlinks-stop-hilighter)
-      (cancel-timer timer-event-last)
+      ;;(cancel-timer timer-event-last)
+      (cancel-timer mlinks-mark-links-timer)
     (with-current-buffer buffer
       (when mlinks-mode ;t ;mlinks-hilight-this-buffer
         (let* ((funs-- (mlinks-get-action 'hili))

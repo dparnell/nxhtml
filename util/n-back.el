@@ -10,7 +10,7 @@
 ;;
 ;; Features that might be required by this library:
 ;;
-  ;; `winsize'.
+  ;; `cl', `cus-load', `cus-start', `windmove', `winsav', `winsize'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -442,7 +442,8 @@ new are maybe ... - and you have it available here in Emacs."
 ;;(n-back-clear-match-status)
 (defun n-back-clear-match-status ()
   "Clear match status."
-  (dolist (entry n-back-control-status)
+  ;;(dolist (entry n-back-control-status)
+  (dolist (entry n-back-match-types)
     (setcar (cddr entry) nil)
     ))
 
@@ -459,25 +460,55 @@ new are maybe ... - and you have it available here in Emacs."
   "Return non-nil when game is active."
   (timerp n-back-timer))
 
+(defface n-back-ok
+  '((t (:foreground "black" :background "green")))
+  "Face for ok answer."
+  :group 'n-back)
+
+(defface n-back-bad
+  '((t (:foreground "black" :background "OrangeRed1")))
+  "Face for bad answer."
+  :group 'n-back)
+
 (defface n-back-do-now
   '((((background dark)) (:foreground "yellow"))
     (t (:foreground "blue")))
-  "doc")
+  "Face for start and stop hints."
+  :group 'n-back)
+
+(defface n-back-game-word
+  '((t (:foreground "black")))
+  "Face for word displayed in game."
+  :group 'n-back)
 
 (defface n-back-header
   '((((background dark)) (:background "OrangeRed4"))
     (t (:background "gold")))
-  "doc")
+  "Face for headers."
+  :group 'n-back)
 
 (defface n-back-keybinding
   '((((background dark)) (:background "purple4"))
     (t (:background "OliveDrab1")))
-  "doc")
+  "Face for key bindings."
+  :group 'n-back)
+
+(defface n-back-last-result
+  '((((background dark)) (:background "OliveDrab4"))
+    (t (:background "yellow")))
+  "Face for last game result header."
+  :group 'n-back)
 
 (defface n-back-welcome
   '((((background dark)) (:foreground "OliveDrab3"))
     (t (:foreground "OliveDrab4")))
-  "doc")
+  "Face for welcome string"
+  :group 'n-back)
+
+(defface n-back-welcome-header
+  '((t (:height 2.0)))
+  "Face for welcome header."
+  :group 'n-back)
 
 ;;(n-back-update-control-buffer)
 (defun n-back-update-control-buffer ()
@@ -494,11 +525,9 @@ new are maybe ... - and you have it available here in Emacs."
                                      ((= 3 n) "Triple")
                                      ))
                                   n-back-level
-                                  ;;) 'face '(:background "gold"))
                                   ) 'face 'n-back-header)
               (propertize
                (if (n-back-is-playing) "  Press C-g to stop" "  Press SPACE to play")
-               ;;'face '(:foreground "blue"))
                'face 'n-back-do-now)
               (if (n-back-is-playing) (format "  Left %s" n-back-trials-left) "")
               "\n")
@@ -511,9 +540,9 @@ new are maybe ... - and you have it available here in Emacs."
           (setq msg (concat (key-description (n-back-key-binding what)) msg))
           (cond
            ((eq sts 'bad)
-            (setq msg (propertize msg 'face '(:foreground "red"))))
+            (setq msg (propertize msg 'face 'n-back-bad)))
            ((eq sts 'ok)
-            (setq msg (propertize msg 'face '(:foreground "green")))))
+            (setq msg (propertize msg 'face 'n-back-ok))))
           (insert msg "   "))
         )
       (setq buffer-read-only t)
@@ -625,7 +654,9 @@ If type WORST is non-nil try to include that."
         types)
     (unless (<= num alen)
       (error "n-back: Too many match types required = %s" num))
-    (when worst (add-to-list 'types worst))
+    (when (and worst
+               (memq worst n-back-allowed-match-types))
+      (add-to-list 'types worst))
     (while (< (length types) num)
       (add-to-list 'types (nth (random alen) n-back-allowed-match-types)))
     (setq types (n-back-sort-types types))
@@ -647,7 +678,6 @@ If type WORST is non-nil try to include that."
       (setq buffer-read-only nil)
       (erase-buffer)
 
-      ;;(insert (propertize "n-back" 'face '(:background "gold"))
       (insert (propertize "n-back" 'face 'n-back-header)
               "  "
               (propertize "Help: ?" 'face 'n-back-keybinding))
@@ -689,7 +719,7 @@ If type WORST is non-nil try to include that."
       (unless (or (n-back-is-playing)
                   (not n-back-result))
         (insert (propertize (format "Last result, %s" n-back-challenge-change)
-                            'face '(:background "yellow"))
+                            'face 'n-back-last-result)
                 "\n  Good-Bad-Miss:")
         (dolist (entry n-back-result)
           (let* ((what (nth 0 entry))
@@ -716,7 +746,8 @@ If type WORST is non-nil try to include that."
           img
           buffer-read-only)
       (erase-buffer)
-      (insert (propertize "\nEmacs n-back game (after Brain Workshop)\n\n" 'face '(:height 2.0)))
+      ;;(insert (propertize "\nEmacs n-back game (after Brain Workshop)\n\n" 'face '(:height 2.0)))
+      (insert (propertize "\nEmacs n-back game (after Brain Workshop)\n\n" 'face 'n-back-welcome-header))
       (if (file-exists-p src)
           (condition-case err
               (setq img (create-image src nil nil
@@ -728,7 +759,7 @@ If type WORST is non-nil try to include that."
       (if (stringp img)
           (insert img)
         (insert-image img))
-      (insert (propertize "\n\nPlay for fun and maybe a somewhat better brain"
+      (insert (propertize "\n\nPlay for fun and maybe a somewhat happier brain"
                           'face 'n-back-welcome))
       (when msg (insert "\n\n" msg))
       )))
@@ -797,8 +828,8 @@ MAX-STRLEN.  Display item with background color COLOR."
            (str-l-len (/ str-diff 2))
            (str-r-len (- max-strlen (length str) str-l-len))
            (face-spec (if window-system
-                          (list :background color :height scale)
-                        (list :background color)))
+                          (list :inherit 'n-back-game-word :background color :height scale)
+                        (list :inherit 'n-back-game-word :background color)))
            (str-disp (propertize
                       (concat (make-string str-l-len 32) str (make-string str-r-len 32))
                       'face face-spec))
@@ -888,12 +919,13 @@ MAX-STRLEN.  Display item with background color COLOR."
          (up "Congratulations! I see you need more challenge, raising difficulty!")
          (down "Making it a bit easier for now to make your playing more fun.")
          (t "This game challenges seems right for you now.")))
-      (case n-back-challenge-change
-        (up nil)
-        (t
-         (let ((src (when (boundp 'nxhtml-install-dir)
-                      (expand-file-name "nxhtml/doc/img/continue-play.jpg" nxhtml-install-dir)))
-               img)
+      (let* ((dir (when (boundp 'nxhtml-install-dir)
+                    (expand-file-name "nxhtml/doc/img/" nxhtml-install-dir)))
+             (pic (when dir (case n-back-challenge-change
+                              (up "rembrandt-self-portrait.jpg")
+                              (t "continue-play.jpg"))))
+             (src (when dir (expand-file-name pic dir)))
+             img)
            (when (and src (file-exists-p src))
              (condition-case err
                  (setq img (create-image src nil nil
@@ -903,7 +935,7 @@ MAX-STRLEN.  Display item with background color COLOR."
            (if (stringp img)
                nil
              (insert "\n\n")
-             (insert-image img)))))))
+             (insert-image img)))))
   (message "Game over"))
 
 (defun n-back-display-random ()
