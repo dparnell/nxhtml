@@ -45,6 +45,8 @@
 ;;
 ;;; Code:
 
+;; (setq n-back-trials 2)
+
 (require 'winsize) ;; Ehum...
 ;;(require 'new-key-seq-widget)
 
@@ -844,14 +846,15 @@ MAX-STRLEN.  Display item with background color COLOR."
                       )))
            ;; Pad lines above and below, two between
            (pad-y 0)
-           (game-h (window-height n-back-game-window))
+           (game-h (window-body-height n-back-game-window))
            (game-h-scaled (/ game-h scale))
            (lines-between (/ (- game-h-scaled rows (* 2 pad-y))
                              (1- rows)))
-           (row-str (make-string (+ pad-x
-                                    (floor (* y (1+ lines-between))))
-                                 ?\n))
-           )
+           (row-scaled (+ pad-y (* y (1+ lines-between)) (1- y)))
+           (row-num (if (= y 0)
+                        pad-y
+                      (round row-scaled)))
+           (row-str (make-string row-num ?\n)))
       (setq show-trailing-whitespace nil)
       ;;(setq cursor-type nil)
       (erase-buffer)
@@ -911,7 +914,7 @@ MAX-STRLEN.  Display item with background color COLOR."
   (n-back-update-control-buffer)
   (n-back-show-welcome "Game over")
   (with-current-buffer n-back-game-buffer
-    (setq n-back-challenge-change 'up)
+    ;;(setq n-back-challenge-change 'up)
     (let (buffer-read-only)
       (insert
        "\n\n"
