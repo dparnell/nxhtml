@@ -350,7 +350,7 @@ This game is supposed to increase your working memory and fluid
 intelligence.
 
 In this game something is shown for half a second on the screen
-and mabye a sound is played.  You should then answer if parts of
+and maybe a sound is played.  You should then answer if parts of
 it is the same as you have seen or heard before.  This is
 repeated for about 20 trials.
 
@@ -376,9 +376,9 @@ might be an optimal time according to some people.
 The game is shamelessly modeled after Brain Workshop, see URL
 `http://brainworkshop.sourceforge.net/' just for the fun of
 getting it into Emacs.  The game resembles but it not the same as
-that used in the report by Jaeggi mentioned at the above url.
+that used in the report by Jaeggi mentioned at the above URL.
 
-Not all features in Brain Worskhop are implemented here, but some
+Not all features in Brain Workshop are implemented here, but some
 new are maybe ... - and you have it available here in Emacs."
 ;; -----
 ;; Below is a short excerpt from the report by Jaeggi et al which
@@ -467,7 +467,7 @@ new are maybe ... - and you have it available here in Emacs."
 
 (defface n-back-ok
   '((t (:foreground "black" :background "green")))
-  "Face for ok answer."
+  "Face for OK answer."
   :group 'n-back-feel)
 
 (defface n-back-bad
@@ -1151,11 +1151,11 @@ MAX-STRLEN.  Display item with background color COLOR."
   (n-back-show-welcome "Stopped"))
 
 (define-derived-mode n-back-control-mode nil "N-back"
-  "Mode for controling n-back game."
+  "Mode for controlling n-back game."
   (setq cursor-type nil)
   (setq buffer-read-only t)
   (set (make-local-variable 'viper-emacs-state-mode-list) '(n-back-control-mode))
-  (set (make-local-variable 'viper-emacs-state-hook) nil) ;; invis cursor
+  (set (make-local-variable 'viper-emacs-state-hook) nil) ;; in vis cursor
   (abbrev-mode -1)
   (setq show-trailing-whitespace nil)
   (visual-line-mode 1)
