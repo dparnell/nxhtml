@@ -602,15 +602,15 @@ new are maybe ... - and you have it available here in Emacs."
 
 (defun n-back-set-next-challenge ()
   "Set next game difficulty level from last game result."
-  (let ((r 0.8)) ;; stay as default
+  (let ((r 2.8)) ;; stay as default
+    (setq n-back-worst nil)
     (dolist (res n-back-result-values)
       (when (< (cdr res) r)
         (setq r (cdr res))
-        (setq n-back-worst res))))
-  (let ((worst-result (cdr n-back-worst)))
-    (setq n-back-challenge-change (if (< worst-result 0.74)
+        (setq n-back-worst res)))
+    (setq n-back-challenge-change (if (< r 0.74)
                                       'down
-                                    (if (> worst-result 0.91)
+                                    (if (> r 0.91)
                                         'up
                                       'stay)))
     (n-back-change-challenge n-back-challenge-change)))
