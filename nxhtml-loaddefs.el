@@ -1228,8 +1228,8 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 
 ;;;***
 
-;;;### (autoloads (appmenu-add) "appmenu" "util/appmenu.el" (18790
-;;;;;;  45400))
+;;;### (autoloads (appmenu-add) "appmenu" "util/appmenu.el" (18977
+;;;;;;  24993))
 ;;; Generated autoloads from util/appmenu.el
 
 (autoload 'appmenu-add "appmenu" "\
@@ -1736,7 +1736,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-mark-for-refontification) "mumamo" "util/mumamo.el"
-;;;;;;  (18976 8767))
+;;;;;;  (18977 51097))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -1838,7 +1838,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (n-back-game) "n-back" "util/n-back.el" (18977
-;;;;;;  13948))
+;;;;;;  59331))
 ;;; Generated autoloads from util/n-back.el
 
 (autoload 'n-back-game "n-back" "\
@@ -1847,7 +1847,7 @@ This game is supposed to increase your working memory and fluid
 intelligence.
 
 In this game something is shown for half a second on the screen
-and mabye a sound is played.  You should then answer if parts of
+and maybe a sound is played.  You should then answer if parts of
 it is the same as you have seen or heard before.  This is
 repeated for about 20 trials.
 
@@ -1873,9 +1873,9 @@ might be an optimal time according to some people.
 The game is shamelessly modeled after Brain Workshop, see URL
 `http://brainworkshop.sourceforge.net/' just for the fun of
 getting it into Emacs.  The game resembles but it not the same as
-that used in the report by Jaeggi mentioned at the above url.
+that used in the report by Jaeggi mentioned at the above URL.
 
-Not all features in Brain Worskhop are implemented here, but some
+Not all features in Brain Workshop are implemented here, but some
 new are maybe ... - and you have it available here in Emacs.
 
 \(fn)" t nil)
@@ -2673,7 +2673,7 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (18977 17874 171000))
+;;;;;;  (18977 59661 390000))
 
 ;;;***
 
