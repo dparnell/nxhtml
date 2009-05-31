@@ -1131,7 +1131,7 @@ in this part of the buffer."
                                                          (overlay-end chunk-at-change-min)))
                                              change-max)))
                     (if (not this-new-values)
-                        (set ok-pos (point-max))
+                        (setq ok-pos (point-max))
                       (setq first-check-from nil)
                       (setq ok-pos (or (mumamo-new-chunk-value-max this-new-values) ;;(overlay-end this-chunk)
                                        (point-max)))
