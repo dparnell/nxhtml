@@ -371,12 +371,6 @@ To create a menu item something similar to this can be used:
       (major-modep value)))
 
 ;;;###autoload
-(defun multi-major-modep (value)
-  "Return t if VALUE is a multi major mode function."
-  (and (fboundp value)
-       (rassq value mumamo-defined-turn-on-functions)))
-
-;;;###autoload
 (defun major-modep (value)
   "Return t if VALUE is a major mode function."
   (let ((sym-name (symbol-name value)))
