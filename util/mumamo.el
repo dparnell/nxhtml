@@ -971,7 +971,6 @@ Preserves the `buffer-modified-p' state of the current buffer."
   (condition-case err
       (when (buffer-live-p buffer)
         (with-current-buffer buffer
-          ;;(mumamo-find-chunks nil 'until-input)))
           (mumamo-find-chunks nil "mumamo-find-chunks-in-timer")))
     (error (message "mumamo-find-chunks error: %s" err))))
 
@@ -995,7 +994,35 @@ Preserves the `buffer-modified-p' state of the current buffer."
 (defvar mumamo-old-tail nil)
 (make-variable-buffer-local 'mumamo-old-tail)
 (put 'mumamo-old-tail 'permanent-local t)
-(defun mumamo-find-chunks (end tracer) ;; min max)
+
+(defun mumamo-update-obscure (chunk pos)
+  "Update obscure cache."
+  (let ((obscured (overlay-get chunk 'obscured))
+        region-info)
+    (unless (and obscured (= (car obscured) pos))
+      (setq reqion-info (mumamo-get-region-from pos))
+      ;;(msgtrc "update-obscure:region-info=%s" region-info)
+      ;; This should not be a chunk here
+      (mumamo-put-obscure chunk pos region-info))))
+
+(defun mumamo-put-obscure (chunk pos region-info)
+  "Cache obscure info."
+  (assert (overlayp chunk) t)
+  (assert (not (overlayp region-info)) t)
+  (when region-info (assert (consp region-info) t))
+  (when pos (assert (or (markerp pos) (integerp pos)) t))
+  (let ((obscured (when pos (list pos region-info))))
+    ;;(msgtrc "put-obscure:region-info=%s, obscured=%s" region-info obscured)
+    (overlay-put chunk 'obscured obscured)
+    (setq obscured (overlay-get chunk 'obscured))
+    ;;(msgtrc "                            obscured=%s" obscured)
+    ))
+
+(defun mumamo-get-region-from (point)
+  (when (fboundp 'mumamo-get-region-from-1)
+    (mumamo-get-region-from-1 point)))
+
+(defun mumamo-find-chunks (end tracer)
   "Find or create chunks from last known chunk.
 Ie, start from the end of `mumamo-last-chunk' if this is
 non-nil, otherwise 1.
@@ -1009,7 +1036,19 @@ ends before END then create chunks upto END.
 
 If MIN and MAX are non-nil then do not mark for refontification
 in this part of the buffer."
+  (let ((chunk (mumamo-find-chunks-1 end tracer))
+        region-info)
+    (when (and end chunk (featurep 'mumamo-regions))
+      (setq region-info (mumamo-get-region-from end))
+      ;;(msgtrc "find-chunks:region-info=%s" region-info)
+      (if (overlayp region-info)
+          (setq chunk region-info)
+        ;;(overlay-put chunk 'obscured (list end region-info))))
+        (mumamo-put-obscure chunk end region-info)))
+    ;;(msgtrc "find-chunks ret chunk=%s" chunk)
+    chunk))
 
+(defun mumamo-find-chunks-1 (end tracer) ;; min max)
   ;; Note: This code must probably be reentrant.  The globals changed
   ;; here are `mumamo-last-chunk' and `mumamo-old-tail'.  They must be
   ;; handled as a pair.
@@ -1025,7 +1064,10 @@ in this part of the buffer."
            (chunk-at-change-min (when change-min (mumamo-get-existing-new-chunk-at change-min)))
            (chunk-at-change-min-start (when chunk-at-change-min (overlay-start chunk-at-change-min)))
            ;; Check if near border
-           (this-syntax-min-max (mumamo-chunk-syntax-min-max chunk-at-change-min))
+           (this-syntax-min-max
+            (when chunk-at-change-min-start
+              (mumamo-update-obscure chunk-at-change-min chunk-at-change-min-start)
+              (mumamo-chunk-syntax-min-max chunk-at-change-min nil)))
            (this-syntax-min (car this-syntax-min-max))
            (in-min-border (when this-syntax-min (>= this-syntax-min change-min)))
            (here (point))
@@ -1102,7 +1144,6 @@ in this part of the buffer."
               (mumamo-stop-find-chunks-timer)
               (mumamo-save-buffer-state nil
                 (unless this-new-chunk
-                  ;;(setq mumamo-old-tail (when (overlayp mumamo-last-chunk) (overlay-get mumamo-last-chunk 'mumamo-next-chunk)))
                   ;; So now mumamo-last-chunk is the last in the top
                   ;; chain and mumamo-old-tail the first in the bottom chain.
 
@@ -1139,6 +1180,7 @@ in this part of the buffer."
                       ;;(msgtrc "mumamo-old-tail=%s, major=%s, mumamo-last-chunk=%s" mumamo-old-tail (when mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-major-mode)) mumamo-last-chunk)
                       ;;(msgtrc "this-new-values=%s" this-new-values)
                       (if (and mumamo-old-tail
+                               (overlay-buffer mumamo-old-tail)
                                (mumamo-new-chunk-equal-chunk-values mumamo-old-tail this-new-values))
                           (progn
                             ;;(msgtrc "eq")
@@ -1146,12 +1188,18 @@ in this part of the buffer."
                             (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk)))
                         ;; Loop for fit
                         (setq while-n2 1)
+                        (or (not mumamo-old-tail)
+                            (overlay-buffer mumamo-old-tail)
+                            (setq mumamo-old-tail nil))
                         (while (and (> 100 (setq while-n2 (1+ while-n2)))
                                     (and mumamo-old-tail (< (overlay-start mumamo-old-tail) ok-pos)))
                           ;;(msgtrc "not eq delete %s" mumamo-old-tail)
                           (mumamo-mark-for-refontification (overlay-start mumamo-old-tail) (overlay-end mumamo-old-tail))
                           (delete-overlay mumamo-old-tail)
-                          (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk)))
+                          (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))
+                          (or (not mumamo-old-tail)
+                              (overlay-buffer mumamo-old-tail)
+                              (setq mumamo-old-tail nil)))
                         ;; Create chunk and chunk links
                         (setq mumamo-last-chunk (mumamo-new-create-chunk this-new-values))
                         (setq last-chunk-is-closed (overlay-get mumamo-last-chunk 'mumamo-is-closed))
@@ -1255,10 +1303,10 @@ fontified after a change) is added locally to the hook
     (mumamo-msgfntfy "mumamo-jit-lock-after-change ENTER %s %s %s" min max old-len)
     ;; Why is this nil?:
     (mumamo-msgfntfy "  mumamo-jit-lock-after-change: font-lock-extend-after-change-region-function=%s" font-lock-extend-after-change-region-function)
-    (let* ((ovl-min (mumamo-get-existing-chunk-at min))
+    (let* ((ovl-min (mumamo-get-existing-new-chunk-at min))
            (ovl-max (when (or (not ovl-min)
                               (< (overlay-end ovl-min) max))
-                      (mumamo-get-existing-chunk-at max)))
+                      (mumamo-get-existing-new-chunk-at max)))
            (major-min (when ovl-min (mumamo-chunk-major-mode ovl-min)))
            (major-max (when ovl-max (mumamo-chunk-major-mode ovl-max)))
            (r-min nil)
@@ -1614,7 +1662,7 @@ fontification."
   ;; The text property 'fontified is always t here due to the way
   ;; jit-lock works!
 
-  (mumamo-msgfntfy "mumamo-fontify-region-with %s %s %s %s, ff=%s" start end verbose major (get-text-property start 'fontified))
+  ;;(msgtrc "mumamo-fontify-region-with %s %s %s %s, ff=%s" start end verbose major (get-text-property start 'fontified))
   ;;(mumamo-assert-fontified-t start end)
   (mumamo-condition-case err
       (progn
@@ -1651,7 +1699,7 @@ This function is called when the minor mode function
                 (unless (eq major main-major)
                   (mumamo-unfontify-chunk o))
                 (mumamo-msgfntfy "delete-overlay 1")
-                (msgtrc "delete-overlay 1")
+                ;;(msgtrc "delete-overlay 1")
                 (delete-overlay o)
                 ))))
         (mumamo-unfontify-region-with (point-min) (point-max)
@@ -1677,7 +1725,7 @@ this to ensure that the whole buffer is fontified."
   (let* ((major (mumamo-chunk-major-mode chunk))
          ;;(start (overlay-start chunk))
          ;;(end   (overlay-end   chunk))
-         (syntax-min-max (mumamo-chunk-syntax-min-max chunk))
+         (syntax-min-max (mumamo-chunk-syntax-min-max chunk t))
          (syntax-min (car syntax-min-max))
          (syntax-max (cdr syntax-min-max))
          (font-lock-dont-widen t))
@@ -1921,20 +1969,28 @@ most major modes."
           ;;  (assert (= (overlay-end prev-chunk) (overlay-start chunk))))
 
           ;; Fontify
-          (let* ((syntax-min-max (mumamo-chunk-syntax-min-max chunk))
+          ;;(message "\nmumamo-fontify-region-1 before chunk=%s" chunk)
+          (mumamo-update-obscure chunk here)
+          (let* ((syntax-min-max (mumamo-chunk-syntax-min-max chunk nil))
                  (syntax-min (car syntax-min-max))
                  (syntax-max (cdr syntax-min-max))
                  (chunk-min (overlay-start chunk))
-                 (chunk-max (overlay-end chunk)))
+                 (chunk-max (overlay-end chunk))
+                 (border-min-max (mumamo-chunk-syntax-min-max chunk t))
+                 (border-min (car border-min-max))
+                 (border-max (cdr border-min-max))
+                 )
+            ;;(msgtrc "chunk mumamo-border-face: %s" chunk)
+            ;;(message "mumamo-fontify-region-1, here=%s chunk-min=%s syn-mn/mx=%s/%s" here chunk-min syntax-min syntax-max)
             (when (<= here syntax-min)
               (mumamo-flush-chunk-syntax chunk chunk-min chunk-max))
             (when (and (<= here syntax-min)
-                       (< chunk-min syntax-min))
-              (put-text-property chunk-min syntax-min
+                       (< chunk-min border-min))
+              (put-text-property chunk-min border-min
                                  'face 'mumamo-border-face-in))
             (when (and (<= chunk-max max)
-                       (< (1+ syntax-max) chunk-max))
-              (put-text-property (1+ syntax-max) chunk-max
+                       (< (1+ border-max) chunk-max))
+              (put-text-property (1+ border-max) chunk-max
                                  'face 'mumamo-border-face-out))
             (mumamo-fontify-region-with here max verbose chunk-major
                                         syntax-min syntax-max))
@@ -2656,21 +2712,21 @@ See `mumamo-major-modes' for an explanation."
 
 
 
-(defun mumamo-get-existing-chunk-at (pos)
-  "Return existing chunk at POS if any."
-  ;;(message "mumamo-get-existing-chunk-at pos=%s" pos)
-  (let ((chunk-ovl))
-    (when (= pos (point-max))
-      (setq pos (1- pos)))
-    (dolist (o (overlays-at pos))
-      (unless chunk-ovl
-        (when ;;(mumamo-chunk-major-mode o)
-            (and (overlay-get o 'mumamo-major-mode)
-                 (not (overlay-get o 'mumamo-is-new))
-                 (not (overlay-get o 'mumamo-is-old)))
-          (setq chunk-ovl o))))
-    ;;(message "mumamo-get-existing-chunk-at EXIT chunk-ovl=%s" chunk-ovl)
-    chunk-ovl))
+;; (defun mumamo-get-existing-chunk-at (pos)
+;;   "Return existing chunk at POS if any."
+;;   ;;(message "mumamo-get-existing-chunk-at pos=%s" pos)
+;;   (let ((chunk-ovl))
+;;     (when (= pos (point-max))
+;;       (setq pos (1- pos)))
+;;     (dolist (o (overlays-at pos))
+;;       (unless chunk-ovl
+;;         (when ;;(mumamo-chunk-major-mode o)
+;;             (and (overlay-get o 'mumamo-major-mode)
+;;                  (not (overlay-get o 'mumamo-is-new))
+;;                  (not (overlay-get o 'mumamo-is-old)))
+;;           (setq chunk-ovl o))))
+;;     ;;(message "mumamo-get-existing-chunk-at EXIT chunk-ovl=%s" chunk-ovl)
+;;     chunk-ovl))
 
 (defun mumamo-get-existing-new-chunk-at (pos)
   "Return last existing chunk at POS if any."
@@ -2718,7 +2774,7 @@ See `mumamo-major-modes' for an explanation."
     (mumamo-major-mode-from-modespec (mumamo-main-major-mode))
     ))
 
-(defsubst mumamo-chunk-syntax-min-max (chunk)
+(defsubst mumamo-chunk-syntax-min-max (chunk no-obscure)
   (when chunk
     (let* ((ovl-end   (overlay-end chunk))
            (ovl-start (overlay-start chunk))
@@ -2736,17 +2792,31 @@ See `mumamo-major-modes' for an explanation."
                     ;; overlay. (This cured the problem with
                     ;; kubica-freezing-i.html that made Emacs loop in
                     ;; font-lock-extend-region-multiline.)
-                    1 ))))
-      (cons syntax-min syntax-max))))
+                    1 )))
+           (obscure (unless no-obscure (overlay-get chunk 'obscured)))
+           (region-info (cadr obscure))
+           (obscure-min (car region-info))
+           (obscure-max (cdr region-info))
+           ;;(dummy (message "syn-mn-mx:obs=%s r-info=%s ob=%s/%s" obscure region-info obscure-min obscure-max ))
+           (actual-min (max (or obscure-min ovl-start)
+                            (or syntax-min ovl-start)))
+           (actual-max (min (or obscure-max ovl-end)
+                            (or syntax-max ovl-end)))
+           (maj (overlay-get chunk 'mumamo-major-mode))
+           ;;(dummy (message "syn-mn-mx:obs=%s r-info=%s ob=%s/%s ac=%s/%s" obscure region-info obscure-min obscure-max actual-min actual-max))
+           )
+      (cons actual-min actual-max))))
 
 (defun mumamo-syntax-maybe-completable (pnt)
   "Return non-nil if at point PNT non-printable characters may occur.
 This just considers existing chunks."
   ;;(let ((chunk (mumamo-get-existing-chunk-at pnt)))
   (let* ((chunk (mumamo-find-chunks pnt "mumamo-syntax-maybe-completable"))
-         (syn-min-max (mumamo-chunk-syntax-min-max chunk)))
+         syn-min-max)
     (if (not chunk)
         t
+      (mumamo-update-obscure chunk pnt)
+      (setq syn-min-max (mumamo-chunk-syntax-min-max chunk nil))
       ;;(and (> pnt (1+ (mumamo-chunk-syntax-min chunk)))
       (and (> pnt (1+ (car syn-min-max)))
            ;;(< pnt (1- (mumamo-chunk-syntax-max chunk)))))))
@@ -3567,7 +3637,7 @@ See also `mumamo-quick-static-chunk'."
     (let ((ovls (overlays-in (point-min) (point-max))))
       (dolist (ovl ovls)
         (when (overlay-get ovl 'mumamo-is-new)
-          (msgtrc "delete-overlay %s delete-new-chunks" ovl)
+          ;;(msgtrc "delete-overlay %s delete-new-chunks" ovl)
           (delete-overlay ovl))))))
 
 (defun mumamo-new-create-chunk (new-chunk-values)
@@ -3643,7 +3713,7 @@ The first two are used when the bottom:
            (this-borders-min (nth 0 this-borders))
            (this-borders-max (when is-closed (nth 1 this-borders)))
            )
-      (msgtrc "created %s, major=%s" this-chunk maj)
+      ;;(msgtrc "created %s, major=%s" this-chunk maj)
       (when (> depth 4) (error "Chunk depth > 4"))
       (setq bmin nil)
       (setq bmax nil)
@@ -3815,6 +3885,8 @@ information.
             main-chunk-funs))
          (curr-end-fun (when after-chunk-valid
                          (overlay-get after-chunk 'mumamo-next-end-fun)))
+         (curr-border-fun (when curr-end-fun
+                            (overlay-get after-chunk 'mumamo-next-border-fun)))
          curr-max
          next-max
          curr-max-found
@@ -3857,17 +3929,22 @@ information.
         ;; of the change.
         ;;(message "set after-change-max nil")
         ;;(setq after-change-max nil)
-        (let ((use-max (if after-change-max
-                           (+ after-change-max 100)
-                         max))
-              (use-min (max (- pos 2) (point-min))))
+        (let* ((use-max (if after-change-max
+                            (+ after-change-max 100)
+                          max))
+               (use-min (max (- pos 2) (point-min)))
+               (syntax-min-max (when curr-border-fun (funcall curr-border-fun)))
+               (syntax-min (or (car syntax-min-max)
+                               (when after-chunk (overlay-end after-chunk))
+                               1)))
           (setq curr-end-fun-end (funcall curr-end-fun use-min use-max))
           ;;(read-string "here: ")
           ;;(msgtrc "Calling (curr-end-fun=%s %s %s)=>%s" curr-end-fun use-min use-max curr-end-fun-end)
           ;; Fix-me: this test should also be made for other chunks
           ;; searches, but this catches most problems I think.
           (or (not curr-end-fun-end)
-              (mumamo-end-in-code use-syntax-min curr-end-fun-end curr-major)
+              ;;(progn (msgtrc "end-in-code: %s %s %s" syntax-min curr-end-fun curr-major) nil)
+              (mumamo-end-in-code syntax-min curr-end-fun-end curr-major)
               (setq curr-end-fun-end nil))
           ))
       (when (listp curr-chunk-funs)
@@ -4035,9 +4112,11 @@ information.
   "Return t if chunk CHUNK should be valid XML."
   (when chunk
     (let ((major-mode (mumamo-chunk-major-mode chunk))
+          (region (overlay-get chunk 'mumamo-region))
           (parseable-by (overlay-get chunk 'mumamo-parseable-by)))
       ;;(message "mumamo-valid-nxml-chunk: major-mode=%s, parseble-by=%s" major-mode parseable-by)
-      (or (derived-mode-p 'nxml-mode)
+      (or region
+          (derived-mode-p 'nxml-mode)
           (memq 'nxml-mode parseable-by)))))
 
 ;; A good test case for the use of this is the troublesome code in the
@@ -5635,10 +5714,7 @@ OLD-MAJOR-MODE is used for the main major mode if the main major
 mode in the chunk family is nil."
   ;;(unless font-lock-mode (font-lock-mode 1))
   (mumamo-msgfntfy "mumamo-turn-on-actions")
-  (unless mumamo-current-chunk-family
-    ;;(mumamo-select-chunk-family)
-    (error "Internal error: Chunk family is not set")
-    )
+  (unless mumamo-current-chunk-family (error "Internal error: Chunk family is not set"))
   (if (not mumamo-current-chunk-family)
       (progn
         (lwarn '(mumamo) :warning
@@ -5680,8 +5756,6 @@ mode in the chunk family is nil."
       (setq flyspell-generic-check-word-predicate 'mumamo-flyspell-verify))
     (run-hooks 'mumamo-turn-on-hook)
     (mumamo-get-chunk-save-buffer-state (point))
-    ;;(message "(benchmark 1 '(mumamo-find-chunks nil benchmark))") (benchmark 1 '(mumamo-find-chunks nil "benchmark"))
-    ;;(setq mumamo-end-last-chunk-pos nil)
     (let* ((ovl (mumamo-find-chunks (point) "mumamo-turn-on-actions"))
            (major (mumamo-chunk-major-mode ovl)))
       (mumamo-set-major major))
@@ -5744,6 +5818,7 @@ mode in the chunk family is nil."
   (remove-hook 'post-command-hook 'mumamo-post-command t)
   ;;(remove-hook 'c-special-indent-hook 'mumamo-c-special-indent t)
   (mumamo-remove-all-chunk-overlays)
+  (when (fboundp 'mumamo-clear-all-regions) (mumamo-clear-all-regions))
   (save-restriction
     (widen)
     (mumamo-save-buffer-state nil
@@ -5853,6 +5928,12 @@ It has the some priority as minor mode maps.")
 (put 'mumamo-map 'permanent-local t)
 
 (mumamo-add-multi-keymap 'mumamo-multi-major-mode mumamo-map)
+
+;;;###autoload
+(defun mumamo-multi-major-modep (value)
+  "Return t if VALUE is a multi major mode function."
+  (and (fboundp value)
+       (rassq value mumamo-defined-turn-on-functions)))
 
 ;; fix-me: tell no sub-chunks in sub-chunks
 (defmacro define-mumamo-multi-major-mode (fun-sym spec-doc chunks)
@@ -6024,7 +6105,7 @@ information about multi major modes please see
 (defvar ,turn-on-fun nil)
 (make-variable-buffer-local ',turn-on-fun)
 (put ',turn-on-fun 'permanent-local t)
-(put ',turn-on-fun 'chunk-family (copy-tree ',chunks2))
+(put ',turn-on-fun 'mumamo-chunk-family (copy-tree ',chunks2))
 (defun ,turn-on-fun nil ,docstring
   (interactive)
   (let ((old-major-mode (or mumamo-major-mode
@@ -6281,7 +6362,8 @@ The following rules are used when indenting:
               (here (point))
               ind-on-first-sub-line)
           (save-restriction
-            (let ((syn-min-max (mumamo-chunk-syntax-min-max chunk)))
+            (mumamo-update-obscure chunk here)
+            (let ((syn-min-max (mumamo-chunk-syntax-min-max chunk nil)))
               (narrow-to-region (car syn-min-max)
                                 (cdr syn-min-max)))
             (save-restriction
@@ -6375,7 +6457,7 @@ The following rules are used when indenting:
       (assert (eq maj major-mode))
       (save-restriction
         ;; (unless (mumamo-indent-use-widen major-mode)
-        ;;   (let ((syn-min-max (mumamo-chunk-syntax-min-max chunk)))
+        ;;   (let ((syn-min-max (mumamo-chunk-syntax-min-max chunk nil)))
         ;;     (narrow-to-region (car syn-min-max) (cdr syn-min-max))))
         (when (mumamo-indent-use-widen major-mode) (widen))
         (funcall fun)
@@ -6427,7 +6509,8 @@ mumamo is used."
     (save-restriction
       ;; (narrow-to-region (mumamo-chunk-syntax-min ovl)
       ;;                   (mumamo-chunk-syntax-max ovl))
-      (let ((syn-min-max (mumamo-chunk-syntax-min-max ovl)))
+      (mumamo-update-obscure ovl (point))
+      (let ((syn-min-max (mumamo-chunk-syntax-min-max ovl nil)))
         (narrow-to-region (car syn-min-max)
                           (cdr syn-min-max)))
       (mumamo-with-major-mode-fontification major
@@ -6563,7 +6646,7 @@ See the defadvice for `syntax-ppss' for an explanation."
     (let ((pos (ad-get-arg 0)))
       (let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode)
                                       mumamo-multi-major-mode)
-                             (mumamo-find-chunks pos "syntax-ppss-flush-cache"))))
+                             (mumamo-find-chunks-1 pos "syntax-ppss-flush-cache"))))
         (if chunk-at-pos
             (let* ((syntax-ppss-last  (overlay-get chunk-at-pos 'syntax-ppss-last))
                    (syntax-ppss-cache (overlay-get chunk-at-pos 'syntax-ppss-cache)))
@@ -6663,7 +6746,8 @@ Do here also other necessary adjustments for this."
     (let ((pos (ad-get-arg 0)))
       (unless pos (setq pos (point)))
       ;;(let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-get-existing-chunk-at pos)))
-      (let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode) (mumamo-find-chunks pos "syntax-ppss")))
+      (let* ((chunk-at-pos (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode)
+                             (mumamo-find-chunks-1 pos "syntax-ppss")))
              (dump2 (and (boundp 'dump-quote-hunt)
                          dump-quote-hunt
                          (boundp 'start)
@@ -6673,7 +6757,7 @@ Do here also other necessary adjustments for this."
         (setq mumamo-syntax-chunk-at-pos chunk-at-pos)
         (when dump2 (msgtrc "\npos=%s point-min=%s mumamo-syntax-ppss.chunk-at-pos=%s" pos (point-min) chunk-at-pos))
         (if chunk-at-pos
-            (let* ((chunk-syntax-min-max (mumamo-chunk-syntax-min-max chunk-at-pos))
+            (let* ((chunk-syntax-min-max (mumamo-chunk-syntax-min-max chunk-at-pos t))
                    (chunk-syntax-min (car chunk-syntax-min-max))
                    (chunk-major (mumamo-chunk-major-mode chunk-at-pos))
                    (syntax-ppss-last  (overlay-get chunk-at-pos 'syntax-ppss-last))
@@ -6826,29 +6910,21 @@ For more info see also `rng-get-major-mode-chunk-function'.")
       ad-do-it
     (let* ((beg (ad-get-arg 1))
            (end (ad-get-arg 2))
-           (ovls-beg-end (overlays-in beg end))
            (xml-parts nil)
-           chunks
-           )
-      (dolist (ovl ovls-beg-end)
-        (when (mumamo-chunk-major-mode ovl)
-          (setq chunks (cons ovl chunks))))
-      ;;(message "rng-mark-error advice, beg,end=%s,%s" beg end)
-      ;;(message "chunks=%s" chunks)
-      (if (not chunks)
+           (chunk (mumamo-find-chunks beg "rng-mark-error")))
+      (if (not chunk)
           ad-do-it
-        (dolist (chunk chunks)
-          (when (mumamo-valid-nxml-chunk chunk)
-            ;; rng-error
-            (let ((part-beg (max (overlay-start chunk)
-                                 beg))
-                  (part-end (min (overlay-end chunk)
-                                 end)))
-              ;;(message "   part-beg/end=%s/%s" part-beg part-end)
-              (when (< part-beg part-end)
-                (ad-set-arg 1 part-beg)
-                (ad-set-arg 2 part-end)
-                ad-do-it))))))))
+        (when (and (not (overlay-get chunk 'mumamo-region))
+                   (mumamo-valid-nxml-chunk chunk))
+          ;; rng-error
+          (let ((part-beg (max (overlay-start chunk)
+                               beg))
+                (part-end (min (overlay-end chunk)
+                               end)))
+            (when (< part-beg part-end)
+              (ad-set-arg 1 part-beg)
+              (ad-set-arg 2 part-end)
+              ad-do-it)))))))
 
 (defadvice rng-do-some-validation-1 (around
                                      mumamo-advice-rng-do-some-validation-1
@@ -7062,16 +7138,11 @@ a narrow-to-multiple-regions function!"
       ad-do-it
     (when (let* ((start (or start xmltok-start))
                  (end (or end (point)))
-                 ;; Fix-me: this is too slow - or was that really the
-                 ;; problem???
-                 ;;(chunk (mumamo-get-existing-chunk-at (if start start end)))
                  (chunk (mumamo-find-chunks (if start start end) "xmltok-add-error"))
                  )
-            ;;(message "chunk=%s, start=%s end=%s, x=%s" chunk start end (mumamo-valid-nxml-chunk chunk))
-            ;;(mumamo-valid-nxml-point (if start start end))
-            (when chunk (mumamo-valid-nxml-chunk chunk))
-            )
-      ;;(message "xmltok-add-error start=%s, end=%s" start end)
+            (or (not chunk)
+                (and (not (overlay-get chunk 'mumamo-region))
+                     (mumamo-valid-nxml-chunk chunk))))
       (setq xmltok-errors
             (cons (xmltok-make-error message
                                      (or start xmltok-start)
@@ -7122,9 +7193,10 @@ a narrow-to-multiple-regions function!"
  'emacs-lisp-mode
  '(("\\<define-mumamo-multi-major-mode\\>" . font-lock-keyword-face)))
 
+
 (when buffer-file-name (message "\nFinished evaluating %s\n" buffer-file-name))
 (when load-file-name (message "\nFinished loading %s\n" load-file-name))
 
 (provide 'mumamo)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; mumamo.el ends here
+;;; mumamo.el ends bere

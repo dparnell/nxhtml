@@ -690,6 +690,7 @@ If type WORST is non-nil try to include that."
     (unless (<= num alen)
       (error "n-back: Too many match types required = %s" num))
     (when (and worst
+               (< 1 num)
                (memq worst n-back-allowed-match-types))
       (add-to-list 'types worst))
     (while (< (length types) num)

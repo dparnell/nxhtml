@@ -162,7 +162,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (18976 12176))
+;;;;;;  "nxhtml/nxhtml-menu.el" (18980 8880))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -1700,8 +1700,8 @@ before applying.
 
 ;;;***
 
-;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18976
-;;;;;;  33801))
+;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18979
+;;;;;;  51770))
 ;;; Generated autoloads from util/mlinks.el
 
 (autoload 'mlinks-mode "mlinks" "\
@@ -1735,14 +1735,19 @@ By default the link moved to will be active, see
 
 ;;;***
 
-;;;### (autoloads (mumamo-mark-for-refontification) "mumamo" "util/mumamo.el"
-;;;;;;  (18977 51097))
+;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
+;;;;;;  "mumamo" "util/mumamo.el" (18980 7354))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
 Mark region between MIN and MAX for refontification.
 
 \(fn MIN MAX)" nil nil)
+
+(autoload 'mumamo-multi-major-modep "mumamo" "\
+Return t if VALUE is a multi major mode function.
+
+\(fn VALUE)" nil nil)
 
 ;;;***
 
@@ -1837,8 +1842,19 @@ This also covers inlined style and javascript." t)
 
 ;;;***
 
-;;;### (autoloads (n-back-game) "n-back" "util/n-back.el" (18977
-;;;;;;  59331))
+;;;### (autoloads (mumamo-add-region) "mumamo-regions" "util/mumamo-regions.el"
+;;;;;;  (18980 8322))
+;;; Generated autoloads from util/mumamo-regions.el
+
+(autoload 'mumamo-add-region "mumamo-regions" "\
+Add a mumamo region.
+
+\(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads (n-back-game) "n-back" "util/n-back.el" (18978
+;;;;;;  35999))
 ;;; Generated autoloads from util/n-back.el
 
 (autoload 'n-back-game "n-back" "\
@@ -1890,10 +1906,10 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;;;;  describe-command ourcomments-ediff-files find-emacs-other-file
 ;;;;;;  better-fringes-mode wrap-to-fill-column-mode wrap-to-fill-left-marg-modes
 ;;;;;;  wrap-to-fill-left-marg describe-key-and-map-briefly ourcomments-move-end-of-line
-;;;;;;  ourcomments-move-beginning-of-line major-modep multi-major-modep
-;;;;;;  major-or-multi-majorp unfill-individual-paragraphs unfill-region
-;;;;;;  unfill-paragraph define-toggle popup-menu-at-point) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (18977 17813))
+;;;;;;  ourcomments-move-beginning-of-line major-modep major-or-multi-majorp
+;;;;;;  unfill-individual-paragraphs unfill-region unfill-paragraph
+;;;;;;  define-toggle popup-menu-at-point) "ourcomments-util" "util/ourcomments-util.el"
+;;;;;;  (18979 64414))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -1947,11 +1963,6 @@ Unfill individual paragraphs in the current region.
 
 (autoload 'major-or-multi-majorp "ourcomments-util" "\
 Not documented
-
-\(fn VALUE)" nil nil)
-
-(autoload 'multi-major-modep "ourcomments-util" "\
-Return t if VALUE is a multi major mode function.
 
 \(fn VALUE)" nil nil)
 
@@ -2673,7 +2684,7 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (18977 59661 390000))
+;;;;;;  (18980 8902 125000))
 
 ;;;***
 
