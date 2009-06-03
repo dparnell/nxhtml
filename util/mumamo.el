@@ -2254,6 +2254,7 @@ The main reasons for doing it this way is:
   (let ((func-sym (intern (concat "mumamo-eval-in-" (symbol-name major))))
         ;;(add-keywords-hook (mumamo-font-lock-keyword-hook-symbol major))
         byte-compiled-fun
+        (fetch-func-definition `(lambda  (body))) ;;`(defun ,func-sym (body)))
         temp-buf-name
         temp-buf)
     ;; font-lock-mode can't be turned on in buffers whose names start
@@ -2301,9 +2302,6 @@ The main reasons for doing it this way is:
 
       (mumamo-msgfntfy "mumamo-fetch-major-mode-setup: fetching jit-lock-after-change-extend-region-functions B=%s" jit-lock-after-change-extend-region-functions)
       (let* ((syntax-sym (intern-soft (concat (symbol-name major) "-syntax-table")))
-             (fetch-func-definition
-              ;;`(defun ,func-sym (body)))
-              `(lambda  (body)))
              (fetch-func-definition-let
               ;; Be XML compliant:
               (list
@@ -2409,11 +2407,13 @@ The main reasons for doing it this way is:
                                   (byte-compile fetch-func-definition)))
         (unless keywords
           (eval `(defvar ,func-sym nil))
+          (set func-sym byte-compiled-fun) ;; Will be used as default
           (put func-sym 'permanent-local t))))
-    (set (make-local-variable func-sym) byte-compiled-fun)
+    (when keywords
+      (set (make-local-variable func-sym) byte-compiled-fun))
     (kill-buffer temp-buf)
     ;; Fix-me: return a list def + fun
-    func-sym))
+    (cons func-sym fetch-func-definition)))
 
 ;; Fix-me: maybe a hook in font-lock-add-keywords??
 ;; (defadvice font-lock-add-keywords (around
@@ -2502,12 +2502,12 @@ fontification and speeds up fontification significantly."
       (add-to-list 'mumamo-internal-major-modes-alist use-major-entry)
       ))
 
-  (cadr (or (assq use-major mumamo-internal-major-modes-alist)
-            (assq use-major
-                  (add-to-list 'mumamo-internal-major-modes-alist
-                               (list use-major
-                                     (mumamo-fetch-major-mode-setup
-                                      use-major nil nil nil)))))))
+  (caadr (or (assq use-major mumamo-internal-major-modes-alist)
+             (assq use-major
+                   (add-to-list 'mumamo-internal-major-modes-alist
+                                (list use-major
+                                      (mumamo-fetch-major-mode-setup
+                                       use-major nil nil nil)))))))
 
 (defun mumamo-remove-all-chunk-overlays ()
   "Remove all CHUNK overlays from the current buffer."
