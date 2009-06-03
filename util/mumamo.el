@@ -1434,6 +1434,14 @@ Do not record undo information during evaluation of BODY."
        ))))
 
 
+;; Fix me: The functions in this list must be replaced by variables
+;; pointing to anonymous functions for buffer local values of
+;; fontification keywords to be supported. And that is of course
+;; necessary for things like hi-lock etc. (Or..., perhaps some kind of
+;; with-variable-values... as RMS suggested once... but that will not
+;; help here...)
+;;
+;; Seems like font-lock-add-keywords must be advised...
 (defvar mumamo-internal-major-modes-alist nil
   "Alist with info for different major modes.
 Internal use only.  This is automatically set up by
@@ -1520,7 +1528,7 @@ level \(ie user interaction level)."
            (evaled-set-mode (mumamo-get-major-mode-setup need-major-mode)))
        ;;(message ">>>>>> before %s" evaled-set-mode)
        ;;(message ">>>>>> before %s, body=%s" evaled-set-mode (list ,@body))
-       (funcall evaled-set-mode
+       (funcall (symbol-value evaled-set-mode)
                 (list 'progn
                       ,@body))
        ;;(mumamo-msgfntfy "<<<<<< after evaled-set-mode modified=%s" (buffer-modified-p))
@@ -1678,6 +1686,16 @@ fontification."
   (mumamo-msgfntfy "mumamo-unfontify-region-with %s %s %s, ff=%s" start end major (get-text-property start 'fontified))
   (mumamo-with-major-mode-fontification major
     `(mumamo-do-unfontify ,start ,end)))
+
+
+(defvar mumamo-multi-major-mode nil
+  "The function that handles multiple major modes.
+If this is nil then multiple major modes in the buffer is not
+handled by mumamo.
+
+Set by functions defined by `define-mumamo-multi-major-mode'.")
+(make-variable-buffer-local 'mumamo-multi-major-mode)
+(put 'mumamo-multi-major-mode 'permanent-local t)
 
 
 (defun mumamo-unfontify-buffer ()
@@ -2187,7 +2205,9 @@ After calling font-lock-add-keywords or changing the
 fontification in other ways you must call this function for the
 changes to take effect.  However already fontified buffers will
 not be refontified.  You can use `normal-mode' to refontify
-them."
+them.
+
+Fix-me: Does not work yet."
 
   (setq mumamo-internal-major-modes-alist
         (if (not major)
@@ -2205,7 +2225,7 @@ them."
 ;;;     is a better way to do this than with helper functions.
 ;;
 ;; OK with me, as long as this point doesn't get forgotten.
-(defun mumamo-fetch-major-mode-setup (major)
+(defun mumamo-fetch-major-mode-setup (major keywords add-keywords how)
   "Return a helper function to do fontification etc like in major mode MAJOR.
 Fetch the variables affecting font locking, indentation and
 filling by calling the major mode MAJOR in a temporary buffer.
@@ -2233,6 +2253,7 @@ The main reasons for doing it this way is:
   ;; (info "(elisp) Syntactic Font Lock)
   (let ((func-sym (intern (concat "mumamo-eval-in-" (symbol-name major))))
         ;;(add-keywords-hook (mumamo-font-lock-keyword-hook-symbol major))
+        byte-compiled-fun
         temp-buf-name
         temp-buf)
     ;; font-lock-mode can't be turned on in buffers whose names start
@@ -2265,7 +2286,10 @@ The main reasons for doing it this way is:
 ;;;         (dolist (hi hi-lock-interactive-patterns)
 ;;;           (font-lock-add-keywords nil (list hi) t)))
 ;;;      (run-hooks 'font-lock-mode-hook)
-
+      (when keywords
+        (if add-keywords
+            (font-lock-add-keywords major keywords how)
+          (font-lock-remove-keywords major keywords)))
       (font-lock-set-defaults)
       ;;(run-hooks add-keywords-hook)
 
@@ -2278,7 +2302,8 @@ The main reasons for doing it this way is:
       (mumamo-msgfntfy "mumamo-fetch-major-mode-setup: fetching jit-lock-after-change-extend-region-functions B=%s" jit-lock-after-change-extend-region-functions)
       (let* ((syntax-sym (intern-soft (concat (symbol-name major) "-syntax-table")))
              (fetch-func-definition
-              `(defun ,func-sym (body)))
+              ;;`(defun ,func-sym (body)))
+              `(lambda  (body)))
              (fetch-func-definition-let
               ;; Be XML compliant:
               (list
@@ -2364,59 +2389,59 @@ The main reasons for doing it this way is:
             (setq relevant-buffer-locals (assq-delete-all fvar relevant-buffer-locals))))
         (setq fetch-func-definition
               (append fetch-func-definition
-                      (list
-                       (list 'let
-                             (append
-                              fetch-func-definition-let
-                              relevant-buffer-locals
-                              )
-                             (list 'with-syntax-table
-                                   ;;(list 'if syntax-sym syntax-sym
-                                   (if syntax-sym
-                                       syntax-sym
-                                     (list 'standard-syntax-table)
-                                     );;'syntax-table
-                                   ;; I can't see why it should be
-                                   ;; needed to call
-                                   ;; `font-lock-set-defaults' now:
-;;;                                    '(let ((t1 (get-internal-run-time))
-;;;                                           t2)
-;;;                                       (setq font-lock-set-defaults nil)
-;;;                                       (font-lock-set-defaults)
-;;;                                       (setq t2 (get-internal-run-time))
-;;;                                       (mumamo-msgfntfy "font-lock-set-defaults runtime=%s, %s" t1 t2)
-;;;                                       t2
-;;;                                       )
+                      `((let ,(append fetch-func-definition-let
+                                      relevant-buffer-locals)
+                          (with-syntax-table ,(if syntax-sym
+                                                  syntax-sym
+                                                '(standard-syntax-table));;'syntax-table
+                            (eval body))))))
+        ;; (eval fetch-func-definition)
+        ;; (byte-compile fetch-func-definition) ;; Fix-me: why???
+        ;; (mumamo-msgfntfy "===========> after eval")
+        ;; ;; Silence the byte compiler:
+        ;; (let ((major-syntax-table))
+        ;;   (byte-compile func-sym))
+        ;; (mumamo-msgfntfy "===========> after byte-compile")
 
-;;;                                 '(message "eval body: syntax-table=html ? %s, not flsyn-tab=%s"
-;;;                                       (equal
-;;;                                             (syntax-table)
-;;;                                             html-mode-syntax-table)
-;;;                                       (not font-lock-syntax-table))
-;;;                                 '(message "  syntax-table=html ? %s" (equal (syntax-table) html-mode-syntax-table))
-;;;                                 '(message "  sgml-font-lock-syntactic-keywords=%S" sgml-font-lock-syntactic-keywords)
-;;;                                 '(message "  font-lock-syntactic-keywords=%S" font-lock-syntactic-keywords)
-;;;                                 '(message "  font-lock-syntactic-keywords=html? %s"
-;;;                                           (or (equal font-lock-syntactic-keywords 'sgml-font-lock-syntactic-keywords)
-;;;                                               (equal (nth 1 font-lock-syntactic-keywords) sgml-font-lock-syntactic-keywords)))
-;;;                                 '(message "  multibyte-syntax-as-symbol=%s parse-sexp-ignore-comments=%s parse-sexp-lookup-properties=%s"
-;;;                                           multibyte-syntax-as-symbol
-;;;                                           parse-sexp-ignore-comments
-;;;                                           parse-sexp-lookup-properties)
-
-                                   (list 'eval 'body))))))
-        (eval fetch-func-definition)
-        (byte-compile fetch-func-definition)
-        (mumamo-msgfntfy "===========> after eval")
-        ;; Silence the byte compiler:
-        (let ((major-syntax-table))
-          (byte-compile func-sym))
-        (mumamo-msgfntfy "===========> after byte-compile")
+        ;; Fix-me: don't put it here:
         (put func-sym 'mumamo-defun fetch-func-definition)
-        ))
+        (setq byte-compiled-fun (let ((major-syntax-table))
+                                  (byte-compile fetch-func-definition)))
+        (unless keywords
+          (eval `(defvar ,func-sym nil))
+          (put func-sym 'permanent-local t))))
+    (set (make-local-variable func-sym) byte-compiled-fun)
     (kill-buffer temp-buf)
+    ;; Fix-me: return a list def + fun
     func-sym))
 
+;; Fix-me: maybe a hook in font-lock-add-keywords??
+;; (defadvice font-lock-add-keywords (around
+;;                                    mumamo-ad-font-lock-add-keywords
+;;                                    activate
+;;                                    compile
+;;                                    )
+;;   (if (not mumamo-multi-major-mode)
+;;       ad-do-it
+;;     (let (mumamo-multi-major-mode
+;;           (major    (ad-get-arg 0))
+;;           (keywords (ad-get-arg 1))
+;;           (how      (ad-get-arg 2)))
+;;       (if major
+;;           (mumamo-fetch-major-mod-setup major keywords how)
+;;         ;; Fix-me: Can't do that, need a list of all
+;;         ;; mumamo-current-chunk-family chunk functions major
+;;         ;; modes. But this is impossible since the major modes might
+;;         ;; be determined dynamically. As a work around look in current
+;;         ;; chunks.
+;;         (let ((majors (list (mumamo-main-major-mode))))
+;;           (dolist (entry mumamo-internal-major-modes-alist)
+;;             (setq majors (cons (car entry) majors)))
+;;           (dolist (major majors)
+;;             (mumamo-fetch-major-mod-setup major keywords how))))
+;;       (font-lock-mode -1)
+;;       (font-lock-mode 1)
+;;     )))
 
 (defun mumamo-bad-mode ()
   "MuMaMo replacement for a major mode that could not be loaded."
@@ -2461,7 +2486,7 @@ fontification and speeds up fontification significantly."
         (add-to-list 'mumamo-internal-major-modes-alist
                      (list 'mumamo-bad-mode
                            (mumamo-fetch-major-mode-setup
-                            'mumamo-bad-mode)))
+                            'mumamo-bad-mode nil nil nil)))
         (setq bad-mode-entry
               (assq 'mumamo-bad-mode mumamo-internal-major-modes-alist)))
       (setq dummy-entry (list use-major (cadr bad-mode-entry)))
@@ -2470,7 +2495,7 @@ fontification and speeds up fontification significantly."
       (add-to-list 'mumamo-internal-major-modes-alist dummy-entry)
       (setq use-major-entry (list use-major
                                   (mumamo-fetch-major-mode-setup
-                                   use-major)))
+                                   use-major nil nil nil)))
       (setq mumamo-internal-major-modes-alist
             (delete dummy-entry
                     mumamo-internal-major-modes-alist))
@@ -2482,7 +2507,7 @@ fontification and speeds up fontification significantly."
                   (add-to-list 'mumamo-internal-major-modes-alist
                                (list use-major
                                      (mumamo-fetch-major-mode-setup
-                                      use-major)))))))
+                                      use-major nil nil nil)))))))
 
 (defun mumamo-remove-all-chunk-overlays ()
   "Remove all CHUNK overlays from the current buffer."
@@ -4349,15 +4374,6 @@ explanation."
 (defvar mumamo-done-first-set-major nil)
 (make-variable-buffer-local 'mumamo-done-first-set-major)
 (put 'mumamo-done-first-set-major 'permanent-local t)
-
-(defvar mumamo-multi-major-mode nil
-  "The function that handles multiple major modes.
-If this is nil then multiple major modes in the buffer is not
-handled by mumamo.
-
-Set by functions defined by `define-mumamo-multi-major-mode'.")
-(make-variable-buffer-local 'mumamo-multi-major-mode)
-(put 'mumamo-multi-major-mode 'permanent-local t)
 
 ;; Fix-me: Add a property to the symbol instead (like in CUA).
 (defvar mumamo-safe-commands-in-wrong-major
@@ -6635,7 +6651,7 @@ mumamo is used."
 ;; New versions of syntax-ppss functions, temporary written as defadvice.
 
 (defadvice syntax-ppss-flush-cache (around
-                                    mumamo-advice-syntax-ppss-flush-cache
+                                    mumamo-ad-syntax-ppss-flush-cache
                                     activate
                                     compile
                                     )
@@ -6665,7 +6681,7 @@ See the defadvice for `syntax-ppss' for an explanation."
 ;; Fix-me: Is this really needed?
 ;; See http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg00374.html
 (defadvice syntax-ppss-stats (around
-                              mumamo-advice-syntax-ppss-stats
+                              mumamo-ad-syntax-ppss-stats
                               activate
                               compile
                               )
@@ -6716,7 +6732,7 @@ See the defadvice for `syntax-ppss' for an explanation."
 ;; `mumamo-chunk-attr=' to make "" borders, but I am not sure that it
 ;; works and it is the wrong solution.
 (defadvice syntax-ppss (around
-                        mumamo-advice-syntax-ppss
+                        mumamo-ad-syntax-ppss
                         activate
                         compile
                         )
@@ -6901,8 +6917,10 @@ For more info see also `rng-get-major-mode-chunk-function'.")
 
 ;; Fix-me: The solution in this defadvice is temporary. The defadvice
 ;; for rng-do-some-validation should be fixed instead.
+;; (ad-disable-advice 'rng-mark-error 'around 'mumamo-ad-rng-mark-error)
+;; (ad-ensable-advice 'rng-mark-error 'around 'mumamo-ad-rng-mark-error)
 (defadvice rng-mark-error (around
-                           mumamo-advice-rng-mark-error
+                           mumamo-ad-rng-mark-error
                            activate
                            compile)
   "Adjust range for error to chunks."
@@ -6927,7 +6945,7 @@ For more info see also `rng-get-major-mode-chunk-function'.")
               ad-do-it)))))))
 
 (defadvice rng-do-some-validation-1 (around
-                                     mumamo-advice-rng-do-some-validation-1
+                                     mumamo-ad-rng-do-some-validation-1
                                      activate
                                      compile)
   "Adjust validation to chunks."
@@ -7100,14 +7118,14 @@ For more info see also `rng-get-major-mode-chunk-function'.")
       (setq ad-return-value have-remaining-chars))))
 
 (defadvice rng-after-change-function (around
-                                      mumamo-advice-rng-after-change-function
+                                      mumamo-ad-rng-after-change-function
                                       activate
                                       compile)
   (when rng-validate-up-to-date-end
     ad-do-it))
 
 (defadvice rng-validate-while-idle (around
-                                    mumamo-advice-rng-validate-while-idle
+                                    mumamo-ad-rng-validate-while-idle
                                     activate
                                     compile)
   (if (not (buffer-live-p buffer))
@@ -7115,7 +7133,7 @@ For more info see also `rng-get-major-mode-chunk-function'.")
     ad-do-it))
 
 (defadvice rng-validate-quick-while-idle (around
-                                    mumamo-advice-rng-validate-quick-while-idle
+                                    mumamo-ad-rng-validate-quick-while-idle
                                     activate
                                     compile)
   (if (not (buffer-live-p buffer))
@@ -7125,8 +7143,10 @@ For more info see also `rng-get-major-mode-chunk-function'.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; xmltok.el
 
+;; (ad-disable-advice 'xmltok-add-error 'around 'mumamo-ad-xmltok-add-error)
+;; (ad-ensable-advice 'xmltok-add-error 'around 'mumamo-ad-xmltok-add-error)
 (defadvice xmltok-add-error (around
-                             mumamo-advice-xmltok-add-error
+                             mumamo-ad-xmltok-add-error
                              activate
                              compile
                              )
@@ -7162,15 +7182,15 @@ a narrow-to-multiple-regions function!"
       ;; (ad-activate 'rng-do-some-validation-1)
       ;; (ad-activate 'rng-mark-error)
       ;; (ad-activate 'xmltok-add-error)
-      (ad-enable-advice 'syntax-ppss 'around 'mumamo-advice-syntax-ppss)
-      (ad-enable-advice 'syntax-ppss-flush-cache 'around 'mumamo-advice-syntax-ppss-flush-cache)
-      (ad-enable-advice 'syntax-ppss-stats 'around 'mumamo-advice-syntax-ppss-stats)
-      (ad-enable-advice 'rng-do-some-validation-1 'around 'mumamo-advice-rng-do-some-validation-1)
-      (ad-enable-advice 'rng-mark-error 'around 'mumamo-advice-rng-mark-error)
-      (ad-enable-advice 'rng-after-change-function 'around 'mumamo-advice-rng-after-change-function)
-      (ad-enable-advice 'rng-validate-while-idle 'around 'mumamo-advice-rng-validate-while-idle)
-      (ad-enable-advice 'rng-validate-quick-while-idle 'around 'mumamo-advice-rng-validate-quick-while-idle)
-      (ad-enable-advice 'xmltok-add-error 'around 'mumamo-advice-xmltok-add-error)
+      (ad-enable-advice 'syntax-ppss 'around 'mumamo-ad-syntax-ppss)
+      (ad-enable-advice 'syntax-ppss-flush-cache 'around 'mumamo-ad-syntax-ppss-flush-cache)
+      (ad-enable-advice 'syntax-ppss-stats 'around 'mumamo-ad-syntax-ppss-stats)
+      (ad-enable-advice 'rng-do-some-validation-1 'around 'mumamo-ad-rng-do-some-validation-1)
+      (ad-enable-advice 'rng-mark-error 'around 'mumamo-ad-rng-mark-error)
+      (ad-enable-advice 'rng-after-change-function 'around 'mumamo-ad-rng-after-change-function)
+      (ad-enable-advice 'rng-validate-while-idle 'around 'mumamo-ad-rng-validate-while-idle)
+      (ad-enable-advice 'rng-validate-quick-while-idle 'around 'mumamo-ad-rng-validate-quick-while-idle)
+      (ad-enable-advice 'xmltok-add-error 'around 'mumamo-ad-xmltok-add-error)
       )
   ;; (ad-deactivate 'syntax-ppss)
   ;; (ad-deactivate 'syntax-ppss-flush-cache)
@@ -7178,15 +7198,15 @@ a narrow-to-multiple-regions function!"
   ;; (ad-deactivate 'rng-do-some-validation-1)
   ;; (ad-deactivate 'rng-mark-error)
   ;; (ad-deactivate 'xmltok-add-error)
-  (ad-disable-advice 'syntax-ppss 'around 'mumamo-advice-syntax-ppss)
-  (ad-disable-advice 'syntax-ppss-flush-cache 'around 'mumamo-advice-syntax-ppss-flush-cache)
-  (ad-disable-advice 'syntax-ppss-stats 'around 'mumamo-advice-syntax-ppss-stats)
-  (ad-disable-advice 'rng-do-some-validation-1 'around 'mumamo-advice-rng-do-some-validation-1)
-  (ad-disable-advice 'rng-mark-error 'around 'mumamo-advice-rng-mark-error)
-  (ad-disable-advice 'rng-after-change-function 'around 'mumamo-advice-rng-after-change-function)
-  (ad-disable-advice 'rng-validate-while-idle 'around 'mumamo-advice-rng-validate-while-idle)
-  (ad-disable-advice 'rng-validate-quick-while-idle 'around 'mumamo-advice-rng-validate-quick-while-idle)
-  (ad-disable-advice 'xmltok-add-error 'around 'mumamo-advice-xmltok-add-error)
+  (ad-disable-advice 'syntax-ppss 'around 'mumamo-ad-syntax-ppss)
+  (ad-disable-advice 'syntax-ppss-flush-cache 'around 'mumamo-ad-syntax-ppss-flush-cache)
+  (ad-disable-advice 'syntax-ppss-stats 'around 'mumamo-ad-syntax-ppss-stats)
+  (ad-disable-advice 'rng-do-some-validation-1 'around 'mumamo-ad-rng-do-some-validation-1)
+  (ad-disable-advice 'rng-mark-error 'around 'mumamo-ad-rng-mark-error)
+  (ad-disable-advice 'rng-after-change-function 'around 'mumamo-ad-rng-after-change-function)
+  (ad-disable-advice 'rng-validate-while-idle 'around 'mumamo-ad-rng-validate-while-idle)
+  (ad-disable-advice 'rng-validate-quick-while-idle 'around 'mumamo-ad-rng-validate-quick-while-idle)
+  (ad-disable-advice 'xmltok-add-error 'around 'mumamo-ad-xmltok-add-error)
   )
 
 (font-lock-add-keywords
