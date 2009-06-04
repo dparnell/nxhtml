@@ -1522,7 +1522,7 @@ local since they otherwise could be wrong at \(point) in top
 level \(ie user interaction level)."
   (declare (indent 2) (debug t))
   `(let ((need-major-mode (mumamo-get-major-mode-substitute ,major ,for-what)))
-     (mumamo-msgfntfy "mumamo-with-major-mode-setup %s => %s, modified=%s" ,major need-major-mode (buffer-modified-p))
+     ;;(msgtrc "mumamo-with-major-mode-setup %s => %s, modified=%s" ,major need-major-mode (buffer-modified-p))
      (mumamo-msgfntfy "mumamo-with-major-mode-setup <<<<<<<<<< body=%S\n>>>>>>>>>>" '(progn ,@body))
      (let ((major-mode need-major-mode)
            (evaled-set-mode (mumamo-get-major-mode-setup need-major-mode)))
@@ -1630,6 +1630,7 @@ that does syntactic fontification."
                     (setq font-lock-syntactically-fontified (1- new-start))
                     (mumamo-msgfntfy "ENTER font-lock-fontify-region %s %s %s" new-start new-end verbose)
                     ;;(msgtrc "ENTER font-lock-fontify-region %s %s %s" new-start new-end verbose)
+                    ;;(message "mumamo-do-fontify: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value font-lock-keywords-only))
                     (font-lock-fontify-region new-start new-end verbose)
                     (mumamo-msgfntfy "END font-lock-fontify-region %s %s %s" new-start new-end verbose)
                     ;;(msgtrc "END font-lock-fontify-region %s %s %s" new-start new-end verbose)
@@ -1674,6 +1675,7 @@ fontification."
   ;;(mumamo-assert-fontified-t start end)
   (mumamo-condition-case err
       (progn
+        ;;(msgtrc "mumamo-fontify-region-with: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value font-lock-keywords-only))
         (mumamo-with-major-mode-fontification major
           `(mumamo-do-fontify ,start ,end ,verbose ,chunk-syntax-min ,chunk-syntax-max major))
         )
@@ -1767,6 +1769,7 @@ If VERBOSE do the verbously.
 The value of `font-lock-fontify-region-function' when
 mumamo is used is this function."
   (mumamo-msgfntfy "++++++ mumamo-fontify-regionX %s %s %s, skip=%s" start end verbose mumamo-just-changed-major)
+  ;;(msgtrc "mumamo-fontify-region: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value font-lock-keywords-only))
   ;;(mumamo-assert-fontified-t start end)
   ;; If someone else tries to fontify the buffer ...
   (if (and mumamo-just-changed-major
@@ -1913,6 +1916,7 @@ surrounded by \"...\" since they are fontified a bit special in
 most major modes."
   ;; Fix-me: unfontifying should be done using the correct syntax table etc.
   ;; Fix-me: refontify when new chunk
+  ;;(msgtrc "mumamo-fontify-region-1: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value font-lock-keywords-only))
   (save-match-data
     (let* ((old-point (point))
            (here start)
@@ -2080,7 +2084,7 @@ most major modes."
     font-lock-defaults
     font-lock-fontified
     font-lock-keywords
-    font-lock-keywords-only
+    ;;font-lock-keywords-only
     font-lock-keywords-case-fold-search
     font-lock-mode
     font-lock-mode-major-mode
@@ -2251,7 +2255,9 @@ The main reasons for doing it this way is:
 - It does not affect buffer local variables."
   ;; (info "(elisp) Other Font Lock Variables")
   ;; (info "(elisp) Syntactic Font Lock)
+  ;;(msgtrc "fetch-major 1: font-lock-keywords-only =%s" font-lock-keywords-only)
   (let ((func-sym (intern (concat "mumamo-eval-in-" (symbol-name major))))
+        (func-def-sym (intern (concat "mumamo-def-eval-in-" (symbol-name major))))
         ;;(add-keywords-hook (mumamo-font-lock-keyword-hook-symbol major))
         byte-compiled-fun
         (fetch-func-definition `(lambda  (body))) ;;`(defun ,func-sym (body)))
@@ -2267,7 +2273,8 @@ The main reasons for doing it this way is:
     (with-current-buffer temp-buf
 
       (mumamo-msgfntfy "mumamo-fetch-major-mode-setup %s" major)
-      (let ((mumamo-fetching-major t))
+      (let ((mumamo-fetching-major t)
+            mumamo-multi-major-mode)
         (funcall major)
         )
 
@@ -2287,11 +2294,16 @@ The main reasons for doing it this way is:
 ;;;         (dolist (hi hi-lock-interactive-patterns)
 ;;;           (font-lock-add-keywords nil (list hi) t)))
 ;;;      (run-hooks 'font-lock-mode-hook)
+
+      ;; Note: font-lock-set-defaults must be called before adding
+      ;; keywords. Otherwise Emacs loops. I have no idea why. Hm,
+      ;; probably wrong, it is likely to be nxhtml-mumamo that is the
+      ;; problem. Does not loop in html-mumamo.
+      (font-lock-set-defaults)
       (when keywords
         (if add-keywords
             (font-lock-add-keywords major keywords how)
           (font-lock-remove-keywords major keywords)))
-      (font-lock-set-defaults)
       ;;(run-hooks add-keywords-hook)
 
       (add-to-list 'mumamo-major-modes-local-maps
@@ -2338,7 +2350,17 @@ The main reasons for doing it this way is:
                (list 'font-lock-comment-end-skip (custom-quote font-lock-comment-end-skip))
                (list 'font-lock-syntactic-keywords (custom-quote font-lock-syntactic-keywords))
 
-               (list 'font-lock-set-defaults) ; whether we have set up defaults.
+               (list 'font-lock-keywords (custom-quote font-lock-keywords))
+               ;;(list 'font-lock-keywords-alist (custom-quote font-lock-keywords-alist))
+               ;;(list 'font-lock-removed-keywords-alist (custom-quote font-lock-removed-keywords-alist))
+
+               ;; Fix-me: uncommenting this line (as it should be)
+               ;; sets font-lock-keywords-only to t globally...
+               (list 'font-lock-keywords-only (custom-quote font-lock-keywords-only))
+
+               (list 'font-lock-keywords-case-fold-search (custom-quote font-lock-keywords-case-fold-search))
+
+               (list 'font-lock-set-defaults t) ; whether we have set up defaults.
 
                ;; Set from font-lock-defaults normally:
                (list 'font-lock-defaults (custom-quote (copy-tree font-lock-defaults)))
@@ -2392,7 +2414,10 @@ The main reasons for doing it this way is:
                           (with-syntax-table ,(if syntax-sym
                                                   syntax-sym
                                                 '(standard-syntax-table));;'syntax-table
-                            (eval body))))))
+                            (eval body)))
+                        ;;(message "in %s: font-lock-keywords-only =%s in buffer %s, def=%s" ',func-sym font-lock-keywords-only (current-buffer) (default-value font-lock-keywords-only))
+                        ;;(message "backtrace there:\n%s" (with-output-to-string (backtrace)))
+                        )))
         ;; (eval fetch-func-definition)
         ;; (byte-compile fetch-func-definition) ;; Fix-me: why???
         ;; (mumamo-msgfntfy "===========> after eval")
@@ -2402,46 +2427,65 @@ The main reasons for doing it this way is:
         ;; (mumamo-msgfntfy "===========> after byte-compile")
 
         ;; Fix-me: don't put it here:
-        (put func-sym 'mumamo-defun fetch-func-definition)
+        ;;(put func-sym 'mumamo-defun fetch-func-definition)
         (setq byte-compiled-fun (let ((major-syntax-table))
                                   (byte-compile fetch-func-definition)))
+        ;;(msgtrc "fetch-major 2: font-lock-keywords-only =%s" font-lock-keywords-only)
+        (assert (functionp byte-compiled-fun))
+        ;;(message "mumamo-fetch-major-mode: (functionp byte-compiled-fun) ok")
         (unless keywords
           (eval `(defvar ,func-sym nil))
+          (eval `(defvar ,func-def-sym ,fetch-func-definition))
           (set func-sym byte-compiled-fun) ;; Will be used as default
-          (put func-sym 'permanent-local t))))
-    (when keywords
-      (set (make-local-variable func-sym) byte-compiled-fun))
+          ;;(message "mumamo-fetch-major-mode: default %s set to byte-compiled-fun" func-sym)
+          (assert (functionp (symbol-value func-sym)) t)
+          ;;(message "mumamo-fetch-major-mode: (functionp (symbol-value %s)) ok" func-sym)
+          ;;(set func-sym (eval fetch-func-definition))
+          (funcall (symbol-value func-sym) nil)
+          ;;(msgtrc "fetch-major 2b: font-lock-keywords-only =%s" font-lock-keywords-only)
+          (put func-sym 'permanent-local t)
+          (put func-def-sym 'permanent-local t))))
+    ;; Use the new value in current buffer.
+    (set (make-local-variable func-sym) (symbol-value func-sym))
+    ;;(message "mumamo-fetch-major-mode: %s in %s set to byte-compiled-fun" func-sym (current-buffer))
+    (assert (functionp (symbol-value func-sym)) t)
+    ;;(message "mumamo-fetch-major-mode: (functionp (symbol-value %s)) ok in %s" func-sym (current-buffer))
+    (set (make-local-variable func-def-sym) fetch-func-definition)
     (kill-buffer temp-buf)
+    ;;(msgtrc "fetch-major 3: font-lock-keywords-only =%s" font-lock-keywords-only)
     ;; Fix-me: return a list def + fun
-    (cons func-sym fetch-func-definition)))
+    (cons func-sym func-def-sym)))
 
 ;; Fix-me: maybe a hook in font-lock-add-keywords??
-;; (defadvice font-lock-add-keywords (around
-;;                                    mumamo-ad-font-lock-add-keywords
-;;                                    activate
-;;                                    compile
-;;                                    )
-;;   (if (not mumamo-multi-major-mode)
-;;       ad-do-it
-;;     (let (mumamo-multi-major-mode
-;;           (major    (ad-get-arg 0))
-;;           (keywords (ad-get-arg 1))
-;;           (how      (ad-get-arg 2)))
-;;       (if major
-;;           (mumamo-fetch-major-mod-setup major keywords how)
-;;         ;; Fix-me: Can't do that, need a list of all
-;;         ;; mumamo-current-chunk-family chunk functions major
-;;         ;; modes. But this is impossible since the major modes might
-;;         ;; be determined dynamically. As a work around look in current
-;;         ;; chunks.
-;;         (let ((majors (list (mumamo-main-major-mode))))
-;;           (dolist (entry mumamo-internal-major-modes-alist)
-;;             (setq majors (cons (car entry) majors)))
-;;           (dolist (major majors)
-;;             (mumamo-fetch-major-mod-setup major keywords how))))
-;;       (font-lock-mode -1)
-;;       (font-lock-mode 1)
-;;     )))
+(defadvice font-lock-add-keywords (around
+                                   mumamo-ad-font-lock-add-keywords
+                                   activate
+                                   compile
+                                   )
+  (if t ;(or (boundp 'mumamo-fetching-major) (boundp 'mumamo-add-font-lock-called) (not mumamo-multi-major-mode))
+      ad-do-it
+    (let (mumamo-multi-major-mode
+          mumamo-add-font-lock-called
+          (major    (ad-get-arg 0))
+          (keywords (ad-get-arg 1))
+          (how      (ad-get-arg 2)))
+      (if major
+          (mumamo-fetch-major-mode-setup major keywords t how)
+        ;; Fix-me: Can't do that, need a list of all
+        ;; mumamo-current-chunk-family chunk functions major
+        ;; modes. But this is impossible since the major modes might
+        ;; be determined dynamically. As a work around look in current
+        ;; chunks.
+        (let ((majors (list (mumamo-main-major-mode))))
+          (dolist (entry mumamo-internal-major-modes-alist)
+            (let ((major (car entry))
+                  (fun-var-sym (caadr entry)))
+              (when (local-variable-p fun-var-sym)
+                (setq majors (cons (car entry) majors)))))
+          (dolist (major majors)
+            (mumamo-fetch-major-mode-setup major keywords t how))))
+      ;;(font-lock-mode -1) (font-lock-mode 1)
+      )))
 
 (defun mumamo-bad-mode ()
   "MuMaMo replacement for a major mode that could not be loaded."
@@ -2475,7 +2519,9 @@ fontification and speeds up fontification significantly."
   ;;(assq 'mumamo-bad-mode mumamo-internal-major-modes-alist)
   (let ((use-major-entry (assq use-major mumamo-internal-major-modes-alist))
         bad-mode-entry
-        dummy-entry)
+        dummy-entry
+        fun-var-sym
+        fun-var-def-sym)
     (unless use-major-entry
       ;; Get mumamo-bad-mode entry and add a dummy entry based on
       ;; this to avoid looping.
@@ -2485,8 +2531,7 @@ fontification and speeds up fontification significantly."
         ;; Assume it is safe to get the mumamo-bad-mode entry ;-)
         (add-to-list 'mumamo-internal-major-modes-alist
                      (list 'mumamo-bad-mode
-                           (mumamo-fetch-major-mode-setup
-                            'mumamo-bad-mode nil nil nil)))
+                           (mumamo-fetch-major-mode-setup 'mumamo-bad-mode nil nil nil)))
         (setq bad-mode-entry
               (assq 'mumamo-bad-mode mumamo-internal-major-modes-alist)))
       (setq dummy-entry (list use-major (cadr bad-mode-entry)))
@@ -2494,20 +2539,26 @@ fontification and speeds up fontification significantly."
       ;; immediately remove it.
       (add-to-list 'mumamo-internal-major-modes-alist dummy-entry)
       (setq use-major-entry (list use-major
-                                  (mumamo-fetch-major-mode-setup
-                                   use-major nil nil nil)))
+                                  (mumamo-fetch-major-mode-setup use-major nil nil nil)))
       (setq mumamo-internal-major-modes-alist
             (delete dummy-entry
                     mumamo-internal-major-modes-alist))
-      (add-to-list 'mumamo-internal-major-modes-alist use-major-entry)
-      ))
-
-  (caadr (or (assq use-major mumamo-internal-major-modes-alist)
-             (assq use-major
-                   (add-to-list 'mumamo-internal-major-modes-alist
-                                (list use-major
-                                      (mumamo-fetch-major-mode-setup
-                                       use-major nil nil nil)))))))
+      (add-to-list 'mumamo-internal-major-modes-alist use-major-entry))
+    (setq fun-var-sym (caadr use-major-entry))
+    (setq fun-var-def-sym (cdadr use-major-entry))
+    (assert (functionp (symbol-value fun-var-sym)) t)
+    (assert (eq 'lambda (car (symbol-value fun-var-def-sym))) t)
+    ;; Always make a buffer local value for keywords.
+    (unless (local-variable-p fun-var-sym)
+      (set (make-local-variable fun-var-sym) (symbol-value fun-var-sym))
+      (set (make-local-variable fun-var-def-sym) (symbol-value fun-var-def-sym)))
+    (caadr (or (assq use-major mumamo-internal-major-modes-alist)
+               ))))
+               ;; (assq use-major
+               ;;     (add-to-list 'mumamo-internal-major-modes-alist
+               ;;                  (list use-major
+               ;;                        (mumamo-fetch-major-mode-setup
+               ;;                         use-major nil nil nil))))))))
 
 (defun mumamo-remove-all-chunk-overlays ()
   "Remove all CHUNK overlays from the current buffer."
@@ -5272,7 +5323,7 @@ Save HOOK and the list of functions removed to
     font-lock-fontify-buffer-function
     font-lock-fontify-region-function
     font-lock-keywords
-    font-lock-keywords-only
+    ;;font-lock-keywords-only
     font-lock-keywords-case-fold-search
     font-lock-mode
     font-lock-mode-hook
@@ -5541,7 +5592,10 @@ default values."
                   ;;restore-fun
                   'mumamo-restore-most-buffer-locals-in-hook
                   nil t))
+      ;;(msgtrc "mumamo-set-major before: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value font-lock-keywords-only))
       (funcall major) ;; <-----------------------------------------------
+      ;;(msgtrc "mumamo-set-major after: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value font-lock-keywords-only))
+      ;;(message "backtrace there:\n%s" (with-output-to-string (backtrace)))
       (setq font-lock-mode-major-mode major-mode) ;; Tell font-lock it is ok
       (if (not ancestor-hook-sym)
           (mumamo-restore-most-buffer-locals major)
@@ -5776,6 +5830,7 @@ mode in the chunk family is nil."
            (major (mumamo-chunk-major-mode ovl)))
       (mumamo-set-major major))
     (mumamo-find-chunks nil "mumamo-turn-on-actions")
+    ;;(msgtrc "mumamo-turn-on-action exit: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value font-lock-keywords-only))
     ))
 
 ;; (defun mumamo-on-font-lock-off ()
@@ -6557,7 +6612,7 @@ mumamo is used."
   "Function used for `flyspell-generic-check-word-predicate'."
   (let* ((chunk (when mumamo-multi-major-mode
                   ;;(mumamo-get-existing-chunk-at (point))))
-                  (mumamo-find-chunks (point) "mumamo-flyspell-verify")))
+                  (mumamo-find-chunks (point) "mumamo-lyspell-verify")))
          (chunk-major (when chunk (mumamo-chunk-major-mode chunk)))
          (mode-predicate (when chunk-major
                            (let ((predicate (get chunk-major
