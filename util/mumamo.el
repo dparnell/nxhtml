@@ -850,10 +850,12 @@ Lookup in this list is done by `mumamo-major-mode-from-modespec'."
   "This function is added to `fontification-functions' by mumamo.
 START is a parameter given to functions in that hook."
   (mumamo-msgfntfy "mumamo-jit-lock-function %s, ff=%s, just-changed=%s" start (get-text-property start 'fontified) mumamo-just-changed-major)
+  (msgtrc "mumamo-jit-lock-function enter: font-lock-keywords-only def=%s" (default-value 'font-lock-keywords-only))
   (if mumamo-just-changed-major
       (setq mumamo-just-changed-major nil))
   (let ((ret (jit-lock-function start)))
     (mumamo-msgfntfy "mumamo-jit-lock-function EXIT %s, ff=%s, just-changed=%s" start (get-text-property start 'fontified) mumamo-just-changed-major)
+    (msgtrc "mumamo-jit-lock-function exit: font-lock-keywords-only def=%s" (default-value 'font-lock-keywords-only))
     ret))
 
 (defun mumamo-jit-lock-register (fun &optional contextual)
@@ -1054,12 +1056,13 @@ in this part of the buffer."
   ;; handled as a pair.
 
   (mumamo-msgfntfy "")
-  ;;(msgtrc "!!!!!!!!!!!!!!!!!!!mumamo-find-chunks end=%s from %s, level=%s" end tracer mumamo-find-chunks-level)
+  (msgtrc "!!!!!!!!!!!!!!!!!!!mumamo-find-chunks end=%s from %s, level=%s" end tracer mumamo-find-chunks-level)
   (setq mumamo-find-chunks-level (1+ mumamo-find-chunks-level))
   (unless (and (overlayp mumamo-last-chunk) (overlay-buffer mumamo-last-chunk)) (setq mumamo-last-chunk nil))
   (save-restriction
     (widen)
-    (let* ((change-min (car mumamo-last-change-pos))
+    (let* ((mumamo-find-chunks-1-active t)
+           (change-min (car mumamo-last-change-pos))
            (change-max (cdr mumamo-last-change-pos))
            (chunk-at-change-min (when change-min (mumamo-get-existing-new-chunk-at change-min)))
            (chunk-at-change-min-start (when chunk-at-change-min (overlay-start chunk-at-change-min)))
@@ -1084,7 +1087,7 @@ in this part of the buffer."
                                  ;;(move-beginning-of-line nil)
                                  (skip-chars-backward "^\n")
                                  (unless (bobp) (backward-char))
-                                 ;;(msgtrc "change-min=%s, point=%s" change-min (point))
+                                 (msgtrc "change-min=%s, point=%s" change-min (point))
                                  (prog1
                                      (point)
                                    (goto-char here)))))
@@ -1217,6 +1220,8 @@ in this part of the buffer."
               (when (or interrupted
                         (and mumamo-last-chunk
                              (overlayp mumamo-last-chunk)
+                             (overlay-buffer mumamo-last-chunk)
+                             (buffer-live-p (overlay-buffer mumamo-last-chunk))
                              (< (overlay-end mumamo-last-chunk) (point-max))))
                 (mumamo-start-find-chunks-timer)
                 )
@@ -1523,7 +1528,8 @@ level \(ie user interaction level)."
   (declare (indent 2) (debug t))
   `(let ((need-major-mode (mumamo-get-major-mode-substitute ,major ,for-what)))
      ;;(msgtrc "mumamo-with-major-mode-setup %s => %s, modified=%s" ,major need-major-mode (buffer-modified-p))
-     (mumamo-msgfntfy "mumamo-with-major-mode-setup <<<<<<<<<< body=%S\n>>>>>>>>>>" '(progn ,@body))
+     ;;(msgtrc "with-major-mode-setup <<<<<<<<<< body=%S\n>>>>>>>>>>" '(progn ,@body))
+     ;;(msgtrc "with-major-mode-setup:in buffer %s after-chunk=%s" (current-buffer) (when (boundp 'after-chunk) after-chunk))
      (let ((major-mode need-major-mode)
            (evaled-set-mode (mumamo-get-major-mode-setup need-major-mode)))
        ;;(message ">>>>>> before %s" evaled-set-mode)
@@ -1544,6 +1550,7 @@ local variables that are set."
   (declare (indent 1) (debug t))
   `(mumamo-with-major-mode-setup ,major 'fontification
      ,@body))
+(put 'font-lock-mode-major-mode 'permanent-local t)
 
 (defmacro mumamo-with-major-mode-indentation (major &rest body)
   "With indentation variables set as in another major mode do things.
@@ -1588,6 +1595,7 @@ is not called when mumamo is used!
 
 PS: `font-lock-fontify-syntactically-region' is the main function
 that does syntactic fontification."
+  ;;(msgtrc "mumamo-do-fontify enter: font-lock-keywords-only def=%s" (default-value 'font-lock-keywords-only))
   ;;(msgtrc "mumamo-do-fontify <<<<<<< %s %s %s %s %s %s" start end verbose chunk-syntax-min chunk-syntax-max chunk-major)
   ;;(msgtrc "mumamo-do-fontify <<<<<<< %s %s %s %s %s %s" start end verbose chunk-syntax-min chunk-syntax-max chunk-major)
   ;;(mumamo-assert-fontified-t start end)
@@ -1630,7 +1638,7 @@ that does syntactic fontification."
                     (setq font-lock-syntactically-fontified (1- new-start))
                     (mumamo-msgfntfy "ENTER font-lock-fontify-region %s %s %s" new-start new-end verbose)
                     ;;(msgtrc "ENTER font-lock-fontify-region %s %s %s" new-start new-end verbose)
-                    ;;(message "mumamo-do-fontify: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value font-lock-keywords-only))
+                    ;;(message "mumamo-do-fontify: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
                     (font-lock-fontify-region new-start new-end verbose)
                     (mumamo-msgfntfy "END font-lock-fontify-region %s %s %s" new-start new-end verbose)
                     ;;(msgtrc "END font-lock-fontify-region %s %s %s" new-start new-end verbose)
@@ -1649,6 +1657,7 @@ that does syntactic fontification."
                            chunk-major start end (error-message-string err)))
     )
   (mumamo-msgfntfy "mumamo-do-fontify exit >>>>>>> %s %s %s %s %s %s" start end verbose chunk-syntax-min chunk-syntax-max chunk-major)
+  ;;(msgtrc "mumamo-do-fontify exit: font-lock-keywords-only def=%s" (default-value 'font-lock-keywords-only))
   )
 
 (defun mumamo-do-unfontify (start end)
@@ -1673,15 +1682,18 @@ fontification."
 
   ;;(msgtrc "mumamo-fontify-region-with %s %s %s %s, ff=%s" start end verbose major (get-text-property start 'fontified))
   ;;(mumamo-assert-fontified-t start end)
+  ;;(msgtrc "mumamo-fontify-region-with enter: font-lock-keywords-only def=%s" (default-value 'font-lock-keywords-only))
   (mumamo-condition-case err
       (progn
-        ;;(msgtrc "mumamo-fontify-region-with: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value font-lock-keywords-only))
+        ;;(msgtrc "mumamo-fontify-region-with: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
         (mumamo-with-major-mode-fontification major
           `(mumamo-do-fontify ,start ,end ,verbose ,chunk-syntax-min ,chunk-syntax-max major))
         )
     (error
      (mumamo-display-error 'mumamo-fontify-region-with "%s"
-                           (error-message-string err)))))
+                           (error-message-string err))))
+  ;;(msgtrc "mumamo-fontify-region-with exit: font-lock-keywords-only def=%s" (default-value 'font-lock-keywords-only))
+  )
 
 (defun mumamo-unfontify-region-with (start end major)
   "Unfontify from START to END as in major mode MAJOR."
@@ -1700,13 +1712,19 @@ Set by functions defined by `define-mumamo-multi-major-mode'.")
 (put 'mumamo-multi-major-mode 'permanent-local t)
 
 
+(defun mumamo-backtrace (label)
+  (msgtrc "%s:backtrace in buffer %s\n%s" label (current-buffer) (with-output-to-string (backtrace)))
+  (msgtrc "%s:backtrace in buffer %s END ------------------------------------" label (current-buffer)))
+
 (defun mumamo-unfontify-buffer ()
   "Unfontify buffer.
 This function is called when the minor mode function
 `font-lock-mode' is turned off.  \(It is the value of
 `font-lock-unfontify-uffer-function')."
-  ;;(message "BACKTRACE: %s" (with-output-to-string (backtrace)))
-  (when mumamo-multi-major-mode
+  (when (and mumamo-multi-major-mode
+             (not (and (boundp 'mumamo-find-chunks-1-active)
+                       mumamo-find-chunks-1-active)))
+    (mumamo-backtrace "unfontify-buffer")
     ;;(msgtrc "mumamo-unfontify-buffer:\n%s" (with-output-to-string (backtrace)))
     (save-excursion
       (save-restriction
@@ -1769,7 +1787,7 @@ If VERBOSE do the verbously.
 The value of `font-lock-fontify-region-function' when
 mumamo is used is this function."
   (mumamo-msgfntfy "++++++ mumamo-fontify-regionX %s %s %s, skip=%s" start end verbose mumamo-just-changed-major)
-  ;;(msgtrc "mumamo-fontify-region: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value font-lock-keywords-only))
+  ;;(msgtrc "mumamo-fontify-region: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
   ;;(mumamo-assert-fontified-t start end)
   ;; If someone else tries to fontify the buffer ...
   (if (and mumamo-just-changed-major
@@ -1916,7 +1934,7 @@ surrounded by \"...\" since they are fontified a bit special in
 most major modes."
   ;; Fix-me: unfontifying should be done using the correct syntax table etc.
   ;; Fix-me: refontify when new chunk
-  ;;(msgtrc "mumamo-fontify-region-1: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value font-lock-keywords-only))
+  ;;(msgtrc "mumamo-fontify-region-1: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
   (save-match-data
     (let* ((old-point (point))
            (here start)
@@ -2087,7 +2105,7 @@ most major modes."
     ;;font-lock-keywords-only
     font-lock-keywords-case-fold-search
     font-lock-mode
-    font-lock-mode-major-mode
+    ;;font-lock-mode-major-mode
     font-lock-set-defaults
     font-lock-syntax-table
     font-lock-beginning-of-syntax-function
@@ -2270,11 +2288,13 @@ The main reasons for doing it this way is:
     (setq temp-buf (get-buffer temp-buf-name))
     (when temp-buf (kill-buffer temp-buf))
     (setq temp-buf (get-buffer-create temp-buf-name))
+    ;;(msgtrc "fetch-major-mode-setup in buffer %s, after-chunk=%s, before with-current-buffer" (current-buffer) (when (boundp 'after-chunk) after-chunk))
     (with-current-buffer temp-buf
 
       (mumamo-msgfntfy "mumamo-fetch-major-mode-setup %s" major)
       (let ((mumamo-fetching-major t)
             mumamo-multi-major-mode)
+        ;;(msgtrc "fetch-major-mode-setup in buffer %s, before (funcall %s)" (current-buffer) major)
         (funcall major)
         )
 
@@ -2355,7 +2375,7 @@ The main reasons for doing it this way is:
                ;;(list 'font-lock-removed-keywords-alist (custom-quote font-lock-removed-keywords-alist))
 
                ;; Fix-me: uncommenting this line (as it should be)
-               ;; sets font-lock-keywords-only to t globally...
+               ;; sets font-lock-keywords-only to t globally...: bug 3467
                (list 'font-lock-keywords-only (custom-quote font-lock-keywords-only))
 
                (list 'font-lock-keywords-case-fold-search (custom-quote font-lock-keywords-case-fold-search))
@@ -2414,8 +2434,17 @@ The main reasons for doing it this way is:
                           (with-syntax-table ,(if syntax-sym
                                                   syntax-sym
                                                 '(standard-syntax-table));;'syntax-table
-                            (eval body)))
-                        ;;(message "in %s: font-lock-keywords-only =%s in buffer %s, def=%s" ',func-sym font-lock-keywords-only (current-buffer) (default-value font-lock-keywords-only))
+                            ;; fix-me: Protect against font-lock-keywords-only to t globally...: bug 3467
+                            ;;(msgtrc "%s enter 1: font-lock-keywords-only def=%s, body=%S" ',major (default-value 'font-lock-keywords-only) body)
+                            (let (;(font-lock-keywords-only font-lock-keywords-only)
+                                  ret)
+                              ;;(msgtrc "%s enter 2: font-lock-keywords-only def=%s" ',major (default-value 'font-lock-keywords-only))
+                              (setq ret (eval body))
+                              ;;(msgtrc "%s exit 1: font-lock-keywords-only def=%s" ',major (default-value 'font-lock-keywords-only))
+                              ret))
+                          ;;(msgtrc "in %s 1: font-lock-keywords-only =%s in buffer %s, def=%s" ',func-sym font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
+                          )
+                        ;;(msgtrc "in %s 2: font-lock-keywords-only =%s in buffer %s, def=%s" ',func-sym font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
                         ;;(message "backtrace there:\n%s" (with-output-to-string (backtrace)))
                         )))
         ;; (eval fetch-func-definition)
@@ -2445,6 +2474,7 @@ The main reasons for doing it this way is:
           ;;(msgtrc "fetch-major 2b: font-lock-keywords-only =%s" font-lock-keywords-only)
           (put func-sym 'permanent-local t)
           (put func-def-sym 'permanent-local t))))
+    ;;(msgtrc "fetch-major-mode-setup in buffer %s, after-chunk=%s, after with-current-buffer" (current-buffer) (when (boundp 'after-chunk) after-chunk))
     ;; Use the new value in current buffer.
     (set (make-local-variable func-sym) (symbol-value func-sym))
     ;;(message "mumamo-fetch-major-mode: %s in %s set to byte-compiled-fun" func-sym (current-buffer))
@@ -3989,7 +4019,8 @@ information.
          curr-is-closed
          next-depth-diff
          )
-    ;;(msgtrc "(when (>= %s %s)" max pos)
+    ;;(msgtrc "find-next-chunk-values:here a, curr-min=%s, after-chunk=%s" curr-min after-chunk)
+    ;;(msgtrc "find-next-chunk-values:(when (>= %s %s)" max pos)
     (when (>= max pos)
       ;; Fix-me: like mumamo-create-chunk-values-at, but simplified:
       ;;(message "  curr-chunk-funs=%s" curr-chunk-funs)
@@ -4018,15 +4049,19 @@ information.
           ;;(msgtrc "Calling (curr-end-fun=%s %s %s)=>%s" curr-end-fun use-min use-max curr-end-fun-end)
           ;; Fix-me: this test should also be made for other chunks
           ;; searches, but this catches most problems I think.
+          ;;(msgtrc "find-next-chunk-values:here c, curr-min=%s, after-chunk=%s" curr-min after-chunk)
           (or (not curr-end-fun-end)
-              ;;(progn (msgtrc "end-in-code: %s %s %s" syntax-min curr-end-fun curr-major) nil)
+              ;;(progn (msgtrc "find-next-chunk-values:here c2, curr-min=%s, after-chunk=%s" curr-min after-chunk) nil)
+              ;;(progn (msgtrc "find-next-chunk-values:before end-in-code: %s %s %s" syntax-min curr-end-fun curr-major) nil)
               (mumamo-end-in-code syntax-min curr-end-fun-end curr-major)
               (setq curr-end-fun-end nil))
+          ;;(msgtrc "find-next-chunk-values:curr-end-fun-end after end-in-code=%s" curr-end-fun-end)
           ))
+      ;;(msgtrc "find-next-chunk-values:here d, curr-min=%s, after-chunk=%s" curr-min after-chunk)
       (when (listp curr-chunk-funs)
-        ;;(msgtrc "curr-chunk-funs=%s" curr-chunk-funs)
+        ;;(msgtrc "find-next-chunk-values:curr-chunk-funs=%s" curr-chunk-funs)
         (dolist (fn curr-chunk-funs)
-          ;;(msgtrc "before (r (funcall fn pos pos max)), fn=%s pos=%s, max=%s" fn pos max)
+          ;;(msgtrc "find-next-chunk-values:before (r (funcall fn pos pos max)), fn=%s pos=%s, max=%s" fn pos max)
           (let* (
                  ;;(r (funcall fn pos (point-min) (point-max)))
                  (r (funcall fn pos pos max))
@@ -4040,7 +4075,7 @@ information.
                  (rborder-min (when rborder (nth 0 rborder)))
                  (rborder-max (when rborder (nth 1 rborder)))
                  (rmin-found rmin))
-            ;;(msgtrc "fn=%s, r=%s" fn r)
+            ;;(msgtrc "find-next-chunk-values:fn=%s, r=%s" fn r)
             (when r
               ;;(unless (or rmin rmax rmajor-sub rborder rparseable rfw-exc-fun rborder-fun)
               ;;;(unless (or rmin rmax rmajor-sub rparseable rfw-exc-fun rborder-fun)
@@ -4138,6 +4173,7 @@ information.
         (setq curr-max (if max max (point-max)))
         (setq curr-max (min (if next-min next-min curr-max)
                             (if curr-end-fun-end curr-end-fun-end curr-max))))
+      ;;(msgtrc "find-next-chunk-values:here A, curr-min=%s, after-chunk=%s" curr-min after-chunk)
       (when border-min (setq next-border-min border-min))
       (when border-max (setq next-border-max border-max))
       (setq next-fw-exc-fun fw-exc-fun)
@@ -4149,15 +4185,20 @@ information.
                                      (= curr-max curr-end-fun-end))
                                 -1
                               1))
+      ;;(msgtrc "find-next-chunk-values:here B, curr-min=%s, after-chunk=%s" curr-min after-chunk)
       (unless next-major (setq next-chunk-funs nil))
       (when after-chunk-valid
+        ;;(msgtrc "find-next-chunk-values:here C, curr-min=%s, after-chunk=%s" curr-min after-chunk)
         (unless (or (not after-chunk-is-closed)
                     (= curr-min (overlay-end after-chunk)))
           (error "curr-min is not right after after-chunk"))
+        ;;(msgtrc "find-next-chunk-values:here D")
         (when curr-max
           (unless (>= curr-max curr-min)
             (error "curr-max is not >= curr-min"))))
+      ;;(msgtrc "find-next-chunk-values:here E")
       (setq curr-is-closed (and curr-max (< 1 curr-max)))
+      ;;(msgtrc "find-next-chunk-values:curr-is-closed=%s" curr-is-closed)
       (when (and curr-max (= 1 curr-max))
         (assert (eq curr-major (mumamo-main-major-mode)) t))
       (let ((current (list curr-min curr-max curr-major curr-border-min curr-border-max curr-parseable
@@ -4212,15 +4253,19 @@ the sexp syntax using major mode MAJOR."
   ;; ... -->. Could this be solved by RMS suggestion with a
   ;; function/defmacro that binds variables to their global values?
   (mumamo-msgfntfy "point-min,max=%s,%s syntax-start,end=%s,%s, major=%s" (point-min) (point-max) syntax-start syntax-end major)
+  ;;(msgtrc "end-in-code:here a  after-chunk=%s" (when (boundp 'after-chunk) after-chunk))
   (assert (and syntax-start syntax-end) t)
   (save-restriction
     (widen)
+    ;;(msgtrc "end-in-code:here a2  after-chunk=%s" (when (boundp 'after-chunk) after-chunk))
     (mumamo-with-major-mode-fontification major
       `(progn
          (let (ppss ret)
            ;; fix-me: Use main major mode, and `syntax-ppss'. Change the
            ;; defadvice of this to make that possible.
+           ;;(msgtrc "end-in-code:here b  after-chunk=%s" (when (boundp 'after-chunk) after-chunk))
            (setq ppss (parse-partial-sexp ,syntax-start (+ ,syntax-end 0)))
+           ;;(msgtrc "end-in-code:here c  after-chunk=%s" (when (boundp 'after-chunk) after-chunk))
            ;; If inside a string or comment then the end marker is
            ;; invalid:
            ;;(msgtrc "mumamo-end-in-code:ppss=%s" ppss)
@@ -4567,8 +4612,48 @@ Turn on `debug-on-error' unless NO-DEBUG is nil."
       (mumamo-set-major-post-command)
     ;;(mumamo-on-font-lock-off)
     )
-  (mumamo-msgfntfy "mumamo-post-command-1 EXIT: font-lock-mode=%s" font-lock-mode)
+  ;;(msgtrc "mumamo-post-command-1 EXIT: font-lock-keywords-only =%s" (default-value 'font-lock-keywords-only))
   )
+
+(defun mumamo-emacs-start-bug3467-timer-if-needed ()
+  "Work around for Emacs bug 3467. The only one I have found."
+  (when mumamo-has-bug3467
+    (run-with-idle-timer 0 nil 'mumamo-emacs-bug3467-workaround)))
+
+(defun mumamo-emacs-bug3467-workaround ()
+  "Work around for Emacs bug 3467. The only one I have found."
+  (set-default 'font-lock-keywords-only nil))
+
+(defvar mumamo-bug-3467-w14 41)
+(defvar mumamo-bug-3467-w15 51)
+;;(mumamo-check-has-bug3467 t)
+;;(kill-local-variable 'mumamo-bug-3467-w14)
+(defun mumamo-check-has-bug3467 (verbose)
+  (let ((has-bug nil))
+    (with-temp-buffer
+      (let ((mumamo-bug-3467-w14 42)
+            (mumamo-bug-3467-w15 52))
+        (when verbose (message "mumamo-bug-3467-w14 maybe let: in buffer %s=%S, global=%S" (current-buffer) mumamo-bug-3467-w14 (default-value 'mumamo-bug-3467-w14)))
+        (when verbose (message "mumamo-bug-3467-w15 maybe let: in buffer %s=%S, global=%S" (current-buffer) mumamo-bug-3467-w15 (default-value 'mumamo-bug-3467-w15)))
+        (set (make-local-variable 'mumamo-bug-3467-w14) 43)
+        (set-default 'mumamo-bug-3467-w14 44)
+        (set-default 'mumamo-bug-3467-w15 54)
+        (when verbose (message "mumamo-bug-3467-w14 maybe let: in buffer %s=%S, global=%S" (current-buffer) mumamo-bug-3467-w14 (default-value 'mumamo-bug-3467-w14)))
+        (when verbose (message "mumamo-bug-3467-w15 maybe let: in buffer %s=%S, global=%S" (current-buffer) mumamo-bug-3467-w15 (default-value 'mumamo-bug-3467-w15))))
+      (when verbose (message "mumamo-bug-3467-w14 top level: in buffer %s=%S, global=%S" (current-buffer) mumamo-bug-3467-w14 (default-value 'mumamo-bug-3467-w14)))
+      (when (/= mumamo-bug-3467-w14 43) (setq has-bug t))
+      (when (/= (default-value 'mumamo-bug-3467-w14) 41) (setq has-bug t))
+      (when verbose (message "mumamo-bug-3467-w15 top level: in buffer %s=%S, global=%S" (current-buffer) mumamo-bug-3467-w15 (default-value 'mumamo-bug-3467-w15)))
+      )
+    (when verbose (message "mumamo-bug-3467-w14 top level: in buffer %s=%S, global=%S" (current-buffer) mumamo-bug-3467-w14 (default-value 'mumamo-bug-3467-w14)))
+    (when verbose (message "mumamo-bug-3467-w15 top level: in buffer %s=%S, global=%S" (current-buffer) mumamo-bug-3467-w15 (default-value 'mumamo-bug-3467-w15)))
+    (or has-bug
+        (local-variable-p 'mumamo-bug-3467-w14)
+        (/= (default-value 'mumamo-bug-3467-w14) 41)
+        )
+    ))
+
+(defvar mumamo-has-bug3467 (mumamo-check-has-bug3467 nil))
 
 (defun mumamo-post-command ()
   "Run this in `post-command-hook'.
@@ -5592,11 +5677,12 @@ default values."
                   ;;restore-fun
                   'mumamo-restore-most-buffer-locals-in-hook
                   nil t))
-      ;;(msgtrc "mumamo-set-major before: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value font-lock-keywords-only))
+      ;;(msgtrc "mumamo-set-major before: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
       (funcall major) ;; <-----------------------------------------------
-      ;;(msgtrc "mumamo-set-major after: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value font-lock-keywords-only))
+      ;;(msgtrc "mumamo-set-major after: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
       ;;(message "backtrace there:\n%s" (with-output-to-string (backtrace)))
-      (setq font-lock-mode-major-mode major-mode) ;; Tell font-lock it is ok
+      (setq font-lock-mode-major-mode major) ;; Tell font-lock it is ok
+      (set (make-local-variable 'font-lock-function) 'mumamo-font-lock-function)
       (if (not ancestor-hook-sym)
           (mumamo-restore-most-buffer-locals major)
         (remove-hook ancestor-hook-sym
@@ -5739,11 +5825,17 @@ default values."
 
   ;;(set (make-local-variable 'syntax-begin-function) 'mumamo-beginning-of-syntax)
 
+  ;;(put 'font-lock-function 'permanent-local t)
+
   ;; FIX-ME: Not sure about this one, but it looks like it must be
   ;; set:
   (make-local-variable 'jit-lock-contextually)
   (setq jit-lock-contextually t)
   )
+
+(defun mumamo-font-lock-function (mode)
+  ;;(mumamo-backtrace "font-lock-function")
+  (font-lock-default-function mode))
 
 
 (defvar mumamo-major-mode-indent-line-function nil)
@@ -5830,8 +5922,14 @@ mode in the chunk family is nil."
            (major (mumamo-chunk-major-mode ovl)))
       (mumamo-set-major major))
     (mumamo-find-chunks nil "mumamo-turn-on-actions")
-    ;;(msgtrc "mumamo-turn-on-action exit: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value font-lock-keywords-only))
-    ))
+    ;;(msgtrc "mumamo-turn-on-action exit: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
+    ;; This did not help for Emacs bug 3467:
+    ;;(set-default 'font-lock-keywords-only nil)
+    ;;(setq font-lock-keywords-only nil)
+    )
+  (set (make-local-variable 'font-lock-function) 'mumamo-font-lock-function)
+  (mumamo-emacs-start-bug3467-timer-if-needed)
+  )
 
 ;; (defun mumamo-on-font-lock-off ()
 ;;   "The reverse of `mumamo-turn-on-actions'."
@@ -6863,7 +6961,7 @@ Do here also other necessary adjustments for this."
                 (unless (car syntax-ppss-last-min)
                   ;;(msgtrc "fix-me: emacs bug workaround, setting car of syntax-ppss-last-min")
                   ;;(setcar syntax-ppss-last-min (1- chunk-syntax-min))
-                  (msgtrc "fix-me: emacs bug workaround, need new syntax-ppss-last-min because car is nil")
+                  ;;(msgtrc "fix-me: emacs bug workaround, need new syntax-ppss-last-min because car is nil")
                   (setq syntax-ppss-last-min nil)
                   ))
               (unless syntax-ppss-last-min
