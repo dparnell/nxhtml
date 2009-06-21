@@ -5472,6 +5472,13 @@ specific to major modes and that are not meant to be customized
 by the user.
 ")
 
+(defadvice c-after-change (before
+                           mumamo-ad-c-after-change
+                           activate
+                           compile
+                           )
+  (msgtrc "c-after-change: major-mode=%s c-nonsymbol-token-regexp=%s" major-mode c-nonsymbol-token-regexp))
+
 (defun mumamo-save-most-buffer-locals (major)
   "Save some local variables for major mode MAJOR.
 This should be called before switching to a new chunks major
