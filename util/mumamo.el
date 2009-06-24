@@ -1560,7 +1560,9 @@ local variables that are set."
   (declare (indent 1) (debug t))
   `(mumamo-with-major-mode-setup ,major 'fontification
      ,@body))
-(put 'font-lock-mode-major-mode 'permanent-local t)
+;; Fontification disappears in for example *grep* if
+;; font-lock-mode-major-mode is 'permanent-local t.
+;;(put 'font-lock-mode-major-mode 'permanent-local t)
 
 (defmacro mumamo-with-major-mode-indentation (major &rest body)
   "With indentation variables set as in another major mode do things.
@@ -5056,6 +5058,9 @@ function, it is changed to a list of functions."
 (defvar mumamo-survive
   '(
     buffer-file-name
+    ;; Fix-me: This is to prevent font-lock-mode turning off/on, but
+    ;; is it necessary?
+    ;;font-lock-mode-major-mode
     tags-file-name
     nxhtml-minor-mode
     ;; Fix-me: adding rng timers here stops Emacs from looping after
