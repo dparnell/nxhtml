@@ -5477,12 +5477,15 @@ specific to major modes and that are not meant to be customized
 by the user.
 ")
 
-(defadvice c-after-change (before
-                           mumamo-ad-c-after-change
-                           activate
-                           compile
-                           )
-  (msgtrc "c-after-change: major-mode=%s c-nonsymbol-token-regexp=%s" major-mode c-nonsymbol-token-regexp))
+(when (< emacs-major-version 23)
+  (defadvice c-after-change (around
+                             mumamo-ad-c-after-change
+                             activate
+                             compile
+                             )
+    (msgtrc "c-after-change: major-mode=%s c-nonsymbol-token-regexp=%s" major-mode c-nonsymbol-token-regexp))
+    (when (derived-mode-p 'c-mode)
+      ad-do-it))
 
 (defun mumamo-save-most-buffer-locals (major)
   "Save some local variables for major mode MAJOR.
