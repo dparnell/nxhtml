@@ -1061,6 +1061,7 @@ in this part of the buffer."
   (unless (and (overlayp mumamo-last-chunk) (overlay-buffer mumamo-last-chunk)) (setq mumamo-last-chunk nil))
   (save-restriction
     (widen)
+    ;;(msgtrc "find-chunks: mumamo-last-change-pos=%s" mumamo-last-change-pos)
     (let* ((mumamo-find-chunks-1-active t)
            (change-min (car mumamo-last-change-pos))
            (change-max (cdr mumamo-last-change-pos))
@@ -1095,7 +1096,7 @@ in this part of the buffer."
       (when (and chunk-at-change-min (= 0 (- (overlay-end chunk-at-change-min)
                                              (overlay-start chunk-at-change-min))))
         (assert in-min-border)) ;; 0 len must be in border
-      ;;(msgtrc "find-chunks:first-check-from=%s, chunk-at-change-min=%s" first-check-from chunk-at-change-min)
+      ;;(msgtrc "find-chunks:first-check-from=%s, chunk-at-change-min=%s/%s" first-check-from chunk-at-change-min (mumamo-chunk-major-mode chunk-at-change-min))
       (when mumamo-last-change-pos
         ;; Fix-me:
         (when chunk-at-change-min
@@ -1104,22 +1105,23 @@ in this part of the buffer."
           ;;     (overlay-buffer mumamo-last-chunk)
           ;;     (setq mumamo-last-chunk nil))
 
-          ;; Delete empty chunks at end of buffer
-          (while (and mumamo-last-chunk
-                      (= (point-max) (overlay-end mumamo-last-chunk))
-                      (= (overlay-end mumamo-last-chunk) (overlay-start mumamo-last-chunk)))
-            (delete-overlay mumamo-last-chunk)
-            (setq mumamo-last-chunk (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))
-            (when mumamo-last-chunk (overlay-put mumamo-last-chunk 'mumamo-next-chunk nil)))
           (while (and mumamo-last-chunk
                       first-check-from
                       (< first-check-from (overlay-end mumamo-last-chunk)))
             (setq mumamo-old-tail mumamo-last-chunk)
             (overlay-put mumamo-old-tail 'mumamo-is-new nil)
             (setq mumamo-last-chunk
-                  (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))))
+                  (overlay-get mumamo-last-chunk 'mumamo-prev-chunk)))
+          ;; Delete empty chunks at end, will be recreated if really needed
+          (while (and mumamo-last-chunk
+                      ;;(= (point-max) (overlay-end mumamo-last-chunk))
+                      (= (overlay-end mumamo-last-chunk) (overlay-start mumamo-last-chunk)))
+            (delete-overlay mumamo-last-chunk)
+            (setq mumamo-last-chunk (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))
+            (when mumamo-last-chunk (overlay-put mumamo-last-chunk 'mumamo-next-chunk nil)))
+          )
         (setq mumamo-last-change-pos nil))
-      ;;(msgtrc "find-chunks:at start mumamo-old-tail=%s, mumamo-last-chunk=%s" mumamo-old-tail mumamo-last-chunk)
+      ;;(msgtrc "find-chunks:at start mumamo-old-tail=%s/%s, mumamo-last-chunk=%s/%s" mumamo-old-tail (mumamo-chunk-major-mode mumamo-old-tail) mumamo-last-chunk (mumamo-chunk-major-mode mumamo-last-chunk))
       (let* ((last-chunk-is-closed (when mumamo-last-chunk (overlay-get mumamo-last-chunk 'mumamo-is-closed)))
              ;; (ok-pos (if (not mumamo-last-chunk)
              ;;             0
@@ -1189,7 +1191,7 @@ in this part of the buffer."
                       (setq ok-pos (or (mumamo-new-chunk-value-max this-new-values) ;;(overlay-end this-chunk)
                                        (point-max)))
                       ;; With the new organization all chunks are created here.
-                      ;;(msgtrc "find-chunks:mumamo-old-tail=%s, major=%s, mumamo-last-chunk=%s" mumamo-old-tail (when mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-major-mode)) mumamo-last-chunk)
+                      ;;(msgtrc "find-chunks:mumamo-old-tail=%s/%s, mumamo-last-chunk=%s/%s" mumamo-old-tail (when mumamo-old-tail (mumamo-chunk-major-mode mumamo-old-tail)) mumamo-last-chunk (mumamo-chunk-major-mode mumamo-last-chunk ))
                       ;;(msgtrc "find-chunks:this-new-values=%s" this-new-values)
                       (if (and mumamo-old-tail
                                (overlay-buffer mumamo-old-tail)
@@ -1292,12 +1294,12 @@ This should be run after a buffer change.  For MIN see
   "Everything that needs to be done in mumamo after a change.
 This is run in the `after-change-functions' hook.  For MIN, MAX
 and OLD-LEN see that variable."
-  (mumamo-msgfntfy "mumamo-after-change BEGIN")
+  ;;(msgtrc "mumamo-after-change BEGIN min/max/old-len=%s/%s/%s" min max old-len)
   ;;(msgtrc "mumamo-after-change BEGIN")
   (mumamo-find-chunk-after-change min max)
   (mumamo-jit-lock-after-change min max old-len)
   (mumamo-msgfntfy "mumamo-after-change EXIT")
-  ;;(msgtrc "mumamo-after-change EXIT")
+  ;;(msgtrc "mumamo-after-change EXIT mumamo-last-change-pos=%s" mumamo-last-change-pos)
   )
 
 (defun mumamo-jit-lock-after-change (min max old-len)
@@ -1395,7 +1397,7 @@ mode."
           )
          (setq min jit-lock-start)
          (setq max jit-lock-end)
-         (syntax-ppss-flush-cache min)
+         ;;(syntax-ppss-flush-cache min)
          )))
   (mumamo-msgfntfy "mumamo-mumamo-jit-lock-after-change-1 EXIT %s" (cons min max))
   (cons min max))
@@ -3756,7 +3758,7 @@ The first two are used when the bottom:
   ;;((1 696 nxhtml-mode nil nil nil nil) (696 nil php-mode nil nil nil nil))
   ;;(current (list curr-min curr-max curr-major curr-border-min curr-border-max curr-parseable curr-fw-exc-fun))
   ;;(next    (list next-min next-max next-major next-border-min next-border-max next-parseable next-fw-exc-fun)))
-  ;;(message "######new-create.chunk.new-chunk-values=%s" new-chunk-values)
+  ;;(msgtrc "######new-create.chunk.new-chunk-values=%s" new-chunk-values)
   (when new-chunk-values
     (let* ((this-values (nth 0 new-chunk-values))
            (next-values (nth 1 new-chunk-values))
@@ -4651,7 +4653,7 @@ Turn on `debug-on-error' unless NO-DEBUG is nil."
 (defun mumamo-post-command ()
   "Run this in `post-command-hook'.
 Change major mode if necessary."
-  (mumamo-msgfntfy "mumamo-post-command")
+  ;;(msgtrc "mumamo-post-command")
   (when mumamo-multi-major-mode
     (mumamo-condition-case err
         (mumamo-post-command-1 t)

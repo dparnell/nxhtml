@@ -75,7 +75,7 @@
 
 ;;;###autoload
 (defun xhtml-help-show-css-ref ()
-  "Show css reference for css property name at point."
+  "Show CSS reference for CSS property name at point."
   (interactive)
   (let ((css-prop (xhtml-help-css-prop-at-point)))
     (setq css-prop (read-from-minibuffer "Get help for CSS property: " css-prop))
@@ -136,12 +136,10 @@ This is used in `xhtml-help-browse-tag' and `xhtml-help-browse-css'."
           notvalid)
     (when (member default notvalid)
       (setq default (car choices)))
-    ;;(error "%s" choices)
     (completing-read (concat "Fetch " prompt " reference from: ")
                      choices
                      nil
                      t
-                     ;;xhtml-help-refurl
                      default
                      '(choices . 1))))
 
