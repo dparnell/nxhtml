@@ -1750,14 +1750,18 @@ of those in for example common web browsers."
 ;;;###autoload
 (defun emacs-buffer-file()
   "Start a new Emacs showing current buffer file.
-If there is no buffer file start with `dired'."
+Go to the current line and column in that file.
+If there is no buffer file then instead start with `dired'."
   (interactive)
   (recentf-save-list)
-  (let ((file (buffer-file-name)))
+  (let ((file (buffer-file-name))
+        (lin (line-number-at-pos))
+        (col (current-column)))
     ;;(unless file (error "No buffer file name"))
     (if file
         (progn
-          (call-process (ourcomments-find-emacs) nil 0 nil "--no-desktop" file)
+          (call-process (ourcomments-find-emacs) nil 0 nil "--no-desktop"
+                        (format "+%d:%d" lin col) file)
           (message "Started 'emacs buffer-file-name' - it will be ready soon ..."))
       (call-process (ourcomments-find-emacs) nil 0 nil "--no-desktop" "--eval"
                     (format "(dired \"%s\")" default-directory)))))
@@ -1976,6 +1980,19 @@ information."
                                      (string-match ".*\\.info\\'" file))))))
      (list name)))
   (info info-file))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Exec path etc
+
+(defun ourcomments-which (prog)
+  "Look for PROG in `exec-path' using `exec-suffixes'.
+Return full path if found."
+  (catch 'which
+    (dolist (p exec-path)
+      (dolist (f exec-suffixes)
+        (let ((file (expand-file-name (concat prog f) p)))
+          (when (file-exists-p file)
+            (throw 'which file)))))))
 
 (provide 'ourcomments-util)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

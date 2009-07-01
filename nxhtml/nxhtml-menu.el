@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 2007
-(defconst nxhtml-menu:version "1.84") ;;Version:
+(defconst nxhtml-menu:version "1.85") ;;Version:
 ;; Last-Updated: 2009-05-29 Fri
 ;; URL:
 ;; Keywords:
@@ -325,11 +325,15 @@
                 'udev-ecb-update))
         (define-key ecb-map [nxhtml-custom-ecb]
           (list 'menu-item "Customize ECB dev startup"
-                (lambda () (interactive)
+                (lambda ()
+                  "Customize ECB dev nXhtml startup group."
+                  (interactive)
                   (customize-group-other-window 'udev-ecb))))
         (define-key ecb-map [nxhtml-custom-important-ecb]
           (list 'menu-item "Customize important ECB things"
-                (lambda () (interactive)
+                (lambda ()
+                  "Customize group `ecb-most-important'."
+                  (interactive)
                   (customize-group-other-window 'ecb-most-important))
                 :enable (featurep 'ecb)))
         )
@@ -337,21 +341,26 @@
       (let ((cedet-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-cedet-map]
           (list 'menu-item "CEDET" cedet-map))
+        (define-key cedet-map [nxhtml-custom-cedet]
+          (list 'menu-item "Customize CEDET dev startup"
+                (lambda ()
+                  "Customize CEDET dev nXhtml startup options."
+                  (interactive)
+                  (customize-group-other-window 'udev-cedet))))
+        (define-key cedet-map [nxhtml-cedet-utest]
+          (list 'menu-item "Run CEDET unit tests"
+                'udev-cedet-utest))
+        (define-key cedet-map [nxhtml-update-cedet]
+          (list 'menu-item "Fetch/update and install CEDET dev sources"
+                'udev-cedet-update))
+        (define-key cedet-map [nxhtml-cedet-home-separator]
+          (list 'menu-item "--" nil))
         (define-key cedet-map [nxhtml-rinari-homepage]
           (list 'menu-item "CEDET Home Page"
                 (lambda ()
                   "Open CEDET home page in your web browser."
                   (interactive)
                   (browse-url "http://cedet.sourceforge.net/"))))
-        (define-key cedet-map [nxhtml-cedet-home-separator]
-          (list 'menu-item "--" nil))
-        (define-key cedet-map [nxhtml-update-cedet]
-          (list 'menu-item "Fetch/update CEDET dev sources"
-                'udev-cedet-update))
-        (define-key cedet-map [nxhtml-custom-cedet]
-          (list 'menu-item "Customize CEDET dev startup"
-                (lambda () (interactive)
-                  (customize-group-other-window 'udev-cedet))))
         )
       (let ((rinari-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-rinari-map]
@@ -369,7 +378,9 @@
                 'udev-rinari-update))
         (define-key rinari-map [nxhtml-custom-rinari]
           (list 'menu-item "Customize Rinari startup"
-                (lambda () (interactive)
+                (lambda ()
+                  "Customize Rinari dev nXhtml startup options."
+                  (interactive)
                   (customize-group-other-window 'udev-rinari))))
         )
       (let ((mozrepl-map (make-sparse-keymap)))
@@ -418,7 +429,9 @@
                 'majmodpri-apply-priorities))
         (define-key majpri-map [nxhtml-majpri-cust]
           (list 'menu-item "Customize Major Mode Priorities"
-                (lambda () (interactive)
+                (lambda ()
+                  "Customize group Major Mode priorities."
+                  (interactive)
                   (customize-group-other-window 'majmodpri))))
         )
       (define-key tools-map [nxhtml-tidy-separator]
@@ -503,7 +516,9 @@
                                   (nxhtml-nxhtml-in-buffer)))))
         (define-key where-map [nxhtml-nxml-where-cust]
           (list 'menu-item "Customize display of XML Path"
-                (lambda () (interactive)
+                (lambda ()
+                  "Customize XML path, ie group `nxml-where'."
+                  (interactive)
                   (customize-group-other-window 'nxml-where))))
         (define-key where-map [where-separator-2] (list 'menu-item "--"))
         (define-key where-map [nxml-where-id]
@@ -731,7 +746,9 @@
                                        html-site-global-mode))))
       (define-key site-map [nxhtml-site-separator] (list 'menu-item "--"))
       (define-key site-map [nxhtml-customize-site-list]
-        (list 'menu-item "Edit Sites" (lambda () (interactive)
+        (list 'menu-item "Edit Sites" (lambda ()
+                                        "Customize option `html-size-list'."
+                                        (interactive)
                                         (customize-option-other-window 'html-site-list))))
       (define-key site-map [nxhtml-set-site]
         (list 'menu-item "Set Current Site" 'html-site-set-site))
@@ -1181,6 +1198,7 @@ Both the current value and the value to save is set, but
       (let ((inhibit-read-only t)
             (here (point)))
         (Custom-mode)
+        (nxhtml-minor-mode 1)
         (setq cursor-in-non-selected-windows nil)
         (nxhtml-custom-h1 "Welcome to nXhtml - a package for web editing" t)
         (insert "\n\n")
@@ -1205,6 +1223,7 @@ Both the current value and the value to save is set, but
           (insert "Click to ")
           (widget-insert-link "remove this message"
                               (lambda ()
+                                "Customize `nxhtml-skip-welcome'."
                                 (customize-option 'nxhtml-skip-welcome))
                               nil)
           (insert " at startup.  (This page is still "

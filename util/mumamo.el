@@ -598,6 +598,72 @@ text buttons."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Custom group
 
+(defgroup mumamo-hi-lock-faces nil
+  "Faces for hi-lock that are visible in mumamo multiple modes.
+This is a workaround for the problem that text properties are
+always hidden behind overlay dito.
+
+This faces are not as visible as those that defines background
+colors.  However they use underlining so they are at least
+somewhat visible."
+  :group 'hi-lock
+  :group 'mumamo
+  :group 'faces)
+
+(defface hi-mumamo-yellow
+  '((((min-colors 88) (background dark))
+     (:underline "yellow1"))
+    (((background dark)) (:underline "yellow"))
+    (((min-colors 88)) (:underline "yellow1"))
+    (t (:underline "yellow")))
+  "Default face for hi-lock mode."
+  :group 'mumamo-hi-lock-faces)
+
+(defface hi-mumamo-pink
+  '((((background dark)) (:underline "pink"))
+    (t (:underline "pink")))
+  "Face for hi-lock mode."
+  :group 'mumamo-hi-lock-faces)
+
+(defface hi-mumamo-green
+  '((((min-colors 88) (background dark))
+     (:underline "green1"))
+    (((background dark)) (:underline "green"))
+    (((min-colors 88)) (:underline "green1"))
+    (t (:underline "green")))
+  "Face for hi-lock mode."
+  :group 'mumamo-hi-lock-faces)
+
+(defface hi-mumamo-blue
+  '((((background dark)) (:underline "light blue"))
+    (t (:underline "light blue")))
+  "Face for hi-lock mode."
+  :group 'mumamo-hi-lock-faces)
+
+(defface hi-mumamo-black-b
+  '((t (:weight bold :underline t)))
+  "Face for hi-lock mode."
+  :group 'mumamo-hi-lock-faces)
+
+(defface hi-mumamo-blue-b
+  '((((min-colors 88)) (:weight bold :underline "blue1"))
+    (t (:weight bold :underline "blue")))
+  "Face for hi-lock mode."
+  :group 'mumamo-hi-lock-faces)
+
+(defface hi-mumamo-green-b
+  '((((min-colors 88)) (:weight bold :underline "green1"))
+    (t (:weight bold :underline "green")))
+  "Face for hi-lock mode."
+  :group 'mumamo-hi-lock-faces)
+
+(defface hi-mumamo-red-b
+  '((((min-colors 88)) (:weight bold :underline "red1"))
+    (t (:weight bold :underline "red")))
+  "Face for hi-lock mode."
+  :group 'mumamo-hi-lock-faces)
+
+
 (defgroup mumamo nil
   "Customization group for multiple major modes in a buffer."
   :group 'editing
@@ -2479,11 +2545,31 @@ The main reasons for doing it this way is:
     (cons func-sym func-def-sym)))
 
 ;; Fix-me: maybe a hook in font-lock-add-keywords??
+(defun mumamo-ad-font-lock-keywords-helper (major keywords how add-keywords)
+  (if major
+      (mumamo-fetch-major-mode-setup major keywords t t how)
+    ;; Fix-me: Can't do that, need a list of all
+    ;; mumamo-current-chunk-family chunk functions major
+    ;; modes. But this is impossible since the major modes might
+    ;; be determined dynamically. As a work around look in current
+    ;; chunks.
+    (let ((majors (list (mumamo-main-major-mode))))
+      (dolist (entry mumamo-internal-major-modes-alist)
+        (let ((major (car entry))
+              (fun-var-sym (caadr entry)))
+          (when (local-variable-p fun-var-sym)
+            (setq majors (cons (car entry) majors)))))
+      (dolist (major majors)
+        (setq major (mumamo-get-major-mode-substitute major 'fontification))
+        (msgtrc "(fetch-major-mode-setup %s %s %s %s %s)" major keywords nil t how)
+        (mumamo-fetch-major-mode-setup major keywords nil add-keywords how))
+      ;;(font-lock-mode -1) (font-lock-mode 1)
+      )))
+
 (defadvice font-lock-add-keywords (around
                                    mumamo-ad-font-lock-add-keywords
                                    activate
-                                   compile
-                                   )
+                                   compile)
   (if (or (boundp 'mumamo-fetching-major) (boundp 'mumamo-add-font-lock-called) (not mumamo-multi-major-mode))
       ad-do-it
     (let (mumamo-multi-major-mode
@@ -2491,26 +2577,19 @@ The main reasons for doing it this way is:
           (major    (ad-get-arg 0))
           (keywords (ad-get-arg 1))
           (how      (ad-get-arg 2)))
-      (if major
-          (mumamo-fetch-major-mode-setup major keywords t t how)
-        ;; Fix-me: Can't do that, need a list of all
-        ;; mumamo-current-chunk-family chunk functions major
-        ;; modes. But this is impossible since the major modes might
-        ;; be determined dynamically. As a work around look in current
-        ;; chunks.
-        (let ((majors (list (mumamo-main-major-mode))))
-          (dolist (entry mumamo-internal-major-modes-alist)
-            (let ((major (car entry))
-                  (fun-var-sym (caadr entry)))
-              (when (local-variable-p fun-var-sym)
-                (setq majors (cons (car entry) majors)))))
-          (dolist (major majors)
-            (setq major (mumamo-get-major-mode-substitute major 'fontification))
-            (msgtrc "(fetch-major-mode-setup %s %s %s %s %s)" major keywords nil t how)
-            (mumamo-fetch-major-mode-setup major keywords nil t how))
-          ;;(font-lock-mode -1) (font-lock-mode 1)
-          ))
-      )))
+      (mumamo-ad-font-lock-keywords-helper major keywords how t))))
+
+(defadvice font-lock-remove-keywords (around
+                                      mumamo-ad-font-lock-remove-keywords
+                                      activate
+                                      compile)
+  (if (or (boundp 'mumamo-fetching-major) (boundp 'mumamo-add-font-lock-called) (not mumamo-multi-major-mode))
+      ad-do-it
+    (let (mumamo-multi-major-mode
+          mumamo-add-font-lock-called
+          (major    (ad-get-arg 0))
+          (keywords (ad-get-arg 1)))
+      (mumamo-ad-font-lock-keywords-helper major keywords nil nil))))
 
 (defun mumamo-bad-mode ()
   "MuMaMo replacement for a major mode that could not be loaded."
