@@ -798,7 +798,7 @@ Any command cancels this state."
   ;;   (cancel-timer mlinks-mark-links-timer)))
 
 (defun mlinks-start-marking-links ()
-  (when nil ;;(mlinks-want-marked-links)
+  (when (mlinks-want-marked-links)
     ;;(message "start-marking-links, buffer=%s" (current-buffer))
     (mlink-font-lock t)
     ;; (mlinks-stop-marking-links)
@@ -1304,7 +1304,7 @@ Any command cancels this state."
 
 (defvar mlinks-nw 0)
 (defun mlinks-html-forward-link-2 (bound)
-  (when (> 100 (setq mlinks-nw (1+ mlinks-nw)))
+  (when t ;;(> 100 (setq mlinks-nw (1+ mlinks-nw)))
     (let ((start (point))
           end-start
           stop next-stop
@@ -1321,21 +1321,22 @@ Any command cancels this state."
                (beg (match-beginning which))
                (end (match-end which)))
           ;; Add the link, but how do I remove it? Or do I remove it?
-          (message "added %s %s" beg end)
-          (add-text-properties beg end
-                               (list 'mlinks-html-link t
-                                     'mouse-face 'highlight))))
+          ;; (message "added %s %s" beg end)
+          ;; (add-text-properties beg end
+          ;;                      (list 'mlinks-html-link t
+          ;;                            'mouse-face 'highlight))
+          ))
       (setq stop start)
       (setq next-stop -1)
       (while (and (> 100 (setq wn (1+ wn)))
                   (setq next-stop (next-single-property-change stop 'mlinks-html-link nil end-start))
                   (/= next-stop stop))
         (setq stop next-stop)
-        (message "wn=%s, stop=%s beg=%s" wn stop end-start)
+        ;;(message "wn=%s, stop=%s beg=%s" wn stop end-start)
         (if (get-text-property stop 'mlinks-html-link)
             (setq old-beg stop)
           (progn
-            (message "remmd %s %s" old-beg stop)
+            ;;(message "remmd %s %s" old-beg stop)
             (when old-beg
               (remove-list-of-text-properties old-beg stop '(mlinks-html-link 'mouse-face))))
           ))
