@@ -1985,14 +1985,12 @@ information."
 ;;;; Exec path etc
 
 (defun ourcomments-which (prog)
-  "Look for PROG in `exec-path' using `exec-suffixes'.
+  "Look for first program PROG in `exec-path' using `exec-suffixes'.
 Return full path if found."
-  (catch 'which
-    (dolist (p exec-path)
-      (dolist (f exec-suffixes)
-        (let ((file (expand-file-name (concat prog f) p)))
-          (when (file-exists-p file)
-            (throw 'which file)))))))
+  (interactive "sProgram: ")
+  (let ((path (locate-file prog exec-path exec-suffixes 'executable)))
+    (when (called-interactively-p) (message "%s found in %s" prog path))
+    path))
 
 (provide 'ourcomments-util)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
