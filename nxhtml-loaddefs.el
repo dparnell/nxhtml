@@ -162,7 +162,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19023 25302))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19023 45539))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -2191,6 +2191,34 @@ Setup like in `Custom-mode', but without things specific to Custom.
 
 ;;;***
 
+;;;### (autoloads (global-pointback-mode pointback-mode) "pointback"
+;;;;;;  "util/pointback.el" (19022 41217))
+;;; Generated autoloads from util/pointback.el
+
+(autoload 'pointback-mode "pointback" "\
+Restore previous window point when switching back to a buffer.
+
+\(fn &optional ARG)" t nil)
+
+(defvar global-pointback-mode nil "\
+Non-nil if Global-Pointback mode is enabled.
+See the command `global-pointback-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `global-pointback-mode'.")
+
+(nxhtml-custom-autoload 'global-pointback-mode "pointback" nil)
+
+(autoload 'global-pointback-mode "pointback" "\
+Toggle Pointback mode in every possible buffer.
+With prefix ARG, turn Global-Pointback mode on if and only if ARG is positive.
+Pointback mode is enabled in all buffers where `pointback-on' would do it.
+See `pointback-mode' for more information on Pointback mode.
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
 ;;;### (autoloads (rnc-mode) "rnc-mode" "util/rnc-mode.el" (18775
 ;;;;;;  60004))
 ;;; Generated autoloads from util/rnc-mode.el
@@ -2316,7 +2344,7 @@ be opened in your webbrowser with WORD looked up.
 ;;;***
 
 ;;;### (autoloads (udev-cedet-update) "udev-cedet" "util/udev-cedet.el"
-;;;;;;  (19019 49647))
+;;;;;;  (19023 33107))
 ;;; Generated autoloads from util/udev-cedet.el
 
 (autoload 'udev-cedet-update "udev-cedet" "\
@@ -2331,7 +2359,7 @@ Note that if you install CEDET yourself you should not use this function.
 ;;;***
 
 ;;;### (autoloads (udev-ecb-update) "udev-ecb" "util/udev-ecb.el"
-;;;;;;  (19023 30390))
+;;;;;;  (19023 33155))
 ;;; Generated autoloads from util/udev-ecb.el
 
 (autoload 'udev-ecb-update "udev-ecb" "\
@@ -2400,8 +2428,8 @@ Display vertical line mode as globally.
 ;;;***
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
-;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (18974
-;;;;;;  59068))
+;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (19023
+;;;;;;  43705))
 ;;; Generated autoloads from util/winsav.el
 
 (autoload 'winsav-put-window-tree "winsav" "\
@@ -2702,7 +2730,7 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (19023 32659 859000))
+;;;;;;  (19023 45717 297000))
 
 ;;;***
 

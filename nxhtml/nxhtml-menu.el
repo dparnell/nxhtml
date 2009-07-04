@@ -319,6 +319,11 @@
                   (interactive)
                   (customize-group-other-window 'ecb-most-important))
                 :enable (featurep 'ecb)))
+        (define-key ecb-map [nxhtml-ecb-mode]
+          (list 'menu-item "ECB Minor Mode"
+                'ecb-minor-mode
+                :button '(:toggle . (and (boundp 'ecb-minor-mode) ecb-minor-mode))
+                :enable (featurep 'ecb)))
         (define-key ecb-map [nxhtml-ecb-custom-separator]
           (list 'menu-item "--" nil))
         (define-key ecb-map [nxhtml-custom-ecb]
