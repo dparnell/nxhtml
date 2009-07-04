@@ -139,7 +139,7 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (nxhtml-customize) "../nxhtml/nxhtml" "nxhtml/nxhtml.el"
-;;;;;;  (18974 59066))
+;;;;;;  (19018 17351))
 ;;; Generated autoloads from nxhtml/nxhtml.el
 
 (autoload 'nxhtml-customize "../nxhtml/nxhtml" "\
@@ -162,7 +162,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19002 55308))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19023 25302))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -206,7 +206,7 @@ Show a HTML page with an overview of nXhtml.
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
 ;;;;;;  nxhtml-mode) "../nxhtml/nxhtml-mode" "nxhtml/nxhtml-mode.el"
-;;;;;;  (18975 5780))
+;;;;;;  (19023 29172))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 
 (when (fboundp 'nxml-mode)
@@ -340,7 +340,7 @@ This mode may be turned on automatically in two ways:
 ;;;;;;  eruby-nxhtml-mumamo-mode jsp-nxhtml-mumamo-mode smarty-nxhtml-mumamo-mode
 ;;;;;;  mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode django-nxhtml-mumamo-mode
 ;;;;;;  embperl-nxhtml-mumamo-mode nxhtml-mumamo-mode) "../nxhtml/nxhtml-mumamo"
-;;;;;;  "nxhtml/nxhtml-mumamo.el" (18981 9199))
+;;;;;;  "nxhtml/nxhtml-mumamo.el" (18982 33732))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 
 (autoload 'nxhtml-mumamo-mode "../nxhtml/nxhtml-mumamo" "\
@@ -416,7 +416,7 @@ See `nxml-where-mode' for more information on Nxml-Where mode.
 ;;;***
 
 ;;;### (autoloads (rngalt-set-validation-header) "../nxhtml/rngalt"
-;;;;;;  "nxhtml/rngalt.el" (18980 36140))
+;;;;;;  "nxhtml/rngalt.el" (18982 33732))
 ;;; Generated autoloads from nxhtml/rngalt.el
 
 (autoload 'rngalt-set-validation-header "../nxhtml/rngalt" "\
@@ -440,11 +440,11 @@ Used to set up a Tidy menu in your favourite mode.
 
 ;;;### (autoloads (xhtml-help-show-tag-ref xhtml-help-tag-at-point
 ;;;;;;  xhtml-help-show-css-ref) "../nxhtml/xhtml-help" "nxhtml/xhtml-help.el"
-;;;;;;  (19008 4345))
+;;;;;;  (19023 29132))
 ;;; Generated autoloads from nxhtml/xhtml-help.el
 
 (autoload 'xhtml-help-show-css-ref "../nxhtml/xhtml-help" "\
-Show css reference for css property name at point.
+Show CSS reference for CSS property name at point.
 
 \(fn)" t nil)
 
@@ -522,7 +522,7 @@ Key bindings:
 ;;;***
 
 ;;;### (autoloads (inferior-moz-mode moz-minor-mode) "../related/moz"
-;;;;;;  "related/moz.el" (18775 60002))
+;;;;;;  "related/moz.el" (19023 29366))
 ;;; Generated autoloads from related/moz.el
 
 (autoload 'moz-minor-mode "../related/moz" "\
@@ -1237,7 +1237,7 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 ;;;***
 
 ;;;### (autoloads (appmenu-add) "appmenu" "util/appmenu.el" (18977
-;;;;;;  24993))
+;;;;;;  25246))
 ;;; Generated autoloads from util/appmenu.el
 
 (autoload 'appmenu-add "appmenu" "\
@@ -1708,8 +1708,8 @@ before applying.
 
 ;;;***
 
-;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (18981
-;;;;;;  49853))
+;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (19019
+;;;;;;  24878))
 ;;; Generated autoloads from util/mlinks.el
 
 (autoload 'mlinks-mode "mlinks" "\
@@ -1744,7 +1744,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19008 3391))
+;;;;;;  "mumamo" "util/mumamo.el" (19023 31715))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -1759,29 +1759,13 @@ Return t if VALUE is a multi major mode function.
 
 ;;;***
 
-;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo-bug388729" "util/mumamo-bug388729.el" (19007 56188))
-;;; Generated autoloads from util/mumamo-bug388729.el
-
-(autoload 'mumamo-mark-for-refontification "mumamo-bug388729" "\
-Mark region between MIN and MAX for refontification.
-
-\(fn MIN MAX)" nil nil)
-
-(autoload 'mumamo-multi-major-modep "mumamo-bug388729" "\
-Return t if VALUE is a multi major mode function.
-
-\(fn VALUE)" nil nil)
-
-;;;***
-
 ;;;### (autoloads (mako-html-mumamo-mode org-mumamo-mode asp-html-mumamo-mode
 ;;;;;;  noweb2-mumamo-mode csound-sgml-mumamo-mode laszlo-nxml-mumamo-mode
 ;;;;;;  metapost-mumamo-mode cperl-mumamo-mode perl-mumamo-mode eruby-html-mumamo-mode
 ;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode smarty-html-mumamo-mode
 ;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
 ;;;;;;  embperl-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (18981 17703))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19023 31561))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1869,7 +1853,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (mumamo-add-region) "mumamo-regions" "util/mumamo-regions.el"
-;;;;;;  (18980 31679))
+;;;;;;  (18980 34110))
 ;;; Generated autoloads from util/mumamo-regions.el
 
 (autoload 'mumamo-add-region "mumamo-regions" "\
@@ -1879,8 +1863,8 @@ Add a mumamo region.
 
 ;;;***
 
-;;;### (autoloads (n-back-game) "n-back" "util/n-back.el" (18978
-;;;;;;  35999))
+;;;### (autoloads (n-back-game) "n-back" "util/n-back.el" (18980
+;;;;;;  34050))
 ;;; Generated autoloads from util/n-back.el
 
 (autoload 'n-back-game "n-back" "\
@@ -1924,9 +1908,9 @@ new are maybe ... - and you have it available here in Emacs.
 
 ;;;***
 
-;;;### (autoloads (info-open-file grep-query-replace emacs-Q-nxhtml
-;;;;;;  emacs-Q emacs--no-desktop emacs--debug-init emacs-buffer-file
-;;;;;;  emacs ourcomments-ido-ctrl-tab ourcomments-ido-buffer-raise-frame
+;;;### (autoloads (use-custom-style info-open-file grep-query-replace
+;;;;;;  emacs-Q-nxhtml emacs-Q emacs--no-desktop emacs--debug-init
+;;;;;;  emacs-buffer-file emacs ourcomments-ido-ctrl-tab ourcomments-ido-buffer-raise-frame
 ;;;;;;  ourcomments-ido-buffer-other-frame ourcomments-ido-buffer-other-window
 ;;;;;;  describe-symbol describe-defstruct describe-custom-group
 ;;;;;;  describe-command ourcomments-ediff-files find-emacs-other-file
@@ -1935,7 +1919,7 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;;;;  ourcomments-move-beginning-of-line major-modep major-or-multi-majorp
 ;;;;;;  unfill-individual-paragraphs unfill-region unfill-paragraph
 ;;;;;;  define-toggle popup-menu-at-point) "ourcomments-util" "util/ourcomments-util.el"
-;;;;;;  (18979 64414))
+;;;;;;  (19023 31835))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2162,7 +2146,8 @@ Start a new Emacs.
 
 (autoload 'emacs-buffer-file "ourcomments-util" "\
 Start a new Emacs showing current buffer file.
-If there is no buffer file start with `dired'.
+Go to the current line and column in that file.
+If there is no buffer file then instead start with `dired'.
 
 \(fn)" t nil)
 
@@ -2198,6 +2183,11 @@ with the command \\[tags-loop-continue].
 Open an info file in `Info-mode'.
 
 \(fn INFO-FILE)" t nil)
+
+(autoload 'use-custom-style "ourcomments-util" "\
+Setup like in `Custom-mode', but without things specific to Custom.
+
+\(fn)" nil nil)
 
 ;;;***
 
@@ -2261,8 +2251,8 @@ handled is governed by `sex-keep-dummy-buffer'.
 
 ;;;***
 
-;;;### (autoloads (tabkey2-mode) "tabkey2" "util/tabkey2.el" (18980
-;;;;;;  38708))
+;;;### (autoloads (tabkey2-mode) "tabkey2" "util/tabkey2.el" (18982
+;;;;;;  33734))
 ;;; Generated autoloads from util/tabkey2.el
 
 (defvar tabkey2-mode nil "\
@@ -2326,20 +2316,22 @@ be opened in your webbrowser with WORD looked up.
 ;;;***
 
 ;;;### (autoloads (udev-cedet-update) "udev-cedet" "util/udev-cedet.el"
-;;;;;;  (18935 29598))
+;;;;;;  (19019 49647))
 ;;; Generated autoloads from util/udev-cedet.el
 
 (autoload 'udev-cedet-update "udev-cedet" "\
-Fetch and install CEDET from the devel sources.
+Fetch and install CEDET from the development sources.
 To determine where to store the sources see `udev-cedet-dir'.
 For how to start CEDET see `udev-cedet-load-cedet'.
+
+Note that if you install CEDET yourself you should not use this function.
 
 \(fn)" t nil)
 
 ;;;***
 
 ;;;### (autoloads (udev-ecb-update) "udev-ecb" "util/udev-ecb.el"
-;;;;;;  (18790 45400))
+;;;;;;  (19023 30390))
 ;;; Generated autoloads from util/udev-ecb.el
 
 (autoload 'udev-ecb-update "udev-ecb" "\
@@ -2710,12 +2702,12 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (19008 35339 515000))
+;;;;;;  (19023 32659 859000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (18940 22530))
+;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (19023 29587))
 ;;; Generated autoloads from nxhtmlmaint.el
 
 (autoload 'nxhtmlmaint-start-byte-compilation "../nxhtmlmaint" "\

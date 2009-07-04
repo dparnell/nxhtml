@@ -637,6 +637,7 @@ just copying region when you press C-c."
     (unless desc
       (setq desc (concat tag " -- No short description available")))
     (when (y-or-n-p (concat desc ". Fetch more information from the Internet? "))
+      ;; Loaded by the autoloading of `xhtml-help-tag-at-point' above:
       (xhtml-help-browse-tag tag))))
 
 (defvar nxhtml-no-single-tags nil)
@@ -2058,7 +2059,8 @@ This guess is made by matching the entries in
                   ;; ensure fontified, but how?
                   (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode)
                     (let ((mumamo-just-changed-major nil))
-                      (unless (and (mumamo-get-existing-chunk-at (point))
+                      ;;(unless (and (mumamo-get-existing-chunk-at (point))
+                      (unless (and (mumamo-find-chunks (point) "guess-validation-header")
                                    (eq t (get-text-property (point) 'fontified)))
                         (mumamo-fontify-region (point-min) (+ 1000 (point))))))
                   (unless (memq (get-text-property (point) 'face)

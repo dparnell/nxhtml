@@ -72,7 +72,10 @@
           (error "Could not load ecb???"))
         (when (y-or-n-p "Could not find CEDET, fetch it from dev sources? ")
           (udev-cedet-update)
-          (load-file cedet-el))))))
+          (load-file cedet-el))))
+    ;; Fix-me: workaround, can't get :set-after to work
+    (when udev-ecb-load-ecb (udev-ecb-load-ecb))
+    ))
 
 (defcustom udev-cedet-load-cedet nil
   "To load or not to load CEDET..."

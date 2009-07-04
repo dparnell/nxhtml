@@ -57,18 +57,19 @@
   :group 'udev-ecb)
 
 (defun udev-ecb-load-ecb ()
-  (let ((semantic-found (locate-library "semantic"))
-        (eieio-found (locate-library "eieio")))
-    ;; Speedbar is included in Emacs now
-    (unless semantic-found (message "Can't find semantic"))
-    (unless eieio-found (message "Can't find eieio"))
-    (if (not (and semantic-found eieio-found))
-        (progn
-          (message "Can't load ECB")
-          (message "Try M-x udev-cedet-update first"))
-      (let ((ecb-path (expand-file-name "ecb/" udev-ecb-dir)))
-        (add-to-list 'load-path ecb-path)
-        (require 'ecb nil t)))))
+  (unless (featurep 'ecb)
+    (let ((semantic-found (locate-library "semantic"))
+          (eieio-found (locate-library "eieio")))
+      ;; Speedbar is included in Emacs now
+      (unless semantic-found (message "Can't find semantic"))
+      (unless eieio-found (message "Can't find eieio"))
+      (if (not (and semantic-found eieio-found))
+          (progn
+            (message "Can't load ECB")
+            (message "Try M-x udev-cedet-update first"))
+        (let ((ecb-path (expand-file-name "ecb/" udev-ecb-dir)))
+          (add-to-list 'load-path ecb-path)
+          (require 'ecb nil t))))))
 
 (defcustom udev-ecb-load-ecb nil
   "To load or not to load ECB..."
@@ -79,6 +80,7 @@
          (when val
            (udev-ecb-load-ecb)))
   ;; ecb-activate, ecb-customize-most-important to menu
+  :set-after '(udev-cedet-load-cedet)
   :group 'udev-ecb)
 
 (defvar udev-ecb-steps
