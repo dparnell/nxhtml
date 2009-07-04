@@ -1068,7 +1068,7 @@ Preserves the `buffer-modified-p' state of the current buffer."
   (let ((obscured (overlay-get chunk 'obscured))
         region-info)
     (unless (and obscured (= (car obscured) pos))
-      (setq reqion-info (mumamo-get-region-from pos))
+      (setq region-info (mumamo-get-region-from pos))
       ;;(msgtrc "update-obscure:region-info=%s" region-info)
       ;; This should not be a chunk here
       (mumamo-put-obscure chunk pos region-info))))
@@ -3231,13 +3231,13 @@ Otherwise return nil."
                                    fw-exc-start-fun
                                    fw-exc-end-fun
                                    &optional find-borders-fun)
-  (if (not mumamo-find-possible-chunk-new)
-      (mumamo-find-possible-chunk-old pos min max
-                                      bw-exc-start-fun
-                                      bw-exc-end-fun
-                                      fw-exc-start-fun
-                                      fw-exc-end-fun
-                                      find-borders-fun)
+  ;; (if (not mumamo-find-possible-chunk-new)
+  ;;     (mumamo-find-possible-chunk-old pos min max
+  ;;                                     bw-exc-start-fun
+  ;;                                     bw-exc-end-fun
+  ;;                                     fw-exc-start-fun
+  ;;                                     fw-exc-end-fun
+  ;;                                     find-borders-fun)
     (mumamo-find-possible-chunk-new pos
                                     ;;min
                                     max
@@ -3246,7 +3246,8 @@ Otherwise return nil."
                                     fw-exc-start-fun
                                     fw-exc-end-fun
                                     find-borders-fun)
-    ))
+    ;;)
+    )
 
 (defun mumamo-find-possible-chunk-new (pos
                                        ;;min
@@ -5903,7 +5904,7 @@ default values."
   (make-local-variable 'font-lock-unfontify-buffer-function)
   (setq font-lock-unfontify-buffer-function 'mumamo-unfontify-buffer)
 
-  (setq indent-line-function 'mumamo-indent-line-function)
+  (set (make-local-variable 'indent-line-function) 'mumamo-indent-line-function)
 
   (set (make-local-variable 'fill-paragraph-function) 'mumamo-fill-paragraph-function)
 

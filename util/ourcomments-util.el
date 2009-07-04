@@ -367,7 +367,7 @@ To create a menu item something similar to this can be used:
 
 ;;;###autoload
 (defun major-or-multi-majorp (value)
-  (or (multi-major-modep value)
+  (or (mumamo-multi-major-modep value)
       (major-modep value)))
 
 ;;;###autoload
@@ -1991,6 +1991,49 @@ Return full path if found."
   (let ((path (locate-file prog exec-path exec-suffixes 'executable)))
     (when (called-interactively-p) (message "%s found in %s" prog path))
     path))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Custom faces and keys
+
+;;;###autoload
+(defun use-custom-style ()
+  "Setup like in `Custom-mode', but without things specific to Custom."
+  (make-local-variable 'widget-documentation-face)
+  (setq widget-documentation-face 'custom-documentation)
+  (make-local-variable 'widget-button-face)
+  (setq widget-button-face custom-button)
+  (setq show-trailing-whitespace nil)
+
+  ;; We need this because of the "More" button on docstrings.
+  ;; Otherwise clicking on "More" can push point offscreen, which
+  ;; causes the window to recenter on point, which pushes the
+  ;; newly-revealed docstring offscreen; which is annoying.  -- cyd.
+  (set (make-local-variable 'widget-button-click-moves-point) t)
+
+  (set (make-local-variable 'widget-button-pressed-face) custom-button-pressed)
+  (set (make-local-variable 'widget-mouse-face) custom-button-mouse)
+
+  ;; When possible, use relief for buttons, not bracketing.  This test
+  ;; may not be optimal.
+  (when custom-raised-buttons
+    (set (make-local-variable 'widget-push-button-prefix) "")
+    (set (make-local-variable 'widget-push-button-suffix) "")
+    (set (make-local-variable 'widget-link-prefix) "")
+    (set (make-local-variable 'widget-link-suffix) ""))
+
+  ;; From widget-keymap
+  (local-set-key "\t" 'widget-forward)
+  (local-set-key "\e\t" 'widget-backward)
+  (local-set-key [(shift tab)] 'advertised-widget-backward)
+  (local-set-key [backtab] 'widget-backward)
+  (local-set-key [down-mouse-2] 'widget-button-click)
+  (local-set-key [down-mouse-1] 'widget-button-click)
+  (local-set-key [(control ?m)] 'widget-button-press)
+  ;; From custom-mode-map
+  (local-set-key " " 'scroll-up)
+  (local-set-key "\177" 'scroll-down)
+  (local-set-key "n" 'widget-forward)
+  (local-set-key "p" 'widget-backward))
 
 (provide 'ourcomments-util)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

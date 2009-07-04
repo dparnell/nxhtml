@@ -312,23 +312,6 @@
       (let ((ecb-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-ecb-map]
           (list 'menu-item "ECB" ecb-map))
-        (define-key ecb-map [nxhtml-rinari-homepage]
-          (list 'menu-item "ECB Home Page"
-                (lambda ()
-                  "Open ECB home page in your web browser."
-                  (interactive)
-                  (browse-url "http://ecb.sourceforge.net/"))))
-        (define-key ecb-map [nxhtml-ecb-home-separator]
-          (list 'menu-item "--" nil))
-        (define-key ecb-map [nxhtml-update-ecb]
-          (list 'menu-item "Fetch/update ECB dev sources"
-                'udev-ecb-update))
-        (define-key ecb-map [nxhtml-custom-ecb]
-          (list 'menu-item "Customize ECB dev startup"
-                (lambda ()
-                  "Customize ECB dev nXhtml startup group."
-                  (interactive)
-                  (customize-group-other-window 'udev-ecb))))
         (define-key ecb-map [nxhtml-custom-important-ecb]
           (list 'menu-item "Customize important ECB things"
                 (lambda ()
@@ -336,13 +319,36 @@
                   (interactive)
                   (customize-group-other-window 'ecb-most-important))
                 :enable (featurep 'ecb)))
+        (define-key ecb-map [nxhtml-ecb-custom-separator]
+          (list 'menu-item "--" nil))
+        (define-key ecb-map [nxhtml-custom-ecb]
+          (list 'menu-item "Customize ECB dev startup from nXhtml"
+                (lambda ()
+                  "Customize ECB dev nXhtml startup group."
+                  (interactive)
+                  (customize-group-other-window 'udev-ecb))))
+        (define-key ecb-map [nxhtml-byte-compile-ecb]
+          (list 'menu-item "Byte compile ECB"
+                'ecb-byte-compile
+                :enable (featurep 'ecb)))
+        (define-key ecb-map [nxhtml-update-ecb]
+          (list 'menu-item "Fetch/update ECB dev sources"
+                'udev-ecb-update))
+        (define-key ecb-map [nxhtml-ecb-home-separator]
+          (list 'menu-item "--" nil))
+        (define-key ecb-map [nxhtml-rinari-homepage]
+          (list 'menu-item "ECB Home Page"
+                (lambda ()
+                  "Open ECB home page in your web browser."
+                  (interactive)
+                  (browse-url "http://ecb.sourceforge.net/"))))
         )
       ;;(define-key tools-map [nxhtml-cedet-separator] (list 'menu-item "--" nil))
       (let ((cedet-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-cedet-map]
           (list 'menu-item "CEDET" cedet-map))
         (define-key cedet-map [nxhtml-custom-cedet]
-          (list 'menu-item "Customize CEDET dev startup"
+          (list 'menu-item "Customize CEDET dev startup from nXhtml"
                 (lambda ()
                   "Customize CEDET dev nXhtml startup options."
                   (interactive)
@@ -365,36 +371,28 @@
       (let ((rinari-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-rinari-map]
           (list 'menu-item "Rinari" rinari-map))
+        (define-key rinari-map [nxhtml-custom-rinari]
+          (list 'menu-item "Customize Rinari startup from nXhtml"
+                (lambda ()
+                  "Customize Rinari dev nXhtml startup options."
+                  (interactive)
+                  (customize-group-other-window 'udev-rinari))))
+        (define-key rinari-map [nxhtml-update-rinari]
+          (list 'menu-item "Fetch/update Rinari dev sources"
+                'udev-rinari-update))
+        (define-key rinari-map [nxhtml-rinari-home-separator]
+          (list 'menu-item "--" nil))
         (define-key rinari-map [nxhtml-rinari-homepage]
           (list 'menu-item "Rinari Home Page"
                 (lambda ()
                   "Open Rinari home page in your web browser."
                   (interactive)
                   (browse-url "http://rubyforge.org/projects/rinari/"))))
-        (define-key rinari-map [nxhtml-rinari-home-separator]
-          (list 'menu-item "--" nil))
-        (define-key rinari-map [nxhtml-update-rinari]
-          (list 'menu-item "Fetch/update Rinari dev sources"
-                'udev-rinari-update))
-        (define-key rinari-map [nxhtml-custom-rinari]
-          (list 'menu-item "Customize Rinari startup"
-                (lambda ()
-                  "Customize Rinari dev nXhtml startup options."
-                  (interactive)
-                  (customize-group-other-window 'udev-rinari))))
         )
       (let ((mozrepl-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-mozrepl-map]
           (list 'menu-item "MozRepl for Javascript" mozrepl-map
               ))
-        (define-key mozrepl-map [nxhtml-mozrepl-home-page]
-          (list 'menu-item "MozLab/MozRepl Home Page"
-                (lambda ()
-                  "Open MozLab/MozRepl home page in your web browser."
-                  (interactive)
-                  (browse-url "http://hyperstruct.net/projects/mozlab"))))
-        (define-key mozrepl-map [nxhtml-mozrepl-separator2]
-          (list 'menu-item "--" nil))
         (define-key mozrepl-map [nxhtml-mozrepl-run-mozilla]
           (list 'menu-item "Display/Start MozRepl Process" 'run-mozilla
               :enable '(and (boundp 'moz-minor-mode) moz-minor-mode)))
@@ -404,9 +402,6 @@
           (list 'menu-item "Save Buffer and Send it" 'moz-save-buffer-and-send
                 :enable '(or (not (boundp 'mumamo-multi-major-mode))
                              (not mumamo-multi-major-mode))))
-
-
-
         (define-key mozrepl-map [nxhtml-mozrepl-send-defun-and-go]
           (list 'menu-item "Send Current Function, Go to MozRepl"
                 'moz-send-defun-and-go
@@ -418,6 +413,14 @@
           (list 'menu-item "Send the Region" 'moz-send-region
                 :enable '(and mark-active
                               (boundp 'moz-minor-mode) moz-minor-mode)))
+        (define-key mozrepl-map [nxhtml-mozrepl-separator2]
+          (list 'menu-item "--" nil))
+        (define-key mozrepl-map [nxhtml-mozrepl-home-page]
+          (list 'menu-item "MozLab/MozRepl Home Page"
+                (lambda ()
+                  "Open MozLab/MozRepl home page in your web browser."
+                  (interactive)
+                  (browse-url "http://hyperstruct.net/projects/mozlab"))))
         )
       (define-key tools-map [nxhtml-majpri-separator]
         (list 'menu-item "--" nil))
