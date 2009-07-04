@@ -602,7 +602,7 @@ and restore additional information see the function
 
 (defun winsav-save-mode-off ()
   "Disable option `winsav-save-mode'.  Provided for use in hooks."
-  (winsav-save-mode 0))
+  (winsav-save-mode -1))
 
 (defcustom winsav-save 'ask-if-new
   "Specifies whether the winsav config should be saved when it is killed.
@@ -983,6 +983,24 @@ Write this to current buffer."
           (insert (format "(winsav-restore-dedicated-window %s %s %S)\n" frame-num win-num flag))
           )))))
 
+(defun winsav-restore-ecb (frame-num layout-ecb)
+  "Restore ECB.
+On frame number FRAME-NUM-ECB in `winsav-loaded-frames' restore
+ECB layout LAYOUT-ECB."
+  (let* ((frame (nth (1- frame-num) winsav-loaded-frames)))
+    (select-frame frame)
+    (unless (string= layout-ecb ecb-layout-name)
+      (setq ecb-layout-name layout-ecb))
+    (ecb-minor-mode 1)))
+
+(defun winsav-save-ecb (frame-ecb layout-ecb sorted-frames)
+  "Save information about ECB layout on frames in SORTED-FRAMES.
+Write this in current buffer."
+  (dolist (frame sorted-frames)
+    (when (eq frame frame-ecb)
+      (let ((frame-num (length (memq frame sorted-frames))))
+        (insert (format "(winsav-restore-ecb %s %S)\n" frame-num layout-ecb))))))
+
 ;; (make-frame '((minibuffer)))
 ;; (sort (frame-list) 'winsav-frame-sort-predicate)
 (defun winsav-frame-sort-predicate (a b)
@@ -1031,7 +1049,16 @@ Fix-me: RELEASE is not implemented."
         end
         (sorted-frames (sort (frame-list) 'winsav-frame-sort-predicate))
         (frm-nr 0)
+        frame-ecb
+        layout-ecb
         )
+    (when ecb-minor-mode
+      (when (frame-live-p ecb-frame)
+        (setq layout-ecb ecb-layout-name)
+        (setq frame-ecb ecb-frame))
+      (ecb-minor-mode -1)
+      (sit-for 0) ;; Fix-me: is this needed?
+      )
     (with-temp-buffer
       ;;(erase-buffer)
       (insert
@@ -1060,6 +1087,8 @@ Fix-me: RELEASE is not implemented."
         (setq frm-nr (1+ frm-nr)))
       (insert ";; ---- dedicated windows ------------------------\n")
       (winsav-save-dedicated-windows sorted-frames)
+      (insert ";; ---- ECB --------------------------------------\n")
+      (winsav-save-ecb frame-ecb layout-ecb sorted-frames)
       (insert "\n\n;; ---- before winsav-after-save-configuration-hook  ------------------------\n")
       (run-hooks 'winsav-after-save-configuration-hook)
       (insert ";; ---- after winsav-after-save-configuration-hook   ------------------------\n")

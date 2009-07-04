@@ -2761,25 +2761,39 @@
           <dd id="v1.85-dd">
             <ul>
               <li>
-                Forgot to finish the implementation of support for
-                font-lock-add-keywords. Done.
+                MuMaMo:
+                <ul>
+                  <li>
+                    Forgot to finish the implementation of support for
+                    font-lock-add-keywords. Done.
+                  </li>
+                  <li>
+                    Added some faces hi-mumamo-* to use with hi-lock,
+                    but unfortunately they are not very
+                    visible. Suggestions are welcome.
+                  </li>
+                </ul>
               </li>
               <li>
-                Added some faces hi-mumamo-* to use with hi-lock, but
-                unfortunately they are not very visible. Suggestions
-                are welcome.
+                CEDET and ECB:
+                <ul>
+                  <li>
+                    Made the routines for fetching and installing CEDET and ECB
+                    from the development sources work again.
+                  </li>
+                  <li>
+                    Added support for ECB in <i>winsav-save-mode</i>. Though I suspect it need some rework...
+                  </li>
+                </ul>
               </li>
               <li>
-                Made the routines for fetching and installing CEDET
-                from the development sources work again.
-              </li>
-              <li>
-                Added entry for running CEDET unit tests for the
-                fetched CEDET.
-              </li>
-              <li>
-                indent-line-function where globally set to
+                Corrected various mostly minor bugs, like
+                indent-line-function which where globally set to
                 mumamo-indent-line. Corrected.
+              </li>
+              <li>
+                Added pointback.el, found on EmacsWiki. This is just
+                so missing in Emacs...
               </li>
             </ul>
           </dd>
