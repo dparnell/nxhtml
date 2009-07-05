@@ -1804,7 +1804,7 @@ This function is called when the minor mode function
   (when (and mumamo-multi-major-mode
              (not (and (boundp 'mumamo-find-chunks-1-active)
                        mumamo-find-chunks-1-active)))
-    (mumamo-backtrace "unfontify-buffer")
+    ;;(mumamo-backtrace "unfontify-buffer")
     ;;(msgtrc "mumamo-unfontify-buffer:\n%s" (with-output-to-string (backtrace)))
     (save-excursion
       (save-restriction
@@ -2394,11 +2394,12 @@ The main reasons for doing it this way is:
       (when keywords
         (if add-keywords
             (progn
-              (msgtrc "fetch:font-lock-add-keywords %S %S %S" (if mode-keywords major nil) keywords how)
+              ;;(msgtrc "fetch:font-lock-add-keywords %S %S %S" (if mode-keywords major nil) keywords how)
               (font-lock-add-keywords (if mode-keywords major nil) keywords how))
           (font-lock-remove-keywords (if mode-keywords major nil) keywords))
         (unless mode-keywords (font-lock-mode -1) (font-lock-mode 1))
-        (msgtrc "fetch-major-mode-setup:font-lock-keywords=%S" font-lock-keywords))
+        ;;(msgtrc "fetch-major-mode-setup:font-lock-keywords=%S" font-lock-keywords)
+        )
       ;;(run-hooks add-keywords-hook)
 
       (add-to-list 'mumamo-major-modes-local-maps
@@ -2561,7 +2562,7 @@ The main reasons for doing it this way is:
             (setq majors (cons (car entry) majors)))))
       (dolist (major majors)
         (setq major (mumamo-get-major-mode-substitute major 'fontification))
-        (msgtrc "(fetch-major-mode-setup %s %s %s %s %s)" major keywords nil t how)
+        ;;(msgtrc "(fetch-major-mode-setup %s %s %s %s %s)" major keywords nil t how)
         (mumamo-fetch-major-mode-setup major keywords nil add-keywords how))
       ;;(font-lock-mode -1) (font-lock-mode 1)
       )))
