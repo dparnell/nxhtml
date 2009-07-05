@@ -60,25 +60,72 @@
   :type 'directory
   :group 'udev-cedet)
 
+(defun udev-cedet-el-file ()
+  (expand-file-name "cedet/common/cedet.el" udev-cedet-dir))
+
 (defun udev-cedet-load-cedet (must-be-fetched)
-  (let ((cedet-el (expand-file-name "cedet/common/cedet.el"
-                                    udev-cedet-dir)))
+  (let ((cedet-el (udev-cedet-el-file)))
     ;;(message "cedet-el=%s, exists=%s, mbf=%s" cedet-el (file-exists-p cedet-el) must-be-fetched)
     (unless (featurep 'cedet)
-      (when (file-exists-p cedet-el)
-        (load-file cedet-el))
-      (unless (featurep 'cedet)
+      (if (file-exists-p cedet-el)
+          (load-file cedet-el)
         (when must-be-fetched
-          (error "Could not load ecb???"))
+          (error "Can't find %s" cedet-el)))
+      (unless (featurep 'cedet)
         (when (y-or-n-p "Could not find CEDET, fetch it from dev sources? ")
           (udev-cedet-update)
           (load-file cedet-el))))
+    ;; From Joakim Verona, http://article.gmane.org/gmane.emacs.cedet/2599
+    (when (featurep 'semantic)
+      (when (string= semanticdb-default-save-directory (expand-file-name "~/.semanticdb"))
+        (message "Semantic found, using Joakims easier defaults for semanticdb dirs ...,\n\told default=%s"
+                 semanticdb-default-save-directory)
+        (unless (file-exists-p "~/.semanticdb") (make-directory "~/.semanticdb"))
+        (setq semanticdb-default-save-directory (expand-file-name "~/.semanticdb/project"))
+        (unless (file-exists-p semanticdb-default-save-directory) (make-directory semanticdb-default-save-directory))
+        (setq semanticdb-default-system-save-directory (expand-file-name "~/.semanticdb/system"))
+        (unless (file-exists-p semanticdb-default-system-save-directory) (make-directory semanticdb-default-system-save-directory))
+        ))
     ;; Fix-me: workaround, can't get :set-after to work
-    (when udev-ecb-load-ecb (udev-ecb-load-ecb))
-    ))
+    (when (featurep 'cedet)
+      (require 'udev-ecb)
+      (when udev-ecb-load-ecb (udev-ecb-load-ecb)))))
+
+(defun udev-cedet-load-cedet-set (sym val)
+  (set-default sym val)
+  (when val
+    (udev-cedet-load-cedet nil)
+    (when (featurep 'cedet)
+      (let* ((val-list (if (listp val) val nil))
+             (use-ede (or (eq val t) (memq 'ede val-list)))
+             (use-min-features (memq 'min-features val-list))
+             (use-code-helpers (memq 'code-helpers val-list))
+             (use-gaudy-code-helpers (memq 'gaudy-code-helpers val-list))
+             (use-excessive-code-helpers (memq 'excessive-code-helpers val-list))
+             (use-debugging-helpers (memq 'debugging-helpers val-list))
+             (use-ia (memq 'sem-ia val-list))
+             (use-gcc (memq 'sem-gcc val-list))
+             )
+        (global-ede-mode (if use-ede 1 -1))
+        (when use-min-features
+          (semantic-load-enable-minimum-features))
+        (when use-code-helpers
+          (semantic-load-enable-code-helpers))
+        (when use-gaudy-code-helpers
+                   (semantic-load-enable-gaudy-code-helpers))
+        (when (or (eq val t) use-excessive-code-helpers)
+          (semantic-load-enable-excessive-code-helpers))
+        (when use-debugging-helpers
+          (semantic-load-enable-semantic-debugging-helpers))
+        (when (or (eq val t) use-ia)
+          (require 'semantic-ia))
+        (when (or (eq val t) use-gcc)
+          (require 'semantic-gcc))
+        ))))
 
 (defcustom udev-cedet-load-cedet nil
-  "To load or not to load CEDET..."
+  "To load or not to load CEDET...
+Note: This applies only to the CEDET sources fetched by nXhtml."
   :type '(choice (const :tag "Don't load CEDET" nil)
                  (set :tag "Choose what to load"
                       (const :tag "EDE Project Management" ede)
@@ -93,37 +140,7 @@
                       (const srecode))
                  (const :tag "Load whole CEDET (except debugging)" t))
   :require 'udev-cedet
-  :set (lambda (sym val)
-         (set-default sym val)
-         (when val
-           (udev-cedet-load-cedet nil)
-           (when (featurep 'cedet)
-             (let* ((val-list (if (listp val) val nil))
-                    (use-ede (or (eq val t) (memq 'ede val-list)))
-                    (use-min-features (memq 'min-features val-list))
-                    (use-code-helpers (memq 'code-helpers val-list))
-                    (use-gaudy-code-helpers (memq 'gaudy-code-helpers val-list))
-                    (use-excessive-code-helpers (memq 'excessive-code-helpers val-list))
-                    (use-debugging-helpers (memq 'debugging-helpers val-list))
-                    (use-ia (memq 'sem-ia val-list))
-                    (use-gcc (memq 'sem-gcc val-list))
-                   )
-                 (global-ede-mode (if use-ede 1 -1))
-                 (when use-min-features
-                   (semantic-load-enable-minimum-features))
-                 (when use-code-helpers
-                   (semantic-load-enable-code-helpers))
-                 (when use-gaudy-code-helpers
-                   (semantic-load-enable-gaudy-code-helpers))
-                 (when (or (eq val t) use-excessive-code-helpers)
-                   (semantic-load-enable-excessive-code-helpers))
-                 (when use-debugging-helpers
-                   (semantic-load-enable-semantic-debugging-helpers))
-                 (when (or (eq val t) use-ia)
-                   (require 'semantic-ia))
-                 (when (or (eq val t) use-gcc)
-                   (require 'semantic-gcc))
-                 ))))
+  :set 'udev-cedet-load-cedet-set
   :group 'udev-cedet)
 
 ;; (defun udev-cedet-fontify-marker (limit)

@@ -1052,7 +1052,7 @@ Fix-me: RELEASE is not implemented."
         frame-ecb
         layout-ecb
         )
-    (when ecb-minor-mode
+    (when (and (boundp 'ecb-minor-mode) ecb-minor-mode)
       (when (frame-live-p ecb-frame)
         (setq layout-ecb ecb-layout-name)
         (setq frame-ecb ecb-frame))

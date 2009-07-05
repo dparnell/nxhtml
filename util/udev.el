@@ -366,12 +366,10 @@ by giving this to `compilation-start'."
   (let ((default-directory (file-name-as-directory defdir))
         ;; Fix-me:
         (this-emacs (ourcomments-find-emacs)))
-    (with-current-buffer
-        (compilation-start
-         (concat this-emacs " -Q -batch " emacs-args)
-         'compilation-mode
-         name-function)
-      (current-buffer))))
+    (compilation-start
+     (concat this-emacs " -Q -batch " emacs-args)
+     'compilation-mode
+     name-function)))
 
 ;;; Convenience functions for CVS
 

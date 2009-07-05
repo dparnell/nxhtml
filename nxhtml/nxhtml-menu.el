@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 2007
-(defconst nxhtml-menu:version "1.85") ;;Version:
+(defconst nxhtml-menu:version "1.86") ;;Version:
 ;; Last-Updated: 2009-05-29 Fri
 ;; URL:
 ;; Keywords:
@@ -318,24 +318,42 @@
                   "Customize group `ecb-most-important'."
                   (interactive)
                   (customize-group-other-window 'ecb-most-important))
-                :enable (featurep 'ecb)))
+                :enable '(featurep 'ecb)))
         (define-key ecb-map [nxhtml-ecb-mode]
           (list 'menu-item "ECB Minor Mode"
                 'ecb-minor-mode
                 :button '(:toggle . (and (boundp 'ecb-minor-mode) ecb-minor-mode))
-                :enable (featurep 'ecb)))
+                :enable '(featurep 'ecb)))
+        (define-key ecb-map [nxhtml-ecb-show-help]
+          (list 'menu-item "ECB Help"
+                'ecb-show-help
+                :enable '(featurep 'ecb)))
         (define-key ecb-map [nxhtml-ecb-custom-separator]
           (list 'menu-item "--" nil))
+        ;; (define-key ecb-map [nxhtml-byte-compile-ecb]
+        ;;   (list 'menu-item "Byte compile ECB"
+        ;;         'ecb-byte-compile
+        ;;         :enable '(featurep 'ecb)))
         (define-key ecb-map [nxhtml-custom-ecb]
           (list 'menu-item "Customize ECB dev startup from nXhtml"
                 (lambda ()
                   "Customize ECB dev nXhtml startup group."
                   (interactive)
-                  (customize-group-other-window 'udev-ecb))))
+                  (customize-group-other-window 'udev-ecb))
+                :enable '(featurep 'ecb)))
         (define-key ecb-map [nxhtml-byte-compile-ecb]
-          (list 'menu-item "Byte compile ECB"
-                'ecb-byte-compile
-                :enable (featurep 'ecb)))
+          (list 'menu-item "Fetch or start CEDET (which ECB needs)"
+                (lambda ()
+                  "Ask user about CEDET which is needed."
+                  (interactive)
+                  (if (not (file-exists-p (udev-cedet-el-file)))
+                      (when (y-or-n-p (concat udev-ecb-miss-cedet " Fetch CEDET? "))
+                        (setq udev-ecb-miss-cedet nil)
+                        (udev-cedet-update))
+                    (when (y-or-n-p "CEDET is fetched, but not loaded. Load it? ")
+                      (customize-group-other-window 'udev-cedet))
+                    ))
+                :enable 'udev-ecb-miss-cedet))
         (define-key ecb-map [nxhtml-update-ecb]
           (list 'menu-item "Fetch/update ECB dev sources"
                 'udev-ecb-update))
@@ -357,7 +375,9 @@
                 (lambda ()
                   "Customize CEDET dev nXhtml startup options."
                   (interactive)
-                  (customize-group-other-window 'udev-cedet))))
+                  (customize-group-other-window 'udev-cedet))
+                :enable '(or (featurep 'cedet)
+                             (file-exists-p (udev-cedet-el-file)))))
         (define-key cedet-map [nxhtml-cedet-utest]
           (list 'menu-item "Run CEDET unit tests"
                 'udev-cedet-utest))
