@@ -712,7 +712,8 @@ This is a normal hook.  For more information see
 
 (defun winsav-restore-frame (frame-params
                              window-tree-params
-                             use-minibuffer-frame)
+                             use-minibuffer-frame
+                             was-max)
   "Restore a frame with specified values.
 If this is a minibuffer only frame then just apply the frame
 parameters FRAME-PARAMS.  Otherwise create a new frame using
@@ -765,7 +766,7 @@ frame have this minibuffer frame."
       (modify-frame-parameters this-frame frame-params))
     (setq winsav-last-loaded-frame this-frame)
     (setq winsav-loaded-frames (cons this-frame winsav-loaded-frames))
-    ))
+    (when was-max (winsav-set-maximized-size this-frame))))
 
 (defvar winsav-frame-parameters-to-save
   '(
@@ -811,14 +812,32 @@ frame have this minibuffer frame."
     )
   "Parameters saved for frames by `winsav-save-configuration'.")
 
+(defun winsav-set-restore-size (frame)
+  (when (fboundp 'w32-send-sys-command)
+    (w32-send-sys-command 61728)
+    (sleep-for 0.5)
+    t))
+
+(defun winsav-set-maximized-size (frame)
+  (when (fboundp 'w32-send-sys-command)
+    (w32-send-sys-command 61488)
+    t))
+
 (defun winsav-save-frame (frame mb-frm-nr)
   "Write into current buffer elisp code to recreate frame FRAME.
 If MB-FRM-NR is a number then it is the order number of the frame
 whose minibuffer should be used."
-  (let ((start nil)
-        (end nil)
-        (obj (winsav-get-window-tree frame))
-        (frm-par (frame-parameters frame)))
+  (let* ((start nil)
+         (end nil)
+         (obj (winsav-get-window-tree frame))
+         (frm-size-now (cons (frame-pixel-height frame)
+                             (frame-pixel-width frame)))
+         (frm-size-rst (when (winsav-set-restore-size frame)
+                         (cons (frame-pixel-height frame)
+                               (frame-pixel-width frame))))
+         (was-max (and frm-size-rst
+                       (not (equal frm-size-now frm-size-rst))))
+         (frm-par (frame-parameters frame)))
     (setq frm-par
           (delq nil
                 (mapcar (lambda (elt)
@@ -833,62 +852,30 @@ whose minibuffer should be used."
                                     nil
                                   (cons 'minibuffer nil)))))))
                         frm-par)))
-    (if nil
-        (progn ;; old version
-          (insert "(let* ((default-minibuffer-frame ")
-          (when mb-frm-nr
-            (insert (format "(nth %s (reverse winsav-loaded-frames))" mb-frm-nr)))
-          (insert ")\n")
-          (insert "       (winsav-last-loaded-frame (make-frame '"
-                  (winsav-serialize frm-par)
-                  "))\n"
-                  "       (win (frame-first-window winsav-last-loaded-frame)))\n")
-          (insert "    (setq winsav-loaded-frames (cons winsav-last-loaded-frame winsav-loaded-frames))\n")
-
-          ;; Do not touch minibuffer only frames
-          (unless (member '(minibuffer . only) frm-par)
-            (insert "  (winsav-put-window-tree\n"
-                    "  '")
-            (setq start (point))
-            (insert (winsav-serialize obj) "\n")
-            (setq end (copy-marker (point) t))
-            (replace-regexp (rx "#<buffer "
-                                (1+ (not (any ">")))
-                                (1+ ">")) ;; 1+ for indirect buffers ...
-                            "buffer"
-                            nil start end)
-            (replace-regexp (rx "#<window "
-                                (1+ (not (any ">")))
-                                (1+ ">"))
-                            "nil"
-                            nil start end)
-            (goto-char end)
-            (insert "    win)\n\n"))
-          )
-
-      (insert "(winsav-restore-frame\n'"
-              ;;make-frame-params
-              (winsav-serialize frm-par))
-      ;;window-tree-params
-      (setq start (point))
-      (insert "'" (winsav-serialize obj) "\n")
-      (setq end (copy-marker (point) t))
-      (replace-regexp (rx "#<buffer "
-                          (1+ (not (any ">")))
-                          (1+ ">")) ;; 1+ for indirect buffers ...
-                      "buffer"
-                      nil start end)
-      (replace-regexp (rx "#<window "
-                          (1+ (not (any ">")))
-                          (1+ ">"))
-                      "nil"
-                      nil start end)
-      (goto-char end)
-      ;;use-minibuffer-frame
-      (insert (if mb-frm-nr
-                  (format "(nth %s (reverse winsav-loaded-frames))" mb-frm-nr)
-                "nil")
-              ")\n\n"))
+    (insert "(winsav-restore-frame\n'"
+            ;;make-frame-params
+            (winsav-serialize frm-par))
+    ;;window-tree-params
+    (setq start (point))
+    (insert "'" (winsav-serialize obj) "\n")
+    (setq end (copy-marker (point) t))
+    (replace-regexp (rx "#<buffer "
+                        (1+ (not (any ">")))
+                        (1+ ">")) ;; 1+ for indirect buffers ...
+                    "buffer"
+                    nil start end)
+    (replace-regexp (rx "#<window "
+                        (1+ (not (any ">")))
+                        (1+ ">"))
+                    "nil"
+                    nil start end)
+    (goto-char end)
+    ;;use-minibuffer-frame
+    (insert (if mb-frm-nr
+                (format "(nth %s (reverse winsav-loaded-frames))" mb-frm-nr)
+              "nil")
+            (if was-max " t " " nil ")
+            ")\n\n")
 
     (insert "    ;; ---- before after-save-frame-hook ----\n")
     ;; (dolist (fun winsav-after-save-frame-hook)
@@ -987,11 +974,12 @@ Write this to current buffer."
   "Restore ECB.
 On frame number FRAME-NUM-ECB in `winsav-loaded-frames' restore
 ECB layout LAYOUT-ECB."
-  (let* ((frame (nth (1- frame-num) winsav-loaded-frames)))
-    (select-frame frame)
-    (unless (string= layout-ecb ecb-layout-name)
-      (setq ecb-layout-name layout-ecb))
-    (ecb-minor-mode 1)))
+  (when (boundp 'ecb-minor-mode)
+    (let* ((frame (nth (1- frame-num) winsav-loaded-frames)))
+      (select-frame frame)
+      (unless (string= layout-ecb ecb-layout-name)
+        (setq ecb-layout-name layout-ecb))
+      (ecb-minor-mode 1))))
 
 (defun winsav-save-ecb (frame-ecb layout-ecb sorted-frames)
   "Save information about ECB layout on frames in SORTED-FRAMES.
@@ -1136,7 +1124,8 @@ Delete the frames that were used before."
               (dolist (old (reverse old-frames))
                 (unless (eq 'only (frame-parameter old 'minibuffer))
                   (delete-frame old)))
-              (winsav-maximize-all-nearly-max-frames))
+              ;;(winsav-maximize-all-nearly-max-frames)
+              )
             (message "Winsav: %s frame(s) restored" (length winsav-loaded-frames))
             t)
         ;; No winsav file found
@@ -1221,24 +1210,24 @@ DIRNAME has the same meaning."
            (< height-diff (* 4 char-height))
            )))))
 
-(defun winsav-maximize-nearly-maximized (frame)
-  "Maximize frame FRAME if size is nearly full screen."
-  (when (winsav-nearly-maximized frame)
-    (let ((terminal-type (framep frame)))
-      (cond
-       ((eq 'w32 terminal-type)
-        ;;(message "max %s" frame)
-        ;;(select-frame-set-input-focus frame)
-        (select-frame frame)
-        (w32-send-sys-command 61488))))))
+;; (defun winsav-maximize-nearly-maximized (frame)
+;;   "Maximize frame FRAME if size is nearly full screen."
+;;   (when (winsav-nearly-maximized frame)
+;;     (let ((terminal-type (framep frame)))
+;;       (cond
+;;        ((eq 'w32 terminal-type)
+;;         ;;(message "max %s" frame)
+;;         ;;(select-frame-set-input-focus frame)
+;;         (select-frame frame)
+;;         (w32-send-sys-command 61488))))))
 
 ;;(winsav-maximize-all-nearly-max-frames)
-(defun winsav-maximize-all-nearly-max-frames ()
-  "Maximizes all frames whose size is nearly full screen."
-  (let ((sel-frm (selected-frame)))
-    (dolist (frame (frame-list))
-      (winsav-maximize-nearly-maximized frame))
-    (run-with-idle-timer 0 nil 'select-frame-set-input-focus sel-frm)))
+;; (defun winsav-maximize-all-nearly-max-frames ()
+;;   "Maximizes all frames whose size is nearly full screen."
+;;   (let ((sel-frm (selected-frame)))
+;;     (dolist (frame (frame-list))
+;;       (winsav-maximize-nearly-maximized frame))
+;;     (run-with-idle-timer 0 nil 'select-frame-set-input-focus sel-frm)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Startup and shut down
@@ -1255,8 +1244,12 @@ Run this once after Emacs startup, after desktop in the
     ;;(run-with-idle-timer 0.1 nil 'winsav-restore-configuration-protected)
     ;;(message "winsav-after-init")
     ;;(winsav-restore-configuration-protected)
+    ;; In case of error make sure winsav-save-mode is turned off
+    (setq inhibit-startup-screen t)
+    (winsav-save-mode -1)
     (winsav-restore-configuration)
-    (setq inhibit-startup-screen t)))
+    (winsav-save-mode 1)
+    ))
 
 (add-hook 'after-init-hook 'winsav-after-init t)
 
@@ -1295,7 +1288,7 @@ Run this before Emacs exits."
 	;;(winsav-save winsav-dirname t)
 	(winsav-save-configuration winsav-dirname)
       (file-error
-       (unless (yes-or-no-p "Error while saving winsav config.  Ignore? ")
+       (unless (yes-or-no-p "Error while saving winsav config: %s  Save anyway? " (error-message-string err))
 	 (signal (car err) (cdr err))))))
   ;; If we own it, we don't anymore.
   ;;(when (eq (emacs-pid) (winsav-owner)) (winsav-release-lock))
