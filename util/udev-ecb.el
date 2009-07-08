@@ -200,6 +200,13 @@ Note that they will not be installed in current Emacs session."
                       udev-this-dir
                       'udev-ecb-buffer-name))
 
+;;(udev-ecb-install-help (get-buffer-create "*temp online-help*"))
+(defun udev-ecb-install-help (log-buffer)
+  (let ((trc-buf (get-buffer-create "*temp online-help*")))
+    (with-current-buffer trc-buf
+      (setq default-directory (udev-ecb-cvs-dir))
+      (w32shell-with-shell "msys" (shell-command "make online-help&" trc-buf)))))
+
 (provide 'udev-ecb)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; udev-ecb.el ends here

@@ -4159,6 +4159,8 @@ information.
                 (error "Bad r=%s, fn=%s" r fn))
               (unless rfw-exc-fun
                 (error "No fw-exc-fun returned from fn=%s, r=%s" fn r))
+              (unless rmajor-sub
+                (error "No major mode for sub chunk, fn=%s, r=%s" fn r))
               )
             (when r
               (mumamo-msgfntfy "  fn=%s, r=%s" fn r)
