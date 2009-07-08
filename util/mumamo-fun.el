@@ -1257,131 +1257,278 @@ This also covers inlined style and javascript."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; Perl here doc
+;;;; heredoc
 
-(defcustom mumamo-perl-here-doc-modes
+(defcustom mumamo-heredoc-modes
   '(
-    ("_HTML_" html-mode)
+    ("HTML" html-mode)
+    ("CSS" css-mode)
+    ("JAVASCRIPT" javascript-mode)
+    ("JAVA" java-mode)
     )
   "Matches for perl here doc modes.
 The entries in this list have the form
 
-  (REGEXP MAJOR-MODE)
+  (REGEXP MAJOR-MODE-SPEC)
 
-where REGEXP is a regular expression that should match the perl
-here document marker and MAJOR-MODE is the major mode to use in
-the perl here document.
+where REGEXP is a regular expression that should match the
+heredoc marker and MAJOR-MODE-SPEC is the major mode spec to use
+in the heredoc part.
 
-The entries are tried from the beginning until the first match."
+The major mode spec is translated to a major mode using
+`mumamo-major-mode-from-modespec'."
   :type '(repeat
           (list
            regexp
            (function :tag "Major mode")))
   :group 'mumamo)
 
-(defun mumamo-perl-here-doc-mode (marker)
-  "Get major mode associated with MARKER."
+(defun mumamo-mode-for-heredoc (marker)
+  "Return major mode associated with MARKER.
+Use first match in `mumamo-heredoc-modes'.
+If no match use `text-mode'."
   (let ((mode (catch 'mode
-                (dolist (rec mumamo-perl-here-doc-modes)
+                (dolist (rec mumamo-heredoc-modes)
                   (let ((regexp (nth 0 rec))
                         (mode   (nth 1 rec)))
-                    (when (string-match regexp marker)
+                    (when (string-match-p regexp marker)
                       (throw 'mode mode)))))))
     (if mode
-        mode
-      'fundamental-mode)))
+        (mumamo-major-mode-from-modespec mode)
+      'text-mode)))
 
-(defun mumamo-chunk-perl-here-doc (pos min max)
+(defun mumamo-chunk-heredoc (pos min max lang)
   "This should work similar to `mumamo-find-possible-chunk'.
-POS, MIN and MAX have the same meaning as there."
+POS, MIN and MAX have the same meaning as there.
+
+LANG is the programming language.
+Supported values are 'perl."
+  ;; Fix-me: LANG
   (mumamo-condition-case err
       (let ((old-point (point)))
         (goto-char pos)
-        ;; Adjust for beeing inside an <<...;
-        ;;(beginning-of-line)
-        ;;(when (looking-at (rx (1+ (not (any "<")))
-        ;;                      "<<"
-        ;;                      (submatch (1+ (not (any "^;")))) ";" line-end)
-        (end-of-line)
         (beginning-of-line)
-        (let ((prev-<< (search-backward "<<" min t))
-              next-<<
-              here-doc-end-mark-end
-              here-doc-end-mark-start
-              here-doc-start-mark-start
-              here-doc-start-mark-end
-              here-doc-mark
+        (let (next-<<
+              (want-<< t)
+              heredoc-mark
+              (delimiter "")
+              (skip-b "")
               start
               end
               exc-mode
+              fw-exc-fun
               )
-          ;; find prev change and end of that perl here doc
-          (when prev-<<
-            (when (looking-at (concat "<<[[:space:]]*\\([^\n;]*\\);"))
-              (setq here-doc-start-mark-start (match-beginning 0))
-              (setq here-doc-start-mark-end   (match-end 0))
-              (setq here-doc-mark  (buffer-substring-no-properties
-                                    (match-beginning 1)
-                                    (match-end 1)))
-              (end-of-line)
-              (setq here-doc-end-mark-end (search-forward here-doc-mark max t))
-              (when (and here-doc-end-mark-end
-                         (eolp))
-                (beginning-of-line)
-                (if (looking-at here-doc-mark)
-                    (setq here-doc-end-mark-start (point))
-                  (setq here-doc-end-mark-end nil)))
-              (if (and here-doc-end-mark-start
-                       (<= here-doc-end-mark-start pos))
-                  (progn
-                    (setq start here-doc-end-mark-start)
-                    )
-                (setq exc-mode (mumamo-perl-here-doc-mode here-doc-mark))
-                (setq start (1+ here-doc-start-mark-end))
-                (when here-doc-end-mark-start
-                  (setq end here-doc-end-mark-start))
-                )))
-          (unless end
-            (goto-char pos)
-            (beginning-of-line)
-            (setq next-<< (search-forward "<<" max t))
-            (when next-<<
-              (when (looking-at (concat "[[:space:]]*\\([^\n;]*\\);"))
-                (setq end (1+ (match-end 0))))))
-          (when start (assert (<= start pos) t))
-          (when end   (assert (<= pos end) t))
+          (goto-char pos)
+          (beginning-of-line)
+          (case lang
+            ('sh
+             (while want-<<
+               (setq next-<< (search-forward "<<" max t))
+               (if (not next-<<)
+                   (setq want-<< nil) ;; give up
+                 ;; Check inside string or comment.
+                 (setq ps (parse-partial-sexp (line-beginning-position) (point)))
+                 (unless (or (nth 3 ps) (nth 4 ps))
+                   (setq want-<< nil))))
+             (when next-<<
+               (when (= (char-after) ?-)
+                 (setq skip-b "\t*")
+                 (unless (eolp) (forward-char)))
+               (skip-chars-forward " \t")
+               (when (memq (char-after) '(?\" ?\'))
+                 (setq delimiter (list (char-after))))
+               (when (looking-at (concat delimiter "\\([^\n;]*\\)" delimiter "[[:blank:]]*\n"))
+                 (setq heredoc-mark  (buffer-substring-no-properties
+                                      (match-beginning 1)
+                                      (match-end 1)))
+                 (setq start (match-end 0)))))
+            ('w32-ps (error "No support for windows power shell yet"))
+            ('php
+             (while want-<<
+               (setq next-<< (search-forward "<<<" max t))
+               ;; Check inside string or comment.
+               (if (not next-<<)
+                   (setq want-<< nil) ;; give up
+                 (setq ps (parse-partial-sexp (line-beginning-position) (point)))
+                 (unless (or (nth 3 ps) (nth 4 ps))
+                   (setq want-<< nil))))
+             (when next-<<
+               (skip-chars-forward " \t")
+               (when (looking-at (concat "\\([^\n;]*\\)[[:blank:]]*\n"))
+                 (setq heredoc-mark  (buffer-substring-no-properties
+                                      (match-beginning 1)
+                                      (match-end 1)))
+                 (setq start (match-end 0)))))
+            ('perl
+             (while want-<<
+               (setq next-<< (search-forward "<<" max t))
+               (if (not next-<<)
+                   (setq want-<< nil) ;; give up
+                 ;; Check inside string or comment.
+                 (setq ps (parse-partial-sexp (line-beginning-position) (point)))
+                 (unless (or (nth 3 ps) (nth 4 ps))
+                   (setq want-<< nil))))
+             (when next-<<
+               (skip-chars-forward " \t")
+               (when (memq (char-after) '(?\" ?\'))
+                 (setq delimiter (list (char-after))))
+               (when (looking-at (concat delimiter "\\([^\n;]*\\)" delimiter ";[[:blank:]]*\n"))
+                 (setq heredoc-mark  (buffer-substring-no-properties
+                                      (match-beginning 1)
+                                      (match-end 1)))
+                 (setq start (1+ (match-end 0))))))
+            ('python
+             (unless (eobp) (forward-char))
+             (while want-<<
+               (setq next-<< (re-search-forward "\"\"\"\\|'''" max t))
+               (if (not next-<<)
+                   (setq want-<< nil) ;; give up
+                 ;; Check inside string or comment.
+                 (setq ps (parse-partial-sexp (line-beginning-position) (- (point) 3)))
+                 (unless (or (nth 3 ps) (nth 4 ps))
+                   (setq want-<< nil)))))
+            ('ruby
+             (while want-<<
+               (setq next-<< (search-forward "<<" max t))
+               (if (not next-<<)
+                   (setq want-<< nil) ;; give up
+                 ;; Check inside string or comment.
+                 (setq ps (parse-partial-sexp (line-beginning-position) (point)))
+                 (unless (or (nth 3 ps) (nth 4 ps))
+                   (setq want-<< nil))))
+             (when next-<<
+               (when (= (char-after) ?-)
+                 (setq skip-b "[ \t]*")
+                 (forward-char))
+               (when (looking-at (concat "[^\n[:blank:]]*"))
+                 (setq heredoc-mark  (buffer-substring-no-properties
+                                      (match-beginning 0)
+                                      (match-end 0)))
+                 (setq start (match-end 0)))))
+            (t (error "next-<< not implemented for lang %s" lang)))
+          (when start (assert (<= pos start) t))
           (goto-char old-point)
-          (list start end exc-mode t nil pos)))
-    (error (mumamo-display-error 'mumamo-chunk-perl-here-doc
+          (when (or start end)
+            (let ((endmark-regexp
+                   (case lang
+                     ('sh (concat "^" skip-b heredoc-mark "$"))
+                     ('php (concat "^" heredoc-mark ";?$"))
+                     ('perl (concat "^" heredoc-mark "$"))
+                     ('python (concat "^" heredoc-mark "[[:space:]]*"))
+                     ('ruby (concat "^" skip-b heredoc-mark "$"))
+                     (t (error "mark-regexp not implemented for %s" lang)))))
+              (setq fw-exc-fun `(lambda (pos max)
+                                  (save-match-data
+                                    (let ((here (point)))
+                                      (goto-char pos)
+                                      (prog1
+                                          (when (re-search-forward ,endmark-regexp max t)
+                                            (line-beginning-position))
+                                      (goto-char here)))))))
+            (setq exc-mode (mumamo-mode-for-heredoc heredoc-mark))
+            (list start end exc-mode nil nil fw-exc-fun nil))))
+    (error (mumamo-display-error 'mumamo-chunk-heredoc
                                  "%s" (error-message-string err)))))
 
-(defun mumamo-chunk-perl-here-html (pos min max)
-  "Find perl here docs, still a little bit EXPERIMENTAL.
-See `mumamo-perl-here-doc-modes' for how to customize the choice
-of major mode in the perl here document.
 
+;;;; Unix style sh heredoc
+
+(defun mumamo-chunk-sh-heredoc (pos min max)
+  "Find sh here docs.
 See `mumamo-find-possible-chunk' for POS, MIN
-and MAX.
-
-* Note: This used to be slow, but after fixing a bug in perl here
-  doc chunk dividing it seems to work ok."
-  (mumamo-msgfntfy "mumamo-chunk-perl-here-html start")
-  (let ((r (mumamo-chunk-perl-here-doc pos min max)))
-    (mumamo-msgfntfy "  perl-here stop")
+and MAX."
+  (let ((r (mumamo-chunk-heredoc pos min max 'sh)))
     r))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode perl-mumamo-mode
-  "Turn on multiple major modes for Perl Here Document."
-  ("Perl Here Doc" perl-mode
-   (mumamo-chunk-perl-here-html
+(define-mumamo-multi-major-mode sh-mumamo-heredoc-mode
+  "Turn on multiple major modes for sh heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes."
+  ("SH HereDoc" sh-mode
+   (mumamo-chunk-sh-heredoc
+    )))
+
+
+;;;; PHP heredoc
+
+(defun mumamo-chunk-php-heredoc (pos min max)
+  "Find PHP here docs.
+See `mumamo-find-possible-chunk' for POS, MIN
+and MAX."
+  (let ((r (mumamo-chunk-heredoc pos min max 'php)))
+    r))
+
+;;;###autoload
+(define-mumamo-multi-major-mode php-mumamo-heredoc-mode
+  "Turn on multiple major modes for PHP heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes."
+  ("PHP HereDoc" php-mode
+   (mumamo-chunk-php-heredoc
+    )))
+
+
+;;;; Perl heredoc
+
+(defun mumamo-chunk-perl-heredoc (pos min max)
+  "Find perl here docs.
+See `mumamo-find-possible-chunk' for POS, MIN
+and MAX."
+  (let ((r (mumamo-chunk-heredoc pos min max 'perl)))
+    r))
+
+;;;###autoload
+(define-mumamo-multi-major-mode perl-mumamo-heredoc-mode
+  "Turn on multiple major modes for Perl heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes."
+  ("Perl HereDoc" perl-mode
+   (mumamo-chunk-perl-heredoc
     )))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode cperl-mumamo-mode
-  "Turn on multiple major modes for Perl Here Document."
-  ("Perl Here Doc" cperl-mode
-   (mumamo-chunk-perl-here-html
+(define-mumamo-multi-major-mode cperl-mumamo-heredoc-mode
+  "Turn on multiple major modes for Perl heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes.
+
+Note: I have seen some problems with this.  Use
+`perl-mumamo-mode' instead for now."
+  ("Perl HereDoc" cperl-mode
+   (mumamo-chunk-perl-heredoc
+    )))
+
+
+;;;; Python heredoc
+
+(defun mumamo-chunk-python-heredoc (pos min max)
+  "Find python here docs.
+See `mumamo-find-possible-chunk' for POS, MIN
+and MAX."
+  (let ((r (mumamo-chunk-heredoc pos min max 'python)))
+    r))
+
+;;;###autoload
+(define-mumamo-multi-major-mode python-mumamo-heredoc-mode
+  "Turn on multiple major modes for Perl heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes."
+  ("Python HereDoc" python-mode
+   (mumamo-chunk-python-heredoc
+    )))
+
+
+;;;; Ruby heredoc
+
+(defun mumamo-chunk-ruby-heredoc (pos min max)
+  "Find Ruby here docs.
+See `mumamo-find-possible-chunk' for POS, MIN
+and MAX."
+  (let ((r (mumamo-chunk-heredoc pos min max 'ruby)))
+    r))
+
+;;;###autoload
+(define-mumamo-multi-major-mode ruby-mumamo-heredoc-mode
+  "Turn on multiple major modes for Ruby heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes."
+  ("Ruby HereDoc" ruby-mode
+   (mumamo-chunk-ruby-heredoc
     )))
 
 

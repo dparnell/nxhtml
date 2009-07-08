@@ -27,6 +27,9 @@
     background-position: 0 -35px;
     color: yellow;
 }
+.bugfix {
+    color: red;
+}
 
 </style>
   </head>
@@ -2562,7 +2565,7 @@
               </li>
             </ul>
           </dd>
-          <dt id="v1.76">1.76</dt>
+          <dt id="v1.76">1.76 -- Released 2009-02-26</dt>
           <dd id="v1.76-dd">
             <ul>
               <li>
@@ -2579,11 +2582,11 @@
               </li>
             </ul>
           </dd>
-          <dt id="v1.77">1.77</dt>
+          <dt id="v1.77">1.77 -- Released 2009-05-28</dt>
           <dd id="v1.77-dd">
             <ul>
               <li>
-                Fixed numerous bugs, please
+                <span class="bugfix">Fixed numerous bugs</span>, please
                 see <a href="https://bugs.launchpad.net/nxhtml/">nXhtml bug tracker</a>
                 and dito <a href="https://answers.launchpad.net/nxhtml">question and answers</a>.
               </li>
@@ -2670,7 +2673,7 @@
               </li>
             </ul>
           </dd>
-          <dt id="v1.78">1.78</dt>
+          <dt id="v1.78">1.78 -- Released 2009-05-28</dt>
           <dd id="v1.78-dd">
             <ul>
               <li>
@@ -2689,11 +2692,11 @@
               </li>
             </ul>
           </dd>
-          <dt id="v1.80">1.80</dt>
+          <dt id="v1.80">1.80 -- Released 2009-06-02</dt>
           <dd id="v1.80-dd">
             <ul>
               <li>
-                Fixed a (rather serious) bug and cleaned up.
+                <span class="bugfix">Fixed a (rather serious) bug and cleaned up.</span>
               </li>
               <li>
                 Added mumamo regions. Mumamo regions are temporary
@@ -2704,7 +2707,7 @@
               </li>
             </ul>
           </dd>
-          <dt id="v1.81">1.81</dt>
+          <dt id="v1.81">1.81 -- Released 2009-06-19</dt>
           <dd id="v1.81-dd">
             <ul>
               <li>
@@ -2724,15 +2727,17 @@
               </li>
             </ul>
           </dd>
-          <dt id="v1.82">1.82</dt>
+          <dt id="v1.82">1.82 -- Released 2009-06-23</dt>
           <dd id="v1.82-dd">
             <ul>
               <li>
-                Find some bugs when I tried to fix bug 388729. Not sure I fixed the bug though.
+                <span class="bugfix">Find and fixed some bugs when
+                I tried to fix bug 388729.</span> Not sure I fixed that
+                bug though.
               </li>
             </ul>
           </dd>
-          <dt id="v1.83">1.83</dt>
+          <dt id="v1.83">1.83 -- Released 2009-06-24</dt>
           <dd id="v1.83-dd">
             <ul>
               <li>
@@ -2740,34 +2745,41 @@
               </li>
             </ul>
           </dd>
-          <dt id="v1.84">1.84</dt>
+          <dt id="v1.84">1.84 -- Released 2009-06-30</dt>
           <dd id="v1.84-dd">
             <ul>
               <li>
                 MuMaMo:
                 <ul>
                   <li>
-                    Worked around bug in Emacs 22.3 where
-                    c-after-change was left in
-                    after-change-functions. (This makes no difference
-                    in Emacs 23.)
+                    <span class="bugfix">Worked around bug in Emacs
+                    22.3 where c-after-change was left in
+                    after-change-functions.</span> (This makes no
+                    difference in Emacs 23.)
                   </li>
                   <li>
-                    Fixed a bug that occured after deletion of whole chunks.
+                    <span class="bugfix">Fixed a bug that occured
+                    after deletion of whole chunks.</span>
                   </li>
                 </ul>
               </li>
             </ul>
           </dd>
-          <dt id="v1.85">1.85</dt>
+          <dt id="v1.85">1.85 -- Released 2009-07-04</dt>
           <dd id="v1.85-dd">
             <ul>
               <li>
                 MuMaMo:
                 <ul>
                   <li>
-                    Forgot to finish the implementation of support for
-                    font-lock-add-keywords. Done.
+                    <span class="bugfix">Corrected various mostly
+                    minor bugs</span>, like indent-line-function which
+                    where globally set to
+                    mumamo-indent-line. Corrected.
+                  </li>
+                  <li>
+                    <span class="bugfix">Forgot to finish the implementation of support for
+                    font-lock-add-keywords. Done.</span>
                   </li>
                   <li>
                     Added some faces hi-mumamo-* to use with hi-lock,
@@ -2789,17 +2801,12 @@
                 </ul>
               </li>
               <li>
-                Corrected various mostly minor bugs, like
-                indent-line-function which where globally set to
-                mumamo-indent-line. Corrected.
-              </li>
-              <li>
                 Added pointback.el, found on EmacsWiki. This is just
                 so missing in Emacs...
               </li>
             </ul>
           </dd>
-          <dt id="v1.86">1.86</dt>
+          <dt id="v1.86">1.86 -- Released 2009-07-05</dt>
           <dd id="v1.86-dd">
             <ul>
               <li>
@@ -2808,11 +2815,27 @@
               </li>
             </ul>
           </dd>
-          <dt id="v1.87">1.87</dt>
+          <dt id="v1.87">1.87 -- Released 2009-07-08</dt>
           <dd id="v1.87-dd">
             <ul>
               <li>
                 Some enhancements to winsav.el and menuacc.el.
+              </li>
+              <li>
+                MuMaMo:
+                <ul>
+                  <li>
+                    Added heredoc for some modes. They are currently
+                    kind of hidden since they are only available in
+                    multiple major modes that offer just heredocs.
+                    The implemented heredoc multi major modes are
+
+                    sh-mumamo-heredoc-mode,
+                    php-mumamo-heredoc-mode,
+                    perl-mumamo-heredoc-mode,
+                    cperl-mumamo-heredoc-mode,
+                    python-mumamo-heredoc-mode and
+                    ruby-mumamo-heredoc-mode.
               </li>
             </ul>
           </dd>

@@ -1988,7 +1988,8 @@ information."
   "Look for first program PROG in `exec-path' using `exec-suffixes'.
 Return full path if found."
   (interactive "sProgram: ")
-  (let ((path (locate-file prog exec-path exec-suffixes 'executable)))
+  ;;(let ((path (locate-file prog exec-path exec-suffixes 'executable)))
+  (let ((path (executable-find prog)))
     (when (called-interactively-p) (message "%s found in %s" prog path))
     path))
 
