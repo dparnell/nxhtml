@@ -706,6 +706,27 @@ derivate it took 20 ms on a 3GHz CPU."
   :type 'number
   :group 'mumamo)
 
+(defface mumamo-background-chunk-major
+  '((((class color) (min-colors 88) (background dark))
+     ;;:background "blue3")
+     :background "midnight blue")
+    (((class color) (min-colors 88) (background light))
+     ;;:background "lightgoldenrod2")
+     :background "cornsilk")
+    (((class color) (min-colors 16) (background dark))
+     :background "blue4")
+    (((class color) (min-colors 16) (background light))
+     :background "cornsilk")
+    (((class color) (min-colors 8))
+     :background "blue")
+    (((type tty) (class mono))
+     :inverse-video t)
+    (t :background "gray"))
+  "Background colors for chunks in sub modes.
+You should only specify :background here, otherwise it will
+interfere with syntax highlighting."
+  :group 'mumamo)
+
 (defface mumamo-background-chunk-submode
   '((((class color) (min-colors 88) (background dark))
      ;;:background "blue3")
@@ -713,6 +734,48 @@ derivate it took 20 ms on a 3GHz CPU."
     (((class color) (min-colors 88) (background light))
      ;;:background "lightgoldenrod2")
      :background "azure")
+    (((class color) (min-colors 16) (background dark))
+     :background "blue3")
+    (((class color) (min-colors 16) (background light))
+     :background "azure")
+    (((class color) (min-colors 8))
+     :background "blue")
+    (((type tty) (class mono))
+     :inverse-video t)
+    (t :background "gray"))
+  "Background colors for chunks in major mode.
+You should only specify :background here, otherwise it will
+interfere with syntax highlighting."
+  :group 'mumamo)
+
+(defface mumamo-background-chunk-submode2
+  '((((class color) (min-colors 88) (background dark))
+     ;;:background "blue3")
+     :background "dark green")
+    (((class color) (min-colors 88) (background light))
+     ;;:background "lightgoldenrod2")
+     :background "honeydew")
+    (((class color) (min-colors 16) (background dark))
+     :background "blue3")
+    (((class color) (min-colors 16) (background light))
+     :background "azure")
+    (((class color) (min-colors 8))
+     :background "blue")
+    (((type tty) (class mono))
+     :inverse-video t)
+    (t :background "gray"))
+  "Background colors for chunks in major mode.
+You should only specify :background here, otherwise it will
+interfere with syntax highlighting."
+  :group 'mumamo)
+
+(defface mumamo-background-chunk-submode3
+  '((((class color) (min-colors 88) (background dark))
+     ;;:background "blue3")
+     :background "dark green")
+    (((class color) (min-colors 88) (background light))
+     ;;:background "lightgoldenrod2")
+     :background "ghost white")
     (((class color) (min-colors 16) (background dark))
      :background "blue3")
     (((class color) (min-colors 16) (background light))
@@ -736,28 +799,25 @@ default."
   :type 'face
   :group 'mumamo)
 
-(defface mumamo-background-chunk-major
-  '((((class color) (min-colors 88) (background dark))
-     ;;:background "blue3")
-     :background "midnight blue")
-    (((class color) (min-colors 88) (background light))
-     ;;:background "lightgoldenrod2")
-     :background "cornsilk")
-    (((class color) (min-colors 16) (background dark))
-     :background "blue4")
-    (((class color) (min-colors 16) (background light))
-     :background "cornsilk")
-    (((class color) (min-colors 8))
-     :background "blue")
-    (((type tty) (class mono))
-     :inverse-video t)
-    (t :background "gray"))
+(defcustom mumamo-background-chunk-submode 'mumamo-background-chunk-submode
   "Background colors for chunks in sub modes.
-You should only specify :background here, otherwise it will
-interfere with syntax highlighting."
+Pointer to face with background color.
+
+If you do not want any special background color use the face named
+default."
+  :type 'face
   :group 'mumamo)
 
-(defcustom mumamo-background-chunk-submode 'mumamo-background-chunk-submode
+(defcustom mumamo-background-chunk-submode2 'mumamo-background-chunk-submode2
+  "Background colors for chunks in sub modes.
+Pointer to face with background color.
+
+If you do not want any special background color use the face named
+default."
+  :type 'face
+  :group 'mumamo)
+
+(defcustom mumamo-background-chunk-submode3 'mumamo-background-chunk-submode3
   "Background colors for chunks in sub modes.
 Pointer to face with background color.
 
@@ -768,7 +828,9 @@ default."
 
 ;; Fix-me: use and enhance this
 (defcustom mumamo-background-colors '(mumamo-background-chunk-major
-                                      mumamo-background-chunk-submode)
+                                      mumamo-background-chunk-submode
+                                      mumamo-background-chunk-submode2
+                                      mumamo-background-chunk-submode3)
   "List of background colors in order of use.
 First color is for main major mode chunks, then for submode
 chunks, sub-submode chunks etc.  Colors are reused in cyclic
@@ -1903,6 +1965,17 @@ the major mode for the chunk."
     (unless (eq major (mumamo-main-major-mode))
       major)))
 
+;;; Chunk in chunk needs push/pop relative prev chunk
+(defun mumamo-chunk-push (chunk prop val)
+  (let* ((prev-chunk (overlay-get chunk 'mumamo-prev-chunk))
+         (prev-val (when prev-chunk (overlay-get prev-chunk prop))))
+    (overlay-put chunk prop (cons val prev-val))))
+(defun mumamo-chunk-pop (chunk prop)
+  (overlay-put chunk prop (cdr (overlay-get (overlay-get chunk 'mumamo-prev-chunk)
+                                            prop))))
+(defun mumamo-chunk-car (chunk prop)
+  (car (overlay-get chunk prop)))
+
 ;; (let ((l '(1 2))) (setcar (nthcdr 1 l) 10) l)
 ;; setters
 (defsubst mumamo-chunk-value-set-min (chunk-values min)
@@ -2871,7 +2944,7 @@ See `mumamo-major-modes' for an explanation."
          (chunk-syntax-max-d    (overlay-get chunk 'syntax-max-d))
          (chunk-syntax-min    (when (and chunk-syntax-min-d chunk-min) (+ chunk-min chunk-syntax-min-d)))
          (chunk-syntax-max    (when (and chunk-syntax-max-d chunk-max) (- chunk-max chunk-syntax-max-d)))
-         (chunk-major-sub     (overlay-get chunk 'mumamo-major-mode))
+         (chunk-major-sub     (mumamo-chunk-car chunk 'mumamo-major-mode))
          (chunk-parseable-by (overlay-get chunk 'mumamo-parseable-by))
          (val-syntax-min (mumamo-chunk-value-syntax-min chunk-values))
          (val-syntax-max (mumamo-chunk-value-syntax-max chunk-values))
@@ -2902,7 +2975,7 @@ See `mumamo-major-modes' for an explanation."
 ;;     (dolist (o (overlays-at pos))
 ;;       (unless chunk-ovl
 ;;         (when ;;(mumamo-chunk-major-mode o)
-;;             (and (overlay-get o 'mumamo-major-mode)
+;;             (and (mumamo-chunk-car o 'mumamo-major-mode)
 ;;                  (not (overlay-get o 'mumamo-is-new))
 ;;                  (not (overlay-get o 'mumamo-is-old)))
 ;;           (setq chunk-ovl o))))
@@ -2924,12 +2997,12 @@ See `mumamo-major-modes' for an explanation."
             (when (or (> (overlay-end o) (overlay-start o))
                       (overlay-get o 'mumamo-prev-chunk))
               (setq chunk-ovl o)
-              ;;(msgtrc "mumamo-get-existing-chunk-at, o=%s, maj=%s" o (overlay-get o 'mumamo-major-mode))
+              ;;(msgtrc "mumamo-get-existing-chunk-at, o=%s, maj=%s" o (mumamo-chunk-car o 'mumamo-major-mode))
               )
           (setq chunk-ovl o)
-          ;;(msgtrc "mumamo-get-existing-chunk-at, o=%s, maj=%s" o (overlay-get o 'mumamo-major-mode))
+          ;;(msgtrc "mumamo-get-existing-chunk-at, o=%s, maj=%s" o (mumamo-chunk-car o 'mumamo-major-mode))
           )))
-    ;;(msgtrc "mumamo-get-existing-chunk-at EXIT orig/pos=%s/%s chunk-ovl=%s, maj=%s" (+ orig-pos 0) pos chunk-ovl (when chunk-ovl (overlay-get chunk-ovl 'mumamo-major-mode)))
+    ;;(msgtrc "mumamo-get-existing-chunk-at EXIT orig/pos=%s/%s chunk-ovl=%s, maj=%s" (+ orig-pos 0) pos chunk-ovl (when chunk-ovl (mumamo-chunk-car chunk-ovl 'mumamo-major-mode)))
     chunk-ovl))
 
 (defun mumamo-get-chunk-save-buffer-state (pos)
@@ -2950,7 +3023,7 @@ See `mumamo-major-modes' for an explanation."
   ;;(assert chunk)
   ;;(assert (overlay-buffer chunk))
   (if chunk
-      (overlay-get chunk 'mumamo-major-mode)
+      (mumamo-chunk-car chunk 'mumamo-major-mode)
     ;;(mumamo-main-major-mode)
     (mumamo-major-mode-from-modespec (mumamo-main-major-mode))
     ))
@@ -2983,7 +3056,7 @@ See `mumamo-major-modes' for an explanation."
                             (or syntax-min ovl-start)))
            (actual-max (min (or obscure-max ovl-end)
                             (or syntax-max ovl-end)))
-           (maj (overlay-get chunk 'mumamo-major-mode))
+           (maj (mumamo-chunk-car chunk 'mumamo-major-mode))
            ;;(dummy (message "syn-mn-mx:obs=%s r-info=%s ob=%s/%s ac=%s/%s" obscure region-info obscure-min obscure-max actual-min actual-max))
            )
       (cons actual-min actual-max))))
@@ -3859,7 +3932,9 @@ The first two are used when the bottom:
            ;;(is-closed (and end (< 1 end)))
            (after-chunk-depth (when after-chunk
                                 (overlay-get after-chunk 'mumamo-depth)))
-           (depth-diff (when after-chunk (overlay-get after-chunk 'mumamo-next-depth-diff)))
+           (depth-diff (if after-chunk
+                           (overlay-get after-chunk 'mumamo-next-depth-diff)
+                         1))
            (depth (if after-chunk-depth
                       (+ after-chunk-depth depth-diff)
                     0))
@@ -3910,7 +3985,7 @@ The first two are used when the bottom:
         (overlay-put this-chunk 'mumamo-depth depth)
         ;; Values for next chunk
         (overlay-put this-chunk 'mumamo-next-major next-major)
-        (overlay-put this-chunk 'mumamo-next-end-fun next-end-fun)
+
         (overlay-put this-chunk 'mumamo-next-border-fun next-border-fun)
         (overlay-put this-chunk 'mumamo-next-chunk-funs next-chunk-funs)
         (overlay-put this-chunk 'mumamo-next-depth-diff next-depth-diff)
@@ -3920,7 +3995,30 @@ The first two are used when the bottom:
         (overlay-put this-chunk 'syntax-max-d bmax)
         (overlay-put this-chunk 'mumamo-prev-chunk after-chunk)
         (when after-chunk (overlay-put after-chunk 'mumamo-next-chunk this-chunk))
-        (overlay-put this-chunk 'mumamo-major-mode maj)
+
+        ;;(msgtrc "\n<<<<<<<<<<<<<<<<< next-depth-diff/depth-diff=%s/%s, maj=%s, after-chunk=%s" next-depth-diff depth-diff maj after-chunk)
+        ;;(overlay-put this-chunk 'mumamo-next-end-fun next-end-fun)
+        (cond
+         ((= 1 next-depth-diff)
+          (mumamo-chunk-push this-chunk 'mumamo-next-end-fun next-end-fun))
+         ((= -1 next-depth-diff)
+          (mumamo-chunk-pop  this-chunk 'mumamo-next-end-fun)
+          ;;(assert (eq maj (mumamo-chunk-car this-chunk 'mumamo-major-mode)) t)
+          )
+         (t (error "next-depth-diff=%s" next-depth-diff)))
+        ;;(msgtrc "mumamo-next-end-fun=%S" (overlay-get this-chunk 'mumamo-next-end-fun))
+
+        ;;(overlay-put this-chunk 'mumamo-major-mode maj)
+        (cond
+         ((= 1 depth-diff)
+          (mumamo-chunk-push this-chunk 'mumamo-major-mode maj))
+         ((= -1 depth-diff)
+          (mumamo-chunk-pop  this-chunk 'mumamo-major-mode)
+          ;;(assert (eq maj (mumamo-chunk-car this-chunk 'mumamo-major-mode)) t)
+          )
+         (t (error "depth-diff=%s" depth-diff)))
+        ;;(msgtrc "mumamo-major-mode=%S" (overlay-get this-chunk 'mumamo-major-mode))
+
         (overlay-put this-chunk 'mumamo-parseable-by pable)
         (overlay-put this-chunk 'created (current-time-string))
         ;; Get syntax-begin-function for syntax-ppss:
@@ -3957,7 +4055,7 @@ The first two are used when the bottom:
          (chunk-is-new          (overlay-get chunk 'mumamo-is-new))
          (chunk-is-closed       (overlay-get chunk 'mumamo-is-closed))
          (chunk-next-major      (overlay-get chunk 'mumamo-next-major))
-         (chunk-next-end-fun    (overlay-get chunk 'mumamo-next-end-fun))
+         (chunk-next-end-fun    (mumamo-chunk-car chunk 'mumamo-next-end-fun))
          (chunk-next-border-fun (overlay-get chunk 'mumamo-next-border-fun))
          (chunk-next-chunk-funs (overlay-get chunk 'mumamo-next-chunk-funs))
          (chunk-beg (overlay-start chunk))
@@ -3965,7 +4063,7 @@ The first two are used when the bottom:
          (chunk-bmin       (overlay-get chunk 'mumamo-syntax-min-d))
          (chunk-bmax       (overlay-get chunk 'mumamo-syntax-max-d))
          (chunk-prev-chunk (overlay-get chunk 'mumamo-prev-chunk))
-         (chunk-major-mode (overlay-get chunk 'mumamo-major-mode))
+         (chunk-major-mode (mumamo-chunk-car chunk 'mumamo-major-mode))
          (chunk-pable      (overlay-get chunk 'mumamo-parseable-by))
          ;; Values
          (this-values (nth 0 values))
@@ -4094,7 +4192,7 @@ information.
                              ;;(mumamo-main-major-mode))
                              (let ((after-after-chunk (overlay-get after-chunk 'mumamo-prev-chunk)))
                                (unless after-after-chunk (error "after-after-chunk is nil"))
-                               (overlay-get after-after-chunk 'mumamo-major-mode)))
+                               (mumamo-chunk-car after-after-chunk 'mumamo-major-mode)))
                        (mumamo-main-major-mode)))
          (curr-chunk-funs
           (if (eq curr-major (mumamo-main-major-mode))
@@ -4107,7 +4205,7 @@ information.
           ;;       nil)
           ;;   main-chunk-funs))
          (curr-end-fun (when after-chunk-valid
-                         (overlay-get after-chunk 'mumamo-next-end-fun)))
+                         (mumamo-chunk-car after-chunk 'mumamo-next-end-fun)))
          ;;(curr-sub-family (when curr-end-fun (mumamo-get-sub-chunk-family curr-major)))
          (curr-border-fun (when curr-end-fun
                             (overlay-get after-chunk 'mumamo-next-border-fun)))
