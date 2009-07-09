@@ -1,5 +1,5 @@
 $text = 'Text from a Perl string.';
-print <<HTML;  
+print <<HTML; 
 <html>
 <head>
 <title>Here-Doc Example</title>

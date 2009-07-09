@@ -11,11 +11,11 @@ Thanks!
 
 EOF;
 
-$toprint = <<< EOF
-
+$toprint = <<< HTMLEOF
+<div>
 Hey $name! You can actually assign the heredoc section to a variable!
-
-EOF;
+</div>
+HTMLEOF;
 echo strtolower($toprint);
 
 ?>

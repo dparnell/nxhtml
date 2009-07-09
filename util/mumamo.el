@@ -2678,129 +2678,129 @@ fontification and speeds up fontification significantly."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Creating and accessing chunks
 
-(defun mumamo-create-chunk-values-at (pos)
-  "Return a list of values to be used to create a chunk at POS."
-  (assert mumamo-current-chunk-family)
-  (let* ((chunk-info (cdr mumamo-current-chunk-family))
-         (chunk-fns    (cadr chunk-info))
-         (here (point))
-         min
-         max
-         border-min
-         border-max
-         parseable
-         fw-exc-fun
-         (max-found nil)
-         major-sub)
-    ;; Fix-me: maybe assume previous chunk is trustworthy if it ends
-    ;; before pos. But check first at which pos this function is
-    ;; called relative to old chunks.
+;; (defun mumamo-create-chunk-values-at (pos)
+;;   "Return a list of values to be used to create a chunk at POS."
+;;   (assert mumamo-current-chunk-family)
+;;   (let* ((chunk-info (cdr mumamo-current-chunk-family))
+;;          (chunk-fns    (cadr chunk-info))
+;;          (here (point))
+;;          min
+;;          max
+;;          border-min
+;;          border-max
+;;          parseable
+;;          fw-exc-fun
+;;          (max-found nil)
+;;          major-sub)
+;;     ;; Fix-me: maybe assume previous chunk is trustworthy if it ends
+;;     ;; before pos. But check first at which pos this function is
+;;     ;; called relative to old chunks.
 
-;;;     (unless t ;(overlays-at pos)
-;;;       (let* ((ovl-pos pos)
-;;;              (prev-end (previous-overlay-change ovl-pos))
-;;;              ;; fix-me: start vs end
-;;;              (prev-chunk (when prev-end
-;;;                            (mumamo-get-existing-chunk-at prev-end))))
-;;;         (when prev-chunk
-;;;           (unless (= prev-end (overlay-end prev-chunk))
-;;;             (setq prev-chunk nil)))
-;;;         ;; fix-me: use ovl-pos to find chunk? That would make ppss work I believe.
-;;;         (while prev-chunk
-;;;           (if (mumamo-chunk-major-mode prev-chunk)
-;;;               (progn
-;;;                 (setq min (1+ (overlay-end prev-chunk)))
-;;;                 (setq prev-chunk nil))
-;;;             (setq ovl-pos (1- (overlay-start prev-chunk)))
-;;;             (if (< ovl-pos (point-min))
-;;;                 (setq prev-chunk nil)
-;;;               (setq prev-end (previous-overlay-change ovl-pos))
-;;;               (setq prev-chunk (when prev-end (mumamo-get-existing-chunk-at prev-end)))
-;;;               )))))
-    (dolist (fn chunk-fns)
-      (let* (
-             (r (funcall fn pos (point-min) (point-max)))
-             (rmin        (nth 0 r))
-             (rmax        (nth 1 r))
-             (rmajor-sub  (nth 2 r))
-             (rborder     (nth 3 r))
-             (rparseable  (nth 4 r))
-             (rfw-exc-fun (nth 5 r))
-             (rborder-min (when rborder (nth 0 rborder)))
-             (rborder-max (when rborder (nth 1 rborder)))
-             (rmax-found rmax))
-        (mumamo-msgfntfy "  fn=%s, r=%s" fn r)
-        (unless rmin (setq rmin (point-min)))
-        (unless rmax (setq rmax (point-max)))
-        ;; Do not allow zero length chunks
-        (unless (and (> rmin 1) (= rmin rmax))
-          ;; comparision have to be done differently if we are in an
-          ;; exception part or not.  since we are doing this from top to
-          ;; bottom the rules are:
-          ;;
-          ;; - exception parts always outrules non-exception part.  when
-          ;;   in exception part the min start point should be used.
-          ;; - when in non-exception part the max start point and the
-          ;;   min end point should be used.
-          ;;
-          ;; check if first run:
+;; ;;;     (unless t ;(overlays-at pos)
+;; ;;;       (let* ((ovl-pos pos)
+;; ;;;              (prev-end (previous-overlay-change ovl-pos))
+;; ;;;              ;; fix-me: start vs end
+;; ;;;              (prev-chunk (when prev-end
+;; ;;;                            (mumamo-get-existing-chunk-at prev-end))))
+;; ;;;         (when prev-chunk
+;; ;;;           (unless (= prev-end (overlay-end prev-chunk))
+;; ;;;             (setq prev-chunk nil)))
+;; ;;;         ;; fix-me: use ovl-pos to find chunk? That would make ppss work I believe.
+;; ;;;         (while prev-chunk
+;; ;;;           (if (mumamo-chunk-major-mode prev-chunk)
+;; ;;;               (progn
+;; ;;;                 (setq min (1+ (overlay-end prev-chunk)))
+;; ;;;                 (setq prev-chunk nil))
+;; ;;;             (setq ovl-pos (1- (overlay-start prev-chunk)))
+;; ;;;             (if (< ovl-pos (point-min))
+;; ;;;                 (setq prev-chunk nil)
+;; ;;;               (setq prev-end (previous-overlay-change ovl-pos))
+;; ;;;               (setq prev-chunk (when prev-end (mumamo-get-existing-chunk-at prev-end)))
+;; ;;;               )))))
+;;     (dolist (fn chunk-fns)
+;;       (let* (
+;;              (r (funcall fn pos (point-min) (point-max)))
+;;              (rmin        (nth 0 r))
+;;              (rmax        (nth 1 r))
+;;              (rmajor-sub  (nth 2 r))
+;;              (rborder     (nth 3 r))
+;;              (rparseable  (nth 4 r))
+;;              (rfw-exc-fun (nth 5 r))
+;;              (rborder-min (when rborder (nth 0 rborder)))
+;;              (rborder-max (when rborder (nth 1 rborder)))
+;;              (rmax-found rmax))
+;;         (mumamo-msgfntfy "  fn=%s, r=%s" fn r)
+;;         (unless rmin (setq rmin (point-min)))
+;;         (unless rmax (setq rmax (point-max)))
+;;         ;; Do not allow zero length chunks
+;;         (unless (and (> rmin 1) (= rmin rmax))
+;;           ;; comparision have to be done differently if we are in an
+;;           ;; exception part or not.  since we are doing this from top to
+;;           ;; bottom the rules are:
+;;           ;;
+;;           ;; - exception parts always outrules non-exception part.  when
+;;           ;;   in exception part the min start point should be used.
+;;           ;; - when in non-exception part the max start point and the
+;;           ;;   min end point should be used.
+;;           ;;
+;;           ;; check if first run:
 
-          ;; Fix-me: there is some bug here when borders are not
-          ;; included and are not 0 width.
-          (if (not min)
-              (progn
-                (setq min rmin)
-                (setq border-min rborder-min)
-                (setq max rmax)
-                (setq border-max rborder-max)
-                (setq max-found rmax-found)
-                (setq parseable rparseable)
-                (setq fw-exc-fun rfw-exc-fun)
-                (setq major-sub rmajor-sub))
-            (if rmajor-sub
-                (if major-sub
-                    (when (or (not min)
-                              (< rmin min))
-                      (setq min rmin)
-                      (setq border-min rborder-min)
-                      (setq max rmax)
-                      (setq border-max rborder-max)
-                      (when rmax-found (setq max-found t))
-                      (setq parseable rparseable)
-                      (setq fw-exc-fun rfw-exc-fun)
-                      (setq major-sub rmajor-sub))
-                  (setq min rmin)
-                  (setq border-min rborder-min)
-                  (setq max rmax)
-                  (setq border-max rborder-max)
-                  (when rmax-found (setq max-found t))
-                  (setq parseable rparseable)
-                  (setq fw-exc-fun rfw-exc-fun)
-                  (setq major-sub rmajor-sub))
-              (unless major-sub
-                (when (< min rmin)
-                  (setq min rmin)
-                  (setq border-min rborder-min))
-                (when (< rmax max)
-                  (setq max-found rmax-found)
-                  (setq max rmax)
-                  (setq border-max rborder-max))
-                ))))
-        (mumamo-msgfntfy "min/max=%s/%s border=%s/%s pos=%s" min max border-min border-max pos)
-        ;; check!
-        (when (and min max)
-          (assert (<= min pos) t)
-          (assert (<= pos max) t)
-          (when border-min
-            (assert (< min border-min) t)
-            (assert (<= border-min max) t))
-          (when border-max
-            (assert (<= min border-max) t)
-            (assert (< border-max max) t)))))
-    ;;(list min (when max-found max) major-sub syntax-min syntax-max)
-    (goto-char here)
-    (list min (when max-found max) major-sub border-min border-max parseable fw-exc-fun)
-    ))
+;;           ;; Fix-me: there is some bug here when borders are not
+;;           ;; included and are not 0 width.
+;;           (if (not min)
+;;               (progn
+;;                 (setq min rmin)
+;;                 (setq border-min rborder-min)
+;;                 (setq max rmax)
+;;                 (setq border-max rborder-max)
+;;                 (setq max-found rmax-found)
+;;                 (setq parseable rparseable)
+;;                 (setq fw-exc-fun rfw-exc-fun)
+;;                 (setq major-sub rmajor-sub))
+;;             (if rmajor-sub
+;;                 (if major-sub
+;;                     (when (or (not min)
+;;                               (< rmin min))
+;;                       (setq min rmin)
+;;                       (setq border-min rborder-min)
+;;                       (setq max rmax)
+;;                       (setq border-max rborder-max)
+;;                       (when rmax-found (setq max-found t))
+;;                       (setq parseable rparseable)
+;;                       (setq fw-exc-fun rfw-exc-fun)
+;;                       (setq major-sub rmajor-sub))
+;;                   (setq min rmin)
+;;                   (setq border-min rborder-min)
+;;                   (setq max rmax)
+;;                   (setq border-max rborder-max)
+;;                   (when rmax-found (setq max-found t))
+;;                   (setq parseable rparseable)
+;;                   (setq fw-exc-fun rfw-exc-fun)
+;;                   (setq major-sub rmajor-sub))
+;;               (unless major-sub
+;;                 (when (< min rmin)
+;;                   (setq min rmin)
+;;                   (setq border-min rborder-min))
+;;                 (when (< rmax max)
+;;                   (setq max-found rmax-found)
+;;                   (setq max rmax)
+;;                   (setq border-max rborder-max))
+;;                 ))))
+;;         (mumamo-msgfntfy "min/max=%s/%s border=%s/%s pos=%s" min max border-min border-max pos)
+;;         ;; check!
+;;         (when (and min max)
+;;           (assert (<= min pos) t)
+;;           (assert (<= pos max) t)
+;;           (when border-min
+;;             (assert (< min border-min) t)
+;;             (assert (<= border-min max) t))
+;;           (when border-max
+;;             (assert (<= min border-max) t)
+;;             (assert (< border-max max) t)))))
+;;     ;;(list min (when max-found max) major-sub syntax-min syntax-max)
+;;     (goto-char here)
+;;     (list min (when max-found max) major-sub border-min border-max parseable fw-exc-fun)
+;;     ))
 
 (defun mumamo-define-no-mode (mode-sym)
   "Fallback major mode when no major mode for MODE-SYM is found."
@@ -3903,6 +3903,7 @@ The first two are used when the bottom:
       (when this-borders-max (setq bmax (- end this-borders-max)))
       ;;(when after-chunk (message "after-chunk.end=%s, beg=%s, end=%s" (overlay-end after-chunk) beg end))
       ;;(message "fw-funs=%s" fw-funs)
+      (unless (or (not next-chunk-funs) (eq 'none next-chunk-funs)) (error "next-chunk-funs not 'none=%s" next-chunk-funs))
       (when this-chunk
         (overlay-put this-chunk 'mumamo-is-new t)
         (overlay-put this-chunk 'face (mumamo-background-color depth))
@@ -4002,6 +4003,40 @@ The first two are used when the bottom:
          )
     ))
 
+(defvar mumamo-sub-chunk-families nil
+  "Chunk dividing routines for sub chunks.
+A major mode in a sub chunk can inherit chunk dividing routines
+from multi major modes.  This is the way chunks in chunks is
+implemented.
+
+This variable is an association list with entries of the form
+
+  \(CHUNK-MAJOR CHUNK-FAMILY)
+
+where CHUNK-MAJOR is the major mode in a chunk and CHUNK-FAMILY
+is a chunk family \(ie the third argument to
+`define-mumamo-multi-major-mode'.
+
+You can use the function `mumamo-inherit-sub-chunk-family' to add
+to this list.")
+
+;;(mumamo-get-sub-chunk-funs 'html-mode)
+(defun mumamo-get-sub-chunk-funs (major)
+  "Get chunk family sub chunk with major mode MAJOR."
+  (let ((rec (assoc major mumamo-sub-chunk-families)))
+    (caddr (cadr rec))))
+
+(defun mumamo-inherit-sub-chunk-family (multi-major)
+  "Inherit chunk dividing routines from multi major modes.
+Add chunk family from multi major mode MULTI-MAJOR to
+`mumamo-inherit-chunk-family'."
+  (let* ((chunk-family (get multi-major 'mumamo-chunk-family))
+         (major      (nth 1 chunk-family)))
+    (let ((major-mode major))
+      (when (derived-mode-p 'nxml-mode)
+        (error "Major mode %s major can't be used in sub chunks")))
+    (add-to-list 'mumamo-sub-chunk-families (list major chunk-family))))
+
 (defun mumamo-find-next-chunk-values (after-chunk from after-change-max)
                                         ;(mumamo-find-next-chunk-values nil)
   "Search forward for start of next chunk.
@@ -4056,17 +4091,24 @@ information.
          ;; Note that "curr-*" values are fetched from "mumamo-next-*" values in after-chunk
          (curr-major (if after-chunk-valid
                          (or (overlay-get after-chunk 'mumamo-next-major)
-                             (mumamo-main-major-mode))
+                             ;;(mumamo-main-major-mode))
+                             (let ((after-after-chunk (overlay-get after-chunk 'mumamo-prev-chunk)))
+                               (unless after-after-chunk (error "after-after-chunk is nil"))
+                               (overlay-get after-after-chunk 'mumamo-major-mode)))
                        (mumamo-main-major-mode)))
          (curr-chunk-funs
-          (if (and after-chunk-valid
-                   after-next-chunk-funs)
-              (if (listp after-next-chunk-funs)
-                  after-next-chunk-funs
-                nil)
-            main-chunk-funs))
+          (if (eq curr-major (mumamo-main-major-mode))
+              main-chunk-funs
+            (mumamo-get-sub-chunk-funs curr-major)))
+          ;; (if (and after-chunk-valid
+          ;;          after-next-chunk-funs)
+          ;;     (if (listp after-next-chunk-funs)
+          ;;         after-next-chunk-funs
+          ;;       nil)
+          ;;   main-chunk-funs))
          (curr-end-fun (when after-chunk-valid
                          (overlay-get after-chunk 'mumamo-next-end-fun)))
+         ;;(curr-sub-family (when curr-end-fun (mumamo-get-sub-chunk-family curr-major)))
          (curr-border-fun (when curr-end-fun
                             (overlay-get after-chunk 'mumamo-next-border-fun)))
          curr-max
@@ -6203,10 +6245,10 @@ buffer into chunks with different major modes.
 
 The documentation string for FUN-SYM should contain the special
 documentation in the string SPEC-DOC, general documentation for
-functions of this type and information about CHUNKS.
+functions of this type and information about chunks.
 
-The new function will use the definitions in CHUNKS to make the
-dividing of the buffer.
+The new function will use the definitions in CHUNKS \(which is
+called a \"chunk family\") to make the dividing of the buffer.
 
 The function FUN-SYM can be used to setup a buffer instead of a
 major mode function:
@@ -6366,6 +6408,7 @@ information about multi major modes please see
 (make-variable-buffer-local ',turn-on-fun)
 (put ',turn-on-fun 'permanent-local t)
 (put ',turn-on-fun 'mumamo-chunk-family (copy-tree ',chunks2))
+(put ',turn-on-fun-alias 'mumamo-chunk-family (copy-tree ',chunks2))
 (defun ,turn-on-fun nil ,docstring
   (interactive)
   (let ((old-major-mode (or mumamo-major-mode

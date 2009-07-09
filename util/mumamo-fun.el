@@ -711,6 +711,8 @@ This covers inlined style and javascript and PHP."
     mumamo-chunk-onjs=
     )))
 (add-hook 'html-mumamo-mode-hook 'mumamo-define-html-file-wide-keys)
+(mumamo-inherit-sub-chunk-family 'html-mumamo-mode)
+
 ;; (define-mumamo-multi-major-mode xml-pi-only-mumamo-mode
 ;;   "Test"
 ;;   ("HTML Family" html-mode
@@ -1288,11 +1290,12 @@ The major mode spec is translated to a major mode using
 Use first match in `mumamo-heredoc-modes'.
 If no match use `text-mode'."
   (let ((mode (catch 'mode
-                (dolist (rec mumamo-heredoc-modes)
-                  (let ((regexp (nth 0 rec))
-                        (mode   (nth 1 rec)))
-                    (when (string-match-p regexp marker)
-                      (throw 'mode mode)))))))
+                (save-match-data
+                  (dolist (rec mumamo-heredoc-modes)
+                    (let ((regexp (nth 0 rec))
+                          (mode   (nth 1 rec)))
+                      (when (string-match regexp marker)
+                        (throw 'mode mode))))))))
     (if mode
         (mumamo-major-mode-from-modespec mode)
       'text-mode)))
@@ -1447,6 +1450,7 @@ See `mumamo-heredoc-modes' for how to specify heredoc major modes."
   ("SH HereDoc" sh-mode
    (mumamo-chunk-sh-heredoc
     )))
+(mumamo-inherit-sub-chunk-family 'sh-mumamo-heredoc-mode)
 
 
 ;;;; PHP heredoc
@@ -1465,6 +1469,7 @@ See `mumamo-heredoc-modes' for how to specify heredoc major modes."
   ("PHP HereDoc" php-mode
    (mumamo-chunk-php-heredoc
     )))
+(mumamo-inherit-sub-chunk-family 'php-mumamo-heredoc-mode)
 
 
 ;;;; Perl heredoc
@@ -1483,6 +1488,7 @@ See `mumamo-heredoc-modes' for how to specify heredoc major modes."
   ("Perl HereDoc" perl-mode
    (mumamo-chunk-perl-heredoc
     )))
+(mumamo-inherit-sub-chunk-family 'perl-mumamo-heredoc-mode)
 
 ;;;###autoload
 (define-mumamo-multi-major-mode cperl-mumamo-heredoc-mode
@@ -1494,6 +1500,7 @@ Note: I have seen some problems with this.  Use
   ("Perl HereDoc" cperl-mode
    (mumamo-chunk-perl-heredoc
     )))
+(mumamo-inherit-sub-chunk-family 'cperl-mumamo-heredoc-mode)
 
 
 ;;;; Python heredoc
@@ -1512,6 +1519,7 @@ See `mumamo-heredoc-modes' for how to specify heredoc major modes."
   ("Python HereDoc" python-mode
    (mumamo-chunk-python-heredoc
     )))
+(mumamo-inherit-sub-chunk-family 'python-mumamo-heredoc-mode)
 
 
 ;;;; Ruby heredoc
@@ -1530,6 +1538,7 @@ See `mumamo-heredoc-modes' for how to specify heredoc major modes."
   ("Ruby HereDoc" ruby-mode
    (mumamo-chunk-ruby-heredoc
     )))
+(mumamo-inherit-sub-chunk-family 'ruby-mumamo-heredoc-mode)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
