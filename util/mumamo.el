@@ -3297,7 +3297,7 @@ Otherwise return nil."
 ;; surrounding chunks syntax. Patterns that possibly could be chunk
 ;; borders might instead be parts of comments or strings in cases
 ;; where they should not be valid borders there.
-(defvar mumamo-find-possible-chunk-new nil)
+;;(defvar mumamo-find-possible-chunk-new nil)
 (defun mumamo-find-possible-chunk (pos
                                    min max
                                    bw-exc-start-fun
@@ -3984,11 +3984,10 @@ The first two are used when the bottom:
         (overlay-put this-chunk 'face (mumamo-background-color depth))
         (overlay-put this-chunk 'mumamo-depth depth)
         ;; Values for next chunk
+        (overlay-put this-chunk 'mumamo-next-depth-diff next-depth-diff)
         (overlay-put this-chunk 'mumamo-next-major next-major)
-
         (overlay-put this-chunk 'mumamo-next-border-fun next-border-fun)
         (overlay-put this-chunk 'mumamo-next-chunk-funs next-chunk-funs)
-        (overlay-put this-chunk 'mumamo-next-depth-diff next-depth-diff)
         ;; Values for this chunk
         (overlay-put this-chunk 'mumamo-is-closed is-closed)
         (overlay-put this-chunk 'syntax-min-d bmin)
@@ -4165,7 +4164,7 @@ information.
 
 "
   ;;(msgtrc "(find-next-chunk-values %s %s %s)" after-chunk from after-change-max)
-  (let* ((mumamo-find-possible-chunk-new t)
+  (let* (;;(mumamo-find-possible-chunk-new t)
          (here (point))
          (max (point-max))
          (after-chunk-valid (and after-chunk
