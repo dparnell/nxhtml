@@ -80,98 +80,7 @@
 (defun mumamo-chunk-attr= (pos min max attr= attr=is-regex attr-regex submode)
   "This should work similar to `mumamo-find-possible-chunk'.
 See `mumamo-chunk-style=' for an example of use."
-  (if (not mumamo-find-possible-chunk-new)
-      (mumamo-chunk-attr=-old pos min max attr= attr=is-regex attr-regex submode)
-    (when t ;;(and (boundp 'mumamo-test-mode) mumamo-test-mode)
-      (mumamo-chunk-attr=-new pos max attr= attr=is-regex attr-regex submode)
-      )
-    ))
-
-(defun mumamo-chunk-attr=-old (pos min max attr= attr=is-regex attr-regex submode)
-  ;; Fix-me: make version for new chunks!
-  (mumamo-condition-case err
-      (save-match-data
-        (if (not attr=is-regex)
-            (goto-char (+ pos (length attr=)))
-          (goto-char pos)
-          (skip-chars-forward "a-zA-Z="))
-        (let ((prev-attr= (if attr=is-regex
-                              (re-search-backward attr= min t)
-                            (search-backward attr= min t)))
-              prev-attr-sure
-              next-attr=
-              start start-border
-              end   end-border
-              exc-mode
-              borders
-              exc-start-prev
-              exc-end-prev
-              exc-start-next
-              exc-end-next
-              (while-n1 0)
-              )
-          ;; make sure if we have find prev-attr= or not
-          (while (and (> 100 (setq while-n1 (1+ while-n1)))
-                      prev-attr=
-                      (not prev-attr-sure))
-            (if (not (search-backward "<" min t))
-                (setq prev-attr= nil)
-              (if (looking-at attr-regex)
-                  (setq prev-attr-sure 'found)
-                (setq prev-attr= (if attr=is-regex
-                                     (re-search-backward attr= min t)
-                                   (search-backward attr= min t))))))
-          ;; find prev change and if inside style= the next change
-;;;           (when (and prev-attr=
-;;;                      (search-backward "<" min t))
-;;;             (when (looking-at attr-regex)
-          (when prev-attr=
-              (setq exc-start-prev (match-beginning 1))
-              (setq exc-end-prev   (match-end 2))
-              (when (<= exc-start-prev pos)
-;;;                 (if (>= pos exc-end-prev)
-;;;                     (setq start exc-end-prev)
-;;;                   (setq exc-mode submode)
-;;;                   (setq start exc-start-prev)
-;;;                   (setq end exc-end-prev))
-                (if (> pos exc-end-prev)
-                    (progn
-                      (setq start (+ (match-end 2) 1))
-                      ;;(setq start-border (+ (match-end 2) 2))
-                      )
-                  (setq exc-mode submode)
-                  (setq start (match-beginning 1))
-                  (setq start-border (match-beginning 2))
-                  (setq end (1+ (match-end 2)))
-                  (setq end-border (1- end)))
-                ))
-            ;;)
-          ;; find next change
-          (unless end
-            (if start
-                (goto-char start)
-              (goto-char pos)
-              (search-backward "<" min t))
-            (setq next-attr= (if attr=is-regex
-                                 (re-search-forward attr= max t)
-                               (search-forward attr= max t)))
-            (when (and next-attr=
-                       (search-backward "<" min t))
-              (when (looking-at attr-regex)
-                (setq end (match-beginning 1)))))
-          (when start (assert (<= start pos) t))
-          (when end   (assert (<= pos end) t))
-          (goto-char pos)
-          (when (or start-border end-border)
-            (setq borders (list start-border end-border nil)))
-          ;;(message "ret=%s" (list start end exc-mode borders))
-          (when (or start end exc-mode borders)
-            (list start end exc-mode borders))
-          ;;nil
-          ))
-    (error
-     (mumamo-display-error 'mumamo-chunk-attr=-old "%s"
-                           (error-message-string err)))))
+  (mumamo-chunk-attr=-new pos max attr= attr=is-regex attr-regex submode))
 
 (defun mumamo-chunk-attr=-new-fw-exc-fun (pos max)
   ;;(msgtrc "(mumamo-chunk-attr=-new-fw-exc-fun %s %s)" pos max)
@@ -242,19 +151,28 @@ See `mumamo-chunk-style=' for an example of use."
               (min (1- pos))
               )
           ;; make sure if we have find prev-attr= or not
+          (when next-attr=
+            (forward-char)
+            (skip-chars-forward "^\"")
+            (setq look-max (+ (point) 2)))
           (while (and next-attr=
                       (not next-attr-sure)
                       (< tries 5))
             (setq tries (1+ tries))
-            (if (not (search-backward "<" min t))
+            ;;(if (not (re-search-backward "<[^?]" (- min 300) t))
+            (if (not (re-search-backward "<[^?]\\|\?>" (- min 300) t))
                 (setq next-attr= nil)
-              (if (looking-at attr-regex)
+              ;;(if (looking-at attr-regex)
+              (if (re-search-forward attr-regex look-max t)
+              ;;(if (mumamo-end-in-code (point) next-attr= 'php-mode)
                   (setq next-attr-sure 'found)
                 (unless (bobp)
                   (backward-char)
                   (setq next-attr= (if attr=is-regex
                                        (re-search-backward attr= min t)
                                      (search-backward attr= min t)))))))
+
+
           ;; find prev change and if inside style= the next change
           (when next-attr=
               (setq exc-start-next (match-beginning 1))
@@ -656,8 +574,9 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 ;;;; on[a-z]+=\"javascript:"
 
 (defconst mumamo-onjs=start-regex
-  (rx "<"
-      (0+ (not (any ">")))
+  (rx point
+      (or "<" "?>")
+      (* (not (any ">")))
       space
       (submatch
        "on"
@@ -699,12 +618,21 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; HTML w html-mode
 
+(defun mumamo-chunk-alt-php (pos min max)
+  "Find (?php ... ?), return range and `php-mode'.
+Workaround for the problem that I can not tame `nxml-mode' to recognize <?php.
+
+See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+  (when mumamo-alt-php-tags-mode
+    (mumamo-quick-static-chunk pos min max "(?php" "?)" t 'php-mode t)))
+
 ;;;###autoload
 (define-mumamo-multi-major-mode html-mumamo-mode
   "Turn on multiple major modes for (X)HTML with main mode `html-mode'.
 This covers inlined style and javascript and PHP."
   ("HTML Family" html-mode
    (mumamo-chunk-xml-pi
+    mumamo-chunk-alt-php
     mumamo-chunk-inlined-style
     mumamo-chunk-inlined-script
     mumamo-chunk-style=
@@ -728,12 +656,15 @@ This covers inlined style and javascript and PHP."
   (save-restriction
     (let ((here (point)))
       (widen)
-      (goto-char (point-min))
       (condition-case nil
           (atomic-change-group
             (progn
+              (goto-char (point-min))
               (while (search-forward "(?php" nil t)
                 (replace-match "<?php"))
+              (goto-char (point-min))
+              (while (search-forward "?)" nil t)
+                (replace-match "?>"))
               (basic-save-buffer-1)
               (signal 'mumamo-error-ind-0 nil)))
         (mumamo-error-ind-0))
@@ -763,10 +694,11 @@ just `php-mode' if there is no html code in the file."
   :lighter "<?php "
   (if mumamo-alt-php-tags-mode
       (progn
-        (unless mumamo-multi-major-mode (error "Only for mumamo multi major modes"))
+        ;;(unless mumamo-multi-major-mode (error "Only for mumamo multi major modes"))
         (unless (let ((major-mode (mumamo-main-major-mode)))
                   (derived-mode-p 'nxml-mode))
-          (error "Mumamo multi major mode must be based on nxml-mode"))
+          ;;(error "Mumamo multi major mode must be based on nxml-mode")
+          )
         (unless (memq 'mumamo-chunk-alt-php (caddr mumamo-current-chunk-family))
           (error "Mumamo multi major must have chunk function mumamo-chunk-alt-php"))
 
@@ -787,6 +719,9 @@ just `php-mode' if there is no html code in the file."
             (goto-char (point-min))
             (while (search-forward "<?php" nil t)
               (replace-match "(?php"))
+            (goto-char (point-min))
+            (while (search-forward "?>" nil t)
+                (replace-match "?)"))
             (goto-char here))))
     (save-restriction
       (let ((here (point)))
@@ -794,16 +729,11 @@ just `php-mode' if there is no html code in the file."
         (goto-char (point-min))
         (while (search-forward "(?php" nil t)
           (replace-match "<?php"))
+        (goto-char (point-min))
+        (while (search-forward "?)" nil t)
+          (replace-match "?>"))
         (goto-char here)))
     (remove-hook 'write-contents-functions 'mumamo-alt-php-write-contents t)))
-
-(defun mumamo-chunk-alt-php (pos min max)
-  "Find (?php ... ?>, return range and `php-mode'.
-Workaround for the problem that I can not tame `nxml-mode' to recognize <?php.
-
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (when mumamo-alt-php-tags-mode
-    (mumamo-quick-static-chunk pos min max "(?php" "?>" t 'php-mode t)))
 
 ;;;###autoload
 (define-mumamo-multi-major-mode nxml-mumamo-mode
