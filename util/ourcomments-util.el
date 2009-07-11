@@ -1292,6 +1292,26 @@ PREDICATE.  PREDICATE takes one argument, the symbol."
       (- (point-max)
          (point-min))))
 
+;;;###autoload
+(defun narrow-to-comment ()
+  (interactive)
+  (let* ((here (point-marker))
+         (size 1000)
+         (beg (progn (forward-comment (- size))
+                     ;; It looks like the wrong syntax-table is used here:
+                     ;;(message "skipped %s " (skip-chars-forward "[:space:]"))
+                     (message "skipped %s " (skip-chars-forward " \t\r\n"))
+                     (point)))
+         (end (progn (forward-comment size)
+                     ;;(message "skipped %s " (skip-chars-backward "[:space:]"))
+                     (message "skipped %s " (skip-chars-backward " \t\r\n"))
+                     (point))))
+    (goto-char here)
+    (if (not (and (>= here beg)
+                  (<= here end)))
+        (error "Not in a comment")
+      (narrow-to-region beg end))))
+
 (defvar describe-symbol-alist nil)
 
 (defun describe-symbol-add-known(property description)

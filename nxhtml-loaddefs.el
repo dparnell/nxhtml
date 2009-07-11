@@ -162,7 +162,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19023 45539))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19029 15990))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -550,7 +550,7 @@ Major mode for interacting with Firefox via MozRepl.
 ;;;***
 
 ;;;### (autoloads (php-mode php-file-patterns) "../related/php-mode"
-;;;;;;  "related/php-mode.el" (18775 60002))
+;;;;;;  "related/php-mode.el" (19032 52317))
 ;;; Generated autoloads from related/php-mode.el
 
 (defvar php-file-patterns '("\\.php[s34]?\\'" "\\.phtml\\'" "\\.inc\\'") "\
@@ -1543,6 +1543,26 @@ See `css-palette-mode' for more information on Css-Palette mode.
 
 ;;;***
 
+;;;### (autoloads (cusnu-export-my-skin-options customize-for-new-user)
+;;;;;;  "cus-new-user" "util/cus-new-user.el" (19032 2690))
+;;; Generated autoloads from util/cus-new-user.el
+
+(autoload 'customize-for-new-user "cus-new-user" "\
+Show special customization page for new user.
+
+\(fn &optional NAME)" t nil)
+
+(autoload 'cusnu-export-my-skin-options "cus-new-user" "\
+Export to file FILE custom options in `cusnu-my-skin-options'.
+The options is exported to elisp code that other users can run to
+set the options that you have added to `cusnu-my-skin-options'.
+
+For more information about this see `cusnu-export-cust-group'.
+
+\(fn FILE)" t nil)
+
+;;;***
+
 ;;;### (autoloads (freemind-to-org-mode freemind-from-org-sparse-tree
 ;;;;;;  freemind-from-org-mode freemind-from-org-mode-node freemind-show)
 ;;;;;;  "freemind" "util/freemind.el" (18969 63118))
@@ -1744,7 +1764,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19023 31715))
+;;;;;;  "mumamo" "util/mumamo.el" (19032 51387))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -1761,11 +1781,13 @@ Return t if VALUE is a multi major mode function.
 
 ;;;### (autoloads (mako-html-mumamo-mode org-mumamo-mode asp-html-mumamo-mode
 ;;;;;;  noweb2-mumamo-mode csound-sgml-mumamo-mode laszlo-nxml-mumamo-mode
-;;;;;;  metapost-mumamo-mode cperl-mumamo-mode perl-mumamo-mode eruby-html-mumamo-mode
-;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode smarty-html-mumamo-mode
-;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
-;;;;;;  embperl-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19023 31561))
+;;;;;;  metapost-mumamo-mode ruby-mumamo-heredoc-mode python-mumamo-heredoc-mode
+;;;;;;  cperl-mumamo-heredoc-mode perl-mumamo-heredoc-mode php-mumamo-heredoc-mode
+;;;;;;  sh-mumamo-heredoc-mode eruby-html-mumamo-mode eruby-mumamo-mode
+;;;;;;  jsp-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
+;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
+;;;;;;  nxml-mumamo-mode html-mumamo-mode) "mumamo-fun" "util/mumamo-fun.el"
+;;;;;;  (19032 6529))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1819,11 +1841,32 @@ Current major-mode will be used as the main major mode." t)
 Turn on multiple major modes for eRuby with main mode `html-mode'.
 This also covers inlined style and javascript." t)
 
-(autoload 'perl-mumamo-mode "mumamo-fun" "\
-Turn on multiple major modes for Perl Here Document." t)
+(autoload 'sh-mumamo-heredoc-mode "mumamo-fun" "\
+Turn on multiple major modes for sh heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
 
-(autoload 'cperl-mumamo-mode "mumamo-fun" "\
-Turn on multiple major modes for Perl Here Document." t)
+(autoload 'php-mumamo-heredoc-mode "mumamo-fun" "\
+Turn on multiple major modes for PHP heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
+
+(autoload 'perl-mumamo-heredoc-mode "mumamo-fun" "\
+Turn on multiple major modes for Perl heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
+
+(autoload 'cperl-mumamo-heredoc-mode "mumamo-fun" "\
+Turn on multiple major modes for Perl heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes.
+
+Note: I have seen some problems with this.  Use
+`perl-mumamo-mode' instead for now." t)
+
+(autoload 'python-mumamo-heredoc-mode "mumamo-fun" "\
+Turn on multiple major modes for Perl heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
+
+(autoload 'ruby-mumamo-heredoc-mode "mumamo-fun" "\
+Turn on multiple major modes for Ruby heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
 
 (autoload 'metapost-mumamo-mode "mumamo-fun" "\
 Turn on multiple major modes for MetaPost." t)
@@ -1913,13 +1956,13 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;;;;  emacs-buffer-file emacs ourcomments-ido-ctrl-tab ourcomments-ido-buffer-raise-frame
 ;;;;;;  ourcomments-ido-buffer-other-frame ourcomments-ido-buffer-other-window
 ;;;;;;  describe-symbol describe-defstruct describe-custom-group
-;;;;;;  describe-command ourcomments-ediff-files find-emacs-other-file
-;;;;;;  better-fringes-mode wrap-to-fill-column-mode wrap-to-fill-left-marg-modes
-;;;;;;  wrap-to-fill-left-marg describe-key-and-map-briefly ourcomments-move-end-of-line
-;;;;;;  ourcomments-move-beginning-of-line major-modep major-or-multi-majorp
-;;;;;;  unfill-individual-paragraphs unfill-region unfill-paragraph
-;;;;;;  define-toggle popup-menu-at-point) "ourcomments-util" "util/ourcomments-util.el"
-;;;;;;  (19023 31835))
+;;;;;;  narrow-to-comment describe-command ourcomments-ediff-files
+;;;;;;  find-emacs-other-file better-fringes-mode wrap-to-fill-column-mode
+;;;;;;  wrap-to-fill-left-marg-modes wrap-to-fill-left-marg describe-key-and-map-briefly
+;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
+;;;;;;  major-modep major-or-multi-majorp unfill-individual-paragraphs
+;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point)
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19032 45656))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2087,6 +2130,11 @@ This is used in EmacsW32 in the file ediff.cmd.
 Like `describe-function', but prompts only for interactive commands.
 
 \(fn COMMAND)" t nil)
+
+(autoload 'narrow-to-comment "ourcomments-util" "\
+Not documented
+
+\(fn)" t nil)
 
 (autoload 'describe-custom-group "ourcomments-util" "\
 Describe customization group SYMBOL.
@@ -2344,7 +2392,7 @@ be opened in your webbrowser with WORD looked up.
 ;;;***
 
 ;;;### (autoloads (udev-cedet-update) "udev-cedet" "util/udev-cedet.el"
-;;;;;;  (19023 33107))
+;;;;;;  (19024 58308))
 ;;; Generated autoloads from util/udev-cedet.el
 
 (autoload 'udev-cedet-update "udev-cedet" "\
@@ -2359,7 +2407,7 @@ Note that if you install CEDET yourself you should not use this function.
 ;;;***
 
 ;;;### (autoloads (udev-ecb-update) "udev-ecb" "util/udev-ecb.el"
-;;;;;;  (19023 33155))
+;;;;;;  (19025 35698))
 ;;; Generated autoloads from util/udev-ecb.el
 
 (autoload 'udev-ecb-update "udev-ecb" "\
@@ -2372,7 +2420,7 @@ For how to start ECB see `udev-ecb-load-ecb'.
 ;;;***
 
 ;;;### (autoloads (udev-rinari-update) "udev-rinari" "util/udev-rinari.el"
-;;;;;;  (18790 45400))
+;;;;;;  (19024 3799))
 ;;; Generated autoloads from util/udev-rinari.el
 
 (autoload 'udev-rinari-update "udev-rinari" "\
@@ -2428,8 +2476,8 @@ Display vertical line mode as globally.
 ;;;***
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
-;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (19023
-;;;;;;  43705))
+;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (19025
+;;;;;;  30143))
 ;;; Generated autoloads from util/winsav.el
 
 (autoload 'winsav-put-window-tree "winsav" "\
@@ -2730,7 +2778,7 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (19023 45717 297000))
+;;;;;;  (19032 52386 359000))
 
 ;;;***
 
