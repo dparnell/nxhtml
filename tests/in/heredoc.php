@@ -2,14 +2,14 @@
 
 $name       = "Joe Smith";
 $occupation = "Programmer";
-echo <<<EOF
+echo <<<EOFHTML
 
-This is a heredoc text-mode section.
-For more information talk to $name, your local $occupation.
+ This is a heredoc text-mode section.
+ For more information talk to $name, your local $occupation.
 
-Thanks!
+ Thanks!
 
-EOF;
+EOFHTML;
 
 $toprint = <<< HTMLEOF
 <!-- heredoc html-mode section -->
@@ -20,20 +20,20 @@ $toprint = <<< HTMLEOF
 <script type="text/javascript" language="javascript">
 
 function onEndCrop( coords, dimensions ) {
-    alert("Test");
-    }
+alert("Test");
+}
 </script>
 
 
 <a href="javascript:void window.open('');" title="Something">
-  <img src="/administrator/images/imprimir.png"
-       style="color:red;"
-       border="0"
-       alt="<?php echo _CMN_PDF;?>"
-       onmouseover="this.src='administrator/images/imprimir_on.png';swap_resalte('imprimir',1);"
-       onmouseout="this.src='administrator/images/imprimir.png'; swap_resalte('imprimir',0);"
-       class="bot_gestionar" id="img_imprimir"/>
-       </a>
+<img src="/administrator/images/imprimir.png"
+style="color:red;"
+border="0"
+alt="<?php echo _CMN_PDF;?>"
+ onmouseover="this.src='administrator/images/imprimir_on.png';swap_resalte('imprimir',1);"
+ onmouseout="this.src='administrator/images/imprimir.png'; swap_resalte('imprimir',0);"
+class="bot_gestionar" id="img_imprimir"/>
+</a>
 
 HTMLEOF;
 echo strtolower($toprint);
