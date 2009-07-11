@@ -363,6 +363,7 @@ To create a menu item something similar to this can be used:
 ;; (major-modep 'laszlo-nxml-mumamo-mode)
 ;; (major-modep 'genshi-nxhtml-mumamo-mode)
 ;; (major-modep 'javascript-mode)
+;; (major-modep 'espresso-mode)
 ;; (major-modep 'css-mode)
 
 ;;;###autoload
@@ -400,6 +401,7 @@ To create a menu item something similar to this can be used:
                            nxhtml-mode
                            css-mode
                            javascript-mode
+                           espresso-mode
                            php-mode
                            ))
                    (and (intern-soft (concat sym-name "-hook"))

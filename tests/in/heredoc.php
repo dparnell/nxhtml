@@ -26,13 +26,13 @@ alert("Test");
 
 
 <a href="javascript:void window.open('');" title="Something">
-<img src="/administrator/images/imprimir.png"
-style="color:red;"
+<img   src="/administrator/images/imprimir.png"
+    style="color:red;"
 border="0"
-alt="<?php echo _CMN_PDF;?>"
- onmouseover="this.src='administrator/images/imprimir_on.png';swap_resalte('imprimir',1);"
- onmouseout="this.src='administrator/images/imprimir.png'; swap_resalte('imprimir',0);"
-class="bot_gestionar" id="img_imprimir"/>
+ alt="<?php echo _CMN_PDF;?>"
+ onmouseover="this.src='images/imprimir_on.png';swap('imprimir',1);"
+ onmouseout="this.src='images/imprimir.png'; swap('imprimir',0);"
+class="bot" id="imprimir"/>
 </a>
 
 HTMLEOF;

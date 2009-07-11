@@ -920,13 +920,16 @@ major mode above has indentation 0."
 (defcustom mumamo-major-modes
   '(
     (asp-js-mode
-     javascript-mode)
+     espresso-mode
+     javascript-mode
+     ecmascript-mode)
     (asp-vb-mode
      visual-basic-mode)
     ;;(css-mode fundamental-mode)
     (javascript-mode
+     espresso-mode
      javascript-mode
-     js2-fl-mode
+     ;;js2-fl-mode
      ecmascript-mode)
     (java-mode
      jde-mode
@@ -2770,6 +2773,7 @@ fontification and speeds up fontification significantly."
                                  'face 'font-lock-warning-face)))))))
 ;;(mumamo-define-no-mode 'my-ownB-mode)
 
+;;(mumamo-major-mode-from-modespec 'javascript-mode)
 (defun mumamo-major-mode-from-modespec (major-spec)
   "Translate MAJOR-SPEC to a major mode.
 Translate MAJOR-SPEC used in chunk definitions of multi major
@@ -2844,11 +2848,10 @@ See `mumamo-major-modes' for an explanation."
   "Get major mode specified in CHUNK."
   ;;(assert chunk)
   ;;(assert (overlay-buffer chunk))
-  (if chunk
-      (mumamo-chunk-car chunk 'mumamo-major-mode)
-    ;;(mumamo-main-major-mode)
-    (mumamo-major-mode-from-modespec (mumamo-main-major-mode))
-    ))
+  (let ((mode-spec (if chunk
+                       (mumamo-chunk-car chunk 'mumamo-major-mode)
+                     (mumamo-main-major-mode))))
+    (mumamo-major-mode-from-modespec mode-spec)))
 
 (defsubst mumamo-chunk-syntax-min-max (chunk no-obscure)
   (when chunk
@@ -3515,21 +3518,17 @@ The first two are used when the bottom:
           (mumamo-chunk-push this-chunk 'mumamo-next-end-fun next-end-fun))
          ((= -1 next-depth-diff)
           (mumamo-chunk-pop  this-chunk 'mumamo-next-end-fun)
-          ;;(assert (eq maj (mumamo-chunk-car this-chunk 'mumamo-major-mode)) t)
           )
          (t (error "next-depth-diff=%s" next-depth-diff)))
         ;;(msgtrc "mumamo-next-end-fun=%S" (overlay-get this-chunk 'mumamo-next-end-fun))
 
-        ;;(overlay-put this-chunk 'mumamo-major-mode maj)
         (cond
          ((= 1 depth-diff)
           (mumamo-chunk-push this-chunk 'mumamo-major-mode maj))
          ((= -1 depth-diff)
           (mumamo-chunk-pop  this-chunk 'mumamo-major-mode)
-          ;;(assert (eq maj (mumamo-chunk-car this-chunk 'mumamo-major-mode)) t)
           )
          (t (error "depth-diff=%s" depth-diff)))
-        ;;(msgtrc "mumamo-major-mode=%S" (overlay-get this-chunk 'mumamo-major-mode))
 
         (overlay-put this-chunk 'mumamo-parseable-by pable)
         (overlay-put this-chunk 'created (current-time-string))

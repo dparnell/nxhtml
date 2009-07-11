@@ -491,26 +491,26 @@ This mode only provides syntax highlighting.
 
 ;;;***
 
-;;;### (autoloads (javascript-mode) "../related/javascript" "related/javascript.el"
-;;;;;;  (18946 55162))
-;;; Generated autoloads from related/javascript.el
+;;;### (autoloads (espresso-mode) "../related/espresso" "related/espresso.el"
+;;;;;;  (19032 57192))
+;;; Generated autoloads from related/espresso.el
 
-(autoload 'javascript-mode "../related/javascript" "\
+(autoload 'espresso-mode "../related/espresso" "\
 Major mode for editing JavaScript source text.
 
 Key bindings:
 
-\\{javascript-mode-map}
+\\{espresso-mode-map}
 
 \(fn)" t nil)
 
 ;;;***
 
-;;;### (autoloads (javascript-mode) "../related/javascript-old" "related/javascript-old.el"
-;;;;;;  (18972 23450))
-;;; Generated autoloads from related/javascript-old.el
+;;;### (autoloads (javascript-mode) "../related/javascript" "related/javascript.el"
+;;;;;;  (18946 55162))
+;;; Generated autoloads from related/javascript.el
 
-(autoload 'javascript-mode "../related/javascript-old" "\
+(autoload 'javascript-mode "../related/javascript" "\
 Major mode for editing JavaScript source text.
 
 Key bindings:
@@ -1691,8 +1691,8 @@ hyperlinks as appropriate.
 ;;;***
 
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
-;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (18975
-;;;;;;  5780))
+;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19032
+;;;;;;  54289))
 ;;; Generated autoloads from util/majmodpri.el
 
 (autoload 'majmodpri-sort-lists "majmodpri" "\
@@ -1764,7 +1764,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19032 51387))
+;;;;;;  "mumamo" "util/mumamo.el" (19032 55994))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -1962,7 +1962,7 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
 ;;;;;;  major-modep major-or-multi-majorp unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19032 45656))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19032 55492))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2767,18 +2767,19 @@ Not documented
 ;;;;;;  "nxhtml/nxhtml-strval.el" "nxhtml/nxhtmljs.el" "nxhtml/outline-magic.el"
 ;;;;;;  "nxhtml/wtest.el" "related/flymake-helpers.el" "related/flymake-js.el"
 ;;;;;;  "related/flymake-keys.el" "related/flymake-php.el" "related/flymu.el"
-;;;;;;  "related/fold-dwim.el" "related/php-imenu.el" "tests/angus77-setup-jde.el"
-;;;;;;  "tests/emacstest-suites.el" "tests/ert2.el" "tests/hfy-test.el"
-;;;;;;  "tests/inemacs/bug1013.el" "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el"
-;;;;;;  "tests/temp-test.el" "util/appmenu-fold.el" "util/buffer-bg.el"
-;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/ffip.el"
-;;;;;;  "util/fmode.el" "util/fupd.el" "util/hfyview.el" "util/hl-needed.el"
-;;;;;;  "util/htmlfontify.21.el" "util/key-cat.el" "util/mumamo-aspnet.el"
-;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "related/fold-dwim.el" "related/javascript-old.el" "related/php-imenu.el"
+;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
+;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
+;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/custsets.el"
+;;;;;;  "util/ecb-batch-compile.el" "util/ffip.el" "util/fmode.el"
+;;;;;;  "util/fupd.el" "util/hfyview.el" "util/hl-needed.el" "util/htmlfontify.21.el"
+;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
+;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (19032 52386 359000))
+;;;;;;  (19032 57245 968000))
 
 ;;;***
 
