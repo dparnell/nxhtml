@@ -325,6 +325,8 @@ before applying."
     nxml-mumamo-mode
     nxml-mode
 
+    espresso-mode
+    javascript-mode
     rhtml-mode
     )
   "Priority list for major modes.
