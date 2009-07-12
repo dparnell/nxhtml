@@ -2058,6 +2058,71 @@ Return full path if found."
   (local-set-key "n" 'widget-forward)
   (local-set-key "p" 'widget-backward))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Bookmarks
+
+(defun bookmark-next-marked ()
+  (interactive)
+  (let ((bb (get-buffer "*Bookmark List*"))
+        pos)
+    (when bb
+      (with-current-buffer bb
+        (setq pos (re-search-forward "^>" nil t))
+        (unless pos
+          (goto-char (point-min))
+          (setq pos (re-search-forward "^>" nil t)))))
+    (if pos
+        (with-current-buffer bb
+          (bookmark-bmenu-this-window))
+      (call-interactively 'bookmark-bmenu-list)
+      (message "Please select bookmark for bookmark next command, then press n"))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Org Mode
+
+(defun ourcomments-org-complete-and-replace-file-link ()
+  "If on a org file link complete file name and replace it."
+  (interactive)
+  (let* ((here (point-marker))
+         (on-link (eq 'org-link (get-text-property (point) 'face)))
+         (link-beg (when on-link
+                     (previous-single-property-change (1+ here) 'face)))
+         (link-end (when on-link
+                     (next-single-property-change here 'face)))
+         (link (when on-link (buffer-substring-no-properties link-beg link-end)))
+         type+link
+         link-link
+         link-link-beg
+         link-link-end
+         dir
+         ovl)
+    (when (and on-link
+               (string-match (rx string-start "[["
+                                 (group (0+ (not (any "]"))))) link))
+      (setq type+link (match-string 1 link))
+      (when (string-match "^file:\\(.*\\)" type+link)
+        (setq link-link (match-string 1 type+link))
+        (setq link-link-beg (+ 2 link-beg (match-beginning 1)))
+        (setq link-link-end (+ 2 link-beg (match-end 1)))
+        (unwind-protect
+            (progn
+              (setq ovl (make-overlay link-link-beg link-link-end))
+              (overlay-put ovl 'face 'highlight)
+              (when link-link
+                (setq link-link (org-link-unescape link-link))
+                (setq dir (when (and link-link (> (length link-link) 0))
+                            (file-name-directory link-link)))
+                (setq new-link (read-file-name "Org file:" dir nil nil (file-name-nondirectory link-link)))
+                (delete-overlay ovl)
+                (setq new-link (expand-file-name new-link))
+                (setq new-link (file-relative-name new-link))
+                (delete-region link-link-beg link-link-end)
+                (goto-char link-link-beg)
+                (insert (org-link-escape new-link))
+                t))
+          (delete-overlay ovl)
+          (goto-char here))))))
+
 (provide 'ourcomments-util)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; ourcomments-util.el ends here

@@ -1155,6 +1155,11 @@ Preserves the `buffer-modified-p' state of the current buffer."
   (when (fboundp 'mumamo-get-region-from-1)
     (mumamo-get-region-from-1 point)))
 
+(defun mumamo-clear-chunk-cache (chunk)
+  (overlay-put chunk 'mumamo-ppss-cache nil)
+  (overlay-put chunk 'mumamo-ppss-last nil)
+  (overlay-put chunk 'mumamo-ppss-stats nil))
+
 (defun mumamo-find-chunks (end tracer)
   "Find or create chunks from last known chunk.
 Ie, start from the end of `mumamo-last-chunk' if this is
@@ -1231,6 +1236,7 @@ in this part of the buffer."
       (when mumamo-last-change-pos
         ;; Fix-me:
         (when chunk-at-change-min
+          (mumamo-clear-chunk-cache chunk-at-change-min)
           ;; (setq mumamo-last-chunk (overlay-get chunk-at-change-min 'mumamo-prev-chunk))
           ;; (or (not mumamo-last-chunk)
           ;;     (overlay-buffer mumamo-last-chunk)
@@ -1333,6 +1339,7 @@ in this part of the buffer."
                             ;;(msgtrc "find-chunks:eq")
                             (setq mumamo-last-chunk mumamo-old-tail)
                             (overlay-put mumamo-last-chunk 'mumamo-is-new t)
+                            (mumamo-clear-chunk-cache mumamo-last-chunk)
                             (overlay-put mumamo-last-chunk 'face (mumamo-background-color (overlay-get mumamo-last-chunk 'mumamo-depth)))
                             (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk)))
                         (or (not mumamo-old-tail)
@@ -3191,6 +3198,8 @@ Return as a list with values
 
   \(START END EXCEPTION-MODE BORDERS PARSEABLE-BY FR-EXC-FUN FIND-BORDERS-FUN)
 
+**Fix-me: FIND-BORDERS-FUN must be split for chunks-in-chunks!
+
 The bounds START and END are where the exception starts or stop.
 Either of them may be nil, in which case this is equivalent to
 `point-min' respectively `point-max'.
@@ -3478,7 +3487,9 @@ The first two are used when the bottom:
                          (make-overlay beg use-end nil nil (not is-closed))))
            ;; Fix-me: move to mumamo-find-next-chunk-values
            (this-border-fun (when (and this-chunk after-chunk)
-                              (overlay-get after-chunk 'mumamo-next-border-fun)))
+                              ;;(overlay-get after-chunk 'mumamo-next-border-fun)
+                              (mumamo-chunk-car after-chunk 'mumamo-next-border-fun)
+                              ))
            (this-borders (when this-border-fun
                            ;;(msgtrc "(funcall %s %s %s %s)" this-border-fun beg end maj)
                            (funcall this-border-fun beg end maj)))
@@ -3502,7 +3513,6 @@ The first two are used when the bottom:
         (overlay-put this-chunk 'mumamo-next-depth-diff next-depth-diff)
         (assert (symbolp next-major) t)
         (overlay-put this-chunk 'mumamo-next-major next-major)
-        (overlay-put this-chunk 'mumamo-next-border-fun next-border-fun)
         (overlay-put this-chunk 'mumamo-next-chunk-funs next-chunk-funs)
         ;; Values for this chunk
         (overlay-put this-chunk 'mumamo-is-closed is-closed)
@@ -3515,8 +3525,10 @@ The first two are used when the bottom:
         ;;(overlay-put this-chunk 'mumamo-next-end-fun next-end-fun)
         (cond
          ((= 1 next-depth-diff)
+          (mumamo-chunk-push this-chunk 'mumamo-next-border-fun next-border-fun)
           (mumamo-chunk-push this-chunk 'mumamo-next-end-fun next-end-fun))
          ((= -1 next-depth-diff)
+          (mumamo-chunk-pop this-chunk 'mumamo-next-border-fun)
           (mumamo-chunk-pop  this-chunk 'mumamo-next-end-fun)
           )
          (t (error "next-depth-diff=%s" next-depth-diff)))
@@ -3567,7 +3579,7 @@ The first two are used when the bottom:
          (chunk-is-closed       (overlay-get chunk 'mumamo-is-closed))
          (chunk-next-major      (overlay-get chunk 'mumamo-next-major))
          (chunk-next-end-fun    (mumamo-chunk-car chunk 'mumamo-next-end-fun))
-         (chunk-next-border-fun (overlay-get chunk 'mumamo-next-border-fun))
+         (chunk-next-border-fun (mumamo-chunk-car chunk 'mumamo-next-border-fun))
          (chunk-next-chunk-funs (overlay-get chunk 'mumamo-next-chunk-funs))
          (chunk-next-chunk-diff (overlay-get chunk 'mumamo-next-depth-diff))
          (chunk-beg (overlay-start chunk))
@@ -3724,7 +3736,9 @@ information.
                          (mumamo-chunk-car after-chunk 'mumamo-next-end-fun)))
          ;;(curr-sub-family (when curr-end-fun (mumamo-get-sub-chunk-family curr-major)))
          (curr-border-fun (when curr-end-fun
-                            (overlay-get after-chunk 'mumamo-next-border-fun)))
+                            ;;(overlay-get after-chunk 'mumamo-next-border-fun)
+                            (mumamo-chunk-car after-chunk 'mumamo-next-border-fun)
+                            ))
          curr-max
          next-max
          curr-max-found
