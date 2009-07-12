@@ -681,6 +681,7 @@ This covers inlined style and javascript and PHP."
   ;; saved, return t
   t)
 
+(put 'mumamo-alt-php-tags-mode 'permanent-local t)
 (define-minor-mode mumamo-alt-php-tags-mode
   "Minor mode for using '(?php' instead of '<?php' in buffer.
 When turning on this mode <?php is replace with (?php in the buffer.

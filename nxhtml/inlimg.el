@@ -2,15 +2,24 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-09-27
-(defconst inlimg:version "0.5") ;; Version:
-;; Last-Updated: 2008-09-27T13:26:46+0200 Sat
+(defconst inlimg:version "0.6") ;; Version:
+;; Last-Updated: 2009-07-12 Sun
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   None
+  ;; `appmenu', `apropos', `backquote', `button', `bytecomp', `cl',
+  ;; `comint', `compile', `easymenu', `flyspell', `grep', `ido',
+  ;; `ispell', `mail-prsvr', `mlinks', `mm-util', `mumamo',
+  ;; `nxml-enc', `nxml-glyph', `nxml-mode', `nxml-ns', `nxml-outln',
+  ;; `nxml-parse', `nxml-rap', `nxml-util', `ourcomments-util',
+  ;; `recentf', `ring', `rng-dt', `rng-loc', `rng-match',
+  ;; `rng-parse', `rng-pttrn', `rng-uri', `rng-util', `rng-valid',
+  ;; `rx', `sgml-mode', `timer', `tool-bar', `tree-widget',
+  ;; `url-expand', `url-methods', `url-parse', `url-util',
+  ;; `url-vars', `wid-edit', `xmltok'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -50,7 +59,11 @@
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'mumamo))
 
-(defvar inlimg-img-regexp
+(defvar inlimg-img-regexp nil)
+(make-variable-buffer-local 'inlimg-img-regexp)
+(put 'inlimg-img-regexp 'permanent-local t)
+
+(defvar inlimg-img-regexp-html
   (rx (or (and "<img"
                (1+ space)
                (0+ (1+ (not (any " <>")))
@@ -67,6 +80,32 @@
                ")"
                )
           )))
+
+(defvar inlimg-assoc-ext
+  '((png (".png"))
+    (gif (".gif"))
+    (tiff (".tiff"))
+    (jpeg (".jpg" ".jpeg"))
+    (xpm (".xpm"))
+    (xbm (".xbm"))
+    (pbm (".pbm"))))
+
+(defvar inlimg-img-regexp-org
+  (rx-to-string
+   `(and "[[file:"
+         (group (+? (not (any "\]")))
+                ,(let ((types nil))
+                   (dolist (typ image-types)
+                     (when (image-type-available-p typ)
+                       (dolist (ext (cadr (assoc typ inlimg-assoc-ext)))
+                         (setq types (cons ext types)))))
+                   (cons 'or types)))
+         "]"
+         (optional "["
+                   (+? (not (any "\]")))
+                   "]")
+         "]"
+         )))
 
 (defgroup inlimg nil
   "Customization group for inlimg."
@@ -120,12 +159,18 @@ If DISPLAY-IMAGE is non-nil then display image, otherwise hide it.
 Return non-nil if an img tag was found."
   (let (res src beg end end-str img ovl remote beg-face)
     (goto-char pt)
-    (when (setq res (re-search-forward inlimg-img-regexp nil t))
+    (when (setq res (re-search-forward (symbol-value inlimg-img-regexp) nil t))
       (setq src (or (match-string-no-properties 1)
                     (match-string-no-properties 2)))
-      (setq beg (match-beginning 0))
-      (setq end (match-end 0))
-      (setq end-str (buffer-substring-no-properties (- end 2) end))
+      (cond ((eq inlimg-img-regexp 'inlimg-img-regexp-html)
+             (setq beg (match-beginning 0))
+             (setq end (match-end 0))
+             (setq end-str (buffer-substring-no-properties (- end 2) end)))
+            ((eq inlimg-img-regexp 'inlimg-img-regexp-org)
+             (setq beg (match-beginning 0))
+             (setq end (match-end 0))
+             ;;(setq end-str (buffer-substring-no-properties (- end 2) end))
+             ))
       (setq beg-face (get-text-property beg 'face))
       (setq remote (string-match "^https?://" src))
       (if display-image
@@ -140,8 +185,7 @@ Return non-nil if an img tag was found."
                 (mumamo-with-buffer-prepared-for-jit-lock
                  (put-text-property (- end 2) (- end 1)
                                     'display
-                                    end-str ;;"/>"
-                                    )
+                                    end-str)
                  (put-text-property (- end 1) end
                                     'display
                                     (propertize (if remote
@@ -158,11 +202,11 @@ Return non-nil if an img tag was found."
                          src
                          (file-name-directory (buffer-file-name))))
               (mumamo-with-buffer-prepared-for-jit-lock
+               (when (eq inlimg-img-regexp 'inlimg-img-regexp-org)
+                 (put-text-property (- end 2) end 'face 'default))
                (put-text-property (- end 2) (- end 1)
                                   'display
-                                  ;;"/>\n"
-                                  (concat end-str "\n")
-                                  )
+                                  (concat end-str "\n"))
                (setq img (create-image src nil nil
                                        :relief 5
                                        :margin inlimg-margins))
@@ -188,9 +232,16 @@ Return non-nil if an img tag was found."
                                       (list sl-top sl-left sl-width sl-height)
                                       nil)
                               img))))
-               (put-text-property (- end 1) end
-                                  'display img))))
+               (cond ((eq inlimg-img-regexp 'inlimg-img-regexp-html)
+                      (put-text-property (- end 1) end
+                                         'display img))
+                     ((eq inlimg-img-regexp 'inlimg-img-regexp-org)
+                      (put-text-property (- end 1) end
+                                         'display img))
+                     ))))
         (mumamo-with-buffer-prepared-for-jit-lock
+         (when (eq inlimg-img-regexp 'inlimg-img-regexp-org)
+           (put-text-property (- end 2) end 'face 'org-link))
          (put-text-property (- end 2) end
                             'display nil)))
       (mumamo-with-buffer-prepared-for-jit-lock
@@ -233,12 +284,21 @@ See also the command `inlimg-toggle-img-display'."
   :keymap nil
   :group 'inlimg
   (if inlimg-mode
-      (add-hook 'after-change-functions 'inlimg-after-change nil t)
+      (progn
+        (let ((major-mode (or (and mumamo-multi-major-mode
+                                   (mumamo-main-major-mode))
+                              major-mode)))
+          (cond ((derived-mode-p 'html-mode 'xml-mode 'sgml-mode 'nxml-mode 'php-mode)
+                 (setq inlimg-img-regexp 'inlimg-img-regexp-html))
+                ((derived-mode-p 'org-mode)
+                 (setq inlimg-img-regexp 'inlimg-img-regexp-org))))
+        (add-hook 'after-change-functions 'inlimg-after-change nil t))
     (remove-hook 'after-change-functions 'inlimg-after-change t))
   (inlimg-cancel-timer)
   (inlimg-update-whole-buffer))
 (put 'inlimg-mode 'permanent-local t)
 
+;; Fix-me: use font-lock!
 (defun inlimg-update-in-timer (start end buffer)
   "Update image display between START and END in buffer BUFFER."
   (with-current-buffer buffer
@@ -320,7 +380,7 @@ See also the command `inlimg-mode'."
                      (= ?\< (char-before))
                      (progn
                        (backward-char)
-                       (looking-at inlimg-img-regexp)))
+                       (looking-at (symbol-value inlimg-img-regexp))))
           (goto-char here)
           (error "No image here"))
         (setq img-start (point))

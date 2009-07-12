@@ -2,14 +2,12 @@
 
 $name       = "Joe Smith";
 $occupation = "Programmer";
-echo <<<EOFHTML
+echo <<<EOF
 
  This is a heredoc text-mode section.
  For more information talk to $name, your local $occupation.
 
- Thanks!
-
-EOFHTML;
+EOF;
 
 $toprint = <<< HTMLEOF
 <!-- heredoc html-mode section -->
