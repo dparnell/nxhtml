@@ -3690,7 +3690,7 @@ for next chunk.  See `mumamo-new-create-chunk' for more
 information.
 
 "
-  (msgtrc "(find-next-chunk-values %s %s %s %s)" after-chunk from after-change-max chunk-at-after-change)
+  ;;(msgtrc "(find-next-chunk-values %s %s %s %s)" after-chunk from after-change-max chunk-at-after-change)
   (let* (;;(mumamo-find-possible-chunk-new t)
          (here (point))
          (max (point-max))
@@ -3724,7 +3724,7 @@ information.
          (curr-chunk-funs
           (if (eq curr-major (mumamo-main-major-mode))
               main-chunk-funs
-            (msgtrc "find-next-chunk-values:get-sub-chunk-funs %s" curr-major)
+            ;;(msgtrc "find-next-chunk-values:get-sub-chunk-funs %s" curr-major)
             (mumamo-get-sub-chunk-funs curr-major)))
           ;; (if (and after-chunk-valid
           ;;          after-next-chunk-funs)
@@ -3793,7 +3793,7 @@ information.
                                1)))
           (setq curr-end-fun-end (funcall curr-end-fun use-min use-max))
           ;;(read-string "here: ")
-          (msgtrc "find-next-chunk-values:Calling (curr-end-fun=%s %s %s), point=%s/%s=>%s" curr-end-fun use-min use-max (point) here curr-end-fun-end)
+          ;;(msgtrc "find-next-chunk-values:Calling (curr-end-fun=%s %s %s), point=%s/%s=>%s" curr-end-fun use-min use-max (point) here curr-end-fun-end)
           ;; Fix-me: this test should also be made for other chunks
           ;; searches, but this catches most problems I think.
           ;;(msgtrc "find-next-chunk-values:here c, curr-min=%s, after-chunk=%s" curr-min after-chunk)
@@ -3807,11 +3807,11 @@ information.
                chunk-at-after-change
                (= -1 (overlay-get chunk-at-after-change 'mumamo-next-depth-diff))
                (setq curr-end-fun-end (overlay-end chunk-at-after-change)))
-          (msgtrc "find-next-chunk-values:curr-end-fun-end after end-in-code=%s" curr-end-fun-end)
+          ;;(msgtrc "find-next-chunk-values:curr-end-fun-end after end-in-code=%s" curr-end-fun-end)
           ))
-      (msgtrc "find-next-chunk-values:here d, curr-min=%s, after-chunk=%s" curr-min after-chunk)
+      ;;(msgtrc "find-next-chunk-values:here d, curr-min=%s, after-chunk=%s" curr-min after-chunk)
       (when (listp curr-chunk-funs)
-        (msgtrc "find-next-chunk-values:curr-chunk-funs=%s" curr-chunk-funs)
+        ;;(msgtrc "find-next-chunk-values:curr-chunk-funs=%s" curr-chunk-funs)
         (setq r-point (point))
         (dolist (fn curr-chunk-funs)
           ;;(msgtrc "find-next-chunk-values:before (r (funcall fn pos pos max)), fn=%s pos=%s, max=%s" fn pos max)
@@ -3829,7 +3829,7 @@ information.
                  (rborder-min (when rborder (nth 0 rborder)))
                  (rborder-max (when rborder (nth 1 rborder)))
                  (rmin-found rmin))
-            (msgtrc "find-next-chunk-values:fn=%s, r=%s" fn r)
+            ;;(msgtrc "find-next-chunk-values:fn=%s, r=%s" fn r)
             (goto-char r-point)
             (assert (= r-point (point)) t)
             (when r
@@ -3972,7 +3972,7 @@ information.
             ;;                (list next-fw-exc-fun next-border-fun)
             ;;                next-chunk-funs)))
             (next    (list next-major next-fw-exc-fun next-border-fun next-chunk-funs next-depth-diff)))
-        (msgtrc "find-next-chunk-values=> current=%s, next=%s" current next)
+        ;;(msgtrc "find-next-chunk-values=> current=%s, next=%s" current next)
         (list current next))
       )))
 

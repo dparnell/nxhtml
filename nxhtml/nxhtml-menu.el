@@ -942,10 +942,25 @@
           (list 'menu-item "Group Alternatives"
                 'popcmp-group-alternatives-toggle
                 :button '(:toggle . popcmp-group-alternatives)))
+        ;; (define-key style-map [popcmp-popup-completion]
+        ;;   (list 'menu-item "Popup Style Completion"
+        ;;         'popcmp-popup-completion-toggle
+        ;;         :button '(:toggle . popcmp-popup-completion)))
+        (define-key style-map [popcmp-style-div1]
+          (list 'menu-item "--"))
+        (define-key style-map [popcmp-anything-completion]
+          (list 'menu-item "Anything Style Completion"
+                (lambda () (interactive) (setq popcmp-completion-style 'anything))
+                :enable '(featurep 'anything)
+                :button '(:radio . (eq popcmp-completion-style 'anything))))
+        (define-key style-map [popcmp-emacs-completion]
+          (list 'menu-item "Emacs Default Style Completion"
+                (lambda () (interactive) (setq popcmp-completion-style 'emacs-default))
+                :button '(:radio . (eq popcmp-completion-style 'emacs-default))))
         (define-key style-map [popcmp-popup-completion]
           (list 'menu-item "Popup Style Completion"
-                'popcmp-popup-completion-toggle
-                :button '(:toggle . popcmp-popup-completion)))
+                (lambda () (interactive) (setq popcmp-completion-style 'popcmp-popup))
+                :button '(:radio . (eq popcmp-completion-style 'popcmp-popup))))
         )
       (define-key cmpl-map [nxhtml-cmpl-separator]
         (list 'menu-item "--" nil

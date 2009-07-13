@@ -159,7 +159,7 @@ See `mumamo-chunk-style=' for an example of use."
                       (< min (point))
                       (not next-attr-sure)
                       (< tries 5))
-            (msgtrc "attr=-new: min=%s, point=%s" min (point))
+            ;;(msgtrc "attr=-new: min=%s, point=%s" min (point))
             (setq tries (1+ tries))
             ;;(if (not (re-search-backward "<[^?]" (- min 300) t))
             (if (not (re-search-backward "<[^?]\\|\?>" (- min 300) t))
@@ -173,7 +173,7 @@ See `mumamo-chunk-style=' for an example of use."
                   (setq next-attr-sure 'found)
                 (unless (bobp)
                   (backward-char)
-                  (msgtrc "attr=-new 1: min=%s, point=%s" min (point))
+                  ;;(msgtrc "attr=-new 1: min=%s, point=%s" min (point))
                   (setq next-attr= (if attr=is-regex
                                        (re-search-backward attr= (- min 300) t)
                                      (search-backward attr= (- min 300) t)))))))
@@ -202,7 +202,7 @@ See `mumamo-chunk-style=' for an example of use."
                 (goto-char start)
               (goto-char pos)
               (search-backward "<" min t))
-            (msgtrc "attr=-new 2: min=%s, point=%s" min (point))
+            ;;(msgtrc "attr=-new 2: min=%s, point=%s" min (point))
             (setq next-attr= (if attr=is-regex
                                  (re-search-forward attr= max t)
                                (search-forward attr= max t)))
