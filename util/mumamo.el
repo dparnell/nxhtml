@@ -1886,16 +1886,17 @@ This function is called when the minor mode function
         (let ((ovls (overlays-in (point-min) (point-max)))
               (main-major (mumamo-main-major-mode)))
           (dolist (o ovls)
-            (let ((major (mumamo-chunk-major-mode o)))
-              (when major
-                (unless (eq major main-major)
-                  (mumamo-unfontify-chunk o))
-                (mumamo-msgfntfy "delete-overlay 1")
-                ;;(msgtrc "delete-overlay 1")
-                (delete-overlay o)
-                ))))
-        (mumamo-unfontify-region-with (point-min) (point-max)
-                                      (mumamo-main-major-mode))))))
+            (when (overlay-get o 'mumamo-is-new)
+              (let ((major (mumamo-chunk-major-mode o)))
+                (when major
+                  (unless (eq major main-major)
+                    (mumamo-unfontify-chunk o))
+                  (mumamo-msgfntfy "delete-overlay 1")
+                  ;;(msgtrc "delete-overlay 1")
+                  (delete-overlay o)
+                  ))))
+          (mumamo-unfontify-region-with (point-min) (point-max)
+                                        (mumamo-main-major-mode)))))))
 
 
 (defun mumamo-fontify-buffer ()
@@ -2787,6 +2788,8 @@ Translate MAJOR-SPEC used in chunk definitions of multi major
 modes to a major mode.
 
 See `mumamo-major-modes' for an explanation."
+  (unless major-spec
+    (mumamo-backtrace "mode-from-modespec, major-spec is nil"))
   (let ((modes (cdr (assq major-spec mumamo-major-modes)))
         (mode 'mumamo-bad-mode))
     (setq mode
