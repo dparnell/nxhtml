@@ -116,28 +116,6 @@ FILENAME could be either the remote or the local file.
 
 ;;;***
 
-;;;### (autoloads (inlimg-toggle-img-display inlimg-mode) "../nxhtml/inlimg"
-;;;;;;  "nxhtml/inlimg.el" (18775 60002))
-;;; Generated autoloads from nxhtml/inlimg.el
-
-(autoload 'inlimg-mode "../nxhtml/inlimg" "\
-Display <img ...> images inline.
-Images are displayed below the <img ...> tag using the margins in
-`inlimg-margins'.  The whole image or a slice of it may be
-displayed, see `inlimg-slice'.
-
-See also the command `inlimg-toggle-img-display'.
-
-\(fn &optional ARG)" t nil)
-
-(autoload 'inlimg-toggle-img-display "../nxhtml/inlimg" "\
-Toggle display of img image at point POINT.
-See also the command `inlimg-mode'.
-
-\(fn POINT)" t nil)
-
-;;;***
-
 ;;;### (autoloads (nxhtml-customize) "../nxhtml/nxhtml" "nxhtml/nxhtml.el"
 ;;;;;;  (19018 17351))
 ;;; Generated autoloads from nxhtml/nxhtml.el
@@ -162,7 +140,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19029 15990))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19034 45941))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -440,7 +418,7 @@ Used to set up a Tidy menu in your favourite mode.
 
 ;;;### (autoloads (xhtml-help-show-tag-ref xhtml-help-tag-at-point
 ;;;;;;  xhtml-help-show-css-ref) "../nxhtml/xhtml-help" "nxhtml/xhtml-help.el"
-;;;;;;  (19023 29132))
+;;;;;;  (19034 55049))
 ;;; Generated autoloads from nxhtml/xhtml-help.el
 
 (autoload 'xhtml-help-show-css-ref "../nxhtml/xhtml-help" "\
@@ -1690,6 +1668,54 @@ hyperlinks as appropriate.
 
 ;;;***
 
+;;;### (autoloads (inlimg-toggle-slicing inlimg-toggle-display inlimg-global-mode
+;;;;;;  inlimg-mode) "inlimg" "util/inlimg.el" (19036 34048))
+;;; Generated autoloads from util/inlimg.el
+
+(autoload 'inlimg-mode "inlimg" "\
+Display <img ...> images inline.
+Images are displayed on a line below the tag referencing them.
+
+The whole image or a slice of it may be displayed, see
+`inlimg-slice'.  Margins relative text are specified in
+`inlimg-margins'.
+
+See also the commands `inlimg-toggle-display' and
+`inlimg-toggle-slicing'.
+
+\(fn &optional ARG)" t nil)
+
+(defvar inlimg-global-mode nil "\
+Non-nil if Inlimg-Global mode is enabled.
+See the command `inlimg-global-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `inlimg-global-mode'.")
+
+(nxhtml-custom-autoload 'inlimg-global-mode "inlimg" nil)
+
+(autoload 'inlimg-global-mode "inlimg" "\
+Toggle Inlimg mode in every possible buffer.
+With prefix ARG, turn Inlimg-Global mode on if and only if ARG is positive.
+Inlimg mode is enabled in all buffers where `inlimg--global-turn-on' would do it.
+See `inlimg-mode' for more information on Inlimg mode.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'inlimg-toggle-display "inlimg" "\
+Toggle display of image at point POINT.
+See also the command `inlimg-mode'.
+
+\(fn POINT)" t nil)
+
+(autoload 'inlimg-toggle-slicing "inlimg" "\
+Toggle slicing of image at point POINT.
+See also the command `inlimg-mode'.
+
+\(fn POINT)" t nil)
+
+;;;***
+
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
 ;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19032
 ;;;;;;  54289))
@@ -1728,8 +1754,8 @@ before applying.
 
 ;;;***
 
-;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (19019
-;;;;;;  24878))
+;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (19033
+;;;;;;  61981))
 ;;; Generated autoloads from util/mlinks.el
 
 (autoload 'mlinks-mode "mlinks" "\
@@ -1764,7 +1790,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19032 55994))
+;;;;;;  "mumamo" "util/mumamo.el" (19034 43896))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -1787,7 +1813,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  jsp-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  nxml-mumamo-mode html-mumamo-mode) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19032 6529))
+;;;;;;  (19034 43942))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1962,7 +1988,7 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
 ;;;;;;  major-modep major-or-multi-majorp unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19032 55492))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19033 23755))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2779,7 +2805,7 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (19032 57245 968000))
+;;;;;;  (19036 34092 531000))
 
 ;;;***
 

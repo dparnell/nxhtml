@@ -161,7 +161,8 @@ This works in the same circumstances as
     alt))
 
 (defun popcmp-remove-help (alt-with-help)
-  (replace-regexp-in-string " -- .*" "" alt-with-help))
+  (when alt-with-help
+    (replace-regexp-in-string " -- .*" "" alt-with-help)))
 
 (defun popcmp-anything (prompt collection
                                predicate require-match
@@ -172,9 +173,9 @@ This works in the same circumstances as
          (cands (cond ((not (listp table)) alt-sets2)
                      (t table)))
          ret-val
-         (source `((name . ,(format "Completion candidates in major mode %s" major-mode))
+         (source `((name . "Completion candidates")
                    (candidates . ,cands)
-                   (action . (("select" . (lambda (candidate)
+                   (action . (("Select current alternative (press TAB to see it again)" . (lambda (candidate)
                                             (setq ret-val candidate))))))))
     (anything (list source) initial-input prompt)
     ret-val))
@@ -330,11 +331,13 @@ this group.
                            alt-help
                            alt-sets))
                 ;; Unless quit or error in Anything we come here:
+                ;;(message "ret=(%S)" ret)
                 (when (and ret (not (string= ret "")))
-                  ;;(message "setq err-sym nil, ret=(%S)" ret)
                   (setq err-sym nil)))
-            (error (setq err-sym (car err))
-                   (setq err-val (cdr err)))))
+            (error
+             ;;(message "err=%S" err)
+             (setq err-sym (car err))
+             (setq err-val (cdr err)))))
       (popcmp-unmark-completing)
       (when err-sym (signal err-sym err-val)))))
 
