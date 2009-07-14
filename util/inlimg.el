@@ -45,8 +45,8 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'mumamo))
-(require 'ourcomments-util)
+(eval-when-compile (require 'mumamo nil t))
+(eval-when-compile (require 'ourcomments-util nil t))
 
 (defvar inlimg-assoc-ext
   '((png  (".png"))
@@ -193,6 +193,15 @@ To add new image tag patterns modify `inlimg-modes-img-values'."
   "Return non-nil if OVL is an inlimg image overlay."
   (overlay-get ovl 'inlimg-img))
 
+(defun inlimg-ovl-valid-p (ovl)
+  (and (overlay-get ovl 'inlimg-img)
+       (save-match-data
+         (let ((here (point)))
+           (goto-char (overlay-start ovl))
+           (prog1
+               (looking-at (symbol-value inlimg-img-regexp))
+             (goto-char here))))))
+
 (defun inlimg-next (pt display-image)
   "Display or hide next image after point PT.
 If DISPLAY-IMAGE is non-nil then display image, otherwise hide it.
@@ -284,16 +293,13 @@ Note: This minor mode uses `font-lock-mode'."
   :group 'inlimg
   (if inlimg-mode
       (progn
-        (let ((major-mode (or (and mumamo-multi-major-mode
+        (let ((major-mode (or (and (boundp 'mumamo-multi-major-mode)
+                                   mumamo-multi-major-mode
                                    (mumamo-main-major-mode))
                               major-mode)))
+          (add-hook 'font-lock-mode-hook 'inlimg-on-font-lock-off)
           (inlimg-get-buffer-img-values))
-        ;;(add-hook 'after-change-functions 'inlimg-after-change nil t)
-        ;;(inlimg-update-whole-buffer)
-        (inlimg-font-lock t)
-        )
-    ;;(remove-hook 'after-change-functions 'inlimg-after-change t)
-    ;;(inlimg-cancel-timer)
+        (inlimg-font-lock t))
     (inlimg-font-lock nil)
     (inlimg-delete-overlays)))
 (put 'inlimg-mode 'permanent-local t)
@@ -364,11 +370,10 @@ See also the command `inlimg-mode'."
       (goto-char here))))
 
 
-
 (defun inlimg-font-lock-fun (bound)
   (let ((here (point))
-        old-ovls new-ovls ovl
-        )
+        old-ovls new-ovls ovl)
+    (goto-char (line-beginning-position))
     (dolist (ovl (overlays-in (point) bound))
       (when (inlimg-ovl-p ovl)
         (setq old-ovls (cons ovl old-ovls))))
@@ -376,9 +381,13 @@ See also the command `inlimg-mode'."
                 (setq ovl (inlimg-next (point) t)))
       (setq new-ovls (cons ovl new-ovls)))
     (dolist (ovl old-ovls)
-      (unless (member ovl new-ovls)
-        (delete-overlay ovl)))))
+      (unless (inlimg-ovl-valid-p ovl)
+        (delete-overlay ovl)
+        ))))
 
+;; Fix-me: This stops working for changes with nxhtml-mumamo-mode, but
+;; works for nxhtml-mode and html-mumamo-mode...
+(defvar inlimg-this-is-not-font-lock-off nil)
 (defun inlimg-font-lock (on)
   (let ((add-or-remove (if on 'font-lock-add-keywords 'font-lock-remove-keywords))
         (link-fun))
@@ -387,8 +396,19 @@ See also the command `inlimg-mode'."
                 1
                 mlinks-link
                 prepend)))
-    (font-lock-mode -1)
-    (font-lock-mode 1)))
+    (let ((inlimg-this-is-not-font-lock-off t)
+          (mumamo-multi-major-mode nil))
+      (font-lock-mode -1)
+      (font-lock-mode 1))))
+
+(defun inlimg-on-font-lock-off ()
+  (unless (or inlimg-this-is-not-font-lock-off
+              (and (boundp 'mumamo-multi-major-mode)
+                   mumamo-multi-major-mode))
+    (when inlimg-mode
+      (inlimg-mode -1)
+      )))
+(put 'inlimg-on-font-lock-off 'permanent-local-hook t)
 
 
 (provide 'inlimg)
