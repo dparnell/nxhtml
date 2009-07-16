@@ -79,7 +79,8 @@
 
 (defun majmodpri-sort-lists-in-timer ()
   (condition-case err
-      (majmodpri-sort-lists)
+      (save-match-data ;; runs in timer
+        (majmodpri-sort-lists))
     (error (message "(majmodpri-sort-lists): %s" err))))
 
 
@@ -325,8 +326,8 @@ before applying."
     nxml-mumamo-mode
     nxml-mode
 
-    espresso-mode
     javascript-mode
+    espresso-mode
     rhtml-mode
     )
   "Priority list for major modes.

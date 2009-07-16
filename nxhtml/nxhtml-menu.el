@@ -950,17 +950,22 @@
           (list 'menu-item "--"))
         (define-key style-map [popcmp-anything-completion]
           (list 'menu-item "Anything Style Completion"
-                (lambda () (interactive) (setq popcmp-completion-style 'anything))
-                :enable '(featurep 'anything)
-                :button '(:radio . (eq popcmp-completion-style 'anything))))
+                (lambda () (interactive) (customize-set-variable 'popcmp-completion-style 'anything))
+                :enable `(fboundp 'anything)
+                :button `(:radio . (eq popcmp-completion-style 'anything))))
         (define-key style-map [popcmp-emacs-completion]
           (list 'menu-item "Emacs Default Style Completion"
-                (lambda () (interactive) (setq popcmp-completion-style 'emacs-default))
-                :button '(:radio . (eq popcmp-completion-style 'emacs-default))))
+                (lambda () (interactive) (customize-set-variable 'popcmp-completion-style 'emacs-default))
+                :button `(:radio . (eq popcmp-completion-style 'emacs-default))))
         (define-key style-map [popcmp-popup-completion]
           (list 'menu-item "Popup Style Completion"
-                (lambda () (interactive) (setq popcmp-completion-style 'popcmp-popup))
-                :button '(:radio . (eq popcmp-completion-style 'popcmp-popup))))
+                (lambda () (interactive) (customize-set-variable 'popcmp-completion-style 'popcmp-popup))
+                :button `(:radio . (eq popcmp-completion-style 'popcmp-popup))))
+        (define-key style-map [popcmp-company-completion]
+          (list 'menu-item "Company Mode Style Completion"
+                (lambda () (interactive) (customize-set-variable 'popcmp-completion-style 'company-mode))
+                :enable `(fboundp 'company-mode)
+                :button `(:radio . (eq popcmp-completion-style 'company-mode))))
         )
       (define-key cmpl-map [nxhtml-cmpl-separator]
         (list 'menu-item "--" nil
@@ -1294,7 +1299,8 @@ file using nxhtml-mode."
 (defun nxhtml-say-welcome-unless-skip ()
   (condition-case err
       (unless (nxhtml-skip-welcome)
-        (nxhtml-welcome))
+        (save-match-data
+          (nxhtml-welcome)))
     (error (message "ERROR nxhtml-say-welcome-unless-skip: %s" err))))
 
 ;; Show welcome screen once after loading nxhtml:

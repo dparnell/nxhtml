@@ -2,8 +2,8 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-03-15
-(defconst tabkey2:version "1.39")
-;; Last-Updated: 2009-06-02 Tue
+(defconst tabkey2:version "1.40")
+;; Last-Updated: 2009-07-15 Wed
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/tabkey2.el
 ;; Keywords:
 ;; Compatibility:
@@ -226,6 +226,9 @@
 ;; Version 1.39:
 ;; - Try first [tab] and then [?\t] when looking for command.
 ;;
+;; Version 1.40:
+;; - Added Company Mode completion.
+;;
 ;; Fix-me: maybe add \\_>> option to behave like smart-tab. But this
 ;; will only works for modes that does not do completion of empty
 ;; words (like in smart-tab).
@@ -348,8 +351,36 @@ If value is a number then delay message that number of seconds."
     (yas/template-condition-predicate
      yas/buffer-local-condition)))
 
+(defvar tabkey2-company-backends
+  "List of frontends and their backends."
+  '((company-mode (NONE                   company-abbrev . "Abbrev")
+                  (NONE                   company-css . "CSS")
+                  (dabbrev-expan          company-dabbrev . "dabbrev for plain text")
+                  (NONE                   company-dabbrev-code . "dabbrev for code")
+                  (NONE                   company-eclim . "eclim (an Eclipse interace)")
+                  (lisp-symbol-complete   company-elisp . "Emacs Lisp")
+                  (complete-tag           company-etags . "etags")
+                  (NONE                   company-files . "Files")
+                  (NONE                   company-gtags . "GNU Global")
+                  (ispell-complete-word   company-ispell . "ispell")
+                  (flyspell-correct-word-before-point company-ispell . "ispell")
+                  (NONE                   company-keywords . "Programming language keywords")
+                  (nxml-complete          company-nxml . "nxml")
+                  (NONE                   company-oddmuse . "Oddmuse")
+                  (NONE                   company-pysmell . "PySmell")
+                  (NONE                   company-ropemacs . "ropemacs")
+                  (senator-complete-symbol company-semantic . "CEDET Semantic")
+                  (NONE                   company-tempo . "Tempo templates")
+                  (NONE                   company-xcode . "Xcode"))))
+
+(defun tabkey2-find-front-end (fun)
+  (let ((
+         ))))
+
 (defcustom tabkey2-completion-functions
   '(
+    ;; Front ends.
+    ("Company Mode completion" company-complete company-mode)
     ;; Temporary things
     ("Spell check word" flyspell-correct-word-before-point)
     ;; Snippets
@@ -362,7 +393,7 @@ If value is a number then delay message that number of seconds."
     ("Widget complete" widget-complete)
     ("Comint Dynamic Complete" comint-dynamic-complete)
     ("PHP completion" php-complete-function)
-    ("Tags completion" complete-symbol)
+    ("Tags completion" complete-tag)
     ;; General word completion
     ("Predictive word" complete-word-at-point predictive-mode)
     ("Predictive abbreviations" pabbrev-expand-maybe)
@@ -497,7 +528,9 @@ You can do use S-Tab in other modes too if you want too."
   :group 'tabkey2)
 
 (defcustom tabkey2-modes-that-just-complete
-  '(shell-mode)
+  '(shell-mode
+    fundamental-mode
+    text-mode)
   "Tab is only used for completion in these modes.
 Therefore `tabkey2-first' just calls the function on Tab."
   :type '(repeat (choice (command :tag "Currently known command")
@@ -942,12 +975,13 @@ Shown with the face `tabkey2-highlight-message'."
 (defun tabkey2-timer-deliver-message (txt where)
   "Show message TXT to user.
 Protect from errors cause this is run during a timer."
-  (when (and tabkey2-completion-state-mode
-             (equal (point-marker) where))
-    (condition-case err
-        (tabkey2-deliver-message txt)
-      (error (message "tabkey2-timer-deliver-message: %s"
-                      (error-message-string err))))))
+  (save-match-data ;; runs in timer
+    (when (and tabkey2-completion-state-mode
+               (equal (point-marker) where))
+      (condition-case err
+          (tabkey2-deliver-message txt)
+        (error (message "tabkey2-timer-deliver-message: %s"
+                        (error-message-string err)))))))
 
 (defvar tabkey2-delayed-timer nil)
 
@@ -1060,6 +1094,7 @@ If PREFIX is given just show what this command will do."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Handling of Tab and alternate key
 
+;;;###autoload
 (defun tabkey2-first (prefix)
   "Do something else after first Tab.
 This function is bound to the Tab key \(or whatever key
@@ -1143,7 +1178,8 @@ nothing else is bound to Tab there."
             ;; Remove keymaps from tabkey2 in this copy:
             (delq 'tabkey2--emul-keymap-alist
                   (copy-sequence emulation-mode-map-alists)))
-           (just-complete (memq major-mode tabkey2-modes-that-just-complete))
+           (just-complete (or (memq major-mode tabkey2-modes-that-just-complete)
+                              nil)) ;; fix-me: word end
            (what (if just-complete
                      'complete
                    (if (or (unless tabkey2-in-minibuffer

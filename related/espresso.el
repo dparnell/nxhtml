@@ -2877,14 +2877,15 @@ With argument, run even if no intervening GC has happened."
 JSON-decoded result. eval must be called using this function
 because it is special to the Javascript interpreter."
   (interactive "MJavascript to evaluate: ")
-  (with-espresso-js
-   (let* ((content-window (espresso--js-content-window
-                           (espresso--get-js-context)))
-          (result (js-eval content-window js)))
+  (save-match-data ;; runs in timer
+    (with-espresso-js
+     (let* ((content-window (espresso--js-content-window
+                             (espresso--get-js-context)))
+            (result (js-eval content-window js)))
 
-     (when (interactive-p)
-       (message "%s" (js! "String" result)))
-     result)))
+       (when (interactive-p)
+         (message "%s" (js! "String" result)))
+       result))))
 
 (defun espresso--get-tabs ()
   "Enumerate all the contexts available. Each one is a list:
