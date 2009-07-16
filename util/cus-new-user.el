@@ -47,6 +47,7 @@
 ;;
 ;;; Code:
 
+(defvar cusnu-my-skin-widget nil)
 ;;(customize-for-new-user)
 ;;;###autoload
 (defun customize-for-new-user (&optional name)
@@ -209,22 +210,24 @@ For the most common ones you can decide if you want to use them here:
       (cusnu-mark-part-desc fill-pos (point))
 
       (widget-insert "\n")
-      (cusnu-insert-options '((cusnu-my-skin-options custom-variable)))
+      (set (make-local-variable 'cusnu-my-skin-widget)
+           (car
+            (cusnu-insert-options '((cusnu-my-skin-options custom-variable)))))
       (widget-insert "\n")
       (widget-create 'push-button
-                     :tag "Export my skin options   "
+                     :tag "Export my skin options             "
                      :action (lambda (&rest ignore)
                                (let ((use-dialog-box nil))
                                  (call-interactively 'cusnu-export-my-skin-options))))
       (widget-insert "\n")
       (widget-create 'push-button
-                     :tag "Customize my skin options"
+                     :tag "Customize my skin options          "
                      :action (lambda (&rest ignore)
                                (let ((use-dialog-box nil))
                                  (call-interactively 'cusnu-customize-my-skin-options))))
       (widget-insert "\n")
       (widget-create 'push-button
-                     :tag "Reset to my skin options "
+                     :tag "Reset those options to saved values"
                      :action (lambda (&rest ignore)
                                (let ((use-dialog-box nil))
                                  (call-interactively 'cusnu-reset-my-skin-options))))
@@ -528,6 +531,7 @@ For the most common ones you can decide if you want to use them here:
          custom-options))
   (unless (eq (preceding-char) ?\n)
     (widget-insert "\n"))
+  custom-options
   )
 
 (defun cusnu-is-custom-obj (sym)
@@ -559,11 +563,23 @@ For the most common ones you can decide if you want to use them here:
           (custom-add-to-group group opt type))))))
 
 (defun cusnu-get-opt-main-type (opt)
-  (cond ((get opt 'face) 'custom-face)
-        ((get opt 'custom-type) 'custom-variable)
-        ((get opt 'custom-group 'custom-group))))
+  (when opt
+    (cond ((get opt 'face) 'custom-face)
+          ((get opt 'custom-type) 'custom-variable)
+          ((get opt 'custom-group) 'custom-group))))
 
-(defcustom cusnu-my-skin-options '(my-skin-group "My skin group" nil)
+(defgroup all-my-loaded-skin-groups nil
+  "All your loaded skin groups."
+  :group 'environment
+  :group 'convenience)
+
+(defun cusnu-custom-group-p (symbol)
+  (and (intern-soft symbol)
+       (or (and (get symbol 'custom-loads)
+                (not (get symbol 'custom-autoload)))
+           (get symbol 'custom-group))))
+
+(defcustom cusnu-my-skin-options '(my-skin-group "My skin group.\n\n\n\n\n" nil)
   "Your custom skin-like options.
 The purpose of this variable is to provide for easy export a
 selection of variables you choose to set to other users.
@@ -574,7 +590,14 @@ with `cusnu-export-my-skin-options'."
                (string :tag "My custom group description")
                (repeat custom-symbol))
   :set 'cusnu-set-my-skin-options
-  )
+  :group 'all-my-loaded-skin-groups)
+
+;;(cusnu-ring-bell "bell")
+(defun cusnu-ring-bell (format-string &rest args)
+  (message "%s" (propertize (apply
+                             'format format-string args) 'face 'secondary-selection))
+  (ding)
+  (throw 'bell nil))
 
 ;;;###autoload
 (defun cusnu-export-my-skin-options (file)
@@ -583,14 +606,27 @@ The options is exported to elisp code that other users can run to
 set the options that you have added to `cusnu-my-skin-options'.
 
 For more information about this see `cusnu-export-cust-group'."
-  (interactive "FTo file: ")
-  (when (file-exists-p file)
-    (error "File %s already exists" file))
-  (let ((grp (nth 0 cusnu-my-skin-options))
-        (buf (find-file-other-window file)))
-    (with-current-buffer buf
-      (insert (format-time-string ";; Here is my skin custom group %Y-%m-%d.\n")))
-    (cusnu-export-cust-group grp buf)))
+  (interactive '(nil))
+  (catch 'bell
+    (let ((grp (nth 0 cusnu-my-skin-options))
+          buf)
+      (let ((state (plist-get (cdr cusnu-my-skin-widget) :custom-state)))
+        (case state
+          ((set saved) nil) ;;(error "test, state=%s" state))
+          (standard (cusnu-ring-bell "Please enter your options first"))
+          (t (cusnu-ring-bell "My Skin Options must be saved or set, use the State button, %s" state))))
+      (unless (nth 2 cusnu-my-skin-options)
+        (cusnu-ring-bell "You have not added any of your options"))
+      (unless file
+        (setq file (read-file-name "Save to file: ")))
+      (when (file-exists-p file)
+        (cusnu-ring-bell "File %s already exists, choose another file name" file))
+      (setq buf (find-file-other-window file))
+      (with-current-buffer buf
+        (unless (eq major-mode 'emacs-lisp-mode) (emacs-lisp-mode))
+        (unless (file-exists-p (buffer-file-name))
+          (erase-buffer)))
+      (cusnu-export-cust-group grp buf))))
 
 (defun cusnu-customize-my-skin-options ()
   (interactive)
@@ -659,7 +695,7 @@ For more information about this see `cusnu-export-cust-group'."
        (t (error "not iy"))))))
 
 (defun cusnu-export-cust-group (group buf)
-  "Export custom group GROUP to end if buffer BUF.
+  "Export custom group GROUP to end of buffer BUF.
 Only the options that has been customized will be exported.
 
 The group is exported as elisp code.  Running the code will
@@ -671,13 +707,22 @@ it will not save them in the users init file.
 See also the comment in the exported file."
   (let (start
         (doc (get group 'group-documentation))
+        groups options faces
         (members (mapcar (lambda (rec)
                            (car rec))
                          (get group 'custom-group))))
     (with-current-buffer buf
-      (unless (eq major-mode 'emacs-lisp-mode) (emacs-lisp-mode))
+      (insert (format-time-string ";; Here is my skin custom group %Y-%m-%d.\n"))
       (font-lock-mode 1)
-      (insert (format ";;;;;; Customization group %s\n" group))
+      (insert (format ";;;;;; Customization group name:  %s\n" group))
+      (insert ";;\n")
+      (let ((here (point)))
+        (insert doc "\n")
+        (comment-region here (point))
+        (fill-region here (point)))
+      (cusnu-get-options-and-faces members 'groups 'options 'faces)
+      (unless (or options faces)
+        (cusnu-ring-bell "There are no options or faces in %s customized by you" group))
       (insert "
 ;; This file defines the group and sets the options in it, but does
 ;; not save the values to your init file.
@@ -689,28 +734,42 @@ See also the comment in the exported file."
       (insert (format "(let ((grp '%s))\n" group))
       (insert (format "  (custom-declare-group grp nil %S)\n" doc))
       (insert "  (put grp 'custom-group nil)\n")
+      (insert (format "  (custom-add-to-group 'all-my-loaded-skin-groups '%s 'custom-group)\n" group))
       (dolist (opt members)
-        (let ((my-val (or (get opt 'saved-value)
-                          (get opt 'customized-value)
-                          (get opt 'customized-face)))
-              (type (cusnu-get-opt-main-type opt)))
-          (when (and type my-val)
+        (let ((type (cusnu-get-opt-main-type opt)))
+          (when type
             (insert (format "  (custom-add-to-group grp '%s '%s)\n"
                             opt type)))))
       (insert "  (custom-set-variables\n")
-      (dolist (opt members)
+      (dolist (opt options)
         (let ((my-val (or (get opt 'saved-value)
                           (get opt 'customized-value))))
           (when my-val
             (insert (format "   '(%s %S)\n" opt (custom-quote (symbol-value opt)))))))
       (insert "   )\n")
       (insert "  (custom-set-faces\n")
-      (dolist (opt members)
+      (dolist (opt faces)
         (let ((my-val (get opt 'customized-face)))
           (when my-val
             (insert (format "   '(%s %S)\n" opt my-val)))))
       (insert "   ))\n")
+      (insert (format "\n(customize-group '%s)\n" group))
       )))
+
+(defun cusnu-get-options-and-faces (members groups options faces)
+  (dolist (mem members)
+    (inser ";; mem=%s\n" mem)
+    (cond ((and (get sym 'custom-type)
+           (or (get sym 'saved-value)
+               (get sym 'customize-value)))
+           (add-to-list options sym))
+          ((and (get sym 'face)
+                (get opt 'customized-face))
+           (add-to-list groups))
+          ((get sym 'custom-group)
+           (unless (memq sym groups) ;; Don't loop
+             (cusnu-get-options-and-faces groups options faces)))
+          (t (insert ";; Not a custom variable or face: %s\n" sym)))))
 
 (provide 'cus-new-user)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

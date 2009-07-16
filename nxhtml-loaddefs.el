@@ -140,7 +140,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19034 45941))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19039 27052))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -184,7 +184,7 @@ Show a HTML page with an overview of nXhtml.
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
 ;;;;;;  nxhtml-mode) "../nxhtml/nxhtml-mode" "nxhtml/nxhtml-mode.el"
-;;;;;;  (19023 29172))
+;;;;;;  (19037 8356))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 
 (when (fboundp 'nxml-mode)
@@ -394,7 +394,7 @@ See `nxml-where-mode' for more information on Nxml-Where mode.
 ;;;***
 
 ;;;### (autoloads (rngalt-set-validation-header) "../nxhtml/rngalt"
-;;;;;;  "nxhtml/rngalt.el" (18982 33732))
+;;;;;;  "nxhtml/rngalt.el" (19037 8047))
 ;;; Generated autoloads from nxhtml/rngalt.el
 
 (autoload 'rngalt-set-validation-header "../nxhtml/rngalt" "\
@@ -1391,6 +1391,17 @@ Below are some examples.  To test them mark an example and do
 
 ;;;***
 
+;;;### (autoloads (company-predictive) "company-predictive" "util/company-predictive.el"
+;;;;;;  (19039 30381))
+;;; Generated autoloads from util/company-predictive.el
+
+(autoload 'company-predictive "company-predictive" "\
+A predictive-like `company-mode' completion back-end.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
 ;;;### (autoloads (css-color-mode css-color-global-mode css-color)
 ;;;;;;  "css-color" "util/css-color.el" (18969 63118))
 ;;; Generated autoloads from util/css-color.el
@@ -1522,7 +1533,7 @@ See `css-palette-mode' for more information on Css-Palette mode.
 ;;;***
 
 ;;;### (autoloads (cusnu-export-my-skin-options customize-for-new-user)
-;;;;;;  "cus-new-user" "util/cus-new-user.el" (19032 2690))
+;;;;;;  "cus-new-user" "util/cus-new-user.el" (19038 23100))
 ;;; Generated autoloads from util/cus-new-user.el
 
 (autoload 'customize-for-new-user "cus-new-user" "\
@@ -1669,19 +1680,24 @@ hyperlinks as appropriate.
 ;;;***
 
 ;;;### (autoloads (inlimg-toggle-slicing inlimg-toggle-display inlimg-global-mode
-;;;;;;  inlimg-mode) "inlimg" "util/inlimg.el" (19036 34048))
+;;;;;;  inlimg-mode) "inlimg" "util/inlimg.el" (19036 62258))
 ;;; Generated autoloads from util/inlimg.el
 
 (autoload 'inlimg-mode "inlimg" "\
-Display <img ...> images inline.
-Images are displayed on a line below the tag referencing them.
+Display images inline.
+Search buffer for image tags.  Display found images.
 
+Image tags are setup per major mode in `inlimg-mode-specs'.
+
+Images are displayed on a line below the tag referencing them.
 The whole image or a slice of it may be displayed, see
 `inlimg-slice'.  Margins relative text are specified in
 `inlimg-margins'.
 
 See also the commands `inlimg-toggle-display' and
 `inlimg-toggle-slicing'.
+
+Note: This minor mode uses `font-lock-mode'.
 
 \(fn &optional ARG)" t nil)
 
@@ -1717,8 +1733,8 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
-;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19032
-;;;;;;  54289))
+;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19037
+;;;;;;  62937))
 ;;; Generated autoloads from util/majmodpri.el
 
 (autoload 'majmodpri-sort-lists "majmodpri" "\
@@ -1790,7 +1806,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19034 43896))
+;;;;;;  "mumamo" "util/mumamo.el" (19037 62924))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -2352,57 +2368,11 @@ handled is governed by `sex-keep-dummy-buffer'.
 \(fn &optional ARG)" t nil)
 
 ;;;***
-
-;;;### (autoloads (tabkey2-mode) "tabkey2" "util/tabkey2.el" (18982
-;;;;;;  33734))
-;;; Generated autoloads from util/tabkey2.el
-
-(defvar tabkey2-mode nil "\
-Non-nil if Tabkey2 mode is enabled.
-See the command `tabkey2-mode' for a description of this minor mode.
-Setting this variable directly does not take effect;
-either customize it (see the info node `Easy Customization')
-or call the function `tabkey2-mode'.")
-
-(nxhtml-custom-autoload 'tabkey2-mode "tabkey2" nil)
-
-(autoload 'tabkey2-mode "tabkey2" "\
-More fun with Tab key number two (completion etc).
-This global minor mode by default binds Tab in a way that let you
-do completion with Tab in all buffers (where it is possible).
-
-The Tab key is easy to type on your keyboard.  Then why not use
-it for completion, something that is very useful?  Shells usually
-use Tab for completion so many are used to it.  This was the idea
-of Smart Tabs and this is a generalization of that idea.
-
-However in Emacs the Tab key is usually used for indentation.
-The idea here is that if Tab has been pressed once for
-indentation, then as long as point stays further Tab keys might
-as well do completion.
-
-So you kind of do Tab-Tab for first completion (and then just
-Tab for further completions as long as point is not moved).
-
-And there is even kind of Tab-Tab-Tab completion: If completion
-fails the next completion function will be the one you try with
-next Tab. (You get some notification of this, of course.)
-
-See `tabkey2-first' for more information about usage.
-
-Note: If you do not want the Tab-Tab behaviour above, but still
-want an easy way to reach the available completion functions,
-then you can instead of turning on tabkey2-mode enter this in
-your .emacs:
-
- (global-set-key [f8] 'tabkey2-cycle-completion-functions)
-
-After hitting f8 you will then be in the same state as after the
-first in tabkey2-mode.
-
-\(fn &optional ARG)" t nil)
 
 ;;;***
+
+;;;### (autoloads nil "tabkey2" "util/tabkey2.el" (19039 30583))
+;;; Generated autoloads from util/tabkey2.el
 
 ;;;### (autoloads (tyda-lookup-word) "tyda" "util/tyda.el" (18659
 ;;;;;;  17016))
@@ -2502,8 +2472,8 @@ Display vertical line mode as globally.
 ;;;***
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
-;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (19025
-;;;;;;  30143))
+;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (19038
+;;;;;;  11523))
 ;;; Generated autoloads from util/winsav.el
 
 (autoload 'winsav-put-window-tree "winsav" "\
@@ -2805,7 +2775,7 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (19036 34092 531000))
+;;;;;;  (19039 30603 656000))
 
 ;;;***
 

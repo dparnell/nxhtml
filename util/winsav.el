@@ -726,7 +726,7 @@ frame have this minibuffer frame."
          (minibuffer-only (eq 'only minibuffer-val))
          (mini-frames
           (delq nil (mapcar (lambda (frm)
-                              (when (eq ' only (frame-parameter frm 'minibuffer))
+                              (when (eq 'only (frame-parameter frm 'minibuffer))
                                 frm))
                             (frame-list))))
          (frame-with-that-name
@@ -1040,6 +1040,12 @@ Fix-me: RELEASE is not implemented."
         frame-ecb
         layout-ecb
         )
+    ;; Recreating invisible frames hits Emacs bug 3859
+    (setq sorted-frames
+          (delq nil
+                (mapcar (lambda (f)
+                          (when (frame-parameter f 'visibility) f))
+                        sorted-frames)))
     (when (and (boundp 'ecb-minor-mode) ecb-minor-mode)
       (when (frame-live-p ecb-frame)
         (setq layout-ecb ecb-layout-name)
@@ -1071,8 +1077,8 @@ Fix-me: RELEASE is not implemented."
         (let ((mb-frm-nr (cadr (assoc frm-nr winsav-minibuffer-alist)))
               ;;(mb-frm (when mb-frm-nr (nth mb-frm-nr sorted-frames)))
               )
-          (winsav-save-frame frm mb-frm-nr))
-        (setq frm-nr (1+ frm-nr)))
+          (winsav-save-frame frm mb-frm-nr)
+          (setq frm-nr (1+ frm-nr))))
       (insert ";; ---- dedicated windows ------------------------\n")
       (winsav-save-dedicated-windows sorted-frames)
       (insert ";; ---- ECB --------------------------------------\n")
@@ -1109,6 +1115,7 @@ Delete the frames that were used before."
   ;;(message "winsav-restore-configuration %s" dirname)
   (let ((old-frames (sort (frame-list) 'winsav-frame-sort-predicate))
         (conf-file (winsav-full-file-name dirname)))
+    ;;(message "winsav:conf-file=%s" conf-file)
     (if (or (not conf-file)
             (not (file-exists-p conf-file)))
         (progn
@@ -1168,23 +1175,24 @@ DIRNAME has the same meaning."
 (defun winsav-tell-configuration ()
   "Tell which winsav configuration that is used."
   (interactive)
-  (let ((confname (if (not winsav-dirname)
-                      "(none)"
-                    (winsav-relative-~-or-full winsav-dirname))))
-    (if t ;;(called-interactively-p)
-        (message (propertize (format "Current winsav config is '%s'" confname)
-                             'face 'secondary-selection))
-      (save-window-excursion
-        (delete-other-windows)
-        (set-window-buffer (selected-window)
-                           (get-buffer-create " *winsav*"))
-        (with-current-buffer (window-buffer)
-          (momentary-string-display
-           (propertize
-            (format "\n\n\n  Current winsav config is '%s'\n\n\n\n" confname)
-            'face 'secondary-selection)
-           (window-start)
-           (kill-buffer)))))))
+  (save-match-data ;; runs in timer
+    (let ((confname (if (not winsav-dirname)
+                        "(none)"
+                      (winsav-relative-~-or-full winsav-dirname))))
+      (if t ;;(called-interactively-p)
+          (message (propertize (format "Current winsav config is '%s'" confname)
+                               'face 'secondary-selection))
+        (save-window-excursion
+          (delete-other-windows)
+          (set-window-buffer (selected-window)
+                             (get-buffer-create " *winsav*"))
+          (with-current-buffer (window-buffer)
+            (momentary-string-display
+             (propertize
+              (format "\n\n\n  Current winsav config is '%s'\n\n\n\n" confname)
+              'face 'secondary-selection)
+             (window-start)
+             (kill-buffer))))))))
 
 (defun winsav-tell-configuration-request ()
   "Start an idle timer to call `winsav-tell-configuration'."

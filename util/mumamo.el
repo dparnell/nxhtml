@@ -401,9 +401,10 @@ errors.")
 ;;(run-with-idle-timer 1 nil 'mumamo-show-report-message)
 (defun mumamo-show-report-message ()
   "Tell the user there is a long error message."
-  (mumamo-message-with-face
-   "MuMaMo error, please look in the *Message* buffer"
-   'highlight))
+  (save-match-data ;; runs in timer
+    (mumamo-message-with-face
+     "MuMaMo error, please look in the *Message* buffer"
+     'highlight)))
 
 ;; This code can't be used now because `debugger' is currently not
 ;; useable in timers. I keep it here since I hope someone will make it
@@ -920,15 +921,15 @@ major mode above has indentation 0."
 (defcustom mumamo-major-modes
   '(
     (asp-js-mode
-     espresso-mode
      javascript-mode
+     espresso-mode
      ecmascript-mode)
     (asp-vb-mode
      visual-basic-mode)
     ;;(css-mode fundamental-mode)
     (javascript-mode
-     espresso-mode
      javascript-mode
+     espresso-mode
      ;;js2-fl-mode
      ecmascript-mode)
     (java-mode
@@ -4185,40 +4186,41 @@ WINDOW.
 
 See the variable `mumamo-set-major-mode-delay' for an
 explanation."
-  (mumamo-msgfntfy "mumamo-idle-set-major-mode b=%s, window=%s" buffer window)
-  (with-selected-window window
-    ;; According to Stefan Monnier we need to set the buffer too.
-    (with-current-buffer (window-buffer)
-      (when (eq buffer (current-buffer))
-        (mumamo-condition-case err
-            ;;(let* ((ovl (mumamo-get-chunk-at (point)))
-            (let* ((ovl (mumamo-find-chunks (point) "mumamo-idle-set-major-mode"))
-                   (major (mumamo-chunk-major-mode ovl))
-                   (modified (buffer-modified-p)))
-              (unless (eq major major-mode)
-                ;;(message "mumamo-set-major at A")
-                (mumamo-set-major major)
-                ;; Fix-me: This is a bug workaround. Possibly in Emacs.
-                (when (and (buffer-modified-p)
-                           (not modified))
-                  (set-buffer-modified-p nil))
-                ;; sync keymap
-                (when (timerp mumamo-unread-command-events-timer)
-                  (cancel-timer mumamo-unread-command-events-timer))
-                (when unread-command-events
-                  ;; Save unread keys before calling `top-level' which
-                  ;; will clear them.
-                  (setq mumamo-unread-command-events-timer
-                        (run-with-idle-timer
-                         0 nil
-                         'mumamo-unread-command-events
-                         unread-command-events
-                         major last-command))
-                  (top-level)
-                  )))
-          (error
-           (mumamo-display-error 'mumamo-idle-set-major-mode
-                                 "cb=%s, err=%s" (current-buffer) err)))))))
+  (save-match-data ;; runs in idle timer
+    (mumamo-msgfntfy "mumamo-idle-set-major-mode b=%s, window=%s" buffer window)
+    (with-selected-window window
+      ;; According to Stefan Monnier we need to set the buffer too.
+      (with-current-buffer (window-buffer)
+        (when (eq buffer (current-buffer))
+          (mumamo-condition-case err
+              ;;(let* ((ovl (mumamo-get-chunk-at (point)))
+              (let* ((ovl (mumamo-find-chunks (point) "mumamo-idle-set-major-mode"))
+                     (major (mumamo-chunk-major-mode ovl))
+                     (modified (buffer-modified-p)))
+                (unless (eq major major-mode)
+                  ;;(message "mumamo-set-major at A")
+                  (mumamo-set-major major)
+                  ;; Fix-me: This is a bug workaround. Possibly in Emacs.
+                  (when (and (buffer-modified-p)
+                             (not modified))
+                    (set-buffer-modified-p nil))
+                  ;; sync keymap
+                  (when (timerp mumamo-unread-command-events-timer)
+                    (cancel-timer mumamo-unread-command-events-timer))
+                  (when unread-command-events
+                    ;; Save unread keys before calling `top-level' which
+                    ;; will clear them.
+                    (setq mumamo-unread-command-events-timer
+                          (run-with-idle-timer
+                           0 nil
+                           'mumamo-unread-command-events
+                           unread-command-events
+                           major last-command))
+                    (top-level)
+                    )))
+            (error
+             (mumamo-display-error 'mumamo-idle-set-major-mode
+                                   "cb=%s, err=%s" (current-buffer) err))))))))
 
 (defun mumamo-request-idle-set-major-mode ()
   "Setup to change major mode from chunk when Emacs is idle."

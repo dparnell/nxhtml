@@ -301,23 +301,24 @@
 
 (defun mlinks-hilighter (buffer)
   ;;(message "mlinks-hilighter, buffer=%s, p=%s, live-p=%s" buffer (bufferp buffer) (buffer-live-p buffer))
-  (if (or (not (bufferp buffer))
-          (not (buffer-live-p buffer)))
-      ;;(mlinks-stop-hilighter)
-      ;;(cancel-timer timer-event-last)
-      (cancel-timer mlinks-mark-links-timer)
-    (with-current-buffer buffer
-      (when mlinks-mode ;t ;mlinks-hilight-this-buffer
-        (let* ((funs-- (mlinks-get-action 'hili))
-               bounds--)
-          (when funs--
-            (setq bounds-- (run-hook-with-args-until-success 'funs--)))
-          (if bounds--
-              (if mlinks-hilight-point-ovl
-                  (move-overlay mlinks-hilight-point-ovl (car bounds--) (cdr bounds--))
-                (mlinks-make-point-ovl bounds--))
-            (when mlinks-hilight-point-ovl
-              (delete-overlay mlinks-hilight-point-ovl))))))))
+  (save-match-data ;; runs in timer
+    (if (or (not (bufferp buffer))
+            (not (buffer-live-p buffer)))
+        ;;(mlinks-stop-hilighter)
+        ;;(cancel-timer timer-event-last)
+        (cancel-timer mlinks-mark-links-timer)
+      (with-current-buffer buffer
+        (when mlinks-mode ;t ;mlinks-hilight-this-buffer
+          (let* ((funs-- (mlinks-get-action 'hili))
+                 bounds--)
+            (when funs--
+              (setq bounds-- (run-hook-with-args-until-success 'funs--)))
+            (if bounds--
+                (if mlinks-hilight-point-ovl
+                    (move-overlay mlinks-hilight-point-ovl (car bounds--) (cdr bounds--))
+                  (mlinks-make-point-ovl bounds--))
+              (when mlinks-hilight-point-ovl
+                (delete-overlay mlinks-hilight-point-ovl)))))))))
 
 (defvar mlinks-active-hilight-keymap
   (let ((m (make-sparse-keymap)))
