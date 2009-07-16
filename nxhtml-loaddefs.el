@@ -140,7 +140,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19039 27052))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19039 32475))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -184,7 +184,7 @@ Show a HTML page with an overview of nXhtml.
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
 ;;;;;;  nxhtml-mode) "../nxhtml/nxhtml-mode" "nxhtml/nxhtml-mode.el"
-;;;;;;  (19037 8356))
+;;;;;;  (19039 32523))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 
 (when (fboundp 'nxml-mode)
@@ -366,7 +366,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxml-where-global-mode nxml-where-mode) "../nxhtml/nxml-where"
-;;;;;;  "nxhtml/nxml-where.el" (18974 59066))
+;;;;;;  "nxhtml/nxml-where.el" (19039 32638))
 ;;; Generated autoloads from nxhtml/nxml-where.el
 
 (autoload 'nxml-where-mode "../nxhtml/nxml-where" "\
@@ -405,7 +405,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (tidy-build-menu) "../nxhtml/tidy-xhtml" "nxhtml/tidy-xhtml.el"
-;;;;;;  (18974 59068))
+;;;;;;  (19039 32713))
 ;;; Generated autoloads from nxhtml/tidy-xhtml.el
 
 (autoload 'tidy-build-menu "../nxhtml/tidy-xhtml" "\
@@ -470,7 +470,7 @@ This mode only provides syntax highlighting.
 ;;;***
 
 ;;;### (autoloads (espresso-mode) "../related/espresso" "related/espresso.el"
-;;;;;;  (19032 57192))
+;;;;;;  (19039 32774))
 ;;; Generated autoloads from related/espresso.el
 
 (autoload 'espresso-mode "../related/espresso" "\
@@ -546,7 +546,7 @@ Major mode for editing PHP code.
 ;;;***
 
 ;;;### (autoloads (smarty-mode) "../related/smarty-mode" "related/smarty-mode.el"
-;;;;;;  (18969 63118))
+;;;;;;  (19039 32812))
 ;;; Generated autoloads from related/smarty-mode.el
 
 (autoload 'smarty-mode "../related/smarty-mode" "\
@@ -1733,8 +1733,8 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
-;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19037
-;;;;;;  62937))
+;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19039
+;;;;;;  32994))
 ;;; Generated autoloads from util/majmodpri.el
 
 (autoload 'majmodpri-sort-lists "majmodpri" "\
@@ -1770,8 +1770,8 @@ before applying.
 
 ;;;***
 
-;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (19033
-;;;;;;  61981))
+;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (19039
+;;;;;;  33029))
 ;;; Generated autoloads from util/mlinks.el
 
 (autoload 'mlinks-mode "mlinks" "\
@@ -1806,7 +1806,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19037 62924))
+;;;;;;  "mumamo" "util/mumamo.el" (19039 33198))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -1948,8 +1948,8 @@ Add a mumamo region.
 
 ;;;***
 
-;;;### (autoloads (n-back-game) "n-back" "util/n-back.el" (18980
-;;;;;;  34050))
+;;;### (autoloads (n-back-game) "n-back" "util/n-back.el" (19039
+;;;;;;  33353))
 ;;; Generated autoloads from util/n-back.el
 
 (autoload 'n-back-game "n-back" "\
@@ -2332,8 +2332,8 @@ Display a form for search and replace.
 
 ;;;***
 
-;;;### (autoloads (sex-mode) "sex-mode" "util/sex-mode.el" (18790
-;;;;;;  45400))
+;;;### (autoloads (sex-mode) "sex-mode" "util/sex-mode.el" (19039
+;;;;;;  33586))
 ;;; Generated autoloads from util/sex-mode.el
 
 (defvar sex-mode nil "\
@@ -2368,11 +2368,127 @@ handled is governed by `sex-keep-dummy-buffer'.
 \(fn &optional ARG)" t nil)
 
 ;;;***
+
+;;;### (autoloads (tabkey2-mode tabkey2-first) "tabkey2" "util/tabkey2.el"
+;;;;;;  (19039 48242))
+;;; Generated autoloads from util/tabkey2.el
+
+(autoload 'tabkey2-first "tabkey2" "\
+Do something else after first Tab.
+This function is bound to the Tab key (or whatever key
+`tabkey2-first-key' is) when minor mode command `tabkey2-mode' is
+on.  It works like this:
+
+1. The first time Tab is pressed do whatever Tab would have done
+   if minor mode command `tabkey2-mode' was off.
+
+   Then before next command enter a new temporary 'Tab completion
+   state' for just the next command.  Show this by a highlight on
+   the indentation and a marker \"Tab2\" in the mode line.
+
+   However if either
+   - the minibuffer is active and `tabkey2-in-minibuffer' is nil
+   - `major-mode' is in `tabkey2-modes-that-use-more-tabs' then
+     do not enter this temporary 'Tab completion state'.
+
+   For major modes where it make sense to press Tab several times
+   you can use `tabkey2-alternate-key' to enter 'Tab completion
+   state'.
+
+
+2. As long as point is not move do completion when Tab is pressed
+   again.  Show that this state is active with a highlighting at
+   the line beginning, a marker on the mode line (Tab2) and a
+   message in the echo area which tells what kind of completion
+   will be done.
+
+   When deciding what kind of completion to do look in the table
+   below and do whatever it found first that is not nil:
+
+   - `tabkey2-preferred'
+   - `tabkey2-completion-functions'
+   - `tabkey2-fallback'
+
+3. Of course, there must be some way for you to easily determine
+   what kind of completion because there are many in Emacs. If
+   you do not turn it off this function will show that to you.
+   And if you turn it off you can still display it, see the key
+   bindings below.
+
+   If this function is used with a PREFIX argument then it just
+   shows what Tab will do.
+
+   If the default kind of completion is not what you want then
+   you can choose completion function from any of the candidates
+   in `tabkey2-completion-functions'.  During the 'Tab completion
+   state' the following extra key bindings are available:
+
+\\{tabkey2-completion-state-emul-map}
+
+Of course, some languages does not have a fixed indent as is
+assumed above. You can put major modes for those in
+`tabkey2-modes-that-just-complete'.
+
+Some major modes uses tab for something else already. Those are
+in `tabkey2-modes-that-use-more-tabs'.  There is an alternate
+key, `tabkey2-alternate-key' if you want to do completion
+there. Note that this key does not do completion. It however
+enters 'Tab completion state' in which you have access to the
+keys above for completion etc. (This key also lets you cycle
+through the completion functions too choose which one to use.)
+
+-----
+NOTE: This uses `emulation-mode-map-alists' and it supposes that
+nothing else is bound to Tab there.
+
+\(fn PREFIX)" t nil)
+
+(defvar tabkey2-mode nil "\
+Non-nil if Tabkey2 mode is enabled.
+See the command `tabkey2-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `tabkey2-mode'.")
+
+(nxhtml-custom-autoload 'tabkey2-mode "tabkey2" nil)
+
+(autoload 'tabkey2-mode "tabkey2" "\
+More fun with Tab key number two (completion etc).
+This global minor mode by default binds Tab in a way that let you
+do completion with Tab in all buffers (where it is possible).
+
+The Tab key is easy to type on your keyboard.  Then why not use
+it for completion, something that is very useful?  Shells usually
+use Tab for completion so many are used to it.  This was the idea
+of Smart Tabs and this is a generalization of that idea.
+
+However in Emacs the Tab key is usually used for indentation.
+The idea here is that if Tab has been pressed once for
+indentation, then as long as point stays further Tab keys might
+as well do completion.
+
+So you kind of do Tab-Tab for first completion (and then just
+Tab for further completions as long as point is not moved).
+
+And there is even kind of Tab-Tab-Tab completion: If completion
+fails the next completion function will be the one you try with
+next Tab. (You get some notification of this, of course.)
+
+See `tabkey2-first' for more information about usage.
+
+Note: If you do not want the Tab-Tab behaviour above, but still
+want an easy way to reach the available completion functions,
+then you can instead of turning on tabkey2-mode enter this in
+your .emacs:
+
+ (global-set-key [f8] 'tabkey2-cycle-completion-functions)
+
+After hitting f8 you will then be in the same state as after the
+first in tabkey2-mode.
+
+\(fn &optional ARG)" t nil)
 
 ;;;***
-
-;;;### (autoloads nil "tabkey2" "util/tabkey2.el" (19039 30583))
-;;; Generated autoloads from util/tabkey2.el
 
 ;;;### (autoloads (tyda-lookup-word) "tyda" "util/tyda.el" (18659
 ;;;;;;  17016))
@@ -2472,8 +2588,8 @@ Display vertical line mode as globally.
 ;;;***
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
-;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (19038
-;;;;;;  11523))
+;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (19039
+;;;;;;  33684))
 ;;; Generated autoloads from util/winsav.el
 
 (autoload 'winsav-put-window-tree "winsav" "\
@@ -2555,7 +2671,7 @@ See also option `winsav-save-mode' and command
 ;;;***
 
 ;;;### (autoloads (winsize-save-window-configuration winsize-balance-siblings
-;;;;;;  resize-windows) "winsize" "util/winsize.el" (18969 63118))
+;;;;;;  resize-windows) "winsize" "util/winsize.el" (19039 33736))
 ;;; Generated autoloads from util/winsize.el
 
 (autoload 'resize-windows "winsize" "\
@@ -2775,7 +2891,7 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (19039 30603 656000))
+;;;;;;  (19039 48586 578000))
 
 ;;;***
 
