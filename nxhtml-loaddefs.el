@@ -140,7 +140,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19039 32475))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19039 51577))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -184,7 +184,7 @@ Show a HTML page with an overview of nXhtml.
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
 ;;;;;;  nxhtml-mode) "../nxhtml/nxhtml-mode" "nxhtml/nxhtml-mode.el"
-;;;;;;  (19039 32523))
+;;;;;;  (19039 51646))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 
 (when (fboundp 'nxml-mode)
@@ -1391,12 +1391,241 @@ Below are some examples.  To test them mark an example and do
 
 ;;;***
 
-;;;### (autoloads (company-predictive) "company-predictive" "util/company-predictive.el"
-;;;;;;  (19039 30381))
-;;; Generated autoloads from util/company-predictive.el
+;;;### (autoloads (global-company-mode company-mode) "company-mode/company"
+;;;;;;  "util/company-mode/company.el" (19040 8559))
+;;; Generated autoloads from util/company-mode/company.el
 
-(autoload 'company-predictive "company-predictive" "\
+(autoload 'company-mode "company-mode/company" "\
+\"complete anything\"; in in-buffer completion framework.
+Completion starts automatically, depending on the values
+`company-idle-delay' and `company-minimum-prefix-length'.
+
+Completion can be controlled with the commands:
+`company-complete-common', `company-complete-selection', `company-complete',
+`company-select-next', `company-select-previous'.  If these commands are
+called before `company-idle-delay', completion will also start.
+
+Completions can be searched with `company-search-candidates' or
+`company-filter-candidates'.  These can be used while completion is
+inactive, as well.
+
+The completion data is retrieved using `company-backends' and displayed using
+`company-frontends'.  If you want to start a specific back-end, call it
+interactively or use `company-begin-backend'.
+
+regular keymap (`company-mode-map'):
+
+\\{company-mode-map}
+keymap during active completions (`company-active-map'):
+
+\\{company-active-map}
+
+\(fn &optional ARG)" t nil)
+
+(defvar global-company-mode nil "\
+Non-nil if Global-Company mode is enabled.
+See the command `global-company-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `global-company-mode'.")
+
+(nxhtml-custom-autoload 'global-company-mode "company-mode/company" nil)
+
+(autoload 'global-company-mode "company-mode/company" "\
+Toggle Company mode in every possible buffer.
+With prefix ARG, turn Global-Company mode on if and only if ARG is positive.
+Company mode is enabled in all buffers where `(lambda nil (company-mode 1))' would do it.
+See `company-mode' for more information on Company mode.
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-abbrev) "company-mode/company-abbrev"
+;;;;;;  "util/company-mode/company-abbrev.el" (19036 64074))
+;;; Generated autoloads from util/company-mode/company-abbrev.el
+
+(autoload 'company-abbrev "company-mode/company-abbrev" "\
+A `company-mode' completion back-end for abbrev.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-css) "company-mode/company-css" "util/company-mode/company-css.el"
+;;;;;;  (19039 45535))
+;;; Generated autoloads from util/company-mode/company-css.el
+
+(autoload 'company-css "company-mode/company-css" "\
+A `company-mode' completion back-end for `css-mode'.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-dabbrev) "company-mode/company-dabbrev"
+;;;;;;  "util/company-mode/company-dabbrev.el" (19036 64074))
+;;; Generated autoloads from util/company-mode/company-dabbrev.el
+
+(autoload 'company-dabbrev "company-mode/company-dabbrev" "\
+A dabbrev-like `company-mode' completion back-end.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-dabbrev-code) "company-mode/company-dabbrev-code"
+;;;;;;  "util/company-mode/company-dabbrev-code.el" (19036 64074))
+;;; Generated autoloads from util/company-mode/company-dabbrev-code.el
+
+(autoload 'company-dabbrev-code "company-mode/company-dabbrev-code" "\
+A dabbrev-like `company-mode' back-end for code.
+The back-end looks for all symbols in the current buffer that aren't in
+comments or strings.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-elisp) "company-mode/company-elisp" "util/company-mode/company-elisp.el"
+;;;;;;  (19036 64075))
+;;; Generated autoloads from util/company-mode/company-elisp.el
+
+(autoload 'company-elisp "company-mode/company-elisp" "\
+A `company-mode' completion back-end for `emacs-lisp-mode'.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-etags) "company-mode/company-etags" "util/company-mode/company-etags.el"
+;;;;;;  (19036 64075))
+;;; Generated autoloads from util/company-mode/company-etags.el
+
+(autoload 'company-etags "company-mode/company-etags" "\
+A `company-mode' completion back-end for etags.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-files) "company-mode/company-files" "util/company-mode/company-files.el"
+;;;;;;  (19036 64075))
+;;; Generated autoloads from util/company-mode/company-files.el
+
+(autoload 'company-files "company-mode/company-files" "\
+a `company-mode' completion back-end existing file names.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-gtags) "company-mode/company-gtags" "util/company-mode/company-gtags.el"
+;;;;;;  (19036 64075))
+;;; Generated autoloads from util/company-mode/company-gtags.el
+
+(autoload 'company-gtags "company-mode/company-gtags" "\
+A `company-mode' completion back-end for GNU Global.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-ispell) "company-mode/company-ispell"
+;;;;;;  "util/company-mode/company-ispell.el" (19036 64075))
+;;; Generated autoloads from util/company-mode/company-ispell.el
+
+(autoload 'company-ispell "company-mode/company-ispell" "\
+A `company-mode' completion back-end using ispell.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-keywords) "company-mode/company-keywords"
+;;;;;;  "util/company-mode/company-keywords.el" (19036 64075))
+;;; Generated autoloads from util/company-mode/company-keywords.el
+
+(autoload 'company-keywords "company-mode/company-keywords" "\
+A `company-mode' back-end for programming language keywords.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-nxml) "company-mode/company-nxml" "util/company-mode/company-nxml.el"
+;;;;;;  (19037 1357))
+;;; Generated autoloads from util/company-mode/company-nxml.el
+
+(autoload 'company-nxml "company-mode/company-nxml" "\
+A `company-mode' completion back-end for `nxml-mode'.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-oddmuse) "company-mode/company-oddmuse"
+;;;;;;  "util/company-mode/company-oddmuse.el" (19036 64075))
+;;; Generated autoloads from util/company-mode/company-oddmuse.el
+
+(autoload 'company-oddmuse "company-mode/company-oddmuse" "\
+A `company-mode' completion back-end for `oddmuse-mode'.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-predictive) "company-mode/company-predictive"
+;;;;;;  "util/company-mode/company-predictive.el" (19039 56705))
+;;; Generated autoloads from util/company-mode/company-predictive.el
+
+(autoload 'company-predictive "company-mode/company-predictive" "\
 A predictive-like `company-mode' completion back-end.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-pysmell) "company-mode/company-pysmell"
+;;;;;;  "util/company-mode/company-pysmell.el" (19039 55388))
+;;; Generated autoloads from util/company-mode/company-pysmell.el
+
+(autoload 'company-pysmell "company-mode/company-pysmell" "\
+A `company-mode' completion back-end for pysmell.
+This requires pysmell.el and pymacs.el.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-semantic) "company-mode/company-semantic"
+;;;;;;  "util/company-mode/company-semantic.el" (19036 64075))
+;;; Generated autoloads from util/company-mode/company-semantic.el
+
+(autoload 'company-semantic "company-mode/company-semantic" "\
+A `company-mode' completion back-end using CEDET Semantic.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-tempo) "company-mode/company-tempo" "util/company-mode/company-tempo.el"
+;;;;;;  (19036 64075))
+;;; Generated autoloads from util/company-mode/company-tempo.el
+
+(autoload 'company-tempo "company-mode/company-tempo" "\
+A `company-mode' completion back-end for tempo.
+
+\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-xcode) "company-mode/company-xcode" "util/company-mode/company-xcode.el"
+;;;;;;  (19036 64075))
+;;; Generated autoloads from util/company-mode/company-xcode.el
+
+(autoload 'company-xcode "company-mode/company-xcode" "\
+A `company-mode' completion back-end for Xcode projects.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
@@ -2370,7 +2599,7 @@ handled is governed by `sex-keep-dummy-buffer'.
 ;;;***
 
 ;;;### (autoloads (tabkey2-mode tabkey2-first) "tabkey2" "util/tabkey2.el"
-;;;;;;  (19039 48242))
+;;;;;;  (19039 54280))
 ;;; Generated autoloads from util/tabkey2.el
 
 (autoload 'tabkey2-first "tabkey2" "\
@@ -2883,15 +3112,17 @@ Not documented
 ;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
 ;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
-;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/custsets.el"
-;;;;;;  "util/ecb-batch-compile.el" "util/ffip.el" "util/fmode.el"
-;;;;;;  "util/fupd.el" "util/hfyview.el" "util/hl-needed.el" "util/htmlfontify.21.el"
-;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
-;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/company-mode/company-autoloads.el"
+;;;;;;  "util/company-mode/company-eclim.el" "util/company-mode/company-pkg.el"
+;;;;;;  "util/company-mode/company-ropemacs.el" "util/company-mode/company-start.el"
+;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/ffip.el"
+;;;;;;  "util/fmode.el" "util/fupd.el" "util/hfyview.el" "util/hl-needed.el"
+;;;;;;  "util/htmlfontify.21.el" "util/key-cat.el" "util/mumamo-aspnet.el"
+;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (19039 48586 578000))
+;;;;;;  (19040 8788 703000))
 
 ;;;***
 

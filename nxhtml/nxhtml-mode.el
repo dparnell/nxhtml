@@ -215,7 +215,7 @@
          (normal "Normal page")
          ;;(vlhead "Validation header")
          ;;popcmp-popup-completion
-         (initial (unless popcmp-popup-completion normal))
+         (initial nil) ;;(unless popcmp-popup-completion normal))
          (hist (if (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode)
                    ;;(list vlhead frames normal)
                    (list frames normal)

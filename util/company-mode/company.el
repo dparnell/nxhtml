@@ -282,6 +282,7 @@ If this many lines are not available, prefer to display the tooltip above."
     (company-keywords . "Programming language keywords")
     (company-nxml . "nxml")
     (company-oddmuse . "Oddmuse")
+    (company-predictive . "Predictive Word Completion")
     (company-pysmell . "PySmell")
     (company-ropemacs . "ropemacs")
     (company-semantic . "CEDET Semantic")
@@ -370,6 +371,42 @@ does not know about.  It should also be callable interactively and use
                                        `(const :tag ,(cdr b) ,(car b)))
                                      company-safe-backends)
                            (symbol :tag "User defined"))))))
+
+(defcustom company-major-modes-default-backends
+  '(
+    (org-mode         nil   (company-predictive company-dabbrev))
+    (text-mode        5     (company-predictive company-dabbrev))
+    ;;(fundamental-mode t     5     (company-predictive company-dabbrev))
+    )
+  "Specified default backends for major modes."
+  :type '(repeat (list (symbol :tag "Major mode")
+                       (choice (const   :tag "Prefix length before auto-show: Use default" nil)
+                               (integer :tag "Prefix length before auto-show"))
+                       (choice (symbol :tag "Company mode backend")
+                               (repeat (symbol :tag "Company mode backend")))))
+  :group 'company)
+
+;; (company-set-major-mode-backend)
+(defun company-set-major-mode-backend ()
+  "Set default `company-backend' in buffer according to major mode.
+See `company-major-modes-default-backends' for mapping between
+major modes and default backends."
+  (when (and (boundp 'company-backends)
+             (not (active-minibuffer-window))
+             (not buffer-read-only)
+             )
+    (let ((matching-backend (catch 'backend-rec
+                              (dolist (rec company-major-modes-default-backends)
+                                (when (derived-mode-p (nth 0 rec))
+                                  (throw 'backend-rec rec)))))
+          backend min-len)
+      (when matching-backend
+        (setq min-len         (nth 1 matching-backend))
+        (setq backend         (nth 2 matching-backend))
+        (when min-len
+          (set (make-local-variable 'company-minimum-prefix-length) min-len))
+        (when backend (setq company-backend backend)) ;; buffer local by default
+        company-backend))))
 
 (put 'company-backends 'safe-local-variable 'company-safe-backends-p)
 
@@ -616,17 +653,38 @@ keymap during active completions (`company-active-map'):
   (when company-overriding-keymap-bound
     (company-uninstall-map)))
 
+;; Fix-me: using `overriding-terminal-local-map' here causes a lot of
+;; problem when exiting from completion since then global-map is used
+;; for all exiting key sequences.  It is better to use
+;; `emulation-mode-map-alists' and put `company-my-keymap' first
+;; there.
+(defvar company--emul-keymap-alist nil)
+(defvar company-menu-is-shown nil)
 (defun company-install-map ()
   (unless (or company-overriding-keymap-bound
               (null company-my-keymap))
-    (setq company-old-keymap overriding-terminal-local-map
-          overriding-terminal-local-map company-my-keymap
-          company-overriding-keymap-bound t)))
+    ;; Fix-me, this is just a workaround: Users probably expect this:
+    ;; (define-key company-my-keymap (kbd "\r") (key-binding "\r"))
+    ;; (define-key company-my-keymap (kbd "\n") (key-binding "\n"))
+    (setq company--emul-keymap-alist (list (cons 'company-menu-is-shown
+                                                 company-my-keymap)))
+    (setq emulation-mode-map-alists (delq 'company--emul-keymap-alist
+                                          emulation-mode-map-alists))
+    (add-to-list 'emulation-mode-map-alists 'company--emul-keymap-alist)
+    (setq company-overriding-keymap-bound t)
+    ;; (setq company-old-keymap overriding-terminal-local-map
+    ;;       overriding-terminal-local-map company-my-keymap
+    ;;       company-overriding-keymap-bound t)
+    ))
 
 (defun company-uninstall-map ()
-  (when (eq overriding-terminal-local-map company-my-keymap)
-    (setq overriding-terminal-local-map company-old-keymap
-          company-overriding-keymap-bound nil)))
+  (setq emulation-mode-map-alists (delq 'company--emul-keymap-alist
+                                        emulation-mode-map-alists))
+  (setq company-overriding-keymap-bound nil)
+  ;; (when (eq overriding-terminal-local-map company-my-keymap)
+  ;;   (setq overriding-terminal-local-map company-old-keymap
+  ;;         company-overriding-keymap-bound nil))
+  )
 
 ;; Hack:
 ;; Emacs calculates the active keymaps before reading the event.  That means we
@@ -650,7 +708,10 @@ keymap during active completions (`company-active-map'):
   (car (posn-col-row (posn-at-point pos))))
 
 (defsubst company--row (&optional pos)
-  (cdr (posn-actual-col-row (posn-at-point pos))))
+  ;; posn-at-point might return nil in a small window like the
+  ;; minbuffer window, not sure why /LB
+  (cdr (posn-actual-col-row (or (posn-at-point pos)
+                                (posn-at-point 1)))))
 
 ;;; backends ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1112,6 +1173,12 @@ keymap during active completions (`company-active-map'):
             (and (numberp company-idle-delay)
                  (or (eq t company-begin-commands)
                      (memq this-command company-begin-commands))
+                 ;; Fix-me: maybe allow completion popup in minibuffer
+                 ;; too, but in that case RET must still exit
+                 ;; minibuffer even if a menu is shown! Otherwise it
+                 ;; will get very frustrating. A new line is added to
+                 ;; the minibuffer result.
+                 (not (eq (selected-window) (active-minibuffer-window)))
                  (setq company-timer
                        (run-with-timer company-idle-delay nil
                                        'company-idle-begin
