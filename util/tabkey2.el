@@ -1178,13 +1178,15 @@ nothing else is bound to Tab there."
             ;; Remove keymaps from tabkey2 in this copy:
             (delq 'tabkey2--emul-keymap-alist
                   (copy-sequence emulation-mode-map-alists)))
+           (at-word-end (looking-at "\\_>"))
            (just-complete (or (memq major-mode tabkey2-modes-that-just-complete)
-                              nil)) ;; fix-me: word end
+                              at-word-end))
            (what (if just-complete
                      'complete
                    (if (or (unless tabkey2-in-minibuffer
                              (active-minibuffer-window))
                            (when (fboundp 'use-region-p) (use-region-p))
+                           (not at-word-end)
                            (memq major-mode tabkey2-modes-that-use-more-tabs))
                        'indent
                      'indent-complete

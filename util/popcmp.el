@@ -51,25 +51,25 @@
   :group 'nxhtml
   :group 'convenience)
 
-(define-toggle popcmp-popup-completion t
-  "Use a popup menu for some completions if non-nil.
+;; (define-toggle popcmp-popup-completion t
+;;   "Use a popup menu for some completions if non-nil.
 
-***** Obsolete: Use `popcmp-completion-style' instead.
+;; ***** Obsolete: Use `popcmp-completion-style' instead.
 
-When completion is used for alternatives tighed to text at the
-point in buffer it may make sense to use a popup menu for
-completion.  This variable let you decide whether normal style
-completion or popup style completion should be used then.
+;; When completion is used for alternatives tighed to text at the
+;; point in buffer it may make sense to use a popup menu for
+;; completion.  This variable let you decide whether normal style
+;; completion or popup style completion should be used then.
 
-This style of completion is not implemented for all completions.
-It is implemented for specific cases but the choice of completion
-style is managed generally by this variable for all these cases.
+;; This style of completion is not implemented for all completions.
+;; It is implemented for specific cases but the choice of completion
+;; style is managed generally by this variable for all these cases.
 
-See also the options `popcmp-short-help-beside-alts' and
-`popcmp-group-alternatives' which are also availabe when popup
-completion is available."
-  :tag "Popup style completion"
-  :group 'popcmp)
+;; See also the options `popcmp-short-help-beside-alts' and
+;; `popcmp-group-alternatives' which are also availabe when popup
+;; completion is available."
+;;   :tag "Popup style completion"
+;;   :group 'popcmp)
 
 (defun popcmp-cant-use-style (style)
   (save-match-data ;; runs in timer
@@ -79,33 +79,6 @@ completion is available."
              style)))
 
 
-
-;; fix-me: to company-mode!
-(defcustom popcmp-company-major-modes-default-backends
-  '(
-    (css-mode company-css)
-    (nxml-mode company-nxml)
-    (emacs-lisp-mode company-elisp)
-    )
-  "Default backends for major modes."
-  :type '(repeat (list (symbol :tag "Major mode")
-                       (symbol :tag "Company mode backend")))
-  :group 'popcmp
-  :group 'company)
-;; (popcmp-company-set-major-mode-backend)
-(defun popcmp-company-set-major-mode-backend ()
-  "Set default `company-mode' backend for major mode."
-  (when (boundp 'company-backends)
-    (let ((matching-backend (catch 'backend
-                              (dolist (rec popcmp-company-major-modes-default-backends)
-                                (when (derived-mode-p (nth 0 rec))
-                                  (throw 'backend (nth 1 rec)))))))
-      (when matching-backend
-        (setq company-backend matching-backend)
-        (make-local-variable 'company-backends)
-        (setq company-backends (delq matching-backend company-backends))
-        (setq company-backends (cons matching-backend company-backends))
-        company-backend))))
 
 
 
@@ -129,15 +102,13 @@ completion is available."
     (when (and (boundp 'global-company-mode)
                global-company-mode)
       (global-company-mode -1))
-    (remove-hook 'after-change-major-mode-hook 'popcmp-company-set-major-mode-backend)
+    (remove-hook 'after-change-major-mode-hook 'company-set-major-mode-backend)
     (remove-hook 'mumamo-after-change-major-mode-hook 'mumamo-turn-on-company-mode))
   (when (eq val 'company-mode)
     (unless (and (boundp 'global-company-mode)
                  global-company-mode)
-      ;; Fix-me: autoload missing on global-company-mode
-      (company-mode -1)
       (global-company-mode 1))
-    (add-hook 'after-change-major-mode-hook 'popcmp-company-set-major-mode-backend)
+    (add-hook 'after-change-major-mode-hook 'company-set-major-mode-backend)
     (add-hook 'mumamo-after-change-major-mode-hook 'mumamo-turn-on-company-mode)))
 
 ;; fix-me: move to mumamo.el
@@ -145,12 +116,11 @@ completion is available."
   (when (and (boundp 'company-mode)
              company-mode)
     (company-mode 1)
-    (popcmp-company-set-major-mode-backend)))
+    (company-set-major-mode-backend)))
 
-(defcustom popcmp-completion-style (cond ((and (boundp 'company-mode)
-                                               company-mode)
+(defcustom popcmp-completion-style (cond ((and (fboundp 'global-company-mode)
+                                               'company-mode)
                                           'company-mode)
-                                         (popcmp-popup-completion 'popcmp-popup)
                                          (t 'emacs-default))
   "Completion style.
 The currently available completion styles are:
@@ -179,7 +149,6 @@ completion is available."
                  (const anything))
   :set (lambda (sym val)
          (popcmp-set-completion-style val))
-  :set-after '(popcmp-popup-completion)
   :group 'popcmp)
 
 (define-toggle popcmp-short-help-beside-alts t
@@ -411,7 +380,6 @@ this group.
           (err-val nil)
           ret)
       (unwind-protect
-          ;;(if popcmp-popup-completion
           (if (eq popcmp-completion-style 'popcmp-popup)
               (progn
                 (setq err-sym nil)

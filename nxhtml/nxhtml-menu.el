@@ -929,6 +929,11 @@
           (list 'menu-item "Completion Style" style-map
                 :visible '(nxhtml-nxml-html-in-buffer)
                 :enable '(nxhtml-nxhtml-in-buffer)))
+        (define-key style-map [popcmp-customize]
+          (list 'menu-item "Customize Completion Style"
+                (lambda () (interactive) (customize-group-other-window 'popcmp))))
+        (define-key style-map [popcmp-style-div2]
+          (list 'menu-item "--"))
         ;;(defun nxhtml-nxml-html-in-buffer ()
         (define-key style-map [popcmp-with-help]
           (list 'menu-item "Show Short Help Beside Alternatives"
@@ -942,10 +947,6 @@
           (list 'menu-item "Group Alternatives"
                 'popcmp-group-alternatives-toggle
                 :button '(:toggle . popcmp-group-alternatives)))
-        ;; (define-key style-map [popcmp-popup-completion]
-        ;;   (list 'menu-item "Popup Style Completion"
-        ;;         'popcmp-popup-completion-toggle
-        ;;         :button '(:toggle . popcmp-popup-completion)))
         (define-key style-map [popcmp-style-div1]
           (list 'menu-item "--"))
         (define-key style-map [popcmp-anything-completion]

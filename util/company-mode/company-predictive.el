@@ -49,6 +49,7 @@
 (eval-when-compile (require 'cl))
 
 (require 'predictive)
+(load "dict-english") ;; fix-me
 
 ;(syntax-table-p company-predictive-syntax-table)
 (defvar company-predictive-syntax-table
@@ -75,12 +76,6 @@
     ('sorted nil)
     ('duplicates t)))
 
-;; Ok, unless included.
-(add-to-list 'company-safe-backends
-             '(company-predictive . "Predictive Word Completion"))
-
-;; Fix me: This is a defcustom. Anyway put it last.
-(add-to-list 'company-backends 'company-predictive t)
 
 (provide 'company-predictive)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

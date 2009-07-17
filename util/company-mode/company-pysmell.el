@@ -18,7 +18,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (eval-when-compile (require 'cl))
-(require 'pysmell)
+(require 'pysmell nil t)
 
 (defvar company-pysmell--available-p 'unknown)
 (make-variable-buffer-local 'company-pysmell--available-p)
