@@ -852,32 +852,34 @@ The first useful interpretation in this list will be used."
 ;;(mumamo-background-color 1)
 ;;(mumamo-background-color 2)
 (defun mumamo-background-color (sub-chunk-depth)
-  (let* ((idx (when mumamo-background-colors
-                (mod sub-chunk-depth (length mumamo-background-colors))))
-         (sym (when idx (nth idx mumamo-background-colors)))
-         fac)
-    (when sym
-      (when (boundp sym)
-        (setq fac (symbol-value sym))
-        (unless (facep fac) (setq fac nil)))
-      (unless fac
-        (when (facep sym)
-          (setq fac sym)))
-      (unless fac
-        (when (fboundp sym)
-          (setq fac (funcall sym sub-chunk-depth))))
-      (when fac
-        (unless (facep fac)
-          (setq fac nil)))
-      fac
-      )))
+  (when (or (not (integerp mumamo-chunk-coloring)) ;; Old values
+            (>= sub-chunk-depth mumamo-chunk-coloring))
+    (let* ((idx (when mumamo-background-colors
+                  (mod sub-chunk-depth (length mumamo-background-colors))))
+           (sym (when idx (nth idx mumamo-background-colors)))
+           fac)
+      (when sym
+        (when (boundp sym)
+          (setq fac (symbol-value sym))
+          (unless (facep fac) (setq fac nil)))
+        (unless fac
+          (when (facep sym)
+            (setq fac sym)))
+        (unless fac
+          (when (fboundp sym)
+            (setq fac (funcall sym sub-chunk-depth))))
+        (when fac
+          (unless (facep fac)
+            (setq fac nil)))
+        fac
+        ))))
 
-(defcustom mumamo-chunk-coloring 'both-colored
-  "What chunks to color."
-  :type '(choice (const :tag "Color only submode chunks" submode-colored)
-                 (const :tag "No coloring of chunks" no-chunks-colored)
-                 (const :tag "Color both submode and main major mode chunks"
-                        both-colored))
+;;(setq mumamo-chunk-coloring 'old-value)
+(defcustom mumamo-chunk-coloring 0
+  "Color chunks with depth greater than or equal to this.
+When 0 all chunks will be colored.  If 1 all sub mode chunks will
+be colored, etc."
+  :type '(integer :tag "Color chunks with depth greater than this")
   :group 'mumamo)
 
 (defcustom mumamo-submode-indent-offset 2

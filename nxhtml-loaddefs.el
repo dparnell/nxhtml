@@ -1392,7 +1392,7 @@ Below are some examples.  To test them mark an example and do
 ;;;***
 
 ;;;### (autoloads (global-company-mode company-mode) "company-mode/company"
-;;;;;;  "util/company-mode/company.el" (19040 8559))
+;;;;;;  "util/company-mode/company.el" (19041 56758))
 ;;; Generated autoloads from util/company-mode/company.el
 
 (autoload 'company-mode "company-mode/company" "\
@@ -2035,7 +2035,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19039 33198))
+;;;;;;  "mumamo" "util/mumamo.el" (19041 57991))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -3122,7 +3122,7 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (19040 8788 703000))
+;;;;;;  (19041 58100 125000))
 
 ;;;***
 

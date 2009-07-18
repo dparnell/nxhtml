@@ -374,9 +374,10 @@ does not know about.  It should also be callable interactively and use
 
 (defcustom company-major-modes-default-backends
   '(
+    (css-mode         1     nil)
     (org-mode         nil   (company-predictive company-dabbrev))
     (text-mode        5     (company-predictive company-dabbrev))
-    ;;(fundamental-mode t     5     (company-predictive company-dabbrev))
+    (fundamental-mode 5     (company-predictive company-dabbrev))
     )
   "Specified default backends for major modes."
   :type '(repeat (list (symbol :tag "Major mode")
@@ -392,9 +393,7 @@ does not know about.  It should also be callable interactively and use
 See `company-major-modes-default-backends' for mapping between
 major modes and default backends."
   (when (and (boundp 'company-backends)
-             (not (active-minibuffer-window))
-             (not buffer-read-only)
-             )
+             (not buffer-read-only))
     (let ((matching-backend (catch 'backend-rec
                               (dolist (rec company-major-modes-default-backends)
                                 (when (derived-mode-p (nth 0 rec))
@@ -514,6 +513,7 @@ if it was on this list."
   :type '(choice (const :tag "off" nil)
                  (const :tag "on" t)))
 
+;;(defvar company-end-of-buffer-workaround t
 (defvar company-end-of-buffer-workaround t
   "*Work around a visualization bug when completing at the end of the buffer.
 The work-around consists of adding a newline.")
@@ -658,14 +658,16 @@ keymap during active completions (`company-active-map'):
 ;; for all exiting key sequences.  It is better to use
 ;; `emulation-mode-map-alists' and put `company-my-keymap' first
 ;; there.
+;;
 (defvar company--emul-keymap-alist nil)
-(defvar company-menu-is-shown nil)
+(defvar company-menu-is-shown t)
 (defun company-install-map ()
   (unless (or company-overriding-keymap-bound
               (null company-my-keymap))
     ;; Fix-me, this is just a workaround: Users probably expect this:
     ;; (define-key company-my-keymap (kbd "\r") (key-binding "\r"))
     ;; (define-key company-my-keymap (kbd "\n") (key-binding "\n"))
+    (setq company-menu-is-shown t)
     (setq company--emul-keymap-alist (list (cons 'company-menu-is-shown
                                                  company-my-keymap)))
     (setq emulation-mode-map-alists (delq 'company--emul-keymap-alist
@@ -678,6 +680,7 @@ keymap during active completions (`company-active-map'):
     ))
 
 (defun company-uninstall-map ()
+  (setq company-menu-is-shown nil)
   (setq emulation-mode-map-alists (delq 'company--emul-keymap-alist
                                         emulation-mode-map-alists))
   (setq company-overriding-keymap-bound nil)
@@ -722,6 +725,7 @@ keymap during active completions (`company-active-map'):
 (defun company-grab-line (regexp &optional expression)
   (company-grab regexp expression (point-at-bol)))
 
+;; Fix-me: Why are not `buffer-substring-no-properties' used here?
 (defun company-grab-symbol ()
   (if (looking-at "\\_>")
       (buffer-substring (point) (save-excursion (skip-syntax-backward "w_")
@@ -729,6 +733,7 @@ keymap during active completions (`company-active-map'):
     (unless (and (char-after) (memq (char-syntax (char-after)) '(?w ?_)))
       "")))
 
+;; Fix-me: Why are not `buffer-substring-no-properties' used here?
 (defun company-grab-word ()
   (if (looking-at "\\>")
       (buffer-substring (point) (save-excursion (skip-syntax-backward "w")
@@ -994,18 +999,20 @@ keymap during active completions (`company-active-map'):
                    company-auto-complete-chars)
            (string-match (substring input 0 1) company-auto-complete-chars)))))
 
+;; Fix-me: Why are not `buffer-substring-no-properties' used here?
 (defun company--incremental-p ()
   (and (> (point) company-point)
        (> (point-max) company--point-max)
        (not (eq this-command 'backward-delete-char-untabify))
-       (equal (buffer-substring (- company-point (length company-prefix))
-                                company-point)
+       (equal (company-buffer-substring-visible-bug3875 (- company-point (length company-prefix))
+                                                        company-point)
               company-prefix)))
 
 (defsubst company--string-incremental-p (old-prefix new-prefix)
   (and (> (length new-prefix) (length old-prefix))
        (equal old-prefix (substring new-prefix 0 (length old-prefix)))))
 
+;; Fix-me: Why are not `buffer-substring-no-properties' used here?
 (defun company--continue-failed (new-prefix)
   (when (company--incremental-p)
     (let ((input (buffer-substring-no-properties (point) company-point)))
@@ -1558,6 +1565,7 @@ To show the number next to the candidates in some back-ends, enable
   (or (company-manual-begin)
       (error "Cannot complete at point")))
 
+;; Fix-me: Why are not `buffer-substring-no-properties' used here?
 (defun company-begin-with (candidates
                            &optional prefix-length require-match callback)
   "Start a completion at point.
@@ -1575,7 +1583,7 @@ Example:
       (cond
        ((eq command 'prefix)
         (when (equal (point) (marker-position company-begin-with-marker))
-          (buffer-substring ,(- (point) (or prefix-length 0)) (point))))
+          (company-buffer-substring-visible-bug3875 ,(- (point) (or prefix-length 0)) (point))))
        ((eq command 'candidates)
         (all-completions arg ',candidates))
        ((eq command 'require-match)
@@ -1657,16 +1665,72 @@ Example:
 
 ;;; replace
 
+;; Fix-me: invisible, Emacs bug 3874 - fix this for 'before-string and 'after-string
+(defun company-fix-bug3874 (str)
+  "Change the string STR 'invisible property so it fits `buffer-invisibility-spec'.
+This has to be fixed for before-string and after-string
+properties on \(at least) overlays.  For more information see
+Emacs bug 3874.
+
+Return the changed string.
+
+More specifically change the 'invisible property to `t' when it
+fits `buffer-invisibility-spec'."
+  (let* ((pos1 1)
+         pos2
+         (inv1 (get-char-property pos1 'invisible str))
+         inv2
+         (len-str (length str)))
+    ;;(message "3874 A inv1=%s, len str=%s" inv1 len-str)
+    ;; (setq x nil)
+    (unless x (setq x str))
+    (while (setq pos2 (next-single-property-change pos1 'invisible str))
+      (setq pos2 (or pos2 (length str)))
+      (put-text-property pos1 pos2 'invisible (invisible-p inv1))
+      (setq inv1 (get-char-property pos1 'invisible str))
+      (setq inv2 (get-char-property pos2 'invisible str))
+      ;;(message "3874 B inv1=%s/%s, inv2=%s/%s" pos1 inv1 pos2 inv2)
+      (setq pos1 pos2)))
+  ;;(message "3874 str=%S" str)
+  (setq x3874 str)
+  str)
+
+;; Fix-me: invisible, Emacs bug nr ? - buffer-substring does not copy 'invisible property
+(defun company-buffer-substring-visible-bug3875 (beg end)
+  (let* ((pos1 beg)
+         (pos2 pos1)
+         (inv1 (get-char-property pos1 'invisible))
+         inv2
+         (visible-str ""))
+    ;;(message "3875 buffer A %s-%s inv1=%s" beg end inv1)
+
+    (while (< (incf pos2) end)
+      (setq inv2 (get-char-property pos2 'invisible))
+      (unless (eq inv1 inv2)
+        ;;(message "3875 inv1/2=%s/%s" inv1 inv2)
+        (unless (invisible-p inv1)
+          ;;(message "3875 adding %s-%s..." pos1 pos2)
+          (setq visible-str (concat visible-str (buffer-substring pos1 (1- pos2)))))
+        (setq inv1 inv2)
+        (setq pos1 pos2)))
+    (setq visible-str (concat visible-str (buffer-substring pos1 (1- pos2))))
+    (when (invisible-p inv1)
+      (let* ((len (length visible-str))
+            (p1 (- len (- pos2 pos1)))
+            (p2 len))
+      (put-text-property p1 p2 'invisible t visible-str)))
+    ;;(message "3875 x vis=%S" visible-str)
+    (setq x3875 visible-str)))
 (defun company-buffer-lines (beg end)
   (goto-char beg)
   (let ((row (company--row))
         lines)
     (while (and (equal (move-to-window-line (incf row)) row)
                 (<= (point) end))
-      (push (buffer-substring beg (min end (1- (point)))) lines)
+      (push (company-buffer-substring-visible-bug3875 beg (min end (1- (point)))) lines)
       (setq beg (point)))
     (unless (eq beg end)
-      (push (buffer-substring beg end) lines))
+      (push (company-buffer-substring-visible-bug3875 beg end) lines))
     (nreverse lines)))
 
 (defsubst company-modify-line (old new offset)
@@ -1758,7 +1822,7 @@ Example:
       (push (propertize (company-safe-substring remainder 0 width)
                         'face 'company-tooltip)
             new))
-
+    ;;(message "new=%S" new)
     (setq lines (nreverse new))))
 
 ;; show
@@ -1826,21 +1890,51 @@ Returns a negative number if the tooltip should be displayed above point."
                         (overlay-get company-pseudo-tooltip-overlay
                                      'company-replacement-args)))))
 
+(define-minor-mode company-temp-debug-mode "test"
+  :global nil
+  (if company-temp-debug-mode
+      (progn
+        ;;(setq company-end-of-buffer-workaround nil)
+        (set (make-local-variable 'company-temp-debug) t)
+        )
+    (set (make-local-variable 'company-temp-debug) nil)
+    (company-pseudo-tooltip-hide)))
+
+
+(defvar company-temp-before nil)
+(defun company-temp-debug-show-ovl ()
+  (interactive)
+  (let ((b (overlay-get company-pseudo-tooltip-overlay 'before-string)))
+    (message "before ovl=%s" b)
+    b))
+(defvar company-temp-debug nil)
 (defun company-pseudo-tooltip-hide ()
+  (if company-temp-debug
+      (progn
+        (message "leaving ovl=%s there" company-pseudo-tooltip-overlay)
+        (when company-pseudo-tooltip-overlay
+          (setq company-temp-before (overlay-get company-pseudo-tooltip-overlay 'before-string))))
   (when company-pseudo-tooltip-overlay
     (delete-overlay company-pseudo-tooltip-overlay)
     (setq company-pseudo-tooltip-overlay nil)))
+  )
+
 
 (defun company-pseudo-tooltip-hide-temporarily ()
+  (unless company-temp-debug
   (when (overlayp company-pseudo-tooltip-overlay)
     (overlay-put company-pseudo-tooltip-overlay 'invisible nil)
     (overlay-put company-pseudo-tooltip-overlay 'before-string nil)))
+  )
 
 (defun company-pseudo-tooltip-unhide ()
   (when company-pseudo-tooltip-overlay
     (overlay-put company-pseudo-tooltip-overlay 'invisible t)
+    ;;(message "before sit 5") (redisplay t) (sleep-for 2) (message "after  sit 5")
     (overlay-put company-pseudo-tooltip-overlay 'before-string
-                 (overlay-get company-pseudo-tooltip-overlay 'company-before))
+                 (company-fix-bug3874
+                  (overlay-get company-pseudo-tooltip-overlay 'company-before)))
+    (setq x-before-string (overlay-get company-pseudo-tooltip-overlay 'before-string))
     (overlay-put company-pseudo-tooltip-overlay 'window (selected-window))))
 
 (defun company-pseudo-tooltip-frontend (command)
@@ -1900,7 +1994,9 @@ Returns a negative number if the tooltip should be displayed above point."
          (not (equal completion ""))
          (add-text-properties 0 1 '(cursor t) completion))
 
-    (overlay-put company-preview-overlay 'after-string completion)
+    (overlay-put company-preview-overlay 'after-string
+                 (company-fix-bug3874 completion))
+    (setq x-after-string (overlay-get company-pseudo-tooltip-overlay 'after-string))
     (overlay-put company-preview-overlay 'window (selected-window))))
 
 (defun company-preview-hide ()
