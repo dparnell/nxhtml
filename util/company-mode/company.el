@@ -556,6 +556,7 @@ The work-around consists of adding a newline.")
     (define-key keymap [up-mouse-3] 'ignore)
     (define-key keymap [(control) ?m] 'company-complete-selection)
     (define-key keymap "\t" 'company-complete-common)
+    (define-key keymap [(tab)] 'company-complete-common)
     (define-key keymap (kbd "<f1>") 'company-show-doc-buffer)
     (define-key keymap "\C-w" 'company-show-location)
     (define-key keymap "\C-s" 'company-search-candidates)
@@ -673,6 +674,7 @@ keymap during active completions (`company-active-map'):
     (setq emulation-mode-map-alists (delq 'company--emul-keymap-alist
                                           emulation-mode-map-alists))
     (add-to-list 'emulation-mode-map-alists 'company--emul-keymap-alist)
+    ;;(message "cim:emulation-mode-map-alists=%s" emulation-mode-map-alists)
     (setq company-overriding-keymap-bound t)
     ;; (setq company-old-keymap overriding-terminal-local-map
     ;;       overriding-terminal-local-map company-my-keymap
@@ -848,6 +850,7 @@ keymap during active completions (`company-active-map'):
 
 (defsubst company-call-frontends (command)
   (dolist (frontend company-frontends)
+    ;;(message "frontend=%s" frontend)
     (condition-case err
         (funcall frontend command)
       (error (error "Company: Front-end %s error \"%s\" on command %s"
