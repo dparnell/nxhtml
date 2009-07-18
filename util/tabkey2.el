@@ -807,6 +807,7 @@ Cancel delayed message."
 This is run in `post-command-hook' after each command."
   (condition-case err
       (save-match-data
+        (tabkey2-post-check-stepout)
         ;; Delayd messages
         (if (not (tabkey2-completion-state-p))
             (tabkey2-completion-state-mode -1)
@@ -1095,6 +1096,29 @@ If PREFIX is given just show what this command will do."
 ;;;; Handling of Tab and alternate key
 
 ;;;###autoload
+(defun tabkey2-emma-without-tabkey2 ()
+  ;; Remove keymaps from tabkey2 in this copy:
+  (delq 'tabkey2--emul-keymap-alist
+        (copy-sequence emulation-mode-map-alists)))
+
+(defvar tabkey2-step-out-of-the-way nil)
+;;(remove-hook 'pre-command-hook 'tabkey2-pre-command)
+;;(remove-hook 'post-command-hook 'tabkey2-pre-command)
+;;(remove-hook 'post-command-hook 'tabkey2-post-command-2)
+(defun tabkey2-post-check-stepout ()
+  (setq tabkey2-step-out-of-the-way nil)
+  (condition-case err
+      (when tabkey2-mode
+        (when (and (boundp 'company-overriding-keymap-bound) company-overriding-keymap-bound)
+          (setq tabkey2-step-out-of-the-way
+                (let ((emulation-mode-map-alists (tabkey2-emma-without-tabkey2)))
+                  (key-binding (this-command-keys))))
+          (message "tabkey2-step-out=%s, %s" (this-command-keys) tabkey2-step-out-of-the-way)
+          ))
+    (error "tabkey2-pre-command: %s" err)))
+  ;; (and (boundp 'company-preview-overlay)
+  ;;                                    (or company-preview-overlay
+  ;;                                        company-pseudo-tooltip-overlay)))
 (defun tabkey2-first (prefix)
   "Do something else after first Tab.
 This function is bound to the Tab key \(or whatever key
@@ -1163,6 +1187,11 @@ through the completion functions too choose which one to use.)
 NOTE: This uses `emulation-mode-map-alists' and it supposes that
 nothing else is bound to Tab there."
   (interactive "P")
+          (message "first:tabkey2-step-out=%s, %s" (this-command-keys) tabkey2-step-out-of-the-way)
+  (if tabkey2-step-out-of-the-way
+      (progn
+        (message "step-out=%s" tabkey2-step-out-of-the-way)
+        (call-interactively tabkey2-step-out-of-the-way))
   (if (and tabkey2-keymap-overlay
            (eq (overlay-buffer tabkey2-keymap-overlay) (current-buffer))
            (eq (overlay-get tabkey2-keymap-overlay 'window) (selected-window))
@@ -1174,10 +1203,7 @@ nothing else is bound to Tab there."
       (if (memq 'shift (event-modifiers last-input-event))
           (call-interactively 'tabkey2-cycle-completion-functions)
         (call-interactively 'tabkey2-complete prefix))
-    (let* ((emma-without-tabkey2
-            ;; Remove keymaps from tabkey2 in this copy:
-            (delq 'tabkey2--emul-keymap-alist
-                  (copy-sequence emulation-mode-map-alists)))
+    (let* ((emma-without-tabkey2 (tabkey2-emma-without-tabkey2))
            (at-word-end (looking-at "\\_>"))
            (just-complete (or (memq major-mode tabkey2-modes-that-just-complete)
                               at-word-end))
@@ -1203,11 +1229,11 @@ nothing else is bound to Tab there."
                         (or (key-binding [tab] t)
                             (key-binding [?\t] t))
                         )))
-           (to-do-2 (unless (or
-                             ;;(memq what '(complete))
-                             (memq what '(indent))
-                             (memq to-do-1 '(widget-forward button-forward)))
+           (to-do-2 (unless (or ;;(memq what '(complete))
+                                (memq what '(indent))
+                                (memq to-do-1 '(widget-forward button-forward)))
                       (tabkey2-get-default-completion-fun))))
+      ;;(message "step-out-of-the-way=%s to-do=%s/%s, emmaa-without-tabkey2=%s" step-out-of-the-way to-do-1 to-do-2 emma-without-tabkey2)
       (if prefix
           (if (memq 'shift (event-modifiers last-input-event))
               (message
@@ -1221,7 +1247,7 @@ nothing else is bound to Tab there."
               (tabkey2-call-interactively to-do-1)))
         (unless (tabkey2-read-only-p)
           (when to-do-2
-            (tabkey2-completion-state-mode 1)))))))
+            (tabkey2-completion-state-mode 1))))))))
 
 (defun tabkey2-call-interactively (function)
   "Like `call-interactively, but handle `this-command'."
