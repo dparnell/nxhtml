@@ -2861,33 +2861,32 @@
                   <li>
                     <span class="bugfix">Removed string-match-p which does not exist in Emacs 22.</span>
                   </li>
+                  <li>
+                    <span class="bugfix">
+                      mumamo-alt-php-tags-mode hardly survived major mode
+                      changes. Rescued.
+                    </span>
+                  </li>
                 </ul>
-              </li>
-              <li>
-                Made espresso-mode the default for Javascript.
-              </li>
-              <li>
-                <span class="bugfix">
-                  mumamo-alt-php-tags-mode hardly survived major mode
-                  changes. Rescued.
-                </span>
-              </li>
-              <li>
-                Added support in inlimg-mode to show images in org-mode.
-                Also made inlimg-mode use font lock.
-              </li>
-              <li>
-                Added support
-                for <a href="http://www.emacswiki.org/emacs/Anything">anything
-                style completion</a> in XHTML completion.
               </li>
               <li>
                 Added support
                 for <a href="http://www.emacswiki.org/emacs/CompanyMode">Company
                 Mode</a> style completion.  Temporary included a copy
-                of Company Mode with bug fixes and changes needed for nXhtml and
-                Viper.  It also include a lot of other small features
-                (which I hope can be included in Company Mode).
+                of Company Mode with bug fixes and changes needed for
+                nXhtml and Viper.  It also include a lot of other
+                small features (which I hope can be included in
+                Company Mode).  On of these is integration
+                with <a href="http://www.emacswiki.org/emacs/PredictiveMode">Predictive
+                Mode</a>. (You have to get Predictive Mode
+                yourself. If you want to install it on MS Windows I
+                recommend using the latest version of Cygwin. A
+                smaller change to the Makefile is required, there is
+                one absolute path you probably want to remove.)
+                <p class="bugfix">
+                  Note that Company Mode is now the default completion style.
+                  If the automatic pop up menus get in your way you can customize Company Mode to avoid it.
+                </p>
               </li>
               <li>
                 TabKey2:
@@ -2899,6 +2898,18 @@
                     Made completion only occur at word ends.
                   </li>
                 </ul>
+              </li>
+              <li>
+                Added support
+                for <a href="http://www.emacswiki.org/emacs/Anything">anything
+                style completion</a> in XHTML completion.
+              </li>
+              <li>
+                Added support in inlimg-mode to show images in org-mode.
+                (Also made inlimg-mode use font lock which makes it more reliable.)
+              </li>
+              <li>
+                Included espresso-mode (with some possible bug fixes).  Not yet the default for Javascript.
               </li>
             </ul>
           </dd>

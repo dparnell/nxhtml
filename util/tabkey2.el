@@ -751,8 +751,8 @@ See `tabkey2-first' for more information."
           ;;(set-keymap-parent emul-map (overlay-get tabkey2-keymap-overlay
           ;;                                         'keymap))
           ;; Set up for pre/post-command-hook
-          (add-hook 'pre-command-hook 'tabkey2-pre-command)
-          (add-hook 'post-command-hook 'tabkey2-post-command))
+          (add-hook 'pre-command-hook 'tabkey2-completion-state-pre-command)
+          (add-hook 'post-command-hook 'tabkey2-completion-state-post-command))
       ;;(set-keymap-parent emul-map nil)
       (setq tabkey2-current-tab-function nil)
       (when (and old-wincfg
@@ -765,8 +765,8 @@ See `tabkey2-first' for more information."
           (delete-overlay tabkey2-keymap-overlay))
         (when tabkey2-overlay
           (delete-overlay tabkey2-overlay)))
-      (remove-hook 'pre-command-hook 'tabkey2-pre-command)
-      (remove-hook 'post-command-hook 'tabkey2-post-command)
+      (remove-hook 'pre-command-hook 'tabkey2-completion-state-pre-command)
+      (remove-hook 'post-command-hook 'tabkey2-completion-state-post-command)
       (tabkey2-overlay-message nil)
       ;;(message "")
       )))
@@ -786,12 +786,12 @@ See `tabkey2-first' for more information."
     ('echo-area
      (get (current-message) 'tabkey2))))
 
-(defun tabkey2-pre-command ()
+(defun tabkey2-completion-state-pre-command ()
   "Run this in `pre-command-hook'.
 Check if message is shown.
 Remove overlay message.
 Cancel delayed message."
-  ;;(message "=====> tabkey2-pre-command")
+  ;;(message "=====> tabkey2-completion-state-pre-command")
   (condition-case err
       (progn
         (setq tabkey2-message-is-shown (tabkey2-message-is-shown))
@@ -802,13 +802,12 @@ Cancel delayed message."
         )
     (error (message "tabkey2 pre: %s" (error-message-string err)))))
 
-(defun tabkey2-post-command ()
+(defun tabkey2-completion-state-post-command ()
   "Turn off Tab completion state if not feasable any more.
 This is run in `post-command-hook' after each command."
   (condition-case err
       (save-match-data
-        (tabkey2-post-check-stepout)
-        ;; Delayd messages
+        ;; Delayed messages
         (if (not (tabkey2-completion-state-p))
             (tabkey2-completion-state-mode -1)
           ;;(message "tabkey2-current-tab-function=%s" tabkey2-current-tab-function)
@@ -1105,7 +1104,7 @@ If PREFIX is given just show what this command will do."
 ;;(remove-hook 'pre-command-hook 'tabkey2-pre-command)
 ;;(remove-hook 'post-command-hook 'tabkey2-pre-command)
 ;;(remove-hook 'post-command-hook 'tabkey2-post-command-2)
-(defun tabkey2-post-check-stepout ()
+(defun tabkey2-post-command ()
   (setq tabkey2-step-out-of-the-way nil)
   (condition-case err
       (when tabkey2-mode
@@ -1113,7 +1112,7 @@ If PREFIX is given just show what this command will do."
           (setq tabkey2-step-out-of-the-way
                 (let ((emulation-mode-map-alists (tabkey2-emma-without-tabkey2)))
                   (key-binding (this-command-keys))))
-          (message "tabkey2-step-out=%s, %s" (this-command-keys) tabkey2-step-out-of-the-way)
+          ;;(message "tabkey2-step-out=%s, %s" (this-command-keys) tabkey2-step-out-of-the-way)
           ))
     (error "tabkey2-pre-command: %s" err)))
   ;; (and (boundp 'company-preview-overlay)
@@ -1324,12 +1323,14 @@ first in tabkey2-mode."
   (if tabkey2-mode
       (progn
         (add-hook 'minibuffer-setup-hook 'tabkey2-minibuffer-setup)
+        (add-hook 'post-command-hook 'tabkey2-post-command)
         ;; Update emul here if keymap have changed
         (setq tabkey2--emul-keymap-alist
               (list (cons 'tabkey2-mode
                           tabkey2-mode-emul-map)))
         (add-to-list 'emulation-mode-map-alists 'tabkey2--emul-keymap-alist))
     (tabkey2-completion-state-mode -1)
+    (remove-hook 'post-command-hook 'tabkey2-post-command)
     (remove-hook 'minibuffer-setup-hook 'tabkey2-minibuffer-setup)
     (setq emulation-mode-map-alists (delq 'tabkey2--emul-keymap-alist
                                           emulation-mode-map-alists))))
