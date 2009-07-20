@@ -1041,8 +1041,8 @@ keymap during active completions (`company-active-map'):
   ;;(message "company--continue-failed %s" new-prefix)
   (if (company-call-backend 'no-insert)
       (progn
-        (message "No match")
-        (company-echo-show-soon "No match, please choose an alternative")
+        (message "%s" (propertize "No match" 'face 'highlight))
+        (company-echo-show-soon "") ;; fix-me
         (setq company-prefix new-prefix)
         (company-update-candidates nil)
         company-candidates
@@ -1489,7 +1489,10 @@ when the selection has been changed, the selected candidate is completed."
   (when (company-manual-begin)
     (if (or company-selection-changed
             (eq last-command 'company-complete-common))
-        (call-interactively 'company-complete-selection)
+        (progn
+          (message "(call-interactively 'company-complete-selection)")
+          (call-interactively 'company-complete-selection))
+      (message "(call-interactively 'company-complete-common)")
       (call-interactively 'company-complete-common)
       (setq this-command 'company-complete-common))))
 
