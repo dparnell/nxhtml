@@ -2549,7 +2549,7 @@ The main reasons for doing it this way is:
                ;; Set from font-lock-defaults normally:
                (list 'font-lock-defaults (custom-quote (copy-tree font-lock-defaults)))
                ;; Syntactic Font Lock
-               ;;(set 'font-lock-syntax-table (custom-quote font-lock-syntax-table))
+               (list 'font-lock-syntax-table (custom-quote font-lock-syntax-table)) ;; See nXhtml bug 400415
                (list 'font-lock-beginning-of-syntax-function (custom-quote font-lock-beginning-of-syntax-function))
                (list 'font-lock-syntactic-face-function (custom-quote font-lock-syntactic-face-function))
 
