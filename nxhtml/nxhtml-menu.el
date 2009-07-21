@@ -507,8 +507,10 @@
           (list 'menu-item "Edit with GIMP" 'nxhtml-edit-with-gimp
                 :enable '(nxhtml-gimp-can-edit)))
         (define-key img-map [nxhtml-gimp-separator] (list 'menu-item "--"))
-        (define-key img-map [nxhtml-inlimg-toggle-img]
-          (list 'menu-item "Toggle Display of Image" 'inlimg-toggle-img-display))
+        (define-key img-map [nxhtml-inlimg-toggle-display]
+          (list 'menu-item "Toggle Display of Image" 'inlimg-toggle-display))
+        (define-key img-map [nxhtml-inlimg-toggle-slicing]
+          (list 'menu-item "Toggle Slicing of Image" 'inlimg-toggle-slicing))
         (define-key img-map [nxhtml-inlimg-mode]
           (list 'menu-item "Show <img ...> Images" 'inlimg-mode
                 :button '(:toggle . (and (boundp 'inlimg-mode) inlimg-mode)))))

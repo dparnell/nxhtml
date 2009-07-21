@@ -775,7 +775,19 @@ See `tabkey2-first' for more information."
   "Quit Tab completion state."
   (interactive)
   (tabkey2-completion-state-mode -1)
-  (message "Quit"))
+  (let ((C-g-binding (or (key-binding [(control ?g)])
+                         (key-binding "\C-g")))
+        did-more)
+    (when company-mode
+      ;;(message "tabkey2:company-abort")
+      (company-abort)
+      (setq did-more t))
+    (when (and C-g-binding
+             (not (eq C-g-binding this-command)))
+        ;;(message "tabkey2:c-g=%s" C-g-binding)
+        (call-interactively C-g-binding)
+        (setq did-more t))
+    (message "Quit")))
 
 (defvar tabkey2-message-is-shown nil)
 (defun tabkey2-message-is-shown ()

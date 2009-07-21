@@ -65,7 +65,7 @@
     (define-key map [remap previous-line] 'company-nograb-select-previous)
     map))
 
-(defconst company-nograb-map
+(defconst company-nograb-field-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-g" 'company-abort)
     (define-key map "\r"          'company-complete-selection)
@@ -82,7 +82,8 @@
     ;;(define-key map [remap backward-delete-char-untabify] 'company-nograb-to-ghost)
     ;;
     ;; Fix-me: For read-only buffers this is needed, I have no idea why:
-    (define-key map "\d"  (lambda () (interactive) (company-nograb-to-ghost 'backward-delete-char)))
+    (define-key map "\d"        'company-nograb-to-ghost-bs-del)
+    (define-key map [backspace] 'company-nograb-to-ghost-bs-del)
 
     (define-key map [remap next-line]     'company-nograb-select-next)
     (define-key map [remap previous-line] 'company-nograb-select-previous)
@@ -105,6 +106,22 @@
 
 (defconst company-nograb-field-pos 1)
 (make-variable-buffer-local 'company-nograb-field-pos)
+
+(defvar company-nograb-candidates nil)
+(make-variable-buffer-local 'company-nograb-candidates)
+
+(defvar company-nograb-overlay-before nil)
+(defvar company-nograb-overlay-keymap nil)
+(defvar company-nograb-overlay-after  nil)
+
+(defvar company-nograb-menu-label-overlay nil)
+(make-variable-buffer-local 'company-nograb-menu-label-overlay)
+
+(defvar company-nograb-menu-label nil)
+(make-variable-buffer-local 'company-nograb-menu-label)
+
+(defvar company-nograb-point nil)
+(make-variable-buffer-local 'company-nograb-point)
 
 (defun company-nograb-select-next ()
   (interactive)
@@ -150,8 +167,10 @@
       (company-nograb-grab-word-pos-set (point)))
     (when ghost-win (with-selected-window ghost-win (goto-char (company-nograb-grab-word-pos)))))
   (company-nograb-update-field))
-;;(company-nograb-setup)
-;;(company-nograb-cleanup)
+
+(defun company-nograb-to-ghost-bs-del ()
+    (interactive)
+    (company-nograb-to-ghost 'backward-delete-char))
 
 (defun company-nograb-grab-word ()
   (with-current-buffer company-nograb-ghost
@@ -193,22 +212,28 @@
     (setq company-nograb-state-is-saved nil)
     (blink-cursor-mode (if company-nograb-old-blink-cursor 1 -1))))
 
-(defun company-nograb-common-setup ()
+(defun company-nograb-common-setup (candidates finish-function)
+  (unless candidates (error "company-nograb-common-setup: candidates is nil"))
+  (unless finish-function (error "company-nograb-common-setup: finish-function is nil"))
   (company-nograb-save-state)
   (blink-cursor-mode -1)
   (setq company-nograb-point (point))
-  (add-hook 'post-command-hook 'company-nograb-menu-post nil t)
+  (setq company-nograb-candidates candidates)
+  (setq company-nograb-finish-fun finish-function)
+  (add-hook 'post-command-hook 'company-nograb-post-command nil t)
   (add-hook 'company-completion-finished-hook 'company-nograb-get-result nil t)
   (add-hook 'company-completion-cancelled-hook 'company-nograb-cleanup nil t))
 
-(defun company-nograb-setup ()
+(defun company-nograb-field-setup (label candidates finish-function)
   (company-nograb-cleanup)
-  (company-nograb-common-setup)
+  (company-nograb-common-setup candidates finish-function)
+  (setq company-nograb-candidates (copy-sequence candidates))
+  (setq company-nograb-finish-fun finish-function)
   (setq company-nograb-field-len company-nograb-field-len-default)
   (let* ((end (min (line-end-position) (+ company-nograb-field-len 1 (point))))
          (ovl (make-overlay (point) end))
          (ovl-field (make-overlay (+ 1 (point)) end)))
-    (overlay-put ovl 'keymap company-nograb-map)
+    (overlay-put ovl 'keymap company-nograb-field-map)
     (overlay-put ovl       'priority 100)
     (overlay-put ovl-field 'priority 101)
     (overlay-put ovl-field 'invisible t)
@@ -226,8 +251,8 @@
   (company-nograb-reset-state)
   (remove-hook 'company-completion-finished-hook 'company-nograb-get-result t)
   (remove-hook 'company-completion-cancelled-hook 'company-nograb-cleanup t)
-  ;;(setq company-nograb-finish-fun nil) ;; fix-me
-  (remove-hook 'post-command-hook 'company-nograb-menu-post t)
+  (setq company-nograb-finish-fun nil)
+  (remove-hook 'post-command-hook 'company-nograb-post-command t)
   (setq company-nograb-point nil)
   (when (overlayp company-nograb-overlay)
     (delete-overlay company-nograb-overlay)
@@ -251,13 +276,13 @@
   (funcall company-nograb-finish-fun result)
   (company-nograb-cleanup))
 
-(defun company-nograb (command &optional arg &rest ignored)
-  "A predictive-like `company-mode' completion back-end."
-  (interactive (list 'interactive))
+(defun company-nograb-field-backend (command &optional arg &rest ignored)
+  "A completion back-end using a field for user input.
+Nothing is changed in the current buffer."
   (case command
-    ('interactive (progn
-                    (company-nograb-setup)
-                    (company-begin-backend 'company-nograb)))
+    ('start (if (not (and company-nograb-candidates company-nograb-finish-fun))
+                (error "Call company-nograb-field instead")
+              (company-begin-backend 'company-nograb-field-backend)))
     ('prefix (company-nograb-grab-word))
     ('candidates company-nograb-candidates)
     ('ignore-case t)
@@ -266,16 +291,20 @@
     ('no-insert t)
     ('duplicates t)))
 
-(defun company-nograb-start (candidates finish-function)
-  (setq company-nograb-candidates (copy-sequence candidates))
-  (setq company-nograb-finish-fun finish-function)
-  (company-nograb 'interactive))
+(defun company-nograb-field (label candidates finish-function)
+  "Display a field tighed to a menu at point.
+Display string LABEL at point and start a menu backend using
+CANDIDATES as choices.  When the backend finishes remove LABEL.
+If the user made a choice then call FINISH-FUNCTION with the
+choice as a parameter."
+  (company-nograb-field-setup label candidates finish-function)
+  (company-nograb-field-backend 'start))
 
 
 
-(defun company-nograb-menu-setup (label)
+(defun company-nograb-menu-setup (label candidates finish-function)
   (company-nograb-cleanup)
-  (company-nograb-common-setup)
+  (company-nograb-common-setup candidates finish-function)
   (let* ((lbl (concat " " label " "))
          (len (length lbl))
          ;; Fix-me: needs two overlays to fix this better and end of line.
@@ -293,18 +322,16 @@
     (overlay-put ovl 'keymap company-nograb-menu-map)
     (setq company-nograb-overlay ovl)))
 
-(defun company-nograb-menu-post ()
+(defun company-nograb-post-command ()
   (unless (= (point) company-nograb-point)
     (company-nograb-cleanup)
     (company-abort)))
 
-(defun company-nograb-menu (command &optional arg &rest ignored)
-  "A predictive-like `company-mode' completion back-end."
-  (interactive (list 'interactive))
+(defun company-nograb-menu-backend (command &optional arg &rest ignored)
+  "A completion back-end using just a menu for user input.
+Nothing is changed in the current buffer."
   (case command
-    ('start (progn
-              (company-nograb-menu-setup label)
-              (company-begin-backend 'company-nograb-menu)))
+    ('start (company-begin-backend 'company-nograb-menu-backend))
     ('prefix (concat ""))
     ('candidates company-nograb-candidates)
     ('ignore-case t)
@@ -313,31 +340,28 @@
     ('no-insert t)
     ('duplicates t)))
 
-(defun company-nograb-start-menu (label candidates finish-function)
-  (setq company-nograb-candidates (copy-sequence candidates))
-  (setq company-nograb-finish-fun finish-function)
-  ;;(setq company-nograb-menu-label label)
-  (company-nograb-menu 'start label))
+(defun company-nograb-menu (label candidates finish-function)
+  "Display a menu at point.
+Display string LABEL at point and start a menu backend using
+CANDIDATES as choices.  When the backend finishes remove LABEL.
+If the user made a choice then call FINISH-FUNCTION with the
+choice as a parameter."
+  (company-nograb-menu-setup label candidates finish-function)
+  (company-nograb-menu-backend 'start))
 
-(defun my-nograb ()
+
+
+(defun my-nograb-field ()
+  "Test of field backend."
   (interactive)
-  (company-nograb-start '("some" "things" "that" "sometimes" "fits")
-                        (lambda (res) (message "res=%s" res))))
+  (company-nograb-field "My field label" '("some" "things" "that" "sometimes" "fits")
+                              (lambda (res) (message "res=%s" res))))
 
 (defun my-nograb-menu ()
+  "Test of menu backend."
   (interactive)
-  (company-nograb-start-menu "My menu label" '("some" "things" "that" "sometimes" "fits")
+  (company-nograb-menu "My menu label" '("some" "things" "that" "sometimes" "fits")
                         (lambda (res) (message "res=%s" res))))
-
-(defvar company-nograb-candidates nil)
-(make-variable-buffer-local 'company-nograb-candidates)
-
-(defvar company-nograb-menu-label-overlay nil)
-(make-variable-buffer-local 'company-nograb-menu-label-overlay)
-(defvar company-nograb-menu-label nil)
-(make-variable-buffer-local 'company-nograb-menu-label)
-(defvar company-nograb-point nil)
-(make-variable-buffer-local 'company-nograb-point)
 
 ;;;###autoload
 (defun company-choose (candidates)
