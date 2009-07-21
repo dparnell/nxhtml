@@ -1303,7 +1303,7 @@ in this part of the buffer."
                   ;; chain and mumamo-old-tail the first in the bottom chain.
 
                   ;; Loop forward until end or buffer end ...
-                  (while (and (> 100 (setq while-n3 (1+ while-n3))) ;; fix-me
+                  (while (and (> 500 (setq while-n3 (1+ while-n3))) ;; fix-me
                               (or (not end)
                                   (<= ok-pos end))
                               (< ok-pos (point-max))
@@ -1350,7 +1350,7 @@ in this part of the buffer."
                             (setq mumamo-old-tail nil))
                         ;; Loop for fit
                         (setq while-n2 1)
-                        (while (and (> 100 (setq while-n2 (1+ while-n2)))
+                        (while (and (> 500 (setq while-n2 (1+ while-n2)))
                                     (and mumamo-old-tail (< (overlay-start mumamo-old-tail) ok-pos)))
                           ;;(msgtrc "find-chunks:not eq delete %s" mumamo-old-tail)
                           (mumamo-mark-for-refontification (overlay-start mumamo-old-tail) (overlay-end mumamo-old-tail))
@@ -1767,7 +1767,7 @@ that does syntactic fontification."
              (font-lock-beg start)
              (font-lock-end end)
              (while-n1 0))
-        (while (and (> 100 (setq while-n1 (1+ while-n1)))
+        (while (and (> 500 (setq while-n1 (1+ while-n1)))
                     funs)
           (setq funs (if (or (not (funcall (car funs)))
                              (eq funs font-lock-extend-region-functions))
@@ -2120,7 +2120,7 @@ most major modes."
       (when chunk-at-start-1
         (unless (= start (1- (overlay-end chunk-at-start-1)))
           (setq chunk-at-start-1 nil)))
-      (while (and (> 100 (setq while-n1 (1+ while-n1)))
+      (while (and (> 500 (setq while-n1 (1+ while-n1)))
                   fontified-t
                   (< here end))
         ;;(msgtrc "mumamo-fontify-region-1 heree 1, here=%s, end=%s" here end)
@@ -6223,7 +6223,7 @@ The following rules are used when indenting:
     (when (or leaving-submode entering-submode)
       (unless last-main-major-indent
         (save-excursion
-          (while (and (> 100 (setq while-n1 (1+ while-n1)))
+          (while (and (> 500 (setq while-n1 (1+ while-n1)))
                       (not last-main-major-indent))
             (if (bobp)
                 (setq last-main-major-indent 0)
@@ -6341,7 +6341,7 @@ The following rules are used when indenting:
               (save-excursion
                 (setq want-indent 0)
                 (unless (= 0 ind-on-first-sub-line)
-                  (while (and (> 100 (setq while-n2 (1+ while-n2)))
+                  (while (and (> 500 (setq while-n2 (1+ while-n2)))
                               (= 0 want-indent)
                               (/= (point) (point-min)))
                     (beginning-of-line 0)
@@ -6349,7 +6349,7 @@ The following rules are used when indenting:
                   ;; Now if want-indent is still 0 we need to look further above
                   (when (= 0 want-indent)
                     (widen)
-                    (while (and (> 100 (setq while-n3 (1+ while-n3)))
+                    (while (and (> 500 (setq while-n3 (1+ while-n3)))
                                 (= 0 want-indent)
                                 (/= (point) (point-min)))
                       (beginning-of-line 0)
@@ -6423,7 +6423,7 @@ The following rules are used when indenting:
           prev-line-major
           last-main-major-indent
           (while-n1 0))
-      (while (and (> 100 (setq while-n1 (1+ while-n1)))
+      (while (and (> 3000 (setq while-n1 (1+ while-n1)))
                   (< (point) end)
                   (/= old-point (point)))
         ;;(message "mumamo-indent-region-function, point=%s" (point))
@@ -6920,7 +6920,7 @@ For more info see also `rng-get-major-mode-chunk-function'.")
           (rng-clear-conditional-region))
         (setq rng-dtd xmltok-dtd))
       (setq while-n1 0)
-      (while (and (> 100 (setq while-n1 (1+ while-n1)))
+      (while (and (> 500 (setq while-n1 (1+ while-n1)))
                   continue)
         ;; If mumamo (or something similar) is used then jump over parts
         ;; that can not be parsed by nxml-mode.
@@ -6938,7 +6938,7 @@ For more info see also `rng-get-major-mode-chunk-function'.")
               (setq end-major-mode-chunk nil)
               (setq major-mode-chunk (funcall rng-get-major-mode-chunk-function next-non-space-pos "rng-do-some-validation-1 A"))
               (setq while-n2 0)
-              (while (and (> 100 (setq while-n2 (1+ while-n2)))
+              (while (and (> 500 (setq while-n2 (1+ while-n2)))
                           major-mode-chunk
                           (not (funcall rng-valid-nxml-major-mode-chunk-function major-mode-chunk))
                           (< next-non-space-pos (point-max)))

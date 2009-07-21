@@ -140,7 +140,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19039 51577))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19045 9924))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -1392,7 +1392,7 @@ Below are some examples.  To test them mark an example and do
 ;;;***
 
 ;;;### (autoloads (global-company-mode company-mode) "company-mode/company"
-;;;;;;  "util/company-mode/company.el" (19041 56758))
+;;;;;;  "util/company-mode/company.el" (19045 25992))
 ;;; Generated autoloads from util/company-mode/company.el
 
 (autoload 'company-mode "company-mode/company" "\
@@ -1550,6 +1550,17 @@ A `company-mode' completion back-end using ispell.
 A `company-mode' back-end for programming language keywords.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
+
+;;;***
+
+;;;### (autoloads (company-choose) "company-mode/company-nograb"
+;;;;;;  "util/company-mode/company-nograb.el" (19045 3102))
+;;; Generated autoloads from util/company-mode/company-nograb.el
+
+(autoload 'company-choose "company-mode/company-nograb" "\
+Not documented
+
+\(fn CANDIDATES)" nil nil)
 
 ;;;***
 
@@ -1852,6 +1863,43 @@ such palette into a css-file as hexadecimal color palette.
 
 ;;;***
 
+;;;### (autoloads (hfyview-frame hfyview-window hfyview-region hfyview-buffer)
+;;;;;;  "hfyview" "util/hfyview.el" (19045 22104))
+;;; Generated autoloads from util/hfyview.el
+
+(autoload 'hfyview-buffer "hfyview" "\
+Convert buffer to html preserving faces and show in web browser.
+With command prefix also show created HTML source in other window.
+
+\(fn ARG)" t nil)
+
+(autoload 'hfyview-region "hfyview" "\
+Convert region to html preserving faces and show in web browser.
+With command prefix also show created HTML source in other window.
+
+\(fn ARG)" t nil)
+
+(autoload 'hfyview-window "hfyview" "\
+Convert window to html preserving faces and show in web browser.
+With command prefix also show created HTML source in other window.
+
+\(fn ARG)" t nil)
+
+(autoload 'hfyview-frame "hfyview" "\
+Convert frame to html preserving faces and show in web browser.
+Make an XHTML view of the current Emacs frame. Put it in a buffer
+named *hfyview-frame* and show that buffer in a web browser.
+
+If WHOLE-BUFFERS is non-nil then the whole content of the buffers
+is shown in the XHTML page, otherwise just the part that is
+visible currently on the frame.
+
+With command prefix also show created HTML source in other window.
+
+\(fn WHOLE-BUFFERS)" t nil)
+
+;;;***
+
 ;;;### (autoloads (html-write-mode) "html-write" "util/html-write.el"
 ;;;;;;  (18790 45400))
 ;;; Generated autoloads from util/html-write.el
@@ -1909,7 +1957,7 @@ hyperlinks as appropriate.
 ;;;***
 
 ;;;### (autoloads (inlimg-toggle-slicing inlimg-toggle-display inlimg-global-mode
-;;;;;;  inlimg-mode) "inlimg" "util/inlimg.el" (19036 62258))
+;;;;;;  inlimg-mode) "inlimg" "util/inlimg.el" (19045 9989))
 ;;; Generated autoloads from util/inlimg.el
 
 (autoload 'inlimg-mode "inlimg" "\
@@ -2035,7 +2083,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19041 57991))
+;;;;;;  "mumamo" "util/mumamo.el" (19045 16494))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -2598,79 +2646,14 @@ handled is governed by `sex-keep-dummy-buffer'.
 
 ;;;***
 
-;;;### (autoloads (tabkey2-mode tabkey2-first) "tabkey2" "util/tabkey2.el"
-;;;;;;  (19039 54280))
+;;;### (autoloads (tabkey2-mode tabkey2-emma-without-tabkey2) "tabkey2"
+;;;;;;  "util/tabkey2.el" (19045 30442))
 ;;; Generated autoloads from util/tabkey2.el
 
-(autoload 'tabkey2-first "tabkey2" "\
-Do something else after first Tab.
-This function is bound to the Tab key (or whatever key
-`tabkey2-first-key' is) when minor mode command `tabkey2-mode' is
-on.  It works like this:
+(autoload 'tabkey2-emma-without-tabkey2 "tabkey2" "\
+Not documented
 
-1. The first time Tab is pressed do whatever Tab would have done
-   if minor mode command `tabkey2-mode' was off.
-
-   Then before next command enter a new temporary 'Tab completion
-   state' for just the next command.  Show this by a highlight on
-   the indentation and a marker \"Tab2\" in the mode line.
-
-   However if either
-   - the minibuffer is active and `tabkey2-in-minibuffer' is nil
-   - `major-mode' is in `tabkey2-modes-that-use-more-tabs' then
-     do not enter this temporary 'Tab completion state'.
-
-   For major modes where it make sense to press Tab several times
-   you can use `tabkey2-alternate-key' to enter 'Tab completion
-   state'.
-
-
-2. As long as point is not move do completion when Tab is pressed
-   again.  Show that this state is active with a highlighting at
-   the line beginning, a marker on the mode line (Tab2) and a
-   message in the echo area which tells what kind of completion
-   will be done.
-
-   When deciding what kind of completion to do look in the table
-   below and do whatever it found first that is not nil:
-
-   - `tabkey2-preferred'
-   - `tabkey2-completion-functions'
-   - `tabkey2-fallback'
-
-3. Of course, there must be some way for you to easily determine
-   what kind of completion because there are many in Emacs. If
-   you do not turn it off this function will show that to you.
-   And if you turn it off you can still display it, see the key
-   bindings below.
-
-   If this function is used with a PREFIX argument then it just
-   shows what Tab will do.
-
-   If the default kind of completion is not what you want then
-   you can choose completion function from any of the candidates
-   in `tabkey2-completion-functions'.  During the 'Tab completion
-   state' the following extra key bindings are available:
-
-\\{tabkey2-completion-state-emul-map}
-
-Of course, some languages does not have a fixed indent as is
-assumed above. You can put major modes for those in
-`tabkey2-modes-that-just-complete'.
-
-Some major modes uses tab for something else already. Those are
-in `tabkey2-modes-that-use-more-tabs'.  There is an alternate
-key, `tabkey2-alternate-key' if you want to do completion
-there. Note that this key does not do completion. It however
-enters 'Tab completion state' in which you have access to the
-keys above for completion etc. (This key also lets you cycle
-through the completion functions too choose which one to use.)
-
------
-NOTE: This uses `emulation-mode-map-alists' and it supposes that
-nothing else is bound to Tab there.
-
-\(fn PREFIX)" t nil)
+\(fn)" nil nil)
 
 (defvar tabkey2-mode nil "\
 Non-nil if Tabkey2 mode is enabled.
@@ -3116,13 +3099,13 @@ Not documented
 ;;;;;;  "util/company-mode/company-eclim.el" "util/company-mode/company-pkg.el"
 ;;;;;;  "util/company-mode/company-ropemacs.el" "util/company-mode/company-start.el"
 ;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/ffip.el"
-;;;;;;  "util/fmode.el" "util/fupd.el" "util/hfyview.el" "util/hl-needed.el"
-;;;;;;  "util/htmlfontify.21.el" "util/key-cat.el" "util/mumamo-aspnet.el"
-;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "util/fmode.el" "util/fupd.el" "util/hl-needed.el" "util/htmlfontify.21.el"
+;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
+;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (19041 58100 125000))
+;;;;;;  (19045 30756 609000))
 
 ;;;***
 
