@@ -65,18 +65,18 @@
     (cancel-timer nxml-where-once-update-timer)
     (setq nxml-where-once-update-timer nil)))
 
-(defun nxml-where-start-second-in-timer (next-point buffer)
+(defun nxml-where-start-continue-in-timer (next-point buffer)
   ;;(message "start second")
   (condition-case err
       (setq nxml-where-once-update-timer
             (run-with-idle-timer idle-update-delay
                                  nil
-                                 'nxml-where-do-marking-in-timer
+                                 'nxml-where-continue-marking-in-timer
                                  next-point
                                  buffer))
     (error
      (nxml-where-error-message
-            "nxml-where-start-second error %s" err))))
+      "nxml-where-start-second error %s" err))))
 
 (defun nxml-where-update-buffers ()
   (when (boundp 'nxml-where-mode)
@@ -86,11 +86,14 @@
           (nxml-where-mode -1)
           (nxml-where-mode 1))))))
 
-(defvar nxml-where-last-point nil)
+(defvar nxml-where-last-point nil
+  "Where point was last time marking finished.
+Ie we should not restart marking if point is still there.")
 (make-variable-buffer-local 'nxml-where-last-point)
 (put 'nxml-where-last-point 'permanent-local t)
 
-(defvar nxml-where-last-finished nil)
+(defvar nxml-where-last-finished nil
+  "Non-nil then marking is finished.")
 (make-variable-buffer-local 'nxml-where-last-finished)
 (put 'nxml-where-last-finished 'permanent-local t)
 
@@ -99,6 +102,8 @@
 (put 'nxml-where-last-added 'permanent-local t)
 
 (defun nxml-where-restart-update ()
+  "Restart update, runs in `post-command-hook'."
+  (message "restart-update")
   (condition-case err
       (save-match-data ;; runs in timer
         (unless (and nxml-where-last-point
@@ -218,17 +223,29 @@ If nil show only tag names."
            (let ((major-mode (mumamo-main-major-mode)))
              (derived-mode-p 'nxml-mode)))))
 
+(defvar nxml-where-first-change-pos nil)
+(make-variable-buffer-local 'nxml-where-first-change-pos)
+(put 'nxml-where-first-change-pos 'permanent-local t)
+
+(defun nxml-where-after-change (beg end len)
+  (setq nxml-where-first-change-pos
+        (min beg
+             (or nxml-where-after-change-pos
+                 beg))))
+
 (defun nxml-where-mode-start ()
   ;;(message "START")
   (unless (nxml-where-is-nxml)
     (error "Can't display XML path since major mode is not nxml-mode child."))
-  (add-hook 'after-change-major-mode-hook
-            'nxml-where-turn-off-unless-nxml nil t)
+  (add-hook 'after-change-major-mode-hook 'nxml-where-turn-off-unless-nxml nil t)
+  (add-hook 'after-change-functions 'nxml-where-after-change nil t)
   (nxml-where-save-header-line-format)
   (nxml-where-setup-updating))
 
 (defun nxml-where-mode-stop ()
   ;;(message "STOP")
+  (remove-hook 'after-change-major-mode-hook 'nxml-where-turn-off-unless-nxml t)
+  (remove-hook 'after-change-functions 'nxml-where-after-change t)
   (nxml-where-stop-updating)
   (nxml-where-unmark-forward-element)
   (nxml-where-restore-header-line-format)
@@ -238,6 +255,9 @@ If nil show only tag names."
   (unless (nxml-where-is-nxml)
     (nxml-where-mode-stop)))
 (put 'nxml-where-turn-off-unless-nxml 'permanent-local-hook t)
+
+(defvar nxhtml-where-hook nil
+  "Normal hook run when marking has changed.")
 
 ;;;###autoload
 (define-minor-mode nxml-where-mode
@@ -256,7 +276,10 @@ If nil show only tag names."
   "Turn on `nxml-where-mode' if possible.
 This is possible if `major-mode' in the buffer is derived from
 `nxml-mode'."
-  (when (derived-mode-p 'nxml-mode)
+  (when (or (derived-mode-p 'nxml-mode)
+            (and mumamo-multi-major-mode
+                 (let ((major-mode (mumamo-main-major-mode)))
+                   (derived-mode-p 'nxml-mode))))
     (nxml-where-mode 1)))
 
 ;;;###autoload
@@ -269,19 +292,24 @@ This is possible if `major-mode' in the buffer is derived from
   (nxml-where-global-mode 1))
 
 (defun nxml-where-start-update-in-timer (buffer)
-  ;;(message "nxml-where-start-update buffer=%s (bufferp buffer)=%s" buffer (bufferp buffer))
-  (condition-case err
-      (when (and (bufferp buffer)
-                 (buffer-live-p buffer))
-        (with-current-buffer buffer
-          (unless nxml-where-marks (nxml-where-clear-path))
-          (unless nxml-where-header (setq header-line-format nil))
-          (when (and nxml-where-mode
-                     (or nxml-where-header nxml-where-marks))
-            (nxml-where-do-marking nil buffer))))
-    (error
-     (nxml-where-error-message
-      "nxml-where-start-update-in-timer error: %s" err))))
+  "First checks post command."
+  (message "nxml-where-start-update buffer=%s (bufferp buffer)=%s" buffer (bufferp buffer))
+  (when (and (bufferp buffer)
+             (buffer-live-p buffer))
+    (with-current-buffer buffer
+      (let ((here (point)))
+        (save-match-data
+          (condition-case err
+              (progn
+                ;;(unless nxml-where-marks (nxml-where-clear-path))
+                (unless nxml-where-header (setq header-line-format nil))
+                (when (and nxml-where-mode
+                           (or nxml-where-header nxml-where-marks))
+                  (nxml-where-do-marking nil buffer)))
+            (error
+             (nxml-where-error-message
+              "nxml-where-start-update-in-timer error: %s" err)))
+          (goto-char here))))))
 
 (defconst nxml-where-get-id-pattern
   ;; (rx space
@@ -345,14 +373,18 @@ This is possible if `major-mode' in the buffer is derived from
 (put 'nxml-where-forward-element 'permanent-local t)
 
 (defun nxml-where-unmark-forward-element ()
+  "Unmark currently marked end tag."
   ;;(message "unmark-for %s" nxml-where-forward-element)
   (when nxml-where-forward-element
     (let ((ovl (nth 1 nxml-where-forward-element)))
-      (when (overlayp ovl) (delete-overlay ovl)))
+      (when (overlayp ovl)
+        (message "unmark-forward-element:delete-overlay %s" ovl)
+        (delete-overlay ovl)))
     (setq nxml-where-forward-element nil)))
 
 (defun nxml-where-mark-forward-element (start-tag)
-  ;;(message "point 0 = %s, start-tag=%s fe=%s" (point) start-tag nxml-where-forward-element)
+  "Mark the end tag matching START-TAG."
+  (message "mark-forward-element point 0 = %s, start-tag=%s fe=%s" (point) start-tag nxml-where-forward-element)
   ;;(message "  path=%s" nxml-where-path)
   (unless (and nxml-where-forward-element
                (nth 1 nxml-where-forward-element)
@@ -382,6 +414,7 @@ This is possible if `major-mode' in the buffer is derived from
                 (setq start (match-beginning 0))
                 (setq end (point))
                 (setq ovl (make-overlay start end))
+                (overlay-put ovl 'nxml-where t)
                 (overlay-put ovl 'face nxml-where-marking)))
           (error
            (let ((msg (error-message-string err)))
@@ -392,26 +425,32 @@ This is possible if `major-mode' in the buffer is derived from
         ;;(message "point 2 = %s" (point))
         (setq nxml-where-forward-element (list start-tag ovl))))))
 
-(defvar nxml-where-path nil)
+(defvar nxml-where-path nil
+  "The current where path.
+This is a list where the records have the form
+
+   \(START END TAG-STR OVERLAY)
+")
 (make-variable-buffer-local 'nxml-where-path)
 (put 'nxml-where-path 'permanent-local t)
 
 (defun nxml-where-make-rec (tag-start tag-end tag-str buf)
-  ;;(message "nxml-where-make-rec %s %s %s %s" tag-start tag-end tag-str buf)
+  (message "nxml-where-make-rec %s %s %s %s" tag-start tag-end tag-str buf)
   (let ((ovls (overlays-at tag-start)))
     (dolist (ovl ovls)
-      (when (equal (overlay-get ovl 'face) nxml-where-marking)
+      (when (overlay-get ovl 'nxml-where)
         (nxml-where-error-message "old ovl=%s" ovl))))
   (let ((ovl (when buf (make-overlay tag-start tag-end))))
-    (when ovl (overlay-put ovl 'face nxml-where-marking))
+    (when ovl
+      (overlay-put ovl 'nxml-where t)
+      (overlay-put ovl 'face nxml-where-marking))
     (list tag-start tag-end tag-str ovl)))
 
 (defun nxml-where-delete-rec (rec)
-  ;;(message "delete-overlay rec=%s" rec)
   (let ((ovl (nth 3 rec)))
     (when (and ovl (overlay-buffer ovl))
       (assert (overlayp ovl) t)
-      ;;(message "delete-overlay %s" ovl)
+      (message "delete-rec:delete-overlay %s" ovl)
       (delete-overlay ovl))))
 
 (defun nxml-where-clear-path ()
@@ -419,23 +458,31 @@ This is possible if `major-mode' in the buffer is derived from
   (nxml-where-update-where-path -1 nil nil nil))
 
 (defun nxml-where-update-where-path (tag-start tag-end tag-str buffer)
-  ;;(message "nxml-where-last-added=%s" nxml-where-last-added)
+  "Update where path with given tag.
+The tag is between TAG-START and TAG-END and the string to
+display for it in the header-line is TAG-STR.  This is in buffer
+BUFFER.
+"
+  (message "=========nxml-where-last-added=%s" nxml-where-last-added)
   ;;
   ;; Fix-me: Deletion is not handled correctly when moving quickly.
-  (when nxml-where-only-inner
+  (when nil ;;nxml-where-only-inner
     (setq nxml-where-path
           (mapcar (lambda (rec)
                     (if (and (= tag-start (nth 0 rec))
                              (= tag-end   (nth 0 rec))
                              (string= tag-str (nth 2 rec)))
                         rec
+                      (message "update-where-path 1:nxml-where-delete-rec")
                       (nxml-where-delete-rec rec)
                       nil))
-                  nxml-where-path))
-    (setq nxml-where-path (delq nil nxml-where-path)))
+                  nxml-where-path)))
+  ;;(setq nxml-where-path (mapcar (lambda (rec) (when (and (overlayp rec) (overlay-buffer rec)) rec)) nxml-where-path))
+  (setq nxml-where-path (delq nil nxml-where-path))
+  ;;(message "\nA: nxml-where-path=%S\n" nxml-where-path)
   (unless nxml-where-last-added
     ;; Trim off everything below tag-start.
-    (let ((ptr nxml-where-path)
+    (let ((ptr (copy-sequence nxml-where-path))
           prev-ptr
           old-rec
           tail)
@@ -446,13 +493,15 @@ This is possible if `major-mode' in the buffer is derived from
       ;;(message "trimming tag-start=%s, tag-end=%s, tail ptr at=%s, nxml-where-last-added=%s" tag-start tag-end (caar ptr) nxml-where-last-added)
       (when ptr
         ;;(setq tail (cdr ptr))
-          (setq tail ptr)
-          (if prev-ptr
-              (setcdr prev-ptr nil)
-            (setq nxml-where-path nil)))
+        (setq tail ptr)
+        (if prev-ptr
+            (setcdr prev-ptr nil)
+          (message "nxml-where-path => nil")
+          (setq nxml-where-path nil)))
       ;; Clean up tail
       ;;(message "tail=%s" tail)
       (dolist (rec tail)
+        (message "update-where-path 2:nxml-where-delete-rec")
         (nxml-where-delete-rec rec))))
   ;; If tag-end is nil we are just clearing
   (when tag-end
@@ -465,7 +514,7 @@ This is possible if `major-mode' in the buffer is derived from
         (setq nxml-where-last-added nil))
       (when nxml-where-last-added
         ;; Find out where to insert
-        (let ((ptr nxml-where-path)
+        (let ((ptr (copy-sequence nxml-where-path))
               prev-ptr
               old-rec
               new-rec)
@@ -499,20 +548,24 @@ This is possible if `major-mode' in the buffer is derived from
                   ;; Delete entry after ptr.
                   ;;(message "ptr=%s" ptr)
                   (setq old-rec (cadr ptr))
+                  (message "update-where-path 3:nxml-where-delete-rec")
                   (nxml-where-delete-rec old-rec)
                   (setcdr ptr (cddr ptr))
                   )
                 (setq nxml-where-last-finished t)
+                (setq nxml-where-first-change-pos nil)
                 (setq result 'ready))
             (setq new-rec (nxml-where-make-rec tag-start tag-end tag-str buffer))
             (setq nxml-where-last-added new-rec)
             (if (not prev-ptr)
-                  (setq nxml-where-path (cons new-rec nxml-where-path))
-                (setcdr prev-ptr (cons new-rec (cdr prev-ptr))))
+                (setq nxml-where-path (cons new-rec nxml-where-path))
+              (setcdr prev-ptr (cons new-rec (cdr prev-ptr))))
             (setq result 'continue))))
       ;;(message "Mark forward path=%s" nxml-where-path)
       (nxml-where-mark-forward-element (caar (last nxml-where-path)))
-      result)))
+      result))
+  ;;(message "\nB: nxml-where-path=%S\n" nxml-where-path)
+  (run-hooks 'nxhtml-where-hook))
 
 ;;(nxhtmltest-nxml-where-adding)
 ;;(global-set-key [f9] 'nxhtmltest-nxml-where-adding)
@@ -560,14 +613,20 @@ This is possible if `major-mode' in the buffer is derived from
     (assert (eq nxml-where-path nil) t)
     ))
 
-(defun nxml-where-do-marking-in-timer (this-point buffer)
-  (condition-case err
-      (save-match-data ;; runs in timer
-        (nxml-where-do-marking this-point buffer))
-    (error
-     (nxml-where-error-message
-      "nxml-where-do-marking error: %s"
-      err))))
+(defun nxml-where-continue-marking-in-timer (this-point buffer)
+  "Continue unfinished marking after last restart.
+Ie we have run at least once post command."
+  (message "continue-marking-in-timer %s" this-point buffer)
+  (with-current-buffer buffer
+    (let ((here (point)))
+      (condition-case err
+          (save-match-data ;; runs in timer
+            (nxml-where-do-marking this-point buffer))
+        (error
+         (nxml-where-error-message
+          "nxml-where-do-marking error: %s"
+          err)))
+      (goto-char here))))
 
 ;; (nxml-where-error-message "%s" "something")
 (defun nxml-where-error-message (format-string &rest args)
@@ -576,11 +635,21 @@ This is possible if `major-mode' in the buffer is derived from
       (apply 'message format-string args)
       (goto-char (point-max))
       (backward-char)
-      (put-text-property start (point)
-                         'face 'highlight))))
+      ;;(put-text-property start (point) 'face 'highlight)
+      )))
 
 (defun nxml-where-do-marking (this-point buffer)
-  ;;(message "nxml-where-do-marking %s %s, point=%s" this-point buffer (point))
+  "Do marking.
+If THIS-POINT is nil then it is the first marking post command in
+buffer BUFFER.  In that case start from current point, otherwise
+from THIS-POINT.
+
+Go up to previous tag.  Then check if this is the same tag where
+we started last time and ran to completion.  If so just finish.
+
+Otherwise check this tag.  If not ready after that then restart
+this command with arg THIS-POINT set to right before this tag."
+  (message "****************nxml-where-do-marking %s %s, point=%s" this-point buffer (point))
   (when (buffer-live-p buffer)
     (with-current-buffer buffer
       (save-restriction
@@ -590,6 +659,14 @@ This is possible if `major-mode' in the buffer is derived from
               next-point
               (is-first (not this-point))
               same-as-last)
+          (when nxml-where-first-change-pos
+            (setq nxml-where-path 'dummy nxml-where-path)
+            (let ((path nxml-where-path))
+              (while (cdr path)
+                (when (> (nth 1 (nth 1 path)) nxml-where-first-change-pos)
+                  (setcdr path nil))
+                (setq path (cdr path))))
+            (setq nxml-where-path (cdr nxml-where-path)))
           ;; If on beginning of tag step forward one char.
           (unless (or (eobp)
                       this-point
@@ -617,27 +694,23 @@ This is possible if `major-mode' in the buffer is derived from
                                (= (point) (caar (last nxml-where-path)))))
                     (when same-as-last
                       (throw 'cnext-point 'same-as-last)))
-                  (save-match-data
-                    (when (looking-at nxml-where-tag+id-pattern)
-                      (let ((start (point))
-                            (end (match-end 0))
-                            (tag (match-string-no-properties 1))
-                            (all (match-string-no-properties 0))
-                            result)
-                        (when nxml-where-tag+id
-                          (when (string-match nxml-where-get-id-pattern all)
-                            (setq tag (concat tag (match-string 0 all)))))
-                        (setq tag (concat "<" tag ">"))
-                        (setq result (nxml-where-update-where-path start end tag t))
-                        (when (or (eq result 'ready)
-                                  nxml-where-only-inner)
-                          (throw 'cnext-point nil))
-                        ;;(message "here 2")
-                        )))
+                  (when (looking-at nxml-where-tag+id-pattern)
+                    (let ((start (point))
+                          (end (match-end 0))
+                          (tag (match-string-no-properties 1))
+                          (all (match-string-no-properties 0))
+                          result)
+                      (when nxml-where-tag+id
+                        (when (string-match nxml-where-get-id-pattern all)
+                          (setq tag (concat tag (match-string 0 all)))))
+                      (setq tag (concat "<" tag ">"))
+                      (setq result (nxml-where-update-where-path start end tag t))
+                      (when (or (eq result 'ready)
+                                nxml-where-only-inner)
+                        (throw 'cnext-point nil))))
                   (throw 'cnext-point (max (1- (point)) (point-min)))))
-                                        ;)
           (goto-char here)
-          ;;(message "next-point=%s" next-point)
+          (message "next-point=%s" next-point)
           (if next-point
               (cond
                ((stringp next-point) (message "%s" next-point) ;; Some error
@@ -649,7 +722,7 @@ This is possible if `major-mode' in the buffer is derived from
                   (setq nxml-where-once-update-timer
                         (run-with-timer (* 0.2 idle-update-delay)
                                         nil
-                                        'nxml-where-start-second-in-timer
+                                        'nxml-where-start-continue-in-timer
                                         next-point (current-buffer))))))
             (setq nxml-where-last-point (point))
             (when (and nxml-where-header
