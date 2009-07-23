@@ -541,28 +541,40 @@ The work-around consists of adding a newline.")
 
 (defvar company-active-map
   (let ((keymap (make-sparse-keymap)))
-    (define-key keymap "\e" 'company-ESC)
+    (define-key keymap "\e"     'company-ESC)
     (define-key keymap [escape] 'company-ESC)
     ;;(define-key keymap "\e\e\e" 'company-abort)
-    (define-key keymap "\C-g" 'company-abort)
+
+    (define-key keymap "\C-g"         'company-abort)
     (define-key keymap [(control ?g)] 'company-abort)
-    (define-key keymap [(meta) ?n] 'company-select-next)
-    (define-key keymap [(meta) ?p] 'company-select-previous)
-    (define-key keymap [(down)] 'company-select-next)
-    (define-key keymap [(up)] 'company-select-previous)
-    (define-key keymap [down-mouse-1] 'ignore)
-    (define-key keymap [down-mouse-3] 'ignore)
+
+    (define-key keymap [(down)]    'company-select-next)
+    (define-key keymap [(up)]      'company-select-previous)
+    ;;(define-key keymap [(meta) ?n] 'company-select-next)
+    ;;(define-key keymap [(meta) ?p] 'company-select-previous)
+    (define-key keymap [remap previous-line]  'company-select-previous)
+    (define-key keymap [remap next-line]      'company-select-next)
+
     (define-key keymap [mouse-1] 'company-complete-mouse)
     (define-key keymap [mouse-3] 'company-select-mouse)
+
+    (define-key keymap [down-mouse-1] 'ignore)
+    (define-key keymap [down-mouse-3] 'ignore)
     (define-key keymap [up-mouse-1] 'ignore)
     (define-key keymap [up-mouse-3] 'ignore)
-    (define-key keymap [(control) ?m] 'company-complete-selection)
-    (define-key keymap "\r"           'company-complete-selection)
-    (define-key keymap [remap forward-word] 'company-complete-selection)
-    (define-key keymap [remap forward-char] 'company-complete-selection)
-    (define-key keymap "\t" 'company-complete-common)
-    (define-key keymap [(tab)] 'company-complete-common)
-    (define-key keymap (kbd "<f1>") 'company-show-doc-buffer)
+
+    (define-key keymap [(control return)]   'company-complete-selection)
+    ;;(define-key keymap [remap forward-word] 'company-complete-selection)
+    ;;(define-key keymap [remap forward-char] 'company-complete-selection)
+
+    (define-key keymap "\t"               'company-complete-common)
+    (define-key keymap [(tab)]            'company-complete-common)
+    (define-key keymap [(shift return)]   'company-complete-common)
+
+    ;; Using f1 for help is terrible since that is a key you might use
+    ;; often for the normal help.  However S-f1 should be ok - and
+    ;; should maybe be made some kind of standard in Emacs?
+    (define-key keymap [(shift f1)] 'company-show-doc-buffer)
     (define-key keymap "\C-w" 'company-show-location)
     (define-key keymap "\C-s" 'company-search-candidates)
     (define-key keymap [(control) (meta) ?s] 'company-filter-candidates)
@@ -634,9 +646,19 @@ keymap during active completions (`company-active-map'):
     (company-cancel)
     (kill-local-variable 'company-point)))
 
+(defcustom company-major-modes '(css-mode emacs-lisp-mode nxml-mode)
+  "Modes in which `global-company-mode' turn on `company-mode'."
+  :type '(repeat (command :tag "Major mode"))
+  :group 'company)
+
 ;;;###autoload
 (define-globalized-minor-mode global-company-mode company-mode
-  (lambda () (company-mode 1)))
+  (lambda ()
+    (when (catch 'cm
+            (dolist (mode company-major-modes)
+              (when (derived-mode-p mode)
+                (throw 'cm t))))
+      (company-mode 1))))
 
 (defsubst company-assert-enabled ()
   (unless company-mode

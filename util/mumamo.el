@@ -4011,6 +4011,26 @@ information.
 ;; as a string separator?
 ;;
 ;; <?php header("Content-type:application/xml; charset=utf-8"); echo '<?xml version="1.0" encoding="utf-8"?>'; ?>
+;;
+;; However there are the reverse cases also, in lines like
+;;
+;;   href="<?php $this->url($url); ?>"
+;;   <!--    <td><?php insert_a_lot_of_html(); ?>
+;;
+;; These are supposedly handled by using this test at the right
+;; place... However it is not very clear in all cases whether chunk
+;; dividers in comments and strings should be valid or not...
+;;
+;; For example in the first case above the php divider should be
+;; valid.  Probably it should be that in the second case too, but how
+;; should mumamo know that?
+;;
+;; Fix-me: I think a per "chunk divider function + context" flag is
+;; needed to handle this. Probably this will work the same for all web
+;; dev things, ie the opening sub chunk divider is ALWAYS
+;; valid. However that is not true for things like CSS, Javascript etc
+;; in (X)HTML.
+
 (defun mumamo-end-in-code (syntax-start syntax-end major)
   "Return t if possible syntax end is not in a string or comment.
 Assume that the sexp syntax is nil at SYNTAX-START return t if

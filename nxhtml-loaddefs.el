@@ -140,7 +140,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19045 9924))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19047 38943))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -366,7 +366,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxml-where-global-mode nxml-where-mode) "../nxhtml/nxml-where"
-;;;;;;  "nxhtml/nxml-where.el" (19039 32638))
+;;;;;;  "nxhtml/nxml-where.el" (19047 35771))
 ;;; Generated autoloads from nxhtml/nxml-where.el
 
 (autoload 'nxml-where-mode "../nxhtml/nxml-where" "\
@@ -500,7 +500,7 @@ Key bindings:
 ;;;***
 
 ;;;### (autoloads (inferior-moz-mode moz-minor-mode) "../related/moz"
-;;;;;;  "related/moz.el" (19023 29366))
+;;;;;;  "related/moz.el" (19046 34053))
 ;;; Generated autoloads from related/moz.el
 
 (autoload 'moz-minor-mode "../related/moz" "\
@@ -524,6 +524,57 @@ The following keys are bound in this minor mode:
 Major mode for interacting with Firefox via MozRepl.
 
 \(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads (global-mozadd-mirror-mode mozadd-mirror-mode global-mozadd-refresh-edited-on-save-mode
+;;;;;;  mozadd-refresh-edited-on-save-mode) "../related/mozadd" "related/mozadd.el"
+;;;;;;  (19047 37899))
+;;; Generated autoloads from related/mozadd.el
+
+(autoload 'mozadd-refresh-edited-on-save-mode "../related/mozadd" "\
+Refresh mozadd edited file when saving file.
+
+\(fn &optional ARG)" t nil)
+
+(defvar global-mozadd-refresh-edited-on-save-mode nil "\
+Non-nil if Global-Mozadd-Refresh-Edited-On-Save mode is enabled.
+See the command `global-mozadd-refresh-edited-on-save-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `global-mozadd-refresh-edited-on-save-mode'.")
+
+(nxhtml-custom-autoload 'global-mozadd-refresh-edited-on-save-mode "../related/mozadd" nil)
+
+(autoload 'global-mozadd-refresh-edited-on-save-mode "../related/mozadd" "\
+Toggle Mozadd-Refresh-Edited-On-Save mode in every possible buffer.
+With prefix ARG, turn Global-Mozadd-Refresh-Edited-On-Save mode on if and only if ARG is positive.
+Mozadd-Refresh-Edited-On-Save mode is enabled in all buffers where `(lambda nil (when (or (derived-mode-p (quote css-mode)) (mozadd-html-buffer-file-p)) (mozadd-refresh-edited-on-save-mode 1)))' would do it.
+See `mozadd-refresh-edited-on-save-mode' for more information on Mozadd-Refresh-Edited-On-Save mode.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'mozadd-mirror-mode "../related/mozadd" "\
+Mirror content of current buffer immediately in Firefox.
+
+\(fn &optional ARG)" t nil)
+
+(defvar global-mozadd-mirror-mode nil "\
+Non-nil if Global-Mozadd-Mirror mode is enabled.
+See the command `global-mozadd-mirror-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `global-mozadd-mirror-mode'.")
+
+(nxhtml-custom-autoload 'global-mozadd-mirror-mode "../related/mozadd" nil)
+
+(autoload 'global-mozadd-mirror-mode "../related/mozadd" "\
+Toggle Mozadd-Mirror mode in every possible buffer.
+With prefix ARG, turn Global-Mozadd-Mirror mode on if and only if ARG is positive.
+Mozadd-Mirror mode is enabled in all buffers where `(lambda nil (when (mozadd-html-buffer-file-p) (mozadd-mirror-mode 1)))' would do it.
+See `mozadd-mirror-mode' for more information on Mozadd-Mirror mode.
+
+\(fn &optional ARG)" t nil)
 
 ;;;***
 
@@ -1392,7 +1443,7 @@ Below are some examples.  To test them mark an example and do
 ;;;***
 
 ;;;### (autoloads (global-company-mode company-mode) "company-mode/company"
-;;;;;;  "util/company-mode/company.el" (19045 25992))
+;;;;;;  "util/company-mode/company.el" (19047 38387))
 ;;; Generated autoloads from util/company-mode/company.el
 
 (autoload 'company-mode "company-mode/company" "\
@@ -1434,7 +1485,7 @@ or call the function `global-company-mode'.")
 (autoload 'global-company-mode "company-mode/company" "\
 Toggle Company mode in every possible buffer.
 With prefix ARG, turn Global-Company mode on if and only if ARG is positive.
-Company mode is enabled in all buffers where `(lambda nil (company-mode 1))' would do it.
+Company mode is enabled in all buffers where `(lambda nil (when (catch (quote cm) (dolist (mode company-major-modes) (when (derived-mode-p mode) (throw (quote cm) t)))) (company-mode 1)))' would do it.
 See `company-mode' for more information on Company mode.
 
 \(fn &optional ARG)" t nil)
@@ -1453,7 +1504,7 @@ A `company-mode' completion back-end for abbrev.
 ;;;***
 
 ;;;### (autoloads (company-css) "company-mode/company-css" "util/company-mode/company-css.el"
-;;;;;;  (19039 45535))
+;;;;;;  (19046 13060))
 ;;; Generated autoloads from util/company-mode/company-css.el
 
 (autoload 'company-css "company-mode/company-css" "\
@@ -1773,7 +1824,7 @@ See `css-palette-mode' for more information on Css-Palette mode.
 ;;;***
 
 ;;;### (autoloads (cusnu-export-my-skin-options customize-for-new-user)
-;;;;;;  "cus-new-user" "util/cus-new-user.el" (19038 23100))
+;;;;;;  "cus-new-user" "util/cus-new-user.el" (19045 34860))
 ;;; Generated autoloads from util/cus-new-user.el
 
 (autoload 'customize-for-new-user "cus-new-user" "\
@@ -2083,7 +2134,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19045 16494))
+;;;;;;  "mumamo" "util/mumamo.el" (19046 9160))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -2106,7 +2157,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  jsp-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  nxml-mumamo-mode html-mumamo-mode) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19034 43942))
+;;;;;;  (19046 5054))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -2647,7 +2698,7 @@ handled is governed by `sex-keep-dummy-buffer'.
 ;;;***
 
 ;;;### (autoloads (tabkey2-mode tabkey2-emma-without-tabkey2) "tabkey2"
-;;;;;;  "util/tabkey2.el" (19045 30442))
+;;;;;;  "util/tabkey2.el" (19046 8500))
 ;;; Generated autoloads from util/tabkey2.el
 
 (autoload 'tabkey2-emma-without-tabkey2 "tabkey2" "\
@@ -3105,7 +3156,7 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (19045 30756 609000))
+;;;;;;  (19047 39148 656000))
 
 ;;;***
 

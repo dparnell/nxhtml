@@ -379,7 +379,8 @@ If value is a number then delay message that number of seconds."
 
 (defcustom tabkey2-completion-functions
   '(
-    ;; Front ends.
+    ;; Front ends (should take care of the rest, ie temporary things,
+    ;; snippets etc...)
     ("Company Mode completion" company-complete company-mode)
     ;; Temporary things
     ("Spell check word" flyspell-correct-word-before-point)

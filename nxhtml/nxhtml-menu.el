@@ -416,29 +416,42 @@
         )
       (let ((mozrepl-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-mozrepl-map]
-          (list 'menu-item "MozRepl for Javascript" mozrepl-map
-              ))
-        (define-key mozrepl-map [nxhtml-mozrepl-run-mozilla]
-          (list 'menu-item "Display/Start MozRepl Process" 'run-mozilla
-              :enable '(and (boundp 'moz-minor-mode) moz-minor-mode)))
-        (define-key mozrepl-map [nxhtml-mozrepl-separator1]
-          (list 'menu-item "--" nil))
-        (define-key mozrepl-map [nxhtml-mozrepl-save-and-send]
-          (list 'menu-item "Save Buffer and Send it" 'moz-save-buffer-and-send
-                :enable '(or (not (boundp 'mumamo-multi-major-mode))
-                             (not mumamo-multi-major-mode))))
-        (define-key mozrepl-map [nxhtml-mozrepl-send-defun-and-go]
-          (list 'menu-item "Send Current Function, Go to MozRepl"
-                'moz-send-defun-and-go
-                :enable '(and (boundp 'moz-minor-mode) moz-minor-mode)))
-        (define-key mozrepl-map [nxhtml-mozrepl-send-defun]
-          (list 'menu-item "Send Current Function" 'moz-send-defun
-                :enable '(and (boundp 'moz-minor-mode) moz-minor-mode)))
-        (define-key mozrepl-map [nxhtml-mozrepl-send-region]
-          (list 'menu-item "Send the Region" 'moz-send-region
-                :enable '(and mark-active
-                              (boundp 'moz-minor-mode) moz-minor-mode)))
+          (list 'menu-item "MozRepl - control Firefox" mozrepl-map))
+
+        (let ((mozrepl-low-map (make-sparse-keymap)))
+          (define-key mozrepl-map [nxhtml-mozrepl-map]
+            (list 'menu-item "MozRepl Basic Functions" mozrepl-low-map))
+          (define-key mozrepl-low-map [nxhtml-mozrepl-run-mozilla]
+            (list 'menu-item "Display/Start MozRepl Process" 'run-mozilla
+                  :enable '(fboundp 'moz-minor-mode)))
+          (define-key mozrepl-low-map [nxhtml-mozrepl-separator1]
+            (list 'menu-item "--" nil))
+          (define-key mozrepl-low-map [nxhtml-mozrepl-save-and-send]
+            (list 'menu-item "Save Buffer and Send it" 'moz-save-buffer-and-send
+                  :enable '(or (not (boundp 'mumamo-multi-major-mode))
+                               (not mumamo-multi-major-mode))))
+          (define-key mozrepl-low-map [nxhtml-mozrepl-send-defun-and-go]
+            (list 'menu-item "Send Current Function, Go to MozRepl"
+                  'moz-send-defun-and-go
+                  :enable '(and (boundp 'moz-minor-mode) moz-minor-mode)))
+          (define-key mozrepl-low-map [nxhtml-mozrepl-send-defun]
+            (list 'menu-item "Send Current Function" 'moz-send-defun
+                  :enable '(and (boundp 'moz-minor-mode) moz-minor-mode)))
+          (define-key mozrepl-low-map [nxhtml-mozrepl-send-region]
+            (list 'menu-item "Send the Region" 'moz-send-region
+                  :enable '(and mark-active
+                                (boundp 'moz-minor-mode) moz-minor-mode))))
+
         (define-key mozrepl-map [nxhtml-mozrepl-separator2]
+          (list 'menu-item "--" nil))
+        (define-key mozrepl-map [nxhtml-mozrepl-refresh]
+          (list 'menu-item "Refresh Firefox on Save" 'mozadd-refresh-edited-on-save-mode
+                :button '(:toggle . (and (boundp 'mozadd-refresh-edited-on-save-mode)
+                                         mozadd-refresh-edited-on-save-mode))))
+        (define-key mozrepl-map [nxhtml-mozrepl-mirror]
+          (list 'menu-item "Mirror Buffer in Firefox" 'mozadd-mirror-mode
+                :button '(:toggle . (and (boundp 'mozadd-mirror-mode) mozadd-mirror-mode))))
+        (define-key mozrepl-map [nxhtml-mozrepl-separator3]
           (list 'menu-item "--" nil))
         (define-key mozrepl-map [nxhtml-mozrepl-home-page]
           (list 'menu-item "MozLab/MozRepl Home Page"
