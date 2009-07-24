@@ -120,7 +120,7 @@ This is a list where the records have the form
         (save-match-data
           (condition-case err
               (progn
-                ;;(unless nxml-where-marks (nxml-where-clear-path))
+                ;;(unless nxml-where-marks (nxml-where-clear-old-path))
                 (unless nxml-where-header (setq header-line-format nil))
                 (when (and nxml-where-mode
                            (or nxml-where-header nxml-where-marks))
@@ -230,16 +230,6 @@ Ie we have run at least once post command."
          (nxml-where-update-buffers))
   :group 'nxml-where)
 
-(defun nxml-where-setup-updating ()
-  (nxml-where-clear-path 0)
-  (setq nxml-where-last-added nil)
-  (setq nxml-where-last-point nil)
-  (when (and nxml-where-header
-             (not nxml-where-only-inner))
-    (setq header-line-format "Started nxml-where-mode ..."))
-  ;;(nxml-where-restart-update)
-  (add-hook 'post-command-hook 'nxml-where-restart-update nil t))
-
 (define-toggle nxml-where-tag+id t
   "Show tags + id in path if non-nil.
 If nil show only tag names."
@@ -302,6 +292,16 @@ If nil show only tag names."
            (let ((major-mode (mumamo-main-major-mode)))
              (derived-mode-p 'nxml-mode)))))
 
+(defun nxml-where-setup-updating ()
+  (nxml-where-clear-old-path 0 "setup")
+  (setq nxml-where-last-added nil)
+  (setq nxml-where-last-point nil)
+  (when (and nxml-where-header
+             (not nxml-where-only-inner))
+    (setq header-line-format "Started nxml-where-mode ..."))
+  ;;(nxml-where-restart-update)
+  (add-hook 'post-command-hook 'nxml-where-restart-update nil t))
+
 (defun nxml-where-mode-start ()
   ;;(message "START")
   (unless (nxml-where-is-nxml)
@@ -318,7 +318,7 @@ If nil show only tag names."
   (nxml-where-stop-updating)
   (nxml-where-unmark-forward-element)
   (nxml-where-restore-header-line-format)
-  (nxml-where-clear-path 0))
+  (nxml-where-clear-old-path 0 "stop"))
 
 (defun nxml-where-turn-off-unless-nxml ()
   (unless (nxml-where-is-nxml)
@@ -457,9 +457,10 @@ This is possible if `major-mode' in the buffer is derived from
     (dolist (ovl ovls)
       (when (overlay-get ovl 'nxml-where)
         (setq str (buffer-substring-no-properties (overlay-start ovl) (overlay-end ovl)))
+        (message "==================================================")
         (nxml-where-error-message "old ovl=%s    %S" ovl str)
-        ;;(message "old: nxml-where-path=%s" nxml-where-path)
-        ;;(message "old: nxml-where-new-path=%s" nxml-where-new-path)
+        (message "old: nxml-where-path=%s" nxml-where-path)
+        (message "old: nxml-where-new-path=%s" nxml-where-new-path)
         )))
   (let ((ovl (when buf (make-overlay tag-start tag-end))))
     (when ovl
@@ -467,23 +468,23 @@ This is possible if `major-mode' in the buffer is derived from
       (overlay-put ovl 'face nxml-where-marking))
     (list tag-start tag-end tag-str ovl)))
 
-(defun nxml-where-delete-rec (rec)
+(defun nxml-where-delete-rec (rec from)
   (let* ((ovl (nth 3 rec))
          (str (when ovl
                 (buffer-substring-no-properties (overlay-start ovl) (overlay-end ovl)))))
     (when (and ovl (overlay-buffer ovl))
       (assert (overlayp ovl) t)
-      ;;(message "delete-rec:delete-overlay %s %s" str ovl)
+      ;;(message "delete-rec:delete-overlay %s %s (%s)" str ovl from)
       (delete-overlay ovl)
       ;;(message "after delete=%s" ovl)
       )))
 
 
-(defun nxml-where-clear-path (end-of-interest)
+(defun nxml-where-clear-old-path (end-of-interest from)
   "Clear all marking below END-OF-INTEREST.
 Update `nxml-where-path accordingly."
   (setq nxml-where-last-added nil)
-  ;;(message "++++++ clear A:nxml-where-path=%s" nxml-where-path)
+  ;;(message "++++++ clear A: %s (%s)" end-of-interest from)
   (setq nxml-where-path (cons 'dummy nxml-where-path))
   (let ((path nxml-where-path))
     ;;(message "path 1=%s" path)
@@ -491,12 +492,14 @@ Update `nxml-where-path accordingly."
       ;;(message "path 2=%s" path)
       (when (> (nth 1 (cadr path)) end-of-interest)
         (dolist (p (cdr path))
-          (nxml-where-delete-rec p))
+          (nxml-where-delete-rec p "clear"))
         (setcdr path nil))
       (setq path (cdr path))))
-  (setq nxml-where-path (cdr nxml-where-path))
+  (setq nxml-where-path (cdr nxml-where-path)))
+
+(defun nxml-where-clear-new-path ()
   (dolist (new nxml-where-new-path)
-    (nxml-where-delete-rec new))
+    (nxml-where-delete-rec new "clear new"))
   (setq nxml-where-new-path nil)
   ;;(message "clear B:nxml-where-path=%s" nxml-where-path)
   )
@@ -507,12 +510,12 @@ Update `nxml-where-path accordingly."
 The tag is between TAG-START and TAG-END and the string to
 display for it in the header-line is TAG-STR.  This is in buffer
 BUFFER."
-  ;; Fix-me: Deletion is not handled correctly when moving quickly.
-  ;; If tag-end is nil we are just clearing
+  ;; Delete old marks below tag-start:
+  (nxml-where-clear-old-path (+ tag-end 0) (format "update-where-path, tag-start=%s" tag-start))
+  ;; Is this now the same as the old value?
   (let ((last-old (last nxml-where-path))
         new-rec
         result)
-    ;; Is this now the same as the old value?
     ;;(message "update: %s %s %s %s, last-old=%s" tag-start tag-end tag-str buffer last-old)
     (if (and last-old
              (= tag-start (nth 0 (car last-old)))
@@ -544,9 +547,15 @@ this command with arg THIS-POINT set to right before this tag."
         (let ((here (point))
               next-point
               (is-first (not this-point))
-              (end-of-interest (min (point)
-                                    (or nxml-where-first-change-pos
-                                        (point)))))
+              (end-of-interest (if nxml-where-first-change-pos
+                                   (min (point) nxml-where-first-change-pos)
+                                 ;; Check for tag at point
+                                 (catch 'eoi
+                                   (let (ovl)
+                                     (dolist (ovl (overlays-at (point)))
+                                       (when (overlay-get ovl 'nxml-where)
+                                         (throw 'eoi (overlay-end ovl)))))
+                                   (point)))))
           ;; If on beginning of tag step forward one char.
           (unless (or (eobp)
                       this-point
@@ -563,7 +572,7 @@ this command with arg THIS-POINT set to right before this tag."
                            (let (rec)
                              ;;(message "------------ No parent element")
                              (dolist (rec nxml-where-path)
-                               (nxml-where-delete-rec rec))
+                               (nxml-where-delete-rec rec "no parent"))
                              (setq nxml-where-path nil)
                              (throw 'cnext-point nil)) ;; <---- remember...
                          (nxml-where-error-message "nxml-where error: %S" err)
@@ -577,8 +586,11 @@ this command with arg THIS-POINT set to right before this tag."
                         (throw 'cnext-point 'same-as-last))
                       ;;(setq nxml-where-new-path nil)
                       (setq nxml-where-last-added nil)
-                      ;; Delete those parts we can't trust or don't need any more
-                      (nxml-where-clear-path end-of-interest))
+                      ;; Delete those parts we can't trust or don't
+                      ;; need any more. Fix-me, Note: this is different
+                      ;; dependent on if some buffer changes occured.
+                      (nxml-where-clear-old-path end-of-interest (format "is-first,p=%s" (point)))
+                      (nxml-where-clear-new-path))
                     ;;(message "looking-at")
                     (when (looking-at nxml-where-tag+id-pattern)
                       (let ((start (point))
@@ -718,7 +730,7 @@ this command with arg THIS-POINT set to right before this tag."
 ;;     (nxhtmltest-nxml-where-add1 (setq rec '(50 55 "<bla>" nil)))
 ;;     (assert (eq nxml-where-last-added nil) t)
 ;;     (message "---- Clear")
-;;     (nxml-where-clear-path)
+;;     (nxml-where-clear-old-path)
 ;;     (assert (eq nxml-where-path nil) t)
 ;;     ))
 
