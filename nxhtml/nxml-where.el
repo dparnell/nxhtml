@@ -121,7 +121,9 @@ This is a list where the records have the form
           (condition-case err
               (progn
                 ;;(unless nxml-where-marks (nxml-where-clear-old-path))
-                (unless nxml-where-header (setq header-line-format nil))
+                (unless (and nxml-where-header
+                             (not nxml-where-only-inner))
+                  (setq header-line-format nil))
                 (when (and nxml-where-mode
                            (or nxml-where-header nxml-where-marks))
                   (nxml-where-do-marking nil buffer)))
@@ -346,7 +348,8 @@ This is possible if `major-mode' in the buffer is derived from
             (and mumamo-multi-major-mode
                  (let ((major-mode (mumamo-main-major-mode)))
                    (derived-mode-p 'nxml-mode))))
-    (nxml-where-mode 1)))
+    (unless nxml-where-mode
+      (nxml-where-mode 1))))
 
 ;;;###autoload
 (define-globalized-minor-mode nxml-where-global-mode nxml-where-mode
@@ -411,43 +414,45 @@ This is possible if `major-mode' in the buffer is derived from
 (defun nxml-where-mark-forward-element (start-tag)
   "Mark the end tag matching START-TAG."
   ;;(message "nxml-where-forward-element=%s" nxml-where-forward-element)
-  (unless (and nxml-where-forward-element
+  (unless (and start-tag
+               nxml-where-forward-element
                (nth 1 nxml-where-forward-element)
                (= (nth 0 nxml-where-forward-element)
                   start-tag))
     ;;(message "before unmark")
     (nxml-where-unmark-forward-element)
     ;;(message "after unmark")
-    (let ((here (point))
-          (end-of-narrow
-           (progn
-             (goto-char start-tag)
-             (line-end-position 4)))
-          start end ovl)
-      ;; Fix-me: Narrow how much?
-      (setq end-of-narrow (max (+ 4000 (window-end))
-                               end-of-narrow))
-      (setq end-of-narrow (min (point-max)
-                               end-of-narrow))
-      (save-restriction
-        (narrow-to-region start-tag end-of-narrow)
-        (condition-case err
-            (progn
-              (goto-char start-tag)
-              (nxml-forward-element)
-              (when (looking-back "</[a-z0-9]+>")
-                (setq start (match-beginning 0))
-                (setq end (point))
-                (setq ovl (make-overlay start end))
-                (overlay-put ovl 'nxml-where t)
-                (overlay-put ovl 'face nxml-where-marking)))
-          (error
-           (let ((msg (error-message-string err)))
-             (unless (string= msg "Start-tag has no end-tag")
-               (message "nxml-where-mark-forw: %s" msg))))))
-      (goto-char here)
-      ;;(message "point 2 = %s" (point))
-      (setq nxml-where-forward-element (list start-tag ovl)))))
+    (when start-tag
+      (let ((here (point))
+            (end-of-narrow
+             (progn
+               (goto-char start-tag)
+               (line-end-position 4)))
+            start end ovl)
+        ;; Fix-me: Narrow how much?
+        (setq end-of-narrow (max (+ 4000 (window-end))
+                                 end-of-narrow))
+        (setq end-of-narrow (min (point-max)
+                                 end-of-narrow))
+        (save-restriction
+          (narrow-to-region start-tag end-of-narrow)
+          (condition-case err
+              (progn
+                (goto-char start-tag)
+                (nxml-forward-element)
+                (when (looking-back "</[a-z0-9]+>")
+                  (setq start (match-beginning 0))
+                  (setq end (point))
+                  (setq ovl (make-overlay start end))
+                  (overlay-put ovl 'nxml-where t)
+                  (overlay-put ovl 'face nxml-where-marking)))
+            (error
+             (let ((msg (error-message-string err)))
+               (unless (string= msg "Start-tag has no end-tag")
+                 (message "nxml-where-mark-forw: %s" msg))))))
+        (goto-char here)
+        ;;(message "point 2 = %s" (point))
+        (setq nxml-where-forward-element (list start-tag ovl))))))
 
 
 (defun nxml-where-make-rec (tag-start tag-end tag-str buf)
@@ -522,6 +527,12 @@ BUFFER."
              (= tag-end   (nth 1 (car last-old))))
         (progn
           (setq result 'ready))
+      (when nxml-where-only-inner
+        ;;(message "last-old=%S, nwp=%S, nwnp=%S" last-old nxml-where-path nxml-where-new-path)
+        (setq last-old (car (last nxml-where-path)))
+        (when last-old
+          (setq nxml-where-path nil)
+          (nxml-where-delete-rec last-old "only-inner")))
       (setq new-rec (nxml-where-make-rec tag-start tag-end tag-str buffer))
       (setq nxml-where-last-added new-rec)
       (setq nxml-where-new-path (cons new-rec nxml-where-new-path))
@@ -687,50 +698,3 @@ this command with arg THIS-POINT set to right before this tag."
 (provide 'nxml-where)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; nxml-where.el ends here
-
-;;(nxhtmltest-nxml-where-adding)
-;;(global-set-key [f9] 'nxhtmltest-nxml-where-adding)
-;; (defun nxhtmltest-nxml-where-add1 (rec)
-;;   (let* ((tag-start (nth 0 rec))
-;;          (tag-end   (nth 1 rec))
-;;          (tag-str   (nth 2 rec))
-;;          (res
-;;           (nxml-where-update-where-path tag-start tag-end tag-str nil)))
-;;     (message "*** (%s %s %s) => %s, last=%s" tag-start tag-end tag-str res nxml-where-last-added)
-;;     (message "nxml-where-path=%s" nxml-where-path)
-;;     ))
-
-;; (defun nxhtmltest-nxml-where-adding ()
-;;   (interactive)
-;;   (let ((nxml-where-path nil)
-;;         (nxml-where-last-added nil)
-;;         rec)
-;;     (message "=====================")
-;;     (assert (equal nxml-where-path nil) t)
-;;     (nxhtmltest-nxml-where-add1 (setq rec '(50 55 "<sub>" nil)))
-;;     (assert (equal nxml-where-path `(,rec)) t)
-;;     (nxhtmltest-nxml-where-add1 (setq rec '(30 35 "<bla>" nil)))
-;;     (assert (equal nxml-where-path `(,rec
-;;                                      (50 55 "<sub>" nil))) t)
-;;     (message "------ A") (setq nxml-where-last-added nil)
-;;     (nxhtmltest-nxml-where-add1 (setq rec '(50 55 "<sub>" nil)))
-;;     (assert (equal nxml-where-path `((30 35 "<bla>" nil)
-;;                                      (50 55 "<sub>" nil))) t)
-;;     (message "------ B") (setq nxml-where-last-added nil)
-;;     (nxhtmltest-nxml-where-add1 (setq rec '(50 55 "<sub>")))
-;;     (assert (equal nxml-where-path `((30 35 "<bla>" nil)
-;;                                      (50 55 "<sub>" nil))) t)
-;;     (nxhtmltest-nxml-where-add1 (setq rec '(30 35 "<bla>" nil)))
-;;     (assert (equal nxml-where-path `((30 35 "<bla>" nil)
-;;                                      (50 55 "<sub>" nil))) t)
-;;     (message "------ C") (setq nxml-where-last-added nil)
-;;     (nxhtmltest-nxml-where-add1 (setq rec '(40 45 "<bla>" nil)))
-;;     (assert (equal nxml-where-path `((30 35 "<bla>" nil)
-;;                                      ,rec)) t)
-;;     (nxhtmltest-nxml-where-add1 (setq rec '(50 55 "<bla>" nil)))
-;;     (assert (eq nxml-where-last-added nil) t)
-;;     (message "---- Clear")
-;;     (nxml-where-clear-old-path)
-;;     (assert (eq nxml-where-path nil) t)
-;;     ))
-

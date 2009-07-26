@@ -220,7 +220,8 @@
                    ;;(list vlhead frames normal)
                    (list frames normal)
                  (list frames normal)))
-         res)
+         res
+         (completion-ignore-case t))
     (setq res (popcmp-completing-read "Insert: " hist nil t initial (cons 'hist (length hist))))
     (cond ((string= res frames)
            (nxhtml-insert-empty-frames-page))
