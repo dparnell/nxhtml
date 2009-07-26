@@ -2911,13 +2911,24 @@
               <li>
                 Included espresso-mode (with some possible bug fixes).  Not yet the default for Javascript.
               </li>
-              <li class="bugfix">
-                Added simple functions for mirroring html files in Firefox as typing.
-                This works - at least for small files.
-                For larger files (like this one) it is rather slow.
-
+              <li>
+                <p class="bugfix">
+                  Added simple functions for mirroring html files in
+                  Firefox as typing.  This works - at least for small
+                  files.  There is also support for automatic update
+                  of Firefox when saving CSS files.
+                </p>
                 <p>
-                  There is also support for automatic update of Firefox when saving CSS files.
+                  This is a simple framework for communicating with
+                  MozRepl which enqueues requests, waiting for
+                  response prompt before sending next requests.
+                  <span class="bugfix">Maybe this can be used to make
+                  some more efficient routines than those I have
+                  written here.  Any takers?</span>
+                </p></p>
+                <p>
+                  For larger files (like this one) this version is
+                  rather slow since it always changes the whole DOM.
                 </p>
               </li>
             </ul>

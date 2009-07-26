@@ -238,16 +238,17 @@ This works in the same circumstances as
 
 (defun popcmp-completing-read-1 (prompt collection
                                         predicate require-match
-                                        initial-input hist def inherit-input-method alt-help alt-sets)
+                                        initial-input hist2 def inherit-input-method alt-help alt-sets)
+  ;; Fix-me: must rename hist to hist2 in par list. Emacs bug?
   (cond
    ((eq popcmp-completion-style 'emacs-default)
-    (completing-read prompt collection predicate require-match initial-input hist def inherit-input-method))
+    (completing-read prompt collection predicate require-match initial-input hist2 def inherit-input-method))
    ((eq popcmp-completion-style 'anything)
-    (popcmp-anything prompt collection predicate require-match initial-input hist def inherit-input-method
+    (popcmp-anything prompt collection predicate require-match initial-input hist2 def inherit-input-method
                      alt-help alt-sets))
    ((eq popcmp-completion-style 'company-mode)
     ;; No way to read this from company-mode, use emacs-default
-    (completing-read prompt collection predicate require-match initial-input hist def inherit-input-method))
+    (completing-read prompt collection predicate require-match initial-input hist2 def inherit-input-method))
    (t (error "Do not know popcmp-completion-style %S" popcmp-completion-style))))
 
 (defun popcmp-completing-read-other (prompt

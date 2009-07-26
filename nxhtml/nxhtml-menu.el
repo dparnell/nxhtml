@@ -564,6 +564,11 @@
                   (interactive)
                   (customize-group-other-window 'nxml-where))))
         (define-key where-map [where-separator-2] (list 'menu-item "--"))
+        (define-key where-map [nxml-where-inner]
+          (list 'menu-item "Show inly inner tag" 'nxml-where-only-inner-toggle
+                :enable '(boundp 'nxml-where-only-inner)
+                :button '(:toggle . (and (boundp 'nxml-where-only-inner)
+                                         nxml-where-only-inner))))
         (define-key where-map [nxml-where-id]
           (list 'menu-item "Show tag ids in path" 'nxml-where-tag+id-toggle
                 :enable '(boundp 'nxml-where-tag+id)
