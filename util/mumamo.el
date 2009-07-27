@@ -728,7 +728,7 @@ You should only specify :background here, otherwise it will
 interfere with syntax highlighting."
   :group 'mumamo)
 
-(defface mumamo-background-chunk-submode
+(defface mumamo-background-chunk-submode1
   '((((class color) (min-colors 88) (background dark))
      ;;:background "blue3")
      :background "dark green")
@@ -755,7 +755,7 @@ interfere with syntax highlighting."
      :background "dark green")
     (((class color) (min-colors 88) (background light))
      ;;:background "lightgoldenrod2")
-     :background "honeydew")
+     :background "#e6ff96")
     (((class color) (min-colors 16) (background dark))
      :background "blue3")
     (((class color) (min-colors 16) (background light))
@@ -776,7 +776,29 @@ interfere with syntax highlighting."
      :background "dark green")
     (((class color) (min-colors 88) (background light))
      ;;:background "lightgoldenrod2")
-     :background "ghost white")
+     :background "#f7d1f4")
+     ;;:background "green")
+    (((class color) (min-colors 16) (background dark))
+     :background "blue3")
+    (((class color) (min-colors 16) (background light))
+     :background "azure")
+    (((class color) (min-colors 8))
+     :background "blue")
+    (((type tty) (class mono))
+     :inverse-video t)
+    (t :background "gray"))
+  "Background colors for chunks in major mode.
+You should only specify :background here, otherwise it will
+interfere with syntax highlighting."
+  :group 'mumamo)
+
+(defface mumamo-background-chunk-submode4
+  '((((class color) (min-colors 88) (background dark))
+     ;;:background "blue3")
+     :background "dark green")
+    (((class color) (min-colors 88) (background light))
+     ;;:background "lightgoldenrod2")
+     :background "orange")
     (((class color) (min-colors 16) (background dark))
      :background "blue3")
     (((class color) (min-colors 16) (background light))
@@ -800,7 +822,7 @@ default."
   :type 'face
   :group 'mumamo)
 
-(defcustom mumamo-background-chunk-submode 'mumamo-background-chunk-submode
+(defcustom mumamo-background-chunk-submode1 'mumamo-background-chunk-submode1
   "Background colors for chunks in sub modes.
 Pointer to face with background color.
 
@@ -827,24 +849,42 @@ default."
   :type 'face
   :group 'mumamo)
 
+(defcustom mumamo-background-chunk-submode4 'mumamo-background-chunk-submode4
+  "Background colors for chunks in sub modes.
+Pointer to face with background color.
+
+If you do not want any special background color use the face named
+default."
+  :type 'face
+  :group 'mumamo)
+
 ;; Fix-me: use and enhance this
 (defcustom mumamo-background-colors '(mumamo-background-chunk-major
-                                      mumamo-background-chunk-submode
+                                      mumamo-background-chunk-submode1
                                       mumamo-background-chunk-submode2
-                                      mumamo-background-chunk-submode3)
+                                      mumamo-background-chunk-submode3
+                                      mumamo-background-chunk-submode4
+                                      )
   "List of background colors in order of use.
 First color is for main major mode chunks, then for submode
 chunks, sub-submode chunks etc.  Colors are reused in cyclic
 order.
+
+The default colors are choosen so that inner chunks has a more
+standing out color the further in you get.  This is supposed to
+be helpful when you make mistakes and the chunk nesting is not
+what you intended.
+
+Note: Only the light background colors have been set by me.  The
+dark background colors might currently be unuseful.
+Contributions and suggestions are welcome!
 
 The values in the list should be symbols. Each symbol should either be
 
   1: a variable symbol pointing to a face (or beeing nil)
   2: a face symbol
   3: a function with one argument (subchunk depth) returning a
-     face symbol
-
-The first useful interpretation in this list will be used."
+     face symbol"
   :type '(repeat symbol)
   :group 'mumamo)
 
@@ -3437,7 +3477,7 @@ The first two are used when the bottom:
   `mumamo-current-chunk-family'.
 - `mumamo-next-end-fun': function that searches for end of AFTER-CHUNK
 
-- `mumamo-this-border-funs': functions that finds borders
+- `mumamo-next-border-funs': functions that finds borders
 "
   ;;((1 696 nxhtml-mode nil nil nil nil) (696 nil php-mode nil nil nil nil))
   ;;(current (list curr-min curr-max curr-major curr-border-min curr-border-max curr-parseable curr-fw-exc-fun))
@@ -3499,8 +3539,15 @@ The first two are used when the bottom:
            (this-borders (when this-border-fun
                            ;;(msgtrc "(funcall %s %s %s %s)" this-border-fun beg end maj)
                            (funcall this-border-fun beg end maj)))
-           (this-borders-min (nth 0 this-borders))
-           (this-borders-max (when is-closed (nth 1 this-borders)))
+           ;; Fix-me, check: there is no first border when moving out.
+           (this-borders-min (when (= 1 depth-diff)
+                               (nth 0 this-borders)))
+           ;; Fix-me, check: there is no bottom border when we move
+           ;; further "in" since borders are now always inside
+           ;; sub-chunks (if I remember correctly...).
+           (this-borders-max (when (and is-closed
+                                        (/= 1 next-depth-diff))
+                               (nth 1 this-borders)))
            )
       ;;(msgtrc "created %s, major=%s" this-chunk maj)
       (when (> depth 4) (error "Chunk depth > 4"))
@@ -3740,11 +3787,9 @@ information.
           ;;   main-chunk-funs))
          (curr-end-fun (when after-chunk-valid
                          (mumamo-chunk-car after-chunk 'mumamo-next-end-fun)))
-         ;;(curr-sub-family (when curr-end-fun (mumamo-get-sub-chunk-family curr-major)))
-         (curr-border-fun (when curr-end-fun
-                            ;;(overlay-get after-chunk 'mumamo-next-border-fun)
-                            (mumamo-chunk-car after-chunk 'mumamo-next-border-fun)
-                            ))
+         ;; Fix-me: there is obviously something wrong below...
+         ;;(curr-border-fun (when curr-end-fun (mumamo-chunk-car after-chunk 'mumamo-next-border-fun)))
+         curr-border-fun
          curr-max
          next-max
          curr-max-found
@@ -3766,7 +3811,6 @@ information.
          next-major
          curr-end-fun-end
          (next-chunk-funs 'none)
-         curr-border-fun
          next-border-fun
          curr-is-closed
          next-depth-diff
@@ -3928,10 +3972,7 @@ information.
                   (assert (<= next-min border-max) t)
                   (assert (< border-max max) t))))
             )))
-      ;;(list next-min (when max-found max) next-major syntax-min syntax-max)
       (goto-char here)
-      ;;(list next-min (when max-found max) next-major border-min border-max parseable fw-exc-fun)
-      ;;(message "border-min=%s border-max=%s" border-min border-max)
       (setq curr-max-found (or curr-max-found curr-end-fun-end))
       (when curr-max-found
         (setq curr-max (if max max (point-max)))
