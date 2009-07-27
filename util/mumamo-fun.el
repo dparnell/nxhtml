@@ -1274,10 +1274,12 @@ Supported values are 'perl."
               heredoc-mark
               (delimiter "")
               (skip-b "")
-              start
+              start-inner
               end
               exc-mode
               fw-exc-fun
+              border-fun
+              start-outer
               )
           (goto-char pos)
           (beginning-of-line)
@@ -1292,6 +1294,7 @@ Supported values are 'perl."
                  (unless (or (nth 3 ps) (nth 4 ps))
                    (setq want-<< nil))))
              (when next-<<
+               (setq start-outer (- (point) 2))
                (when (= (char-after) ?-)
                  (setq skip-b "\t*")
                  (unless (eolp) (forward-char)))
@@ -1302,7 +1305,7 @@ Supported values are 'perl."
                  (setq heredoc-mark  (buffer-substring-no-properties
                                       (match-beginning 1)
                                       (match-end 1)))
-                 (setq start (match-end 0)))))
+                 (setq start-inner (match-end 0)))))
             ('w32-ps (error "No support for windows power shell yet"))
             ('php
              (while want-<<
@@ -1314,12 +1317,13 @@ Supported values are 'perl."
                  (unless (or (nth 3 ps) (nth 4 ps))
                    (setq want-<< nil))))
              (when next-<<
+               (setq start-outer (- (point) 3))
                (skip-chars-forward " \t")
                (when (looking-at (concat "\\([^\n;]*\\)[[:blank:]]*\n"))
                  (setq heredoc-mark  (buffer-substring-no-properties
                                       (match-beginning 1)
                                       (match-end 1)))
-                 (setq start (match-end 0)))))
+                 (setq start-inner (match-end 0)))))
             ('perl
              (while want-<<
                (setq next-<< (search-forward "<<" max t))
@@ -1330,6 +1334,7 @@ Supported values are 'perl."
                  (unless (or (nth 3 ps) (nth 4 ps))
                    (setq want-<< nil))))
              (when next-<<
+               (setq start-outer (- (point) 2))
                (skip-chars-forward " \t")
                (when (memq (char-after) '(?\" ?\'))
                  (setq delimiter (list (char-after))))
@@ -1337,11 +1342,12 @@ Supported values are 'perl."
                  (setq heredoc-mark  (buffer-substring-no-properties
                                       (match-beginning 1)
                                       (match-end 1)))
-                 (setq start (1+ (match-end 0))))))
+                 (setq start-inner (1+ (match-end 0))))))
             ('python
              (unless (eobp) (forward-char))
              (while want-<<
                (setq next-<< (re-search-forward "\"\"\"\\|'''" max t))
+               (setq start-outer (- (point) 3))
                (if (not next-<<)
                    (setq want-<< nil) ;; give up
                  ;; Check inside string or comment.
@@ -1358,6 +1364,7 @@ Supported values are 'perl."
                  (unless (or (nth 3 ps) (nth 4 ps))
                    (setq want-<< nil))))
              (when next-<<
+               (setq start-outer (- (point) 2))
                (when (= (char-after) ?-)
                  (setq skip-b "[ \t]*")
                  (forward-char))
@@ -1365,11 +1372,11 @@ Supported values are 'perl."
                  (setq heredoc-mark  (buffer-substring-no-properties
                                       (match-beginning 0)
                                       (match-end 0)))
-                 (setq start (match-end 0)))))
+                 (setq start-inner (match-end 0)))))
             (t (error "next-<< not implemented for lang %s" lang)))
-          (when start (assert (<= pos start) t))
+          (when start-inner (assert (<= pos start-inner) t))
           (goto-char old-point)
-          (when (or start end)
+          (when (or start-inner end)
             (let ((endmark-regexp
                    (case lang
                      ('sh (concat "^" skip-b heredoc-mark "$"))
@@ -1378,16 +1385,23 @@ Supported values are 'perl."
                      ('python (concat "^" heredoc-mark "[[:space:]]*"))
                      ('ruby (concat "^" skip-b heredoc-mark "$"))
                      (t (error "mark-regexp not implemented for %s" lang)))))
+              ;; Fix-me: rename start-inner <=> start-outer...
+              (setq border-fun `(lambda (start end exc-mode)
+                                  ;; Fix-me: use lengths...
+                                  (list (+ start (- ,start-inner ,start-outer 1))
+                                        (- end ,(1+ (length heredoc-mark))))))
               (setq fw-exc-fun `(lambda (pos max)
                                   (save-match-data
                                     (let ((here (point)))
                                       (goto-char pos)
                                       (prog1
                                           (when (re-search-forward ,endmark-regexp max t)
-                                            (line-beginning-position))
-                                      (goto-char here)))))))
+                                            (- (point) 0))
+                                        (goto-char here)))))))
             (setq exc-mode (mumamo-mode-for-heredoc heredoc-mark))
-            (list start end exc-mode nil nil fw-exc-fun nil))))
+            (list start-inner end exc-mode nil nil fw-exc-fun nil)
+            (list start-outer end exc-mode (list start-inner end) nil fw-exc-fun border-fun)
+            )))
     (error (mumamo-display-error 'mumamo-chunk-heredoc
                                  "%s" (error-message-string err)))))
 
