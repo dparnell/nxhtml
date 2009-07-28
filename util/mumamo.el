@@ -3799,8 +3799,8 @@ information.
          (curr-end-fun (when after-chunk-valid
                          (mumamo-chunk-car after-chunk 'mumamo-next-end-fun)))
          ;; Fix-me: there is obviously something wrong below...
-         ;;(curr-border-fun (when curr-end-fun (mumamo-chunk-car after-chunk 'mumamo-next-border-fun)))
          curr-border-fun
+         (curr-border-fun (when curr-end-fun (mumamo-chunk-car after-chunk 'mumamo-next-border-fun)))
          curr-max
          next-max
          curr-max-found
@@ -3848,7 +3848,9 @@ information.
                             (+ after-change-max 100)
                           max))
                (use-min (max (- pos 2) (point-min)))
-               (syntax-min-max (when curr-border-fun (funcall curr-border-fun)))
+               (syntax-min-max (when curr-border-fun (funcall curr-border-fun
+                                                              (overlay-end after-chunk)
+                                                              nil nil)))
                (syntax-min (or (car syntax-min-max)
                                (when after-chunk (overlay-end after-chunk))
                                1)))
@@ -3859,9 +3861,7 @@ information.
           ;; searches, but this catches most problems I think.
           ;;(msgtrc "find-next-chunk-values:here c, curr-min=%s, after-chunk=%s" curr-min after-chunk)
           (or (not curr-end-fun-end)
-              ;;(progn (msgtrc "find-next-chunk-values:here c2, curr-min=%s, after-chunk=%s" curr-min after-chunk) nil)
-              ;;(progn (msgtrc "find-next-chunk-values:before end-in-code: %s %s %s" syntax-min curr-end-fun curr-major) nil)
-              (mumamo-end-in-code syntax-min curr-end-fun-end curr-major)
+              (mumamo-end-in-code syntax-min (1- curr-end-fun-end) curr-major)
               (setq curr-end-fun-end nil))
           ;; Use old result if valid
           (and (not curr-end-fun-end)
@@ -4094,16 +4094,18 @@ the sexp syntax using major mode MAJOR."
   (mumamo-msgfntfy "point-min,max=%s,%s syntax-start,end=%s,%s, major=%s" (point-min) (point-max) syntax-start syntax-end major)
   ;;(msgtrc "end-in-code:here a  after-chunk=%s" (when (boundp 'after-chunk) after-chunk))
   (assert (and syntax-start syntax-end) t)
-  (save-restriction
-    (widen)
-    ;;(msgtrc "end-in-code:here a2  after-chunk=%s" (when (boundp 'after-chunk) after-chunk))
-    (mumamo-with-major-mode-fontification major
-      `(progn
-         (let (ppss ret)
+  (let ((doesnt-here (point))
+        doesnt-ret)
+    (save-restriction
+      (widen)
+      ;;(msgtrc "end-in-code:here a2  after-chunk=%s" (when (boundp 'after-chunk) after-chunk))
+      (mumamo-with-major-mode-fontification major
+        `(let (ppss)
            ;; fix-me: Use main major mode, and `syntax-ppss'. Change the
            ;; defadvice of this to make that possible.
            ;;(msgtrc "end-in-code:here b  after-chunk=%s" (when (boundp 'after-chunk) after-chunk))
            (setq ppss (parse-partial-sexp ,syntax-start (+ ,syntax-end 0)))
+           ;;(msgtrc "end-in-code %s %s %s:ppss=%S" ,syntax-start ,syntax-end ',major ppss)
            ;;(msgtrc "end-in-code:here c  after-chunk=%s" (when (boundp 'after-chunk) after-chunk))
            ;; If inside a string or comment then the end marker is
            ;; invalid:
@@ -4111,12 +4113,15 @@ the sexp syntax using major mode MAJOR."
            (if (or (nth 3 ppss)
                    (nth 4 ppss))
                (progn
-                 ;;(message "invalid end, syntax-end =%s" syntax-end)
-                 t
-                 nil
+                 ;;(msgtrc "invalid end, syntax-end =%s" syntax-end)
+                 (setq doesnt-ret nil)
                  )
-             ;;(message "valid end, syntax-end =%s" syntax-end)
-             t))))))
+             (setq doesnt-ret t)
+             ;;(msgtrc "valid end, syntax-end =%s" syntax-end)
+             ))))
+    (goto-char doesnt-here)
+    ;;(msgtrc "end-in-code:ret=%s" doesnt-ret)
+    doesnt-ret))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Easy chunk defining
@@ -5770,11 +5775,16 @@ mode in the chunk family is nil."
     (when (boundp 'flyspell-generic-check-word-predicate)
       (setq flyspell-generic-check-word-predicate 'mumamo-flyspell-verify))
     (run-hooks 'mumamo-turn-on-hook)
-    (mumamo-get-chunk-save-buffer-state (point))
-    (let* ((ovl (mumamo-find-chunks (point) "mumamo-turn-on-actions"))
-           (major (mumamo-chunk-major-mode ovl)))
-      (mumamo-set-major major))
-    (mumamo-find-chunks nil "mumamo-turn-on-actions")
+    ;;(mumamo-get-chunk-save-buffer-state (point))
+    (dolist (win (get-buffer-window-list))
+      (let ((wp (or (window-end win)
+                    (window-point win)
+                    (window-start win))))
+        (mumamo-get-chunk-save-buffer-state wp)
+        (when (eq win (selected-window))
+          (let* ((ovl (mumamo-find-chunks wp "mumamo-turn-on-actions"))
+                 (major (mumamo-chunk-major-mode ovl)))
+            (mumamo-set-major major)))))
     ;;(msgtrc "mumamo-turn-on-action exit: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
     ;; This did not help for Emacs bug 3467:
     ;;(set-default 'font-lock-keywords-only nil)
