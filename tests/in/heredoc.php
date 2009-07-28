@@ -7,6 +7,7 @@ echo <<<EOF
 
  This is a heredoc text-mode section.
  For more information talk to $name, your local $occupation.
+ type type hej hejxyyy
 
 EOF;
 
