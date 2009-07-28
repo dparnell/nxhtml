@@ -3612,6 +3612,17 @@ The first two are used when the bottom:
                        font-lock-beginning-of-syntax-function)))))
           (mumamo-msgfntfy "Got syntax-begin-function, modified=%s" (buffer-modified-p))
           (overlay-put this-chunk 'syntax-begin-function syntax-begin-function))
+        ;; Fix-me: This is not displayed. Emacs bug?
+        ;;(overlay-put this-chunk 'before-string `((margin left-margin) ,(format "%d %s" depth maj)))
+        (let ((str (format "%d %s" depth (substring (symbol-name maj) 0 -5))))
+          (when (> (length str) 8) (setq str (substring str 0 7)))
+          (setq str (propertize str 'face
+                                (list :foreground "#a0a0a0" :underline nil
+                                      :background (frame-parameter nil 'background-color)
+                                      :slant 'normal)))
+          (overlay-put this-chunk 'before-string
+                       (propertize " " 'display
+                                   `((margin left-margin) ,str))))
         )
       ;;(msgtrc "Created %s, this=%s, next=%s" this-chunk this-values next-values)
       this-chunk
@@ -3711,7 +3722,7 @@ Add chunk family from multi major mode MULTI-MAJOR to
          (major      (nth 1 chunk-family)))
     (let ((major-mode major))
       (when (derived-mode-p 'nxml-mode)
-        (error "Major mode %s major can't be used in sub chunks")))
+        (error "Major mode %s major can't be used in sub chunks" major)))
     (add-to-list 'mumamo-sub-chunk-families (list major chunk-family))))
 
 (defun mumamo-find-next-chunk-values (after-chunk from after-change-max chunk-at-after-change)
