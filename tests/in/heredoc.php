@@ -34,6 +34,13 @@ border="0"
 class="bot" id="imprimir"/>
 </a>
 
+<?php
+
+echo <<<ONEMORELEVEL
+Just for testing the chunk background color...
+ONEMORELEVEL;
+?>
+
 HTMLEOF;
 echo strtolower($toprint);
 

@@ -670,9 +670,9 @@ This covers inlined style and javascript and PHP."
 
 (defun mumamo-alt-php-write-contents ()
   "For `write-contents-functions' when `mumamo-chunk-alt-php' is used."
-  (save-match-data
-    (save-restriction
-      (let ((here (point)))
+  (let ((here (point)))
+    (save-match-data
+      (save-restriction
         (widen)
         (condition-case nil
             (atomic-change-group
@@ -689,8 +689,8 @@ This covers inlined style and javascript and PHP."
                 (basic-save-buffer-1)
                 (signal 'mumamo-error-ind-0 nil)))
           (mumamo-error-ind-0)))
-      (set-buffer-modified-p nil)
-      (goto-char here)))
+      (set-buffer-modified-p nil))
+    (goto-char here))
   ;; saved, return t
   t)
 
@@ -1280,6 +1280,7 @@ Supported values are 'perl."
               fw-exc-fun
               border-fun
               start-outer
+              ps
               )
           (goto-char pos)
           (beginning-of-line)
@@ -1389,7 +1390,8 @@ Supported values are 'perl."
               (setq border-fun `(lambda (start end exc-mode)
                                   ;; Fix-me: use lengths...
                                   (list (+ start (- ,start-inner ,start-outer 1))
-                                        (- end ,(1+ (length heredoc-mark))))))
+                                        (when end
+                                          (- end ,(1+ (length heredoc-mark)))))))
               (setq fw-exc-fun `(lambda (pos max)
                                   (save-match-data
                                     (let ((here (point)))

@@ -58,6 +58,8 @@
 
 ;; Partly after an idea on EmacsWiki
 
+(defconst mozadd-edited-buffer nil)
+
 ;;;###autoload
 (define-minor-mode mozadd-refresh-edited-on-save-mode
   "Refresh mozadd edited file in Firefox when saving file.
@@ -70,7 +72,7 @@ The mozadd edited file must be shown in Firefox and visible."
   :lighter "MozRefresh"
   (if mozadd-refresh-edited-on-save-mode
       (add-hook 'after-save-hook 'mozadd-queue-reload-mozilla-edited-file nil t)
-    (remove-hook 'after-save-hook 'mozadd-queue-reload-mozilla-edited-file nil t)))
+    (remove-hook 'after-save-hook 'mozadd-queue-reload-mozilla-edited-file t)))
 (put 'mozadd-refresh-edited-on-save-mode 'permanent-local t)
 
 ;;;###autoload
@@ -163,8 +165,6 @@ The mozadd edited file must be shown in Firefox and visible."
     comint-output
     ""
     ))
-
-(defconst mozadd-edited-buffer nil)
 
 (defun mozadd-queue-send-buffer-content-to-mozilla (buffer)
   (mozadd-add-queue-get-mirror-location)
@@ -278,11 +278,6 @@ The mozadd edited file must be shown in Firefox and visible."
   ;;(message "mozadd-requeue-me-as-task %S %S" input task)
   (setq mozadd-task-queue (cons (list input task) mozadd-task-queue)))
 
-(defun mozadd-edited-buffer-post-command ()
-  "Check if we are in a new edited buffer."
-  (when mozadd-mirror-mode
-    (setq mozadd-edited-buffer (current-buffer))))
-
 (defcustom mozadd-browseable-file-extensions
   '("html" "htm" "xhtml")
   "File extensions possibly viewable in a web browser."
@@ -346,6 +341,11 @@ See also `mozadd-refresh-edited-on-save-mode'."
   (lambda ()
     (when (mozadd-html-buffer-file-p)
       (mozadd-mirror-mode 1))))
+
+(defun mozadd-edited-buffer-post-command ()
+  "Check if we are in a new edited buffer."
+  (when mozadd-mirror-mode
+    (setq mozadd-edited-buffer (current-buffer))))
 
 
 (defvar mozadd-buffer-content-to-mozilla-timer nil)

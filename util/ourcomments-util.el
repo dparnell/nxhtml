@@ -2094,6 +2094,7 @@ Return full path if found."
          link-link
          link-link-beg
          link-link-end
+         new-link
          dir
          ovl)
     (when (and on-link

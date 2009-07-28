@@ -103,6 +103,77 @@ This is a list where the records have the form
 (put 'nxml-where-once-update-timer 'permanent-local t)
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Custom options
+
+(defgroup nxml-where nil
+  "Customization group for nxml-where."
+  :group 'nxhtml
+  :group 'nxml)
+
+(define-toggle nxml-where-only-inner nil
+  "Mark only inner-most tag."
+  :set (lambda (sym val)
+         (set-default sym val)
+         (nxml-where-update-buffers))
+  :group 'nxml-where)
+
+(define-toggle nxml-where-header t
+  "Show header with XML-path if non-nil."
+  :set (lambda (sym val)
+         (set-default sym val)
+         (nxml-where-update-buffers))
+  :group 'nxml-where)
+
+(define-toggle nxml-where-tag+id t
+  "Show tags + id in path if non-nil.
+If nil show only tag names."
+  :set (lambda (sym val)
+         (set-default sym val)
+         (nxml-where-update-buffers))
+  :group 'nxml-where)
+
+(define-toggle nxml-where-marks t
+  "Show marks in buffer for XML-path if non-nil."
+  :set (lambda (sym val)
+         (set-default sym val)
+         (nxml-where-update-buffers))
+  :group 'nxml-where)
+
+(define-toggle nxml-where-only-tags-with-id t
+  "Show only tags with id in the header line."
+  :set (lambda (sym val)
+         (set-default sym val)
+         (nxml-where-update-buffers))
+  :group 'nxml-where)
+
+(defface nxml-where-marking
+  '((t (:inherit secondary-selection)))
+  "The default face used for marking tags in path."
+  :group 'nxml-where)
+
+(defcustom nxml-where-marking 'nxml-where-marking
+  "Variable pointing to the face used for marking tags in path."
+  :type 'face
+  :set (lambda (sym val)
+         (set-default sym val)
+         (nxml-where-update-buffers))
+  :group 'nxml-where)
+
+(defcustom nxml-where-header-attributes '("id" "name")
+  "List of attributes `nxml-where-header' should display."
+  :type '(repeat string)
+  :set (lambda (sym val)
+         (set-default sym val)
+         (nxml-where-update-buffers))
+  :group 'nxml-where)
+
+(defcustom nxml-where-widen t
+  "If non-nil and narrowed widen before getting XML path."
+  :type 'boolean
+  :group 'nxml-where)
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Auto updating
@@ -208,77 +279,6 @@ Ie we have run at least once post command."
 (defun nxml-where-stop-updating ()
   (remove-hook 'post-command-hook 'nxml-where-restart-update t))
 
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Custom options
-
-(defgroup nxml-where nil
-  "Customization group for nxml-where."
-  :group 'nxhtml
-  :group 'nxml)
-
-(define-toggle nxml-where-only-inner nil
-  "Mark only inner-most tag."
-  :set (lambda (sym val)
-         (set-default sym val)
-         (nxml-where-update-buffers))
-  :group 'nxml-where)
-
-(define-toggle nxml-where-header t
-  "Show header with XML-path if non-nil."
-  :set (lambda (sym val)
-         (set-default sym val)
-         (nxml-where-update-buffers))
-  :group 'nxml-where)
-
-(define-toggle nxml-where-tag+id t
-  "Show tags + id in path if non-nil.
-If nil show only tag names."
-  :set (lambda (sym val)
-         (set-default sym val)
-         (nxml-where-update-buffers))
-  :group 'nxml-where)
-
-(define-toggle nxml-where-marks t
-  "Show marks in buffer for XML-path if non-nil."
-  :set (lambda (sym val)
-         (set-default sym val)
-         (nxml-where-update-buffers))
-  :group 'nxml-where)
-
-(define-toggle nxml-where-only-tags-with-id t
-  "Show only tags with id in the header line."
-  :set (lambda (sym val)
-         (set-default sym val)
-         (nxml-where-update-buffers))
-  :group 'nxml-where)
-
-(defface nxml-where-marking
-  '((t (:inherit secondary-selection)))
-  "The default face used for marking tags in path."
-  :group 'nxml-where)
-
-(defcustom nxml-where-marking 'nxml-where-marking
-  "Variable pointing to the face used for marking tags in path."
-  :type 'face
-  :set (lambda (sym val)
-         (set-default sym val)
-         (nxml-where-update-buffers))
-  :group 'nxml-where)
-
-(defcustom nxml-where-header-attributes '("id" "name")
-  "List of attributes `nxml-where-header' should display."
-  :type '(repeat string)
-  :set (lambda (sym val)
-         (set-default sym val)
-         (nxml-where-update-buffers))
-  :group 'nxml-where)
-
-(defcustom nxml-where-widen t
-  "If non-nil and narrowed widen before getting XML path."
-  :type 'boolean
-  :group 'nxml-where)
 
 
 

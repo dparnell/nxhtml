@@ -48,6 +48,9 @@
 ;;; Code:
 
 (defvar cusnu-my-skin-widget nil)
+
+(defvar cusnu-insert-os-spec-fun nil)
+
 ;;(customize-for-new-user)
 ;;;###autoload
 (defun customize-for-new-user (&optional name)
@@ -187,8 +190,8 @@ For the most common ones you can decide if you want to use them here:
       (fill-region fill-pos (point))
       (cusnu-mark-part-desc fill-pos (point))
 
-      (if cusno-insert-os-spec-fun
-          (funcall cusno-insert-os-spec-fun)
+      (if cusnu-insert-os-spec-fun
+          (funcall cusnu-insert-os-spec-fun)
        (widget-insert "No OS specific customizations.\n"))
 
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -259,14 +262,12 @@ Please change the group symbol name to something specific for you.
       (buffer-enable-undo)
       (goto-char (point-min)))))
 
-(defvar cusno-insert-os-spec-fun nil)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Example on Emacs+Emacw32
 (when (fboundp 'emacsw32-version)
   (defun cusnu-emacsw32-show-custstart (&rest args)
     (emacsw32-show-custstart))
-  (setq cusno-insert-os-spec-fun 'cusnu-insert-emacsw32-specific-part)
+  (setq cusnu-insert-os-spec-fun 'cusnu-insert-emacsw32-specific-part)
   (defun cusnu-insert-emacsw32-specific-part ()
     (cusnu-insert-options '((w32-meta-style custom-variable)))
     (widget-insert "\n")
@@ -781,19 +782,19 @@ See also the comment in the exported file."
       (insert (format "\n(customize-group '%s)\n" group))
       )))
 
-(defun cusnu-get-options-and-faces (members groups options faces)
-  (dolist (mem members)
-    (inser ";; mem=%s\n" mem)
+(defun cusnu-get-options-and-faces (members groups-par options-par faces-par)
+  (dolist (sym members)
+    (insert (format ";; sym=%s\n" sym))
     (cond ((and (get sym 'custom-type)
            (or (get sym 'saved-value)
                (get sym 'customize-value)))
-           (add-to-list options sym))
+           (add-to-list options-par sym))
           ((and (get sym 'face)
-                (get opt 'customized-face))
-           (add-to-list groups))
+                (get sym 'customized-face))
+           (add-to-list faces-par sym))
           ((get sym 'custom-group)
            (unless (memq sym groups) ;; Don't loop
-             (cusnu-get-options-and-faces groups options faces)))
+             (cusnu-get-options-and-faces groups-par options-par faces-par)))
           (t (insert ";; Not a custom variable or face: %s\n" sym)))))
 
 (provide 'cus-new-user)

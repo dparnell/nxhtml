@@ -140,7 +140,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19047 38943))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19050 57180))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -184,7 +184,7 @@ Show a HTML page with an overview of nXhtml.
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
 ;;;;;;  nxhtml-mode) "../nxhtml/nxhtml-mode" "nxhtml/nxhtml-mode.el"
-;;;;;;  (19039 51646))
+;;;;;;  (19050 24975))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 
 (when (fboundp 'nxml-mode)
@@ -366,7 +366,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxml-where-global-mode nxml-where-mode) "../nxhtml/nxml-where"
-;;;;;;  "nxhtml/nxml-where.el" (19047 35771))
+;;;;;;  "nxhtml/nxml-where.el" (19054 16913))
 ;;; Generated autoloads from nxhtml/nxml-where.el
 
 (autoload 'nxml-where-mode "../nxhtml/nxml-where" "\
@@ -500,7 +500,7 @@ Key bindings:
 ;;;***
 
 ;;;### (autoloads (inferior-moz-mode moz-minor-mode) "../related/moz"
-;;;;;;  "related/moz.el" (19046 34053))
+;;;;;;  "related/moz.el" (19047 42030))
 ;;; Generated autoloads from related/moz.el
 
 (autoload 'moz-minor-mode "../related/moz" "\
@@ -529,11 +529,17 @@ Major mode for interacting with Firefox via MozRepl.
 
 ;;;### (autoloads (global-mozadd-mirror-mode mozadd-mirror-mode global-mozadd-refresh-edited-on-save-mode
 ;;;;;;  mozadd-refresh-edited-on-save-mode) "../related/mozadd" "related/mozadd.el"
-;;;;;;  (19047 37899))
+;;;;;;  (19054 17156))
 ;;; Generated autoloads from related/mozadd.el
 
 (autoload 'mozadd-refresh-edited-on-save-mode "../related/mozadd" "\
-Refresh mozadd edited file when saving file.
+Refresh mozadd edited file in Firefox when saving file.
+The mozadd edited file is the file in the last buffer visited in
+`mozadd-mirror-mode'.
+
+You can use this for example when you edit CSS files.
+
+The mozadd edited file must be shown in Firefox and visible.
 
 \(fn &optional ARG)" t nil)
 
@@ -555,7 +561,19 @@ See `mozadd-refresh-edited-on-save-mode' for more information on Mozadd-Refresh-
 \(fn &optional ARG)" t nil)
 
 (autoload 'mozadd-mirror-mode "../related/mozadd" "\
-Mirror content of current buffer immediately in Firefox.
+Mirror content of current file buffer immediately in Firefox.
+When you turn on this mode the file will be opened in Firefox.
+Every change you make in the buffer will trigger a redraw in
+Firefox - regardless of if you save the file or not.
+
+For the mirroring to work the edited file must be shown in
+Firefox and visible.
+
+If `nxml-where-mode' is on the marks will also be shown in
+Firefox as CSS outline style.  You can customize the style
+through the option `mozadd-xml-path-outline-style'.
+
+See also `mozadd-refresh-edited-on-save-mode'.
 
 \(fn &optional ARG)" t nil)
 
@@ -1434,7 +1452,7 @@ Below are some examples.  To test them mark an example and do
   Size: 400 130
   Data: 300 1000 30000
   Type: bar-chart-horizontal
-  Chart-title: \"Vad killen i slips tjänar jämfört med dig och mig\"
+  Chart-title: \"Vad killen i slips tjÃ¤nar jÃ¤mfÃ¶rt med dig och mig\"
   Google-chart-raw: \"&chds=0,30000&chco=00cd00|ff4500|483d8b&chxt=y,x&chxl=0:|Killen+i+slips|Partiledarna|Du+och+jag&chf=bg,s,ffd700\"
 
 
@@ -1824,7 +1842,7 @@ See `css-palette-mode' for more information on Css-Palette mode.
 ;;;***
 
 ;;;### (autoloads (cusnu-export-my-skin-options customize-for-new-user)
-;;;;;;  "cus-new-user" "util/cus-new-user.el" (19045 34860))
+;;;;;;  "cus-new-user" "util/cus-new-user.el" (19054 18225))
 ;;; Generated autoloads from util/cus-new-user.el
 
 (autoload 'customize-for-new-user "cus-new-user" "\
@@ -1997,7 +2015,7 @@ entities, so you should even be able to do html-within-html
 fontified display.
 
 You should, however, note that random control or eight-bit
-characters such as ^L () or ¤ (\244) won't get mapped yet.
+characters such as ^L () or Â¤ (\244) won't get mapped yet.
 
 If the SRCDIR and FILE arguments are set, lookup etags derived
 entries in the `hfy-tags-cache' and add html anchors and
@@ -2112,7 +2130,7 @@ The hyperlinks can be hilighted when point is over them.  Use
 `mlinks-toggle-hilight' to toggle this feature for the current
 buffer.
 
-All keybindings in this mode are by default done under the prefi§x
+All keybindings in this mode are by default done under the prefiÂ§x
 key
 
   C-c RET
@@ -2134,7 +2152,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19046 9160))
+;;;;;;  "mumamo" "util/mumamo.el" (19054 18503))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -2157,7 +2175,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  jsp-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  nxml-mumamo-mode html-mumamo-mode) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19046 5054))
+;;;;;;  (19054 18472))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -2332,7 +2350,7 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
 ;;;;;;  major-modep major-or-multi-majorp unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19033 23755))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19054 18589))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -3136,9 +3154,9 @@ Not documented
 ;;;***
 
 ;;;### (autoloads nil nil ("autostart.el" "autostart22.el" "etc/schema/schema-path-patch.el"
-;;;;;;  "nxhtml/doc/cedet-build.el" "nxhtml/html-chklnk.el" "nxhtml/html-imenu.el"
-;;;;;;  "nxhtml/html-move.el" "nxhtml/html-quote.el" "nxhtml/html-wtoc.el"
-;;;;;;  "nxhtml/nxhtml-anything-1.el" "nxhtml/nxhtml-autoload.el"
+;;;;;;  "nxhtml-loaddefs-batch.el" "nxhtml/doc/cedet-build.el" "nxhtml/html-chklnk.el"
+;;;;;;  "nxhtml/html-imenu.el" "nxhtml/html-move.el" "nxhtml/html-quote.el"
+;;;;;;  "nxhtml/html-wtoc.el" "nxhtml/nxhtml-anything-1.el" "nxhtml/nxhtml-autoload.el"
 ;;;;;;  "nxhtml/nxhtml-strval.el" "nxhtml/nxhtmljs.el" "nxhtml/outline-magic.el"
 ;;;;;;  "nxhtml/wtest.el" "related/flymake-helpers.el" "related/flymake-js.el"
 ;;;;;;  "related/flymake-keys.el" "related/flymake-php.el" "related/flymu.el"
@@ -3156,12 +3174,12 @@ Not documented
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
 ;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (19047 39148 656000))
+;;;;;;  (19054 18792 687000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (19023 29587))
+;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (19054 16471))
 ;;; Generated autoloads from nxhtmlmaint.el
 
 (autoload 'nxhtmlmaint-start-byte-compilation "../nxhtmlmaint" "\
