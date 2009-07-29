@@ -1226,7 +1226,7 @@ This also covers inlined style and javascript."
     ("JAVASCRIPT" javascript-mode)
     ("JAVA" java-mode)
     )
-  "Matches for perl here doc modes.
+  "Matches for heredoc modes.
 The entries in this list have the form
 
   (REGEXP MAJOR-MODE-SPEC)
@@ -1241,7 +1241,7 @@ The major mode spec is translated to a major mode using
           (list
            regexp
            (function :tag "Major mode")))
-  :group 'mumamo)
+  :group 'mumamo-modes)
 
 (defun mumamo-mode-for-heredoc (marker)
   "Return major mode associated with MARKER.
@@ -1418,13 +1418,13 @@ and MAX."
     r))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode sh-mumamo-heredoc-mode
+(define-mumamo-multi-major-mode sh-heredoc-mumamo-mode
   "Turn on multiple major modes for sh heredoc document.
 See `mumamo-heredoc-modes' for how to specify heredoc major modes."
   ("SH HereDoc" sh-mode
    (mumamo-chunk-sh-heredoc
     )))
-(mumamo-inherit-sub-chunk-family 'sh-mumamo-heredoc-mode)
+(mumamo-inherit-sub-chunk-family 'sh-heredoc-mumamo-mode)
 
 
 ;;;; PHP heredoc
@@ -1437,13 +1437,13 @@ and MAX."
     r))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode php-mumamo-heredoc-mode
+(define-mumamo-multi-major-mode php-heredoc-mumamo-mode
   "Turn on multiple major modes for PHP heredoc document.
 See `mumamo-heredoc-modes' for how to specify heredoc major modes."
   ("PHP HereDoc" php-mode
    (mumamo-chunk-php-heredoc
     )))
-(mumamo-inherit-sub-chunk-family 'php-mumamo-heredoc-mode)
+(mumamo-inherit-sub-chunk-family 'php-heredoc-mumamo-mode)
 
 
 ;;;; Perl heredoc
@@ -1456,16 +1456,16 @@ and MAX."
     r))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode perl-mumamo-heredoc-mode
+(define-mumamo-multi-major-mode perl-heredoc-mumamo-mode
   "Turn on multiple major modes for Perl heredoc document.
 See `mumamo-heredoc-modes' for how to specify heredoc major modes."
   ("Perl HereDoc" perl-mode
    (mumamo-chunk-perl-heredoc
     )))
-(mumamo-inherit-sub-chunk-family 'perl-mumamo-heredoc-mode)
+(mumamo-inherit-sub-chunk-family 'perl-heredoc-mumamo-mode)
 
 ;;;###autoload
-(define-mumamo-multi-major-mode cperl-mumamo-heredoc-mode
+(define-mumamo-multi-major-mode cperl-heredoc-mumamo-mode
   "Turn on multiple major modes for Perl heredoc document.
 See `mumamo-heredoc-modes' for how to specify heredoc major modes.
 
@@ -1474,7 +1474,7 @@ Note: I have seen some problems with this.  Use
   ("Perl HereDoc" cperl-mode
    (mumamo-chunk-perl-heredoc
     )))
-(mumamo-inherit-sub-chunk-family 'cperl-mumamo-heredoc-mode)
+(mumamo-inherit-sub-chunk-family 'cperl-heredoc-mumamo-mode)
 
 
 ;;;; Python heredoc
@@ -1487,13 +1487,13 @@ and MAX."
     r))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode python-mumamo-heredoc-mode
+(define-mumamo-multi-major-mode python-heredoc-mumamo-mode
   "Turn on multiple major modes for Perl heredoc document.
 See `mumamo-heredoc-modes' for how to specify heredoc major modes."
   ("Python HereDoc" python-mode
    (mumamo-chunk-python-heredoc
     )))
-(mumamo-inherit-sub-chunk-family 'python-mumamo-heredoc-mode)
+(mumamo-inherit-sub-chunk-family 'python-heredoc-mumamo-mode)
 
 
 ;;;; Ruby heredoc
@@ -1506,13 +1506,13 @@ and MAX."
     r))
 
 ;;;###autoload
-(define-mumamo-multi-major-mode ruby-mumamo-heredoc-mode
+(define-mumamo-multi-major-mode ruby-heredoc-mumamo-mode
   "Turn on multiple major modes for Ruby heredoc document.
 See `mumamo-heredoc-modes' for how to specify heredoc major modes."
   ("Ruby HereDoc" ruby-mode
    (mumamo-chunk-ruby-heredoc
     )))
-(mumamo-inherit-sub-chunk-family 'ruby-mumamo-heredoc-mode)
+(mumamo-inherit-sub-chunk-family 'ruby-heredoc-mumamo-mode)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1891,15 +1891,20 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; noweb
 
+(defgroup mumamo-noweb2 nil
+  "Customization group for `noweb2-mumamo-mode'."
+  :group 'mumamo-modes)
+
 (defcustom mumamo-noweb2-mode-from-ext
   '(
     ("php" . php-mode)
     ("c" . c-mode)
     )
-  "File extension regexp to major mode mapping."
+  "File extension regexp to major mode mapping.
+Used by `noweb2-mumamo-mode'."
   :type '(repeat
           (cons regexp major-mode-function))
-  :group 'mumamo)
+  :group 'mumamo-noweb2)
 
 (defvar mumamo-noweb2-found-mode-from-ext nil
   "Major modes determined from file names.  Internal use.")

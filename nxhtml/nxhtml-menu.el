@@ -823,9 +823,23 @@
               :visible `(not (derived-mode-p 'dired-mode))
               :enable '(and (boundp 'mumamo-multi-major-mode)
                             mumamo-multi-major-mode)))
+      (define-key chunk-map [nxhtml-customize-mumamo]
+        (list 'menu-item "Customize MuMaMo"
+              (lambda () (interactive) (customize-group-other-window 'mumamo))))
+      (define-key chunk-map [nxhtml-list-mumamo]
+        (list 'menu-item "List defined Multi Major Modes"
+              'mumamo-list-defined-multi-major-modes))
+      (define-key chunk-map [nxhtml-chunks-separator2]
+        (list 'menu-item "--" nil))
+      (define-key chunk-map [nxhtml-chunk-margin-info]
+        (list 'menu-item "Display chunk info in margin"
+              'mumamo-margin-info-global-mode
+              :button '(:toggle . mumamo-margin-info-global-mode)))
+      (define-key chunk-map [nxhtml-chunks-separator1]
+        (list 'menu-item "--" nil))
       (let ((region-map (make-sparse-keymap)))
         (define-key chunk-map [nxhtml-region-map]
-          (list 'menu-item "Region Chunks" region-map))
+          (list 'menu-item "Make Chunks from Visible Region" region-map))
         (define-key region-map [mumamo-clear-all-regions]
           (list 'menu-item "Clear Region Chunks"
                 'mumamo-clear-all-regions
