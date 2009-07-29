@@ -1290,7 +1290,11 @@ in this part of the buffer."
                       (< first-check-from (overlay-end mumamo-last-chunk)))
             (setq mumamo-old-tail mumamo-last-chunk)
             (overlay-put mumamo-old-tail 'mumamo-is-new nil)
-            (overlay-put mumamo-old-tail 'face nil)
+            (when t ;; For debugging
+              (overlay-put mumamo-old-tail
+                           'face
+                           (list :background
+                                 (format "red%d" (overlay-get mumamo-old-tail 'mumamo-depth)))))
             (setq mumamo-last-chunk
                   (overlay-get mumamo-last-chunk 'mumamo-prev-chunk)))
           ;; Delete empty chunks at end, will be recreated if really needed
@@ -1390,7 +1394,7 @@ in this part of the buffer."
                             (overlay-buffer mumamo-old-tail)
                             (setq mumamo-old-tail nil))
                         ;; Loop for fit
-                        (msgtrc "for fit:old-tail=%s, this-new=%s" mumamo-old-tail this-new-values)
+                        ;;(msgtrc "for fit:old-tail=%s, this-new=%s" mumamo-old-tail this-new-values)
                         (setq while-n2 1)
                         (while (and (> 500 (setq while-n2 (1+ while-n2)))
                                     (and mumamo-old-tail (< (overlay-start mumamo-old-tail) ok-pos)))
