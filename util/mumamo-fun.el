@@ -84,7 +84,6 @@ See `mumamo-chunk-style=' for an example of use."
 
 (defun mumamo-chunk-attr=-new-fw-exc-fun (pos max)
   ;;(msgtrc "(mumamo-chunk-attr=-new-fw-exc-fun %s %s)" pos max)
-  ;;(message "backtrace=\n%s" (with-output-to-string (backtrace)))
   (save-match-data
     (let ((here (point))
           first-dq
@@ -97,7 +96,8 @@ See `mumamo-chunk-style=' for an example of use."
       (unless (bobp)
         (backward-char)
         (condition-case err
-            (setq next-dq (scan-sexps (point) 1))
+            (with-syntax-table (standard-syntax-table)
+              (setq next-dq (scan-sexps (point) 1)))
           (error nil)))
       (prog1
           next-dq
