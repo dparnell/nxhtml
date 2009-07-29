@@ -64,7 +64,7 @@
 ;;
 ;; The multiple major mode support is turned on by calling special
 ;; functions which are used nearly the same way as major modes.  See
-;; `mumamo-defined-turn-on-functions' for more information about those
+;; `mumamo-defined-multi-major-modes' for more information about those
 ;; functions.
 ;;
 ;; Each such function defines how to take care of a certain mix of
@@ -599,6 +599,348 @@ text buttons."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Custom group
 
+(defgroup mumamo nil
+  "Customization group for multiple major modes in a buffer."
+  :group 'editing
+  :group 'languages
+  :group 'sgml
+  :group 'nxhtml
+  )
+
+;;(setq mumamo-set-major-mode-delay -1)
+;;(setq mumamo-set-major-mode-delay 5)
+(defcustom mumamo-set-major-mode-delay idle-update-delay
+  "Delay this number of seconds before setting major mode.
+When point enters a region where the major mode should be
+different than the current major mode, wait until Emacs has been
+idle this number of seconds before switching major mode.
+
+If negative switch major mode immediately.
+
+Ideally the switching of major mode should occur immediately when
+entering a region.  However this can make movements a bit unsmooth
+for some major modes on a slow computer.  Therefore on a slow
+computer use a short delay.
+
+If you have a fast computer and want to use mode specific
+movement commands then set this variable to -1.
+
+I tried to measure the time for switching major mode in mumamo.
+For most major modes it took 0 ms, but for `nxml-mode' and its
+derivate it took 20 ms on a 3GHz CPU."
+  :type 'number
+  :group 'mumamo)
+
+
+(defgroup mumamo-display nil
+  "Customization group for mumamo chunk display."
+  :group 'mumamo)
+
+(defun mumamo-update-this-buffer-margin-use ()
+  (mumamo-update-buffer-margin-use (current-buffer)))
+
+(define-minor-mode mumamo-margin-info-mode
+  "Display chunk info in margin when on.
+Display chunk depth and major mode where a chunk begin in left or
+right margin.  \(The '-mode' part of the major mode is stripped.)
+
+See also `mumamo-margin-use'."
+  :group 'mumamo-display
+  (mumamo-update-this-buffer-margin-use)
+  (if mumamo-margin-info-mode
+      (add-hook 'window-configuration-change-hook 'mumamo-update-this-buffer-margin-use nil t)
+    (remove-hook 'window-configuration-change-hook 'mumamo-update-this-buffer-margin-use t)))
+
+(define-globalized-minor-mode mumamo-margin-info-global-mode mumamo-margin-info-mode
+  (lambda () (when (and (boundp 'mumamo-multi-major-mode)
+                        mumamo-multi-major-mode)
+               (mumamo-margin-info-mode 1)))
+  :group 'mumamo-display)
+
+(defcustom mumamo-margin-use '(left-margin 13)
+  "Display chunk info in left or right margin if non-nil."
+  :type '(list (radio (const :tag "Display chunk info in left margin" left-margin)
+                      (const :tag "Display chunk info in right margin" right-margin))
+               (integer :tag "Margin width (when used)" :value 13))
+  :set (lambda (sym val)
+         (set-default sym val)
+         (when (fboundp 'mumamo-update-all-buffers-margin-use)
+           (mumamo-update-all-buffers-margin-use)))
+  :group 'mumamo-display)
+
+(defun mumamo-update-all-buffers-margin-use ()
+  (dolist (buf (buffer-list))
+    (mumamo-update-buffer-margin-use buf)))
+
+(defun mumamo-update-buffer-margin-use (buffer)
+  (when (fboundp 'mumamo-update-chunks-margin-display)
+    (with-current-buffer buffer
+      (when mumamo-multi-major-mode
+        (mumamo-update-chunks-margin-display buffer)
+        (dolist (win (get-buffer-window-list buffer))
+          (mumamo-set-window-margins-used win))))))
+
+(defcustom mumamo-chunk-coloring 0
+  "Color chunks with depth greater than or equal to this.
+When 0 all chunks will be colored.  If 1 all sub mode chunks will
+be colored, etc."
+  :type '(integer :tag "Color chunks with depth greater than this")
+  :group 'mumamo-display)
+
+(defface mumamo-background-chunk-major
+  '((((class color) (min-colors 88) (background dark))
+     ;;:background "blue3")
+     :background "midnight blue")
+    (((class color) (min-colors 88) (background light))
+     ;;:background "lightgoldenrod2")
+     :background "cornsilk")
+    (((class color) (min-colors 16) (background dark))
+     :background "blue4")
+    (((class color) (min-colors 16) (background light))
+     :background "cornsilk")
+    (((class color) (min-colors 8))
+     :background "blue")
+    (((type tty) (class mono))
+     :inverse-video t)
+    (t :background "gray"))
+  "Background colors for chunks in sub modes.
+You should only specify :background here, otherwise it will
+interfere with syntax highlighting."
+  :group 'mumamo-display)
+
+(defface mumamo-background-chunk-submode1
+  '((((class color) (min-colors 88) (background dark))
+     ;;:background "blue3")
+     :background "dark green")
+    (((class color) (min-colors 88) (background light))
+     ;;:background "lightgoldenrod2")
+     :background "azure")
+    (((class color) (min-colors 16) (background dark))
+     :background "blue3")
+    (((class color) (min-colors 16) (background light))
+     :background "azure")
+    (((class color) (min-colors 8))
+     :background "blue")
+    (((type tty) (class mono))
+     :inverse-video t)
+    (t :background "gray"))
+  "Background colors for chunks in major mode.
+You should only specify :background here, otherwise it will
+interfere with syntax highlighting."
+  :group 'mumamo-display)
+
+(defface mumamo-background-chunk-submode2
+  '((((class color) (min-colors 88) (background dark))
+     ;;:background "blue3")
+     :background "dark green")
+    (((class color) (min-colors 88) (background light))
+     ;;:background "lightgoldenrod2")
+     :background "#e6ff96")
+    (((class color) (min-colors 16) (background dark))
+     :background "blue3")
+    (((class color) (min-colors 16) (background light))
+     :background "azure")
+    (((class color) (min-colors 8))
+     :background "blue")
+    (((type tty) (class mono))
+     :inverse-video t)
+    (t :background "gray"))
+  "Background colors for chunks in major mode.
+You should only specify :background here, otherwise it will
+interfere with syntax highlighting."
+  :group 'mumamo-display)
+
+(defface mumamo-background-chunk-submode3
+  '((((class color) (min-colors 88) (background dark))
+     ;;:background "blue3")
+     :background "dark green")
+    (((class color) (min-colors 88) (background light))
+     ;;:background "lightgoldenrod2")
+     :background "#f7d1f4")
+     ;;:background "green")
+    (((class color) (min-colors 16) (background dark))
+     :background "blue3")
+    (((class color) (min-colors 16) (background light))
+     :background "azure")
+    (((class color) (min-colors 8))
+     :background "blue")
+    (((type tty) (class mono))
+     :inverse-video t)
+    (t :background "gray"))
+  "Background colors for chunks in major mode.
+You should only specify :background here, otherwise it will
+interfere with syntax highlighting."
+  :group 'mumamo-display)
+
+(defface mumamo-background-chunk-submode4
+  '((((class color) (min-colors 88) (background dark))
+     ;;:background "blue3")
+     :background "dark green")
+    (((class color) (min-colors 88) (background light))
+     ;;:background "lightgoldenrod2")
+     :background "orange")
+    (((class color) (min-colors 16) (background dark))
+     :background "blue3")
+    (((class color) (min-colors 16) (background light))
+     :background "azure")
+    (((class color) (min-colors 8))
+     :background "blue")
+    (((type tty) (class mono))
+     :inverse-video t)
+    (t :background "gray"))
+  "Background colors for chunks in major mode.
+You should only specify :background here, otherwise it will
+interfere with syntax highlighting."
+  :group 'mumamo-display)
+
+(defcustom mumamo-background-chunk-major 'mumamo-background-chunk-major
+  "Background colors for chunks in major mode.
+Pointer to face with background color.
+
+If you do not want any special background color use the face named
+default."
+  :type 'face
+  :group 'mumamo-display)
+
+(defcustom mumamo-background-chunk-submode1 'mumamo-background-chunk-submode1
+  "Background colors for chunks in sub modes.
+Pointer to face with background color.
+
+If you do not want any special background color use the face named
+default."
+  :type 'face
+  :group 'mumamo-display)
+
+(defcustom mumamo-background-chunk-submode2 'mumamo-background-chunk-submode2
+  "Background colors for chunks in sub modes.
+Pointer to face with background color.
+
+If you do not want any special background color use the face named
+default."
+  :type 'face
+  :group 'mumamo-display)
+
+(defcustom mumamo-background-chunk-submode3 'mumamo-background-chunk-submode3
+  "Background colors for chunks in sub modes.
+Pointer to face with background color.
+
+If you do not want any special background color use the face named
+default."
+  :type 'face
+  :group 'mumamo-display)
+
+(defcustom mumamo-background-chunk-submode4 'mumamo-background-chunk-submode4
+  "Background colors for chunks in sub modes.
+Pointer to face with background color.
+
+If you do not want any special background color use the face named
+default."
+  :type 'face
+  :group 'mumamo-display)
+
+;; Fix-me: use and enhance this
+(defcustom mumamo-background-colors '(mumamo-background-chunk-major
+                                      mumamo-background-chunk-submode1
+                                      mumamo-background-chunk-submode2
+                                      mumamo-background-chunk-submode3
+                                      mumamo-background-chunk-submode4
+                                      )
+  "List of background colors in order of use.
+First color is for main major mode chunks, then for submode
+chunks, sub-submode chunks etc.  Colors are reused in cyclic
+order.
+
+The default colors are choosen so that inner chunks has a more
+standing out color the further in you get.  This is supposed to
+be helpful when you make mistakes and the chunk nesting is not
+what you intended.
+
+Note: Only the light background colors have been set by me.  The
+dark background colors might currently be unuseful.
+Contributions and suggestions are welcome!
+
+The values in the list should be symbols. Each symbol should either be
+
+  1: a variable symbol pointing to a face (or beeing nil)
+  2: a face symbol
+  3: a function with one argument (subchunk depth) returning a
+     face symbol"
+  :type '(repeat symbol)
+  :group 'mumamo-display)
+
+;;(mumamo-background-color 0)
+;;(mumamo-background-color 1)
+;;(mumamo-background-color 2)
+(defun mumamo-background-color (sub-chunk-depth)
+  (when (or (not (integerp mumamo-chunk-coloring)) ;; Old values
+            (>= sub-chunk-depth mumamo-chunk-coloring))
+    (let* ((idx (when mumamo-background-colors
+                  (mod sub-chunk-depth (length mumamo-background-colors))))
+           (sym (when idx (nth idx mumamo-background-colors)))
+           fac)
+      (when sym
+        (when (boundp sym)
+          (setq fac (symbol-value sym))
+          (unless (facep fac) (setq fac nil)))
+        (unless fac
+          (when (facep sym)
+            (setq fac sym)))
+        (unless fac
+          (when (fboundp sym)
+            (setq fac (funcall sym sub-chunk-depth))))
+        (when fac
+          (unless (facep fac)
+            (setq fac nil)))
+        fac
+        ))))
+
+(defface mumamo-border-face-in
+  '((t (:inherit font-lock-preprocessor-face :bold t :italic t :underline t)))
+  "Face for marking borders."
+  :group 'mumamo-display)
+
+(defface mumamo-border-face-out
+  '((t (:inherit font-lock-preprocessor-face :bold t :italic t)))
+  "Face for marking borders."
+  :group 'mumamo-display)
+
+
+(defgroup mumamo-indentation nil
+  "Customization group for mumamo chunk indentation."
+  :group 'mumamo)
+
+(defcustom mumamo-submode-indent-offset 2
+  "Indentation of submode relative main major mode.
+If this is nil then no special indent is made when entering a
+submode.
+
+See also `mumamo-submode-indent-offset-0'."
+  :type '(choice integer
+                 (const :tag "No special"))
+  :group 'mumamo-indentation)
+
+(defcustom mumamo-submode-indent-offset-0 0
+  "Indentation of submode at column 0.
+This value overrides `mumamo-submode-indent-offset' when the main
+major mode above has indentation 0."
+  :type '(choice integer
+                 (const :tag "No special"))
+  :group 'mumamo-indentation)
+
+(defcustom mumamo-major-mode-indent-specials
+  '(
+    (php-mode (use-widen))
+    (nxhtml-mode ((use-widen (html-mumamo-mode nxhtml-mumamo-mode))))
+    (html-mode ((use-widen (html-mumamo-mode nxhtml-mumamo-mode))))
+    )
+  "Major mode specials to use during indentation."
+  :type '(repeat
+          (list (symbol :tag "Major mode symbol")
+                (set
+                 (const :tag "Widen buffer during indentation" use-widen))))
+  :group 'mumamo-indentation)
+
+
 (defgroup mumamo-hi-lock-faces nil
   "Faces for hi-lock that are visible in mumamo multiple modes.
 This is a workaround for the problem that text properties are
@@ -608,7 +950,7 @@ This faces are not as visible as those that defines background
 colors.  However they use underlining so they are at least
 somewhat visible."
   :group 'hi-lock
-  :group 'mumamo
+  :group 'mumamo-display
   :group 'faces)
 
 (defface hi-mumamo-yellow
@@ -665,301 +1007,18 @@ somewhat visible."
   :group 'mumamo-hi-lock-faces)
 
 
-(defgroup mumamo nil
-  "Customization group for multiple major modes in a buffer."
-  :group 'editing
-  :group 'languages
-  :group 'sgml
-  :group 'nxhtml
-  )
-
-(defface mumamo-border-face-in
-  '((t (:inherit font-lock-preprocessor-face :bold t :italic t :underline t)))
-  "Face for marking borders."
-  :group 'mumamo)
-
-(defface mumamo-border-face-out
-  '((t (:inherit font-lock-preprocessor-face :bold t :italic t)))
-  "Face for marking borders."
-  :group 'mumamo)
-
-;;(setq mumamo-set-major-mode-delay -1)
-;;(setq mumamo-set-major-mode-delay 5)
-(defcustom mumamo-set-major-mode-delay idle-update-delay
-  "Delay this number of seconds before setting major mode.
-When point enters a region where the major mode should be
-different than the current major mode, wait until Emacs has been
-idle this number of seconds before switching major mode.
-
-If negative switch major mode immediately.
-
-Ideally the switching of major mode should occur immediately when
-entering a region.  However this can make movements a bit unsmooth
-for some major modes on a slow computer.  Therefore on a slow
-computer use a short delay.
-
-If you have a fast computer and want to use mode specific
-movement commands then set this variable to -1.
-
-I tried to measure the time for switching major mode in mumamo.
-For most major modes it took 0 ms, but for `nxml-mode' and its
-derivate it took 20 ms on a 3GHz CPU."
-  :type 'number
-  :group 'mumamo)
-
-(defface mumamo-background-chunk-major
-  '((((class color) (min-colors 88) (background dark))
-     ;;:background "blue3")
-     :background "midnight blue")
-    (((class color) (min-colors 88) (background light))
-     ;;:background "lightgoldenrod2")
-     :background "cornsilk")
-    (((class color) (min-colors 16) (background dark))
-     :background "blue4")
-    (((class color) (min-colors 16) (background light))
-     :background "cornsilk")
-    (((class color) (min-colors 8))
-     :background "blue")
-    (((type tty) (class mono))
-     :inverse-video t)
-    (t :background "gray"))
-  "Background colors for chunks in sub modes.
-You should only specify :background here, otherwise it will
-interfere with syntax highlighting."
-  :group 'mumamo)
-
-(defface mumamo-background-chunk-submode1
-  '((((class color) (min-colors 88) (background dark))
-     ;;:background "blue3")
-     :background "dark green")
-    (((class color) (min-colors 88) (background light))
-     ;;:background "lightgoldenrod2")
-     :background "azure")
-    (((class color) (min-colors 16) (background dark))
-     :background "blue3")
-    (((class color) (min-colors 16) (background light))
-     :background "azure")
-    (((class color) (min-colors 8))
-     :background "blue")
-    (((type tty) (class mono))
-     :inverse-video t)
-    (t :background "gray"))
-  "Background colors for chunks in major mode.
-You should only specify :background here, otherwise it will
-interfere with syntax highlighting."
-  :group 'mumamo)
-
-(defface mumamo-background-chunk-submode2
-  '((((class color) (min-colors 88) (background dark))
-     ;;:background "blue3")
-     :background "dark green")
-    (((class color) (min-colors 88) (background light))
-     ;;:background "lightgoldenrod2")
-     :background "#e6ff96")
-    (((class color) (min-colors 16) (background dark))
-     :background "blue3")
-    (((class color) (min-colors 16) (background light))
-     :background "azure")
-    (((class color) (min-colors 8))
-     :background "blue")
-    (((type tty) (class mono))
-     :inverse-video t)
-    (t :background "gray"))
-  "Background colors for chunks in major mode.
-You should only specify :background here, otherwise it will
-interfere with syntax highlighting."
-  :group 'mumamo)
-
-(defface mumamo-background-chunk-submode3
-  '((((class color) (min-colors 88) (background dark))
-     ;;:background "blue3")
-     :background "dark green")
-    (((class color) (min-colors 88) (background light))
-     ;;:background "lightgoldenrod2")
-     :background "#f7d1f4")
-     ;;:background "green")
-    (((class color) (min-colors 16) (background dark))
-     :background "blue3")
-    (((class color) (min-colors 16) (background light))
-     :background "azure")
-    (((class color) (min-colors 8))
-     :background "blue")
-    (((type tty) (class mono))
-     :inverse-video t)
-    (t :background "gray"))
-  "Background colors for chunks in major mode.
-You should only specify :background here, otherwise it will
-interfere with syntax highlighting."
-  :group 'mumamo)
-
-(defface mumamo-background-chunk-submode4
-  '((((class color) (min-colors 88) (background dark))
-     ;;:background "blue3")
-     :background "dark green")
-    (((class color) (min-colors 88) (background light))
-     ;;:background "lightgoldenrod2")
-     :background "orange")
-    (((class color) (min-colors 16) (background dark))
-     :background "blue3")
-    (((class color) (min-colors 16) (background light))
-     :background "azure")
-    (((class color) (min-colors 8))
-     :background "blue")
-    (((type tty) (class mono))
-     :inverse-video t)
-    (t :background "gray"))
-  "Background colors for chunks in major mode.
-You should only specify :background here, otherwise it will
-interfere with syntax highlighting."
-  :group 'mumamo)
-
-(defcustom mumamo-background-chunk-major 'mumamo-background-chunk-major
-  "Background colors for chunks in major mode.
-Pointer to face with background color.
-
-If you do not want any special background color use the face named
-default."
-  :type 'face
-  :group 'mumamo)
-
-(defcustom mumamo-background-chunk-submode1 'mumamo-background-chunk-submode1
-  "Background colors for chunks in sub modes.
-Pointer to face with background color.
-
-If you do not want any special background color use the face named
-default."
-  :type 'face
-  :group 'mumamo)
-
-(defcustom mumamo-background-chunk-submode2 'mumamo-background-chunk-submode2
-  "Background colors for chunks in sub modes.
-Pointer to face with background color.
-
-If you do not want any special background color use the face named
-default."
-  :type 'face
-  :group 'mumamo)
-
-(defcustom mumamo-background-chunk-submode3 'mumamo-background-chunk-submode3
-  "Background colors for chunks in sub modes.
-Pointer to face with background color.
-
-If you do not want any special background color use the face named
-default."
-  :type 'face
-  :group 'mumamo)
-
-(defcustom mumamo-background-chunk-submode4 'mumamo-background-chunk-submode4
-  "Background colors for chunks in sub modes.
-Pointer to face with background color.
-
-If you do not want any special background color use the face named
-default."
-  :type 'face
-  :group 'mumamo)
-
-;; Fix-me: use and enhance this
-(defcustom mumamo-background-colors '(mumamo-background-chunk-major
-                                      mumamo-background-chunk-submode1
-                                      mumamo-background-chunk-submode2
-                                      mumamo-background-chunk-submode3
-                                      mumamo-background-chunk-submode4
-                                      )
-  "List of background colors in order of use.
-First color is for main major mode chunks, then for submode
-chunks, sub-submode chunks etc.  Colors are reused in cyclic
-order.
-
-The default colors are choosen so that inner chunks has a more
-standing out color the further in you get.  This is supposed to
-be helpful when you make mistakes and the chunk nesting is not
-what you intended.
-
-Note: Only the light background colors have been set by me.  The
-dark background colors might currently be unuseful.
-Contributions and suggestions are welcome!
-
-The values in the list should be symbols. Each symbol should either be
-
-  1: a variable symbol pointing to a face (or beeing nil)
-  2: a face symbol
-  3: a function with one argument (subchunk depth) returning a
-     face symbol"
-  :type '(repeat symbol)
-  :group 'mumamo)
-
-;;(mumamo-background-color 0)
-;;(mumamo-background-color 1)
-;;(mumamo-background-color 2)
-(defun mumamo-background-color (sub-chunk-depth)
-  (when (or (not (integerp mumamo-chunk-coloring)) ;; Old values
-            (>= sub-chunk-depth mumamo-chunk-coloring))
-    (let* ((idx (when mumamo-background-colors
-                  (mod sub-chunk-depth (length mumamo-background-colors))))
-           (sym (when idx (nth idx mumamo-background-colors)))
-           fac)
-      (when sym
-        (when (boundp sym)
-          (setq fac (symbol-value sym))
-          (unless (facep fac) (setq fac nil)))
-        (unless fac
-          (when (facep sym)
-            (setq fac sym)))
-        (unless fac
-          (when (fboundp sym)
-            (setq fac (funcall sym sub-chunk-depth))))
-        (when fac
-          (unless (facep fac)
-            (setq fac nil)))
-        fac
-        ))))
-
-;;(setq mumamo-chunk-coloring 'old-value)
-(defcustom mumamo-chunk-coloring 0
-  "Color chunks with depth greater than or equal to this.
-When 0 all chunks will be colored.  If 1 all sub mode chunks will
-be colored, etc."
-  :type '(integer :tag "Color chunks with depth greater than this")
-  :group 'mumamo)
-
-(defcustom mumamo-submode-indent-offset 2
-  "Indentation of submode relative main major mode.
-If this is nil then no special indent is made when entering a
-submode.
-
-See also `mumamo-submode-indent-offset-0'."
-  :type '(choice integer
-                 (const :tag "No special"))
-  :group 'mumamo)
-
-(defcustom mumamo-submode-indent-offset-0 0
-  "Indentation of submode at column 0.
-This value overrides `mumamo-submode-indent-offset' when the main
-major mode above has indentation 0."
-  :type '(choice integer
-                 (const :tag "No special"))
-  :group 'mumamo)
-
-(defcustom mumamo-major-mode-indent-specials
-  '(
-    (php-mode (use-widen))
-    (nxhtml-mode ((use-widen (html-mumamo-mode nxhtml-mumamo-mode))))
-    (html-mode ((use-widen (html-mumamo-mode nxhtml-mumamo-mode))))
-    )
-  "Major mode specials to use during indentation."
-  :type '(repeat
-          (list (symbol :tag "Major mode symbol")
-                (set
-                 (const :tag "Widen buffer during indentation" use-widen))))
-  :group 'mumamo)
-
-(defcustom mumamo-check-chunk-major-same nil
-  "Check if main major mode is the same as normal mode."
-  :type 'boolean
-  :group 'mumamo)
+;; (defcustom mumamo-check-chunk-major-same nil
+;;   "Check if main major mode is the same as normal mode."
+;;   :type 'boolean
+;;   :group 'mumamo)
 
 ;; (customize-option 'mumamo-major-modes)
 ;;(require 'django)
+
+(defgroup mumamo-modes nil
+  "Customization group for mumamo chunk modes."
+  :group 'mumamo)
+
 (defcustom mumamo-major-modes
   '(
     (asp-js-mode
@@ -1013,7 +1072,7 @@ Lookup in this list is done by `mumamo-major-mode-from-modespec'."
                                (command :tag "Major mode")
                                (symbol :tag "Major mode (not yet loaded)")))
           )
-  :group 'mumamo)
+  :group 'mumamo-modes)
 
 
 
@@ -1181,14 +1240,18 @@ Preserves the `buffer-modified-p' state of the current buffer."
       ;; This should not be a chunk here
       (mumamo-put-obscure chunk pos region-info))))
 
-(defun mumamo-put-obscure (chunk pos region-info)
+(defun mumamo-put-obscure (chunk pos region-or-chunk)
   "Cache obscure info."
   (assert (overlayp chunk) t)
-  (assert (not (overlayp region-info)) t)
-  (when region-info (assert (consp region-info) t))
   (when pos (assert (or (markerp pos) (integerp pos)) t))
-  (let ((obscured (when pos (list pos region-info))))
-    ;;(msgtrc "put-obscure:region-info=%s, obscured=%s" region-info obscured)
+  (let* ((region-info (if (overlayp region-or-chunk)
+                         (cons (overlay-start region-or-chunk)
+                               (overlay-end region-or-chunk))
+                       region-or-chunk))
+         (obscured (when pos (list pos region-info))))
+      ;;(msgtrc "put-obscure:region-info=%s, obscured=%s" region-info obscured)
+    (when region-info (assert (consp region-info) t))
+    (assert (not (overlayp region-info)) t)
     (overlay-put chunk 'obscured obscured)
     (setq obscured (overlay-get chunk 'obscured))
     ;;(msgtrc "                            obscured=%s" obscured)
@@ -1290,7 +1353,7 @@ in this part of the buffer."
                       (< first-check-from (overlay-end mumamo-last-chunk)))
             (setq mumamo-old-tail mumamo-last-chunk)
             (overlay-put mumamo-old-tail 'mumamo-is-new nil)
-            (when t ;; For debugging
+            (when nil ;; For debugging
               (overlay-put mumamo-old-tail
                            'face
                            (list :background
@@ -3603,17 +3666,7 @@ The first two are used when the bottom:
 
         (overlay-put this-chunk 'mumamo-parseable-by pable)
         (overlay-put this-chunk 'created (current-time-string))
-        ;; Fix-me: This is not displayed. Emacs bug?
-        ;;(overlay-put this-chunk 'before-string `((margin left-margin) ,(format "%d %s" depth maj)))
-        (let ((str (format "%d %s" depth (substring (symbol-name maj) 0 -5))))
-          (when (> (length str) 8) (setq str (substring str 0 7)))
-          (setq str (propertize str 'face
-                                (list :foreground "#a0a0a0" :underline nil
-                                      :background (frame-parameter nil 'background-color)
-                                      :slant 'normal)))
-          (overlay-put this-chunk 'before-string
-                       (propertize " " 'display
-                                   `((margin left-margin) ,str))))
+        (mumamo-update-chunk-margin-display this-chunk)
         (setq mumamo-last-chunk this-chunk) ;; Use this chunk!!!!
         ;; Get syntax-begin-function for syntax-ppss:
         (let* ((syntax-begin-function
@@ -3634,6 +3687,59 @@ The first two are used when the bottom:
       this-chunk
       )
     ))
+
+(defun mumamo-update-chunk-margin-display (chunk)
+  "Set before-string of CHUNK as spec by `mumamo-margin-use'."
+  ;; Fix-me: This is not displayed. Emacs bug?
+  ;;(overlay-put this-chunk 'before-string `((margin left-margin) ,(format "%d %s" depth maj)))
+  (if (not mumamo-margin-info-mode)
+      (overlay-put chunk 'before-string nil)
+    (let* ((depth (overlay-get chunk 'mumamo-depth))
+           (maj   (mumamo-chunk-car chunk 'mumamo-major-mode))
+           (strn (propertize (format "%d" depth)
+                             'face (list :inherit (or (mumamo-background-color depth)
+                                                      'default)
+                                         :foreground "#505050"
+                                         :underline t
+                                         :slant 'normal
+                                         :weight 'normal
+                                         )))
+           (maj-name (substring (symbol-name maj) 0 -5))
+           (strm (propertize maj-name 'face
+                             (list :foreground "#a0a0a0" :underline nil
+                                   :background (frame-parameter nil 'background-color)
+                                   :weight 'normal
+                                   :slant 'normal)))
+           str
+           (margin (nth 0 mumamo-margin-use)))
+      (when (> (length strm) 5) (setq strm (substring strm 0 5)))
+      (setq str (concat strn
+                        strm
+                        (propertize " " 'face 'default)
+                        ))
+      (overlay-put chunk 'before-string
+                   (propertize " " 'display
+                               `((margin ,margin) ,str))))))
+
+(defun mumamo-update-chunks-margin-display (buffer)
+  "Apply `update-chunk-margin-display' to all chunks in BUFFER."
+  (with-current-buffer buffer
+    (save-restriction
+      (widen)
+      (let ((chunk (mumamo-find-chunks 1 "margin-disp")))
+        (while chunk
+          (mumamo-update-chunk-margin-display chunk)
+          (setq chunk (overlay-get chunk 'mumamo-next-chunk)))))))
+
+(defun mumamo-set-window-margins-used (win)
+  "Set window margin according to `mumamo-margin-use'."
+  (let ((margin (nth 0 mumamo-margin-use))
+        (width  (nth 1 mumamo-margin-use)))
+    (if (not mumamo-margin-info-mode)
+        (set-window-margins win nil nil)
+      (case margin
+        ('left-margin  (set-window-margins win width nil))
+        ('right-margin (set-window-margins win nil width))))))
 
 (defun mumamo-new-chunk-value-min (values)
   (let ((this-values (nth 0 values)))
@@ -4441,7 +4547,7 @@ Return the fetched local map."
     (msgtrc "--------------- new post-command-chunk")
     (setq mumamo-post-command-chunk
           (or (mumamo-get-existing-new-chunk-at (point))
-              (mumamo-find-chunks (point))))))
+              (mumamo-find-chunks (point) "post-command-get-chunk")))))
 
 ;; (setq mumamo-set-major-mode-delay 10)
 (defun mumamo-set-major-post-command ()
@@ -4453,7 +4559,7 @@ request a change of major mode when Emacs is idle that long.
 
 See the variable above for an explanation why a delay might be
 needed \(and is the default)."
-  ;;(msgtrc "mumamo-set-major-post-command here")
+  ;;(msgtrc "set-major-post-command here")
   (let* (;;(ovl (mumamo-get-chunk-at (point)))
          ;;(ovl (mumamo-find-chunks (point) "mumamo-set-major-post-command"))
          (in-pre-hook (memq 'mumamo-set-major-pre-command pre-command-hook))
@@ -4461,7 +4567,7 @@ needed \(and is the default)."
          (ovl (unless in-pre-hook (mumamo-post-command-get-chunk (point))))
          (major (when ovl (mumamo-chunk-major-mode ovl)))
          )
-    ;;(msgtrc "mumamo-set-major-post-command ovl=%s, in-pre-hook=%s" ovl in-pre-hook)
+    ;;(msgtrc "set-major-post-command ovl=%s, in-pre-hook=%s" ovl in-pre-hook)
     (if (and (not in-pre-hook)
              (not major))
         (lwarn '(mumamo-set-major-post-command)
@@ -4469,7 +4575,7 @@ needed \(and is the default)."
       (unless (and mumamo-done-first-set-major
                    (or (eq major-mode major)
                        in-pre-hook))
-        ;;(msgtrc "mumamo-set-major-post-command here done=%s\nsurvive=%s" mumamo-done-first-set-major mumamo-survive)
+        ;;(msgtrc "set-major-post-command here done=%s\nsurvive=%s" mumamo-done-first-set-major mumamo-survive)
         (if mumamo-done-first-set-major
             (if (<= 0 mumamo-set-major-mode-delay)
                 ;; Window point has been moved to a new chunk with a
@@ -4485,9 +4591,9 @@ needed \(and is the default)."
                     (use-local-map map))
                   (add-hook 'pre-command-hook
                             'mumamo-set-major-pre-command nil t)
-                  (msgtrc "request mumamo-set-major at C")
+                  ;;(msgtrc "request mumamo-set-major at C")
                   (mumamo-request-idle-set-major-mode))
-              (msgtrc "mumamo-set-major at C")
+              ;;(msgtrc "mumamo-set-major at C")
               (mumamo-set-major major)
               (message "Switched to %s" major-mode))
           ;;(msgtrc "mumamo-set-major at D")
@@ -5925,7 +6031,7 @@ mode in the chunk family is nil."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Defining multi major modes
 
-(defvar mumamo-defined-turn-on-functions nil
+(defvar mumamo-defined-multi-major-modes nil
   "List of functions defined for turning on mumamo.
 Those functions should be called instead of calling a major mode
 function when you want to use multiple major modes in a buffer.
@@ -5942,6 +6048,24 @@ of how the functions work.
 
 If you want to quickly define a new mix of major modes you can
 use `mumamo-quick-static-chunk'.")
+
+(defun mumamo-list-defined-multi-major-modes ()
+  (interactive)
+  (with-output-to-temp-buffer (help-buffer)
+    (help-setup-xref (list #'mumamo-list-defined-multi-major-modes) (interactive-p))
+    (with-current-buffer (help-buffer)
+      (insert "The currently defined multi major modes in your Emacs are:\n\n")
+      (let ((mmms (reverse mumamo-defined-multi-major-modes))
+            (here (point)))
+        ;; Fix-me: sort according to majomodpri? Or by mode name?
+        (while mmms
+          (let* ((mmm (car mmms))
+                 (sym  (cdr mmm))
+                 (desc (car mmm)))
+            (insert "  `" (symbol-name sym) "'"
+                    " (" desc ")\n")
+            (setq mmms (cdr mmms))))
+        ))))
 
 (defun mumamo-describe-chunks (chunks)
   "Return text describing CHUNKS."
@@ -6010,7 +6134,7 @@ It has the some priority as minor mode maps.")
 (defun mumamo-multi-major-modep (value)
   "Return t if VALUE is a multi major mode function."
   (and (fboundp value)
-       (rassq value mumamo-defined-turn-on-functions)))
+       (rassq value mumamo-defined-multi-major-modes)))
 
 ;; fix-me: tell no sub-chunks in sub-chunks
 (defmacro define-mumamo-multi-major-mode (fun-sym spec-doc chunks)
@@ -6081,7 +6205,7 @@ The name of the function is saved in in the buffer local variable
 `mumamo-multi-major-mode' when the function is called.
 
 All functions defined by this macro is added to the list
-`mumamo-defined-turn-on-functions'.
+`mumamo-defined-multi-major-modes'.
 
 Basically Mumamo handles only major modes that uses jit-lock.
 However as a special effort also `nxml-mode' and derivatives
@@ -6174,7 +6298,7 @@ major mode if any has been turned on in a buffer.  For more
 information about multi major modes please see
 `define-mumamo-multi-major-mode'."  )))
 `(progn
-(add-to-list 'mumamo-defined-turn-on-functions (cons (car ',chunks2) ',turn-on-fun))
+(add-to-list 'mumamo-defined-multi-major-modes (cons (car ',chunks2) ',turn-on-fun))
 (defvar ,turn-on-hook nil ,turn-on-hook-doc)
 (defvar ,turn-on-map (make-sparse-keymap)
   ,(concat "Keymap for multi major mode function `"

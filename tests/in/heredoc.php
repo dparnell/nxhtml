@@ -37,8 +37,11 @@ $toprint = <<< HTMLEOF
 <?php
 
 /* This inner php chunk is not useful (except for presentation of
-MuMaMo chunk dividing capabilities and deficiences...), since php
-normally seems to run only one pass... */
+   MuMaMo chunk dividing capabilities and deficiences...), since php
+   normally seems to run only one pass...
+
+   However coloring it differently than the top level (or level 1) php
+   chunks may help detect nesting errors.  */
 
 echo <<<ONEMORELEVEL
 Just for testing the chunk background color...
