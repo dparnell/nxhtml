@@ -1761,6 +1761,31 @@ of those in for example common web browsers."
                ;; in executable-find, why?
                ))
 
+(defvar ourcomments-restart-server-mode nil)
+
+(defun emacs-restart-in-kill ()
+  "Last step in restart Emacs and start `server-mode' if on before."
+  (let ((restart-args (when ourcomments-restart-server-mode
+                        ;; Delay 1+1 sec to be sure the old server has stopped.
+                        (list "--eval=(run-with-idle-timer 2 nil 'server-mode 1)"))))
+    (apply 'call-process (ourcomments-find-emacs) nil 0 nil restart-args)
+    ;; Wait to give focus to new Emacs instance:
+    (sleep-for 1)))
+
+;;;###autoload
+(defun emacs-restart ()
+  "Restart Emacs and start `server-mode' if on before."
+  (interactive)
+  (let ((wait 3))
+    (while (> wait -1)
+      (message (propertize (format "Will restart Emacs in %d seconds..." wait)
+                           'face 'secondary-selection))
+      (sit-for 1)
+      (setq wait (1- wait))))
+  (setq ourcomments-restart-server-mode server-mode)
+  (add-hook 'kill-emacs-hook 'emacs-restart-in-kill t)
+  (save-buffers-kill-emacs))
+
 ;;;###autoload
 (defun emacs()
   "Start a new Emacs."
