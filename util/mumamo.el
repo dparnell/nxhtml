@@ -648,8 +648,18 @@ See also `mumamo-margin-use'."
   :group 'mumamo-display
   (mumamo-update-this-buffer-margin-use)
   (if mumamo-margin-info-mode
-      (add-hook 'window-configuration-change-hook 'mumamo-update-this-buffer-margin-use nil t)
-    (remove-hook 'window-configuration-change-hook 'mumamo-update-this-buffer-margin-use t)))
+      (progn
+        (add-hook 'window-configuration-change-hook 'mumamo-update-this-buffer-margin-use nil t)
+        ;;(add-hook 'change-major-mode-hook 'mumamo-margin-info-mode-turn-off nil t)
+        )
+    (remove-hook 'window-configuration-change-hook 'mumamo-update-this-buffer-margin-use t)
+    ;;(remove-hook 'change-major-mode-hook 'mumamo-margin-info-mode-turn-off t)
+    ))
+(put 'mumamo-margin-info-mode 'permanent-local t)
+
+(defun mumamo-margin-info-mode-turn-off ()
+  (mumamo-margin-info-mode -1))
+(put 'mumamo-margin-info-mode-turn-off 'permanent-local-hook t)
 
 (define-globalized-minor-mode mumamo-margin-info-global-mode mumamo-margin-info-mode
   (lambda () (when (and (boundp 'mumamo-multi-major-mode)
@@ -673,11 +683,14 @@ See also `mumamo-margin-use'."
     (mumamo-update-buffer-margin-use buf)))
 
 (defun mumamo-update-buffer-margin-use (buffer)
+  ;;(msgtrc "update-buffer-margin-use %s" buffer)
   (when (fboundp 'mumamo-update-chunks-margin-display)
     (with-current-buffer buffer
       (when mumamo-multi-major-mode
+        ;;(msgtrc "update-buffer-margin-use A")
         (mumamo-update-chunks-margin-display buffer)
         (dolist (win (get-buffer-window-list buffer))
+          ;;(msgtrc "update-buffer-margin-use W")
           (mumamo-set-window-margins-used win))))))
 
 (defcustom mumamo-chunk-coloring 0
@@ -1364,7 +1377,7 @@ in this part of the buffer."
           (while (and mumamo-last-chunk
                       ;;(= (point-max) (overlay-end mumamo-last-chunk))
                       (= (overlay-end mumamo-last-chunk) (overlay-start mumamo-last-chunk)))
-            (msgtrc "delete-overlay at end")
+            ;;(msgtrc "delete-overlay at end")
             (delete-overlay mumamo-last-chunk)
             (setq mumamo-last-chunk (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))
             (when mumamo-last-chunk (overlay-put mumamo-last-chunk 'mumamo-next-chunk nil)))
@@ -1462,7 +1475,7 @@ in this part of the buffer."
                         (while (and (> 500 (setq while-n2 (1+ while-n2)))
                                     (and mumamo-old-tail (< (overlay-start mumamo-old-tail) ok-pos)))
                           (mumamo-mark-for-refontification (overlay-start mumamo-old-tail) (overlay-end mumamo-old-tail))
-                          (msgtrc "find-chunks:not eq delete %s" mumamo-old-tail)
+                          ;;(msgtrc "find-chunks:not eq delete %s" mumamo-old-tail)
                           (delete-overlay mumamo-old-tail)
                           (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))
                           (or (not mumamo-old-tail)
@@ -1510,7 +1523,7 @@ in this part of the buffer."
                      (= (overlay-start prev-chunk) (overlay-end prev-chunk)))
             (overlay-put prev-chunk 'mumamo-next-chunk nil)
             (overlay-put prev-chunk 'mumamo-prev-chunk nil)
-            (msgtrc "find-chunks:deleting this-new-chunk %s" this-new-chunk)
+            ;;(msgtrc "find-chunks:deleting this-new-chunk %s" this-new-chunk)
             (delete-overlay this-new-chunk)
             (setq this-new-chunk prev-chunk)
             ))
@@ -2003,8 +2016,7 @@ This function is called when the minor mode function
                 (when major
                   (unless (eq major main-major)
                     (mumamo-unfontify-chunk o))
-                  (mumamo-msgfntfy "delete-overlay 1")
-                  (msgtrc "delete-overlay 1")
+                  ;;(msgtrc "delete-overlay 1")
                   (delete-overlay o)
                   ))))
           (mumamo-unfontify-region-with (point-min) (point-max)
@@ -3531,7 +3543,7 @@ See also `mumamo-quick-static-chunk'."
     (let ((ovls (overlays-in (point-min) (point-max))))
       (dolist (ovl ovls)
         (when (overlay-get ovl 'mumamo-is-new)
-          (msgtrc "delete-overlay %s delete-new-chunks" ovl)
+          ;;(msgtrc "delete-overlay %s delete-new-chunks" ovl)
           (delete-overlay ovl))))))
 
 (defun mumamo-new-create-chunk (new-chunk-values)
@@ -3737,6 +3749,7 @@ The first two are used when the bottom:
         (width  (nth 1 mumamo-margin-use)))
     (if (not mumamo-margin-info-mode)
         (set-window-margins win nil nil)
+      ;;(msgtrc "set-window-margins-used margin-info-mode=t")
       (case margin
         ('left-margin  (set-window-margins win width nil))
         ('right-margin (set-window-margins win nil width))))))
@@ -6001,6 +6014,7 @@ mode in the chunk family is nil."
   (remove-hook 'post-command-hook 'mumamo-post-command t)
   ;;(remove-hook 'c-special-indent-hook 'mumamo-c-special-indent t)
   (mumamo-remove-all-chunk-overlays)
+  (mumamo-margin-info-mode -1)
   (when (fboundp 'mumamo-clear-all-regions) (mumamo-clear-all-regions))
   (save-restriction
     (widen)

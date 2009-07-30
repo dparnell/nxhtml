@@ -140,7 +140,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19050 57180))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19056 32315))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -366,7 +366,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxml-where-global-mode nxml-where-mode) "../nxhtml/nxml-where"
-;;;;;;  "nxhtml/nxml-where.el" (19054 16913))
+;;;;;;  "nxhtml/nxml-where.el" (19056 34632))
 ;;; Generated autoloads from nxhtml/nxml-where.el
 
 (autoload 'nxml-where-mode "../nxhtml/nxml-where" "\
@@ -2152,7 +2152,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19054 18503))
+;;;;;;  "mumamo" "util/mumamo.el" (19056 63389))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -2169,13 +2169,13 @@ Return t if VALUE is a multi major mode function.
 
 ;;;### (autoloads (mako-html-mumamo-mode org-mumamo-mode asp-html-mumamo-mode
 ;;;;;;  noweb2-mumamo-mode csound-sgml-mumamo-mode laszlo-nxml-mumamo-mode
-;;;;;;  metapost-mumamo-mode ruby-mumamo-heredoc-mode python-mumamo-heredoc-mode
-;;;;;;  cperl-mumamo-heredoc-mode perl-mumamo-heredoc-mode php-mumamo-heredoc-mode
-;;;;;;  sh-mumamo-heredoc-mode eruby-html-mumamo-mode eruby-mumamo-mode
+;;;;;;  metapost-mumamo-mode ruby-heredoc-mumamo-mode python-heredoc-mumamo-mode
+;;;;;;  cperl-heredoc-mumamo-mode perl-heredoc-mumamo-mode php-heredoc-mumamo-mode
+;;;;;;  sh-heredoc-mumamo-mode eruby-html-mumamo-mode eruby-mumamo-mode
 ;;;;;;  jsp-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  nxml-mumamo-mode html-mumamo-mode) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19054 18472))
+;;;;;;  (19056 17306))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -2229,30 +2229,30 @@ Current major-mode will be used as the main major mode." t)
 Turn on multiple major modes for eRuby with main mode `html-mode'.
 This also covers inlined style and javascript." t)
 
-(autoload 'sh-mumamo-heredoc-mode "mumamo-fun" "\
+(autoload 'sh-heredoc-mumamo-mode "mumamo-fun" "\
 Turn on multiple major modes for sh heredoc document.
 See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
 
-(autoload 'php-mumamo-heredoc-mode "mumamo-fun" "\
+(autoload 'php-heredoc-mumamo-mode "mumamo-fun" "\
 Turn on multiple major modes for PHP heredoc document.
 See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
 
-(autoload 'perl-mumamo-heredoc-mode "mumamo-fun" "\
+(autoload 'perl-heredoc-mumamo-mode "mumamo-fun" "\
 Turn on multiple major modes for Perl heredoc document.
 See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
 
-(autoload 'cperl-mumamo-heredoc-mode "mumamo-fun" "\
+(autoload 'cperl-heredoc-mumamo-mode "mumamo-fun" "\
 Turn on multiple major modes for Perl heredoc document.
 See `mumamo-heredoc-modes' for how to specify heredoc major modes.
 
 Note: I have seen some problems with this.  Use
 `perl-mumamo-mode' instead for now." t)
 
-(autoload 'python-mumamo-heredoc-mode "mumamo-fun" "\
+(autoload 'python-heredoc-mumamo-mode "mumamo-fun" "\
 Turn on multiple major modes for Perl heredoc document.
 See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
 
-(autoload 'ruby-mumamo-heredoc-mode "mumamo-fun" "\
+(autoload 'ruby-heredoc-mumamo-mode "mumamo-fun" "\
 Turn on multiple major modes for Ruby heredoc document.
 See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
 
@@ -2284,11 +2284,16 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (mumamo-add-region) "mumamo-regions" "util/mumamo-regions.el"
-;;;;;;  (18980 34110))
+;;;;;;  (19056 32886))
 ;;; Generated autoloads from util/mumamo-regions.el
 
 (autoload 'mumamo-add-region "mumamo-regions" "\
 Add a mumamo region.
+Mumamo regions are like another layer of chunks above the normal chunks.
+They does not affect the normal chunks, but they overrides them.
+
+To create a mumamo region first select a visible region and then
+call this function.
 
 \(fn)" t nil)
 
@@ -2341,16 +2346,17 @@ new are maybe ... - and you have it available here in Emacs.
 
 ;;;### (autoloads (use-custom-style info-open-file grep-query-replace
 ;;;;;;  emacs-Q-nxhtml emacs-Q emacs--no-desktop emacs--debug-init
-;;;;;;  emacs-buffer-file emacs ourcomments-ido-ctrl-tab ourcomments-ido-buffer-raise-frame
-;;;;;;  ourcomments-ido-buffer-other-frame ourcomments-ido-buffer-other-window
-;;;;;;  describe-symbol describe-defstruct describe-custom-group
-;;;;;;  narrow-to-comment describe-command ourcomments-ediff-files
-;;;;;;  find-emacs-other-file better-fringes-mode wrap-to-fill-column-mode
-;;;;;;  wrap-to-fill-left-marg-modes wrap-to-fill-left-marg describe-key-and-map-briefly
-;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
-;;;;;;  major-modep major-or-multi-majorp unfill-individual-paragraphs
-;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19054 18589))
+;;;;;;  emacs-buffer-file emacs emacs-restart ourcomments-ido-ctrl-tab
+;;;;;;  ourcomments-ido-buffer-raise-frame ourcomments-ido-buffer-other-frame
+;;;;;;  ourcomments-ido-buffer-other-window describe-symbol describe-defstruct
+;;;;;;  describe-custom-group narrow-to-comment describe-command
+;;;;;;  ourcomments-ediff-files find-emacs-other-file better-fringes-mode
+;;;;;;  wrap-to-fill-column-mode wrap-to-fill-left-marg-modes wrap-to-fill-left-marg
+;;;;;;  describe-key-and-map-briefly ourcomments-move-end-of-line
+;;;;;;  ourcomments-move-beginning-of-line major-modep major-or-multi-majorp
+;;;;;;  unfill-individual-paragraphs unfill-region unfill-paragraph
+;;;;;;  define-toggle popup-menu-at-point) "ourcomments-util" "util/ourcomments-util.el"
+;;;;;;  (19056 63208))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2574,6 +2580,11 @@ Those keys are selected to at least be a little bit reminiscent
 of those in for example common web browsers.")
 
 (nxhtml-custom-autoload 'ourcomments-ido-ctrl-tab "ourcomments-util" nil)
+
+(autoload 'emacs-restart "ourcomments-util" "\
+Restart Emacs and start `server-mode' if on before.
+
+\(fn)" t nil)
 
 (autoload 'emacs "ourcomments-util" "\
 Start a new Emacs.
@@ -3172,9 +3183,9 @@ Not documented
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
-;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
-;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (19054 18792 687000))
+;;;;;;  "util/rebind.el" "util/restart-server.el" "util/rxi.el" "util/udev-nxhtml.el"
+;;;;;;  "util/udev.el" "util/useful-commands.el" "util/whelp.el"
+;;;;;;  "util/zen-mode.el") (19056 63465 750000))
 
 ;;;***
 
