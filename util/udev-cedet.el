@@ -55,7 +55,7 @@
   "Customization group for udev-cedet."
   :group 'nxhtml)
 
-(defcustom udev-cedet-dir "~/cedet-cvs/"
+(defcustom udev-cedet-dir "~/.emacs.d/udev/cedet-cvs/"
   "Directory where to put CVS CEDET sources."
   :type 'directory
   :group 'udev-cedet)
@@ -64,11 +64,15 @@
   (expand-file-name "cedet/common/cedet.el" udev-cedet-dir))
 
 (defun udev-cedet-load-cedet (must-be-fetched)
+  ;;(message "udev-cedet-load-cedet called, backtrace\n%s" (with-output-to-string (backtrace)))
   (let ((cedet-el (udev-cedet-el-file)))
     ;;(message "cedet-el=%s, exists=%s, mbf=%s" cedet-el (file-exists-p cedet-el) must-be-fetched)
     (unless (featurep 'cedet)
       (if (file-exists-p cedet-el)
-          (load-file cedet-el)
+          (let ((missing-path (file-name-as-directory (expand-file-name "cedet/semantic/bovine/" udev-cedet-dir))))
+            ;; Fix-me: reported as bug on cedet-devel 2009-08-31:
+            (add-to-list 'load-path missing-path)
+            (load-file cedet-el))
         (when must-be-fetched
           (error "Can't find %s" cedet-el)))
       (unless (featurep 'cedet)
@@ -211,13 +215,15 @@ Note that if you install CEDET yourself you should not use this function."
   "Fetch CEDET sources (asynchronously)."
   (let ((default-directory (file-name-as-directory udev-cedet-dir)))
     (unless (file-directory-p default-directory)
-      (make-directory default-directory))
-    (with-current-buffer
-        (compilation-start
-         "cvs -z3 -d:pserver:anonymous@cedet.cvs.sourceforge.net:/cvsroot/cedet co -P cedet"
-         'compilation-mode
-         'udev-cedet-buffer-name)
-      (current-buffer))))
+      (when (yes-or-no-p (concat "Directory " default-directory " does not exist. Create it? "))
+        (make-directory default-directory t)))
+    (when (file-directory-p default-directory)
+      (with-current-buffer
+          (compilation-start
+           "cvs -z3 -d:pserver:anonymous@cedet.cvs.sourceforge.net:/cvsroot/cedet co -P cedet"
+           'compilation-mode
+           'udev-cedet-buffer-name)
+        (current-buffer)))))
 
 (defun udev-cedet-cvs-dir ()
   "Return cvs root directory."

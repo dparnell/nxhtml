@@ -130,6 +130,7 @@
 
 ;;; Calling steps
 
+;;;###autoload
 (defun udev-call-first-step (log-buffer steps header finish-fun)
   "Set up and call first step.
 Set up buffer LOG-BUFFER to be used for log messages and
@@ -364,7 +365,6 @@ in the default directory DEFDIR.
 Set the buffer name for the inferior process with NAME-FUNCTION
 by giving this to `compilation-start'."
   (let ((default-directory (file-name-as-directory defdir))
-        ;; Fix-me:
         (this-emacs (ourcomments-find-emacs)))
     (compilation-start
      (concat this-emacs " -Q -batch " emacs-args)

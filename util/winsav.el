@@ -1296,7 +1296,9 @@ Run this before Emacs exits."
 	;;(winsav-save winsav-dirname t)
 	(winsav-save-configuration winsav-dirname)
       (file-error
-       (unless (yes-or-no-p "Error while saving winsav config: %s  Save anyway? " (error-message-string err))
+       (unless (yes-or-no-p
+                (format "Error while saving winsav config: %s  Save anyway? "
+                        (error-message-string err)))
 	 (signal (car err) (cdr err))))))
   ;; If we own it, we don't anymore.
   ;;(when (eq (emacs-pid) (winsav-owner)) (winsav-release-lock))

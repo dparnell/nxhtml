@@ -2152,7 +2152,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19058 8938))
+;;;;;;  "mumamo" "util/mumamo.el" (19060 14935))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -2356,7 +2356,7 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;;;;  ourcomments-move-beginning-of-line major-modep major-or-multi-majorp
 ;;;;;;  unfill-individual-paragraphs unfill-region unfill-paragraph
 ;;;;;;  define-toggle popup-menu-at-point) "ourcomments-util" "util/ourcomments-util.el"
-;;;;;;  (19058 13345))
+;;;;;;  (19060 14596))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2801,8 +2801,29 @@ be opened in your webbrowser with WORD looked up.
 
 ;;;***
 
+;;;### (autoloads (udev-call-first-step) "udev" "util/udev.el" (19060
+;;;;;;  19945))
+;;; Generated autoloads from util/udev.el
+
+(autoload 'udev-call-first-step "udev" "\
+Set up and call first step.
+Set up buffer LOG-BUFFER to be used for log messages and
+controling of the execution of the functions in list STEPS which
+are executed one after another.
+
+Write HEADER at the end of LOG-BUFFER.
+
+Call first step.
+
+If FINISH-FUN non-nil it should be a function. This is called
+after last step with LOG-BUFFER as parameter.
+
+\(fn LOG-BUFFER STEPS HEADER FINISH-FUN)" nil nil)
+
+;;;***
+
 ;;;### (autoloads (udev-cedet-update) "udev-cedet" "util/udev-cedet.el"
-;;;;;;  (19024 58308))
+;;;;;;  (19060 19664))
 ;;; Generated autoloads from util/udev-cedet.el
 
 (autoload 'udev-cedet-update "udev-cedet" "\
@@ -3189,9 +3210,8 @@ Not documented
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
-;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
-;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (19060 9934 468000))
+;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
+;;;;;;  "util/whelp.el" "util/zen-mode.el") (19060 20045 281000))
 
 ;;;***
 

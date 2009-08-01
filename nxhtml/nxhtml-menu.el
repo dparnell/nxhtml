@@ -376,9 +376,11 @@
                 (lambda ()
                   "Customize CEDET dev nXhtml startup options."
                   (interactive)
-                  (customize-group-other-window 'udev-cedet))
-                :enable '(and (featurep 'cedet)
-                              (file-exists-p (udev-cedet-el-file)))))
+                  (require 'udev-cedet)
+                  (if (file-exists-p (udev-cedet-el-file))
+                      (customize-group-other-window 'udev-cedet)
+                    (message (propertize "You must fetch CEDET from nXhtml first"
+                                         'face 'secondary-selection))))))
         (define-key cedet-map [nxhtml-cedet-utest]
           (list 'menu-item "Run CEDET unit tests"
                 'udev-cedet-utest))

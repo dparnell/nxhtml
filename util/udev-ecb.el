@@ -51,7 +51,7 @@
   "Customization group for udev-ecb."
   :group 'nxhtml)
 
-(defcustom udev-ecb-dir "~/ecb-cvs/"
+(defcustom udev-ecb-dir "~/.emacs.d/udev/ecb-cvs/"
   "Directory where to put CVS ECB sources."
   :type 'directory
   :group 'udev-ecb)
@@ -107,7 +107,9 @@
     (if (not (y-or-n-p "CEDET must be installed first.  Do that now? "))
         (error "Can't install ECB without CEDET")
       (require 'udev-cedet)
-      (udev-cedet-update))))
+      ;;(udev-cedet-update)
+      (udev-cedet-load-cedet nil)
+      )))
 
 (defun udev-ecb-setup-when-finished (log-buffer)
   (require 'cus-edit)
