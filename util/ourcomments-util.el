@@ -1210,7 +1210,13 @@ and go to the same line number as in the current buffer."
 The purpose of this function is to make it eaiser to start
 `ediff-files' from a shell through Emacs Client.
 
-This is used in EmacsW32 in the file ediff.cmd."
+This is used in EmacsW32 in the file ediff.cmd where Emacs Client
+is called like this:
+
+  @%emacs_client% -e \"(setq default-directory \\\"%emacs_cd%\\\")\"
+  @%emacs_client% -n  -e \"(ediff-files \\\"%f1%\\\" \\\"%f2%\\\")\"
+
+It can of course be done in a similar way with other shells."
   (let ((default-directory def-dir))
     (ediff-files file-a file-b)))
 
@@ -1405,6 +1411,7 @@ The can include 'variable, 'function and variaus 'cl-*."
    (list
     (ourcomments-read-symbol "Customization group"
                              'ourcomments-custom-group-p)))
+  ;; Fix-me:
   (message "g=%s" symbol))
 ;; nxhtml
 
@@ -1766,22 +1773,21 @@ of those in for example common web browsers."
 (defun emacs-restart-in-kill ()
   "Last step in restart Emacs and start `server-mode' if on before."
   (let ((restart-args (when ourcomments-restart-server-mode
-                        ;; Delay 1+1 sec to be sure the old server has stopped.
-                        (list "--eval=(run-with-idle-timer 2 nil 'server-mode 1)"))))
+                        ;; Delay 3+2 sec to be sure the old server has stopped.
+                        (list "--eval=(run-with-idle-timer 5 nil 'server-mode 1)"))))
     (apply 'call-process (ourcomments-find-emacs) nil 0 nil restart-args)
     ;; Wait to give focus to new Emacs instance:
-    (sleep-for 1)))
+    (sleep-for 3)))
 
 ;;;###autoload
 (defun emacs-restart ()
   "Restart Emacs and start `server-mode' if on before."
   (interactive)
-  (let ((wait 3))
-    (while (> wait -1)
+  (let ((wait 4))
+    (while (> (setq wait (1- wait)) 0)
       (message (propertize (format "Will restart Emacs in %d seconds..." wait)
                            'face 'secondary-selection))
-      (sit-for 1)
-      (setq wait (1- wait))))
+      (sit-for 1)))
   (setq ourcomments-restart-server-mode server-mode)
   (add-hook 'kill-emacs-hook 'emacs-restart-in-kill t)
   (save-buffers-kill-emacs))
@@ -2148,6 +2154,26 @@ Return full path if found."
                 t))
           (delete-overlay ovl)
           (goto-char here))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Menu commands feed back
+
+(defun ourcomments-M-x-menu-pre ()
+  ;;this: keys=[(menu-bar) help-menu emacs-manual], command=info-emacs-manual
+  (let ((is-menu-command (equal '(menu-bar)
+                                (elt (this-command-keys-vector) 0)))
+        )
+    (when is-menu-command
+      (message "this: keys=%s, command=%s" (this-command-keys-vector) this-command)
+      (pushnew (symbol-name this-command) extended-command-history)
+      )))
+
+(define-minor-mode ourcomments-M-x-menu-mode
+  "Add commands started from Emacs menus to M-x history."
+  :global t
+  (if ourcomments-M-x-menu-mode
+      (add-hook 'pre-command-hook 'ourcomments-M-x-menu-pre)
+    (remove-hook 'pre-command-hook 'ourcomments-M-x-menu-pre)))
 
 (provide 'ourcomments-util)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

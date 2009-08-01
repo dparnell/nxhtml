@@ -644,16 +644,19 @@ derivate it took 20 ms on a 3GHz CPU."
 Display chunk depth and major mode where a chunk begin in left or
 right margin.  \(The '-mode' part of the major mode is stripped.)
 
-See also `mumamo-margin-use'."
+See also `mumamo-margin-use'.
+
+Note: When `linum-mode' is on the right margin is always used
+\(since `linum-mode' uses the left)."
   :group 'mumamo-display
   (mumamo-update-this-buffer-margin-use)
   (if mumamo-margin-info-mode
       (progn
         (add-hook 'window-configuration-change-hook 'mumamo-update-this-buffer-margin-use nil t)
-        ;;(add-hook 'change-major-mode-hook 'mumamo-margin-info-mode-turn-off nil t)
+        (add-hook 'linum-mode-hook 'mumamo-update-this-buffer-margin-use nil t)
         )
     (remove-hook 'window-configuration-change-hook 'mumamo-update-this-buffer-margin-use t)
-    ;;(remove-hook 'change-major-mode-hook 'mumamo-margin-info-mode-turn-off t)
+    (remove-hook 'linum-mode-hook 'mumamo-update-this-buffer-margin-use t)
     ))
 (put 'mumamo-margin-info-mode 'permanent-local t)
 
@@ -687,12 +690,14 @@ See also `mumamo-margin-use'."
   (when (fboundp 'mumamo-update-chunks-margin-display)
     (with-current-buffer buffer
       (when mumamo-multi-major-mode
-        ;;(msgtrc "update-buffer-margin-use A")
-        (mumamo-update-chunks-margin-display buffer)
+        ;; Note: window update must be before buffer update because it
+        ;; uses old-margin from the call to function margin-used.
         (dolist (win (get-buffer-window-list buffer))
-          ;;(msgtrc "update-buffer-margin-use W")
-          (mumamo-set-window-margins-used win))))))
+          (mumamo-set-window-margins-used win))
+        (mumamo-update-chunks-margin-display buffer)
+        ))))
 
+;; (setq mumamo-chunk-coloring 4)
 (defcustom mumamo-chunk-coloring 0
   "Color chunks with depth greater than or equal to this.
 When 0 all chunks will be colored.  If 1 all sub mode chunks will
@@ -3255,7 +3260,6 @@ Otherwise return nil."
 ;; surrounding chunks syntax. Patterns that possibly could be chunk
 ;; borders might instead be parts of comments or strings in cases
 ;; where they should not be valid borders there.
-;;(defvar mumamo-find-possible-chunk-new nil)
 (defun mumamo-find-possible-chunk (pos
                                    min max
                                    bw-exc-start-fun
@@ -3263,23 +3267,14 @@ Otherwise return nil."
                                    fw-exc-start-fun
                                    fw-exc-end-fun
                                    &optional find-borders-fun)
-  ;; (if (not mumamo-find-possible-chunk-new)
-  ;;     (mumamo-find-possible-chunk-old pos min max
-  ;;                                     bw-exc-start-fun
-  ;;                                     bw-exc-end-fun
-  ;;                                     fw-exc-start-fun
-  ;;                                     fw-exc-end-fun
-  ;;                                     find-borders-fun)
-    (mumamo-find-possible-chunk-new pos
-                                    ;;min
-                                    max
-                                    bw-exc-start-fun
-                                    ;;bw-exc-end-fun
-                                    fw-exc-start-fun
-                                    fw-exc-end-fun
-                                    find-borders-fun)
-    ;;)
-    )
+  (mumamo-find-possible-chunk-new pos
+                                  ;;min
+                                  max
+                                  bw-exc-start-fun
+                                  ;;bw-exc-end-fun
+                                  fw-exc-start-fun
+                                  fw-exc-end-fun
+                                  find-borders-fun))
 
 (defun mumamo-find-possible-chunk-new (pos
                                        ;;min
@@ -3723,7 +3718,7 @@ The first two are used when the bottom:
                                    :weight 'normal
                                    :slant 'normal)))
            str
-           (margin (nth 0 mumamo-margin-use)))
+           (margin (mumamo-margin-used)))
       (when (> (length strm) 5) (setq strm (substring strm 0 5)))
       (setq str (concat strn
                         strm
@@ -3743,16 +3738,32 @@ The first two are used when the bottom:
           (mumamo-update-chunk-margin-display chunk)
           (setq chunk (overlay-get chunk 'mumamo-next-chunk)))))))
 
+(defvar mumamo-margin-used nil)
+(make-variable-buffer-local 'mumamo-margin-used)
+(put 'mumamo-margin-used 'permanent-local t)
+
+(defun mumamo-margin-used ()
+  (setq mumamo-margin-used
+        (if (and (boundp 'linum-mode) linum-mode) 'right-margin (nth 0 mumamo-margin-use))))
+
 (defun mumamo-set-window-margins-used (win)
   "Set window margin according to `mumamo-margin-use'."
-  (let ((margin (nth 0 mumamo-margin-use))
-        (width  (nth 1 mumamo-margin-use)))
+  ;; Fix-me: old-margin does not work, break it up
+  (let* ((old-margin mumamo-margin-used)
+         (margin    (mumamo-margin-used))
+         (width  (nth 1 mumamo-margin-use))
+         (both-widths (window-margins win))
+         (old-left (eq old-margin 'left-margin))
+         (left (eq margin 'left-margin)))
+    ;; Change only the margin we used!
     (if (not mumamo-margin-info-mode)
-        (set-window-margins win nil nil)
+        (set-window-margins win
+                            (if left nil (car both-widths))
+                            (if (not left) nil (cdr both-widths)))
       ;;(msgtrc "set-window-margins-used margin-info-mode=t")
       (case margin
-        ('left-margin  (set-window-margins win width nil))
-        ('right-margin (set-window-margins win nil width))))))
+        ('left-margin  (set-window-margins win width (when old-left (cdr both-widths))))
+        ('right-margin (set-window-margins win (car both-widths) width))))))
 
 (defun mumamo-new-chunk-value-min (values)
   (let ((this-values (nth 0 values)))
@@ -4454,6 +4465,7 @@ explanation."
 ;; Fix-me: Add a property to the symbol instead (like in CUA).
 (defvar mumamo-safe-commands-in-wrong-major
   '(self-insert-command
+    fill-paragraph ;; It changes major mode
     forward-char
     viper-forward-char
     backward-char
@@ -4487,8 +4499,8 @@ mumamo chunk then set major mode to that for the chunk."
       (let ((glob-command) ; (lookup-key global-map (this-command-keys-vector)))
             )
         (if (memq this-command mumamo-safe-commands-in-wrong-major)
-            (message "safe %s" this-command)
-          (message "not safe %s" this-command)
+            nil ;;(message "safe %s" this-command)
+          nil ;;(message "not safe %s" this-command)
           (let* ((ovl (mumamo-find-chunks (point) "mumamo-set-major-pre-command"))
                  (major (mumamo-chunk-major-mode ovl))
                  (found-this (lookup-key (current-local-map) (this-command-keys-vector)))
@@ -5823,6 +5835,9 @@ default values."
     ;;(setq used-time (time-subtract end-time start-time))
     ))
 
+(defvar mumamo-original-fill-paragraph-function nil)
+(make-variable-buffer-local 'mumamo-original-fill-paragraph-function)
+
 (defun mumamo-setup-local-fontification-vars ()
   "Set up buffer local variables for mumamo style fontification."
   (make-local-variable 'font-lock-fontify-region-function)
@@ -5840,7 +5855,9 @@ default values."
 
   (set (make-local-variable 'indent-line-function) 'mumamo-indent-line-function)
 
+  (setq mumamo-original-fill-paragraph-function fill-paragraph-function)
   (set (make-local-variable 'fill-paragraph-function) 'mumamo-fill-paragraph-function)
+  ;;(set (make-local-variable 'fill-forward-paragraph-function 'forward-paragraph)
 
   (make-local-variable 'indent-region-function)
   (setq indent-region-function 'mumamo-indent-region-function)
@@ -6136,6 +6153,7 @@ with a multi major mode."
     (define-key map [(control meta next)]  'mumamo-forward-chunk)
     ;; Use mumamo-indent-line-function:
     ;;(define-key map [tab] 'indent-for-tab-command)
+    (define-key map [(meta ?q)] 'fill-paragraph)
     map)
   "Keymap that is active in all mumamo buffers.
 It has the some priority as minor mode maps.")
@@ -6719,19 +6737,41 @@ This is the buffer local value of
 This is the buffer local value of `fill-paragraph-function' when
 mumamo is used."
   (let* ((ovl (mumamo-get-chunk-save-buffer-state (point)))
-         (major (mumamo-chunk-major-mode ovl))
-         ;;(main-major (mumamo-main-major-mode))
-         )
+         (major (mumamo-chunk-major-mode ovl)))
+    ;; Fix-me: There must be some bug that makes it necessary to
+    ;; always change mode when fill-paragraph-function is
+    ;; c-fill-paragraph.
+
+    ;;(unless (eq major major-mode) (mumamo-set-major major))
+    (mumamo-set-major major)
+
     (save-restriction
-      ;; (narrow-to-region (mumamo-chunk-syntax-min ovl)
-      ;;                   (mumamo-chunk-syntax-max ovl))
       (mumamo-update-obscure ovl (point))
       (let ((syn-min-max (mumamo-chunk-syntax-min-max ovl nil)))
         (narrow-to-region (car syn-min-max)
                           (cdr syn-min-max)))
-      (mumamo-with-major-mode-fontification major
-        ;;`(let ((fill-paragraph-function ,mumamo-original-fill-paragraph-function))
-        `(fill-paragraph ,justify ,region)))))
+      (let ((fill-paragraph-function mumamo-original-fill-paragraph-function)
+            (mumamo-dont-widen t))
+        (ad-enable-advice 'widen 'around 'mumamo-ad-widen)
+        (unwind-protect
+            (fill-paragraph justify region)
+          (ad-disable-advice 'widen 'around 'mumamo-ad-widen)
+          )))))
+
+(defvar mumamo-dont-widen)
+(defadvice widen  (around
+                   mumamo-ad-widen
+                   activate
+                   disable
+                   compile
+                   )
+  "Make `widen' do nothing.
+This is for `mumamo-fill-paragraph-function' and is necessary
+when `c-fill-paragraph' is the real function used."
+  (unless (and (boundp 'mumamo-dont-widen)
+               mumamo-dont-widen)
+    ad-do-it))
+
 
 (defun mumamo-forward-chunk ()
   "Move forward to next chunk."
@@ -7024,7 +7064,14 @@ Do here also other necessary adjustments for this."
                     (setq syntax-ppss-last-min
                           (cons min-pos ;;(1- min-pos)
                                 (if nil ;is-main-mode-chunk
-                                    ;; Fix-me: previous chunks as a cache?
+                                    ;; Fix-me: previous chunks as a
+                                    ;; cache? The problem is updating
+                                    ;; this. Perhaps it is possible to
+                                    ;; prune how far back to go by
+                                    ;; going to the first chunk
+                                    ;; backwards where
+                                    ;; (pars-partial-sexp min max) is
+                                    ;; "nil"?
                                     (mumamo-with-major-mode-fontification main-major
                                       `(parse-partial-sexp 1 ,min-pos nil nil nil nil))
                                   (parse-partial-sexp 1 1))))

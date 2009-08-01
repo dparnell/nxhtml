@@ -353,7 +353,8 @@
                     (when (y-or-n-p "CEDET is fetched, but not loaded. Load it? ")
                       (customize-group-other-window 'udev-cedet))
                     ))
-                :enable 'udev-ecb-miss-cedet))
+                :enable '(and (featurep 'cedet)
+                              udev-ecb-miss-cedet)))
         (define-key ecb-map [nxhtml-update-ecb]
           (list 'menu-item "Fetch/update ECB dev sources"
                 'udev-ecb-update))
@@ -376,8 +377,8 @@
                   "Customize CEDET dev nXhtml startup options."
                   (interactive)
                   (customize-group-other-window 'udev-cedet))
-                :enable '(or (featurep 'cedet)
-                             (file-exists-p (udev-cedet-el-file)))))
+                :enable '(and (featurep 'cedet)
+                              (file-exists-p (udev-cedet-el-file)))))
         (define-key cedet-map [nxhtml-cedet-utest]
           (list 'menu-item "Run CEDET unit tests"
                 'udev-cedet-utest))

@@ -1221,7 +1221,7 @@ MAX-STRLEN.  Display item with background color COLOR."
   (set (make-local-variable 'viper-emacs-state-hook) nil) ;; in vis cursor
   (abbrev-mode -1)
   (setq show-trailing-whitespace nil)
-  (visual-line-mode 1)
+  (when (fboundp 'visual-line-mode) (visual-line-mode 1))
   (n-back-make-keymap))
 
 (defun n-back-cancel-timers ()
