@@ -2884,6 +2884,24 @@
                 </ul>
               </li>
               <li>
+                Bug fixes and changes to udev for CEDET and ECB. (Udev
+                is a little utility to fetch and install dev sources.)
+                <ul>
+                  <li>
+                    <span class="bugfix">
+                      Changed default directory for installing CEDET and
+                      ECB to be under <i>~/.emacs.d/udev/</i>.
+                    </span>
+                  </li>
+                  <li>
+                    <span class="bugfix">
+                      Several bug fixes for udev.
+                      It should now work again (it did not if you compiled nXhtml).
+                    </span>
+                  </li>
+                </ul>
+              </li>
+              <li>
                 Added support
                 for <a href="http://www.emacswiki.org/emacs/CompanyMode">Company
                 Mode</a> style completion.  Temporary included a copy
@@ -2944,6 +2962,13 @@
                   For larger files (like this one) this version is
                   rather slow since it always changes the whole DOM.
                 </p>
+              </li>
+              <li>
+                <span class="bugfix">
+                  Rewrite nxml-where-mode to be more efficient and
+                  fixed some minor bugs.  It can now also be used with
+                  MozRepl to track position in file.
+                </span>
               </li>
             </ul>
           </dd>
