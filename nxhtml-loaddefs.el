@@ -140,7 +140,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19056 32315))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19060 9885))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -1656,7 +1656,7 @@ A `company-mode' completion back-end for `oddmuse-mode'.
 ;;;***
 
 ;;;### (autoloads (company-predictive) "company-mode/company-predictive"
-;;;;;;  "util/company-mode/company-predictive.el" (19039 56705))
+;;;;;;  "util/company-mode/company-predictive.el" (19059 42925))
 ;;; Generated autoloads from util/company-mode/company-predictive.el
 
 (autoload 'company-predictive "company-mode/company-predictive" "\
@@ -2152,7 +2152,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19056 63389))
+;;;;;;  "mumamo" "util/mumamo.el" (19058 8938))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -2299,8 +2299,8 @@ call this function.
 
 ;;;***
 
-;;;### (autoloads (n-back-game) "n-back" "util/n-back.el" (19039
-;;;;;;  33353))
+;;;### (autoloads (n-back-game) "n-back" "util/n-back.el" (19059
+;;;;;;  42072))
 ;;; Generated autoloads from util/n-back.el
 
 (autoload 'n-back-game "n-back" "\
@@ -2356,7 +2356,7 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;;;;  ourcomments-move-beginning-of-line major-modep major-or-multi-majorp
 ;;;;;;  unfill-individual-paragraphs unfill-region unfill-paragraph
 ;;;;;;  define-toggle popup-menu-at-point) "ourcomments-util" "util/ourcomments-util.el"
-;;;;;;  (19056 63208))
+;;;;;;  (19058 13345))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2516,7 +2516,13 @@ In directory DEF-DIR run `ediff-files' on files FILE-A and FILE-B.
 The purpose of this function is to make it eaiser to start
 `ediff-files' from a shell through Emacs Client.
 
-This is used in EmacsW32 in the file ediff.cmd.
+This is used in EmacsW32 in the file ediff.cmd where Emacs Client
+is called like this:
+
+  @%emacs_client% -e \"(setq default-directory \\\"%emacs_cd%\\\")\"
+  @%emacs_client% -n  -e \"(ediff-files \\\"%f1%\\\" \\\"%f2%\\\")\"
+
+It can of course be done in a similar way with other shells.
 
 \(fn DEF-DIR FILE-A FILE-B)" nil nil)
 
@@ -3183,9 +3189,9 @@ Not documented
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
-;;;;;;  "util/rebind.el" "util/restart-server.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/udev.el" "util/useful-commands.el" "util/whelp.el"
-;;;;;;  "util/zen-mode.el") (19056 63465 750000))
+;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/udev.el"
+;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
+;;;;;;  (19060 9934 468000))
 
 ;;;***
 

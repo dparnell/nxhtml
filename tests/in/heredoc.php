@@ -1,6 +1,13 @@
 
 <?php
 
+/* Testing fill paragraph and friends, fill me fill me fill me fill me
+   fill me fill me fill me fill me fill me fill me fill me fill me
+   fill me fill me
+
+   However coloring it differently than the top level (or level 1) php
+   chunks may help detect nesting errors.  */
+
 $name       = "Joe Smith";
 $occupation = "Programmer";
 echo <<<EOF
