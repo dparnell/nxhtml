@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 2007
-(defconst nxhtml-menu:version "1.88") ;;Version:
+(defconst nxhtml-menu:version "beta 1.88") ;;Version:
 ;; Last-Updated: 2009-05-29 Fri
 ;; URL:
 ;; Keywords:
@@ -170,10 +170,16 @@
                                  nxhtml-current-validation-header)
                             (buffer-modified-p)
                             (not buffer-file-name)
-                            (not (file-exists-p buffer-file-name))))))
-    (if use-temp
-        (browse-url (nxhtml-save-browseable-temp-file nil nil use-temp))
-      (browse-url-of-file file))))
+                            (not (file-exists-p buffer-file-name)))))
+         (file-to-browse file))
+    (when use-temp
+      (setq file-to-browse (nxhtml-save-browseable-temp-file nil nil use-temp)))
+    ;; Fix-me: Workaround for Emacs bug on w32
+    ;; http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=4015
+    (if (eq system-type 'windows-nt)
+        (w32-shell-execute "open" file nil 1)
+      (browse-url-of-file file))
+    ))
 
 ;;;###autoload
 (defun nxhtml-browse-region ()
