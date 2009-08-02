@@ -140,7 +140,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19060 9885))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19061 36673))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -2822,8 +2822,9 @@ after last step with LOG-BUFFER as parameter.
 
 ;;;***
 
-;;;### (autoloads (udev-cedet-update) "udev-cedet" "util/udev-cedet.el"
-;;;;;;  (19060 19664))
+;;;### (autoloads (udev-cedet-utest udev-cedet-customize-startup
+;;;;;;  udev-cedet-update) "udev-cedet" "util/udev-cedet.el" (19061
+;;;;;;  36702))
 ;;; Generated autoloads from util/udev-cedet.el
 
 (autoload 'udev-cedet-update "udev-cedet" "\
@@ -2835,16 +2836,32 @@ Note that if you install CEDET yourself you should not use this function.
 
 \(fn)" t nil)
 
+(autoload 'udev-cedet-customize-startup "udev-cedet" "\
+Customize CEDET dev nXhtml startup group.
+
+\(fn)" t nil)
+
+(autoload 'udev-cedet-utest "udev-cedet" "\
+Start CEDET unit tests.
+These runs in a fresh Emacs.
+
+\(fn)" t nil)
+
 ;;;***
 
-;;;### (autoloads (udev-ecb-update) "udev-ecb" "util/udev-ecb.el"
-;;;;;;  (19025 35698))
+;;;### (autoloads (udev-ecb-customize-startup udev-ecb-update) "udev-ecb"
+;;;;;;  "util/udev-ecb.el" (19061 36648))
 ;;; Generated autoloads from util/udev-ecb.el
 
 (autoload 'udev-ecb-update "udev-ecb" "\
 Fetch and install ECB from the devel sources.
 To determine where to store the sources see `udev-ecb-dir'.
 For how to start ECB see `udev-ecb-load-ecb'.
+
+\(fn)" t nil)
+
+(autoload 'udev-ecb-customize-startup "udev-ecb" "\
+Customize ECB dev nXhtml startup group.
 
 \(fn)" t nil)
 
@@ -2907,8 +2924,8 @@ Display vertical line mode as globally.
 ;;;***
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
-;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (19039
-;;;;;;  33684))
+;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (19060
+;;;;;;  58926))
 ;;; Generated autoloads from util/winsav.el
 
 (autoload 'winsav-put-window-tree "winsav" "\
@@ -3211,7 +3228,7 @@ Not documented
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el" "util/zen-mode.el") (19060 20045 281000))
+;;;;;;  "util/whelp.el" "util/zen-mode.el") (19061 36935 15000))
 
 ;;;***
 

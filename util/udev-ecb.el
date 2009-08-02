@@ -56,6 +56,10 @@
   :type 'directory
   :group 'udev-ecb)
 
+(defun udev-ecb-cvs-dir ()
+  "Return cvs root directory."
+  (file-name-as-directory (expand-file-name "ecb" udev-ecb-dir)))
+
 (defvar udev-ecb-miss-cedet nil)
 
 (defun udev-ecb-load-ecb ()
@@ -71,9 +75,8 @@
           (let ((debug-on-error nil))
             (setq udev-ecb-miss-cedet (format "Can't load ECB because %s." msg))
             (error "%s" udev-ecb-miss-cedet))
-        (let ((ecb-path (expand-file-name "ecb/" udev-ecb-dir)))
-          (add-to-list 'load-path ecb-path)
-          (require 'ecb nil t))))))
+        (add-to-list 'load-path (udev-ecb-cvs-dir))
+        (require 'ecb nil t)))))
 
 (defcustom udev-ecb-load-ecb nil
   "To load or not to load ECB..."
@@ -101,15 +104,18 @@
 
 (defvar udev-ecb-update-buffer nil)
 
-(defun udev-ecb-check-cedet ()
-  (unless (and (locate-library "semantic")
-               (locate-library "eieio"))
-    (if (not (y-or-n-p "CEDET must be installed first.  Do that now? "))
-        (error "Can't install ECB without CEDET")
-      (require 'udev-cedet)
-      ;;(udev-cedet-update)
-      (udev-cedet-load-cedet nil)
-      )))
+(defun udev-ecb-has-cedet ()
+  (cond
+   ((not (and (locate-library "semantic")
+                (locate-library "eieio")))
+    (message (propertize "CEDET must be installed and loaded first"
+                         'face 'secondary-selection))
+    nil)
+   ((not (featurep 'cedet))
+    (message (propertize "CEDET must be loaded first"
+                         'face 'secondary-selection))
+    nil)
+   (t t)))
 
 (defun udev-ecb-setup-when-finished (log-buffer)
   (require 'cus-edit)
@@ -138,11 +144,25 @@
 To determine where to store the sources see `udev-ecb-dir'.
 For how to start ECB see `udev-ecb-load-ecb'."
   (interactive)
-  (udev-ecb-check-cedet)
-  (setq udev-ecb-update-buffer (get-buffer-create "*Update ECB*"))
-  (udev-call-first-step udev-ecb-update-buffer udev-ecb-steps
-                        "Starting updating ECB from development sources"
-                        'udev-ecb-setup-when-finished))
+  (when (udev-ecb-has-cedet)
+    (let* ((has-it (file-exists-p (udev-ecb-cvs-dir)))
+           (prompt (if has-it
+                       "Do you want to update ECB from devel sources? "
+                     "Do you want to install ECB from devel sources? ")))
+      (when (y-or-n-p prompt)
+        (setq udev-ecb-update-buffer (get-buffer-create "*Update ECB*"))
+        (udev-call-first-step udev-ecb-update-buffer udev-ecb-steps
+                              "Starting updating ECB from development sources"
+                              'udev-ecb-setup-when-finished)))))
+
+;;;###autoload
+(defun udev-ecb-customize-startup ()
+  "Customize ECB dev nXhtml startup group."
+  (interactive)
+  (if (file-exists-p (udev-ecb-cvs-dir))
+      (customize-group-other-window 'udev-ecb)
+    (message (propertize "You must fetch ECB from nXhtml first"
+                         'face 'secondary-selection))))
 
 (defun udev-ecb-fetch (log-buffer)
   "Fetch ECB sources (asynchronously)."
@@ -180,10 +200,6 @@ For how to start ECB see `udev-ecb-load-ecb'."
             (insert "The file " bad-file " was already ok\n")))
         (unless bad-file-buffer (kill-buffer (current-buffer)))))
     this-log-buf))
-
-(defun udev-ecb-cvs-dir ()
-  "Return cvs root directory."
-  (file-name-as-directory (expand-file-name "ecb" udev-ecb-dir)))
 
 (defun udev-ecb-fetch-diff (log-buffer)
   "Fetch diff between local ECB sources and repository."
