@@ -117,7 +117,7 @@ FILENAME could be either the remote or the local file.
 ;;;***
 
 ;;;### (autoloads (nxhtml-customize) "../nxhtml/nxhtml" "nxhtml/nxhtml.el"
-;;;;;;  (19018 17351))
+;;;;;;  (19019 55340))
 ;;; Generated autoloads from nxhtml/nxhtml.el
 
 (autoload 'nxhtml-customize "../nxhtml/nxhtml" "\
@@ -140,7 +140,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19061 36673))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19061 42732))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -184,7 +184,7 @@ Show a HTML page with an overview of nXhtml.
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
 ;;;;;;  nxhtml-mode) "../nxhtml/nxhtml-mode" "nxhtml/nxhtml-mode.el"
-;;;;;;  (19050 24975))
+;;;;;;  (19061 50996))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 
 (when (fboundp 'nxml-mode)
@@ -366,7 +366,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxml-where-global-mode nxml-where-mode) "../nxhtml/nxml-where"
-;;;;;;  "nxhtml/nxml-where.el" (19056 34632))
+;;;;;;  "nxhtml/nxml-where.el" (19061 53104))
 ;;; Generated autoloads from nxhtml/nxml-where.el
 
 (autoload 'nxml-where-mode "../nxhtml/nxml-where" "\
@@ -394,7 +394,7 @@ See `nxml-where-mode' for more information on Nxml-Where mode.
 ;;;***
 
 ;;;### (autoloads (rngalt-set-validation-header) "../nxhtml/rngalt"
-;;;;;;  "nxhtml/rngalt.el" (19037 8047))
+;;;;;;  "nxhtml/rngalt.el" (18982 33732))
 ;;; Generated autoloads from nxhtml/rngalt.el
 
 (autoload 'rngalt-set-validation-header "../nxhtml/rngalt" "\
@@ -405,7 +405,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (tidy-build-menu) "../nxhtml/tidy-xhtml" "nxhtml/tidy-xhtml.el"
-;;;;;;  (19039 32713))
+;;;;;;  (19039 48498))
 ;;; Generated autoloads from nxhtml/tidy-xhtml.el
 
 (autoload 'tidy-build-menu "../nxhtml/tidy-xhtml" "\
@@ -418,7 +418,7 @@ Used to set up a Tidy menu in your favourite mode.
 
 ;;;### (autoloads (xhtml-help-show-tag-ref xhtml-help-tag-at-point
 ;;;;;;  xhtml-help-show-css-ref) "../nxhtml/xhtml-help" "nxhtml/xhtml-help.el"
-;;;;;;  (19034 55049))
+;;;;;;  (19036 37218))
 ;;; Generated autoloads from nxhtml/xhtml-help.el
 
 (autoload 'xhtml-help-show-css-ref "../nxhtml/xhtml-help" "\
@@ -470,7 +470,7 @@ This mode only provides syntax highlighting.
 ;;;***
 
 ;;;### (autoloads (espresso-mode) "../related/espresso" "related/espresso.el"
-;;;;;;  (19039 32774))
+;;;;;;  (19039 48498))
 ;;; Generated autoloads from related/espresso.el
 
 (autoload 'espresso-mode "../related/espresso" "\
@@ -500,7 +500,7 @@ Key bindings:
 ;;;***
 
 ;;;### (autoloads (inferior-moz-mode moz-minor-mode) "../related/moz"
-;;;;;;  "related/moz.el" (19047 42030))
+;;;;;;  "related/moz.el" (19048 2102))
 ;;; Generated autoloads from related/moz.el
 
 (autoload 'moz-minor-mode "../related/moz" "\
@@ -529,7 +529,7 @@ Major mode for interacting with Firefox via MozRepl.
 
 ;;;### (autoloads (global-mozadd-mirror-mode mozadd-mirror-mode global-mozadd-refresh-edited-on-save-mode
 ;;;;;;  mozadd-refresh-edited-on-save-mode) "../related/mozadd" "related/mozadd.el"
-;;;;;;  (19054 17156))
+;;;;;;  (19054 20024))
 ;;; Generated autoloads from related/mozadd.el
 
 (autoload 'mozadd-refresh-edited-on-save-mode "../related/mozadd" "\
@@ -597,7 +597,7 @@ See `mozadd-mirror-mode' for more information on Mozadd-Mirror mode.
 ;;;***
 
 ;;;### (autoloads (php-mode php-file-patterns) "../related/php-mode"
-;;;;;;  "related/php-mode.el" (19032 52317))
+;;;;;;  "related/php-mode.el" (19032 52516))
 ;;; Generated autoloads from related/php-mode.el
 
 (defvar php-file-patterns '("\\.php[s34]?\\'" "\\.phtml\\'" "\\.inc\\'") "\
@@ -615,7 +615,7 @@ Major mode for editing PHP code.
 ;;;***
 
 ;;;### (autoloads (smarty-mode) "../related/smarty-mode" "related/smarty-mode.el"
-;;;;;;  (19039 32812))
+;;;;;;  (19039 48498))
 ;;; Generated autoloads from related/smarty-mode.el
 
 (autoload 'smarty-mode "../related/smarty-mode" "\
@@ -1461,7 +1461,7 @@ Below are some examples.  To test them mark an example and do
 ;;;***
 
 ;;;### (autoloads (global-company-mode company-mode) "company-mode/company"
-;;;;;;  "util/company-mode/company.el" (19047 38387))
+;;;;;;  "util/company-mode/company.el" (19061 48543))
 ;;; Generated autoloads from util/company-mode/company.el
 
 (autoload 'company-mode "company-mode/company" "\
@@ -1511,7 +1511,7 @@ See `company-mode' for more information on Company mode.
 ;;;***
 
 ;;;### (autoloads (company-abbrev) "company-mode/company-abbrev"
-;;;;;;  "util/company-mode/company-abbrev.el" (19036 64074))
+;;;;;;  "util/company-mode/company-abbrev.el" (19039 49090))
 ;;; Generated autoloads from util/company-mode/company-abbrev.el
 
 (autoload 'company-abbrev "company-mode/company-abbrev" "\
@@ -1522,7 +1522,7 @@ A `company-mode' completion back-end for abbrev.
 ;;;***
 
 ;;;### (autoloads (company-css) "company-mode/company-css" "util/company-mode/company-css.el"
-;;;;;;  (19046 13060))
+;;;;;;  (19048 2102))
 ;;; Generated autoloads from util/company-mode/company-css.el
 
 (autoload 'company-css "company-mode/company-css" "\
@@ -1533,7 +1533,7 @@ A `company-mode' completion back-end for `css-mode'.
 ;;;***
 
 ;;;### (autoloads (company-dabbrev) "company-mode/company-dabbrev"
-;;;;;;  "util/company-mode/company-dabbrev.el" (19036 64074))
+;;;;;;  "util/company-mode/company-dabbrev.el" (19039 49092))
 ;;; Generated autoloads from util/company-mode/company-dabbrev.el
 
 (autoload 'company-dabbrev "company-mode/company-dabbrev" "\
@@ -1544,7 +1544,7 @@ A dabbrev-like `company-mode' completion back-end.
 ;;;***
 
 ;;;### (autoloads (company-dabbrev-code) "company-mode/company-dabbrev-code"
-;;;;;;  "util/company-mode/company-dabbrev-code.el" (19036 64074))
+;;;;;;  "util/company-mode/company-dabbrev-code.el" (19039 49092))
 ;;; Generated autoloads from util/company-mode/company-dabbrev-code.el
 
 (autoload 'company-dabbrev-code "company-mode/company-dabbrev-code" "\
@@ -1557,7 +1557,7 @@ comments or strings.
 ;;;***
 
 ;;;### (autoloads (company-elisp) "company-mode/company-elisp" "util/company-mode/company-elisp.el"
-;;;;;;  (19036 64075))
+;;;;;;  (19039 49092))
 ;;; Generated autoloads from util/company-mode/company-elisp.el
 
 (autoload 'company-elisp "company-mode/company-elisp" "\
@@ -1568,7 +1568,7 @@ A `company-mode' completion back-end for `emacs-lisp-mode'.
 ;;;***
 
 ;;;### (autoloads (company-etags) "company-mode/company-etags" "util/company-mode/company-etags.el"
-;;;;;;  (19036 64075))
+;;;;;;  (19039 49092))
 ;;; Generated autoloads from util/company-mode/company-etags.el
 
 (autoload 'company-etags "company-mode/company-etags" "\
@@ -1579,7 +1579,7 @@ A `company-mode' completion back-end for etags.
 ;;;***
 
 ;;;### (autoloads (company-files) "company-mode/company-files" "util/company-mode/company-files.el"
-;;;;;;  (19036 64075))
+;;;;;;  (19039 49092))
 ;;; Generated autoloads from util/company-mode/company-files.el
 
 (autoload 'company-files "company-mode/company-files" "\
@@ -1590,7 +1590,7 @@ a `company-mode' completion back-end existing file names.
 ;;;***
 
 ;;;### (autoloads (company-gtags) "company-mode/company-gtags" "util/company-mode/company-gtags.el"
-;;;;;;  (19036 64075))
+;;;;;;  (19039 49092))
 ;;; Generated autoloads from util/company-mode/company-gtags.el
 
 (autoload 'company-gtags "company-mode/company-gtags" "\
@@ -1601,7 +1601,7 @@ A `company-mode' completion back-end for GNU Global.
 ;;;***
 
 ;;;### (autoloads (company-ispell) "company-mode/company-ispell"
-;;;;;;  "util/company-mode/company-ispell.el" (19036 64075))
+;;;;;;  "util/company-mode/company-ispell.el" (19039 49092))
 ;;; Generated autoloads from util/company-mode/company-ispell.el
 
 (autoload 'company-ispell "company-mode/company-ispell" "\
@@ -1612,7 +1612,7 @@ A `company-mode' completion back-end using ispell.
 ;;;***
 
 ;;;### (autoloads (company-keywords) "company-mode/company-keywords"
-;;;;;;  "util/company-mode/company-keywords.el" (19036 64075))
+;;;;;;  "util/company-mode/company-keywords.el" (19039 49092))
 ;;; Generated autoloads from util/company-mode/company-keywords.el
 
 (autoload 'company-keywords "company-mode/company-keywords" "\
@@ -1623,7 +1623,7 @@ A `company-mode' back-end for programming language keywords.
 ;;;***
 
 ;;;### (autoloads (company-choose) "company-mode/company-nograb"
-;;;;;;  "util/company-mode/company-nograb.el" (19045 3102))
+;;;;;;  "util/company-mode/company-nograb.el" (19045 31314))
 ;;; Generated autoloads from util/company-mode/company-nograb.el
 
 (autoload 'company-choose "company-mode/company-nograb" "\
@@ -1634,7 +1634,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (company-nxml) "company-mode/company-nxml" "util/company-mode/company-nxml.el"
-;;;;;;  (19037 1357))
+;;;;;;  (19039 49092))
 ;;; Generated autoloads from util/company-mode/company-nxml.el
 
 (autoload 'company-nxml "company-mode/company-nxml" "\
@@ -1645,7 +1645,7 @@ A `company-mode' completion back-end for `nxml-mode'.
 ;;;***
 
 ;;;### (autoloads (company-oddmuse) "company-mode/company-oddmuse"
-;;;;;;  "util/company-mode/company-oddmuse.el" (19036 64075))
+;;;;;;  "util/company-mode/company-oddmuse.el" (19039 49092))
 ;;; Generated autoloads from util/company-mode/company-oddmuse.el
 
 (autoload 'company-oddmuse "company-mode/company-oddmuse" "\
@@ -1656,7 +1656,7 @@ A `company-mode' completion back-end for `oddmuse-mode'.
 ;;;***
 
 ;;;### (autoloads (company-predictive) "company-mode/company-predictive"
-;;;;;;  "util/company-mode/company-predictive.el" (19059 42925))
+;;;;;;  "util/company-mode/company-predictive.el" (19060 15106))
 ;;; Generated autoloads from util/company-mode/company-predictive.el
 
 (autoload 'company-predictive "company-mode/company-predictive" "\
@@ -1667,7 +1667,7 @@ A predictive-like `company-mode' completion back-end.
 ;;;***
 
 ;;;### (autoloads (company-pysmell) "company-mode/company-pysmell"
-;;;;;;  "util/company-mode/company-pysmell.el" (19039 55388))
+;;;;;;  "util/company-mode/company-pysmell.el" (19040 9010))
 ;;; Generated autoloads from util/company-mode/company-pysmell.el
 
 (autoload 'company-pysmell "company-mode/company-pysmell" "\
@@ -1679,7 +1679,7 @@ This requires pysmell.el and pymacs.el.
 ;;;***
 
 ;;;### (autoloads (company-semantic) "company-mode/company-semantic"
-;;;;;;  "util/company-mode/company-semantic.el" (19036 64075))
+;;;;;;  "util/company-mode/company-semantic.el" (19061 48468))
 ;;; Generated autoloads from util/company-mode/company-semantic.el
 
 (autoload 'company-semantic "company-mode/company-semantic" "\
@@ -1690,7 +1690,7 @@ A `company-mode' completion back-end using CEDET Semantic.
 ;;;***
 
 ;;;### (autoloads (company-tempo) "company-mode/company-tempo" "util/company-mode/company-tempo.el"
-;;;;;;  (19036 64075))
+;;;;;;  (19039 49092))
 ;;; Generated autoloads from util/company-mode/company-tempo.el
 
 (autoload 'company-tempo "company-mode/company-tempo" "\
@@ -1701,7 +1701,7 @@ A `company-mode' completion back-end for tempo.
 ;;;***
 
 ;;;### (autoloads (company-xcode) "company-mode/company-xcode" "util/company-mode/company-xcode.el"
-;;;;;;  (19036 64075))
+;;;;;;  (19039 49092))
 ;;; Generated autoloads from util/company-mode/company-xcode.el
 
 (autoload 'company-xcode "company-mode/company-xcode" "\
@@ -1842,7 +1842,7 @@ See `css-palette-mode' for more information on Css-Palette mode.
 ;;;***
 
 ;;;### (autoloads (cusnu-export-my-skin-options customize-for-new-user)
-;;;;;;  "cus-new-user" "util/cus-new-user.el" (19054 18225))
+;;;;;;  "cus-new-user" "util/cus-new-user.el" (19061 51872))
 ;;; Generated autoloads from util/cus-new-user.el
 
 (autoload 'customize-for-new-user "cus-new-user" "\
@@ -1933,7 +1933,7 @@ such palette into a css-file as hexadecimal color palette.
 ;;;***
 
 ;;;### (autoloads (hfyview-frame hfyview-window hfyview-region hfyview-buffer)
-;;;;;;  "hfyview" "util/hfyview.el" (19045 22104))
+;;;;;;  "hfyview" "util/hfyview.el" (19045 31314))
 ;;; Generated autoloads from util/hfyview.el
 
 (autoload 'hfyview-buffer "hfyview" "\
@@ -2026,7 +2026,7 @@ hyperlinks as appropriate.
 ;;;***
 
 ;;;### (autoloads (inlimg-toggle-slicing inlimg-toggle-display inlimg-global-mode
-;;;;;;  inlimg-mode) "inlimg" "util/inlimg.el" (19045 9989))
+;;;;;;  inlimg-mode) "inlimg" "util/inlimg.el" (19045 31314))
 ;;; Generated autoloads from util/inlimg.el
 
 (autoload 'inlimg-mode "inlimg" "\
@@ -2079,8 +2079,8 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
-;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19039
-;;;;;;  32994))
+;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19061
+;;;;;;  49898))
 ;;; Generated autoloads from util/majmodpri.el
 
 (autoload 'majmodpri-sort-lists "majmodpri" "\
@@ -2116,8 +2116,8 @@ before applying.
 
 ;;;***
 
-;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (19039
-;;;;;;  33029))
+;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (19061
+;;;;;;  50873))
 ;;; Generated autoloads from util/mlinks.el
 
 (autoload 'mlinks-mode "mlinks" "\
@@ -2152,7 +2152,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19060 14935))
+;;;;;;  "mumamo" "util/mumamo.el" (19060 15106))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -2175,7 +2175,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  jsp-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  nxml-mumamo-mode html-mumamo-mode) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19056 17306))
+;;;;;;  (19061 50030))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -2284,7 +2284,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (mumamo-add-region) "mumamo-regions" "util/mumamo-regions.el"
-;;;;;;  (19056 32886))
+;;;;;;  (19056 34298))
 ;;; Generated autoloads from util/mumamo-regions.el
 
 (autoload 'mumamo-add-region "mumamo-regions" "\
@@ -2299,8 +2299,8 @@ call this function.
 
 ;;;***
 
-;;;### (autoloads (n-back-game) "n-back" "util/n-back.el" (19059
-;;;;;;  42072))
+;;;### (autoloads (n-back-game) "n-back" "util/n-back.el" (19061
+;;;;;;  56727))
 ;;; Generated autoloads from util/n-back.el
 
 (autoload 'n-back-game "n-back" "\
@@ -2344,9 +2344,9 @@ new are maybe ... - and you have it available here in Emacs.
 
 ;;;***
 
-;;;### (autoloads (use-custom-style info-open-file grep-query-replace
-;;;;;;  emacs-Q-nxhtml emacs-Q emacs--no-desktop emacs--debug-init
-;;;;;;  emacs-buffer-file emacs emacs-restart ourcomments-ido-ctrl-tab
+;;;### (autoloads (ourcomments-warning use-custom-style info-open-file
+;;;;;;  grep-query-replace emacs-Q-nxhtml emacs-Q emacs--no-desktop
+;;;;;;  emacs--debug-init emacs-buffer-file emacs emacs-restart ourcomments-ido-ctrl-tab
 ;;;;;;  ourcomments-ido-buffer-raise-frame ourcomments-ido-buffer-other-frame
 ;;;;;;  ourcomments-ido-buffer-other-window describe-symbol describe-defstruct
 ;;;;;;  describe-custom-group narrow-to-comment describe-command
@@ -2356,7 +2356,7 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;;;;  ourcomments-move-beginning-of-line major-modep major-or-multi-majorp
 ;;;;;;  unfill-individual-paragraphs unfill-region unfill-paragraph
 ;;;;;;  define-toggle popup-menu-at-point) "ourcomments-util" "util/ourcomments-util.el"
-;;;;;;  (19060 14596))
+;;;;;;  (19061 59759))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2642,10 +2642,15 @@ Setup like in `Custom-mode', but without things specific to Custom.
 
 \(fn)" nil nil)
 
+(autoload 'ourcomments-warning "ourcomments-util" "\
+Not documented
+
+\(fn FORMAT-STRING &rest ARGS)" nil nil)
+
 ;;;***
 
 ;;;### (autoloads (global-pointback-mode pointback-mode) "pointback"
-;;;;;;  "util/pointback.el" (19022 41217))
+;;;;;;  "util/pointback.el" (19023 47096))
 ;;; Generated autoloads from util/pointback.el
 
 (autoload 'pointback-mode "pointback" "\
@@ -2696,7 +2701,7 @@ Display a form for search and replace.
 ;;;***
 
 ;;;### (autoloads (sex-mode) "sex-mode" "util/sex-mode.el" (19039
-;;;;;;  33586))
+;;;;;;  48498))
 ;;; Generated autoloads from util/sex-mode.el
 
 (defvar sex-mode nil "\
@@ -2733,7 +2738,7 @@ handled is governed by `sex-keep-dummy-buffer'.
 ;;;***
 
 ;;;### (autoloads (tabkey2-mode tabkey2-emma-without-tabkey2) "tabkey2"
-;;;;;;  "util/tabkey2.el" (19046 8500))
+;;;;;;  "util/tabkey2.el" (19048 2102))
 ;;; Generated autoloads from util/tabkey2.el
 
 (autoload 'tabkey2-emma-without-tabkey2 "tabkey2" "\
@@ -2801,8 +2806,8 @@ be opened in your webbrowser with WORD looked up.
 
 ;;;***
 
-;;;### (autoloads (udev-call-first-step) "udev" "util/udev.el" (19060
-;;;;;;  19945))
+;;;### (autoloads (udev-call-first-step) "udev" "util/udev.el" (19061
+;;;;;;  51505))
 ;;; Generated autoloads from util/udev.el
 
 (autoload 'udev-call-first-step "udev" "\
@@ -2824,7 +2829,7 @@ after last step with LOG-BUFFER as parameter.
 
 ;;;### (autoloads (udev-cedet-utest udev-cedet-customize-startup
 ;;;;;;  udev-cedet-update) "udev-cedet" "util/udev-cedet.el" (19061
-;;;;;;  36702))
+;;;;;;  38124))
 ;;; Generated autoloads from util/udev-cedet.el
 
 (autoload 'udev-cedet-update "udev-cedet" "\
@@ -2850,7 +2855,7 @@ These runs in a fresh Emacs.
 ;;;***
 
 ;;;### (autoloads (udev-ecb-customize-startup udev-ecb-update) "udev-ecb"
-;;;;;;  "util/udev-ecb.el" (19061 36648))
+;;;;;;  "util/udev-ecb.el" (19061 59499))
 ;;; Generated autoloads from util/udev-ecb.el
 
 (autoload 'udev-ecb-update "udev-ecb" "\
@@ -2868,7 +2873,7 @@ Customize ECB dev nXhtml startup group.
 ;;;***
 
 ;;;### (autoloads (udev-rinari-update) "udev-rinari" "util/udev-rinari.el"
-;;;;;;  (19024 3799))
+;;;;;;  (19025 6424))
 ;;; Generated autoloads from util/udev-rinari.el
 
 (autoload 'udev-rinari-update "udev-rinari" "\
@@ -2924,8 +2929,8 @@ Display vertical line mode as globally.
 ;;;***
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
-;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (19060
-;;;;;;  58926))
+;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (19061
+;;;;;;  51625))
 ;;; Generated autoloads from util/winsav.el
 
 (autoload 'winsav-put-window-tree "winsav" "\
@@ -3007,7 +3012,7 @@ See also option `winsav-save-mode' and command
 ;;;***
 
 ;;;### (autoloads (winsize-save-window-configuration winsize-balance-siblings
-;;;;;;  resize-windows) "winsize" "util/winsize.el" (19039 33736))
+;;;;;;  resize-windows) "winsize" "util/winsize.el" (19039 48498))
 ;;; Generated autoloads from util/winsize.el
 
 (autoload 'resize-windows "winsize" "\
@@ -3209,14 +3214,13 @@ Not documented
 ;;;***
 
 ;;;### (autoloads nil nil ("autostart.el" "autostart22.el" "etc/schema/schema-path-patch.el"
-;;;;;;  "nxhtml-loaddefs-batch.el" "nxhtml/doc/cedet-build.el" "nxhtml/html-chklnk.el"
-;;;;;;  "nxhtml/html-imenu.el" "nxhtml/html-move.el" "nxhtml/html-quote.el"
-;;;;;;  "nxhtml/html-wtoc.el" "nxhtml/nxhtml-anything-1.el" "nxhtml/nxhtml-autoload.el"
-;;;;;;  "nxhtml/nxhtml-strval.el" "nxhtml/nxhtmljs.el" "nxhtml/outline-magic.el"
-;;;;;;  "nxhtml/wtest.el" "related/flymake-helpers.el" "related/flymake-js.el"
-;;;;;;  "related/flymake-keys.el" "related/flymake-php.el" "related/flymu.el"
-;;;;;;  "related/fold-dwim.el" "related/javascript-old.el" "related/php-imenu.el"
-;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
+;;;;;;  "nxhtml/doc/cedet-build.el" "nxhtml/html-chklnk.el" "nxhtml/html-imenu.el"
+;;;;;;  "nxhtml/html-move.el" "nxhtml/html-quote.el" "nxhtml/html-wtoc.el"
+;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el" "nxhtml/nxhtmljs.el"
+;;;;;;  "nxhtml/outline-magic.el" "nxhtml/wtest.el" "related/flymake-helpers.el"
+;;;;;;  "related/flymake-js.el" "related/flymake-keys.el" "related/flymake-php.el"
+;;;;;;  "related/flymu.el" "related/fold-dwim.el" "related/javascript-old.el"
+;;;;;;  "related/php-imenu.el" "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
 ;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
 ;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/company-mode/company-autoloads.el"
@@ -3228,12 +3232,12 @@ Not documented
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
 ;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el" "util/zen-mode.el") (19061 36935 15000))
+;;;;;;  "util/whelp.el" "util/zen-mode.el") (19061 60074 984000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (19054 16471))
+;;;;;;  "../nxhtmlmaint" "nxhtmlmaint.el" (19054 20024))
 ;;; Generated autoloads from nxhtmlmaint.el
 
 (autoload 'nxhtmlmaint-start-byte-compilation "../nxhtmlmaint" "\

@@ -182,6 +182,87 @@ If nil show only tag names."
 
 
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Modes
+
+(defvar nxml-where-modes '(nxml-mode nxhtml-mode))
+
+(defun nxml-where-is-nxml ()
+  (or (derived-mode-p 'nxml-mode)
+      (and (featurep 'mumamo)
+           mumamo-multi-major-mode
+           (let ((major-mode (mumamo-main-major-mode)))
+             (derived-mode-p 'nxml-mode)))))
+
+(defun nxml-where-setup-updating ()
+  (nxml-where-clear-old-path 0 "setup")
+  (setq nxml-where-last-added nil)
+  (setq nxml-where-last-point nil)
+  (when (and nxml-where-header
+             (not nxml-where-only-inner))
+    (setq header-line-format "Started nxml-where-mode ..."))
+  ;;(nxml-where-restart-update)
+  (add-hook 'post-command-hook 'nxml-where-restart-update nil t))
+
+(defun nxml-where-mode-start ()
+  ;;(message "START")
+  (unless (nxml-where-is-nxml)
+    (error "Can't display XML path since major mode is not nxml-mode child."))
+  (add-hook 'after-change-major-mode-hook 'nxml-where-turn-off-unless-nxml nil t)
+  (add-hook 'after-change-functions 'nxml-where-after-change nil t)
+  (nxml-where-save-header-line-format)
+  (nxml-where-setup-updating))
+
+(defun nxml-where-mode-stop ()
+  ;;(message "STOP")
+  (remove-hook 'after-change-major-mode-hook 'nxml-where-turn-off-unless-nxml t)
+  (remove-hook 'after-change-functions 'nxml-where-after-change t)
+  (nxml-where-stop-updating)
+  (nxml-where-unmark-forward-element)
+  (nxml-where-restore-header-line-format)
+  (nxml-where-clear-old-path 0 "stop"))
+
+(defun nxml-where-turn-off-unless-nxml ()
+  (unless (nxml-where-is-nxml)
+    (nxml-where-mode-stop)))
+(put 'nxml-where-turn-off-unless-nxml 'permanent-local-hook t)
+
+;;;###autoload
+(define-minor-mode nxml-where-mode
+  "Shows path in mode line."
+  :global nil
+  :group 'nxml-where
+  (if nxml-where-mode
+      ;;Turn it on
+      (nxml-where-mode-start)
+    ;; Turn it off
+    (nxml-where-mode-stop)
+    ))
+(put 'nxml-where-mode 'permanent-local t)
+
+(defun nxml-where-turn-on-in-nxml-child ()
+  "Turn on `nxml-where-mode' if possible.
+This is possible if `major-mode' in the buffer is derived from
+`nxml-mode'."
+  (when (or (derived-mode-p 'nxml-mode)
+            (and mumamo-multi-major-mode
+                 (let ((major-mode (mumamo-main-major-mode)))
+                   (derived-mode-p 'nxml-mode))))
+    (unless nxml-where-mode
+      (nxml-where-mode 1))))
+
+;;;###autoload
+(define-globalized-minor-mode nxml-where-global-mode nxml-where-mode
+  nxml-where-turn-on-in-nxml-child
+  :group 'nxml-where)
+;; The problem with global minor modes:
+(when (and nxml-where-global-mode
+           (not (boundp 'define-global-minor-mode-bug)))
+  (nxml-where-global-mode 1))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Auto updating
 
@@ -285,87 +366,6 @@ Ie we have run at least once post command."
 
 (defun nxml-where-stop-updating ()
   (remove-hook 'post-command-hook 'nxml-where-restart-update t))
-
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Modes
-
-(defvar nxml-where-modes '(nxml-mode nxhtml-mode))
-
-(defun nxml-where-is-nxml ()
-  (or (derived-mode-p 'nxml-mode)
-      (and (featurep 'mumamo)
-           mumamo-multi-major-mode
-           (let ((major-mode (mumamo-main-major-mode)))
-             (derived-mode-p 'nxml-mode)))))
-
-(defun nxml-where-setup-updating ()
-  (nxml-where-clear-old-path 0 "setup")
-  (setq nxml-where-last-added nil)
-  (setq nxml-where-last-point nil)
-  (when (and nxml-where-header
-             (not nxml-where-only-inner))
-    (setq header-line-format "Started nxml-where-mode ..."))
-  ;;(nxml-where-restart-update)
-  (add-hook 'post-command-hook 'nxml-where-restart-update nil t))
-
-(defun nxml-where-mode-start ()
-  ;;(message "START")
-  (unless (nxml-where-is-nxml)
-    (error "Can't display XML path since major mode is not nxml-mode child."))
-  (add-hook 'after-change-major-mode-hook 'nxml-where-turn-off-unless-nxml nil t)
-  (add-hook 'after-change-functions 'nxml-where-after-change nil t)
-  (nxml-where-save-header-line-format)
-  (nxml-where-setup-updating))
-
-(defun nxml-where-mode-stop ()
-  ;;(message "STOP")
-  (remove-hook 'after-change-major-mode-hook 'nxml-where-turn-off-unless-nxml t)
-  (remove-hook 'after-change-functions 'nxml-where-after-change t)
-  (nxml-where-stop-updating)
-  (nxml-where-unmark-forward-element)
-  (nxml-where-restore-header-line-format)
-  (nxml-where-clear-old-path 0 "stop"))
-
-(defun nxml-where-turn-off-unless-nxml ()
-  (unless (nxml-where-is-nxml)
-    (nxml-where-mode-stop)))
-(put 'nxml-where-turn-off-unless-nxml 'permanent-local-hook t)
-
-;;;###autoload
-(define-minor-mode nxml-where-mode
-  "Shows path in mode line."
-  :global nil
-  :group 'nxml-where
-  (if nxml-where-mode
-      ;;Turn it on
-      (nxml-where-mode-start)
-    ;; Turn it off
-    (nxml-where-mode-stop)
-    ))
-(put 'nxml-where-mode 'permanent-local t)
-
-(defun nxml-where-turn-on-in-nxml-child ()
-  "Turn on `nxml-where-mode' if possible.
-This is possible if `major-mode' in the buffer is derived from
-`nxml-mode'."
-  (when (or (derived-mode-p 'nxml-mode)
-            (and mumamo-multi-major-mode
-                 (let ((major-mode (mumamo-main-major-mode)))
-                   (derived-mode-p 'nxml-mode))))
-    (unless nxml-where-mode
-      (nxml-where-mode 1))))
-
-;;;###autoload
-(define-globalized-minor-mode nxml-where-global-mode nxml-where-mode
-  nxml-where-turn-on-in-nxml-child
-  :group 'nxml-where)
-;; The problem with global minor modes:
-(when (and nxml-where-global-mode
-           (not (boundp 'define-global-minor-mode-bug)))
-  (nxml-where-global-mode 1))
 
 
 

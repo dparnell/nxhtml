@@ -1761,7 +1761,7 @@ fits `buffer-invisibility-spec'."
          (len-str (length str)))
     ;;(message "3874 A inv1=%s, len str=%s" inv1 len-str)
     ;; (setq x nil)
-    (unless (and (boundp 'x) x) (setq x str))
+    ;;(unless (and (boundp 'x) x) (setq x str))
     (while (setq pos2 (next-single-property-change pos1 'invisible str))
       (setq pos2 (or pos2 (length str)))
       (put-text-property pos1 pos2 'invisible (invisible-p inv1))
@@ -1770,7 +1770,7 @@ fits `buffer-invisibility-spec'."
       ;;(message "3874 B inv1=%s/%s, inv2=%s/%s" pos1 inv1 pos2 inv2)
       (setq pos1 pos2)))
   ;;(message "3874 str=%S" str)
-  (setq x3874 str)
+  ;;(setq x3874 str)
   str)
 
 ;; Fix-me: invisible, Emacs bug nr ? - buffer-substring does not copy 'invisible property
@@ -1798,7 +1798,8 @@ fits `buffer-invisibility-spec'."
             (p2 len))
       (put-text-property p1 p2 'invisible t visible-str)))
     ;;(message "3875 x vis=%S" visible-str)
-    (setq x3875 visible-str)))
+    ;;(setq x3875 visible-str)
+    ))
 
 (defun company-buffer-lines (beg end)
   (goto-char beg)
@@ -2013,7 +2014,7 @@ Returns a negative number if the tooltip should be displayed above point."
     (overlay-put company-pseudo-tooltip-overlay 'before-string
                  (company-fix-bug3874
                   (overlay-get company-pseudo-tooltip-overlay 'company-before)))
-    (setq x-before-string (overlay-get company-pseudo-tooltip-overlay 'before-string))
+    ;;(setq x-before-string (overlay-get company-pseudo-tooltip-overlay 'before-string))
     (overlay-put company-pseudo-tooltip-overlay 'window (selected-window))))
 
 (defun company-pseudo-tooltip-frontend (command)

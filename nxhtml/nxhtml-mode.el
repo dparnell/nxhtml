@@ -61,6 +61,7 @@
 (eval-when-compile
   (require 'cl)
   (require 'appmenu-fold)
+  (require 'xhtml-help)
   ;;(require 'nxhtml-menu)
   (require 'fold-dwim)
   (require 'typesetter nil t)

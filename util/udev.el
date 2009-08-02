@@ -147,13 +147,13 @@ after last step with LOG-BUFFER as parameter."
   (switch-to-buffer log-buffer)
   (udev-control-mode)
   (setq udev-is-log-buffer t)
-  (setq this-chain
-        (cons nil
-              (cons log-buffer
-                    (cons (copy-tree steps)
-                          (cons finish-fun nil)))))
-  (setcar this-chain (caddr this-chain))
-  (setq udev-this-chain this-chain)
+  (let ((this-chain
+         (cons nil
+               (cons log-buffer
+                     (cons (copy-tree steps)
+                           (cons finish-fun nil))))))
+    (setcar this-chain (caddr this-chain))
+    (setq udev-this-chain this-chain))
   (assert (eq (car steps) (udev-this-step log-buffer)) t)
   (assert (eq finish-fun (udev-finish-function log-buffer)) t)
   (widen)

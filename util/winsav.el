@@ -153,6 +153,7 @@
 
 
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'desktop))
 
 ;; (defun winsav-upper-left-window(&optional frame w)
 ;;   (let* ((tree (if w w (car (window-tree frame))))

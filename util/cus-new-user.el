@@ -264,6 +264,7 @@ Please change the group symbol name to something specific for you.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Example on Emacs+Emacw32
+(eval-when-compile (require 'emacsw32 nil t))
 (when (fboundp 'emacsw32-version)
   (defun cusnu-emacsw32-show-custstart (&rest args)
     (emacsw32-show-custstart))
@@ -793,7 +794,7 @@ See also the comment in the exported file."
                 (get sym 'customized-face))
            (add-to-list faces-par sym))
           ((get sym 'custom-group)
-           (unless (memq sym groups) ;; Don't loop
+           (unless (memq sym groups-par) ;; Don't loop
              (cusnu-get-options-and-faces groups-par options-par faces-par)))
           (t (insert ";; Not a custom variable or face: %s\n" sym)))))
 
