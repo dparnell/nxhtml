@@ -307,8 +307,11 @@
                 'wrap-to-fill-column-mode
                 :button '(:toggle . (and (boundp 'wrap-to-fill-column-mode) wrap-to-fill-column-mode))))
         )
+
       (define-key tools-map [nxhtml-ecb-separator]
         (list 'menu-item "--" nil))
+
+
       (let ((ecb-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-ecb-map]
           (list 'menu-item "ECB" ecb-map))
@@ -323,38 +326,16 @@
           (list 'menu-item "ECB Minor Mode"
                 'ecb-minor-mode
                 :button '(:toggle . (and (boundp 'ecb-minor-mode) ecb-minor-mode))
-                :enable '(featurep 'ecb)))
+                :enable '(boundp 'ecb-minor-mode)))
         (define-key ecb-map [nxhtml-ecb-show-help]
           (list 'menu-item "ECB Help"
                 'ecb-show-help
-                :enable '(featurep 'ecb)))
+                :enable '(fboundp 'ecb-show-help)))
         (define-key ecb-map [nxhtml-ecb-custom-separator]
           (list 'menu-item "--" nil))
-        ;; (define-key ecb-map [nxhtml-byte-compile-ecb]
-        ;;   (list 'menu-item "Byte compile ECB"
-        ;;         'ecb-byte-compile
-        ;;         :enable '(featurep 'ecb)))
         (define-key ecb-map [nxhtml-custom-ecb]
           (list 'menu-item "Customize ECB dev startup from nXhtml"
-                (lambda ()
-                  "Customize ECB dev nXhtml startup group."
-                  (interactive)
-                  (customize-group-other-window 'udev-ecb))
-                :enable '(featurep 'ecb)))
-        (define-key ecb-map [nxhtml-byte-compile-ecb]
-          (list 'menu-item "Fetch or start CEDET (which ECB needs)"
-                (lambda ()
-                  "Ask user about CEDET which is needed."
-                  (interactive)
-                  (if (not (file-exists-p (udev-cedet-el-file)))
-                      (when (y-or-n-p (concat udev-ecb-miss-cedet " Fetch CEDET? "))
-                        (setq udev-ecb-miss-cedet nil)
-                        (udev-cedet-update))
-                    (when (y-or-n-p "CEDET is fetched, but not loaded. Load it? ")
-                      (customize-group-other-window 'udev-cedet))
-                    ))
-                :enable '(and (featurep 'cedet)
-                              udev-ecb-miss-cedet)))
+                'udev-ecb-customize-startup))
         (define-key ecb-map [nxhtml-update-ecb]
           (list 'menu-item "Fetch/update ECB dev sources"
                 'udev-ecb-update))
@@ -367,20 +348,14 @@
                   (interactive)
                   (browse-url "http://ecb.sourceforge.net/"))))
         )
-      ;;(define-key tools-map [nxhtml-cedet-separator] (list 'menu-item "--" nil))
+
+
       (let ((cedet-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-cedet-map]
           (list 'menu-item "CEDET" cedet-map))
         (define-key cedet-map [nxhtml-custom-cedet]
           (list 'menu-item "Customize CEDET dev startup from nXhtml"
-                (lambda ()
-                  "Customize CEDET dev nXhtml startup options."
-                  (interactive)
-                  (require 'udev-cedet)
-                  (if (file-exists-p (udev-cedet-el-file))
-                      (customize-group-other-window 'udev-cedet)
-                    (message (propertize "You must fetch CEDET from nXhtml first"
-                                         'face 'secondary-selection))))))
+                'udev-cedet-customize-startup))
         (define-key cedet-map [nxhtml-cedet-utest]
           (list 'menu-item "Run CEDET unit tests"
                 'udev-cedet-utest))
@@ -396,6 +371,8 @@
                   (interactive)
                   (browse-url "http://cedet.sourceforge.net/"))))
         )
+
+
       (let ((rinari-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-rinari-map]
           (list 'menu-item "Rinari" rinari-map))

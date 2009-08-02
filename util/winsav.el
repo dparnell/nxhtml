@@ -3,13 +3,13 @@
 ;; Author: Lennart Borgman
 ;; Created: Sun Jan 14 2007
 ;; Version: 0.76
-;; Last-Updated: 2009-05-28 Thu
+;; Last-Updated: 2009-08-02 Sun
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-  ;; `cl'.
+;;   None
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -324,7 +324,14 @@ debugging by tells how far down we are in the call chain."
                     (rename-buffer bufnam))
               (when (eq (string-to-char bufnam) 32)
                 (setq bufnam " *Winsav dummy buffer*"))
-              (setq buffer (get-buffer-create bufnam))))
+              ;; Fix-me, this might need some tweaking: Don't restore
+              ;; buffers without a file name and without
+              ;; content. (desktop-mode will make that when
+              ;; necessary.)  Just show the scratch buffer instead.
+              (setq buffer (get-buffer bufnam))
+              (unless (and buffer
+                           (< 0 (buffer-size buffer)))
+                (setq buffer (get-buffer-create "*scratch*")))))
           (set-window-buffer window buffer)
           (set-window-dedicated-p window dedic)
           ;; Strange incompatibility in scroll args:
@@ -649,6 +656,7 @@ The actual file name will have a system identifier added too."
   "Current winsav configuration directory."
   (or winsav-dirname "~/"))
 
+;;(find-file (winsav-full-file-name))
 (defun winsav-full-file-name (&optional dirname)
   "Return the full name of the winsav session file in DIRNAME.
 DIRNAME omitted or nil means use `~'.
@@ -812,15 +820,21 @@ frame have this minibuffer frame."
     )
   "Parameters saved for frames by `winsav-save-configuration'.")
 
+;;(winsav-set-restore-size nil)
 (defun winsav-set-restore-size (frame)
   (when (fboundp 'w32-send-sys-command)
-    (w32-send-sys-command 61728)
-    (sleep-for 0.5)
+    (select-frame-set-input-focus frame)
+    (w32-send-sys-command #xf120)
+    ;; Note: sit-for must be used, not sleep-for. Using the latter
+    ;; prevents the fetching of the new size (for some reason I do not
+    ;; understand).
+    (sit-for 0.5)
     t))
 
 (defun winsav-set-maximized-size (frame)
   (when (fboundp 'w32-send-sys-command)
-    (w32-send-sys-command 61488)
+    (select-frame-set-input-focus frame)
+    (w32-send-sys-command #xf030)
     t))
 
 (defun winsav-save-frame (frame mb-frm-nr)
@@ -1119,7 +1133,8 @@ Delete the frames that were used before."
     (if (or (not conf-file)
             (not (file-exists-p conf-file)))
         (progn
-          (message "Winsav: No default configuration file found")
+          (message (propertize "Winsav: No default configuration file found"
+                               'face 'secondary-selection))
           t) ;; Ok
       (setq debug-on-error t) ;; fix-me
       (if (file-exists-p conf-file)
