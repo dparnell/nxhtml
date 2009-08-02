@@ -149,6 +149,7 @@ See `mumamo-chunk-style=' for an example of use."
               exc-end-next
               (tries 0)
               (min (1- pos))
+	      look-max
               )
           ;; make sure if we have find prev-attr= or not
           (when next-attr=

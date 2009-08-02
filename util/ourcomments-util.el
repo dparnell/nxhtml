@@ -2104,6 +2104,7 @@ Return full path if found."
           (setq pos (re-search-forward "^>" nil t)))))
     (if pos
         (with-current-buffer bb
+	  ;; Defined in bookmark.el, should be loaded now.
           (bookmark-bmenu-this-window))
       (call-interactively 'bookmark-bmenu-list)
       (message "Please select bookmark for bookmark next command, then press n"))))
@@ -2174,6 +2175,29 @@ Return full path if found."
   (if ourcomments-M-x-menu-mode
       (add-hook 'pre-command-hook 'ourcomments-M-x-menu-pre)
     (remove-hook 'pre-command-hook 'ourcomments-M-x-menu-pre)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Warnings etc
+
+(defvar ourcomments-warnings nil)
+
+(defun ourcomments-display-warnings ()
+  (condition-case err
+      (let ((msg (mapconcat 'identity (reverse ourcomments-warnings) "\n")))
+        (setq ourcomments-warnings nil)
+        (message "%s" (propertize msg 'face 'secondary-selection)))
+    (error (message "ourcomments-display-warnings: %s" err))))
+
+(defun ourcomments-warning-post ()
+  (condition-case err
+      (run-with-idle-timer 0.5 nil 'ourcomments-display-warnings)
+    (error (message "ourcomments-warning-post: %s" err))))
+
+;;;###autoload
+(defun ourcomments-warning (format-string &rest args)
+  (setq ourcomments-warnings (cons (apply 'format format-string args)
+                                   ourcomments-warnings))
+  (add-hook 'post-command-hook 'ourcomments-warning-post))
 
 (provide 'ourcomments-util)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

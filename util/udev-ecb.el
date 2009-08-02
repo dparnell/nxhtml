@@ -66,16 +66,15 @@
   "Load fetched ECB."
   (setq udev-ecb-miss-cedet nil)
   (unless (featurep 'ecb)
-    (let ((semantic-found (locate-library "semantic"))
-          (eieio-found (locate-library "eieio"))
-          (msg nil))
-      (unless (or msg semantic-found) (setq msg "can't find CEDET Semantic"))
-      (unless (or msg eieio-found) (message "can't find CEDET eieio"))
-      (if (not (and semantic-found eieio-found))
-          (let ((debug-on-error nil))
+    (add-to-list 'load-path (udev-ecb-cvs-dir))
+    (let ((msg nil))
+      (unless (or msg (featurep 'cedet)) (setq msg "CEDET is not loaded"))
+      (unless (or msg (locate-library "semantic")) (setq msg "can't find CEDET Semantic"))
+      (unless (or msg (locate-library "eieio")) (setq msg "can't find CEDET eieio"))
+      (if msg
+          (progn
             (setq udev-ecb-miss-cedet (format "Can't load ECB because %s." msg))
-            (error "%s" udev-ecb-miss-cedet))
-        (add-to-list 'load-path (udev-ecb-cvs-dir))
+            (ourcomments-warning udev-ecb-miss-cedet))
         (require 'ecb nil t)))))
 
 (defcustom udev-ecb-load-ecb nil

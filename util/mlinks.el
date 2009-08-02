@@ -1196,7 +1196,7 @@ Any command cancels this state."
               (error "Back goto-- value again: %s" goto--)))))))))
 
 (defun mlinks-elisp-mode-require (module)
-  (let ((mlinks-temp-buffer-where where))
+  (let ((where mlinks-temp-buffer-where))
     (cond
      ((null where)
       (find-library module))
