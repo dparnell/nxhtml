@@ -5957,7 +5957,7 @@ mode in the chunk family is nil."
       (setq flyspell-generic-check-word-predicate 'mumamo-flyspell-verify))
     (run-hooks 'mumamo-turn-on-hook)
     ;;(mumamo-get-chunk-save-buffer-state (point))
-    (dolist (win (get-buffer-window-list))
+    (dolist (win (get-buffer-window-list (current-buffer)))
       (let ((wp (or (window-end win)
                     (window-point win)
                     (window-start win))))

@@ -252,15 +252,7 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
                                   (list invocation-directory)
                                   exec-suffixes))
          (process-args `(,this-emacs nil 0 nil "-Q")))
-    ;;(message "this-file=%s" this-file)
     (nxhtmlmaint-byte-uncompile-all)
-    ;;(nxhtmlmaint-get-all-autoloads)
-    ;;(require 'ourcomments-util)
-    ;; (call-process this-emacs nil 0 nil "-Q"
-    ;;               "-l" this-file
-    ;;               "-l" auto-file
-    ;;               "-f" "nxhtmlmaint-byte-compile-all")
-
     (if noninteractive
         (nxhtmlmaint-byte-compile-all)
       ;;(when noninteractive (setq process-args (append process-args '("-batch"))))

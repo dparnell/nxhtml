@@ -140,11 +140,13 @@
 
   (let* ((util-dir (file-name-as-directory (expand-file-name "util" nxhtml-install-dir)))
          (related-dir (file-name-as-directory (expand-file-name "related" nxhtml-install-dir)))
-         (nxhtml-dir (file-name-as-directory (expand-file-name "nxhtml" nxhtml-install-dir))))
+         (nxhtml-dir (file-name-as-directory (expand-file-name "nxhtml" nxhtml-install-dir)))
+         (company-dir (file-name-as-directory (expand-file-name "util/company-mode" nxhtml-install-dir))))
     (add-to-list 'load-path nxhtml-dir)
     (add-to-list 'load-path related-dir)
     (add-to-list 'load-path util-dir)
     (add-to-list 'load-path nxhtml-install-dir)
+    (add-to-list 'load-path company-dir)
 
     (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
