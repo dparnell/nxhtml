@@ -202,6 +202,7 @@ run."
       (run-hook-with-args 'winsav-after-get-hook ret)
       ret)))
 
+;; Fix-me: add window-hscroll
 (defun winsav-get-window-tree-1(frame w)
   (let ((tree (if w w (car (window-tree frame)))))
     (if (windowp tree)

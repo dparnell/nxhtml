@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 2007
-(defconst nxhtml-menu:version "beta 1.88") ;;Version:
+(defconst nxhtml-menu:version "1.89") ;;Version:
 ;; Last-Updated: 2009-05-29 Fri
 ;; URL:
 ;; Keywords:
@@ -292,6 +292,10 @@
               ))
       (define-key tools-map [nxhtml-last-resort]
         (list 'menu-item "Last Resort" 'n-back-game))
+      (define-key tools-map [nxhtml-menu-to-m-x]
+        (list 'menu-item "Add Menu Commands to M-x history"
+              'ourcomments-M-x-menu-mode
+              :button '(:toggle . ourcomments-M-x-menu-mode)))
       (define-key tools-map [nxhtml-last-resort-separator]
         (list 'menu-item "--" nil))
       (let ((fill-map (make-sparse-keymap)))

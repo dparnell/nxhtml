@@ -2157,20 +2157,37 @@ Return full path if found."
           (goto-char here))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; Menu commands feed back
+;;;; Menu commands to M-x history
 
+;; (where-is-internal 'mumamo-mark-chunk nil nil)
+;; (where-is-internal 'mark-whole-buffer nil nil)
+;; (where-is-internal 'save-buffer nil nil)
+;; (where-is-internal 'revert-buffer nil nil)
+;; (setq extended-command-history nil)
 (defun ourcomments-M-x-menu-pre ()
-  ;;this: keys=[(menu-bar) help-menu emacs-manual], command=info-emacs-manual
+  "Add menu command to M-x history."
   (let ((is-menu-command (equal '(menu-bar)
                                 (elt (this-command-keys-vector) 0)))
-        )
-    (when is-menu-command
-      (message "this: keys=%s, command=%s" (this-command-keys-vector) this-command)
+        (pre-len (length extended-command-history)))
+    (when (and is-menu-command
+               (not (memq this-command '(ourcomments-M-x-menu-mode))))
       (pushnew (symbol-name this-command) extended-command-history)
-      )))
+      (when (< pre-len (length extended-command-history))
+        ;; This message is given pre-command and is therefore likely
+        ;; to be overwritten, but that is ok in this case. If the user
+        ;; has seen one of these messages s?he knows.
+        (message (propertize "(Added %s to M-x history so you can run it from there)"
+                             'face 'file-name-shadow)
+                 this-command)))))
 
+;;;###autoload
 (define-minor-mode ourcomments-M-x-menu-mode
-  "Add commands started from Emacs menus to M-x history."
+  "Add commands started from Emacs menus to M-x history.
+The purpose of this is to make it easier to redo them and easier
+to learn how to do them from the command line \(which is often
+faster if you know how to do it).
+
+Only commands that are not already in M-x history are added."
   :global t
   (if ourcomments-M-x-menu-mode
       (add-hook 'pre-command-hook 'ourcomments-M-x-menu-pre)

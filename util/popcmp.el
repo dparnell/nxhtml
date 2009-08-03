@@ -118,16 +118,15 @@
     (company-mode 1)
     (company-set-major-mode-backend)))
 
-(defcustom popcmp-completion-style (cond ((and (fboundp 'global-company-mode)
-                                               'company-mode)
-                                          'company-mode)
-                                         (t 'emacs-default))
+(defcustom popcmp-completion-style (cond
+                                    ;;((and (fboundp 'global-company-mode) 'company-mode) 'company-mode)
+                                    (t 'popcmp-popup))
   "Completion style.
 The currently available completion styles are:
 
-- Company Mode completion (default if available).
-- popcmp-popup: Use OS popup menus (default if not above is).
+- popcmp-popup: Use OS popup menus (default).
 - emacs-default: Emacs default completion.
+- Company Mode completion.
 - anything: The Anything elisp lib completion style.
 
 The style of completion set here is not implemented for all

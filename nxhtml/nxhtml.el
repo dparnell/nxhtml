@@ -118,14 +118,12 @@
 
 (defun nxhtml-feature-insert (ok msg)
   (put-text-property 0 (length msg)
-                     'face (list
-                            (cons 'foreground-color
-                                  (if ok "RGB:00/cc/00"
-                                    "RGB:cc/00/00")))
+                     'face (if ok font-lock-type-face font-lock-warning-face)
                      msg)
   (insert msg))
 
 (defun nxhtml-feature-check (feat-entry silent)
+  (require 'loadhist)
   (let ((feature     (nth 0 feat-entry))
         (description (nth 1 feat-entry))
         (file        (nth 2 feat-entry))
@@ -179,6 +177,8 @@
     ok))
 
 ;; Fix-me: move help here from `nxhtml-mode'?
+
+;;;###autoload
 (defun nxhtml-features-check ()
   "Check if external modules used by nXhtml are found."
   (interactive)
