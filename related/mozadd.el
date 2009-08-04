@@ -2,15 +2,16 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2009-07-22 Wed
-;; Version:
-;; Last-Updated:
+(defconst mozadd:version "0.2") ;; Version:
+;; Last-Updated: 2009-08-04 Tue
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   None
+  ;; `cc-cmds', `cc-defs', `cc-engine', `cc-vars', `comint', `json',
+  ;; `moz', `regexp-opt', `ring'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -358,5 +359,6 @@ See also `mozadd-refresh-edited-on-save-mode'."
 (put 'mozadd-update-mozilla 'permanent-local-hook t)
 
 
+(provide 'mozadd)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; mozadd.el ends here

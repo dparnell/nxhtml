@@ -293,6 +293,10 @@
           <a href="#v1.86">v1.86</a>
           <a href="#v1.87">v1.87</a>
           <a href="#v1.88">v1.88</a>
+          <a href="#v1.89">v1.89</a>
+          <a href="#v1.90">v1.90</a>
+          <a href="#v1.91">v1.91</a>
+          <a href="#v1.92">v1.92</a>
         </div>
 
         <dl>
@@ -2843,7 +2847,7 @@
               </li>
             </ul>
           </dd>
-          <dt id="v1.88">1.88 -- Not yet released</dt>
+          <dt id="v1.88">1.88 -- Never released, only betas</dt>
           <dd id="v1.88-dd">
             <ul>
               <li>
@@ -2916,8 +2920,8 @@
                 smaller change to the Makefile is required, there is
                 one absolute path you probably want to remove.)
                 <p class="bugfix">
-                  Note that Company Mode is now the default completion style.
-                  If the automatic pop up menus get in your way you can customize Company Mode to avoid it.
+                  Note: I thought that I should make Company Mode the default completion style.
+                  However there are still some problem so I kept the old default completion style.
                 </p>
               </li>
               <li>
@@ -2981,6 +2985,57 @@
                   Added workaround for <a
                   href="http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=4015"
                   >Emacs bug 4015 on w32</a>.
+                </span>
+              </li>
+              <li>
+                Added <i>ourcomments-M-x-menu-mode</i> which <a
+                href="http://lists.gnu.org/archive/html/emacs-devel/2009-07/msg01025.html">adds
+                menu commands to M-x history</a>.
+              </li>
+            </ul>
+          </dd>
+          <dt id="v1.89">1.89 -- Released 2009-08-04</dt>
+          <dd id="v1.89-dd">
+            <ul>
+              <li>
+                The release version of all the fixes in beta 1.88.
+              </li>
+            </ul>
+          </dd>
+          <dt id="v1.90">1.90 -- Released 2009-08-04</dt>
+          <dd id="v1.90-dd">
+            <ul>
+              <li>
+                <span class="bugfix">
+                  Made wrap-to-fill-column-mode cooperate a bit with
+                  mumamo-margin-info-mode.
+                </span>
+              </li>
+              <li>
+                Made an inventory of utilities in nXhtml and made some
+                of them more visible in the menus.
+              </li>
+            </ul>
+          </dd>
+          <dt id="v1.91">1.91 -- Released 2009-08-04</dt>
+          <dd id="v1.91-dd">
+            <ul>
+              <li>
+                <span class="bugfix">
+                  Mumamo bug fix for bug reported on Emacs wiki today.
+                  Inline scripts end tag could not be in column one if
+                  previous line had a // style js comment.
+                </span>
+              </li>
+            </ul>
+          </dd>
+          <dt id="v1.92">1.92 -- Released 2009-08-04</dt>
+          <dd id="v1.92-dd">
+            <ul>
+              <li>
+                <span class="bugfix">
+                  An Emacs bug that sometimes prevent changing local keymap in a timer hit us.
+                  Made a workaround.
                 </span>
               </li>
             </ul>

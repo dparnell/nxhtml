@@ -2044,7 +2044,8 @@ Returns a negative number if the tooltip should be displayed above point."
   (unless nil ;;(symbolp company-candidates)
     (unless (and (eq command 'post-command)
                  (not (cdr company-candidates))
-                 (not (company-call-backend 'no-insert)))
+                 ;;(not (company-call-backend 'no-insert))
+                 )
       (company-pseudo-tooltip-frontend command))))
 
 ;;; overlay ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -3,9 +3,9 @@
 ;; Copyright (C) 2005, 2006, 2007 by Lennart Borgman
 
 ;; Author: Lennart Borgman
-;; Created: Fri Oct 21 00:11:07 2005
-;; Version: 0.63
-;; Last-Updated: 2008-03-20T19:36:39+0100 Thu
+;; Created: Fri Oct 21 2005
+(defconst hfyview:version "0.63") ;; Version:
+;; Last-Updated: 2009-08-04 Tue
 ;; Keywords: printing
 ;; URL: http://OurComments.org/Emacs/DL/elisp/hfyview.el
 ;; Compatibility:
@@ -13,7 +13,7 @@
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   `easymenu', `htmlfontify'.
+;; `easymenu'.
 ;;
 ;;
 ;; You can find htmlfontify.el at

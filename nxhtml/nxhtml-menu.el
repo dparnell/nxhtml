@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 2007
-(defconst nxhtml-menu:version "beta 1.88") ;;Version:
+(defconst nxhtml-menu:version "1.92") ;;Version:
 ;; Last-Updated: 2009-05-29 Fri
 ;; URL:
 ;; Keywords:
@@ -292,7 +292,19 @@
               ))
       (define-key tools-map [nxhtml-last-resort]
         (list 'menu-item "Last Resort" 'n-back-game))
+      (define-key tools-map [nxhtml-pause]
+        (list 'menu-item "Life Reminder" 'pause-mode
+              :button '(:toggle . pause-mode)))
       (define-key tools-map [nxhtml-last-resort-separator]
+        (list 'menu-item "--" nil))
+      (define-key tools-map [nxhtml-viper-tut]
+        (list 'menu-item "Viper try-out tutorial"
+              'viper-tutorial))
+      (define-key tools-map [nxhtml-menu-to-m-x]
+        (list 'menu-item "Add Menu Commands to M-x history"
+              'ourcomments-M-x-menu-mode
+              :button '(:toggle . ourcomments-M-x-menu-mode)))
+      (define-key tools-map [nxhtml-next-last-resort-separator]
         (list 'menu-item "--" nil))
       (let ((fill-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-filling]
@@ -446,8 +458,30 @@
                   (interactive)
                   (browse-url "http://hyperstruct.net/projects/mozlab"))))
         )
+
+      (define-key tools-map [nxhtml-frame-win-separator]
+        (list 'menu-item "--" nil))
+      (let ((frame-map (make-sparse-keymap)))
+        (define-key tools-map [nxhtml-frame-map]
+          (list 'menu-item "Windows and Frames" frame-map))
+        (define-key frame-map [nxhtml-winsav-mode]
+          (list 'menu-item "Save/restore Frames and Windows"
+                'winsav-save-mode
+                :button '(:toggle . winsav-save-mode)))
+        (define-key frame-map [nxhtml-resize-windows]
+          (list 'menu-item "Resize Windows"
+                'resize-windows)))
+
       (define-key tools-map [nxhtml-majpri-separator]
         (list 'menu-item "--" nil))
+      (define-key tools-map [nxhtml-as-external]
+        (list 'menu-item "External Editor Setup"
+              'as-external-mode
+              :button '(:toggle . as-external-mode)))
+      (define-key tools-map [nxhtml-sex-mode]
+        (list 'menu-item "Open files in External Apps"
+              'sex-mode
+              :button '(:toggle . sex-mode)))
       (let ((majpri-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-majpri-map]
           (list 'menu-item "Major Modes Priorities" majpri-map))

@@ -2,15 +2,15 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2009-05-23 Sat
-(defconst n-back:version 0.5);; Version:
-;; Last-Updated: 2009-05-30 Sat
+(defconst n-back:version "0.5");; Version:
+;; Last-Updated: 2009-08-04 Tue
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-  ;; `cl', `cus-load', `cus-start', `windmove', `winsav', `winsize'.
+  ;; `winsize'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;

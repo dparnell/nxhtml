@@ -2,8 +2,8 @@
 ;;
 ;; Author: Lennart Borgman
 ;; Created: Sun Jan 14 2007
-;; Version: 0.76
-;; Last-Updated: 2009-08-02 Sun
+(defconst winsav:version "0.77") ;;Version: 0.77
+;; Last-Updated: 2009-08-04 Tue
 ;; Keywords:
 ;; Compatibility:
 ;;
@@ -202,6 +202,7 @@ run."
       (run-hook-with-args 'winsav-after-get-hook ret)
       ret)))
 
+;; Fix-me: add window-hscroll
 (defun winsav-get-window-tree-1(frame w)
   (let ((tree (if w w (car (window-tree frame)))))
     (if (windowp tree)
@@ -838,68 +839,69 @@ frame have this minibuffer frame."
     (w32-send-sys-command #xf030)
     t))
 
-(defun winsav-save-frame (frame mb-frm-nr)
+(defun winsav-save-frame (frame mb-frm-nr buffer)
   "Write into current buffer elisp code to recreate frame FRAME.
 If MB-FRM-NR is a number then it is the order number of the frame
 whose minibuffer should be used."
-  (let* ((start nil)
-         (end nil)
-         (obj (winsav-get-window-tree frame))
-         (frm-size-now (cons (frame-pixel-height frame)
-                             (frame-pixel-width frame)))
-         (frm-size-rst (when (winsav-set-restore-size frame)
-                         (cons (frame-pixel-height frame)
-                               (frame-pixel-width frame))))
-         (was-max (and frm-size-rst
-                       (not (equal frm-size-now frm-size-rst))))
-         (frm-par (frame-parameters frame)))
-    (setq frm-par
-          (delq nil
-                (mapcar (lambda (elt)
-                          (cond
-                           ((memq (car elt) winsav-frame-parameters-to-save)
-                            elt)
-                           ((eq (car elt) 'minibuffer)
-                            (let ((val (cdr elt)))
-                              (if (not (windowp val))
-                                  elt
-                                (if (eq (window-frame val) frame)
-                                    nil
-                                  (cons 'minibuffer nil)))))))
-                        frm-par)))
-    (insert "(winsav-restore-frame\n'"
-            ;;make-frame-params
-            (winsav-serialize frm-par))
-    ;;window-tree-params
-    (setq start (point))
-    (insert "'" (winsav-serialize obj) "\n")
-    (setq end (copy-marker (point) t))
-    (replace-regexp (rx "#<buffer "
-                        (1+ (not (any ">")))
-                        (1+ ">")) ;; 1+ for indirect buffers ...
-                    "buffer"
-                    nil start end)
-    (replace-regexp (rx "#<window "
-                        (1+ (not (any ">")))
-                        (1+ ">"))
-                    "nil"
-                    nil start end)
-    (goto-char end)
-    ;;use-minibuffer-frame
-    (insert (if mb-frm-nr
-                (format "(nth %s (reverse winsav-loaded-frames))" mb-frm-nr)
-              "nil")
-            (if was-max " t " " nil ")
-            ")\n\n")
+  (with-current-buffer buffer
+    (let* ((start nil)
+           (end nil)
+           (obj (winsav-get-window-tree frame))
+           (frm-size-now (cons (frame-pixel-height frame)
+                               (frame-pixel-width frame)))
+           (frm-size-rst (when (winsav-set-restore-size frame)
+                           (cons (frame-pixel-height frame)
+                                 (frame-pixel-width frame))))
+           (was-max (and frm-size-rst
+                         (not (equal frm-size-now frm-size-rst))))
+           (frm-par (frame-parameters frame)))
+      (setq frm-par
+            (delq nil
+                  (mapcar (lambda (elt)
+                            (cond
+                             ((memq (car elt) winsav-frame-parameters-to-save)
+                              elt)
+                             ((eq (car elt) 'minibuffer)
+                              (let ((val (cdr elt)))
+                                (if (not (windowp val))
+                                    elt
+                                  (if (eq (window-frame val) frame)
+                                      nil
+                                    (cons 'minibuffer nil)))))))
+                          frm-par)))
+      (insert "(winsav-restore-frame\n'"
+              ;;make-frame-params
+              (winsav-serialize frm-par))
+      ;;window-tree-params
+      (setq start (point))
+      (insert "'" (winsav-serialize obj) "\n")
+      (setq end (copy-marker (point) t))
+      (replace-regexp (rx "#<buffer "
+                          (1+ (not (any ">")))
+                          (1+ ">")) ;; 1+ for indirect buffers ...
+                      "buffer"
+                      nil start end)
+      (replace-regexp (rx "#<window "
+                          (1+ (not (any ">")))
+                          (1+ ">"))
+                      "nil"
+                      nil start end)
+      (goto-char end)
+      ;;use-minibuffer-frame
+      (insert (if mb-frm-nr
+                  (format "(nth %s (reverse winsav-loaded-frames))" mb-frm-nr)
+                "nil")
+              (if was-max " t " " nil ")
+              ")\n\n")
 
-    (insert "    ;; ---- before after-save-frame-hook ----\n")
-    ;; (dolist (fun winsav-after-save-frame-hook)
-    ;;   (funcall fun frame (current-buffer)))
-    (run-hooks winsav-after-save-frame-hook)
-    (insert "    ;; ---- after after-save-frame-hook  ----\n")
+      (insert "    ;; ---- before after-save-frame-hook ----\n")
+      ;; (dolist (fun winsav-after-save-frame-hook)
+      ;;   (funcall fun frame (current-buffer)))
+      (run-hooks winsav-after-save-frame-hook)
+      (insert "    ;; ---- after after-save-frame-hook  ----\n")
 
-    ;;(insert "  )\n\n\n")
-    ))
+      ;;(insert "  )\n\n\n")
+      )))
 
 (defvar winsav-file-version "1"
   "Version number of winsav file format.
@@ -1092,7 +1094,7 @@ Fix-me: RELEASE is not implemented."
         (let ((mb-frm-nr (cadr (assoc frm-nr winsav-minibuffer-alist)))
               ;;(mb-frm (when mb-frm-nr (nth mb-frm-nr sorted-frames)))
               )
-          (winsav-save-frame frm mb-frm-nr)
+          (winsav-save-frame frm mb-frm-nr (current-buffer))
           (setq frm-nr (1+ frm-nr))))
       (insert ";; ---- dedicated windows ------------------------\n")
       (winsav-save-dedicated-windows sorted-frames)
