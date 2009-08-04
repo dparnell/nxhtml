@@ -4016,7 +4016,29 @@ information.
           ;; searches, but this catches most problems I think.
           ;;(msgtrc "find-next-chunk-values:here c, curr-min=%s, after-chunk=%s" curr-min after-chunk)
           (or (not curr-end-fun-end)
-              (mumamo-end-in-code syntax-min (1- curr-end-fun-end) curr-major)
+              ;;(mumamo-end-in-code syntax-min (1- curr-end-fun-end) curr-major)
+
+              ;; Fix-me: The bug in wiki-090804-js.html indicates that
+              ;; we should not subtract 1 here.  The subchunk there
+              ;; ends with </script> and this can't be in column 1
+              ;; when the line before ends with a // style js comment
+              ;; unless we don't subtract 1.
+              ;;
+              ;; However wiki-strange-hili-080629.html does not work
+              ;; then because then the final " in style="..." is
+              ;; included in the scan done in mumamo-end-in-code.
+              ;;
+              ;; The solution is to check for the syntax borders here.
+              (let* ((syn2-min-max (when curr-border-fun
+                                     (funcall curr-border-fun
+                                              (overlay-end after-chunk)
+                                              curr-end-fun-end
+                                              nil)))
+                     (syntax-max (or (cadr syn2-min-max)
+                                     curr-end-fun-end)))
+                ;;(mumamo-end-in-code syntax-min (- curr-end-fun-end 1) curr-major)
+                (mumamo-end-in-code syntax-min syntax-max curr-major)
+                )
               (setq curr-end-fun-end nil))
           ;; Use old result if valid
           (and nil ;(not curr-end-fun-end)
@@ -4500,7 +4522,7 @@ mumamo chunk then set major mode to that for the chunk."
             )
         (if (memq this-command mumamo-safe-commands-in-wrong-major)
             nil ;;(message "safe %s" this-command)
-          nil ;;(message "not safe %s" this-command)
+          (message "not safe %s" this-command)
           (let* ((ovl (mumamo-find-chunks (point) "mumamo-set-major-pre-command"))
                  (major (mumamo-chunk-major-mode ovl))
                  (found-this (lookup-key (current-local-map) (this-command-keys-vector)))
@@ -4511,8 +4533,10 @@ mumamo chunk then set major mode to that for the chunk."
 ;;;                  found-this)
             (if (not major)
                 (lwarn '(mumamo-set-major-pre-command) :error "major=%s" major)
-              (when (and (not (eq major-mode major))
-                         )
+              (when (or (not (eq major-mode major))
+                        (not (mumamo-set-major-check-keymap))
+                        )
+                (setq major-mode nil)
                 (mumamo-set-major major)
                 ;; Unread the last command key sequence
                 (setq unread-command-events
@@ -4614,8 +4638,7 @@ needed \(and is the default)."
                     (setq map (mumamo-fetch-local-map major)))
                   (unless (eq map 'no-local-map)
                     (use-local-map map))
-                  (add-hook 'pre-command-hook
-                            'mumamo-set-major-pre-command nil t)
+                  (add-hook 'pre-command-hook 'mumamo-set-major-pre-command nil t)
                   ;;(msgtrc "request mumamo-set-major at C")
                   (mumamo-request-idle-set-major-mode))
               ;;(msgtrc "mumamo-set-major at C")
@@ -5594,9 +5617,13 @@ default values."
 
 ;; FIX-ME: Clean up the different ways of surviving variables during
 ;; change of major mode.
+(defvar mumamo-set-major-keymap-checked nil)
+(make-variable-buffer-local 'mumamo-set-major-keymap-checked)
+
 (defun mumamo-set-major (major)
   "Set major mode to MAJOR for mumamo."
   (mumamo-msgfntfy "mumamo-set-major %s, %s" major (current-buffer))
+  ;;(mumamo-backtrace "mumamo-set-major")
   ;;(message "mumamo-set-major %s, %s" major (current-buffer))
   (remove-hook 'text-mode-hook 'viper-mode) ;; Fix-me: maybe add it back...
   (let ((start-time (get-internal-run-time))
@@ -5833,7 +5860,20 @@ default values."
     ;;
     ;;(setq end-time (get-internal-run-time))
     ;;(setq used-time (time-subtract end-time start-time))
-    ))
+    )
+  (setq mumamo-set-major-keymap-checked nil)
+  ;; Fix-me: Seems like setting/checking the keymap in a timer is
+  ;; problematc. This is an Emacs bug.
+  ;;(run-with-idle-timer 1 nil 'mumamo-set-major-check-keymap)
+  )
+
+(defun mumamo-set-major-check-keymap ()
+  "Helper to work around an Emacs bug when setting local map in a timer."
+  (or mumamo-set-major-keymap-checked
+      (setq mumamo-set-major-keymap-checked
+            (let ((map-sym (intern-soft (concat (symbol-name major-mode) "-map"))))
+              (equal (current-local-map)
+                     (symbol-value map-sym))))))
 
 (defvar mumamo-original-fill-paragraph-function nil)
 (make-variable-buffer-local 'mumamo-original-fill-paragraph-function)
@@ -6088,7 +6128,9 @@ use `mumamo-quick-static-chunk'.")
       (insert "The currently defined multi major modes in your Emacs are:\n\n")
       (let ((mmms (reverse mumamo-defined-multi-major-modes))
             (here (point)))
-        ;; Fix-me: sort according to majomodpri? Or by mode name?
+        (setq mmms (sort mmms (lambda (a b)
+                                (string< (symbol-name (cdr a))
+                                         (symbol-name (cdr b))))))
         (while mmms
           (let* ((mmm (car mmms))
                  (sym  (cdr mmm))

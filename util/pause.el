@@ -1,9 +1,9 @@
 ;;; pause.el --- Take a break!
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
-;; Created: 2008-01-19T02:51:39+0100 Sat
-;; Version: 0.64
-;; Last-Updated: 2008-06-15T11:55:21+0200 Sun
+;; Created: 2008-01-19 Sat
+(defconst pause:version "0.64");; Version:
+;; Last-Updated: 2009-08-04 Tue
 ;; URL:
 ;; Keywords:
 ;; Compatibility:

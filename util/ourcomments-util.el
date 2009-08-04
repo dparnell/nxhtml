@@ -1,9 +1,9 @@
 ;;; ourcomments-util.el --- Utility routines
 ;;
 ;; Author: Lennart Borgman <lennart dot borgman at gmail dot com>
-;; Created: Wed Feb 21 23:19:07 2007
-(defconst ourcomments-util:version "0.24") ;;Version:
-;; Last-Updated: 2008-08-11T12:25:12+0200 Mon
+;; Created: Wed Feb 21 2007
+(defconst ourcomments-util:version "0.25") ;;Version:
+;; Last-Updated: 2009-08-04 Tue
 ;; Keywords:
 ;; Compatibility: Emacs 22
 ;;
@@ -1006,7 +1006,11 @@ Key bindings added by this minor mode:
   :group 'convenience
   ;;(message "wrap-to-fill-column-mode here %s" wrap-to-fill-column-mode)
   (if wrap-to-fill-column-mode
-      (progn
+      (let* ((win (get-buffer-window (current-buffer)))
+             (win-margs (when win (window-margins win))))
+        (when win-margs
+          (setq wrap-to-fill-left-marg (or (car win-margs)
+                                           wrap-to-fill-left-marg)))
         (setq wrap-to-fill-left-marg-use wrap-to-fill-left-marg)
         (unless (or wrap-to-fill-left-marg-use
                     (memq major-mode wrap-to-fill-left-marg-modes))
@@ -2157,20 +2161,37 @@ Return full path if found."
           (goto-char here))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; Menu commands feed back
+;;;; Menu commands to M-x history
 
+;; (where-is-internal 'mumamo-mark-chunk nil nil)
+;; (where-is-internal 'mark-whole-buffer nil nil)
+;; (where-is-internal 'save-buffer nil nil)
+;; (where-is-internal 'revert-buffer nil nil)
+;; (setq extended-command-history nil)
 (defun ourcomments-M-x-menu-pre ()
-  ;;this: keys=[(menu-bar) help-menu emacs-manual], command=info-emacs-manual
+  "Add menu command to M-x history."
   (let ((is-menu-command (equal '(menu-bar)
                                 (elt (this-command-keys-vector) 0)))
-        )
-    (when is-menu-command
-      (message "this: keys=%s, command=%s" (this-command-keys-vector) this-command)
+        (pre-len (length extended-command-history)))
+    (when (and is-menu-command
+               (not (memq this-command '(ourcomments-M-x-menu-mode))))
       (pushnew (symbol-name this-command) extended-command-history)
-      )))
+      (when (< pre-len (length extended-command-history))
+        ;; This message is given pre-command and is therefore likely
+        ;; to be overwritten, but that is ok in this case. If the user
+        ;; has seen one of these messages s?he knows.
+        (message (propertize "(Added %s to M-x history so you can run it from there)"
+                             'face 'file-name-shadow)
+                 this-command)))))
 
+;;;###autoload
 (define-minor-mode ourcomments-M-x-menu-mode
-  "Add commands started from Emacs menus to M-x history."
+  "Add commands started from Emacs menus to M-x history.
+The purpose of this is to make it easier to redo them and easier
+to learn how to do them from the command line \(which is often
+faster if you know how to do it).
+
+Only commands that are not already in M-x history are added."
   :global t
   (if ourcomments-M-x-menu-mode
       (add-hook 'pre-command-hook 'ourcomments-M-x-menu-pre)
