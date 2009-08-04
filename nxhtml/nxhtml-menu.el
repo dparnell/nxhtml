@@ -2,7 +2,7 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 2007
-(defconst nxhtml-menu:version "1.92") ;;Version:
+(defconst nxhtml-menu:version "1.93") ;;Version:
 ;; Last-Updated: 2009-05-29 Fri
 ;; URL:
 ;; Keywords:
@@ -294,7 +294,8 @@
         (list 'menu-item "Last Resort" 'n-back-game))
       (define-key tools-map [nxhtml-pause]
         (list 'menu-item "Life Reminder" 'pause-mode
-              :button '(:toggle . pause-mode)))
+              :button '(:toggle . (and (boundp 'pause-mode)
+                                       pause-mode))))
       (define-key tools-map [nxhtml-last-resort-separator]
         (list 'menu-item "--" nil))
       (define-key tools-map [nxhtml-viper-tut]
@@ -303,7 +304,8 @@
       (define-key tools-map [nxhtml-menu-to-m-x]
         (list 'menu-item "Add Menu Commands to M-x history"
               'ourcomments-M-x-menu-mode
-              :button '(:toggle . ourcomments-M-x-menu-mode)))
+              :button '(:toggle . (and (boundp 'ourcomments-M-x-menu-mode)
+                                       ourcomments-M-x-menu-mode))))
       (define-key tools-map [nxhtml-next-last-resort-separator]
         (list 'menu-item "--" nil))
       (let ((fill-map (make-sparse-keymap)))
@@ -323,7 +325,8 @@
         (define-key fill-map [nxhtml-wrap-to-fill-column-mode]
           (list 'menu-item "Wrap To Fill Column Mode"
                 'wrap-to-fill-column-mode
-                :button '(:toggle . (and (boundp 'wrap-to-fill-column-mode) wrap-to-fill-column-mode))))
+                :button '(:toggle . (and (boundp 'wrap-to-fill-column-mode)
+                                         wrap-to-fill-column-mode))))
         )
 
       (define-key tools-map [nxhtml-ecb-separator]
@@ -343,7 +346,8 @@
         (define-key ecb-map [nxhtml-ecb-mode]
           (list 'menu-item "ECB Minor Mode"
                 'ecb-minor-mode
-                :button '(:toggle . (and (boundp 'ecb-minor-mode) ecb-minor-mode))
+                :button '(:toggle . (and (boundp 'ecb-minor-mode)
+                                         ecb-minor-mode))
                 :enable '(boundp 'ecb-minor-mode)))
         (define-key ecb-map [nxhtml-ecb-show-help]
           (list 'menu-item "ECB Help"
@@ -448,7 +452,8 @@
                                          mozadd-refresh-edited-on-save-mode))))
         (define-key mozrepl-map [nxhtml-mozrepl-mirror]
           (list 'menu-item "Mirror Buffer in Firefox" 'mozadd-mirror-mode
-                :button '(:toggle . (and (boundp 'mozadd-mirror-mode) mozadd-mirror-mode))))
+                :button '(:toggle . (and (boundp 'mozadd-mirror-mode)
+                                         mozadd-mirror-mode))))
         (define-key mozrepl-map [nxhtml-mozrepl-separator3]
           (list 'menu-item "--" nil))
         (define-key mozrepl-map [nxhtml-mozrepl-home-page]
@@ -467,7 +472,8 @@
         (define-key frame-map [nxhtml-winsav-mode]
           (list 'menu-item "Save/restore Frames and Windows"
                 'winsav-save-mode
-                :button '(:toggle . winsav-save-mode)))
+                :button '(:toggle . (and (boundp 'winsav-save-mode)
+                                         winsav-save-mode))))
         (define-key frame-map [nxhtml-resize-windows]
           (list 'menu-item "Resize Windows"
                 'resize-windows)))
@@ -477,11 +483,13 @@
       (define-key tools-map [nxhtml-as-external]
         (list 'menu-item "External Editor Setup"
               'as-external-mode
-              :button '(:toggle . as-external-mode)))
+              :button '(:toggle . (and (boundp 'as-external-mode)
+                                       as-external-mode))))
       (define-key tools-map [nxhtml-sex-mode]
         (list 'menu-item "Open files in External Apps"
               'sex-mode
-              :button '(:toggle . sex-mode)))
+              :button '(:toggle . (and (boundp 'sex-mode)
+                                       sex-mode))))
       (let ((majpri-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-majpri-map]
           (list 'menu-item "Major Modes Priorities" majpri-map))
@@ -508,7 +516,8 @@
                                 (nxhtml-nxhtml-in-buffer)))))
       (define-key tools-map [nxhtml-flymake]
         (list 'menu-item "Flymake Mode" 'flymake-mode
-              :button '(:toggle . (and (boundp 'flymake-mode) flymake-mode))
+              :button '(:toggle . (and (boundp 'flymake-mode)
+                                       flymake-mode))
               :enable '(and buffer-file-name
                             (fboundp 'flymake-get-init-function)
                             (flymake-get-init-function buffer-file-name)
@@ -526,7 +535,8 @@
           (list 'menu-item "--"))
         (define-key flyspell-map [nxhtml-flyspell]
           (list 'menu-item "Flyspell Mode" 'flyspell-mode
-                :button '(:toggle . flyspell-mode)))
+                :button '(:toggle . (and (boundp flyspell-mode)
+                                         flyspell-mode))))
         )
       (define-key tools-map [nxhtml-flyspell-separator]
         (list 'menu-item "--"))
@@ -546,7 +556,8 @@
           (list 'menu-item "Toggle Slicing of Image" 'inlimg-toggle-slicing))
         (define-key img-map [nxhtml-inlimg-mode]
           (list 'menu-item "Show <img ...> Images" 'inlimg-mode
-                :button '(:toggle . (and (boundp 'inlimg-mode) inlimg-mode)))))
+                :button '(:toggle . (and (boundp 'inlimg-mode)
+                                         inlimg-mode)))))
       (define-key tools-map [nxhtml-img-separator]
         (list 'menu-item "--"))
       (let ((some-help-map (make-sparse-keymap)))
@@ -566,7 +577,8 @@
                               (or (not (boundp 'mumamo-multi-major-mode))
                                   (not mumamo-multi-major-mode))
                               (featurep 'css-color))
-                :button '(:toggle . (and (boundp 'css-color-mode) css-color-mode))))
+                :button '(:toggle . (and (boundp 'css-color-mode)
+                                         css-color-mode))))
         (define-key cssclr-map [nxhtml-css-color-test]
           (list 'menu-item "Color Test" 'css-color-test
                 :enable '(featurep 'css-color))))
@@ -607,7 +619,8 @@
         (define-key where-map [where-separator] (list 'menu-item "--"))
         (define-key where-map [nxml-where-global-toggle]
           (list 'menu-item "Show XML path" 'nxml-where-global-mode
-                :button '(:toggle . nxml-where-global-mode)))
+                :button '(:toggle . (and (boundp 'nxml-where-global-mode)
+                                         nxml-where-global-mode))))
         (define-key where-map [nxml-where-toggle]
           (list 'menu-item "Show XML path in buffer" 'nxml-where-mode
                 :button '(:toggle . (and (boundp 'nxml-where-mode)
@@ -854,7 +867,8 @@
       (define-key chunk-map [nxhtml-chunk-margin-info]
         (list 'menu-item "Display chunk info in margin"
               'mumamo-margin-info-global-mode
-              :button '(:toggle . mumamo-margin-info-global-mode)))
+              :button '(:toggle . (and (boundp 'mumamo-margin-info-global-mode)
+                                       mumamo-margin-info-global-mode))))
       (define-key chunk-map [nxhtml-chunks-separator1]
         (list 'menu-item "--" nil))
       (let ((region-map (make-sparse-keymap)))
@@ -926,8 +940,8 @@
         (define-key val-map [mumamo-alt-php-tags]
           (list 'menu-item "Use <?php -> (?php"
                 'mumamo-alt-php-tags-mode
-                :button '(:toggle . mumamo-alt-php-tags-mode)
-                ))
+                :button '(:toggle . (and (boundp 'mumamo-alt-php-tags-mode)
+                                         mumamo-alt-php-tags-mode))))
         (define-key val-map [mumamo-alt-tags-separator] (list 'menu-item "--"))
         (define-key val-map [nxhtml-toggle-warnings]
           (list 'menu-item "Hide Validation Errors"
@@ -965,7 +979,8 @@
           (list 'menu-item "Display Fictive XHTML Validation Header"
                 'rngalt-display-validation-header-toggle
                 :help-echo "Displays the Fictive XHTML validation header (if any) at top of buffer"
-                :button '(:toggle . rngalt-display-validation-header)))
+                :button '(:toggle . (and (boundp 'rngalt-display-validation-header)
+                                         rngalt-display-validation-header))))
         (define-key val-map [nxhtml-recheck-validation-header]
           (list 'menu-item "Recheck Fictive XHTML Validation Header in Buffer"
                 'nxhtml-recheck-validation-header
@@ -973,7 +988,8 @@
         (define-key val-map [nxhtml-validation-header-mode]
           (list 'menu-item "Use Fictive XHTML Validation Header in Buffer"
                 'nxhtml-validation-header-mode
-                :button '(:toggle . nxhtml-validation-header-mode)))
+                :button '(:toggle . (and (boundp 'nxhtml-validation-header-mode)
+                                         nxhtml-validation-header-mode))))
       )
       (define-key cmpl-map [nxhtml-validation-separator]
         (list 'menu-item "--" nil
@@ -992,15 +1008,18 @@
         (define-key style-map [popcmp-with-help]
           (list 'menu-item "Show Short Help Beside Alternatives"
                 'popcmp-short-help-beside-alts-toggle
-                :button '(:toggle . popcmp-short-help-beside-alts)))
+                :button '(:toggle . (and (boundp 'popcmp-short-help-beside-alts)
+                                         popcmp-short-help-beside-alts))))
         (define-key style-map [nxhtml-tag-do-also]
           (list 'menu-item "Complete Tag Extras"
                 'nxhtml-tag-do-also-toggle
-                :button '(:toggle . nxhtml-tag-do-also)))
+                :button '(:toggle . (and (boundp 'nxhtml-tag-do-also)
+                                         nxhtml-tag-do-also))))
         (define-key style-map [popcmp-group-alternatives]
           (list 'menu-item "Group Alternatives"
                 'popcmp-group-alternatives-toggle
-                :button '(:toggle . popcmp-group-alternatives)))
+                :button '(:toggle . (and (boundp 'popcmp-group-alternatives)
+                                         popcmp-group-alternatives))))
         (define-key style-map [popcmp-style-div1]
           (list 'menu-item "--"))
         (define-key style-map [popcmp-anything-completion]

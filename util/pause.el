@@ -318,6 +318,7 @@
              (lwarn 'pause-break-in-timer2 :error "%s" (error-message-string err))
              )))))))
 
+;;;###autoload
 (define-minor-mode pause-mode
   "This minor mode tries to make you take a break!
 To customize it see:

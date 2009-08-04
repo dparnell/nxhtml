@@ -117,7 +117,7 @@ FILENAME could be either the remote or the local file.
 ;;;***
 
 ;;;### (autoloads (nxhtml-features-check nxhtml-customize) "../nxhtml/nxhtml"
-;;;;;;  "nxhtml/nxhtml.el" (19063 40945))
+;;;;;;  "nxhtml/nxhtml.el" (19063 47343))
 ;;; Generated autoloads from nxhtml/nxhtml.el
 
 (autoload 'nxhtml-customize "../nxhtml/nxhtml" "\
@@ -145,7 +145,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19063 42575))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19064 18624))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -534,7 +534,7 @@ Major mode for interacting with Firefox via MozRepl.
 
 ;;;### (autoloads (global-mozadd-mirror-mode mozadd-mirror-mode global-mozadd-refresh-edited-on-save-mode
 ;;;;;;  mozadd-refresh-edited-on-save-mode) "../related/mozadd" "related/mozadd.el"
-;;;;;;  (19063 39757))
+;;;;;;  (19063 53089))
 ;;; Generated autoloads from related/mozadd.el
 
 (autoload 'mozadd-refresh-edited-on-save-mode "../related/mozadd" "\
@@ -1303,7 +1303,7 @@ DEFINITION as explained there.
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-mail
 ;;;;;;  as-external-for-xhtml) "as-external" "util/as-external.el"
-;;;;;;  (18790 45400))
+;;;;;;  (19063 48015))
 ;;; Generated autoloads from util/as-external.el
 
 (autoload 'as-external-for-xhtml "as-external" "\
@@ -1352,11 +1352,14 @@ or call the function `as-external-mode'.")
 (nxhtml-custom-autoload 'as-external-mode "as-external" nil)
 
 (autoload 'as-external-mode "as-external" "\
-If non-nil check for if Emacs is used as external editor.
-When Emacs is used as an external editor for example to edit text
-areas on a web page viewed with Firefox this library tries to
-help to setup the buffer in a useful way. It may for example set
-major and minor modes for the buffer.
+If non-nil check if Emacs is called as external editor.
+When Emacs is called as an external editor for example to edit
+text areas on a web page viewed with Firefox this library tries
+to help to setup the buffer in a useful way. It may for example
+set major and minor modes for the buffer.
+
+This can for example be useful when blogging or writing comments
+on blogs.
 
 See `as-external-alist' for more information.
 
@@ -2157,7 +2160,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19062 21392))
+;;;;;;  "mumamo" "util/mumamo.el" (19064 6796))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -2361,7 +2364,7 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
 ;;;;;;  major-modep major-or-multi-majorp unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19063 39977))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19063 48876))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2673,6 +2676,32 @@ Not documented
 
 ;;;***
 
+;;;### (autoloads (pause-mode) "pause" "util/pause.el" (19064 18015))
+;;; Generated autoloads from util/pause.el
+
+(defvar pause-mode nil "\
+Non-nil if Pause mode is enabled.
+See the command `pause-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `pause-mode'.")
+
+(nxhtml-custom-autoload 'pause-mode "pause" nil)
+
+(autoload 'pause-mode "pause" "\
+This minor mode tries to make you take a break!
+To customize it see:
+
+ `pause-after-minutes'
+ `pause-text-color'
+ `pause-prompt1-color'
+ `pause-prompt2-color'
+ `pause-message-color'
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
 ;;;### (autoloads (global-pointback-mode pointback-mode) "pointback"
 ;;;;;;  "util/pointback.el" (19023 47096))
 ;;; Generated autoloads from util/pointback.el
@@ -2910,7 +2939,7 @@ see `udev-rinari-dir' and `udev-rinari-load-rinari'.
 ;;;***
 
 ;;;### (autoloads (viper-tutorial) "viper-tut" "util/viper-tut.el"
-;;;;;;  (19063 38492))
+;;;;;;  (19063 44564))
 ;;; Generated autoloads from util/viper-tut.el
 
 (autoload 'viper-tutorial "viper-tut" "\
@@ -3246,17 +3275,17 @@ Not documented
 ;;;;;;  "related/flymu.el" "related/fold-dwim.el" "related/javascript-old.el"
 ;;;;;;  "related/php-imenu.el" "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
-;;;;;;  "util/buffer-bg.el" "util/company-mode/company-autoloads.el"
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
+;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/company-mode/company-autoloads.el"
 ;;;;;;  "util/company-mode/company-eclim.el" "util/company-mode/company-pkg.el"
 ;;;;;;  "util/company-mode/company-ropemacs.el" "util/company-mode/company-start.el"
 ;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/ffip.el"
 ;;;;;;  "util/fmode.el" "util/fupd.el" "util/hl-needed.el" "util/htmlfontify.21.el"
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
-;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/pause.el" "util/popcmp.el"
-;;;;;;  "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el" "util/zen-mode.el") (19063 43040 568000))
+;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/popcmp.el" "util/rebind.el"
+;;;;;;  "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
+;;;;;;  "util/whelp.el" "util/zen-mode.el") (19064 20991 718000))
 
 ;;;***
 
