@@ -155,6 +155,7 @@ This also covers inlined style and javascript."
    (mumamo-chunk-genshi%
     mumamo-chunk-genshi$
     mumamo-chunk-py:=
+    mumamo-chunk-py:match
     mumamo-chunk-xml-pi
     mumamo-chunk-alt-php
     mumamo-chunk-inlined-style
