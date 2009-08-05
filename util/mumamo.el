@@ -5139,6 +5139,8 @@ function, it is changed to a list of functions."
 (defvar mumamo-survive
   '(
     buffer-file-name
+    left-margin-width
+    right-margin-width
     ;; Fix-me: This is to prevent font-lock-mode turning off/on, but
     ;; is it necessary?
     ;;font-lock-mode-major-mode

@@ -145,7 +145,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19064 21344))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19064 49796))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -323,7 +323,7 @@ This mode may be turned on automatically in two ways:
 ;;;;;;  eruby-nxhtml-mumamo-mode jsp-nxhtml-mumamo-mode smarty-nxhtml-mumamo-mode
 ;;;;;;  mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode django-nxhtml-mumamo-mode
 ;;;;;;  embperl-nxhtml-mumamo-mode nxhtml-mumamo-mode) "../nxhtml/nxhtml-mumamo"
-;;;;;;  "nxhtml/nxhtml-mumamo.el" (18982 33732))
+;;;;;;  "nxhtml/nxhtml-mumamo.el" (19065 18383))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 
 (autoload 'nxhtml-mumamo-mode "../nxhtml/nxhtml-mumamo" "\
@@ -2160,7 +2160,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19064 6796))
+;;;;;;  "mumamo" "util/mumamo.el" (19065 25184))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -2183,7 +2183,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  jsp-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  nxml-mumamo-mode html-mumamo-mode) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19061 60296))
+;;;;;;  (19065 18548))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -2364,7 +2364,7 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
 ;;;;;;  major-modep major-or-multi-majorp unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19063 48876))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19065 42281))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -3285,7 +3285,7 @@ Not documented
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/popcmp.el" "util/rebind.el"
 ;;;;;;  "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el" "util/zen-mode.el") (19064 21959 812000))
+;;;;;;  "util/whelp.el" "util/zen-mode.el") (19065 42598 140000))
 
 ;;;***
 
