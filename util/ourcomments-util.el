@@ -872,9 +872,9 @@ the left margin."
   :group 'convenience)
 (make-variable-buffer-local 'wrap-to-fill-left-marg)
 
-(defvar wrap-to-fill-left-marg-use 0)
-(make-variable-buffer-local 'wrap-to-fill-left-marg-use)
-(put 'wrap-to-fill-left-marg-use 'permanent-local t)
+(defvar wrap-to-fill-old-margins 0)
+(make-variable-buffer-local 'wrap-to-fill-old-margins)
+(put 'wrap-to-fill-old-margins 'permanent-local t)
 
 ;;;###autoload
 (defcustom wrap-to-fill-left-marg-modes
@@ -965,6 +965,7 @@ See the hook for MIN, MAX and OLD-LEN."
     (setq wrap-to-fill-after-change-range nil)
     (when (and min max)
       (wrap-to-fill-set-prefix min max))))
+(put 'wrap-to-fill-post-command 'permanent-local-hook t)
 
 (defun wrap-to-fill-scroll-fun (window start-pos)
   "For `window-scroll-functions'.
@@ -1023,32 +1024,40 @@ Key bindings added by this minor mode:
   :group 'convenience
   ;;(message "wrap-to-fill-column-mode here %s" wrap-to-fill-column-mode)
   (if wrap-to-fill-column-mode
-      (let* ((win (get-buffer-window (current-buffer)))
-             ;; Fix-me: Should be buffer margins, not window margins
-             ;; here. However on display window margins must be used, but ...
-
-             ;;(win-margs (when win (window-margins win)))
-             (left-marg left-margin-width)
-             )
-        ;; (when win-margs
-        ;;   (setq wrap-to-fill-left-marg (or (car win-margs)
-        ;;                                    wrap-to-fill-left-marg)))
-        (add-hook 'window-configuration-change-hook 'wrap-to-fill-set-values nil t)
+      (progn
+        ;; Hooks
         (add-hook 'after-change-functions 'wrap-to-fill-after-change nil t)
         (add-hook 'window-scroll-functions 'wrap-to-fill-scroll-fun nil t)
         (add-hook 'post-command-hook 'wrap-to-fill-post-command nil t)
-        ;;(add-hook 'post-command-hook window-scroll-functions 'wrap-to-fill-scroll-fun nil t)
+        ;;(add-hook 'post-command-hook 'wrap-to-fill-set-values nil t)
+        (add-hook 'window-configuration-change-hook 'wrap-to-fill-set-values nil t)
+        ;; Wrapping
         (if (fboundp 'visual-line-mode)
             (visual-line-mode 1)
           (longlines-mode 1))
+        ;; Margins
+        (setq wrap-to-fill-old-margins (cons left-margin-width right-margin-width))
+        (wrap-to-fill-set-values-in-buffer-windows)
+        ;; Indentation
         (dolist (window (get-buffer-window-list (current-buffer)))
           (wrap-to-fill-scroll-fun window nil)))
-    (remove-hook 'window-configuration-change-hook 'wrap-to-fill-set-values t)
+    ;; Hooks
     (remove-hook 'after-change-functions 'wrap-to-fill-after-change t)
     (remove-hook 'window-scroll-functions 'wrap-to-fill-scroll-fun t)
+    (remove-hook 'post-command-hook 'wrap-to-fill-post-command t)
+    ;;(remove-hook 'post-command-hook 'wrap-to-fill-set-values t)
+    (remove-hook 'window-configuration-change-hook 'wrap-to-fill-set-values t)
+    ;; Wrapping
     (if (fboundp 'visual-line-mode)
         (visual-line-mode -1)
       (longlines-mode -1))
+    ;; Margins
+    (setq left-margin-width (car wrap-to-fill-old-margins))
+    (setq right-margin-width (cdr wrap-to-fill-old-margins))
+    (setq wrap-to-fill-old-margins nil)
+    (dolist (win (get-buffer-window-list (current-buffer)))
+      (set-window-margins win left-margin-width right-margin-width))
+    ;; Indentation
     (let ((here (point))
           (inhibit-field-text-motion t)
           beg-pos
@@ -1070,8 +1079,6 @@ Key bindings added by this minor mode:
           (point-min) (point-max)
           '(wrap-to-fill-prefix)))
        (goto-char here))))
-  ;;(wrap-to-fill-set-values)
-  (wrap-to-fill-set-values-in-buffer-windows)
   )
 (put 'wrap-to-fill-column-mode 'permanent-local t)
 
@@ -1080,52 +1087,82 @@ Key bindings added by this minor mode:
 ;; be nil. However they seem to be 0 by default, but when displaying a
 ;; buffer in a window then window-margins returns (nil).
 
+(defvar wrap-to-fill-timer nil)
+(make-variable-buffer-local 'wrap-to-fill-timer)
+
 (defun wrap-to-fill-set-values ()
-  (run-with-idle-timer 0 nil 'wrap-to-fill-set-values-in-timer (selected-window) (current-buffer)))
+  (when (timerp wrap-to-fill-timer)
+    (cancel-timer wrap-to-fill-timer))
+  (setq wrap-to-fill-timer
+        (run-with-idle-timer 0 nil 'wrap-to-fill-set-values-in-timer (selected-window) (current-buffer))))
+(put 'wrap-to-fill-set-values 'permanent-local-hook t)
 
 (defun wrap-to-fill-set-values-in-timer (win buf)
   (condition-case err
       (when (eq buf (window-buffer win))
-        (with-selected-window win
-          (with-current-buffer buf
-            (when wrap-to-fill-column-mode
-              (wrap-to-fill-set-values-in-selected-window)))))
+        (with-current-buffer buf
+          (when wrap-to-fill-column-mode
+            (wrap-to-fill-set-values-in-window win))))
     (error (message "ERROR wrap-to-fill-set-values: %s" (error-message-string err)))))
 
 (defun wrap-to-fill-set-values-in-buffer-windows ()
   "Use `fill-column' display columns in buffer windows."
   (let ((buf-windows (get-buffer-window-list (current-buffer))))
     (dolist (win buf-windows)
-      (with-selected-window win
-        (if wrap-to-fill-column-mode
-            (wrap-to-fill-set-values-in-selected-window)
-          (set-window-buffer nil (current-buffer)))))))
+      (if wrap-to-fill-column-mode
+          (wrap-to-fill-set-values-in-window win)
+        (set-window-buffer nil (current-buffer))))))
 
+(defvar wrap-old-win-width nil)
+(make-variable-buffer-local 'wrap-old-win-width)
 ;; Fix-me: compensate for left-margin-width etc
-(defun wrap-to-fill-set-values-in-selected-window ()
-  (with-current-buffer (window-buffer (selected-window))
+(defun wrap-to-fill-set-values-in-window (win)
+  (with-current-buffer (window-buffer win)
     (when wrap-to-fill-column-mode
-      (let* ((fill-left-marg (or (when (> left-margin-width 0) left-margin-width)
-                                 wrap-to-fill-left-marg))
-             (fill-left-marg-use (unless (memq major-mode wrap-to-fill-left-marg-modes)
+      (let* ((win-width (window-width win))
+             (win-margs (window-margins win))
+             (win-full (+ win-width
+                          (or (car win-margs) 0)
+                          (or (cdr win-margs) 0)))
+             (extra-width (- win-full fill-column))
+             (fill-left-marg (unless (memq major-mode wrap-to-fill-left-marg-modes)
+                               (or (when (> left-margin-width 0) left-margin-width)
                                    wrap-to-fill-left-marg)))
-        (let* ((win-width (window-width))
-               (extra-width (- win-width fill-column))
-               (left-marg (if fill-left-marg-use
-                              fill-left-marg-use
-                            (- (/ extra-width 2) 1)))
-               (right-marg (- win-width fill-column left-marg))
-               (win-margs (window-margins))
-               (old-left (or (car win-margs) 0))
-               (old-right (or (cdr win-margs) 0)))
-          ;;(message "win-width=%s cb=%s sw=%s" win-width (current-buffer) (selected-window))
-          (unless (> left-marg 0) (setq left-marg 0))
-          (unless (> right-marg 0) (setq right-marg 0))
-          (unless (and (= old-left left-marg)
-                       (= old-right right-marg)
-                       nil)
-            (set-window-margins nil left-marg right-marg)))))))
+             (left-marg (if fill-left-marg
+                            fill-left-marg
+                          (- (/ extra-width 2) 1)))
+             (right-marg (- win-full fill-column left-marg))
+             (need-update nil)
+             )
+        (when wrap-old-win-width
+          (unless (= wrap-old-win-width win-width)
+            ;;(message "-")
+            ;;(message "win-width 0: %s => %s, win-full=%s, e=%s l/r=%s/%s %S %S %S" wrap-old-win-width win-width win-full extra-width left-marg right-marg (window-edges) (window-inside-edges) (window-margins))
+           ))
+        (setq wrap-old-win-width win-width)
+        (unless (> left-marg 0) (setq left-marg 0))
+        (unless (> right-marg 0) (setq right-marg 0))
+        (unless nil;(= left-marg (or left-margin-width 0))
+          (setq left-margin-width left-marg)
+          (setq need-update t))
+        (unless nil;(= right-marg (or right-margin-width 0))
+          (setq right-margin-width right-marg)
+          (setq need-update t))
+        ;;(message "win-width a: %s => %s, win-full=%s, e=%s l/r=%s/%s %S %S %S" wrap-old-win-width win-width win-full extra-width left-margin-width right-margin-width (window-edges) (window-inside-edges) (window-margins))
+        (when need-update
+          ;;(set-window-buffer win (window-buffer win))
+          ;;(run-with-idle-timer 0 nil 'set-window-buffer win (window-buffer win))
+          (dolist (win (get-buffer-window-list (current-buffer)))
+            (set-window-margins win left-margin-width right-margin-width))
+          ;;(message "win-width b: %s => %s, win-full=%s, e=%s l/r=%s/%s %S %S %S" wrap-old-win-width win-width win-full extra-width left-marg right-marg (window-edges) (window-inside-edges) (window-margins))
+          )
+        ))))
 
+;; (add-hook 'post-command-hook 'my-win-post-command nil t)
+;; (remove-hook 'post-command-hook 'my-win-post-command t)
+(defun my-win-post-command ()
+  (message "win-post-command: l/r=%s/%s %S %S %S" left-margin-width right-margin-width (window-edges) (window-inside-edges) (window-margins))
+           )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Fringes.
