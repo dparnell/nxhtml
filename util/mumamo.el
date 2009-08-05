@@ -4467,7 +4467,7 @@ explanation."
     (mumamo-msgfntfy "mumamo-idle-set-major-mode b=%s, window=%s" buffer window)
     (with-selected-window window
       ;; According to Stefan Monnier we need to set the buffer too.
-      (with-current-buffer (window-buffer)
+      (with-current-buffer (window-buffer window)
         (when (eq buffer (current-buffer))
           (mumamo-condition-case err
               ;;(let* ((ovl (mumamo-get-chunk-at (point)))
@@ -5902,8 +5902,10 @@ default values."
   (or mumamo-set-major-keymap-checked
       (setq mumamo-set-major-keymap-checked
             (let ((map-sym (intern-soft (concat (symbol-name major-mode) "-map"))))
-              (equal (current-local-map)
-                     (symbol-value map-sym))))))
+              (if (not map-sym)
+                  t ;; Don't know what to do
+                (equal (current-local-map)
+                       (symbol-value map-sym)))))))
 
 (defvar mumamo-original-fill-paragraph-function nil)
 (make-variable-buffer-local 'mumamo-original-fill-paragraph-function)
@@ -6100,7 +6102,6 @@ mode in the chunk family is nil."
   (remove-hook 'after-change-functions 'mumamo-after-change t)
   (remove-hook 'post-command-hook 'mumamo-post-command t)
   ;;(remove-hook 'c-special-indent-hook 'mumamo-c-special-indent t)
-  (mumamo-remove-all-chunk-overlays)
   (mumamo-margin-info-mode -1)
   (when (fboundp 'mumamo-clear-all-regions) (mumamo-clear-all-regions))
   (save-restriction
@@ -6111,6 +6112,7 @@ mode in the chunk family is nil."
   (setq mumamo-major-mode nil)
   (setq mumamo-multi-major-mode nil) ;; for minor-mode-map-alist
   (setq mumamo-multi-major-mode nil)
+  (mumamo-remove-all-chunk-overlays)
   (when (fboundp 'rng-cancel-timers) (rng-cancel-timers))
   )
 
