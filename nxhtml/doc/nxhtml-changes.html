@@ -298,6 +298,7 @@
           <a href="#v1.91">v1.91</a>
           <a href="#v1.92">v1.92</a>
           <a href="#v1.93">v1.93</a>
+          <a href="#v1.94">v1.94</a>
         </div>
 
         <dl>
@@ -1911,8 +1912,8 @@
           <dd id="v1.41-dd">
             <ul>
               <li>
-                There was an error that prevented loading of nXhtml with Emacs 22.
-                (This was before opening any file.)
+                There was an error that prevented loading of nXhtml
+                with Emacs 22.  (This was before opening any file.)
               </li>
               <li>
                 Fixed a problem in startup order for ido-mode and nXhtml.
@@ -3023,9 +3024,7 @@
             <ul>
               <li>
                 <span class="bugfix">
-                  Mumamo bug fix for bug reported on Emacs wiki today.
-                  Inline scripts end tag could not be in column one if
-                  previous line had a // style js comment.
+                  Mumamo bug fix for bug reported on Emacs wiki today. Inline scripts end tag could not be in column one if previous line had a // style js comment.
                 </span>
               </li>
             </ul>
@@ -3035,8 +3034,7 @@
             <ul>
               <li>
                 <span class="bugfix">
-                  An Emacs bug that sometimes prevent changing local keymap in a timer hit us.
-                  Made a workaround.
+                  An Emacs bug that sometimes prevent changing local keymap in a timer hit us.  Made a workaround.
                 </span>
               </li>
             </ul>
@@ -3047,6 +3045,16 @@
               <li>
                 <span class="bugfix">
                   Minor bug in menus gave major problem. Fixed - I hope.
+                </span>
+              </li>
+            </ul>
+          </dd>
+          <dt id="v1.94">1.94 -- Not yet released</dt>
+          <dd id="v1.94-dd">
+            <ul>
+              <li>
+                <span class="bugfix">
+                  <i>wrap-to-fill-column-mode</i> calculated window width wrongly so that the displayed wrapping was not consistent with what fill-paragraph would give. Corrected.
                 </span>
               </li>
             </ul>

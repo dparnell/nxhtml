@@ -582,14 +582,20 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 
 ;;;; on[a-z]+=\"javascript:"
 
-(defconst mumamo-onjs=start-regex
+(defconst mumamo-onjs=-attr=
+  (rx
+   ;;"on[a-z]+="
+   (or "onclick" "ondblclick" "onmousedown" "onmousemove" "onmouseout" "onmouseover" "onmouseup" "onkeydown" "onkeypress" "onkeyup")
+   "="))
+
+(defconst mumamo-onjs=-attr-regex
   (rx point
       (or "<" "?>")
       (* (not (any ">")))
       space
       (submatch
-       "on"
-       (1+ (any "a-za-z"))
+       ;;"on" (1+ (any "a-za-z"))
+       (or "onclick" "ondblclick" "onmousedown" "onmousemove" "onmouseout" "onmouseover" "onmouseup" "onkeydown" "onkeypress" "onkeyup")
        "=")
       (0+ space)
       ?\"
@@ -601,7 +607,31 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 
 (defun mumamo-chunk-onjs=(pos min max)
   "Find javascript on...=\"...\".  Return range and 'javascript-mode."
-  (mumamo-chunk-attr= pos min max "on[a-z]+=" t mumamo-onjs=start-regex
+  (mumamo-chunk-attr= pos min max mumamo-onjs=-attr= t mumamo-onjs=-attr-regex
+                      'javascript-mode))
+
+;;;; py:somthing=\"python\"
+
+(defconst mumamo-py:=-attr= "py:[a-z]+=")
+
+(defconst mumamo-py:=-attr-regex
+  (rx point
+      (or "<" "?>")
+      (* (not (any ">")))
+      space
+      (submatch
+       "py:" (1+ (any "a-za-z"))
+       "=")
+      (0+ space)
+      ?\"
+      (submatch
+       (0+
+        (not (any "\""))))
+      ))
+
+(defun mumamo-chunk-py:=(pos min max)
+  "Find python py:...=\"...\".  Return range and 'python-mode."
+  (mumamo-chunk-attr= pos min max mumamo-py:=-attr= t mumamo-py:=-attr-regex
                       'javascript-mode))
 
 ;;;; style=
@@ -1075,6 +1105,7 @@ affect your editing normally."
    (
     mumamo-chunk-genshi%
     mumamo-chunk-genshi$
+    mumamo-chunk-py:=
     mumamo-chunk-xml-pi
     mumamo-chunk-inlined-style
     mumamo-chunk-inlined-script
