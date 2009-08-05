@@ -885,13 +885,17 @@ the left margin."
   :group 'convenience)
 
 (defun wrap-to-fill-set-prefix (min max)
-  ;;(wrap-to-fill-set-prefix-1 min max)
+  (wrap-to-fill-set-prefix-1 min max)
   )
 
 (defun wrap-to-fill-set-prefix-1 (min max)
   "Set `wrap-prefix' text property from point MIN to MAX."
-  ;; Fix-me: If first word gets wrapped we have a problem.
-  ;;(message "wrap-to-fill-set-prefix here")
+  ;; Fix-me: If first word gets wrapped we have a problem. - This does
+  ;; not seem to be a problem any more.
+
+  ;; Fix-me: Just do this in the parts displayed in windows? Or is it
+  ;; still slow? Maybe this is already handled by scrolling etc?
+  ;;(message "set-prefix-1 %s %s" min max)
   (let ((here (point))
         beg-pos
         end-pos
@@ -911,21 +915,23 @@ the left margin."
                     (get-text-property beg-pos 'wrap-to-fill-prefix))
          (skip-chars-forward "[:blank:]")
          (setq ind-str (buffer-substring-no-properties beg-pos (point)))
-         (setq max-word-len
-               (apply
-                'max
-                0
-                (mapcar (lambda (word)
-                              (length word))
-                            (split-string
-                             (buffer-substring-no-properties
-                              (point) end-pos)))))
+         ;; (setq max-word-len
+         ;;       (apply
+         ;;        'max
+         ;;        0
+         ;;        (mapcar (lambda (word)
+         ;;                      (length word))
+         ;;                    (split-string
+         ;;                     (buffer-substring-no-properties
+         ;;                      (point) end-pos)))))
+
+         ;; ThisisaVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongWord ThisisaVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongWord
          ;;(message "max-word-len=%s, %s, %s" max-word-len (length ind-str) (buffer-substring-no-properties (point) end-pos))
-         (unless (< fill-column (+ max-word-len
-                                   ;;(current-indentation)
-                                   (length ind-str)
-                                   5 ;; Fix-me: From where?? This is the diff between the usable area and fill-column ...
-                                   ))
+         (unless (and nil (< fill-column (+ max-word-len
+                                            ;;(current-indentation)
+                                            (length ind-str)
+                                            ;;5 ;; Fix-me: From where?? This is the diff between the usable area and fill-column ...
+                                            )))
            (put-text-property beg-pos end-pos 'wrap-prefix ind-str)
            (put-text-property beg-pos end-pos 'wrap-to-fill-prefix ind-str)))
        (forward-line)))
@@ -942,8 +948,8 @@ See the hook for MIN, MAX and OLD-LEN."
     (setq min (line-beginning-position))
     (goto-char max)
     (setq max (line-end-position))
-    ;;(wrap-to-fill-set-prefix min max)
     (wrap-to-fill-save-min-max min max)
+    (goto-char here)
     ))
 
 (defun wrap-to-fill-save-min-max (min max)
@@ -957,27 +963,38 @@ See the hook for MIN, MAX and OLD-LEN."
   (let* ((min (car wrap-to-fill-after-change-range))
          (max (cdr wrap-to-fill-after-change-range)))
     (setq wrap-to-fill-after-change-range nil)
-    (wrap-to-fill-set-prefix min max)))
+    (when (and min max)
+      (wrap-to-fill-set-prefix min max))))
 
 (defun wrap-to-fill-scroll-fun (window start-pos)
   "For `window-scroll-functions'.
 See the hook for WINDOW and START-POS."
-  (let ((min (or start-pos (window-start window)))
-        (max (window-end window t)))
-    (wrap-to-fill-save-min-max min max)))
-    ;;(wrap-to-fill-set-prefix min max)))
+  ;; Fix-me: This does its work too late. I see no way to fix it. Also
+  ;; it does too much.
+  (unless (active-minibuffer-window)
+    (let ((min (or start-pos (window-start window)))
+          (max (window-end window t)))
+      (wrap-to-fill-save-min-max min max)
+      ;; Fix-me: add window to arg
+      ;; Fix-me: This is looping ...
+      (run-with-idle-timer 0 nil 'wrap-to-fill-set-prefix min max)
+      )))
 
 (defun wrap-to-fill-wider ()
   "Increase `fill-column' with 10."
   (interactive)
   (setq fill-column (+ fill-column 10))
-  (wrap-to-fill-set-values))
+  ;;(wrap-to-fill-set-values)
+  (wrap-to-fill-set-values-in-buffer-windows)
+  )
 
 (defun wrap-to-fill-narrower ()
   "Decrease `fill-column' with 10."
   (interactive)
   (setq fill-column (- fill-column 10))
-  (wrap-to-fill-set-values))
+  ;;(wrap-to-fill-set-values)
+  (wrap-to-fill-set-values-in-buffer-windows)
+  )
 
 (defvar wrap-to-fill-column-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1007,15 +1024,15 @@ Key bindings added by this minor mode:
   ;;(message "wrap-to-fill-column-mode here %s" wrap-to-fill-column-mode)
   (if wrap-to-fill-column-mode
       (let* ((win (get-buffer-window (current-buffer)))
-             (win-margs (when win (window-margins win))))
-        (when win-margs
-          (setq wrap-to-fill-left-marg (or (car win-margs)
-                                           wrap-to-fill-left-marg)))
-        (setq wrap-to-fill-left-marg-use wrap-to-fill-left-marg)
-        (unless (or wrap-to-fill-left-marg-use
-                    (memq major-mode wrap-to-fill-left-marg-modes))
-          (setq wrap-to-fill-left-marg-use
-                (default-value 'wrap-to-fill-left-marg-use)))
+             ;; Fix-me: Should be buffer margins, not window margins
+             ;; here. However on display window margins must be used, but ...
+
+             ;;(win-margs (when win (window-margins win)))
+             (left-marg left-margin-width)
+             )
+        ;; (when win-margs
+        ;;   (setq wrap-to-fill-left-marg (or (car win-margs)
+        ;;                                    wrap-to-fill-left-marg)))
         (add-hook 'window-configuration-change-hook 'wrap-to-fill-set-values nil t)
         (add-hook 'after-change-functions 'wrap-to-fill-after-change nil t)
         (add-hook 'window-scroll-functions 'wrap-to-fill-scroll-fun nil t)
@@ -1053,42 +1070,61 @@ Key bindings added by this minor mode:
           (point-min) (point-max)
           '(wrap-to-fill-prefix)))
        (goto-char here))))
-  (wrap-to-fill-set-values))
+  ;;(wrap-to-fill-set-values)
+  (wrap-to-fill-set-values-in-buffer-windows)
+  )
 (put 'wrap-to-fill-column-mode 'permanent-local t)
 
 ;; Fix-me: There is a confusion between buffer and window margins
 ;; here. Also the doc says that left-margin-width and dito right may
 ;; be nil. However they seem to be 0 by default, but when displaying a
 ;; buffer in a window then window-margins returns (nil).
-(defun wrap-to-fill-set-values ()
-  (condition-case err
-      (wrap-to-fill-set-values-1)
-    (error (message "ERROR wrap-to-fill-set-values-1: %s" (error-message-string err)))))
 
-(defun wrap-to-fill-set-values-1 ()
+(defun wrap-to-fill-set-values ()
+  (run-with-idle-timer 0 nil 'wrap-to-fill-set-values-in-timer (selected-window) (current-buffer)))
+
+(defun wrap-to-fill-set-values-in-timer (win buf)
+  (condition-case err
+      (when (eq buf (window-buffer win))
+        (with-selected-window win
+          (with-current-buffer buf
+            (when wrap-to-fill-column-mode
+              (wrap-to-fill-set-values-in-selected-window)))))
+    (error (message "ERROR wrap-to-fill-set-values: %s" (error-message-string err)))))
+
+(defun wrap-to-fill-set-values-in-buffer-windows ()
   "Use `fill-column' display columns in buffer windows."
-  ;;(message "wrap-to-fill-set-values window-configuration-change-hook=%s, wrap-to-fill-column-mode=%s, cb=%s" window-configuration-change-hook wrap-to-fill-column-mode (current-buffer))
   (let ((buf-windows (get-buffer-window-list (current-buffer))))
-    ;;(message "buf-windows=%s" buf-windows)
     (dolist (win buf-windows)
-      (if wrap-to-fill-column-mode
-          (let* ((edges (window-edges win))
-                 (win-width (- (nth 2 edges) (nth 0 edges)))
-                 (extra-width (- win-width fill-column))
-                 (left-marg (if wrap-to-fill-left-marg-use
-                                wrap-to-fill-left-marg-use
-                              (- (/ extra-width 2) 1)))
-                 (right-marg (- win-width fill-column left-marg))
-                 (win-margs (window-margins win))
-                 (old-left (or (car win-margs) 0))
-                 (old-right (or (cdr win-margs) 0)))
-            ;;(message "left-marg=%s, right-marg=%s, old-left=%s, old-right=%s" left-marg right-marg old-left old-right)
-            (unless (> left-marg 0) (setq left-marg 0))
-            (unless (> right-marg 0) (setq right-marg 0))
-            (unless (and (= old-left left-marg)
-                         (= old-right right-marg))
-              (set-window-margins win left-marg right-marg)))
-        (set-window-buffer win (current-buffer))))))
+      (with-selected-window win
+        (if wrap-to-fill-column-mode
+            (wrap-to-fill-set-values-in-selected-window)
+          (set-window-buffer nil (current-buffer)))))))
+
+;; Fix-me: compensate for left-margin-width etc
+(defun wrap-to-fill-set-values-in-selected-window ()
+  (with-current-buffer (window-buffer (selected-window))
+    (when wrap-to-fill-column-mode
+      (let* ((fill-left-marg (or (when (> left-margin-width 0) left-margin-width)
+                                 wrap-to-fill-left-marg))
+             (fill-left-marg-use (unless (memq major-mode wrap-to-fill-left-marg-modes)
+                                   wrap-to-fill-left-marg)))
+        (let* ((win-width (window-width))
+               (extra-width (- win-width fill-column))
+               (left-marg (if fill-left-marg-use
+                              fill-left-marg-use
+                            (- (/ extra-width 2) 1)))
+               (right-marg (- win-width fill-column left-marg))
+               (win-margs (window-margins))
+               (old-left (or (car win-margs) 0))
+               (old-right (or (cdr win-margs) 0)))
+          ;;(message "win-width=%s cb=%s sw=%s" win-width (current-buffer) (selected-window))
+          (unless (> left-marg 0) (setq left-marg 0))
+          (unless (> right-marg 0) (setq right-marg 0))
+          (unless (and (= old-left left-marg)
+                       (= old-right right-marg)
+                       nil)
+            (set-window-margins nil left-marg right-marg)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

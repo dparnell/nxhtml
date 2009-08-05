@@ -652,10 +652,10 @@ Note: When `linum-mode' is on the right margin is always used
   (mumamo-update-this-buffer-margin-use)
   (if mumamo-margin-info-mode
       (progn
-        (add-hook 'window-configuration-change-hook 'mumamo-update-this-buffer-margin-use nil t)
+        ;;(add-hook 'window-configuration-change-hook 'mumamo-update-this-buffer-margin-use nil t)
         (add-hook 'linum-mode-hook 'mumamo-update-this-buffer-margin-use nil t)
         )
-    (remove-hook 'window-configuration-change-hook 'mumamo-update-this-buffer-margin-use t)
+    ;;(remove-hook 'window-configuration-change-hook 'mumamo-update-this-buffer-margin-use t)
     (remove-hook 'linum-mode-hook 'mumamo-update-this-buffer-margin-use t)
     ))
 (put 'mumamo-margin-info-mode 'permanent-local t)
@@ -684,18 +684,6 @@ Note: When `linum-mode' is on the right margin is always used
 (defun mumamo-update-all-buffers-margin-use ()
   (dolist (buf (buffer-list))
     (mumamo-update-buffer-margin-use buf)))
-
-(defun mumamo-update-buffer-margin-use (buffer)
-  ;;(msgtrc "update-buffer-margin-use %s" buffer)
-  (when (fboundp 'mumamo-update-chunks-margin-display)
-    (with-current-buffer buffer
-      (when mumamo-multi-major-mode
-        ;; Note: window update must be before buffer update because it
-        ;; uses old-margin from the call to function margin-used.
-        (dolist (win (get-buffer-window-list buffer))
-          (mumamo-set-window-margins-used win))
-        (mumamo-update-chunks-margin-display buffer)
-        ))))
 
 ;; (setq mumamo-chunk-coloring 4)
 (defcustom mumamo-chunk-coloring 0
@@ -3746,24 +3734,66 @@ The first two are used when the bottom:
   (setq mumamo-margin-used
         (if (and (boundp 'linum-mode) linum-mode) 'right-margin (nth 0 mumamo-margin-use))))
 
-(defun mumamo-set-window-margins-used (win)
-  "Set window margin according to `mumamo-margin-use'."
-  ;; Fix-me: old-margin does not work, break it up
-  (let* ((old-margin mumamo-margin-used)
-         (margin    (mumamo-margin-used))
-         (width  (nth 1 mumamo-margin-use))
-         (both-widths (window-margins win))
-         (old-left (eq old-margin 'left-margin))
-         (left (eq margin 'left-margin)))
-    ;; Change only the margin we used!
-    (if (not mumamo-margin-info-mode)
-        (set-window-margins win
-                            (if left nil (car both-widths))
-                            (if (not left) nil (cdr both-widths)))
-      ;;(msgtrc "set-window-margins-used margin-info-mode=t")
-      (case margin
-        ('left-margin  (set-window-margins win width (when old-left (cdr both-widths))))
-        ('right-margin (set-window-margins win (car both-widths) width))))))
+;; (defun mumamo-set-window-margins-used (win)
+;;   "Set window margin according to `mumamo-margin-use'."
+;;   ;; Fix-me: old-margin does not work, break it up
+;;   (let* ((old-margin-used mumamo-margin-used)
+;;          (margin-used  (mumamo-margin-used))
+;;          (width  (nth 1 mumamo-margin-use))
+;;          (both-widths (window-margins win))
+;;          (old-left (eq old-margin-used 'left-margin))
+;;          (left (eq margin 'left-margin)))
+;;     ;; Change only the margin we used!
+;;     (if (not mumamo-margin-info-mode)
+;;         (progn
+;;           (set-window-margins win
+;;                               (if left nil (car both-widths))
+;;                               (if (not left) nil (cdr both-widths)))
+;;           )
+;;       ;;(msgtrc "set-window-margins-used margin-info-mode=t")
+;;       (case margin-used
+;;         ('left-margin  (set-window-margins win width (when old-left (cdr both-widths))))
+;;         ('right-margin (set-window-margins win (car both-widths) width))))))
+
+(defun mumamo-update-buffer-margin-use (buffer)
+  (msgtrc "update-buffer-margin-use %s" buffer)
+  (when (fboundp 'mumamo-update-chunks-margin-display)
+    (with-current-buffer buffer
+      (when mumamo-multi-major-mode
+        (let* ((old-margin-used mumamo-margin-used)
+               (margin-used  (mumamo-margin-used))
+               (old-is-left (eq old-margin-used 'left-margin))
+               (is-left (eq margin-used 'left-margin))
+               (width  (nth 1 mumamo-margin-use))
+               (need-update nil))
+          (if (not mumamo-margin-info-mode)
+              (when old-margin-used
+                (setq need-update t)
+                (setq old-margin-used nil)
+                (if old-is-left
+                    (setq left-margin-width 0)
+                  (setq right-margin-width 0)))
+            (unless (and (eq old-margin-used margin-used)
+                         (= width (if old-is-left left-margin-width right-margin-width)))
+              (setq need-update t)
+              (if is-left
+                  (setq left-margin-width width)
+                (setq right-margin-width width))
+              (unless (eq old-margin-used margin-used)
+                (if old-is-left
+                    (setq left-margin-width 0)
+                  (setq right-margin-width 0)))))
+          (when need-update
+            (mumamo-update-chunks-margin-display buffer)
+            (dolist (win (get-buffer-window-list buffer))
+              (set-window-buffer win buffer)))
+          )
+      ;; Note: window update must be before buffer update because it
+      ;; uses old-margin from the call to function margin-used.
+      ;; (dolist (win (get-buffer-window-list buffer))
+      ;;   (mumamo-set-window-margins-used win))
+      ;; (mumamo-update-chunks-margin-display buffer)
+      ))))
 
 (defun mumamo-new-chunk-value-min (values)
   (let ((this-values (nth 0 values)))
