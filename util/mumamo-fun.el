@@ -632,7 +632,41 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 (defun mumamo-chunk-py:=(pos min max)
   "Find python py:...=\"...\".  Return range and 'python-mode."
   (mumamo-chunk-attr= pos min max mumamo-py:=-attr= t mumamo-py:=-attr-regex
-                      'javascript-mode))
+                      'python-mode))
+
+(defun mumamo-chunk-py:match (pos min max)
+  (save-match-data
+    (let ((here (point))
+          (py:match (progn
+                      (goto-char pos)
+                      (re-search-forward (rx "py:match"
+                                             (1+ space)
+                                             (0+ (not (any ">")))
+                                             word-start
+                                             (submatch "path=")
+                                             (0+ space)
+                                             ?\"
+                                             (submatch
+                                              (0+
+                                               (not (any "\"")))))
+                                         max t)))
+          start end borders
+          )
+      (when py:match
+        (setq start (match-beginning 1))
+        (setq end   (match-end 2))
+        (setq borders (list (match-end 1) (1- end)))
+        )
+      (goto-char here)
+      (when start
+        (list start
+              end
+              'python-mode
+              borders
+              nil ;; parseable-by
+              'mumamo-chunk-attr=-new-fw-exc-fun ;; fw-exc-fun
+              'mumamo-chunk-attr=-new-find-borders-fun ;; find-borders-fun
+            )))))
 
 ;;;; style=
 
@@ -1106,6 +1140,7 @@ affect your editing normally."
     mumamo-chunk-genshi%
     mumamo-chunk-genshi$
     mumamo-chunk-py:=
+    mumamo-chunk-py:match
     mumamo-chunk-xml-pi
     mumamo-chunk-inlined-style
     mumamo-chunk-inlined-script
