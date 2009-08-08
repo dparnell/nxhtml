@@ -182,8 +182,8 @@ emacsw32-eol."
   (list
    (list as-external-mail-mode-comment-pattern
          '(0 font-lock-comment-face))
-   (list as-external-mail-mode-email-pattern
-         '(0 font-lock-keyword-face))
+   ;; (list as-external-mail-mode-email-pattern
+   ;;       '(0 font-lock-keyword-face))
    ))
 
 ;;;###autoload
@@ -202,6 +202,7 @@ See also `as-external-mode'."
   (set (make-local-variable 'font-lock-defaults)
        '((as-external-mail-mode-font-lock-keywords) nil))
   (setq fill-column 90)
+  (mlinks-mode 1)
   (wrap-to-fill-column-mode 1))
 
 ;;;###autoload
