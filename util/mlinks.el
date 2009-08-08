@@ -256,6 +256,7 @@
 
 (defvar mlinks-hilight-point-ovl nil)
 (make-variable-buffer-local 'mlinks-hilight-point-ovl)
+(put 'mlinks-hilight-point-ovl 'permanent-local t)
 
 (defvar mlinks-hilighter-timer nil)
 (make-variable-buffer-local 'mlinks-hilighter-timer)
@@ -367,32 +368,44 @@
       (mlinks-activate-hilight)
     (mlinks-deactivate-hilight)))
 
+(defun mlinks-has-links ()
+  (or (mlinks-get-action 'fontify)
+      ;; Fix-me: just assume multi major has it...
+      (and (boundp 'mumamo-multi-major-mode)
+           mumamo-multi-major-mode)))
+
 (defun mlinks-backward-link ()
   "Find previous `mlinks-mode' link in buffer."
   (interactive)
-  (let ((funs (mlinks-get-action 'prev)))
-    (if (not funs)
+  (let (
+        ;;(funs (mlinks-get-action 'prev))
+        )
+    (if (not (mlinks-has-links)) ;(not funs)
         (message "There is no way to go to previous link for this major mode")
       (let (
             ;;(res (run-hook-with-args-until-success 'funs))
-            (res (funcall (car funs)))
+            ;;(res (funcall (car funs)))
+            (res (mlinks-prev-link))
             )
         (if res
             (progn
-              (goto-char (car res))
+              (goto-char res)
               (mlinks-someactivate-hilight))
           (message "No previous link found"))))))
 
 (defun mlinks-forward-link ()
   "Find next `mlinks-mode' link in buffer."
   (interactive)
-  (let ((funs (mlinks-get-action 'next)))
-    (if (not funs)
+  (let (;;(funs (mlinks-get-action 'next))
+        )
+    (if (not (mlinks-has-links)) ;(not funs)
         (message "There is no way to go to next link for this major mode")
-      (let ((res (funcall (car funs))))
+      (let (;;(res (funcall (car funs)))
+            (res (mlinks-next-link))
+            )
         (if res
             (progn
-              (goto-char (car res))
+              (goto-char res)
               (mlinks-someactivate-hilight))
           (message "No next link found"))))))
 
@@ -1305,23 +1318,18 @@ Any command cancels this state."
 ;; (put 'mlink-font-lock-link-fun 'permanent-local t)
 
 (defun mlink-font-lock (on)
-  (let ((add-or-remove (if on 'font-lock-add-keywords 'font-lock-remove-keywords))
-        (fontify-fun (car (mlinks-get-action 'fontify))))
+  (let* ((add-or-remove (if on 'font-lock-add-keywords 'font-lock-remove-keywords))
+        (fontify-fun (car (mlinks-get-action 'fontify)))
+        (args (list nil `(( ,fontify-fun ( 0 mlinks-link t ))))))
     (when fontify-fun
       ;; Note: Had a lot of trouble with this which I modelled first
       ;; after dlink. Using hi-lock as a model made it work with
       ;; mumamo too.
-      (funcall add-or-remove nil
-               `((
-                  ;;mlinks-html-forward-link-2
-                  ,fontify-fun
-                  (
-                  1
-                  mlinks-link
-                  ;;prepend
-                  t
-                  )))
-               t)
+      ;;
+      ;; Next arg, HOW, is needed to get it to work with mumamo. This
+      ;; adds it last, like hi-lock.
+      (when on (setq args (append args (list t))))
+      (apply add-or-remove args)
       (font-lock-mode -1)
       (font-lock-mode 1))))
 
@@ -1340,12 +1348,17 @@ Any command cancels this state."
       (if (not (re-search-forward mlinks-html-link-regex bound t))
           (setq end-start bound)
         (setq ret t)
-        (setq end-start (1- (point)))
+        ;;(setq end-start (1- (point)))
+        (setq end-start (- (point) 2))
         (let* ((which (if (match-beginning 1) 1 2))
-               (beg (match-beginning which))
-               (end (match-end which)))
-          (put-text-property beg end 'mlinks-link t)
-          ;(message "html-forward-link: putting mlinks-link %s-%s" beg end)
+               (beg (1+ (match-beginning which)))
+               (end (1- (match-end which))))
+          ;;(mumamo-with-buffer-prepared-for-jit-lock
+           ;;(put-text-property (1- beg) (1+ end) 'mlinks-link t)
+           (put-text-property beg end 'mlinks-link t)
+           ;;)
+          ;;(message "html-forward-link: putting mlinks-link %s-%s" beg end)
+          (set-match-data (list (copy-marker end) (copy-marker beg)))
           ))
       (setq stop start)
       (setq next-stop -1)
@@ -1362,78 +1375,92 @@ Any command cancels this state."
       ret)))
 
 (defun mlinks-next-link ()
-  (interactive)
   (let* ((here (point))
          (prev-pos (point))
-         (pos (next-single-property-change prev-pos 'mlinks-link nil ))
-         fontified-to
-         all-fontified
+         (fontified-here (get-text-property (max (point-min) (1- prev-pos)) 'fontified))
+         (fontified-to (next-single-property-change prev-pos 'fontified))
+         (pos (next-single-property-change prev-pos 'mlinks-link nil
+                                           (or fontified-to (point-max))))
+         (fontified-all (and fontified-here (not fontified-to)))
          ready
-         next-fontified-to
-         )
-    (while (not ready)
+         next-fontified-to)
+    (while (not (or ready
+                    (and fontified-all
+                         (not pos))))
       (if pos
           (progn
-            (setq ready (get-text-property pos 'mlinks-link))
-            (setq prev-pos pos))
-        (unless (or all-fontified fontified-to)
+            (unless (get-text-property pos 'mlinks-link)
+              ;; Get to next link
+              (setq prev-pos pos)
+              (setq pos (next-single-property-change prev-pos 'mlinks-link nil
+                                                     (or fontified-to (point-max)))))
+            (when pos
+              (setq ready (get-text-property pos 'mlinks-link))
+              (setq prev-pos pos)
+              (unless ready (setq pos nil))))
+        (unless (or fontified-all fontified-to)
           (if (get-text-property prev-pos 'fontified)
-              (setq all-fontified
+              (setq fontified-all
                     (not (setq fontified-to
                                (next-single-property-change prev-pos 'fontified))))
             (setq fontified-to ( or (previous-single-property-change prev-pos 'fontified)
                                     1))))
-        (if all-fontified
-            (setq ready t)
-          (setq next-fontified-to (min (+ fontified-to 5000)
-                                       (point-max)))
-          (mumamo-with-buffer-prepared-for-jit-lock
-           (progn
-             (put-text-property fontified-to next-fontified-to 'fontified t)
-             (font-lock-fontify-region fontified-to next-fontified-to)))
-          (setq fontified-to next-fontified-to)
-          (setq ready (>= fontified-to (point-max)))
-          )
-        )
-        (setq pos (next-single-property-change prev-pos 'mlinks-link nil)))
-    (goto-char (or prev-pos pos here))))
+        (setq next-fontified-to (min (+ fontified-to 5000)
+                                     (point-max)))
+        (mumamo-with-buffer-prepared-for-jit-lock
+         (progn
+           (put-text-property fontified-to next-fontified-to 'fontified t)
+           (font-lock-fontify-region fontified-to next-fontified-to)))
+        (setq fontified-to (next-single-property-change (1- next-fontified-to)
+                                                         'fontified))
+        (setq fontified-all (not fontified-to))
+        (setq pos (next-single-property-change prev-pos 'mlinks-link nil
+                                               (or fontified-to (point-max))))))
+    (when ready prev-pos)))
 
 (defun mlinks-prev-link ()
-  (interactive)
-  (let* ((here (point))
-         (prev-pos (point))
-         (pos (previous-single-property-change prev-pos 'mlinks-link nil ))
-         fontified-from
+  "Find previous link, fontify as necessary."
+  (let* ((prev-pos (point))
+         (fontified-from (previous-single-property-change prev-pos 'fontified))
+         (fontified-here (get-text-property (max (point-min) (1- prev-pos)) 'fontified))
+         (fontified-all (and fontified-here (not fontified-from)))
+         (pos (when fontified-here
+                (previous-single-property-change prev-pos 'mlinks-link nil
+                                                 (or fontified-from 1))))
          ready
          next-fontified-from
          )
-    (when (and pos
-               (get-text-property pos 'mlinks-link))
-      ;; Get out of current link
-      (setq prev-pos pos)
-      (setq pos (previous-single-property-change prev-pos 'mlinks-link nil)))
-    (while (not ready)
+    (while (not (or ready
+                    (and fontified-all
+                         (not pos))))
+      (assert (numberp prev-pos) t)
       (if pos
           (progn
-            (setq ready (not (get-text-property pos 'mlinks-link)))
-            (setq prev-pos pos))
-        (unless fontified-from
-          (unless (get-text-property prev-pos 'fontified)
-            (setq fontified-from
-                  (previous-single-property-change prev-pos 'fontified))))
-        (if (not fontified-from)
-            (setq ready t)
-          (setq next-fontified-from (max (- fontified-from 5000)
-                                         (point-min)))
-          (mumamo-with-buffer-prepared-for-jit-lock
-           (progn
-             (put-text-property next-fontified-from fontified-from 'fontified t)
-             (font-lock-fontify-region next-fontified-from fontified-from)))
-          (setq fontified-from next-fontified-from)
-          (setq ready (<= fontified-from (point-min)))
-          ))
-        (setq pos (previous-single-property-change prev-pos 'mlinks-link nil)))
-    (goto-char (or pos pos here))))
+            (when (and (> (1- pos) (point-min))
+                       (get-text-property (1- pos) 'mlinks-link))
+              ;; Get out of current link
+              (setq prev-pos pos)
+              (setq pos (previous-single-property-change prev-pos 'mlinks-link nil
+                                                         (or fontified-from 1))))
+            (when pos
+              (setq prev-pos pos)
+              (setq ready (and (get-text-property pos 'fontified)
+                               (or (= 1 pos)
+                                   (not (get-text-property (1- pos) 'mlinks-link)))
+                               (get-text-property pos 'mlinks-link)))
+              (unless ready (setq pos nil))))
+        (setq next-fontified-from (max (- fontified-from 5000)
+                                       (point-min)))
+        (mumamo-with-buffer-prepared-for-jit-lock
+         (progn
+           (put-text-property next-fontified-from fontified-from 'fontified t)
+           (font-lock-fontify-region next-fontified-from fontified-from)))
+        (setq fontified-from (previous-single-property-change
+                              (1+ next-fontified-from) 'fontified))
+        (setq fontified-all (not fontified-from))
+        (setq pos (previous-single-property-change prev-pos 'mlinks-link nil
+                                                   (or fontified-from 1)))))
+    (when ready pos)))
 
 
 ;;; This is for the problem reported by some Asian users:
