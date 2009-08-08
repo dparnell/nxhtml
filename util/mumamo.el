@@ -1089,6 +1089,7 @@ Lookup in this list is done by `mumamo-major-mode-from-modespec'."
   "This function is added to `fontification-functions' by mumamo.
 START is a parameter given to functions in that hook."
   (mumamo-msgfntfy "mumamo-jit-lock-function %s, ff=%s, just-changed=%s" start (get-text-property start 'fontified) mumamo-just-changed-major)
+  ;;(msgtrc "jit-lock-function %s, ff=%s, just-changed=%s" start (get-text-property start 'fontified) mumamo-just-changed-major)
   ;;(msgtrc "mumamo-jit-lock-function enter: font-lock-keywords-only def=%s" (default-value 'font-lock-keywords-only))
   (if mumamo-just-changed-major
       (setq mumamo-just-changed-major nil))
@@ -1697,6 +1698,8 @@ Do not record undo information during evaluation of BODY."
 ;;;###autoload
 (defun mumamo-mark-for-refontification (min max)
   "Mark region between MIN and MAX for refontification."
+  ;;(msgtrc "mark-for-refontification A min,max=%s,%s point-min,max=%s,%s modified=%s" min max (point-min) (point-max) (buffer-modified-p) )
+  ;;(mumamo-backtrace "mark-for-refontification")
   (mumamo-msgfntfy "mumamo-mark-for-refontification A min,max=%s,%s point-min,max=%s,%s modified=%s" min max (point-min) (point-max) (buffer-modified-p) )
   (assert (<= min max))
   (when (< min max)
@@ -1869,7 +1872,7 @@ PS: `font-lock-fontify-syntactically-region' is the main function
 that does syntactic fontification."
   ;;(msgtrc "mumamo-do-fontify enter: font-lock-keywords-only def=%s" (default-value 'font-lock-keywords-only))
   ;;(msgtrc "mumamo-do-fontify <<<<<<< %s %s %s %s %s %s" start end verbose chunk-syntax-min chunk-syntax-max chunk-major)
-  ;;(msgtrc "mumamo-do-fontify <<<<<<< %s %s %s %s %s %s" start end verbose chunk-syntax-min chunk-syntax-max chunk-major)
+  ;;(msgtrc "font-lock-keywords=%S" font-lock-keywords)
   ;;(mumamo-assert-fontified-t start end)
   (mumamo-condition-case err
       (let* ((font-lock-dont-widen t)
@@ -1952,7 +1955,7 @@ fontification."
   ;; The text property 'fontified is always t here due to the way
   ;; jit-lock works!
 
-  ;;(msgtrc "mumamo-fontify-region-with %s %s %s %s, ff=%s" start end verbose major (get-text-property start 'fontified))
+  ;;(msgtrc "fontify-region-with %s %s %s %s, ff=%s" start end verbose major (get-text-property start 'fontified))
   ;;(mumamo-assert-fontified-t start end)
   ;;(msgtrc "mumamo-fontify-region-with enter: font-lock-keywords-only def=%s" (default-value 'font-lock-keywords-only))
   (mumamo-condition-case err
@@ -2217,7 +2220,7 @@ surrounded by \"...\" since they are fontified a bit special in
 most major modes."
   ;; Fix-me: unfontifying should be done using the correct syntax table etc.
   ;; Fix-me: refontify when new chunk
-  ;;(msgtrc "mumamo-fontify-region-1: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
+  ;;(msgtrc "fontify-region-1: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
   (save-match-data
     (let* ((old-point (point))
            (here start)
@@ -2234,7 +2237,7 @@ most major modes."
       (when chunk-at-start-1
         (unless (= start (1- (overlay-end chunk-at-start-1)))
           (setq chunk-at-start-1 nil)))
-      (while (and (> 500 (setq while-n1 (1+ while-n1)))
+      (while (and ;;(> 500 (setq while-n1 (1+ while-n1)))
                   fontified-t
                   (< here end))
         ;;(msgtrc "mumamo-fontify-region-1 heree 1, here=%s, end=%s" here end)
@@ -2320,9 +2323,10 @@ most major modes."
           ;;(setq prev-major chunk-major)
           ;;(setq prev-chunk chunk)
           (setq here max)
-          (setq fontified-t (or mumamo-dbg-pretend-fontified
-                                (get-text-property here 'fontified)))
-          ))
+          ;;(setq fontified-t (or mumamo-dbg-pretend-fontified (get-text-property (1- here) 'fontified)))
+          )
+        ;;(msgtrc "ft here end=%s %s %s" fontified-t here end)
+        )
       (goto-char old-point)
       ;;(msgtrc "b first-new-ovl=%s last-new-ovl=%s" first-new-ovl last-new-ovl)
       (unless fontified-t
@@ -3756,7 +3760,7 @@ The first two are used when the bottom:
 ;;         ('right-margin (set-window-margins win (car both-widths) width))))))
 
 (defun mumamo-update-buffer-margin-use (buffer)
-  (msgtrc "update-buffer-margin-use %s" buffer)
+  ;;(msgtrc "update-buffer-margin-use %s" buffer)
   (when (fboundp 'mumamo-update-chunks-margin-display)
     (with-current-buffer buffer
       (when mumamo-multi-major-mode

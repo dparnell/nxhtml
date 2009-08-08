@@ -132,6 +132,7 @@
       hion
       (next mlinks-html-forward-link)
       (prev mlinks-html-backward-link)
+      (fontify mlinks-html-forward-link-2)
       )
      )
     (nxml-mode
@@ -140,6 +141,7 @@
       hion
       (next mlinks-html-forward-link)
       (prev mlinks-html-backward-link)
+      (fontify mlinks-html-forward-link-2)
       )
      )
     (sgml-mode
@@ -148,6 +150,7 @@
       hion
       (next mlinks-html-forward-link)
       (prev mlinks-html-backward-link)
+      (fontify mlinks-html-forward-link-2)
       )
      )
 ;; This is an alias for sgml-mode:
@@ -165,6 +168,7 @@
       hion
       (next mlinks-html-forward-link)
       (prev mlinks-html-backward-link)
+      (fontify mlinks-html-forward-link-2)
       )
      )
     )
@@ -820,6 +824,20 @@ Any command cancels this state."
 (put 'mlinks-after-change 'permanent-local t)
 
 
+(require 'rx)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;; text-mode etc ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defvar mlinks-plain-urls-regexp
+  (rx-to-string `(or (and (optional "mailto:")
+                          (regexp ,(concat "[a-z0-9$%(*-=?[_][^<>\")!;:,{}]*"
+                                           "\@"
+                                           "\\(?:[a-z0-9\-]+\.\\)+[a-z0-9]\\{2,4\\}")))
+                     (and (or (regexp "https?://")
+                              "www.")
+                          (1+ (any ,url-get-url-filename-chars))
+                          )
+                     )))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;; nxhtml-mode ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun mlinks-html-style-goto ()
@@ -828,10 +846,6 @@ Any command cancels this state."
 (defun mlinks-html-style-hili ()
   (mlinks-html-style-mode-fun nil))
 
-;; Fix-me: All must be on one line now. Can that be changed?
-;; This is where Shaowei Dai got
-;;   Debugger entered--Lisp error: (invalid-read-syntax "] in a list")
-(require 'rx)
 (defvar mlinks-html-link-regex
   ;; This value takes care of nxhtml-strval-mode (and is therefore a little bit incorrect ...)
   ;;"\\(?:^\\|[[:space:]]\\)\\(?:href\\|src\\)[[:space:]]*=[[:space:]]*\"\\([^<«\"]*\\)\""
@@ -935,9 +949,10 @@ Any command cancels this state."
               (goto-char here))))))))
 
 (defun mlinks-html-mail-to (addr)
-  (cond ((fboundp 'w32-shell-execute)
-         (w32-shell-execute "open" addr))
-        (t (message "Don't know how to how to start mail"))))
+  (browse-url addr))
+  ;; (cond ((fboundp 'w32-shell-execute)
+  ;;        (w32-shell-execute "open" addr))
+  ;;       (t (message "Don't know how to how to start mail"))))
 
 (defun mlinks-html-href-act-on (href-val)
   (if href-val
@@ -1263,40 +1278,56 @@ Any command cancels this state."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Font lock (not ready)
 
-(defun mlink-render-link (beg end)
-  (when (not (get-text-property beg 'mlink-fontified))
-    (save-excursion
-      (goto-char beg)
-      (add-text-properties beg (+ beg 1) (list 'mlink-fontified t))
-      (let* ((sexp (read (current-buffer)))
-	     (plist (eval sexp))
-	     (renderer (plist-get plist :render)))
-	(when (null renderer) (error "No renderer for link."))
-	(funcall renderer beg end)))))
+;; (defun mlink-render-link (beg end)
+;;   (when (not (get-text-property beg 'mlink-fontified))
+;;     (save-excursion
+;;       (goto-char beg)
+;;       (add-text-properties beg (+ beg 1) (list 'mlink-fontified t))
+;;       (let* ((sexp (read (current-buffer)))
+;; 	     (plist (eval sexp))
+;; 	     (renderer (plist-get plist :render)))
+;; 	(when (null renderer) (error "No renderer for link."))
+;; 	(funcall renderer beg end)))))
 
 
-(defun mlink-do-font-lock (add-or-remove)
-  (funcall add-or-remove nil
-	   `((,mlink-generic-regexp
-	      0
-	      (let ((beg (match-beginning 0))
-		    (end (match-end 0)))
-		(mlink-render-link beg end)
-		mlink-generic-face)
-	      prepend))))
+;; (defun mlink-do-font-lock (add-or-remove)
+;;   (funcall add-or-remove nil
+;; 	   `((,mlink-generic-regexp
+;; 	      0
+;; 	      (let ((beg (match-beginning 0))
+;; 		    (end (match-end 0)))
+;; 		(mlink-render-link beg end)
+;; 		mlink-generic-face)
+;; 	      prepend))))
+
+;; (defvar mlink-font-lock-link-fun nil)
+;; (make-variable-buffer-local 'mlink-font-lock-link-fun)
+;; (put 'mlink-font-lock-link-fun 'permanent-local t)
 
 (defun mlink-font-lock (on)
   (let ((add-or-remove (if on 'font-lock-add-keywords 'font-lock-remove-keywords))
-        (link-fun))
-    (funcall add-or-remove nil
-             `((mlinks-html-forward-link-2
-                1
-                mlinks-link
-                prepend)))
-    (font-lock-mode -1)
-    (font-lock-mode 1)))
+        (fontify-fun (car (mlinks-get-action 'fontify))))
+    (when fontify-fun
+      ;; Note: Had a lot of trouble with this which I modelled first
+      ;; after dlink. Using hi-lock as a model made it work with
+      ;; mumamo too.
+      (funcall add-or-remove nil
+               `((
+                  ;;mlinks-html-forward-link-2
+                  ,fontify-fun
+                  (
+                  1
+                  mlinks-link
+                  ;;prepend
+                  t
+                  )))
+               t)
+      (font-lock-mode -1)
+      (font-lock-mode 1))))
 
 (defvar mlinks-nw 0)
+(defun mlinks-plain-url-link-fun (bound)
+  )
 (defun mlinks-html-forward-link-2 (bound)
   (when t ;;(> 100 (setq mlinks-nw (1+ mlinks-nw)))
     (let ((start (point))
@@ -1307,39 +1338,103 @@ Any command cancels this state."
           (wn 1)
           ret)
       (if (not (re-search-forward mlinks-html-link-regex bound t))
-      ;;(if (not (mlinks-html-forward-link nil bound))
           (setq end-start bound)
         (setq ret t)
         (setq end-start (1- (point)))
         (let* ((which (if (match-beginning 1) 1 2))
                (beg (match-beginning which))
                (end (match-end which)))
-          ;; Add the link, but how do I remove it? Or do I remove it?
-          ;; (message "added %s %s" beg end)
-          ;; (add-text-properties beg end
-          ;;                      (list 'mlinks-html-link t
-          ;;                            'mouse-face 'highlight))
+          (put-text-property beg end 'mlinks-link t)
+          ;(message "html-forward-link: putting mlinks-link %s-%s" beg end)
           ))
       (setq stop start)
       (setq next-stop -1)
       (while (and (> 100 (setq wn (1+ wn)))
-                  (setq next-stop (next-single-property-change stop 'mlinks-html-link nil end-start))
+                  (setq next-stop (next-single-property-change stop 'mlinks-link nil end-start))
                   (/= next-stop stop))
         (setq stop next-stop)
-        ;;(message "wn=%s, stop=%s beg=%s" wn stop end-start)
-        (if (get-text-property stop 'mlinks-html-link)
+        (if (get-text-property stop 'mlinks-link)
             (setq old-beg stop)
           (progn
-            ;;(message "remmd %s %s" old-beg stop)
             (when old-beg
-              (remove-list-of-text-properties old-beg stop '(mlinks-html-link 'mouse-face))))
+              (remove-list-of-text-properties old-beg stop '(mlinks-link 'mouse-face))))
           ))
       ret)))
-;;   (message "kb tab=%s, \\t=%s, ovl=%s, keymap=%s"
-;;            (key-binding [tab])
-;;            (key-binding "\t")
-;;            (overlays-at (point))
-;;            (overlay-get mlinks-hilight-point-ovl 'keymap))
+
+(defun mlinks-next-link ()
+  (interactive)
+  (let* ((here (point))
+         (prev-pos (point))
+         (pos (next-single-property-change prev-pos 'mlinks-link nil ))
+         fontified-to
+         all-fontified
+         ready
+         next-fontified-to
+         )
+    (while (not ready)
+      (if pos
+          (progn
+            (setq ready (get-text-property pos 'mlinks-link))
+            (setq prev-pos pos))
+        (unless (or all-fontified fontified-to)
+          (if (get-text-property prev-pos 'fontified)
+              (setq all-fontified
+                    (not (setq fontified-to
+                               (next-single-property-change prev-pos 'fontified))))
+            (setq fontified-to ( or (previous-single-property-change prev-pos 'fontified)
+                                    1))))
+        (if all-fontified
+            (setq ready t)
+          (setq next-fontified-to (min (+ fontified-to 5000)
+                                       (point-max)))
+          (mumamo-with-buffer-prepared-for-jit-lock
+           (progn
+             (put-text-property fontified-to next-fontified-to 'fontified t)
+             (font-lock-fontify-region fontified-to next-fontified-to)))
+          (setq fontified-to next-fontified-to)
+          (setq ready (>= fontified-to (point-max)))
+          )
+        )
+        (setq pos (next-single-property-change prev-pos 'mlinks-link nil)))
+    (goto-char (or prev-pos pos here))))
+
+(defun mlinks-prev-link ()
+  (interactive)
+  (let* ((here (point))
+         (prev-pos (point))
+         (pos (previous-single-property-change prev-pos 'mlinks-link nil ))
+         fontified-from
+         ready
+         next-fontified-from
+         )
+    (when (and pos
+               (get-text-property pos 'mlinks-link))
+      ;; Get out of current link
+      (setq prev-pos pos)
+      (setq pos (previous-single-property-change prev-pos 'mlinks-link nil)))
+    (while (not ready)
+      (if pos
+          (progn
+            (setq ready (not (get-text-property pos 'mlinks-link)))
+            (setq prev-pos pos))
+        (unless fontified-from
+          (unless (get-text-property prev-pos 'fontified)
+            (setq fontified-from
+                  (previous-single-property-change prev-pos 'fontified))))
+        (if (not fontified-from)
+            (setq ready t)
+          (setq next-fontified-from (max (- fontified-from 5000)
+                                         (point-min)))
+          (mumamo-with-buffer-prepared-for-jit-lock
+           (progn
+             (put-text-property next-fontified-from fontified-from 'fontified t)
+             (font-lock-fontify-region next-fontified-from fontified-from)))
+          (setq fontified-from next-fontified-from)
+          (setq ready (<= fontified-from (point-min)))
+          ))
+        (setq pos (previous-single-property-change prev-pos 'mlinks-link nil)))
+    (goto-char (or pos pos here))))
+
 
 ;;; This is for the problem reported by some Asian users:
 ;;;

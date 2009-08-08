@@ -1358,16 +1358,16 @@ PREDICATE.  PREDICATE takes one argument, the symbol."
 (defun describe-command (command)
   "Like `describe-function', but prompts only for interactive commands."
   (interactive
-   (let ((fn (ourcomments-command-at-point))
-	 (enable-recursive-minibuffers t)
-	 val)
-     (setq val (completing-read (if fn
-				    (format "Describe command (default %s): " fn)
-				  "Describe command: ")
+   (let* ((fn (ourcomments-command-at-point))
+          (prompt (if fn
+                      (format "Describe command (default %s): " fn)
+                    "Describe command: "))
+          (enable-recursive-minibuffers t)
+          val)
+     (setq val (completing-read prompt
 				obarray 'commandp t nil nil
 				(and fn (symbol-name fn))))
-     (list (if (equal val "")
-	       fn (intern val)))))
+     (list (if (equal val "") fn (intern val)))))
   (describe-function command))
 
 
