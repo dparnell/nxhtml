@@ -189,7 +189,7 @@ Show a HTML page with an overview of nXhtml.
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
 ;;;;;;  nxhtml-mode) "../nxhtml/nxhtml-mode" "nxhtml/nxhtml-mode.el"
-;;;;;;  (19061 60294))
+;;;;;;  (19071 25633))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 
 (when (fboundp 'nxml-mode)
@@ -1301,9 +1301,9 @@ DEFINITION as explained there.
 
 ;;;***
 
-;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-mail
+;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-mail-mode
 ;;;;;;  as-external-for-xhtml) "as-external" "util/as-external.el"
-;;;;;;  (19063 48015))
+;;;;;;  (19069 58697))
 ;;; Generated autoloads from util/as-external.el
 
 (autoload 'as-external-for-xhtml "as-external" "\
@@ -1316,7 +1316,7 @@ In this case Emacs is used to edit textarea fields on a web page.
 The text will most often be part of a web page later, like on a
 blog.  Therefore turn on these:
 
-- `nxhtml-mumamo-mode' since some XHTML tags may be allowed.
+- `nxhtml-mode' since some XHTML tags may be allowed.
 - `nxhtml-validation-header-mode' since it is not a full page.
 - `wrap-to-fill-column-mode' to see what you are writing.
 - `html-write-mode' to see it even better.
@@ -1326,12 +1326,13 @@ emacsw32-eol.
 
 \(fn)" t nil)
 
-(autoload 'as-external-for-mail "as-external" "\
+(autoload 'as-external-for-mail-mode "as-external" "\
 Setup for Firefox addon It's All Text to edit mail.
+Set normal mail comment markers in column 1 (ie >).
 
-- `text-mode' since some XHTML tags may be allowed.
-- `wrap-to-fill-column-mode' to see what you are writing.
-- `as-external-mail-comment-mode' for commenting/uncommenting.
+Set `fill-column' to 90 and enable `wrap-to-fill-column-mode' so
+that it will look similar to how it will look in the sent plain
+text mail.
 
 See also `as-external-mode'.
 
@@ -1869,6 +1870,17 @@ For more information about this see `cusnu-export-cust-group'.
 
 ;;;***
 
+;;;### (autoloads (foldit-mode) "foldit" "util/foldit.el" (19071
+;;;;;;  26563))
+;;; Generated autoloads from util/foldit.el
+
+(autoload 'foldit-mode "foldit" "\
+Minor mode providing aids for folding.
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
 ;;;### (autoloads (freemind-to-org-mode freemind-from-org-sparse-tree
 ;;;;;;  freemind-from-org-mode freemind-from-org-mode-node freemind-show)
 ;;;;;;  "freemind" "util/freemind.el" (19063 39026))
@@ -2124,8 +2136,8 @@ before applying.
 
 ;;;***
 
-;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (19061
-;;;;;;  60296))
+;;;### (autoloads (mlinks-mode) "mlinks" "util/mlinks.el" (19070
+;;;;;;  53097))
 ;;; Generated autoloads from util/mlinks.el
 
 (autoload 'mlinks-mode "mlinks" "\
@@ -2160,7 +2172,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19065 25184))
+;;;;;;  "mumamo" "util/mumamo.el" (19070 16972))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -2364,7 +2376,7 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
 ;;;;;;  major-modep major-or-multi-majorp unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19065 42281))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19071 6851))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2982,8 +2994,8 @@ Display vertical line mode as globally.
 ;;;***
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
-;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (19063
-;;;;;;  42266))
+;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (19068
+;;;;;;  581))
 ;;; Generated autoloads from util/winsav.el
 
 (autoload 'winsav-put-window-tree "winsav" "\
@@ -3285,7 +3297,7 @@ Not documented
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/popcmp.el" "util/rebind.el"
 ;;;;;;  "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el" "util/zen-mode.el") (19065 42598 140000))
+;;;;;;  "util/whelp.el" "util/zen-mode.el") (19071 28744 578000))
 
 ;;;***
 

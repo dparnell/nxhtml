@@ -288,11 +288,13 @@
   (setq mlinks-hilighter-timer (run-with-idle-timer 0 t 'mlinks-hilighter (current-buffer)))
   )
 
+(defvar mlinks-link-overlay-priority 100)
+
 (defun mlinks-make-point-ovl (bounds)
   (unless mlinks-hilight-point-ovl
     (setq mlinks-hilight-point-ovl
           (make-overlay (car bounds) (cdr bounds)))
-    (overlay-put mlinks-hilight-point-ovl 'priority 100)
+    (overlay-put mlinks-hilight-point-ovl 'priority mlinks-link-overlay-priority)
     (overlay-put mlinks-hilight-point-ovl 'mouse-face 'highlight)
     (mlinks-deactivate-hilight)
     ;;(overlay-put mlinks-hilight-point-ovl 'face 'highlight)
@@ -300,9 +302,10 @@
     ))
 
 (defun mlinks-link-range (pos)
-  (let* ((link-here (get-text-property pos 'mlinks-link))
-         (beg (when link-here (previous-single-property-change (+ pos 1) 'mlinks-link)))
-         (end (when link-here (next-single-property-change (- pos 0) 'mlinks-link))))
+  (let* ((link-here (get-char-property pos 'mlinks-link))
+         (beg (when link-here (previous-single-char-property-change (+ pos 1) 'mlinks-link)))
+         (end (when link-here (next-single-char-property-change (- pos 0) 'mlinks-link))))
+    ;;(message "beg/end=%s/%s" beg end)
     (when (and beg end)
       (cons beg end))))
 
@@ -316,22 +319,19 @@
       (buffer-substring-no-properties (car bounds) (cdr bounds)))))
 
 (defun mlinks-hilighter (buffer)
-  ;;(message "mlinks-hilighter, buffer=%s, p=%s, live-p=%s" buffer (bufferp buffer) (buffer-live-p buffer))
-  (save-match-data ;; runs in timer
+  (save-match-data
     (if (or (not (bufferp buffer))
             (not (buffer-live-p buffer)))
-        ;;(mlinks-stop-hilighter)
-        ;;(cancel-timer timer-event-last)
         (cancel-timer mlinks-mark-links-timer)
       (with-current-buffer buffer
-        (when mlinks-mode ;t ;mlinks-hilight-this-buffer
+        (when mlinks-mode
           (let* ((funs-- (mlinks-get-action 'hili))
-                 bounds--)
-            (setq bounds--
-                  (if funs--
-                      (run-hook-with-args-until-success 'funs--)
-                    (mlinks-link-range (point))))
-            (if bounds--
+                 (bounds-- (or (mlinks-link-range (point))
+                               (if funs--
+                                   (run-hook-with-args-until-success 'funs--)
+                                 (mlinks-link-range (point))))))
+            (if (and bounds--
+                     t) ;(eq (get-char-property (car bounds--) 'face) 'mlinks-link))
                 (if mlinks-hilight-point-ovl
                     (move-overlay mlinks-hilight-point-ovl (car bounds--) (cdr bounds--))
                   (mlinks-make-point-ovl bounds--))
@@ -355,13 +355,15 @@
     m))
 
 (defun mlinks-pre-command ()
-  (unless (let ((map (overlay-get mlinks-hilight-point-ovl 'keymap)))
-            (where-is-internal this-command
-                               (list
-                                map)))
-    (mlinks-deactivate-hilight)
-    (unless mlinks-hilighter-timer
-      (delete-overlay mlinks-hilight-point-ovl))))
+  (condition-case err
+      (unless (let ((map (overlay-get mlinks-hilight-point-ovl 'keymap)))
+                (where-is-internal this-command
+                                   (list
+                                    map)))
+        (mlinks-deactivate-hilight)
+        (unless mlinks-hilighter-timer
+          (delete-overlay mlinks-hilight-point-ovl)))
+    (error (message "mlinks-pre-command: %s" err))))
 (put 'mlinks-pre-command 'permanent-local t)
 
 (defun mlinks-activate-hilight ()
@@ -1415,7 +1417,7 @@ Any command cancels this state."
     (setq stop start)
     (setq next-stop -1)
     (while (and (> 100 (setq wn (1+ wn)))
-                (setq next-stop (next-single-property-change stop 'mlinks-link nil end-start))
+                (setq next-stop (next-single-char-property-change stop 'mlinks-link nil end-start))
                 (/= next-stop stop))
       (setq stop next-stop)
       (if (get-text-property stop 'mlinks-link)
@@ -1425,11 +1427,12 @@ Any command cancels this state."
     ret))
 
 (defun mlinks-next-link ()
+  "Find next link, fontify as necessary."
   (let* ((here (point))
          (prev-pos (point))
          (fontified-here (get-text-property (max (point-min) (1- prev-pos)) 'fontified))
-         (fontified-to (next-single-property-change prev-pos 'fontified))
-         (pos (next-single-property-change prev-pos 'mlinks-link nil
+         (fontified-to (next-single-char-property-change prev-pos 'fontified))
+         (pos (next-single-char-property-change prev-pos 'mlinks-link nil
                                            (or fontified-to (point-max))))
          (fontified-all (and fontified-here (not fontified-to)))
          ready
@@ -1439,21 +1442,21 @@ Any command cancels this state."
                          (not pos))))
       (if pos
           (progn
-            (unless (get-text-property pos 'mlinks-link)
+            (unless (get-char-property pos 'mlinks-link)
               ;; Get to next link
               (setq prev-pos pos)
-              (setq pos (next-single-property-change prev-pos 'mlinks-link nil
+              (setq pos (next-single-char-property-change prev-pos 'mlinks-link nil
                                                      (or fontified-to (point-max)))))
             (when pos
-              (setq ready (get-text-property pos 'mlinks-link))
+              (setq ready (get-char-property pos 'mlinks-link))
               (setq prev-pos pos)
               (unless ready (setq pos nil))))
         (unless (or fontified-all fontified-to)
           (if (get-text-property prev-pos 'fontified)
               (setq fontified-all
                     (not (setq fontified-to
-                               (next-single-property-change prev-pos 'fontified))))
-            (setq fontified-to ( or (previous-single-property-change prev-pos 'fontified)
+                               (next-single-char-property-change prev-pos 'fontified))))
+            (setq fontified-to ( or (previous-single-char-property-change prev-pos 'fontified)
                                     1))))
         (setq next-fontified-to (min (+ fontified-to 5000)
                                      (point-max)))
@@ -1461,21 +1464,21 @@ Any command cancels this state."
          (progn
            (put-text-property fontified-to next-fontified-to 'fontified t)
            (font-lock-fontify-region fontified-to next-fontified-to)))
-        (setq fontified-to (next-single-property-change (1- next-fontified-to)
+        (setq fontified-to (next-single-char-property-change (1- next-fontified-to)
                                                          'fontified))
         (setq fontified-all (not fontified-to))
-        (setq pos (next-single-property-change prev-pos 'mlinks-link nil
+        (setq pos (next-single-char-property-change prev-pos 'mlinks-link nil
                                                (or fontified-to (point-max))))))
     (when ready prev-pos)))
 
 (defun mlinks-prev-link ()
   "Find previous link, fontify as necessary."
   (let* ((prev-pos (point))
-         (fontified-from (previous-single-property-change prev-pos 'fontified))
+         (fontified-from (previous-single-char-property-change prev-pos 'fontified))
          (fontified-here (get-text-property (max (point-min) (1- prev-pos)) 'fontified))
          (fontified-all (and fontified-here (not fontified-from)))
          (pos (when fontified-here
-                (previous-single-property-change prev-pos 'mlinks-link nil
+                (previous-single-char-property-change prev-pos 'mlinks-link nil
                                                  (or fontified-from 1))))
          ready
          next-fontified-from
@@ -1487,17 +1490,17 @@ Any command cancels this state."
       (if pos
           (progn
             (when (and (> (1- pos) (point-min))
-                       (get-text-property (1- pos) 'mlinks-link))
+                       (get-char-property (1- pos) 'mlinks-link))
               ;; Get out of current link
               (setq prev-pos pos)
-              (setq pos (previous-single-property-change prev-pos 'mlinks-link nil
+              (setq pos (previous-single-char-property-change prev-pos 'mlinks-link nil
                                                          (or fontified-from 1))))
             (when pos
               (setq prev-pos pos)
               (setq ready (and (get-text-property pos 'fontified)
                                (or (= 1 pos)
-                                   (not (get-text-property (1- pos) 'mlinks-link)))
-                               (get-text-property pos 'mlinks-link)))
+                                   (not (get-char-property (1- pos) 'mlinks-link)))
+                               (get-char-property pos 'mlinks-link)))
               (unless ready (setq pos nil))))
         (setq next-fontified-from (max (- fontified-from 5000)
                                        (point-min)))
@@ -1505,10 +1508,10 @@ Any command cancels this state."
          (progn
            (put-text-property next-fontified-from fontified-from 'fontified t)
            (font-lock-fontify-region next-fontified-from fontified-from)))
-        (setq fontified-from (previous-single-property-change
+        (setq fontified-from (previous-single-char-property-change
                               (1+ next-fontified-from) 'fontified))
         (setq fontified-all (not fontified-from))
-        (setq pos (previous-single-property-change prev-pos 'mlinks-link nil
+        (setq pos (previous-single-char-property-change prev-pos 'mlinks-link nil
                                                    (or fontified-from 1)))))
     (when ready pos)))
 

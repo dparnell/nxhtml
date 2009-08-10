@@ -310,6 +310,7 @@ the top or bottom of the screen"
                        (setq stop "folding-mode"))))))
       stop)))
 
+;;;###autoload
 (defun fold-dwim-toggle ()
   "Try fold-dwim-show to show any hidden text at point; if no
 hidden fold is found, try fold-dwim-hide to hide the construction
