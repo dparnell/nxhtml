@@ -5814,9 +5814,7 @@ default values."
       (set (make-local-variable (car saved)) (cdr saved)))
     ;;(mumamo-addback-to-hook 'change-major-mode-hook mumamo-change-major-mode-no-nos)
     (mumamo-addback-to-hooks)
-    (when (and (featurep 'mlinks)
-               mlinks-mode)
-      (add-hook 'after-change-functions 'mlinks-after-change t t))
+    ;;(when (and (featurep 'mlinks) mlinks-mode) (add-hook 'after-change-functions 'mlinks-after-change t t))
 
     (setq cursor-type old-cursor-type)
 ;;;     (unless (eq last-command old-last-command)

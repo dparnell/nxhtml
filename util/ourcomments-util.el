@@ -1131,7 +1131,8 @@ Key bindings added by this minor mode:
              (left-marg (if fill-left-marg
                             fill-left-marg
                           (- (/ extra-width 2) 1)))
-             (right-marg (- win-full fill-column left-marg))
+             ;; Fix-me: Why do I have to subtract 1 here...???
+             (right-marg (- win-full fill-column left-marg 1))
              (need-update nil)
              )
         (when wrap-old-win-width
