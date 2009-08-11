@@ -130,13 +130,22 @@
 (defun nxhtml-hs-forward-sexp-func (pos)
   (nxhtml-hs-forward-element))
 
+(defun nxhtml-hs-forward-element ()
+  (let ((nxml-sexp-element-flag))
+    (setq nxml-sexp-element-flag (not (looking-at "<!--")))
+    (unless nil ;;(looking-at outline-regexp)
+      ;;(condition-case nil
+          (nxml-forward-balanced-item 1)
+        ;;(error nil))
+      )))
+
 (defun nxhtml-setup-for-fold-dwim ()
   (make-local-variable 'outline-regexp)
   (setq outline-regexp "\\s *<\\([h][1-6]\\|html\\|body\\|head\\)\\b")
   (make-local-variable 'outline-level)
   (setq outline-level 'nxhtml-outline-level)
-  (outline-minor-mode 1)
-  (hs-minor-mode 1)
+  ;;(outline-minor-mode 1)
+  ;;(hs-minor-mode 1)
   (setq hs-special-modes-alist (assq-delete-all 'nxhtml-mode hs-special-modes-alist))
   (add-to-list 'hs-special-modes-alist
                '(nxhtml-mode
@@ -162,8 +171,10 @@
           (line-end-position)))))
 
 (defun nxhtml-hs-set-up-overlay (ovl)
-  (setq foldit-hs-start-tag-end-func 'nxhtml-hs-start-tag-end)
-  (foldit-hs-set-up-overlay ovl))
+  (overlay-put ovl 'priority (1+ mlinks-link-overlay-priority))
+  (when foldit-mode
+    (setq foldit-hs-start-tag-end-func 'nxhtml-hs-start-tag-end)
+    (foldit-hs-set-up-overlay ovl)))
 
 (defun nxhtml-outline-level ()
   ;;(message "nxhtml-outline-level=%s" (buffer-substring (match-beginning 0) (match-end 0)))(sit-for 2)
@@ -174,14 +185,6 @@
   ;;     0))
   8)
 
-
-(defun nxhtml-hs-forward-element ()
-  (let ((nxml-sexp-element-flag))
-    (setq nxml-sexp-element-flag (not (looking-at "<!--")))
-    (unless (looking-at outline-regexp)
-      (condition-case nil
-          (nxml-forward-balanced-item 1)
-        (error nil)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

@@ -145,7 +145,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19064 49796))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19072 43133))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "../nxhtml/nxhtml-menu" "\
@@ -189,7 +189,7 @@ Show a HTML page with an overview of nXhtml.
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
 ;;;;;;  nxhtml-mode) "../nxhtml/nxhtml-mode" "nxhtml/nxhtml-mode.el"
-;;;;;;  (19071 25633))
+;;;;;;  (19072 40743))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 
 (when (fboundp 'nxml-mode)
@@ -1870,12 +1870,80 @@ For more information about this see `cusnu-export-cust-group'.
 
 ;;;***
 
-;;;### (autoloads (foldit-mode) "foldit" "util/foldit.el" (19071
-;;;;;;  26563))
+;;;### (autoloads (fold-dwim-turn-on-outline-and-hide-all fold-dwim-turn-on-hs-and-hide
+;;;;;;  fold-dwim-unhide-hs-and-outline fold-dwim-mode fold-dwim-toggle)
+;;;;;;  "fold-dwim" "util/fold-dwim.el" (19072 44683))
+;;; Generated autoloads from util/fold-dwim.el
+
+(autoload 'fold-dwim-toggle "fold-dwim" "\
+Try fold-dwim-show to show any hidden text at point; if no
+hidden fold is found, try fold-dwim-hide to hide the construction
+at the cursor.
+
+\(fn)" t nil)
+
+(defvar fold-dwim-mode nil "\
+Non-nil if Fold-Dwim mode is enabled.
+See the command `fold-dwim-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `fold-dwim-mode'.")
+
+(nxhtml-custom-autoload 'fold-dwim-mode "fold-dwim" nil)
+
+(autoload 'fold-dwim-mode "fold-dwim" "\
+Key binding for `fold-dwim-toggle'.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'fold-dwim-unhide-hs-and-outline "fold-dwim" "\
+Unhide everything hidden by Hide/Show and Outline.
+Ie everything hidden by `hs-minor-mode' and
+`outline-minor-mode'.
+
+\(fn)" t nil)
+
+(autoload 'fold-dwim-turn-on-hs-and-hide "fold-dwim" "\
+Turn on minor mode `hs-minor-mode' and hide.
+If major mode is derived from `nxml-mode' call `hs-hide-block'
+else call `hs-hide-all'.
+
+\(fn)" t nil)
+
+(autoload 'fold-dwim-turn-on-outline-and-hide-all "fold-dwim" "\
+Turn on `outline-minor-mode' and call `hide-body'.
+
+\(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads (foldit-global-mode foldit-mode) "foldit" "util/foldit.el"
+;;;;;;  (19072 43162))
 ;;; Generated autoloads from util/foldit.el
 
 (autoload 'foldit-mode "foldit" "\
-Minor mode providing aids for folding.
+Minor mode providing visual aids for folding.
+Shows some hints about what you have hidden and how to reveal it.
+
+Supports `hs-minor-mode', `outline-minor-mode' and major modes
+derived from `outline-mode'.
+
+\(fn &optional ARG)" t nil)
+
+(defvar foldit-global-mode nil "\
+Non-nil if Foldit-Global mode is enabled.
+See the command `foldit-global-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `foldit-global-mode'.")
+
+(nxhtml-custom-autoload 'foldit-global-mode "foldit" nil)
+
+(autoload 'foldit-global-mode "foldit" "\
+Toggle Foldit mode in every possible buffer.
+With prefix ARG, turn Foldit-Global mode on if and only if ARG is positive.
+Foldit mode is enabled in all buffers where `(lambda nil (foldit-mode 1))' would do it.
+See `foldit-mode' for more information on Foldit mode.
 
 \(fn &optional ARG)" t nil)
 
@@ -3284,8 +3352,8 @@ Not documented
 ;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el" "nxhtml/nxhtmljs.el"
 ;;;;;;  "nxhtml/outline-magic.el" "nxhtml/wtest.el" "related/flymake-helpers.el"
 ;;;;;;  "related/flymake-js.el" "related/flymake-keys.el" "related/flymake-php.el"
-;;;;;;  "related/flymu.el" "related/fold-dwim.el" "related/javascript-old.el"
-;;;;;;  "related/php-imenu.el" "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
+;;;;;;  "related/flymu.el" "related/javascript-old.el" "related/php-imenu.el"
+;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
 ;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
 ;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/company-mode/company-autoloads.el"
@@ -3297,7 +3365,7 @@ Not documented
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/popcmp.el" "util/rebind.el"
 ;;;;;;  "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el" "util/zen-mode.el") (19071 28744 578000))
+;;;;;;  "util/whelp.el" "util/zen-mode.el") (19072 45063 812000))
 
 ;;;***
 
