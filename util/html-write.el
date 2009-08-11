@@ -19,6 +19,9 @@
 ;;
 ;;; Commentary:
 ;;
+;; The minor mode `html-write-mode' displays simple tags like <i>,
+;; <b>, <em>, <strong> or <a> with appropriate faces (for example bold
+;; and italic) instead of displaying the tags.
 ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -581,7 +584,11 @@ this minor mode:
 
 IMPORTANT: Most commands you use works also on the text that is
 hidden.  The movement commands is an exception, but as soon as
-you edit the buffer you may also change the hidden parts."
+you edit the buffer you may also change the hidden parts.
+
+Hint: Together with `wrap-to-fill-column-mode' this can make it
+easier to see what text you are actually writing in html parts of
+a web file."
   :group 'html-write
   (save-restriction
     (widen)

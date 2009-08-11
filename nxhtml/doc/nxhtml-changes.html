@@ -1751,11 +1751,7 @@
                 nXhtml:
                 <ul>
                   <li>
-                    Added support for
-                    <a href="http://hyperstruct.net/projects/mozlab">MozLab</a>. If
-                    you install MozLab in Firefox then you can
-                    directly use it from javascript mode without any
-                    additional setup.
+                    Added support for <a href="http://hyperstruct.net/projects/mozlab">MozLab</a>. If you install MozLab in Firefox then you can directly use it from javascript mode without any additional setup.
                   </li>
                   <li>
                     Added <a href="http://www.oak.homeunix.org/~marcel/blog/articles/2008/07/18/nested-imenu-for-php">php-imenu.el</a>.
@@ -2908,19 +2904,7 @@
                 </ul>
               </li>
               <li>
-                Added support
-                for <a href="http://www.emacswiki.org/emacs/CompanyMode">Company
-                Mode</a> style completion.  Temporary included a copy
-                of Company Mode with bug fixes and changes needed for
-                nXhtml and Viper.  It also include a lot of other
-                small features (which I hope can be included in
-                Company Mode).  On of these is integration
-                with <a href="http://www.emacswiki.org/emacs/PredictiveMode">Predictive
-                Mode</a>. (You have to get Predictive Mode
-                yourself. If you want to install it on MS Windows I
-                recommend using the latest version of Cygwin. A
-                smaller change to the Makefile is required, there is
-                one absolute path you probably want to remove.)
+                Added support for <a href="http://www.emacswiki.org/emacs/CompanyMode">Company Mode</a> style completion.  Temporary included a copy of Company Mode with bug fixes and changes needed for nXhtml and Viper.  It also include a lot of other small features (which I hope can be included in Company Mode).  On of these is integration with <a href="http://www.emacswiki.org/emacs/PredictiveMode">Predictive Mode</a>. (You have to get Predictive Mode yourself. If you want to install it on MS Windows I recommend using the latest version of Cygwin. A smaller change to the Makefile is required, there is one absolute path you probably want to remove.)
                 <p class="bugfix">
                   Note: I thought that I should make Company Mode the default completion style.
                   However there are still some problem so I kept the old default completion style.
@@ -2938,13 +2922,10 @@
                 </ul>
               </li>
               <li>
-                Added support
-                for <a href="http://www.emacswiki.org/emacs/Anything">anything
-                style completion</a> in XHTML completion.
+                Added support for <a href="http://www.emacswiki.org/emacs/Anything">anything style completion</a> in XHTML completion.
               </li>
               <li>
-                Added support in inlimg-mode to show images in org-mode.
-                (Also made inlimg-mode use font lock which makes it more reliable.)
+                Added support in inlimg-mode to show images in org-mode. (Also made inlimg-mode use font lock which makes it more reliable.)
               </li>
               <li>
                 Included espresso-mode (with some possible bug fixes).  Not yet the default for Javascript.
@@ -2978,8 +2959,7 @@
               </li>
               <li>
                 <span class="bugfix">
-                  Made <i>winsav-save-mode</i> remember maximized state and
-                  forget about empty non-file buffers.
+                  Made <i>winsav-save-mode</i> remember maximized state and forget about empty non-file buffers.
                 </span>
               </li>
               <li>
@@ -2991,8 +2971,7 @@
               </li>
               <li>
                 Added <i>ourcomments-M-x-menu-mode</i> which <a
-                href="http://lists.gnu.org/archive/html/emacs-devel/2009-07/msg01025.html">adds
-                menu commands to M-x history</a>.
+                href="http://lists.gnu.org/archive/html/emacs-devel/2009-07/msg01025.html">adds menu commands to M-x history</a>.
               </li>
             </ul>
           </dd>
@@ -3061,8 +3040,12 @@
                 Improved external editing of web mail.
               </li>
               <li>
-                Removed js2-mode (and my attempts to make it work with
-                mumamo) since it is now part of Emacs devel sources.
+                Removed <i>js2-mode</i> (and my attempts to make it work with
+                mumamo) since it is now part of Emacs devel sources. Since js2-mode does not use font-lock its integration with mumamo have to wait until it does that.
+              </li>
+              <li>
+                Reworked <b>folding</b> a bit so it is more useful.
+                There is a new minor mode, <i>foldit-mode</i>, that shows better markers for folding. There is a new entry in the <i>nXhtml / Tools</i> menu for folding. <i>fold-dwim-toggle</i> now alwo toggles images and <i>html-write-mode</i> things. In html it first checks for headers then does tag block style visibility toggling.
               </li>
             </ul>
           </dd>

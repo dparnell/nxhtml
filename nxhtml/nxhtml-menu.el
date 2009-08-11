@@ -288,7 +288,7 @@
     (let ((tools-map (make-sparse-keymap)))
       (define-key map [nxhtml-tools-map]
         (list 'menu-item "Tools" tools-map
-              :visible `(not (derived-mode-p 'dired-mode))
+              ;;:visible `(not (derived-mode-p 'dired-mode))
               ))
       (define-key tools-map [nxhtml-last-resort]
         (list 'menu-item "Last Resort" 'n-back-game))
@@ -306,6 +306,52 @@
               'ourcomments-M-x-menu-mode
               :button '(:toggle . (and (boundp 'ourcomments-M-x-menu-mode)
                                        ourcomments-M-x-menu-mode))))
+
+      (define-key tools-map [nxhtml-folding-separator]
+        (list 'menu-item "--" nil))
+      (let ((folding-map (make-sparse-keymap)))
+        (define-key tools-map [nxhtml-folding-map]
+          (list 'menu-item "Folding" folding-map))
+        (define-key folding-map [nxhtml-fold-unhide-all]
+          (list 'menu-item "Unhide Everything"
+                'fold-dwim-unhide-hs-and-outline))
+        (define-key folding-map [nxhtml-fold-dwim]
+          (list 'menu-item "Maybe DWIM Folding"
+                'fold-dwim-toggle))
+        (define-key folding-map [nxhtml-separator2] (list 'menu-item "--" nil))
+        (define-key folding-map [nxhtml-hs]
+          (list 'menu-item "Turn On Hide/Show and Hide"
+                'fold-dwim-turn-on-hs-and-hide))
+        (define-key folding-map [nxhtml-outline]
+          (list 'menu-item "Turn On Outline and Hide All"
+                'fold-dwim-turn-on-outline-and-hide-all))
+        (define-key folding-map [nxhtml-separator1] (list 'menu-item "--" nil))
+        (define-key folding-map [nxhtml-foldit-mode]
+          (list 'menu-item "Folding Markers in Buffer"
+                'foldit-mode
+                :button '(:toggle . (and (boundp 'foldit-mode)
+                                         foldit-mode))))
+        (define-key folding-map [nxhtml-foldit-global-mode]
+          (list 'menu-item "Folding Markers Everywhere"
+                'foldit-global-mode
+                :button '(:toggle . (and (boundp 'foldit-global-mode)
+                                         foldit-global-mode))))
+        )
+
+      ;;(define-key tools-map [nxhtml-frame-win-separator] (list 'menu-item "--" nil))
+      (let ((frame-map (make-sparse-keymap)))
+        (define-key tools-map [nxhtml-frame-map]
+          (list 'menu-item "Windows and Frames" frame-map))
+        (define-key frame-map [nxhtml-winsav-mode]
+          (list 'menu-item "Save/restore Frames and Windows"
+                'winsav-save-mode
+                :button '(:toggle . (and (boundp 'winsav-save-mode)
+                                         winsav-save-mode))))
+        (define-key frame-map [nxhtml-resize-windows]
+          (list 'menu-item "Resize Windows"
+                'resize-windows)))
+
+
       (define-key tools-map [nxhtml-next-last-resort-separator]
         (list 'menu-item "--" nil))
       (let ((fill-map (make-sparse-keymap)))
@@ -464,20 +510,6 @@
                   (browse-url "http://hyperstruct.net/projects/mozlab"))))
         )
 
-      (define-key tools-map [nxhtml-frame-win-separator]
-        (list 'menu-item "--" nil))
-      (let ((frame-map (make-sparse-keymap)))
-        (define-key tools-map [nxhtml-frame-map]
-          (list 'menu-item "Windows and Frames" frame-map))
-        (define-key frame-map [nxhtml-winsav-mode]
-          (list 'menu-item "Save/restore Frames and Windows"
-                'winsav-save-mode
-                :button '(:toggle . (and (boundp 'winsav-save-mode)
-                                         winsav-save-mode))))
-        (define-key frame-map [nxhtml-resize-windows]
-          (list 'menu-item "Resize Windows"
-                'resize-windows)))
-
       (define-key tools-map [nxhtml-majpri-separator]
         (list 'menu-item "--" nil))
       (define-key tools-map [nxhtml-as-external]
@@ -535,7 +567,7 @@
           (list 'menu-item "--"))
         (define-key flyspell-map [nxhtml-flyspell]
           (list 'menu-item "Flyspell Mode" 'flyspell-mode
-                :button '(:toggle . (and (boundp flyspell-mode)
+                :button '(:toggle . (and (boundp 'flyspell-mode)
                                          flyspell-mode))))
         )
       (define-key tools-map [nxhtml-flyspell-separator]
