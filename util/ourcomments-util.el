@@ -861,6 +861,8 @@ what they will do ;-)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Wrapping
 
+;; Fix-me: use font-lock...
+
 ;;;###autoload
 (defcustom wrap-to-fill-left-marg nil
   "Left margin handling for `wrap-to-fill-column-mode'.

@@ -1563,6 +1563,8 @@ and OLD-LEN see that variable."
   )
 
 (defun mumamo-jit-lock-after-change (min max old-len)
+  ;; Fix-me: Should not this be on
+  ;; jit-lock-after-change-externd-region-functions??
   "Replacement for `jit-lock-after-change'.
 Does the nearly the same thing as that function, but takes
 care of that there might be different major modes at MIN and MAX.
