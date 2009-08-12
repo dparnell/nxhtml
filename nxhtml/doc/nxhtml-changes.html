@@ -46,10 +46,7 @@
           <dt id="hadron-bugs" style="margin-top:1em;">Thanks for testing!</dt>
           <dd>
             <p>
-              I want to thanks the testers (who have been many now),
-              especially to my first testers Hadron Quark and Eric
-              Lilja, for helping me by testing and pointing out bugs
-              and weaknesses, most of them related to editing of PHP.
+              I want to thanks the testers (who have been many now), especially to my first testers Hadron Quark and Eric Lilja, for helping me by testing and pointing out bugs and weaknesses, most of them related to editing of PHP.
             </p>
             <p>
               Without testers all kind of problems I just can't
@@ -1139,15 +1136,7 @@
                 mumamo-mode is turned on.
               </li>
               <li>
-                Some users want to use their own patched version of
-                nXml. Next version of Emacs will come with
-                nXml. Therefore, the loading routine for nXhtml now
-                checks if nXml is is already loaded. Thanks to Eric
-                Lilja for testing this.  Eric also made me aware of
-                that if nXhtml was placed in the site-lisp directory
-                tree then things did not work as I expected. I think I
-                have corrected that by placing a <i>.nosearch</i> file
-                at the top of the nxml tree in nXhtml.
+                Some users want to use their own patched version of nXml. Next version of Emacs will come with nXml. Therefore, the loading routine for nXhtml now checks if nXml is is already loaded. Thanks to Eric Lilja for testing this.  Eric also made me aware of that if nXhtml was placed in the site-lisp directory tree then things did not work as I expected. I think I have corrected that by placing a <i>.nosearch</i> file at the top of the nxml tree in nXhtml.
               </li>
               <li>
                 Restructured the directories. Moved some files out of
@@ -2956,9 +2945,7 @@
               </li>
               <li>
                 <span class="bugfix">
-                  Added workaround for <a
-                  href="http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=4015"
-                  >Emacs bug 4015 on w32</a>.
+                  Added workaround for <a href="http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=4015">Emacs bug 4015 on w32</a>.
                 </span>
               </li>
               <li>
@@ -3026,6 +3013,11 @@
               <li>
                 <span class="bugfix">
                   <i>wrap-to-fill-column-mode</i> calculated window width wrongly so that the displayed wrapping was not consistent with what fill-paragraph would give. Corrected together with some other bugs in it.
+                </span>
+              </li>
+              <li>
+                <span class="bugfix">
+                  Fixed an indentation bug in php-mode I introduced when I fixed another indentation bug for heredoc endings.
                 </span>
               </li>
               <li>
