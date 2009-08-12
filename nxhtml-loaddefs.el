@@ -602,7 +602,7 @@ See `mozadd-mirror-mode' for more information on Mozadd-Mirror mode.
 ;;;***
 
 ;;;### (autoloads (php-mode php-file-patterns) "../related/php-mode"
-;;;;;;  "related/php-mode.el" (19032 52516))
+;;;;;;  "related/php-mode.el" (19074 25038))
 ;;; Generated autoloads from related/php-mode.el
 
 (defvar php-file-patterns '("\\.php[s34]?\\'" "\\.phtml\\'" "\\.inc\\'") "\
@@ -1872,13 +1872,32 @@ For more information about this see `cusnu-export-cust-group'.
 
 ;;;### (autoloads (fold-dwim-turn-on-outline-and-hide-all fold-dwim-turn-on-hs-and-hide
 ;;;;;;  fold-dwim-unhide-hs-and-outline fold-dwim-mode fold-dwim-toggle)
-;;;;;;  "fold-dwim" "util/fold-dwim.el" (19072 44683))
+;;;;;;  "fold-dwim" "util/fold-dwim.el" (19072 52440))
 ;;; Generated autoloads from util/fold-dwim.el
 
 (autoload 'fold-dwim-toggle "fold-dwim" "\
-Try fold-dwim-show to show any hidden text at point; if no
-hidden fold is found, try fold-dwim-hide to hide the construction
-at the cursor.
+Toggle visibility or some other visual things.
+Try toggling different visual things in this order:
+
+- Images shown at point with `inlimg-mode'
+- Text at point prettified by `html-write-mode'.
+
+For the rest it unhides if possible, otherwise hides in this
+order:
+
+- `org-mode' header or something else using that outlines.
+- Maybe `fold-dwim-toggle-selective-display'.
+- `Tex-fold-mode' things.
+- In html if `outline-minor-mode' and after heading hide content.
+- `hs-minor-mode' things.
+- `outline-minor-mode' things. (Turns maybe on this.)
+
+It uses `fold-dwim-show' to show any hidden text at point; if no
+hidden fold is found, try `fold-dwim-hide' to hide the
+construction at the cursor.
+
+Note: Also first turn on `fold-dwim-mode' to get the keybinding
+for this function from it.
 
 \(fn)" t nil)
 
@@ -2058,7 +2077,7 @@ With command prefix also show created HTML source in other window.
 ;;;***
 
 ;;;### (autoloads (html-write-mode) "html-write" "util/html-write.el"
-;;;;;;  (18790 45400))
+;;;;;;  (19074 11806))
 ;;; Generated autoloads from util/html-write.el
 
 (autoload 'html-write-mode "html-write" "\
@@ -2083,6 +2102,10 @@ this minor mode:
 IMPORTANT: Most commands you use works also on the text that is
 hidden.  The movement commands is an exception, but as soon as
 you edit the buffer you may also change the hidden parts.
+
+Hint: Together with `wrap-to-fill-column-mode' this can make it
+easier to see what text you are actually writing in html parts of
+a web file.
 
 \(fn &optional ARG)" t nil)
 
@@ -2240,7 +2263,7 @@ By default the link moved to will be active, see
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19070 16972))
+;;;;;;  "mumamo" "util/mumamo.el" (19073 59860))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -2439,12 +2462,11 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;;;;  ourcomments-ido-buffer-other-frame ourcomments-ido-buffer-other-window
 ;;;;;;  describe-symbol describe-defstruct describe-custom-group
 ;;;;;;  narrow-to-comment describe-command ourcomments-ediff-files
-;;;;;;  find-emacs-other-file better-fringes-mode wrap-to-fill-column-mode
-;;;;;;  wrap-to-fill-left-marg-modes wrap-to-fill-left-marg describe-key-and-map-briefly
+;;;;;;  find-emacs-other-file better-fringes-mode describe-key-and-map-briefly
 ;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
 ;;;;;;  major-modep major-or-multi-majorp unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19071 6851))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19074 16401))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -2540,37 +2562,6 @@ INSERT and UNTRANSLATED should normall be nil (and I am not sure
 what they will do ;-).
 
 \(fn &optional KEY INSERT UNTRANSLATED)" t nil)
-
-(defvar wrap-to-fill-left-marg nil "\
-Left margin handling for `wrap-to-fill-column-mode'.
-Used by `wrap-to-fill-column-mode'. If nil then center the
-display columns. Otherwise it should be a number which will be
-the left margin.")
-
-(nxhtml-custom-autoload 'wrap-to-fill-left-marg "ourcomments-util" t)
-
-(defvar wrap-to-fill-left-marg-modes '(text-mode fundamental-mode) "\
-Major modes where `wrap-to-fill-left-margin' may be nil.")
-
-(nxhtml-custom-autoload 'wrap-to-fill-left-marg-modes "ourcomments-util" t)
-
-(autoload 'wrap-to-fill-column-mode "ourcomments-util" "\
-Use `fill-column' display columns in buffer windows.
-By default the display columns are centered, but see the option
-`wrap-to-fill-left-marg'.
-
-Note 1: When turning this on `visual-line-mode' is also turned on. This
-is not reset when turning off this mode.
-
-Note 2: The text property `wrap-prefix' is set by this mode to
-indent continuation lines.  This is not recorded in the undo
-list.
-
-Key bindings added by this minor mode:
-
-\\{wrap-to-fill-column-mode-map}
-
-\(fn &optional ARG)" t nil)
 
 (defvar better-fringes-mode nil "\
 Non-nil if Better-Fringes mode is enabled.
@@ -3346,6 +3337,43 @@ Not documented
 
 ;;;***
 
+;;;### (autoloads (wrap-to-fill-column-mode wrap-to-fill-left-marg-modes
+;;;;;;  wrap-to-fill-left-marg) "wrap-to-fill" "util/wrap-to-fill.el"
+;;;;;;  (19074 21910))
+;;; Generated autoloads from util/wrap-to-fill.el
+
+(defvar wrap-to-fill-left-marg nil "\
+Left margin handling for `wrap-to-fill-column-mode'.
+Used by `wrap-to-fill-column-mode'. If nil then center the
+display columns. Otherwise it should be a number which will be
+the left margin.")
+
+(nxhtml-custom-autoload 'wrap-to-fill-left-marg "wrap-to-fill" t)
+
+(defvar wrap-to-fill-left-marg-modes '(text-mode fundamental-mode) "\
+Major modes where `wrap-to-fill-left-margin' may be nil.")
+
+(nxhtml-custom-autoload 'wrap-to-fill-left-marg-modes "wrap-to-fill" t)
+
+(autoload 'wrap-to-fill-column-mode "wrap-to-fill" "\
+Use `fill-column' display columns in buffer windows.
+By default the display columns are centered, but see the option
+`wrap-to-fill-left-marg'.
+
+Note 1: When turning this on `visual-line-mode' is also turned on. This
+is not reset when turning off this mode.
+
+Note 2: The text property `wrap-prefix' is set by this mode to
+indent continuation lines.
+
+Key bindings added by this minor mode:
+
+\\{wrap-to-fill-column-mode-map}
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
 ;;;### (autoloads nil nil ("autostart.el" "autostart22.el" "etc/schema/schema-path-patch.el"
 ;;;;;;  "nxhtml/doc/cedet-build.el" "nxhtml/html-chklnk.el" "nxhtml/html-imenu.el"
 ;;;;;;  "nxhtml/html-move.el" "nxhtml/html-quote.el" "nxhtml/html-wtoc.el"
@@ -3365,7 +3393,7 @@ Not documented
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/popcmp.el" "util/rebind.el"
 ;;;;;;  "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el" "util/zen-mode.el") (19072 45063 812000))
+;;;;;;  "util/whelp.el" "util/zen-mode.el") (19074 25686 390000))
 
 ;;;***
 
