@@ -352,7 +352,7 @@ example `html-mode'.  Known such libraries are:\n\t"
         (move-beginning-of-line nil)
         ;; Don't indent heredoc end mark
         (save-match-data
-          (unless (looking-at "[a-zA-Z0-9]+;\n")
+          (unless (looking-at "[a-zA-Z0-9_]+;\n")
             (setq doit t)))
         (goto-char here)
         (when doit
