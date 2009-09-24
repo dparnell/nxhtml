@@ -2353,7 +2353,7 @@ most major modes."
 
           ;;(setq prev-major chunk-major)
           ;;(setq prev-chunk chunk)
-          (setq here max)
+          (setq here (if (= max here) (1+ max) max))
           ;;(setq fontified-t (or mumamo-dbg-pretend-fontified (get-text-property (1- here) 'fontified)))
           )
         ;;(msgtrc "ft here end=%s %s %s" fontified-t here end)
@@ -7393,8 +7393,10 @@ For more info see also `rng-get-major-mode-chunk-function'.")
                           (< next-non-space-pos (point-max)))
                 (msgtrc "next-non-space-pos=%s, cb=%s" next-non-space-pos (current-buffer))
                 (let ((end-pos (funcall rng-end-major-mode-chunk-function major-mode-chunk)))
+                  ;; fix-me: The problem here is that
+                  ;; mumamo-find-chunks can return a 0-length chunk.
                   ;;(goto-char (+ end-pos 0))
-                  (goto-char (+ end-pos 1))
+                  (goto-char (+ end-pos (if (= end-pos (point)) 1 0)))
                   (setq major-mode-chunk (funcall rng-get-major-mode-chunk-function (point) "rng-do-some-validation-1 B"))
                   ;;(message "---> here 3, point=%s, ep=%s, mm-chunk=%s" (point) end-pos major-mode-chunk)
                   )
