@@ -1463,13 +1463,13 @@ in this part of the buffer."
                       (setq ok-pos (or (mumamo-new-chunk-value-max this-new-values) ;;(overlay-end this-chunk)
                                        (point-max)))
                       ;; With the new organization all chunks are created here.
-                      (msgtrc "find-chunks:mumamo-old-tail=%s/%s, mumamo-last-chunk=%s/%s" mumamo-old-tail (when mumamo-old-tail (mumamo-chunk-major-mode mumamo-old-tail)) mumamo-last-chunk (mumamo-chunk-major-mode mumamo-last-chunk ))
-                      (msgtrc "find-chunks:this-new-values=%s" this-new-values)
+                      ;;(msgtrc "find-chunks:mumamo-old-tail=%s/%s, mumamo-last-chunk=%s/%s" mumamo-old-tail (when mumamo-old-tail (mumamo-chunk-major-mode mumamo-old-tail)) mumamo-last-chunk (mumamo-chunk-major-mode mumamo-last-chunk ))
+                      ;;(msgtrc "find-chunks:this-new-values=%s" this-new-values)
                       (if (and mumamo-old-tail
                                (overlay-buffer mumamo-old-tail)
                                (mumamo-new-chunk-equal-chunk-values mumamo-old-tail this-new-values))
                           (progn
-                            (msgtrc "find-chunks:eq")
+                            ;;(msgtrc "find-chunks:eq")
                             (setq mumamo-last-chunk mumamo-old-tail)
                             (overlay-put mumamo-last-chunk 'mumamo-is-new t)
                             (mumamo-clear-chunk-cache mumamo-last-chunk)
@@ -1479,7 +1479,7 @@ in this part of the buffer."
                             (overlay-buffer mumamo-old-tail)
                             (setq mumamo-old-tail nil))
                         ;; Loop for fit
-                        (msgtrc "for fit:old-tail=%s, this-new=%s" mumamo-old-tail this-new-values)
+                        ;;(msgtrc "for fit:old-tail=%s, this-new=%s" mumamo-old-tail this-new-values)
                         (setq while-n2 1)
                         ;;(while (and (> 500 (setq while-n2 (1+ while-n2)))
                         (while (and (mumamo-while 500 'while-n2 "mumamo-old-tail")
@@ -6502,9 +6502,7 @@ mumamo is used."
         (back-to-indentation)
       (goto-char here))))
 
-;; Fix-me: return chunks instead?
-;;(defun mumamo-indent-line-major-modes ()
-(defun mumamo-indent-line-chunks ()
+(defun mumamo-indent-current-line-chunks ()
   "Return major modes for indenting current line.
 A list with major mode at beginning and dito at the end of line
 is returned."
@@ -6564,32 +6562,73 @@ The following rules are used when indenting:
 - Otherwise if going into a submode indentation is increased by
   `mumamo-submode-indent-offset'.
 
+- However first line indentation in a chunk when going in is
+  special if prev-prev chunk is on same mumamo-depth and have the
+  same major mode. Then indent relative last non-empty line in
+  prev-prev chunk.
+
 - When going out of a submode indentation is reset to
   LAST-PARENT-MAJOR-INDENT.
 
-- When going from one submode to another the new submode's
-  indentation will be relative LAST-PARENT-MAJOR-INDENT."
-  (let* ((this-line-chunks (mumamo-indent-line-chunks))
+;;- When going from one submode to another the new submode's
+;;  indentation will be relative LAST-PARENT-MAJOR-INDENT.
+
+- At the border the 'dividers' should be indented as the parent
+  chunk. There are the following typical situations regarding
+  inner/outer major modes:
+
+  1) <style type='text/css'>
+     Going in next line; first char outer; line end inner;
+
+  2) </style>
+     Going out this line; First char inner or outer; line end outer;
+
+  3) <?php
+     Going in next line; first char outer or inner; line end inner;
+
+  4) ?>
+     Going outthis line; first char inner; line end outer;
+
+  From this we deduce the following way to compute if we are
+  going in or out:
+
+  - Odd (going in): Compare prev line end's mumamo-depth with
+    current line end's dito. Set flag for first line in chunk.
+
+  - Even (going out): Same as for going in.
+
+"
+  (unless prev-line-chunks
+    (save-excursion
+      (goto-char (line-beginning-position 1))
+      (skip-chars-backward "\n\t ")
+      (goto-char (line-beginning-position 1))
+      (setq prev-line-chunks (mumamo-indent-current-line-chunks))))
+  (let* ((this-line-chunks (mumamo-indent-current-line-chunks))
          (this-line-chunk0 (nth 0 this-line-chunks))
          (this-line-chunk3 (nth 3 this-line-chunks))
-         ;; Fix-me: This one line too early!
-         (entering-new-chunk (not (eq this-line-chunk0 this-line-chunk3)))
+         ;; Fix-me: This is one line too early!
+         ;;(entering-new-chunk (not (eq this-line-chunk0 this-line-chunk3)))
          (this-line-major0 (mumamo-chunk-major-mode (nth 0 this-line-chunks)))
          (this-line-major1 (mumamo-chunk-major-mode (nth 1 this-line-chunks)))
          (this-line-major2 (mumamo-chunk-major-mode (nth 2 this-line-chunks)))
          (this-line-major3 (mumamo-chunk-major-mode (nth 3 this-line-chunks)))
-         prev-line-chunk0
-         prev-line-chunk3
-         prev-line-major0
-         prev-line-major1
-         prev-line-major2
-         prev-line-major3
+         (this-depth3 (overlay-get this-line-chunk3 'mumamo-depth))
+
+         (prev-line-chunk0 (nth 0 prev-line-chunks))
+         (prev-line-chunk3 (nth 3 prev-line-chunks))
+         (prev-line-major0 (mumamo-chunk-major-mode (nth 0 prev-line-chunks)))
+         (prev-line-major1 (mumamo-chunk-major-mode (nth 1 prev-line-chunks)))
+         (prev-line-major2 (mumamo-chunk-major-mode (nth 2 prev-line-chunks)))
+         (prev-line-major3 (mumamo-chunk-major-mode (nth 3 prev-line-chunks)))
+         (prev-depth3 (overlay-get prev-line-chunk3 'mumamo-depth))
+
          this-line-indent-major
          major-indent-line-function
          (main-major (mumamo-main-major-mode))
          (old-indent (current-indentation))
-         (entering-submode nil)
-         (leaving-submode nil)
+         (entering-submode (< prev-depth3 this-depth3))
+         (leaving-submode (> prev-depth3 this-depth3))
          want-indent ;; The indentation we desire
          got-indent
          (here-on-line (point-marker))
@@ -6598,34 +6637,21 @@ The following rules are used when indenting:
          (while-n2 0)
          (while-n3 0)
          )
-    (unless prev-line-chunks
-      (save-excursion
-        (goto-char (line-beginning-position 1))
-        (skip-chars-backward "\n\t ")
-        (goto-char (line-beginning-position 1))
-        (setq prev-line-chunks (mumamo-indent-line-chunks))
-        ))
-    (setq prev-line-chunk0 (nth 0 prev-line-chunks))
-    (setq prev-line-chunk3 (nth 3 prev-line-chunks))
-    (setq prev-line-major0 (mumamo-chunk-major-mode (nth 0 prev-line-chunks)))
-    (setq prev-line-major1 (mumamo-chunk-major-mode (nth 1 prev-line-chunks)))
-    (setq prev-line-major2 (mumamo-chunk-major-mode (nth 2 prev-line-chunks)))
-    (setq prev-line-major3 (mumamo-chunk-major-mode (nth 3 prev-line-chunks)))
-    (setq entering-new-chunk (not (eq prev-line-chunk0 prev-line-chunk3)))
+    ;;(setq entering-new-chunk (not (eq prev-line-chunk0 prev-line-chunk3)))
     (mumamo-msgindent "mumamo-indent-line-function-1 L%s last=%s\n  this0=%s  %s  %s  %s\n  prev0=%s  %s  %s  %s"
                       (line-number-at-pos)
                       last-parent-major-indent
                       this-line-major0 this-line-major1 this-line-major2 this-line-major3
                       prev-line-major0 prev-line-major1 prev-line-major2 prev-line-major3
                       )
-    (when entering-new-chunk
-      (cond
-       ((= 1 (overlay-get this-line-chunk0 'mumamo-next-depth-diff))
-        (setq entering-submode t))
-       ((= -1 (overlay-get this-line-chunk0 'mumamo-next-depth-diff))
-        (setq leaving-submode t))
-       (t
-        (error "leaving, unknown depth-diff=%s" (overlay-get this-line-chunk0 'mumamo-next-depth-diff)))))
+    ;; (when entering-new-chunk
+    ;;   (cond
+    ;;    ((= 1 (overlay-get this-line-chunk0 'mumamo-next-depth-diff))
+    ;;     (setq entering-submode t))
+    ;;    ((= -1 (overlay-get this-line-chunk0 'mumamo-next-depth-diff))
+    ;;     (setq leaving-submode t))
+    ;;    (t
+    ;;     (error "leaving, unknown depth-diff=%s" (overlay-get this-line-chunk0 'mumamo-next-depth-diff)))))
     ;; Fix-me: indentation of <?\n?>
     (assert (not (and leaving-submode entering-submode)) t)
     ;; Fix-me: indentation
@@ -6642,7 +6668,7 @@ The following rules are used when indenting:
               (when (eq main-major
                         (mumamo-chunk-major-mode
                          (car
-                          (mumamo-indent-line-chunks)))
+                          (mumamo-indent-current-line-chunks)))
                         )
                 (skip-chars-forward " \t")
                 (if (eolp)
@@ -6837,8 +6863,8 @@ The following rules are used when indenting:
     (setq end (copy-marker end))
     (goto-char start)
     (let ((old-point -1)
-          prev-line-major
-          last-main-major-indent
+          prev-line-chunks
+          last-parent-major-indent
           (while-n1 0))
       ;;(while (and (> 3000 (setq while-n1 (1+ while-n1)))
       (while (and (mumamo-while 3000 'while-n1 "indent-region")
@@ -6847,10 +6873,10 @@ The following rules are used when indenting:
         ;;(message "mumamo-indent-region-function, point=%s" (point))
         (or (and (bolp) (eolp))
             (let ((ret (mumamo-indent-line-function-1
-                        prev-line-major
-                        last-main-major-indent)))
-              (setq prev-line-major        (nth 0 ret))
-              (setq last-main-major-indent (nth 1 ret))))
+                        prev-line-chunks
+                        last-parent-major-indent)))
+              (setq prev-line-chunks         (nth 0 ret))
+              (setq last-parent-major-indent (nth 1 ret))))
         (setq old-point (point))
         (forward-line 1)))
     (message "Ready indenting region")))
