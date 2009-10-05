@@ -6495,19 +6495,19 @@ This is the buffer local value of `indent-line-function' when
 mumamo is used."
   (let ((here (point-marker))
         (before-text (<= (current-column) (current-indentation))))
-    (mumamo-indent-line-function-1 nil nil)
+    (mumamo-indent-line-function-1 nil nil nil)
     ;; If the marker was in the indentation part strange things happen
     ;; if we try to go back to the marker, at least in php-mode parts.
     (if before-text
         (back-to-indentation)
       (goto-char here))))
 
-(defun mumamo-indent-current-line-chunks ()
+(defun mumamo-indent-current-line-chunks (last-chunk-prev-line)
   "Return major modes for indenting current line.
 A list with major mode at beginning and dito at the end of line
 is returned."
-  ;; Fix-me: must take markers into account to when a submode includes
-  ;; the markers.
+  ;; Fix-me: must take markers into account too when a submode
+  ;; includes the markers.
   (save-restriction
     (widen)
     (let* ((lb-pos (line-beginning-position))
@@ -6520,11 +6520,19 @@ is returned."
            (pos4 (if (< le-pos (point-max))
                      (1+ le-pos)
                    (point-max)))
-           (ovl1 (mumamo-get-chunk-save-buffer-state pos1))
+           ;;(ovl1 (mumamo-get-chunk-save-buffer-state pos1))
+           (ovl1 (if (and last-chunk-prev-line
+                          (overlay-buffer last-chunk-prev-line)
+                          (>= (overlay-end last-chunk-prev-line) pos1))
+                     last-chunk-prev-line
+                   (mumamo-get-chunk-save-buffer-state pos1)))
            (ovl2 (if (>= (overlay-end ovl1) pos2)
                      ovl1
                    (mumamo-get-chunk-save-buffer-state pos2)))
-           (ovl3 (mumamo-get-chunk-save-buffer-state pos3))
+           ;;(ovl3 (mumamo-get-chunk-save-buffer-state pos3))
+           (ovl3 (if (<= pos3 (overlay-end ovl2))
+                     ovl2
+                   (mumamo-get-chunk-save-buffer-state pos3)))
            (ovl4 (if (<= pos4 (overlay-end ovl3))
                      ovl3
                    (mumamo-get-chunk-save-buffer-state pos4)))
@@ -6537,7 +6545,8 @@ is returned."
 (put 'mumamo-error-ind-0 'error-message "indentation 0 in sub chunk")
 
 (defun mumamo-indent-line-function-1 (prev-line-chunks
-                                      last-parent-major-indent)
+                                      last-parent-major-indent
+                                      entering-submode-arg)
   ;; Fix-me: error indenting in xml-as-string at <?\n?>
   ;; Fix-me: clean up, use depth diff. go back to sibling not to main etc.
   ;; Fix-me: Add indentation hints to chunks, for example heredocs and rhtml.
@@ -6595,16 +6604,24 @@ The following rules are used when indenting:
   - Odd (going in): Compare prev line end's mumamo-depth with
     current line end's dito. Set flag for first line in chunk.
 
-  - Even (going out): Same as for going in.
-
+  - Even (going out): Same test as for going in, but going out
+    happens on current line.
 "
   (unless prev-line-chunks
     (save-excursion
       (goto-char (line-beginning-position 1))
       (skip-chars-backward "\n\t ")
       (goto-char (line-beginning-position 1))
-      (setq prev-line-chunks (mumamo-indent-current-line-chunks))))
-  (let* ((this-line-chunks (mumamo-indent-current-line-chunks))
+      (setq prev-line-chunks (mumamo-indent-current-line-chunks nil))))
+  (let* ((prev-line-chunk0 (nth 0 prev-line-chunks))
+         (prev-line-chunk3 (nth 3 prev-line-chunks))
+         (prev-line-major0 (mumamo-chunk-major-mode (nth 0 prev-line-chunks)))
+         (prev-line-major1 (mumamo-chunk-major-mode (nth 1 prev-line-chunks)))
+         (prev-line-major2 (mumamo-chunk-major-mode (nth 2 prev-line-chunks)))
+         (prev-line-major3 (mumamo-chunk-major-mode (nth 3 prev-line-chunks)))
+         (prev-depth3 (overlay-get prev-line-chunk3 'mumamo-depth))
+
+         (this-line-chunks (mumamo-indent-current-line-chunks (nth 3 prev-line-chunks)))
          (this-line-chunk0 (nth 0 this-line-chunks))
          (this-line-chunk3 (nth 3 this-line-chunks))
          ;; Fix-me: This is one line too early!
@@ -6615,19 +6632,12 @@ The following rules are used when indenting:
          (this-line-major3 (mumamo-chunk-major-mode (nth 3 this-line-chunks)))
          (this-depth3 (overlay-get this-line-chunk3 'mumamo-depth))
 
-         (prev-line-chunk0 (nth 0 prev-line-chunks))
-         (prev-line-chunk3 (nth 3 prev-line-chunks))
-         (prev-line-major0 (mumamo-chunk-major-mode (nth 0 prev-line-chunks)))
-         (prev-line-major1 (mumamo-chunk-major-mode (nth 1 prev-line-chunks)))
-         (prev-line-major2 (mumamo-chunk-major-mode (nth 2 prev-line-chunks)))
-         (prev-line-major3 (mumamo-chunk-major-mode (nth 3 prev-line-chunks)))
-         (prev-depth3 (overlay-get prev-line-chunk3 'mumamo-depth))
-
          this-line-indent-major
          major-indent-line-function
          (main-major (mumamo-main-major-mode))
          (old-indent (current-indentation))
-         (entering-submode (< prev-depth3 this-depth3))
+         (next-entering-submode (< prev-depth3 this-depth3))
+         (entering-submode entering-submode-arg) ;; fix-me
          (leaving-submode (> prev-depth3 this-depth3))
          want-indent ;; The indentation we desire
          got-indent
@@ -6668,7 +6678,7 @@ The following rules are used when indenting:
               (when (eq main-major
                         (mumamo-chunk-major-mode
                          (car
-                          (mumamo-indent-current-line-chunks)))
+                          (mumamo-indent-current-line-chunks nil)))
                         )
                 (skip-chars-forward " \t")
                 (if (eolp)
@@ -6811,7 +6821,7 @@ The following rules are used when indenting:
       (indent-line-to want-indent))
     (goto-char here-on-line)
     ;;(message "exit: %s" (list this-line-chunks last-parent-major-indent))
-    (list this-line-chunks last-parent-major-indent)))
+    (list this-line-chunks last-parent-major-indent next-entering-submode)))
 
 ;; Fix-me: use this for first line in a submode
 (defun mumamo-indent-use-widen (major-mode)
@@ -6865,6 +6875,7 @@ The following rules are used when indenting:
     (let ((old-point -1)
           prev-line-chunks
           last-parent-major-indent
+          entering-submode-arg
           (while-n1 0))
       ;;(while (and (> 3000 (setq while-n1 (1+ while-n1)))
       (while (and (mumamo-while 3000 'while-n1 "indent-region")
@@ -6874,9 +6885,11 @@ The following rules are used when indenting:
         (or (and (bolp) (eolp))
             (let ((ret (mumamo-indent-line-function-1
                         prev-line-chunks
-                        last-parent-major-indent)))
+                        last-parent-major-indent
+                        entering-submode-arg)))
               (setq prev-line-chunks         (nth 0 ret))
-              (setq last-parent-major-indent (nth 1 ret))))
+              (setq last-parent-major-indent (nth 1 ret))
+              (setq entering-submode-arg     (nth 2 ret))))
         (setq old-point (point))
         (forward-line 1)))
     (message "Ready indenting region")))
