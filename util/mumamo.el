@@ -926,8 +926,10 @@ The values in the list should be symbols. Each symbol should either be
 
 (defcustom mumamo-submode-indent-offset 2
   "Indentation of submode relative outer major mode.
-If this is nil then no special indent is made when entering a
-submode.
+If this is nil then indentation first non-empty line in a
+subchunk will \(normally) be 0.  See however
+`mumamo-indent-line-function-1' for special handling of first
+line in subsequent subchunks.
 
 See also `mumamo-submode-indent-offset-0'."
   :type '(choice integer
@@ -1378,7 +1380,7 @@ in this part of the buffer."
             (setq mumamo-old-tail mumamo-last-chunk)
             (overlay-put mumamo-old-tail 'mumamo-is-new nil)
             ;;(msgtrc "old-tail at nil: %s" mumamo-old-tail)
-            (when t ;; For debugging
+            (when nil ;; For debugging
               (overlay-put mumamo-old-tail
                            'face
                            (list :background
@@ -4086,7 +4088,7 @@ information.
                                      ;; Use old end if valid
                                      (and after-change-max
                                           chunk-end
-                                          (= 1 (overlay-get chunk-at-after-change 'mumamo-depth-diff))
+                                          (= -1 (overlay-get chunk-at-after-change 'mumamo-next-depth-diff))
                                           (< after-change-max chunk-end)
                                           chunk-end)))
           ;; Fix-me: Check if old chunk is valid. It is not valid if
@@ -6576,18 +6578,16 @@ The following rules are used when indenting:
   then indentation is done using that major mode.
 
 - Otherwise if going into a submode indentation is increased by
-  `mumamo-submode-indent-offset'.
+  `mumamo-submode-indent-offset' (if this is nil then indentation
+  will instead be 0).
 
-- However first line indentation in a chunk when going in is
-  special if prev-prev chunk is on same mumamo-depth and have the
-  same major mode. Then indent relative last non-empty line in
-  prev-prev chunk.
+- However first non-empty line indentation in a chunk when going
+  in is special if prev-prev chunk is on same mumamo-depth and
+  have the same major mode. Then indent relative last non-empty
+  line in prev-prev chunk.
 
 - When going out of a submode indentation is reset to
   LAST-PARENT-MAJOR-INDENT.
-
-;;- When going from one submode to another the new submode's
-;;  indentation will be relative LAST-PARENT-MAJOR-INDENT.
 
 - At the border the 'dividers' should be indented as the parent
   chunk. There are the following typical situations regarding
