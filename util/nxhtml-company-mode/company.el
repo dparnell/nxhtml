@@ -1,9 +1,13 @@
 ;;; company.el --- extensible inline text completion mechanism
 ;;
+;;; EXPERIMENTAL VERSION FOR NXTHML
+;;
 ;; Copyright (C) 2009 Nikolaj Schumacher
 ;;
 ;; Author: Nikolaj Schumacher <bugs * nschum de>
-;; Version: 0.4.3
+;; Version: 0.4.3-nXhtml
+;; Changed by Lennart Borgman to fit with nXhtml. Experimental,
+;;    some problems with this version has been reported with etags.
 ;; Keywords: abbrev, convenience, matchis
 ;; URL: http://nschum.de/src/emacs/company/
 ;; Compatibility: GNU Emacs 22.x, GNU Emacs 23.x
@@ -610,7 +614,6 @@ The work-around consists of adding a newline.")
 (defvar company-lighter company-default-lighter)
 (make-variable-buffer-local 'company-lighter)
 
-;;;###autoload
 (define-minor-mode company-mode
   "\"complete anything\"; in in-buffer completion framework.
 Completion starts automatically, depending on the values
@@ -651,7 +654,6 @@ keymap during active completions (`company-active-map'):
   :type '(repeat (command :tag "Major mode"))
   :group 'company)
 
-;;;###autoload
 (define-globalized-minor-mode global-company-mode company-mode
   (lambda ()
     (when (catch 'cm
