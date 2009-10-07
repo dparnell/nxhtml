@@ -3020,6 +3020,16 @@
                 </span>
               </li>
               <li>
+                <span class="bugfix">
+                  A bug in <i>ourcomments-M-x-menu-mode</i> made Emacs client fail. Fixed.
+                </span>
+              </li>
+              <li>
+                <span class="bugfix">
+                  The version of company-mode include in nXhtml has some changes. It turns out that these probably gives some problems with company-mode support for etags. The version of company-mode in nXhtml is therefore not autoloaded any more.
+                </span>
+              </li>
+              <li>
                 Improved external editing of web mail.
               </li>
               <li>
@@ -3033,12 +3043,10 @@
                 Updated <i>vline.el</i>.
               </li>
               <li>
-                <span class="bugfix">
-                  A bug in <i>ourcomments-M-x-menu-mode</i> made Emacs client fail. Fixed.
-                </span>
+                Removed fmode.el since it is not needed any more when majmodpri.el does the job.
               </li>
               <li>
-                Removed fmode.el since it is not needed any more when majmodpri.el does the job.
+                Removed routines to fetch/load CEDET since CEDET is now part of devel sources of Emacs.
               </li>
             </ul>
           </dd>
