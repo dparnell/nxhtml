@@ -1379,7 +1379,7 @@ in this part of the buffer."
             (overlay-put mumamo-last-chunk 'mumamo-next-chunk mumamo-old-tail)
             (setq mumamo-old-tail mumamo-last-chunk)
             (overlay-put mumamo-old-tail 'mumamo-is-new nil)
-            ;;(msgtrc "old-tail at nil: %s" mumamo-old-tail)
+            ;;(msgtrc "mumamo-find-chunks-1:old-tail at nil: %s" mumamo-old-tail)
             (when nil ;; For debugging
               (overlay-put mumamo-old-tail
                            'face
@@ -1446,19 +1446,30 @@ in this part of the buffer."
                     ;; longer than 200 chars. fix-me.
                     (setq narpos (max (- ok-pos 200) 1))
                     (narrow-to-region narpos point-max)
-                    (setq this-new-values (mumamo-find-next-chunk-values
-                                           mumamo-last-chunk
-                                           first-check-from
-                                           ;; If this was after a change
-                                           ;; within one chunk then tell
-                                           ;; that:
-                                           (when (and change-max
+                    (let ((use-change-max (when (and change-max
                                                       chunk-at-change-min
                                                       (overlay-buffer chunk-at-change-min)
                                                       (< change-max
-                                                         (overlay-end chunk-at-change-min)))
-                                             change-max)
-                                           chunk-at-change-min))
+                                                         (overlay-end chunk-at-change-min))
+                                                      (or (not mumamo-last-chunk)
+                                                          (> change-max (overlay-end mumamo-last-chunk))))
+                                            change-max))
+                          (use-chunk-at-change-min (when (or (not mumamo-last-chunk)
+                                                             (not (overlay-buffer mumamo-last-chunk))
+                                                             (not chunk-at-change-min)
+                                                             (not (overlay-buffer chunk-at-change-min))
+                                                             (> (overlay-end chunk-at-change-min)
+                                                                (overlay-end mumamo-last-chunk)))
+                                                     chunk-at-change-min
+                                                     )))
+                      (setq this-new-values (mumamo-find-next-chunk-values
+                                             mumamo-last-chunk
+                                             first-check-from
+                                             ;; If this was after a change
+                                             ;; within one chunk then tell
+                                             ;; that:
+                                             use-change-max
+                                             use-chunk-at-change-min)))
                     (if (not this-new-values)
                         (setq ok-pos (point-max))
                       (setq first-check-from nil)
@@ -6614,6 +6625,7 @@ The following rules are used when indenting:
   - Even (going out): Same test as for going in, but going out
     happens on current line.
 "
+  ;;(msgtrc "mumamo-indent-line-function-1 blp=%s" (line-beginning-position))
   (unless prev-line-chunks
     (save-excursion
       (goto-char (line-beginning-position 1))
@@ -6813,6 +6825,7 @@ The following rules are used when indenting:
                                                mumamo-submode-indent-offset)))))))))
             )))))
     (when want-indent
+      (msgtrc "indent-line-to %s at line-beginning=%s" want-indent (line-beginning-position))
       (indent-line-to want-indent))
     (goto-char here-on-line)
     ;;(message "exit: %s" (list this-line-chunks last-parent-major-indent))
@@ -6844,6 +6857,7 @@ The following rules are used when indenting:
 
 (defun mumamo-call-indent-line (chunk)
   "Call the relevant `indent-line-function'."
+  ;;(msgtrc "mumamo-call-indent-line %s, lbp=%s" chunk (line-beginning-position))
   (if nil
       (mumamo-with-major-mode-indentation major-mode
         `(save-restriction
@@ -6859,6 +6873,7 @@ The following rules are used when indenting:
         ;;   (let ((syn-min-max (mumamo-chunk-syntax-min-max chunk nil)))
         ;;     (narrow-to-region (car syn-min-max) (cdr syn-min-max))))
         (when (mumamo-indent-use-widen major-mode) (widen))
+        ;;(msgtrc "mumamo-call-indent-line fun=%s" fun)
         (funcall fun)
         ))))
 
