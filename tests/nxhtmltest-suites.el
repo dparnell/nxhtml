@@ -86,6 +86,20 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define tests using ert.el
 
+;;(setq nxhtmltest-ert-default-selector "nxhtml-ert-indent-rr-min8")
+(ert-deftest nxhtml-ert-indent-rr-min8 ()
+  "Test of indentation bug.
+As per Richard Riley's bug report 2009-10-08.  Last line gave an
+error."
+  (ert-with-temp-buffer-include-file "rr-min8.php"
+    (add-hook 'ert-simulate-command-post-hook
+              'nxhtmltest-should-no-mumamo-errors
+              nil t)
+    (ert-simulate-command '(nxhtml-mumamo-mode) t)
+    (nxhtmltest-fontify-default-way 2 "trans")
+    (ert-simulate-command '(mark-whole-buffer) t)
+    (ert-simulate-command '(indent-for-tab-command) t)))
+
 ;;(setq nxhtmltest-ert-default-selector "nxhtml-ert-bug-400415")
 (ert-deftest nxhtml-ert-bug-400415-foo2 ()
   "Test for changes before in-here-doc using 400415.
