@@ -1379,7 +1379,7 @@ in this part of the buffer."
             (overlay-put mumamo-last-chunk 'mumamo-next-chunk mumamo-old-tail)
             (setq mumamo-old-tail mumamo-last-chunk)
             (overlay-put mumamo-old-tail 'mumamo-is-new nil)
-            ;;(msgtrc "mumamo-find-chunks-1:old-tail at nil: %s" mumamo-old-tail)
+            ;;(msgtrc "old-tail at nil: %s" mumamo-old-tail)
             (when nil ;; For debugging
               (overlay-put mumamo-old-tail
                            'face
@@ -1393,7 +1393,7 @@ in this part of the buffer."
                       mumamo-last-chunk
                       ;;(= (point-max) (overlay-end mumamo-last-chunk))
                       (= (overlay-end mumamo-last-chunk) (overlay-start mumamo-last-chunk)))
-            ;;(msgtrc "delete-overlay at end")
+            (msgtrc "delete-overlay at end")
             (delete-overlay mumamo-last-chunk)
             (setq mumamo-last-chunk (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))
             (when mumamo-last-chunk (overlay-put mumamo-last-chunk 'mumamo-next-chunk nil)))
@@ -1537,10 +1537,11 @@ in this part of the buffer."
             (setq  mumamo-find-chunk-is-active nil)))
         ;; fix-me: continue here
         (setq mumamo-find-chunks-level (1- mumamo-find-chunks-level))
-        ;; Avoid two empty overlays at the end of the buffer. There
-        ;; can be two empty overlays here if the last overlay content
-        ;; was deleted.
+        ;; Avoid empty overlays at the end of the buffer. Those can
+        ;; come from for example deleting to the end of the buffer.
         (when this-new-chunk
+          ;;(msgtrc "mumamo-find-chunks-1:this-new-chunk, mumamo-old-tail=%s, mumamo-last-chunk=%s" mumamo-old-tail mumamo-last-chunk)
+          ;; Fix-me: can this happen now?
           (setq prev-chunk (overlay-get this-new-chunk 'mumamo-prev-chunk))
           (when (and prev-chunk
                      (overlay-buffer prev-chunk)
@@ -1551,7 +1552,23 @@ in this part of the buffer."
             ;;(msgtrc "find-chunks:deleting this-new-chunk %s" this-new-chunk)
             (delete-overlay this-new-chunk)
             (setq this-new-chunk prev-chunk)
-            ))
+            )
+          (while (and mumamo-old-tail
+                      (overlay-buffer mumamo-old-tail)
+                      (= (overlay-start mumamo-old-tail) (overlay-end mumamo-old-tail)))
+            ;;(msgtrc "mumamo-find-chunks-1:deleting mumamo-old-tail=%s, next=%s" mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))
+            (assert (not (eq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))) t)
+            ;;(msgtrc "here a, mumamo-old-tail=%s" mumamo-old-tail)
+            (setq prev-chunk mumamo-old-tail)
+            ;;(msgtrc "here b, mumamo-old-tail=%s" mumamo-old-tail)
+            (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))
+            ;;(msgtrc "here c, mumamo-old-tail=%s" mumamo-old-tail)
+            ;;(msgtrc "mumamo-find-chunks-1:after mumamo-old-tail=%s" mumamo-old-tail)
+            (delete-overlay prev-chunk)
+            ;;(msgtrc "mumamo-find-chunks-1:after (delete-overlay prev-chunk), mumamo-old-tail=%s" mumamo-old-tail)
+            )
+          ;;(msgtrc "mumamo-find-chunks-1:after while, mumamo-old-tail=%s" mumamo-old-tail)
+          )
         ;;(when mumamo-old-tail (message "end=%s old-tail=%s" end mumamo-old-tail))
         (unless (overlay-get mumamo-last-chunk 'mumamo-is-closed)
           ;; Check that there are no left-over old chunks
@@ -6625,7 +6642,7 @@ The following rules are used when indenting:
   - Even (going out): Same test as for going in, but going out
     happens on current line.
 "
-  ;;(msgtrc "mumamo-indent-line-function-1 blp=%s" (line-beginning-position))
+  (msgtrc "mumamo-indent-line-function-1 blp=%s" (line-beginning-position))
   (unless prev-line-chunks
     (save-excursion
       (goto-char (line-beginning-position 1))
@@ -6857,7 +6874,7 @@ The following rules are used when indenting:
 
 (defun mumamo-call-indent-line (chunk)
   "Call the relevant `indent-line-function'."
-  ;;(msgtrc "mumamo-call-indent-line %s, lbp=%s" chunk (line-beginning-position))
+  (msgtrc "mumamo-call-indent-line %s, lbp=%s" chunk (line-beginning-position))
   (if nil
       (mumamo-with-major-mode-indentation major-mode
         `(save-restriction
@@ -6873,7 +6890,7 @@ The following rules are used when indenting:
         ;;   (let ((syn-min-max (mumamo-chunk-syntax-min-max chunk nil)))
         ;;     (narrow-to-region (car syn-min-max) (cdr syn-min-max))))
         (when (mumamo-indent-use-widen major-mode) (widen))
-        ;;(msgtrc "mumamo-call-indent-line fun=%s" fun)
+        (msgtrc "mumamo-call-indent-line fun=%s" fun)
         (funcall fun)
         ))))
 
