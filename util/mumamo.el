@@ -1294,10 +1294,7 @@ is available.  In this case the return value is undefined.
 
 Otherwise END must be a position in the buffer.  Return the
 mumamo chunk containing the position.  If `mumamo-last-chunk'
-ends before END then create chunks upto END.
-
-If MIN and MAX are non-nil then do not mark for refontification
-in this part of the buffer."
+ends before END then create chunks upto END."
   (let ((chunk (mumamo-find-chunks-1 end tracer))
         region-info)
     (when (and end chunk (featurep 'mumamo-regions))
