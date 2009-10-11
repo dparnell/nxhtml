@@ -1073,6 +1073,7 @@ PREDICATE.  PREDICATE takes one argument, the symbol."
   (describe-function command))
 
 
+;;;###autoload
 (defun buffer-narrowed-p ()
   "Return non-nil if the current buffer is narrowed."
   (/= (buffer-size)
