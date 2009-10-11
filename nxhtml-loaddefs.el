@@ -1027,12 +1027,12 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;;;;  emacs emacs-restart ourcomments-ido-ctrl-tab ourcomments-ido-buffer-raise-frame
 ;;;;;;  ourcomments-ido-buffer-other-frame ourcomments-ido-buffer-other-window
 ;;;;;;  describe-symbol describe-defstruct describe-custom-group
-;;;;;;  narrow-to-comment describe-command ourcomments-ediff-files
+;;;;;;  narrow-to-comment buffer-narrowed-p describe-command ourcomments-ediff-files
 ;;;;;;  find-emacs-other-file better-fringes-mode describe-key-and-map-briefly
 ;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
 ;;;;;;  major-modep major-or-multi-majorp unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19148 46022))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19154 16889))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -1175,6 +1175,11 @@ It can of course be done in a similar way with other shells.
 Like `describe-function', but prompts only for interactive commands.
 
 \(fn COMMAND)" t nil)
+
+(autoload 'buffer-narrowed-p "ourcomments-util" "\
+Return non-nil if the current buffer is narrowed.
+
+\(fn)" nil nil)
 
 (autoload 'narrow-to-comment "ourcomments-util" "\
 Not documented
@@ -2711,7 +2716,7 @@ Not documented
 
 ;;;### (autoloads (wrap-to-fill-column-mode wrap-to-fill-left-marg-modes
 ;;;;;;  wrap-to-fill-left-marg) "wrap-to-fill" "util/wrap-to-fill.el"
-;;;;;;  (19148 46022))
+;;;;;;  (19153 44415))
 ;;; Generated autoloads from util/wrap-to-fill.el
 
 (defvar wrap-to-fill-left-marg nil "\
@@ -3020,7 +3025,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "nxhtml-menu" "nxhtml/nxhtml-menu.el"
-;;;;;;  (19151 55660))
+;;;;;;  (19152 58871))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "nxhtml-menu" "\
@@ -3200,12 +3205,12 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/popcmp.el" "util/rebind.el"
 ;;;;;;  "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el" "util/zen-mode.el") (19152 43169 593000))
+;;;;;;  "util/whelp.el" "util/zen-mode.el") (19154 18506 281000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19152 42845))
+;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19152 58803))
 ;;; Generated autoloads from nxhtmlmaint.el
 
 (autoload 'nxhtmlmaint-start-byte-compilation "nxhtmlmaint" "\

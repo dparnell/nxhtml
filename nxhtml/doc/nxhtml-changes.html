@@ -97,7 +97,9 @@
               single underlined character.  Many users (me included)
               find this quite a bit disturbing. I have therefore added
               a command to quickly hide/show the underlines. This is
-              on <em>C-c C-w</em>.
+              on <em>C-c C-w</em> (nxhtml-toggle-visible-warnings, key
+              binding changed to <em>C-c _</em> in later versions of
+              nXhtml).
             </p>
             <p>
               This is particular useful for example in the case where
@@ -3074,7 +3076,19 @@
           <dd id="v1.96-dd">
             <ul>
               <li>
-                Problem creating autoload file in latest dev version of Emacs. Fixed.
+                <span class="bugfix">
+                  Problem creating autoload file in latest dev version of Emacs. Fixed.
+                </span>
+              </li>
+              <li>
+                <span class="bugfix">
+                  Fixed typo in wrap-to-fill.el.
+                </span>
+              </li>
+              <li>
+                <span class="bugfix">
+                  Autoloaded <i>buffer-narrowed-p</i>.
+                </span>
               </li>
             </ul>
           </dd>
