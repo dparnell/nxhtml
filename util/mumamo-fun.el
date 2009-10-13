@@ -1222,6 +1222,26 @@ This also covers inlined style and javascript."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; gsp
+
+(defun mumamo-chunk-gsp (pos min max)
+  "Find <% ... %>.  Return range and 'groovy-mode.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+  (mumamo-quick-static-chunk pos min max "<%" "%>" t 'groovy-mode t))
+
+;;;###autoload
+(define-mumamo-multi-major-mode gsp-html-mumamo-mode
+  "Turn on multiple major modes for GSP with main mode `html-mode'.
+This also covers inlined style and javascript."
+    ("GSP HTML Family" html-mode
+     (mumamo-chunk-gsp
+      mumamo-chunk-inlined-style
+      mumamo-chunk-inlined-script
+      mumamo-chunk-style=
+      mumamo-chunk-onjs=
+      )))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; jsp
 
 (defun mumamo-chunk-jsp (pos min max)
@@ -1292,6 +1312,7 @@ This also covers inlined style and javascript."
     ("CSS" css-mode)
     ("JAVASCRIPT" javascript-mode)
     ("JAVA" java-mode)
+    ("GROOVY" groovy-mode)
     )
   "Matches for heredoc modes.
 The entries in this list have the form
