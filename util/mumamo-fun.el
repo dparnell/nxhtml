@@ -1412,6 +1412,10 @@ Supported values are 'perl."
                  (setq heredoc-mark  (buffer-substring-no-properties
                                       (match-beginning 1)
                                       (match-end 1)))
+                 ;; fix-me: nowdoc
+                 (when (and (= ?\' (string-to-char heredoc-mark))
+                            (= ?\' (string-to-char (substring heredoc-mark (1- (length heredoc-mark))))))
+                   (setq heredoc-mark (substring heredoc-mark 1 (- (length heredoc-mark) 1))))
                  (setq start-inner (match-end 0)))))
             ('perl
              (while want-<<
