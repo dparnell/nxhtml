@@ -846,6 +846,70 @@ See also `mumamo-alt-php-tags-mode'."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Mason (not ready)
+;; http://www.masonhq.com/docs/manual/Devel.html#examples_and_recommended_usage
+
+(defun mumamo-chunk-mason-perl-line (pos min max)
+  (mumamo-whole-line-chunk pos min max "%" 'perl-mode))
+
+(defun mumamo-chunk-mason-perl-single (pos min max)
+  (mumamo-quick-static-chunk pos min max "<% " " %>" t 'perl-mode t))
+
+(defun mumamo-chunk-mason-perl-block (pos min max)
+  (mumamo-quick-static-chunk pos min max "<%perl>" "</%perl>" t 'perl-mode t))
+
+(defun mumamo-chunk-mason-perl-init (pos min max)
+  (mumamo-quick-static-chunk pos min max "<%init>" "</%init>" t 'perl-mode t))
+
+(defun mumamo-chunk-mason-perl-once (pos min max)
+  (mumamo-quick-static-chunk pos min max "<%once>" "</%once>" t 'perl-mode t))
+
+(defun mumamo-chunk-mason-perl-cleanup (pos min max)
+  (mumamo-quick-static-chunk pos min max "<%cleanup>" "</%cleanup>" t 'perl-mode t))
+
+(defun mumamo-chunk-mason-perl-shared (pos min max)
+  (mumamo-quick-static-chunk pos min max "<%shared>" "</%shared>" t 'perl-mode t))
+
+(defun mumamo-chunk-mason-simple-comp (pos min max)
+  (mumamo-quick-static-chunk pos min max "<&" "&>" t 'text-mode t))
+
+(defun mumamo-chunk-mason-args (pos min max)
+  ;; Fix-me: perl-mode is maybe not the best here?
+  (mumamo-quick-static-chunk pos min max "<%args>" "</%args>" t 'perl-mode t))
+
+(defun mumamo-chunk-mason-doc (pos min max)
+  (mumamo-quick-static-chunk pos min max "<%doc>" "</%doc>" t 'mumamo-comment-mode t))
+
+(defun mumamo-chunk-mason-text (pos min max)
+  (mumamo-quick-static-chunk pos min max "<%text>" "</%text>" t 'text-mode t))
+
+;;;###autoload
+(define-mumamo-multi-major-mode mason-html-mumamo-mode
+  "Turn on multiple major modes for Mason using main mode `html-mode'.
+This covers inlined style and javascript and PHP.
+
+See also `mumamo-alt-php-tags-mode'."
+  ("Mason html Family" html-mode
+   (
+    mumamo-chunk-mason-perl-line
+    mumamo-chunk-mason-perl-single
+    mumamo-chunk-mason-perl-block
+    mumamo-chunk-mason-perl-init
+    mumamo-chunk-mason-perl-once
+    mumamo-chunk-mason-perl-cleanup
+    mumamo-chunk-mason-perl-shared
+    mumamo-chunk-mason-simple-comp
+    mumamo-chunk-mason-args
+    mumamo-chunk-mason-doc
+    mumamo-chunk-mason-text
+    mumamo-chunk-inlined-style
+    mumamo-chunk-inlined-script
+    mumamo-chunk-style=
+    mumamo-chunk-onjs=
+    )))
+(add-hook 'mason-html-mumamo-mode-hook 'mumamo-define-html-file-wide-keys)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Embperl
 
 (defun mumamo-chunk-embperl-<- (pos min max)
@@ -939,7 +1003,7 @@ This also covers inlined style and javascript."
 (defun mumamo-chunk-django4(pos min max)
   "Find {% comment %}.  Return range and `django-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-quick-static-chunk pos min max "{% comment %}" "{% endcomment %}" t 'django-comment-mode t))
+  (mumamo-quick-static-chunk pos min max "{% comment %}" "{% endcomment %}" t 'mumamo-comment-mode t))
 ;;;   (mumamo-find-possible-chunk pos min max
 ;;;                               'mumamo-search-bw-exc-start-django4
 ;;;                               'mumamo-search-bw-exc-end-django4
@@ -949,7 +1013,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 (defun mumamo-chunk-django3(pos min max)
   "Find {# ... #}.  Return range and `django-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-quick-static-chunk pos min max "{#" "#}" t 'django-comment-mode t))
+  (mumamo-quick-static-chunk pos min max "{#" "#}" t 'mumamo-comment-mode t))
 ;;;   (mumamo-find-possible-chunk pos min max
 ;;;                               'mumamo-search-bw-exc-start-django3
 ;;;                               'mumamo-search-bw-exc-end-django3
@@ -998,7 +1062,7 @@ POS is where to start search and MIN is where to stop."
   (let ((exc-start (mumamo-chunk-start-bw-str-inc pos min "{#")))
     (and exc-start
          (<= exc-start pos)
-         (cons exc-start 'django-comment-mode))))
+         (cons exc-start 'mumamo-comment-mode))))
 
 (defun mumamo-search-bw-exc-start-django4(pos min)
   "Helper for `mumamo-chunk-django4'.
@@ -1007,7 +1071,7 @@ POS is where to start search and MIN is where to stop."
                                                        "{% comment %}")))
     (and exc-start
          (<= exc-start pos)
-         (cons exc-start 'django-comment-mode))))
+         (cons exc-start 'mumamo-comment-mode))))
 
 (defun mumamo-search-bw-exc-end-django (pos min)
   "Helper for `mumamo-chunk-django'.
