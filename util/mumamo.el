@@ -4637,8 +4637,8 @@ mumamo chunk then set major mode to that for the chunk."
       (let ((glob-command) ; (lookup-key global-map (this-command-keys-vector)))
             )
         (if (memq this-command mumamo-safe-commands-in-wrong-major)
-            nil ;;(message "safe %s" this-command)
-          (message "not safe %s" this-command)
+            nil ;;(msgtrc "safe in wrong major %s" this-command)
+          ;;(msgtrc "not safe in wrong major %s" this-command)
           (let* ((ovl (mumamo-find-chunks (point) "mumamo-set-major-pre-command"))
                  (major (mumamo-chunk-major-mode ovl))
                  (found-this (lookup-key (current-local-map) (this-command-keys-vector)))
@@ -6630,16 +6630,17 @@ The following rules are used when indenting:
      Going in next line; first char outer or inner; line end inner;
 
   4) ?>
-     Going outthis line; first char inner; line end outer;
+     Going out this line; first char inner; line end outer;
 
   From this we deduce the following way to compute if we are
   going in or out:
 
-  - Odd (going in): Compare prev line end's mumamo-depth with
-    current line end's dito. Set flag for first line in chunk.
+  - Odd above (going in): Compare prev line end's mumamo-depth
+    with current line end's dito. Set flag for first line in
+    chunk.
 
-  - Even (going out): Same test as for going in, but going out
-    happens on current line.
+  - Even above (going out): Same test as for going in, but going
+    out happens on current line.
 "
   ;;(msgtrc "indent-line-function-1 blp=%s" (line-beginning-position))
   (unless prev-line-chunks
@@ -6669,8 +6670,23 @@ The following rules are used when indenting:
          major-indent-line-function
          (main-major (mumamo-main-major-mode))
          (old-indent (current-indentation))
-         (next-entering-submode (< prev-depth3 this-depth3))
-         (entering-submode entering-submode-arg) ;; fix-me
+         (next-entering-submode (if (< prev-depth3 this-depth3) 'yes 'no))
+         (entering-submode
+          (progn
+            (unless entering-submode-arg
+              (let* ((prev-prev-line-chunks
+                      (save-excursion
+                        (goto-char (line-beginning-position 0))
+                        (skip-chars-backward "\n\t ")
+                        (goto-char (line-beginning-position 1))
+                        (mumamo-indent-current-line-chunks nil)))
+                     (prev-prev-line-chunk3 (nth 3 prev-prev-line-chunks))
+                     (prev-prev-depth3 (overlay-get prev-prev-line-chunk3 'mumamo-depth))
+                     )
+                (setq entering-submode-arg (if (< prev-prev-depth3 prev-depth3) 'yes 'no))
+                ))
+            (eq 'yes entering-submode-arg))) ;; fix-me
+
          (leaving-submode (> prev-depth3 this-depth3))
          want-indent ;; The indentation we desire
          got-indent
@@ -6708,6 +6724,7 @@ The following rules are used when indenting:
                     (setq last-parent-major-indent 0)
                   (setq last-parent-major-indent (current-column)))))))))
     (mumamo-msgindent "  leaving-submode=%s, entering-submode=%s" leaving-submode entering-submode)
+    (msgtrc "  leaving-submode=%s, entering-submode=%s" leaving-submode entering-submode)
     (cond
      (leaving-submode
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -6791,20 +6808,19 @@ The following rules are used when indenting:
             (let ((syn-min-max (mumamo-chunk-syntax-min-max chunk nil)))
               (narrow-to-region (car syn-min-max)
                                 (cdr syn-min-max)))
-            (save-restriction
-              (condition-case nil
-                  (atomic-change-group
-                    (mumamo-call-indent-line (nth 0 this-line-chunks))
-                    (when (= 0 (current-indentation))
-                      (setq ind-zero t)
-                      ;; It is maybe ok if indentation on first sub
-                      ;; line is 0 so check that:
-                      (goto-char (point-min))
-                      (widen)
-                      (setq ind-on-first-sub-line (current-indentation))
-                      (goto-char here)
-                      (signal 'mumamo-error-ind-0 nil)))
-                (mumamo-error-ind-0)))
+            (condition-case nil
+                (atomic-change-group
+                  (mumamo-call-indent-line (nth 0 this-line-chunks))
+                  (when (= 0 (current-indentation))
+                    (setq ind-zero t)
+                    ;; It is maybe ok if indentation on first sub
+                    ;; line is 0 so check that:
+                    (goto-char (point-min))
+                    (widen)
+                    (setq ind-on-first-sub-line (current-indentation))
+                    (goto-char here)
+                    (signal 'mumamo-error-ind-0 nil)))
+              (mumamo-error-ind-0))
             ;; Unfortunately the indentation can sometimes get 0
             ;; here even though it is clear it should not be 0. This
             ;; happens when there are only comments or empty lines
@@ -6848,6 +6864,7 @@ The following rules are used when indenting:
     (list this-line-chunks last-parent-major-indent next-entering-submode)))
 
 ;; Fix-me: use this for first line in a submode
+;; Fix-me: check more carefully for widen since it may lead to bad results.
 (defun mumamo-indent-use-widen (major-mode)
   "Return non-nil if widen before indentation in MAJOR-MODE."
   (let* ((specials (cadr (assoc major-mode mumamo-major-mode-indent-specials)))
@@ -6860,16 +6877,16 @@ The following rules are used when indenting:
 ;;(mumamo-indent-use-widen 'html-mode)
 
 ;; Fix-me: remove
-(defun mumamo-indent-special-or-default (default-indent)
-  "Indent to DEFAULT-INDENT unless a special indent can be done."
-  (mumamo-with-major-mode-indentation major-mode
-    `(progn
-       (if (mumamo-indent-use-widen major-mode)
-           (save-restriction
-             (widen)
-             (mumamo-msgindent "=> special-or-default did widen, %s" major-mode)
-             (funcall indent-line-function))
-         (indent-to-column default-indent)))))
+;; (defun mumamo-indent-special-or-default (default-indent)
+;;   "Indent to DEFAULT-INDENT unless a special indent can be done."
+;;   (mumamo-with-major-mode-indentation major-mode
+;;     `(progn
+;;        (if (mumamo-indent-use-widen major-mode)
+;;            (save-restriction
+;;              (widen)
+;;              (mumamo-msgindent "=> special-or-default did widen, %s" major-mode)
+;;              (funcall indent-line-function))
+;;          (indent-to-column default-indent)))))
 
 (defun mumamo-call-indent-line (chunk)
   "Call the relevant `indent-line-function'."
