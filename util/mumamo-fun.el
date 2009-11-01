@@ -871,7 +871,7 @@ See also `mumamo-alt-php-tags-mode'."
   (mumamo-quick-static-chunk pos min max "<%shared>" "</%shared>" t 'perl-mode t))
 
 (defun mumamo-chunk-mason-simple-comp (pos min max)
-  (mumamo-quick-static-chunk pos min max "<&" "&>" t 'text-mode t))
+  (mumamo-quick-static-chunk pos min max "<& " " &>" t 'text-mode t))
 
 (defun mumamo-chunk-mason-args (pos min max)
   ;; Fix-me: perl-mode is maybe not the best here?
@@ -882,6 +882,48 @@ See also `mumamo-alt-php-tags-mode'."
 
 (defun mumamo-chunk-mason-text (pos min max)
   (mumamo-quick-static-chunk pos min max "<%text>" "</%text>" t 'text-mode t))
+
+;; component calls with content
+
+;; (mumamo-find-possible-chunk-new pos
+;;                                 max
+;;                                 bw-exc-start-fun
+;;                                 fw-exc-start-fun
+;;                                 fw-exc-end-fun
+;;                                 &optional find-borders-fun)
+
+(defun mumamo-chunk-mason-compcont-bw-exc-start-fun (pos min)
+  (let ((exc-start (mumamo-chunk-start-bw-str-inc pos min "<&| ")))
+    (and exc-start
+         (<= exc-start pos)
+         (cons exc-start 'html-mode))))
+(defun mumamo-chunk-mason-compcont-fw-exc-start-fun (pos max)
+  (mumamo-chunk-start-fw-str-inc pos max "<&| "))
+(defun mumamo-chunk-mason-compcont-fw-exc-end-fun (pos max)
+  (mumamo-chunk-end-fw-str-inc pos max "</&>"))
+(defun mumamo-chunk-mason-compcont-find-borders-fun (start end dummy)
+  (when dummy
+    (list
+     (when start
+       (save-match-data
+         (let ((here (point))
+               ret)
+           (goto-char start)
+           (when (re-search-forward "[^>]* &>" end t)
+             (setq ret (point))
+             (goto-char here)
+             ret))
+         ))
+     (when end (- end 4))
+     dummy)))
+
+(defun mumamo-chunk-mason-compcont (pos min max)
+  (mumamo-find-possible-chunk-new pos
+                                  max
+                                  'mumamo-chunk-mason-compcont-bw-exc-start-fun
+                                  'mumamo-chunk-mason-compcont-fw-exc-start-fun
+                                  'mumamo-chunk-mason-compcont-fw-exc-end-fun
+                                  'mumamo-chunk-mason-compcont-find-borders-fun))
 
 ;;;###autoload
 (define-mumamo-multi-major-mode mason-html-mumamo-mode
@@ -899,6 +941,7 @@ See also `mumamo-alt-php-tags-mode'."
     mumamo-chunk-mason-perl-cleanup
     mumamo-chunk-mason-perl-shared
     mumamo-chunk-mason-simple-comp
+    mumamo-chunk-mason-compcont
     mumamo-chunk-mason-args
     mumamo-chunk-mason-doc
     mumamo-chunk-mason-text
@@ -908,6 +951,7 @@ See also `mumamo-alt-php-tags-mode'."
     mumamo-chunk-onjs=
     )))
 (add-hook 'mason-html-mumamo-mode-hook 'mumamo-define-html-file-wide-keys)
+(mumamo-inherit-sub-chunk-family-locally 'mason-html-mumamo-mode 'mason-html-mumamo-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Embperl
@@ -1560,6 +1604,11 @@ Supported values are 'perl."
                                         (goto-char here)))))))
             (setq exc-mode (mumamo-mode-for-heredoc heredoc-mark))
             (list start-inner end exc-mode nil nil fw-exc-fun nil)
+            ;; Fix me: Add overriding for inner chunks (see
+            ;; http://www.emacswiki.org/emacs/NxhtmlMode#toc13). Maybe
+            ;; make fw-exc-fun a list (or a cons, since overriding is
+            ;; probably all that I want to add)? And make the
+            ;; corresponding chunk property a list too?
             (list start-outer end exc-mode (list start-inner end) nil fw-exc-fun border-fun 'heredoc)
             )))
     (error (mumamo-display-error 'mumamo-chunk-heredoc
