@@ -1278,6 +1278,8 @@ Preserves the `buffer-modified-p' state of the current buffer."
     ))
 
 (defun mumamo-get-region-from (point)
+  "Return mumamo region values for POINT."
+  ;; Note: `mumamo-get-region-from-1' is defined in mumamo-regions.el
   (when (fboundp 'mumamo-get-region-from-1)
     (mumamo-get-region-from-1 point)))
 
@@ -2167,6 +2169,9 @@ the major mode for the chunk."
                                             prop))))
 (defun mumamo-chunk-car (chunk prop)
   (car (overlay-get chunk prop)))
+
+(defun mumamo-chunk-cadr (chunk prop)
+  (cadr (overlay-get chunk prop)))
 
 ;; (let ((l '(1 2))) (setcar (nthcdr 1 l) 10) l)
 ;; setters
@@ -3314,7 +3319,7 @@ Otherwise return nil."
 ;; where they should not be valid borders there.
 (defun mumamo-find-possible-chunk (pos
                                    min max
-                                   bw-exc-start-fun
+                                   bw-exc-start-fun ;; obsolete
                                    bw-exc-end-fun
                                    fw-exc-start-fun
                                    fw-exc-end-fun
@@ -3361,8 +3366,10 @@ Currently only the XML parser in `nxml-mode' is recognized.  In
 this list it should be the symbol `nxml-mode'.
 
 The functions FW-EXC-START-FUN and FW-EXC-END-FUN should search
-for exception start or end, forward resp backward.  Those three
-should return just the start respectively the end of the chunk.
+for exception start or end, forward resp backward. Those two
+takes two parameters, start position POS and max position MAX,
+and should return just the start respectively the end of the
+chunk.
 
 For all three functions the position returned should be nil if
 search fails.
@@ -3595,18 +3602,14 @@ See also `mumamo-quick-static-chunk'."
 
 (defun mumamo-new-create-chunk (new-chunk-values)
   "Create and return a chunk from NEW-CHUNK-VALUES.
-The values for this are stored in the properties
-below:
+When doing this store the functions for creating the next chunk
+after this in the properties below of the now created chunk:
 
-The first two are used when the bottom:
-
-- `mumamo-next-major': is nil or the next chunk's major mode.
-- `mumamo-next-chunk-funs': nil or similar to
+- 'mumamo-next-major: is nil or the next chunk's major mode.
+- 'mumamo-next-chunk-funs: nil or similar to the variable
   `mumamo-current-chunk-family'.
-- `mumamo-next-end-fun': function that searches for end of AFTER-CHUNK
-
-- `mumamo-next-border-funs': functions that finds borders
-"
+- 'mumamo-next-end-fun: function that searches for end of AFTER-CHUNK
+- 'mumamo-next-border-fun: functions that finds borders"
   ;;((1 696 nxhtml-mode nil nil nil nil) (696 nil php-mode nil nil nil nil))
   ;;(current (list curr-min curr-max curr-major curr-border-min curr-border-max curr-parseable curr-fw-exc-fun))
   ;;(next    (list next-min next-max next-major next-border-min next-border-max next-parseable next-fw-exc-fun)))
@@ -3959,16 +3962,47 @@ is a chunk family \(ie the third argument to
 You can use the function `mumamo-inherit-sub-chunk-family' to add
 to this list.")
 
+(defvar mumamo-multi-local-sub-chunk-families nil
+  "Multi major mode local chunk dividing rourines for sub chunks.
+Like `mumamo-sub-chunk-families' specific additions for multi
+major modes. The entries have the form
+
+  \((CHUNK-MAJOR . MULTI-MAJOR) CHUNK-FAMILY)
+
+Use the function `mumamo-inherit-sub-chunk-family-locally' to add
+to this list.")
+
 ;;(mumamo-get-sub-chunk-funs 'html-mode)
+;; Fix-me: remove 'mumamo-next-chunk-funs
 (defun mumamo-get-sub-chunk-funs (major)
   "Get chunk family sub chunk with major mode MAJOR."
-  (let ((rec (assoc major mumamo-sub-chunk-families)))
+  (let ((rec (or
+              (assoc (cons major mumamo-multi-major-mode) mumamo-multi-local-sub-chunk-families)
+              (assoc major mumamo-sub-chunk-families))))
     (caddr (cadr rec))))
+
+;; Fix-me: make mumamo-sub-chunk-families buffer local + add main
+;; chunk families to it.
+(defun mumamo-inherit-sub-chunk-family-locally (multi-major multi-using)
+  "Add chunk dividing routines from MULTI-MAJOR locally.
+The dividing routines from multi major mode MULTI-MAJOR can then
+be used in sub chunks in buffers using multi major mode
+MULTI-USING."
+  (let* ((chunk-family (get multi-major 'mumamo-chunk-family))
+         (major      (nth 1 chunk-family)))
+    (let ((major-mode major))
+      (when (derived-mode-p 'nxml-mode)
+        (error "Major mode %s major can't be used in sub chunks" major)))
+    (add-to-list 'mumamo-multi-local-sub-chunk-families
+                 (list (cons major multi-using) chunk-family))))
 
 (defun mumamo-inherit-sub-chunk-family (multi-major)
   "Inherit chunk dividing routines from multi major modes.
 Add chunk family from multi major mode MULTI-MAJOR to
-`mumamo-inherit-chunk-family'."
+`mumamo-inherit-chunk-family'.
+
+Sub chunks with major mode the same as MULTI-MAJOR mode will use
+this chunk familyu to find subchunks."
   (let* ((chunk-family (get multi-major 'mumamo-chunk-family))
          (major      (nth 1 chunk-family)))
     (let ((major-mode major))
@@ -4026,17 +4060,26 @@ information.
                     1)))
          (main-chunk-funs (let ((chunk-info (cdr mumamo-current-chunk-family)))
                             (cadr chunk-info)))
-         (after-next-chunk-funs (when after-chunk-valid (overlay-get after-chunk 'mumamo-next-chunk-funs)))
+         ;;(after-next-chunk-funs (when after-chunk-valid (overlay-get after-chunk 'mumamo-next-chunk-funs)))
          ;; Note that "curr-*" values are fetched from "mumamo-next-*" values in after-chunk
          (curr-major (if after-chunk-valid
                          (or ;;(progn (msgtrc "At A, after-chunk.next-major=%s" (overlay-get after-chunk 'mumamo-next-major)) nil)
+                             ;; 'mumamo-next-major is used when we are going into a sub chunk.
                              (overlay-get after-chunk 'mumamo-next-major)
+
+                             ;; We are going out of a sub chunk.
+                             (mumamo-chunk-cadr after-chunk 'mumamo-major-mode)
+
                              ;;(progn (msgtrc "At B") nil)
                              ;;(mumamo-main-major-mode))
-                             (let ((after-after-chunk (overlay-get after-chunk 'mumamo-prev-chunk)))
-                               ;;(msgtrc "after-after-chunk...=%s" after-after-chunk)
-                               (unless after-after-chunk (error "after-after-chunk is nil"))
-                               (mumamo-chunk-car after-after-chunk 'mumamo-major-mode)))
+
+                             ;; fix-me: Is this some old left-over???
+                             ;; (let ((after-after-chunk (overlay-get after-chunk 'mumamo-prev-chunk)))
+                             ;;   ;;(msgtrc "after-after-chunk...=%s" after-after-chunk)
+                             ;;   (unless after-after-chunk (error "after-after-chunk is nil"))
+                             ;;   ;; Fix-me: use depth diff here (mason example)
+                             ;;   (mumamo-chunk-car after-after-chunk 'mumamo-major-mode))
+                             )
                        ;;(msgtrc "At C")
                        (mumamo-main-major-mode)))
          (curr-chunk-funs
@@ -4296,7 +4339,9 @@ information.
       ;;(msgtrc "find-next-chunk-values:here B, curr-min=%s, after-chunk=%s" curr-min after-chunk)
       (unless next-major (setq next-chunk-funs nil))
       (when (= -1 next-depth-diff)
-        (setq next-major (mumamo-chunk-car after-chunk 'mumamo-major-mode)))
+        ;;(setq next-major (mumamo-chunk-car after-chunk 'mumamo-major-mode))
+        ;; We will pop it from 'mumamo-major-mode
+        (setq next-major nil))
       (when after-chunk-valid
         ;;(msgtrc "find-next-chunk-values:here C, curr-min=%s, after-chunk=%s" curr-min after-chunk)
         (unless (or (not after-chunk-is-closed)
