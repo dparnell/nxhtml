@@ -70,17 +70,17 @@ This mode only provides syntax highlighting."
   (setq font-lock-defaults '(django-font-lock-keywords)))
 
 ;;; Comments mode
-(defconst django-comment-font-lock-keywords
-  (list
-   (cons "\\(.*\\)" (list 1 font-lock-comment-face))
-   ))
+;; (defconst django-comment-font-lock-keywords
+;;   (list
+;;    (cons "\\(.*\\)" (list 1 font-lock-comment-face))
+;;    ))
 
-(defvar django-comment-font-lock-defaults
-  '(django-comment-font-lock-keywords t t))
+;; (defvar django-comment-font-lock-defaults
+;;   '(django-comment-font-lock-keywords t t))
 
-(define-derived-mode django-comment-mode nil "Django comment"
-  "For django comment blocks."
-  (set (make-local-variable 'font-lock-defaults) django-comment-font-lock-defaults))
+;; (define-derived-mode django-comment-mode nil "Django comment"
+;;   "For django comment blocks."
+;;   (set (make-local-variable 'font-lock-defaults) django-comment-font-lock-defaults))
 
 ;;; Variables mode
 
