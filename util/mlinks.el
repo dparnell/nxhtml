@@ -605,7 +605,7 @@ Uses `switch-to-buffer-other-frame'."
               (define-key map [mlinks-href-edit-gimp]
                 (list 'menu-item "Edit Linked File with GIMP"
                       `(lambda () (interactive)
-                         (gimp-edit-file ,abs-file))))))
+                         (gimpedit-edit-file ,abs-file))))))
           (when (and (file-exists-p file)
                      (assoc 'view-local possible))
             (let ((url (concat "file:///" (expand-file-name file))))
@@ -1071,7 +1071,7 @@ Any command cancels this state."
             (let ((ext (downcase (file-name-extension file))))
               (when (member ext '("htm" "html"))
                 (add-to-list 'possible (cons 'view-local (list file anchor))))
-              (when (and (featurep 'gimp)
+              (when (and (featurep 'gimpedit)
                          (member ext '("gif" "png" "jpg" "jpeg")))
                 (add-to-list 'possible (cons 'edit-gimp (list file anchor)))))
             (when (featurep 'html-upl)

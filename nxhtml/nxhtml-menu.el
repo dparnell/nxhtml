@@ -3,7 +3,7 @@
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 2007
 (defconst nxhtml-menu:version "beta 2.00") ;;Version:
-;; Last-Updated: 2009-05-29 Fri
+;; Last-Updated: 2009-11-02 Mon
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
@@ -15,9 +15,10 @@
   ;; `cus-face', `cus-load', `cus-start', `dired', `easymenu',
   ;; `ediff', `ediff-diff', `ediff-help', `ediff-init', `ediff-merg',
   ;; `ediff-mult', `ediff-util', `ediff-wind', `ffip', `flymake',
-  ;; `flymake-js', `flymake-php', `flyspell', `fold-dwim', `gimp',
-  ;; `grep', `help-mode', `hideshow', `html-imenu', `html-quote',
-  ;; `html-site', `html-upl', `ido', `ietf-drums', `imenu', `ispell',
+  ;; `flymake-js', `flymake-php', `flyspell', `fold-dwim', `foldit',
+  ;; `fupd', `gimpedit', `grep', `help-mode', `hideshow',
+  ;; `html-imenu', `html-pagetoc', `html-quote', `html-site',
+  ;; `html-toc', `html-upl', `ido', `ietf-drums', `imenu', `ispell',
   ;; `loadhist', `mail-parse', `mail-prsvr', `mailcap', `mlinks',
   ;; `mm-util', `mumamo', `nxhtml-mode', `nxml-enc', `nxml-glyph',
   ;; `nxml-mode', `nxml-ns', `nxml-outln', `nxml-parse', `nxml-rap',
@@ -27,11 +28,11 @@
   ;; `rng-uri', `rng-util', `rng-valid', `rngalt', `rx',
   ;; `setup-helper', `sgml-mode', `tidy-xhtml', `time-date', `timer',
   ;; `timezone', `tls', `tool-bar', `tree-widget', `typesetter',
-  ;; `udev', `udev-cedet', `udev-ecb', `udev-rinari', `url',
-  ;; `url-auth', `url-c', `url-cookie', `url-expand', `url-gw',
-  ;; `url-history', `url-http', `url-methods', `url-parse',
-  ;; `url-privacy', `url-proxy', `url-util', `url-vars', `view',
-  ;; `w32-reg-iface', `w32-regdat', `wid-edit', `xmltok'.
+  ;; `udev', `udev-ecb', `udev-rinari', `url', `url-auth', `url-c',
+  ;; `url-cookie', `url-expand', `url-gw', `url-history', `url-http',
+  ;; `url-methods', `url-parse', `url-privacy', `url-proxy',
+  ;; `url-util', `url-vars', `view', `w32-reg-iface', `w32-regdat',
+  ;; `wid-edit', `xhtml-help', `xml', `xmltok'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -68,7 +69,7 @@
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'cus-edit))
 (eval-when-compile (require 'dired))
-(eval-when-compile (require 'gimp))
+(eval-when-compile (require 'gimpedit))
 (eval-when-compile (require 'html-site))
 (eval-when-compile (when (fboundp 'nxml-mode) (require 'nxhtml-mode)))
 (eval-when-compile (require 'css-color))
@@ -148,13 +149,13 @@
       buffer-file-name))
 
 (defun nxhtml-gimp-can-edit ()
-  (gimp-can-edit (nxhtml-menu-image-file)))
+  (gimpedit-can-edit (nxhtml-menu-image-file)))
 
 ;;;###autoload
 (defun nxhtml-edit-with-gimp ()
   "Edit with GIMP buffer or file at point."
   (interactive)
-  (gimp-edit-file (nxhtml-menu-image-file)))
+  (gimpedit-edit-file (nxhtml-menu-image-file)))
 
 ;;;###autoload
 (defun nxhtml-browse-file (file)
