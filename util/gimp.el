@@ -2,15 +2,15 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Wed May 23 14:59:50 2007
-(defconst gimp:version "0.2") ;;Version:
-;; Last-Updated:
+(defconst gimp:version "0.3") ;;Version:
+;; Last-Updated: 2009-11-02 Mon
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   None
+  ;; `setup-helper', `w32-reg-iface', `w32-regdat'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -48,29 +48,28 @@
 
 ;; (gimp-get-remote-command)
 (defun gimp-get-remote-command ()
-  (when (featurep 'w32-regdat)
-    (save-match-data
-      (let ((cmd (w32-regdat-gimp-win-remote-cmd))
-            cmd-list)
-        (while (< 0 (length cmd))
-          (cond
-           ((or (string-match (rx string-start
-                                   ?\"
-                                  (submatch
-                                   (0+ (not (any ?\"))))
-                                   ?\"
-                                  (0+ space))
-                              cmd)
-                (string-match (rx string-start
-                                  (submatch
-                                   (0+ (not (any space))))
-                                  (0+ space))
-                              cmd))
-            (setq cmd-list (cons (match-string-no-properties 1 cmd) cmd-list))
-            (setq cmd (substring cmd (match-end 0)))
-            )
-          ))
-        (reverse (cdr cmd-list))))))
+  (if (featurep 'w32-regdat)
+      (save-match-data
+        (let ((cmd (w32-regdat-gimp-win-remote-cmd))
+              cmd-list)
+          (while (< 0 (length cmd))
+            (cond
+             ((or (string-match (rx string-start
+                                    ?\"
+                                    (submatch
+                                     (0+ (not (any ?\"))))
+                                    ?\"
+                                    (0+ space))
+                                cmd)
+                  (string-match (rx string-start
+                                    (submatch
+                                     (0+ (not (any space))))
+                                    (0+ space))
+                                cmd))
+              (setq cmd-list (cons (match-string-no-properties 1 cmd) cmd-list))
+              (setq cmd (substring cmd (match-end 0))))))
+          (reverse (cdr cmd-list))))
+    '("gimp-remote" "gimp")))
 
 (defvar gimp-remote-command nil)
 

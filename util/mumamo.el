@@ -4153,14 +4153,28 @@ information.
                                                               nil nil)))
                (syntax-min (or (car syntax-min-max)
                                (when after-chunk (overlay-end after-chunk))
-                               1)))
-          (setq curr-end-fun-end (or (funcall curr-end-fun use-min use-max)
-                                     ;; Use old end if valid
-                                     (and after-change-max
-                                          chunk-end
-                                          (= -1 (overlay-get chunk-at-after-change 'mumamo-next-depth-diff))
-                                          (< after-change-max chunk-end)
-                                          chunk-end)))
+                               1))
+               (possible-end-fun-end t))
+          ;; The code below takes care of the case when to subsequent
+          ;; chunks have the same ending delimiter. (Maybe a while
+          ;; loop is bit overkill here.)
+          (while (and possible-end-fun-end
+                      (not curr-end-fun-end)
+                      (< use-min use-max))
+            (setq curr-end-fun-end (funcall curr-end-fun use-min use-max))
+            (if (not curr-end-fun-end)
+                (setq possible-end-fun-end nil)
+              (when (and after-chunk-is-closed
+                         (<= curr-end-fun-end (overlay-end after-chunk)))
+                (setq curr-end-fun-end nil)
+                (setq use-min (1+ use-min)))))
+          (unless curr-end-fun-end
+            ;; Use old end if valid
+            (and after-change-max
+                 chunk-end
+                 (= -1 (overlay-get chunk-at-after-change 'mumamo-next-depth-diff))
+                 (< after-change-max chunk-end)
+                 chunk-end))
           ;; Fix-me: Check if old chunk is valid. It is not valid if
           ;; depth-diff = -1 and curr-end-fun-end is not the same as
           ;; before.
@@ -6747,7 +6761,8 @@ The following rules are used when indenting:
                       this-line-major0 this-line-major1 this-line-major2 this-line-major3
                       prev-line-major0 prev-line-major1 prev-line-major2 prev-line-major3
                       )
-    (assert (not (and leaving-submode entering-submode)) t)
+    (when (and leaving-submode entering-submode)
+      (error "Do not know how to indent here (both leaving and entering sub chunks)"))
     ;; Fix-me: indentation
     ;;(error "Leaving=%s, entering=%s this0,1,2,3=%s,%s,%s,%s" leaving-submode entering-submode this-line-major0 this-line-major1 this-line-major2 this-line-major3)
     (when (or leaving-submode entering-submode)
