@@ -102,7 +102,7 @@
            (chart        "Easy google charts" "chart.el" "0.2")
            "Fetching and using elisp from repositories"
            (udev         "Fetch and from elisp repostories" "udev.el" "0.5")
-           (udev-cedet   "CEDET fetcher and loader" "udev-cedet.el" "0.2")
+           ;;(udev-cedet   "CEDET fetcher and loader" "udev-cedet.el" "0.2")
            (udev-ecb     "ECB fetcher and loader" "udev-ecb.el" "0.2")
            (udev-rinari  "Rinari fetcher and loader" "udev-rinari.el" "0.2")
            "Games and life"

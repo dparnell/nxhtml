@@ -130,7 +130,7 @@ contact time.)"
 The function should return nil if not needed and non-nil
 otherwise."
   :type 'function
-  :group 'hl-need)
+  :group 'hl-needed)
 
 (defvar hl-needed-timer nil)
 (defvar hl-needed-flash-timer nil)
