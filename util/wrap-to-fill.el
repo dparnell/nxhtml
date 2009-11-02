@@ -178,10 +178,12 @@ Key bindings added by this minor mode:
 (defun wrap-to-fill-set-values-in-timer (win buf)
   (when (and (window-live-p win) (buffer-live-p buf))
     (condition-case err
-        (when (eq buf (window-buffer win))
+        (if (eq buf (window-buffer win))
           (with-current-buffer buf
             (when wrap-to-fill-column-mode
-              (wrap-to-fill-set-values-in-window win))))
+              (wrap-to-fill-set-values-in-window win)))
+          (message "INT ERR wrap-to-fill-set-values: buf /= winbuf %s /= %s" buf (window-buffer win))
+          )
       (error (message "ERROR wrap-to-fill-set-values: %s" (error-message-string err))))))
 
 (defun wrap-to-fill-set-values-in-buffer-windows ()

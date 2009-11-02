@@ -1199,7 +1199,7 @@ through the completion functions too choose which one to use.)
 NOTE: This uses `emulation-mode-map-alists' and it supposes that
 nothing else is bound to Tab there."
   (interactive "P")
-          (message "first:tabkey2-step-out=%s, %s" (this-command-keys) tabkey2-step-out-of-the-way)
+  ;;(message "first:tabkey2-step-out=%s, %s" (this-command-keys) tabkey2-step-out-of-the-way)
   (if tabkey2-step-out-of-the-way
       (progn
         (message "step-out=%s" tabkey2-step-out-of-the-way)
