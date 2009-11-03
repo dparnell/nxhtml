@@ -12,5 +12,5 @@ Where are the "..." in org-mumamo-mode???
 
 ** Some subnode
 
-Hm, header lines are broken, why?
+Hm, org full header lines are broken, why?
 Does not seem related to mumamo.

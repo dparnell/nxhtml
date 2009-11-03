@@ -172,19 +172,19 @@ Key bindings added by this minor mode:
   (when (timerp wrap-to-fill-timer)
     (cancel-timer wrap-to-fill-timer))
   (setq wrap-to-fill-timer
-        (run-with-idle-timer 0 nil 'wrap-to-fill-set-values-in-timer (selected-window) (current-buffer))))
+        (run-with-idle-timer 0 nil 'wrap-to-fill-set-values-in-timer
+                             (selected-window) (current-buffer))))
 (put 'wrap-to-fill-set-values 'permanent-local-hook t)
 
 (defun wrap-to-fill-set-values-in-timer (win buf)
-  (when (and (window-live-p win) (buffer-live-p buf))
+  (when (and (window-live-p win) (buffer-live-p buf)
+             (eq buf (window-buffer win)))
     (condition-case err
-        (if (eq buf (window-buffer win))
-          (with-current-buffer buf
-            (when wrap-to-fill-column-mode
-              (wrap-to-fill-set-values-in-window win)))
-          (message "INT ERR wrap-to-fill-set-values: buf /= winbuf %s /= %s" buf (window-buffer win))
-          )
-      (error (message "ERROR wrap-to-fill-set-values: %s" (error-message-string err))))))
+        (with-current-buffer buf
+          (when wrap-to-fill-column-mode
+            (wrap-to-fill-set-values-in-window win)))
+      (error (message "ERROR wrap-to-fill-set-values: %s"
+                      (error-message-string err))))))
 
 (defun wrap-to-fill-set-values-in-buffer-windows ()
   "Use `fill-column' display columns in buffer windows."

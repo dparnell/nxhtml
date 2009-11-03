@@ -351,7 +351,7 @@ To create a menu item something similar to this can be used:
 
 (defun with-unfilling (fn)
   "Unfill using the fill function FN."
-  (let ((fill-column 10000000)) (call-interactively fn)))
+  (let ((fill-column (1+ (point-max)))) (call-interactively fn)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
