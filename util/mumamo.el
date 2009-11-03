@@ -3606,10 +3606,9 @@ When doing this store the functions for creating the next chunk
 after this in the properties below of the now created chunk:
 
 - 'mumamo-next-major: is nil or the next chunk's major mode.
-- 'mumamo-next-chunk-funs: nil or similar to the variable
-  `mumamo-current-chunk-family'.
 - 'mumamo-next-end-fun: function that searches for end of AFTER-CHUNK
 - 'mumamo-next-border-fun: functions that finds borders"
+;;- 'mumamo-next-chunk-funs: nil or similar to the variable `mumamo-current-chunk-family'.
   ;;((1 696 nxhtml-mode nil nil nil nil) (696 nil php-mode nil nil nil nil))
   ;;(current (list curr-min curr-max curr-major curr-border-min curr-border-max curr-parseable curr-fw-exc-fun))
   ;;(next    (list next-min next-max next-major next-border-min next-border-max next-parseable next-fw-exc-fun)))
@@ -3698,7 +3697,7 @@ after this in the properties below of the now created chunk:
         (overlay-put this-chunk 'mumamo-next-depth-diff next-depth-diff)
         (assert (symbolp next-major) t)
         (overlay-put this-chunk 'mumamo-next-major next-major)
-        (overlay-put this-chunk 'mumamo-next-chunk-funs next-chunk-funs)
+        ;;(overlay-put this-chunk 'mumamo-next-chunk-funs next-chunk-funs)
         ;; Values for this chunk
         (overlay-put this-chunk 'mumamo-is-closed is-closed)
         (overlay-put this-chunk 'syntax-min-d bmin)
@@ -3881,7 +3880,7 @@ after this in the properties below of the now created chunk:
          (chunk-next-major      (overlay-get chunk 'mumamo-next-major))
          (chunk-next-end-fun    (mumamo-chunk-car chunk 'mumamo-next-end-fun))
          (chunk-next-border-fun (mumamo-chunk-car chunk 'mumamo-next-border-fun))
-         (chunk-next-chunk-funs (overlay-get chunk 'mumamo-next-chunk-funs))
+         ;;(chunk-next-chunk-funs (overlay-get chunk 'mumamo-next-chunk-funs))
          (chunk-next-chunk-diff (overlay-get chunk 'mumamo-next-depth-diff))
          (chunk-beg (overlay-start chunk))
          (chunk-end (overlay-end chunk))
@@ -3923,7 +3922,7 @@ after this in the properties below of the now created chunk:
          ;;(eq chunk-next-border-fun    values-next-border-fun)
 
          ;;(progn (message "eq-c-v: here a, %s /= %s" chunk-next-chunk-funs values-next-chunk-funs) t)
-         (equal chunk-next-chunk-funs values-next-chunk-funs)
+         ;;(equal chunk-next-chunk-funs values-next-chunk-funs)
          (= chunk-next-chunk-diff     values-next-depth-diff)
          (= chunk-beg values-beg)
          ;;(progn (message "eq-c-v: here b") t)
@@ -3981,8 +3980,6 @@ to this list.")
               (assoc major mumamo-sub-chunk-families))))
     (caddr (cadr rec))))
 
-;; Fix-me: make mumamo-sub-chunk-families buffer local + add main
-;; chunk families to it.
 (defun mumamo-inherit-sub-chunk-family-locally (multi-major multi-using)
   "Add chunk dividing routines from MULTI-MAJOR locally.
 The dividing routines from multi major mode MULTI-MAJOR can then
@@ -4784,13 +4781,9 @@ request a change of major mode when Emacs is idle that long.
 See the variable above for an explanation why a delay might be
 needed \(and is the default)."
   ;;(msgtrc "set-major-post-command here")
-  (let* (;;(ovl (mumamo-get-chunk-at (point)))
-         ;;(ovl (mumamo-find-chunks (point) "mumamo-set-major-post-command"))
-         (in-pre-hook (memq 'mumamo-set-major-pre-command pre-command-hook))
-         ;;(ovl (unless in-pre-hook (mumamo-get-existing-new-chunk-at (point))))
+  (let* ((in-pre-hook (memq 'mumamo-set-major-pre-command pre-command-hook))
          (ovl (unless in-pre-hook (mumamo-post-command-get-chunk (point))))
-         (major (when ovl (mumamo-chunk-major-mode ovl)))
-         )
+         (major (when ovl (mumamo-chunk-major-mode ovl))))
     ;;(msgtrc "set-major-post-command ovl=%s, in-pre-hook=%s" ovl in-pre-hook)
     (if (and (not in-pre-hook)
              (not major))
@@ -4799,7 +4792,6 @@ needed \(and is the default)."
       (unless (and mumamo-done-first-set-major
                    (or (eq major-mode major)
                        in-pre-hook))
-        ;;(msgtrc "set-major-post-command here done=%s\nsurvive=%s" mumamo-done-first-set-major mumamo-survive)
         (if mumamo-done-first-set-major
             (if (<= 0 mumamo-set-major-mode-delay)
                 ;; Window point has been moved to a new chunk with a
@@ -5118,22 +5110,22 @@ function, it is changed to a list of functions."
 (eval-after-load 'vi
   (progn
     (put 'vi-add-to-mode-line 'permanent-local t)
-    ;;Warning (mumamo-survive): Not a local variable: vi-scroll-amount
-    ;;Warning (mumamo-survive): Not a local variable: vi-shift-width
-    ;;Warning (mumamo-survive): Not a local variable: vi-ins-point
-    ;;Warning (mumamo-survive): Not a local variable: vi-ins-length
-    ;;Warning (mumamo-survive): Not a local variable: vi-ins-repetition
-    ;;Warning (mumamo-survive): Not a local variable: vi-ins-overwrt-p
-    ;;Warning (mumamo-survive): Not a local variable: vi-ins-prefix-code
-    ;;Warning (mumamo-survive): Not a local variable: vi-last-change-command
-    ;;Warning (mumamo-survive): Not a local variable: vi-last-shell-command
-    ;;Warning (mumamo-survive): Not a local variable: vi-last-find-char
-    ;;Warning (mumamo-survive): Not a local variable: vi-mark-alist
-    ;;Warning (mumamo-survive): Not a local variable: vi-insert-state
-    ;;Warning (mumamo-survive): Not a local variable: vi-mode-old-local-map
-    ;;Warning (mumamo-survive): Not a local variable: vi-mode-old-mode-name
-    ;;Warning (mumamo-survive): Not a local variable: vi-mode-old-major-mode
-    ;;Warning (mumamo-survive): Not a local variable: vi-mode-old-case-fold
+    ;;Warning (mumamo-per-buffer-local-vars): Not a local variable: vi-scroll-amount
+    ;;Warning (mumamo-per-buffer-local-vars): Not a local variable: vi-shift-width
+    ;;Warning (mumamo-per-buffer-local-vars): Not a local variable: vi-ins-point
+    ;;Warning (mumamo-per-buffer-local-vars): Not a local variable: vi-ins-length
+    ;;Warning (mumamo-per-buffer-local-vars): Not a local variable: vi-ins-repetition
+    ;;Warning (mumamo-per-buffer-local-vars): Not a local variable: vi-ins-overwrt-p
+    ;;Warning (mumamo-per-buffer-local-vars): Not a local variable: vi-ins-prefix-code
+    ;;Warning (mumamo-per-buffer-local-vars): Not a local variable: vi-last-change-command
+    ;;Warning (mumamo-per-buffer-local-vars): Not a local variable: vi-last-shell-command
+    ;;Warning (mumamo-per-buffer-local-vars): Not a local variable: vi-last-find-char
+    ;;Warning (mumamo-per-buffer-local-vars): Not a local variable: vi-mark-alist
+    ;;Warning (mumamo-per-buffer-local-vars): Not a local variable: vi-insert-state
+    ;;Warning (mumamo-per-buffer-local-vars): Not a local variable: vi-mode-old-local-map
+    ;;Warning (mumamo-per-buffer-local-vars): Not a local variable: vi-mode-old-mode-name
+    ;;Warning (mumamo-per-buffer-local-vars): Not a local variable: vi-mode-old-major-mode
+    ;;Warning (mumamo-per-buffer-local-vars): Not a local variable: vi-mode-old-case-fold
     ;;
     ))
 (eval-after-load 'vi
@@ -5240,7 +5232,7 @@ function, it is changed to a list of functions."
 ;; Fix-me: Rails, many problematic things:
 
 ;;; Fix-me: No idea about these, where are they used?? Add them to
-;;; mumamo-survive?:
+;;; mumamo-per-buffer-local-vars?:
 ;; predictive-main-dict
 ;; predictive-prog-mode-main-dict
 ;; predictive-use-auto-learn-cache
@@ -5270,7 +5262,7 @@ function, it is changed to a list of functions."
 
 ;;; Fix-me: This is in the minor mode, what to do? Looks like it
 ;;; should have 'permanent-local t - in this case.  I have added it to
-;;; mumamo-survive for now.
+;;; mumamo-per-buffer-local-vars for now.
 ;; tags-file-name
 
 (eval-after-load 'rails
@@ -5281,7 +5273,7 @@ function, it is changed to a list of functions."
 
 
 
-(defvar mumamo-survive
+(defvar mumamo-per-buffer-local-vars
   '(
     buffer-file-name
     left-margin-width
@@ -5328,8 +5320,8 @@ function, it is changed to a list of functions."
 ;;;     longlines-wrap-point
 ;;;     longlines-showing
 ;;;     longlines-decoded
-    buffer-invisibility-spec
-    header-line-format
+    ;;buffer-invisibility-spec
+    ;;header-line-format
 
     line-move-visual ;;simple.el:4537:    (kill-local-variable 'line-move-visual)
     word-wrap ;;simple.el:4538:    (kill-local-variable 'word-wrap)
@@ -5339,24 +5331,38 @@ function, it is changed to a list of functions."
     visual-line--saved-state ;;simple.el:4544:    (kill-local-variable 'visual-line--saved-state)))
     vis-mode-saved-buffer-invisibility-spec ;;simple.el:6237:    (kill-local-variable 'vis-mode-saved-buffer-invisibility-spec))
     )
-  "Local variables to survive the change of major mode.")
+  "Per buffer local variables.
+See also `mumamo-per-main-major-local-vars'.")
 
-(when nil
-  (make-variable-buffer-local 'mumamo-survive-minor-modes)
-  (put 'mumamo-survive-minor-modes 'permanent-local t)
-  (defvar mumamo-survive-minor-modes nil
-    "Hold local minor mode variables specific major modes.
-  Those values are saved when leaving a chunk with a certain
-  major mode and restored when entering a chunk with the same
-  major mode again.
+;; Fix-me: use this, but how exactly? I think the var values must be
+;; picked up at every change from main major mode. And restored after
+;; changing to the new major mode - but maybe a bit differently if
+;; this is the main major mode.
+(defvar mumamo-per-main-major-local-vars
+  '(
+    buffer-invisibility-spec
+    header-line-format
+    )
+  "Per main major local variables.
+Like `mumamo-per-buffer-local-vars', but this is fetched from the
+main major mode.")
 
-  The value of this variable is an associative list where the key
-  is a list with
+;; (when nil
+;;   (make-variable-buffer-local 'mumamo-survive-minor-modes)
+;;   (put 'mumamo-survive-minor-modes 'permanent-local t)
+;;   (defvar mumamo-survive-minor-modes nil
+;;     "Hold local minor mode variables specific major modes.
+;;   Those values are saved when leaving a chunk with a certain
+;;   major mode and restored when entering a chunk with the same
+;;   major mode again.
 
-    \(MAJOR-MODE MINOR-MODE)
+;;   The value of this variable is an associative list where the key
+;;   is a list with
 
-  and the value is a stored value for the minor mode.")
-  )
+;;     \(MAJOR-MODE MINOR-MODE)
+
+;;   and the value is a stored value for the minor mode.")
+;;   )
 
 (defun mumamo-make-variable-buffer-permanent (var)
   "Make buffer local value of VAR survive when moving point to a new chunk.
@@ -5368,10 +5374,9 @@ variables unless they have a non-nil `permanent-local' property
 If you do not want to put a `permanent-local' property on a
 variable you can instead use this function to make variable VAR
 survive chunk switches in all mumamo multi major mode buffers."
-
   ;; If you want it to survive chunk switches only in the current
   ;; buffer then use `mumamo-make-local-permanent' instead."
-  (pushnew var (default-value 'mumamo-survive)))
+  (pushnew var (default-value 'mumamo-per-buffer-local-vars)))
 
 ;; ;; Fix-me: use local value
 ;; ;; Fix-me: delelete local value when exiting mumamo
@@ -5380,9 +5385,9 @@ survive chunk switches in all mumamo multi major mode buffers."
 ;; This is for the current buffer only.
 ;; In most cases you almost certainly want to use
 ;; `mumamo-make-variable-buffer-permanent' instead."
-;;   (pushnew var mumamo-survive))
+;;   (pushnew var mumamo-per-buffer-local-vars))
 
-(defvar mumamo-survive-done-by-me nil
+(defvar mumamo-per-buffer-local-vars-done-by-me nil
   "Variables set by mumamo already.
 Used to avoid unnecessary warnings if setting major mode fails.")
 
@@ -5716,16 +5721,17 @@ by the user.
       ad-do-it))
   )
 
-(defun mumamo-save-most-buffer-locals (major)
-  "Save some local variables for major mode MAJOR.
+(defun mumamo-save-per-major-local-vars (major)
+  "Save some per major local variables for major mode MAJOR.
 This should be called before switching to a new chunks major
 mode."
-  ;;(message "mumamo-save-most-buffer-locals %s %s" major (current-buffer))
+  ;;(message "mumamo-save-per-major-local-vars %s %s" major (current-buffer))
   (let ((locals (buffer-local-variables)))
     (setq locals (mapcar (lambda (local)
                            (unless
                                (or (memq (car local) mumamo-buffer-locals-dont-set)
-                                   (memq (car local) mumamo-survive)
+                                   (memq (car local) mumamo-per-buffer-local-vars)
+                                   (memq (car local) mumamo-per-main-major-local-vars)
                                    (get (car local) 'permanent-local))
                              local))
                          locals))
@@ -5739,23 +5745,25 @@ mode."
           (cons (cons major-mode locals)
                 mumamo-buffer-locals-per-major))))
 
-;; (benchmark 1000 '(mumamo-save-most-buffer-locals major-mode))
-;; (benchmark 1000 '(mumamo-restore-most-buffer-locals major-mode))
-(defvar mumamo-restore-most-buffer-locals-in-hook-major nil)
-(defun mumamo-restore-most-buffer-locals-in-hook ()
-  "Call `mumamo-restore-most-buffer-locals'.
-Use `mumamo-restore-most-buffer-locals-in-hook-major' as the
-major mode."
-  (mumamo-restore-most-buffer-locals
-   mumamo-restore-most-buffer-locals-in-hook-major)
-  (setq mumamo-restore-most-buffer-locals-in-hook-major nil))
-(put 'mumamo-restore-most-buffer-locals-in-hook 'permanent-local-hook t)
+;; (benchmark 1000 '(mumamo-save-per-major-local-vars major-mode))
+;; (benchmark 1000 '(mumamo-restore-per-major-local-vars major-mode))
+(defvar mumamo-restore-per-major-local-vars-in-hook-major nil)
+(defun mumamo-restore-per-major-local-vars-in-hook ()
+  "Restore some per major mode local variables.
+Call `mumamo-restore-per-major-local-vars'.
+Use `mumamo-restore-per-major-local-vars-in-hook-major' as the
+major mode.
 
-(defun mumamo-restore-most-buffer-locals (major)
-  "Restore some local variables for major mode MAJOR.
+This should be called in the major mode setup hook."
+  (mumamo-restore-per-major-local-vars
+   mumamo-restore-per-major-local-vars-in-hook-major)
+  (setq mumamo-restore-per-major-local-vars-in-hook-major nil))
+(put 'mumamo-restore-per-major-local-vars-in-hook 'permanent-local-hook t)
+
+(defun mumamo-restore-per-major-local-vars (major)
+  "Restore some per major local variables for major mode MAJOR.
 This should be called after switching to a new chunks major
 mode."
-  ;;(message "mumamo-restore-most-buffer-locals %s %s" major (current-buffer))
   (let ((locals (cdr (assq major mumamo-buffer-locals-per-major)))
         var
         perm)
@@ -5798,11 +5806,14 @@ default values."
 (defvar mumamo-set-major-keymap-checked nil)
 (make-variable-buffer-local 'mumamo-set-major-keymap-checked)
 
+(defvar mumamo-org-startup-done nil)
+(make-variable-buffer-local 'mumamo-org-startup-done)
+(put 'mumamo-org-startup-done 'permanent-local t)
+
 (defun mumamo-set-major (major)
   "Set major mode to MAJOR for mumamo."
   (mumamo-msgfntfy "mumamo-set-major %s, %s" major (current-buffer))
   ;;(mumamo-backtrace "mumamo-set-major")
-  ;;(message "mumamo-set-major %s, %s" major (current-buffer))
   (remove-hook 'text-mode-hook 'viper-mode) ;; Fix-me: maybe add it back...
   (let ((start-time (get-internal-run-time))
         end-time
@@ -5811,6 +5822,8 @@ default values."
         viper-vi-state-mode-list
         viper-emacs-state-mode-list
         viper-insert-state-mode-list
+        ;; Org-Mode
+        (org-inhibit-startup mumamo-org-startup-done)
         ;; Tell `mumamo-change-major-function':
         (mumamo-set-major-running major)
         ;; Fix-me: Take care of the new values added to these hooks!
@@ -5832,11 +5845,12 @@ default values."
         ;; Viper is used
         (old-cursor-type cursor-type)
         ;; Protect last-command: fix-me: probably remove
-;;;         (old-last-command last-command)
+        ;; (old-last-command last-command)
         (last-command last-command)
         ;; Fix-me: remove this
         (old-rng-schema-file (when (boundp 'rng-current-schema-file-name) rng-current-schema-file-name))
-        saved-state
+        per-buffer-local-vars-state
+        per-main-major-local-vars-state
         )
     ;; We are not changing mode from font-lock's point of view, so do
     ;; not tell font-lock (let binding these hooks is probably not a
@@ -5845,32 +5859,42 @@ default values."
     (mumamo-remove-from-hook 'change-major-mode-hook mumamo-change-major-mode-no-nos)
     ;;(message "change-major-mode-hook=%s" change-major-mode-hook)
     ;;(message "change-major-mode-hook glob=%s" (default-value 'change-major-mode-hook))
-;;;     (remove-hook 'change-major-mode-hook 'font-lock-change-mode t)
-;;;     (remove-hook 'change-major-mode-hook 'longlines-mode-off t)
-;;;     (remove-hook 'change-major-mode-hook 'global-font-lock-mode-cmhh)
-;;;     ;; Added somewhere at the beginning of April to nxml:
-;;;     (remove-hook 'change-major-mode-hook 'nxml-cleanup t)
-;;;     ;; We are not changing mode from hs-minor-mode's point of view:
-;;;     (remove-hook 'change-major-mode-hook 'turn-off-hideshow t)
+    ;; (remove-hook 'change-major-mode-hook 'font-lock-change-mode t)
+    ;; (remove-hook 'change-major-mode-hook 'longlines-mode-off t)
+    ;; (remove-hook 'change-major-mode-hook 'global-font-lock-mode-cmhh)
+    ;; ;; Added somewhere at the beginning of April to nxml:
+    ;; (remove-hook 'change-major-mode-hook 'nxml-cleanup t)
+    ;; ;; We are not changing mode from hs-minor-mode's point of view:
+    ;; (remove-hook 'change-major-mode-hook 'turn-off-hideshow t)
 
-    (dolist (sym (reverse mumamo-survive))
+    ;;;;;;;;;;;;;;;;
+    ;; Save per buffer local variables
+    (dolist (sym (reverse mumamo-per-buffer-local-vars))
       (when (boundp sym)
         (when (and (get sym 'permanent-local)
-                   (not (memq sym mumamo-survive-done-by-me))
+                   (not (memq sym mumamo-per-buffer-local-vars-done-by-me))
                    (not (mumamo-hook-p sym)))
-          (delq sym mumamo-survive)
-          (lwarn 'mumamo-survive :warning
+          (delq sym mumamo-per-buffer-local-vars)
+          (lwarn 'mumamo-per-buffer-local-vars :warning
                  "Already 'permanent-local t: %s" sym))))
     ;; Fix-me: Implement alternative way since there are problems with
     ;; 'permanent-local right now. Copy the style used in
     ;; visual-line-mode.
-;;;     (dolist (sym mumamo-survive)
-;;;       (add-to-list 'mumamo-survive-done-by-me sym)
-;;;       (put sym 'permanent-local t))
-    (dolist (var mumamo-survive)
+    ;; (dolist (sym mumamo-per-buffer-local-vars)
+    ;;   (add-to-list 'mumamo-per-buffer-local-vars-done-by-me sym)
+    ;;   (put sym 'permanent-local t))
+    (dolist (var mumamo-per-buffer-local-vars)
       (if (local-variable-p var)
           (push (cons var (symbol-value var))
-                saved-state)))
+                per-buffer-local-vars-state)))
+
+    ;;;;;;;;;;;;;;;;
+    ;; Save per main major local variables
+    (when (eq major-mode (mumamo-main-major-mode))
+      (dolist (var mumamo-per-main-major-local-vars)
+        (if (local-variable-p var)
+            (push (cons var (symbol-value var))
+                  per-main-major-local-vars-state))))
 
     ;; For all hooks that probably can have buffer local values, go
     ;; through the buffer local values and look for a permanent-local
@@ -5892,16 +5916,15 @@ default values."
 
     (setq mumamo-major-mode major)
 
-
-    ;; Save local variables before switching major
-    (mumamo-save-most-buffer-locals major-mode)
-    ;; Restore local variables after switching, but do it in the
-    ;; greatest ancestor's mode hook (see `run-mode-hooks'):
+    ;;;;;;;;;;;;;;;;
+    ;; Save per major mode local variables before switching major
+    (mumamo-save-per-major-local-vars major-mode)
+    ;; Prepare to restore per major mode local variables after
+    ;; switching back to major-mode, but do it in the greatest
+    ;; ancestor's mode hook (see `run-mode-hooks'):
     (let (ancestor-hook-sym
           parent-hook-sym
-          (parent major)
-          ;;(restore-fun (lambda () (mumamo-restore-most-buffer-locals major)))
-          )
+          (parent major))
       ;; We want the greatest ancestor's mode hook:
       (setq parent-hook-sym (intern-soft (concat (symbol-name parent) "-hook")))
       (when parent-hook-sym (setq ancestor-hook-sym parent-hook-sym))
@@ -5911,23 +5934,27 @@ default values."
         (when parent-hook-sym (setq ancestor-hook-sym parent-hook-sym)))
       (when ancestor-hook-sym
         ;; Put first in local hook to run it first:
-        (setq mumamo-restore-most-buffer-locals-in-hook-major major)
+        (setq mumamo-restore-per-major-local-vars-in-hook-major major)
         (add-hook ancestor-hook-sym
-                  ;;restore-fun
-                  'mumamo-restore-most-buffer-locals-in-hook
+                  'mumamo-restore-per-major-local-vars-in-hook
                   nil t))
       ;;(msgtrc "mumamo-set-major before: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
+      (msgtrc "set-major A: buffer-invisibility-spec=%S" buffer-invisibility-spec)
       (funcall major) ;; <-----------------------------------------------
+      (msgtrc "set-major B: buffer-invisibility-spec=%S" buffer-invisibility-spec)
       ;;(msgtrc "mumamo-set-major after: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
       ;;(message "backtrace there:\n%s" (with-output-to-string (backtrace)))
       (setq font-lock-mode-major-mode major) ;; Tell font-lock it is ok
       (set (make-local-variable 'font-lock-function) 'mumamo-font-lock-function)
       (if (not ancestor-hook-sym)
-          (mumamo-restore-most-buffer-locals major)
+          (mumamo-restore-per-major-local-vars major)
         (remove-hook ancestor-hook-sym
                      ;;restore-fun
-                     'mumamo-restore-most-buffer-locals-in-hook
+                     'mumamo-restore-per-major-local-vars-in-hook
                      t)))
+    (msgtrc "set-major c: buffer-invisibility-spec=%S" buffer-invisibility-spec)
+
+    (when (eq major 'org-mode) (setq mumamo-org-startup-done t))
 
     (setq mumamo-major-mode-indent-line-function (cons major-mode indent-line-function))
     (make-local-variable 'indent-line-function)
@@ -5938,7 +5965,7 @@ default values."
                                "-mumamo-mode$" ""
                                (format "/%s" mumamo-multi-major-mode)))))
 
-    ;;(mumamo-restore-most-buffer-locals major)
+    ;;(mumamo-restore-per-major-local-vars major)
 
     (dolist (hk mumamo-survive-hooks) (put hk 'permanent-local nil))
 
@@ -5948,21 +5975,30 @@ default values."
     ;;       (add-hook 'after-save-hook 'flymake-after-save-hook nil t)
     ;;       (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook nil t))
 
+    ;;;;;;;;;;;;;;;;
+    ;; Restore per buffer local variables
 
-;;;     (dolist (sym mumamo-survive)
-;;;       (when (boundp sym)
-;;;         (put sym 'permanent-local nil)))
-    (dolist (saved saved-state)
+    ;; (dolist (sym mumamo-per-buffer-local-vars)
+    ;;   (when (boundp sym)
+    ;;     (put sym 'permanent-local nil)))
+    (dolist (saved per-buffer-local-vars-state)
       (set (make-local-variable (car saved)) (cdr saved)))
+
+    ;;;;;;;;;;;;;;;;
+    ;; Restore per main major local variables
+    (unless (eq major-mode (mumamo-main-major-mode))
+      (dolist (saved per-main-major-local-vars-state)
+        (set (make-local-variable (car saved)) (cdr saved))))
+
     ;;(mumamo-addback-to-hook 'change-major-mode-hook mumamo-change-major-mode-no-nos)
     (mumamo-addback-to-hooks)
     ;;(when (and (featurep 'mlinks) mlinks-mode) (add-hook 'after-change-functions 'mlinks-after-change t t))
 
     (setq cursor-type old-cursor-type)
-;;;     (unless (eq last-command old-last-command)
-;;;       (lwarn 'mumamo-set-major :error
-;;;              "last-command 3=%s, old-last-command" last-command old-last-command)
-;;;       (setq last-command old-last-command))
+    ;; (unless (eq last-command old-last-command)
+    ;;   (lwarn 'mumamo-set-major :error
+    ;;          "last-command 3=%s, old-last-command" last-command old-last-command)
+    ;;   (setq last-command old-last-command))
     (run-hooks 'mumamo-after-change-major-mode-hook)
 
     (when (derived-mode-p 'nxml-mode)
@@ -6144,6 +6180,7 @@ mode in the chunk family is nil."
           (mumamo-insert-describe-button 'define-mumamo-multi-major-mode 'describe-function)
           (insert "'.\n")))
     ;; Load major mode:
+    (setq mumamo-org-startup-done nil)
     (let ((main-major-mode (mumamo-major-mode-from-modespec (mumamo-main-major-mode))))
       (unless main-major-mode
         (setcar (cdr mumamo-current-chunk-family) old-major-mode)
