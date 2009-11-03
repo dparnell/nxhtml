@@ -3131,30 +3131,48 @@
               </li>
             </ul>
           </dd>
-          <dt id="v2.00">2.00 - not yet released</dt>
+          <dt id="v2.00">2.00</dt>
           <dd id="v2.00-dd">
+            <p>
+              2.00 does not stand for something very exciting, it is just a consecutive number. But - I do believe this is a rather mature version of nXhtml.
+            </p>
             <ul>
               <li>
-                Added support for Mason.
+                MuMaMo
+                <ul>
+                  <li>
+                    <span class="bugfix">
+                      Fixed some indentation bugs.
+                    </span>
+                  </li>
+                  <li>
+                    <span class="bugfix">
+                      Added multi major mode local sub chunk dividing inheriting.
+                    </span>
+                  </li>
+                  <li>
+                    <span class="bugfix">
+                      Made MuMaMo avoid closing org-mode nodes
+                    </span>
+                    when moving between sub chunks in org files.
+                  </li>
+                  <li>
+                    <span class="bugfix">
+                      Introduced per main major local variables.
+                    </span>
+                    First use is for buffer-invisibility-spec. This can only be set in the main major mode now. This is the most reasonable way I believe, since it will otherwise change when moving between chunks.
+                  </li>
+                  <li>
+                    Added support for Mason.
+                  </li>
+                </ul>
               </li>
               <li>
-                Fixed some indentation bugs.
+                <span class="bugfix">Renamed gimp.el to gimpedit.el</span> and made it open GIMP on other platforms than w32 too. (Symbols in the files are renamed too.) Skipped compatibility with old GIMP versions.
               </li>
               <li>
-                Added multi major mode local sub chunk dividing inheriting.
-              </li>
-              <li>
-                Renamed gimp.el to gimpedit.el and made it open GIMP on other platforms than w32 too. (Symbols in the files are renamed too.) Skipped compatibility with old GIMP versions.
-              </li>
-              <li>
-                Renamed freemind.el to org-freemind.el so that it can be included among the org files.
+                <span class="bugfix">Renamed freemind.el to org-freemind.el</span> so that it can be included among the org files.
                 Also added support for #+BEGIN_HTML when exporting to freemind.
-              </li>
-              <li>
-                Made MuMaMo avoid closing org-mode nodes when moving between sub chunks in org files.
-              </li>
-              <li>
-                MuMaMo: Introduced per main major local variables. First use is for buffer-invisibility-spec. This can only be set in the main major mode now. This is the most reasonable way I believe, since it will otherwise change when moving between chunks.
               </li>
             </ul>
           </dd>

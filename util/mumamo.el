@@ -5845,10 +5845,10 @@ default values."
         ;; Viper is used
         (old-cursor-type cursor-type)
         ;; Protect last-command: fix-me: probably remove
-        ;; (old-last-command last-command)
         (last-command last-command)
         ;; Fix-me: remove this
         (old-rng-schema-file (when (boundp 'rng-current-schema-file-name) rng-current-schema-file-name))
+        ;; Local vars, per buffer and per major mode
         per-buffer-local-vars-state
         per-main-major-local-vars-state
         )
@@ -5857,15 +5857,6 @@ default values."
     ;; good choice since they may contain other stuff too):
     (setq mumamo-removed-from-hook nil)
     (mumamo-remove-from-hook 'change-major-mode-hook mumamo-change-major-mode-no-nos)
-    ;;(message "change-major-mode-hook=%s" change-major-mode-hook)
-    ;;(message "change-major-mode-hook glob=%s" (default-value 'change-major-mode-hook))
-    ;; (remove-hook 'change-major-mode-hook 'font-lock-change-mode t)
-    ;; (remove-hook 'change-major-mode-hook 'longlines-mode-off t)
-    ;; (remove-hook 'change-major-mode-hook 'global-font-lock-mode-cmhh)
-    ;; ;; Added somewhere at the beginning of April to nxml:
-    ;; (remove-hook 'change-major-mode-hook 'nxml-cleanup t)
-    ;; ;; We are not changing mode from hs-minor-mode's point of view:
-    ;; (remove-hook 'change-major-mode-hook 'turn-off-hideshow t)
 
     ;;;;;;;;;;;;;;;;
     ;; Save per buffer local variables
@@ -5877,12 +5868,6 @@ default values."
           (delq sym mumamo-per-buffer-local-vars)
           (lwarn 'mumamo-per-buffer-local-vars :warning
                  "Already 'permanent-local t: %s" sym))))
-    ;; Fix-me: Implement alternative way since there are problems with
-    ;; 'permanent-local right now. Copy the style used in
-    ;; visual-line-mode.
-    ;; (dolist (sym mumamo-per-buffer-local-vars)
-    ;;   (add-to-list 'mumamo-per-buffer-local-vars-done-by-me sym)
-    ;;   (put sym 'permanent-local t))
     (dolist (var mumamo-per-buffer-local-vars)
       (if (local-variable-p var)
           (push (cons var (symbol-value var))
@@ -5938,21 +5923,19 @@ default values."
         (add-hook ancestor-hook-sym
                   'mumamo-restore-per-major-local-vars-in-hook
                   nil t))
-      ;;(msgtrc "mumamo-set-major before: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
-      (msgtrc "set-major A: buffer-invisibility-spec=%S" buffer-invisibility-spec)
+
+      ;;(msgtrc "set-major A: buffer-invisibility-spec=%S" buffer-invisibility-spec)
       (funcall major) ;; <-----------------------------------------------
-      (msgtrc "set-major B: buffer-invisibility-spec=%S" buffer-invisibility-spec)
-      ;;(msgtrc "mumamo-set-major after: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
-      ;;(message "backtrace there:\n%s" (with-output-to-string (backtrace)))
+      ;;(msgtrc "set-major B: buffer-invisibility-spec=%S" buffer-invisibility-spec)
+
       (setq font-lock-mode-major-mode major) ;; Tell font-lock it is ok
       (set (make-local-variable 'font-lock-function) 'mumamo-font-lock-function)
       (if (not ancestor-hook-sym)
           (mumamo-restore-per-major-local-vars major)
         (remove-hook ancestor-hook-sym
-                     ;;restore-fun
                      'mumamo-restore-per-major-local-vars-in-hook
                      t)))
-    (msgtrc "set-major c: buffer-invisibility-spec=%S" buffer-invisibility-spec)
+    ;;(msgtrc "set-major c: buffer-invisibility-spec=%S" buffer-invisibility-spec)
 
     (when (eq major 'org-mode) (setq mumamo-org-startup-done t))
 
@@ -5964,8 +5947,6 @@ default values."
                               (replace-regexp-in-string
                                "-mumamo-mode$" ""
                                (format "/%s" mumamo-multi-major-mode)))))
-
-    ;;(mumamo-restore-per-major-local-vars major)
 
     (dolist (hk mumamo-survive-hooks) (put hk 'permanent-local nil))
 
@@ -5990,15 +5971,10 @@ default values."
       (dolist (saved per-main-major-local-vars-state)
         (set (make-local-variable (car saved)) (cdr saved))))
 
-    ;;(mumamo-addback-to-hook 'change-major-mode-hook mumamo-change-major-mode-no-nos)
     (mumamo-addback-to-hooks)
     ;;(when (and (featurep 'mlinks) mlinks-mode) (add-hook 'after-change-functions 'mlinks-after-change t t))
 
     (setq cursor-type old-cursor-type)
-    ;; (unless (eq last-command old-last-command)
-    ;;   (lwarn 'mumamo-set-major :error
-    ;;          "last-command 3=%s, old-last-command" last-command old-last-command)
-    ;;   (setq last-command old-last-command))
     (run-hooks 'mumamo-after-change-major-mode-hook)
 
     (when (derived-mode-p 'nxml-mode)
@@ -6031,9 +6007,6 @@ default values."
 ;;;     (when global-font-lock-mode
 ;;;       (add-hook 'change-major-mode-hook 'global-font-lock-mode-cmhh))
 ;;;     (add-hook 'change-major-mode-hook 'font-lock-change-mode nil t)
-;;;     (when (and (fboundp 'longlines-mode-off)
-;;;                longlines-mode)
-;;;       (add-hook 'change-major-mode-hook 'longlines-mode-off nil t))
 
     (mumamo-set-fontification-functions)
 
