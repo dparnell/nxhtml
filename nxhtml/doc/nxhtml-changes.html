@@ -304,6 +304,7 @@
           <a href="#v1.98">v1.98</a>
           <a href="#v1.99">v1.99</a>
           <a href="#v2.00">v2.00</a>
+          <a href="#v2.01">v2.01</a>
         </div>
 
         <dl>
@@ -3160,7 +3161,7 @@
                     <span class="bugfix">
                       Introduced per main major local variables.
                     </span>
-                    First use is for buffer-invisibility-spec. This can only be set in the main major mode now. This is the most reasonable way I believe, since it will otherwise change when moving between chunks.
+                    First use is for buffer-invisibility-spec. This can only be set in the main major mode now. (Or rather, it will be reset to what was last set in main major mode when you move between chunks.) This is the most reasonable way I believe, since it may otherwise change when moving between chunks and the new chunk's major mode is called.
                   </li>
                   <li>
                     Added support for Mason.
@@ -3173,6 +3174,22 @@
               <li>
                 <span class="bugfix">Renamed freemind.el to org-freemind.el</span> so that it can be included among the org files.
                 Also added support for #+BEGIN_HTML when exporting to freemind.
+              </li>
+            </ul>
+          </dd>
+          <dt id="v2.01">2.01 - not yet released</dt>
+          <dd id="v2.01-dd">
+            <ul>
+              <li>
+                <span class="bugfix">
+                  org-freemind.el was broken. Sorry.
+                </span>
+              </li>
+              <li>
+                Fixed a bug in wrap-to-fill-column-mode.
+              </li>
+              <li>
+                Enhanced support for smarty template language.
               </li>
             </ul>
           </dd>

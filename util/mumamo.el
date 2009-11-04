@@ -361,7 +361,7 @@ FORMAT-STRING and ARGS have the same meaning as for the function
   ;;(list 'apply (list 'quote 'msgtrc) format-string (append '(list) args))
   ;;(list 'apply (list 'quote 'message) format-string (append '(list) args))
   ;;(list 'progn 'apply (list 'quote 'message) format-string (append '(list) args) nil)
-  ;;(list 'apply (list 'quote 'message) format-string (append '(list) args))
+  ;;(list 'apply (list 'quote 'message) format-string (append '(list) args)) ;; <--
   ;;(list 'apply (list 'quote 'message) (list 'concat "%s: " format-string)
   ;;   (list 'get-internal-run-time) (append '(list) args))
   )
@@ -1970,14 +1970,11 @@ that does syntactic fontification."
                     (narrow-to-region chunk-syntax-min chunk-syntax-max)
                     ;; Now call font-lock-fontify-region again but now
                     ;; with the chunk font lock parameters:
-                    ;;(msgtrc "(font-lock-do-fontify new-start=%s new-end=%s)" new-start new-end)
                     (setq font-lock-syntactically-fontified (1- new-start))
                     (mumamo-msgfntfy "ENTER font-lock-fontify-region %s %s %s" new-start new-end verbose)
-                    ;;(msgtrc "ENTER font-lock-fontify-region %s %s %s" new-start new-end verbose)
-                    ;;(message "mumamo-do-fontify: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
+                    ;;(msgtrc "mumamo-do-fontify: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
                     (font-lock-fontify-region new-start new-end verbose)
                     (mumamo-msgfntfy "END font-lock-fontify-region %s %s %s" new-start new-end verbose)
-                    ;;(msgtrc "END font-lock-fontify-region %s %s %s" new-start new-end verbose)
                     )
                   )
               (error
@@ -2359,7 +2356,7 @@ most major modes."
           ;;  (assert (= (overlay-end prev-chunk) (overlay-start chunk))))
 
           ;; Fontify
-          ;;(message "\nmumamo-fontify-region-1 before chunk=%s" chunk)
+          ;;(msgtrc "\nmumamo-fontify-region-1 before chunk=%s" chunk)
           (mumamo-update-obscure chunk here)
           (let* ((syntax-min-max (mumamo-chunk-syntax-min-max chunk nil))
                  (syntax-min (car syntax-min-max))
@@ -2371,7 +2368,7 @@ most major modes."
                  (border-max (cdr border-min-max))
                  )
             ;;(msgtrc "chunk mumamo-border-face: %s" chunk)
-            ;;(message "mumamo-fontify-region-1, here=%s chunk-min=%s syn-mn/mx=%s/%s" here chunk-min syntax-min syntax-max)
+            (mumamo-msgfntfy "mumamo-fontify-region-1, here=%s chunk-min=%s syn-mn/mx=%s/%s" here chunk-min syntax-min syntax-max)
             (when (<= here syntax-min)
               (mumamo-flush-chunk-syntax chunk chunk-min chunk-max))
             (when (and (<= here syntax-min)
@@ -2414,6 +2411,7 @@ most major modes."
     hi-lock-mode
     hi-lock-file-patterns
     hi-lock-interactive-patterns
+    wrap-to-fill-column-mode
     ))
 
 (defconst mumamo-irrelevant-buffer-local-vars
@@ -2666,8 +2664,13 @@ The main reasons for doing it this way is:
         (if add-keywords
             (progn
               ;;(msgtrc "fetch:font-lock-add-keywords %S %S %S" (if mode-keywords major nil) keywords how)
-              (font-lock-add-keywords (if mode-keywords major nil) keywords how))
-          (font-lock-remove-keywords (if mode-keywords major nil) keywords))
+              (font-lock-add-keywords (if mode-keywords major nil) keywords how)
+              ;;(font-lock-add-keywords major keywords how)
+              ;;(msgtrc "fetch:font-lock-keywords=%S" font-lock-keywords)
+              )
+          (font-lock-remove-keywords (if mode-keywords major nil) keywords)
+          ;;(font-lock-remove-keywords major keywords)
+          )
         (unless mode-keywords (font-lock-mode -1) (font-lock-mode 1))
         ;;(msgtrc "fetch-major-mode-setup:font-lock-keywords=%S" font-lock-keywords)
         )
@@ -2810,14 +2813,19 @@ The main reasons for doing it this way is:
     ;; Use the new value in current buffer.
     (when  keywords
       ;;(set (make-local-variable func-sym) (symbol-value func-sym))
+      ;;(msgtrc "fetch: major=%s func-def-sym=%s cb=%s fetch-func-definition=%s" major func-def-sym (current-buffer) fetch-func-definition)
+      ;;(msgtrc "fetch: major=%s func-def-sym=%s cb=%s fetch-func-definition" major func-def-sym (current-buffer))
       (set (make-local-variable func-sym) byte-compiled-fun)
-      (set (make-local-variable func-def-sym) fetch-func-definition))
+      (set (make-local-variable func-def-sym) fetch-func-definition)
+      (put func-sym 'permanent-local t)
+      (put func-def-sym 'permanent-local t))
     (assert (functionp (symbol-value func-sym)) t)
     ;; return a list def + fun
     (cons func-sym func-def-sym)))
 
 ;; Fix-me: maybe a hook in font-lock-add-keywords??
 (defun mumamo-ad-font-lock-keywords-helper (major keywords how add-keywords)
+  ;;(msgtrc "ad-font-lock-keywords-helper %s %s %s %s" major keywords how add-keywords)
   (if major
       (mumamo-fetch-major-mode-setup major keywords t t how)
     ;; Fix-me: Can't do that, need a list of all
@@ -2838,6 +2846,7 @@ The main reasons for doing it this way is:
       ;;(font-lock-mode -1) (font-lock-mode 1)
       )))
 
+;; Fix-me: This has stopped working again 2009-11-04, but I do not know when it began...
 (defadvice font-lock-add-keywords (around
                                    mumamo-ad-font-lock-add-keywords
                                    activate
@@ -5314,15 +5323,10 @@ function, it is changed to a list of functions."
     nxml-prolog-end ;;dnxml-rap.el:92:(make-variable-buffer-local 'nxml-prolog-end)
     nxml-scan-end ;;dnxml-rap.el:107:(make-variable-buffer-local 'nxml-scan-end)
 
-;;;     longlines-mode
-;;;     longlines-wrap-beg
-;;;     longlines-wrap-end
-;;;     longlines-wrap-point
-;;;     longlines-showing
-;;;     longlines-decoded
     ;;buffer-invisibility-spec
     ;;header-line-format
 
+    ;; Fix-me: These must be handled with 'permanent-local since they may be changed:
     line-move-visual ;;simple.el:4537:    (kill-local-variable 'line-move-visual)
     word-wrap ;;simple.el:4538:    (kill-local-variable 'word-wrap)
     truncate-lines ;;simple.el:4539:    (kill-local-variable 'truncate-lines)
@@ -5330,6 +5334,7 @@ function, it is changed to a list of functions."
     fringe-indicator-alist ;;simple.el:4541:    (kill-local-variable 'fringe-indicator-alist)
     visual-line--saved-state ;;simple.el:4544:    (kill-local-variable 'visual-line--saved-state)))
     vis-mode-saved-buffer-invisibility-spec ;;simple.el:6237:    (kill-local-variable 'vis-mode-saved-buffer-invisibility-spec))
+
     )
   "Per buffer local variables.
 See also `mumamo-per-main-major-local-vars'.")
@@ -5963,7 +5968,8 @@ default values."
     ;;   (when (boundp sym)
     ;;     (put sym 'permanent-local nil)))
     (dolist (saved per-buffer-local-vars-state)
-      (set (make-local-variable (car saved)) (cdr saved)))
+      (unless (local-variable-p (car saved))
+        (set (make-local-variable (car saved)) (cdr saved))))
 
     ;;;;;;;;;;;;;;;;
     ;; Restore per main major local variables
@@ -7413,6 +7419,7 @@ Do here also other necessary adjustments for this."
                         (msgtrc "parse-partial-sexp %s %s nil nil %s" old-pos pos old-ppss))
                       (setq ret-val (parse-partial-sexp old-pos pos nil nil old-ppss)))))
                 (when dump2 (msgtrc " ==>ret-val=%s" ret-val))
+                ;;(mumamo-backtrace "syntax-ppss")
                 (setq ad-return-value ret-val))
               (overlay-put chunk-at-pos 'syntax-ppss-last syntax-ppss-last)
               (overlay-put chunk-at-pos 'syntax-ppss-cache syntax-ppss-cache)
