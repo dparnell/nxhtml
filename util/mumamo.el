@@ -4089,7 +4089,10 @@ information.
                        ;;(msgtrc "At C")
                        (mumamo-main-major-mode)))
          (curr-chunk-funs
-          (if (eq curr-major (mumamo-main-major-mode))
+          (if (or (not after-chunk)
+                  (and (= 1 (overlay-get after-chunk 'mumamo-depth))
+                       (= -1 (overlay-get after-chunk 'mumamo-next-depth-diff))))
+              ;;(eq curr-major (mumamo-main-major-mode))
               main-chunk-funs
             ;;(msgtrc "find-next-chunk-values:get-sub-chunk-funs %s" curr-major)
             (mumamo-get-sub-chunk-funs curr-major)))
@@ -4696,7 +4699,6 @@ explanation."
 When the key sequence that invoked the command is in current
 local map and major mode is not the major mode for the current
 mumamo chunk then set major mode to that for the chunk."
-  ;;(message "enter mumamo-set-major-pre-command")
   (mumamo-condition-case err
       ;; First see if we can avoid changing major mode
       (let ((glob-command) ; (lookup-key global-map (this-command-keys-vector)))
@@ -4708,10 +4710,6 @@ mumamo chunk then set major mode to that for the chunk."
                  (major (mumamo-chunk-major-mode ovl))
                  (found-this (lookup-key (current-local-map) (this-command-keys-vector)))
                  )
-;;;         (message "pre-commend: major=%s, major-mode=%s, lookup M-TAB=%s, binding=%s, found-this=%s"
-;;;                  major major-mode (lookup-key (current-local-map) [(meta tab)])
-;;;                  (key-binding [(meta tab)] t)
-;;;                  found-this)
             (if (not major)
                 (lwarn '(mumamo-set-major-pre-command) :error "major=%s" major)
               (when (or (not (eq major-mode major))
@@ -4793,14 +4791,15 @@ needed \(and is the default)."
   (let* ((in-pre-hook (memq 'mumamo-set-major-pre-command pre-command-hook))
          (ovl (unless in-pre-hook (mumamo-post-command-get-chunk (point))))
          (major (when ovl (mumamo-chunk-major-mode ovl))))
-    ;;(msgtrc "set-major-post-command ovl=%s, in-pre-hook=%s" ovl in-pre-hook)
+    (msgtrc "set-major-post-command ovl=%s, in-pre-hook=%s" ovl in-pre-hook)
     (if (and (not in-pre-hook)
              (not major))
         (lwarn '(mumamo-set-major-post-command)
                :error "major=%s" major)
-      (unless (and mumamo-done-first-set-major
+      (if (and mumamo-done-first-set-major
                    (or (eq major-mode major)
                        in-pre-hook))
+          (mumamo-request-idle-set-major-mode)
         (if mumamo-done-first-set-major
             (if (<= 0 mumamo-set-major-mode-delay)
                 ;; Window point has been moved to a new chunk with a

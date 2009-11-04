@@ -1323,6 +1323,11 @@ This also covers inlined style and javascript."
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (mumamo-quick-static-chunk pos min max "{literal}" "{/literal}" t 'html-mode t))
 
+(defun mumamo-chunk-smarty-t (pos min max)
+  "Find {t} ... {/t}.  Return range and 'html-mode.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+  (mumamo-quick-static-chunk pos min max "{t}" "{/t}" t 'text-mode t))
+
 (defun mumamo-chunk-smarty-comment (pos min max)
   "Find {* ... *}.  Return range and 'mumamo-comment-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
@@ -1341,9 +1346,10 @@ This also covers inlined style and javascript."
    (mumamo-chunk-xml-pi
     mumamo-chunk-style=
     mumamo-chunk-onjs=
-    mumamo-chunk-inlined-style
-    mumamo-chunk-inlined-script
+    ;;mumamo-chunk-inlined-style
+    ;;mumamo-chunk-inlined-script
     mumamo-chunk-smarty-literal
+    mumamo-chunk-smarty-t
     mumamo-chunk-smarty-comment
     mumamo-chunk-smarty
     )))
