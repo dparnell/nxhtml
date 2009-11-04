@@ -253,24 +253,28 @@ Key bindings added by this minor mode:
 (defun wrap-to-fill-fontify (bound)
   (save-restriction
     (widen)
-    (let ((this-bol (if (bolp) (point)
-                      (1+ (line-end-position)))))
-      (unless (< this-bol bound) (setq this-bol nil))
-      (when this-bol
-        (goto-char (+ this-bol 0)) ;; return pos
-        (let ((beg-pos this-bol)
-              (end-pos (line-end-position)))
-          (when (equal (get-text-property beg-pos 'wrap-prefix)
+    (while (< (point) bound)
+      (let ((this-bol (if (bolp) (point)
+                        (1+ (line-end-position)))))
+        (unless (< this-bol bound) (setq this-bol nil))
+        (when this-bol
+          (goto-char (+ this-bol 0)) ;; return pos
+          (let ((beg-pos this-bol)
+                (end-pos (line-end-position)))
+            (when (equal (get-text-property beg-pos 'wrap-prefix)
                        (get-text-property beg-pos 'wrap-to-fill-prefix))
-            (skip-chars-forward "[:blank:]")
-            (setq ind-str (buffer-substring-no-properties beg-pos (point)))
-            (mumamo-with-buffer-prepared-for-jit-lock
-             (put-text-property beg-pos end-pos 'wrap-prefix ind-str)
-             (put-text-property beg-pos end-pos 'wrap-to-fill-prefix ind-str)))))
-      ;; Return empty range, we do not want fontification
-      (when this-bol
-        (set-match-data (list (point) (point)))
-        t))))
+              (skip-chars-forward "[:blank:]")
+              (setq ind-str (buffer-substring-no-properties beg-pos (point)))
+              ;;(msgtrc "wrap-to-fill: beg/end-pos=%s/%s min/max=%s/%s" beg-pos end-pos (point-min) (point-max))
+              (mumamo-with-buffer-prepared-for-jit-lock
+               (put-text-property beg-pos end-pos 'wrap-prefix ind-str)
+               (put-text-property beg-pos end-pos 'wrap-to-fill-prefix ind-str))))))
+      (forward-line 1))
+    ;; Return empty range, we do not want fontification
+    ;;(msgtrc "wrap-to-fill: exit")
+    (when nil ;this-bol
+      (set-match-data (list (point) (point)))
+      t)))
 
 (defun wrap-to-fill-font-lock (on)
   ;; See mlinks.el
