@@ -112,8 +112,8 @@ Key bindings added by this minor mode:
 \\{wrap-to-fill-column-mode-map}"
   :lighter " WrapFill"
   :group 'convenience
-  (message "wrap-to-fill-column-mode %s, cb=%s, major=%s, multi=%s" wrap-to-fill-column-mode (current-buffer)
-           major-mode mumamo-multi-major-mode)
+  ;; (message "wrap-to-fill-column-mode %s, cb=%s, major=%s, multi=%s" wrap-to-fill-column-mode (current-buffer)
+  ;;          major-mode mumamo-multi-major-mode)
   (if wrap-to-fill-column-mode
       (progn
         ;; Hooks
@@ -122,8 +122,8 @@ Key bindings added by this minor mode:
         (if (fboundp 'visual-line-mode)
             (visual-line-mode 1)
           (longlines-mode 1))
-        (message "wrap-to-fill-column-mode word-wrap=%s" word-wrap)
-        (mumamo-backtrace "wrap-to-fill")
+        ;;(message "wrap-to-fill-column-mode word-wrap=%s" word-wrap)
+        ;;(mumamo-backtrace "wrap-to-fill")
         ;; Margins
         (setq wrap-to-fill-old-margins (cons left-margin-width right-margin-width))
         (wrap-to-fill-set-values-in-buffer-windows))
