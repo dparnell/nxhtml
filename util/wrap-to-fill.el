@@ -112,7 +112,8 @@ Key bindings added by this minor mode:
 \\{wrap-to-fill-column-mode-map}"
   :lighter " WrapFill"
   :group 'convenience
-  (wrap-to-fill-font-lock wrap-to-fill-column-mode)
+  (message "wrap-to-fill-column-mode %s, cb=%s, major=%s, multi=%s" wrap-to-fill-column-mode (current-buffer)
+           major-mode mumamo-multi-major-mode)
   (if wrap-to-fill-column-mode
       (progn
         ;; Hooks
@@ -121,6 +122,8 @@ Key bindings added by this minor mode:
         (if (fboundp 'visual-line-mode)
             (visual-line-mode 1)
           (longlines-mode 1))
+        (message "wrap-to-fill-column-mode word-wrap=%s" word-wrap)
+        (mumamo-backtrace "wrap-to-fill")
         ;; Margins
         (setq wrap-to-fill-old-margins (cons left-margin-width right-margin-width))
         (wrap-to-fill-set-values-in-buffer-windows))
@@ -157,7 +160,8 @@ Key bindings added by this minor mode:
          (remove-list-of-text-properties
           (point-min) (point-max)
           '(wrap-to-fill-prefix)))
-       (goto-char here)))))
+       (goto-char here))))
+  (wrap-to-fill-font-lock wrap-to-fill-column-mode))
 (put 'wrap-to-fill-column-mode 'permanent-local t)
 
 ;; Fix-me: There is a confusion between buffer and window margins
@@ -216,11 +220,11 @@ Key bindings added by this minor mode:
              (right-marg (- win-full fill-column left-marg 1))
              (need-update nil)
              )
-        (when wrap-old-win-width
-          (unless (= wrap-old-win-width win-width)
-            ;;(message "-")
-            ;;(message "win-width 0: %s => %s, win-full=%s, e=%s l/r=%s/%s %S %S %S" wrap-old-win-width win-width win-full extra-width left-marg right-marg (window-edges) (window-inside-edges) (window-margins))
-           ))
+        ;; (when wrap-old-win-width
+        ;;   (unless (= wrap-old-win-width win-width)
+        ;;     (message "-")
+        ;;     (message "win-width 0: %s => %s, win-full=%s, e=%s l/r=%s/%s %S %S %S" wrap-old-win-width win-width win-full extra-width left-marg right-marg (window-edges) (window-inside-edges) (window-margins))
+        ;;    ))
         (setq wrap-old-win-width win-width)
         (unless (> left-marg 0) (setq left-marg 0))
         (unless (> right-marg 0) (setq right-marg 0))
@@ -258,20 +262,19 @@ Key bindings added by this minor mode:
                         (1+ (line-end-position)))))
         (unless (< this-bol bound) (setq this-bol nil))
         (when this-bol
-          (goto-char (+ this-bol 0)) ;; return pos
-          (let ((beg-pos this-bol)
+          (goto-char (+ this-bol 0))
+          (let (ind-str
+                (beg-pos this-bol)
                 (end-pos (line-end-position)))
             (when (equal (get-text-property beg-pos 'wrap-prefix)
                        (get-text-property beg-pos 'wrap-to-fill-prefix))
               (skip-chars-forward "[:blank:]")
               (setq ind-str (buffer-substring-no-properties beg-pos (point)))
-              ;;(msgtrc "wrap-to-fill: beg/end-pos=%s/%s min/max=%s/%s" beg-pos end-pos (point-min) (point-max))
               (mumamo-with-buffer-prepared-for-jit-lock
                (put-text-property beg-pos end-pos 'wrap-prefix ind-str)
                (put-text-property beg-pos end-pos 'wrap-to-fill-prefix ind-str))))))
       (forward-line 1))
-    ;; Return empty range, we do not want fontification
-    ;;(msgtrc "wrap-to-fill: exit")
+    ;; Note: doing it line by line and returning t gave problem in mumamo.
     (when nil ;this-bol
       (set-match-data (list (point) (point)))
       t)))
