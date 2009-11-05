@@ -214,9 +214,14 @@ This also covers inlined style and javascript."
 This also covers inlined style and javascript."
   ("Smarty nXhtml Family" nxhtml-mode
    (mumamo-chunk-xml-pi
-    mumamo-chunk-smarty
     mumamo-chunk-style=
     mumamo-chunk-onjs=
+    ;;mumamo-chunk-inlined-style
+    ;;mumamo-chunk-inlined-script
+    mumamo-chunk-smarty-literal
+    mumamo-chunk-smarty-t
+    mumamo-chunk-smarty-comment
+    mumamo-chunk-smarty
     )))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

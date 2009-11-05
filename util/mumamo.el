@@ -11,16 +11,16 @@
 ;;
 ;; Features that might be required by this library:
 ;;
-  ;; `appmenu', `apropos', `backquote', `button', `bytecomp', `cl',
-  ;; `comint', `compile', `easymenu', `flyspell', `grep', `ido',
-  ;; `ispell', `mail-prsvr', `mlinks', `mm-util', `nxml-enc',
-  ;; `nxml-glyph', `nxml-mode', `nxml-ns', `nxml-outln',
-  ;; `nxml-parse', `nxml-rap', `nxml-util', `ourcomments-util',
-  ;; `recentf', `ring', `rng-dt', `rng-loc', `rng-match',
-  ;; `rng-parse', `rng-pttrn', `rng-uri', `rng-util', `rng-valid',
-  ;; `rx', `sgml-mode', `timer', `tool-bar', `tree-widget',
-  ;; `url-expand', `url-methods', `url-parse', `url-util',
-  ;; `url-vars', `wid-edit', `xmltok'.
+;; `appmenu', `apropos', `backquote', `button', `bytecomp', `cl',
+;; `comint', `compile', `easymenu', `flyspell', `grep', `ido',
+;; `ispell', `mail-prsvr', `mlinks', `mm-util', `nxml-enc',
+;; `nxml-glyph', `nxml-mode', `nxml-ns', `nxml-outln',
+;; `nxml-parse', `nxml-rap', `nxml-util', `ourcomments-util',
+;; `recentf', `ring', `rng-dt', `rng-loc', `rng-match',
+;; `rng-parse', `rng-pttrn', `rng-uri', `rng-util', `rng-valid',
+;; `rx', `sgml-mode', `timer', `tool-bar', `tree-widget',
+;; `url-expand', `url-methods', `url-parse', `url-util',
+;; `url-vars', `wid-edit', `xmltok'.
 ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -772,7 +772,7 @@ interfere with syntax highlighting."
     (((class color) (min-colors 88) (background light))
      ;;:background "lightgoldenrod2")
      :background "#f7d1f4")
-     ;;:background "green")
+    ;;:background "green")
     (((class color) (min-colors 16) (background dark))
      :background "blue3")
     (((class color) (min-colors 16) (background light))
@@ -1265,11 +1265,11 @@ Preserves the `buffer-modified-p' state of the current buffer."
   (assert (overlayp chunk) t)
   (when pos (assert (or (markerp pos) (integerp pos)) t))
   (let* ((region-info (if (overlayp region-or-chunk)
-                         (cons (overlay-start region-or-chunk)
-                               (overlay-end region-or-chunk))
-                       region-or-chunk))
+                          (cons (overlay-start region-or-chunk)
+                                (overlay-end region-or-chunk))
+                        region-or-chunk))
          (obscured (when pos (list pos region-info))))
-      ;;(msgtrc "put-obscure:region-info=%s, obscured=%s" region-info obscured)
+    ;;(msgtrc "put-obscure:region-info=%s, obscured=%s" region-info obscured)
     (when region-info (assert (consp region-info) t))
     (assert (not (overlayp region-info)) t)
     (overlay-put chunk 'obscured obscured)
@@ -1448,12 +1448,12 @@ ends before END then create chunks upto END."
                     (setq narpos (max (- ok-pos 200) 1))
                     (narrow-to-region narpos point-max)
                     (let ((use-change-max (when (and change-max
-                                                      chunk-at-change-min
-                                                      (overlay-buffer chunk-at-change-min)
-                                                      (< change-max
-                                                         (overlay-end chunk-at-change-min))
-                                                      (or (not mumamo-last-chunk)
-                                                          (> change-max (overlay-end mumamo-last-chunk))))
+                                                     chunk-at-change-min
+                                                     (overlay-buffer chunk-at-change-min)
+                                                     (< change-max
+                                                        (overlay-end chunk-at-change-min))
+                                                     (or (not mumamo-last-chunk)
+                                                         (> change-max (overlay-end mumamo-last-chunk))))
                                             change-max))
                           (use-chunk-at-change-min (when (or (not mumamo-last-chunk)
                                                              (not (overlay-buffer mumamo-last-chunk))
@@ -1768,8 +1768,8 @@ Do not record undo information during evaluation of BODY."
       (mumamo-msgfntfy "mumamo-mark-for-refontification B min,max=%s,%s point-min,max=%s,%s modified=%s" min max (point-min) (point-max) (buffer-modified-p) )
       ;;(mumamo-with-buffer-prepared-for-jit-lock
       (mumamo-save-buffer-state nil
-       (put-text-property min max 'fontified nil)
-       ))))
+        (put-text-property min max 'fontified nil)
+        ))))
 
 
 ;; Fix me: The functions in this list must be replaced by variables
@@ -2046,8 +2046,9 @@ Set by functions defined by `define-mumamo-multi-major-mode'.")
 
 
 (defun mumamo-backtrace (label)
-  (msgtrc "%s:backtrace in buffer %s\n%s" label (current-buffer) (with-output-to-string (backtrace)))
-  (msgtrc "%s:backtrace in buffer %s END ------------------------------------" label (current-buffer)))
+  (msgtrc "%s:backtrace in START buffer %s <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n%s"
+          label (current-buffer) (with-output-to-string (backtrace)))
+  (msgtrc "%s:backtrace in END   buffer %s >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" label (current-buffer)))
 
 (defun mumamo-unfontify-buffer ()
   "Unfontify buffer.
@@ -2939,11 +2940,11 @@ fontification and speeds up fontification significantly."
       (set (make-local-variable fun-var-def-sym) (symbol-value fun-var-def-sym)))
     (caadr (or (assq use-major mumamo-internal-major-modes-alist)
                ))))
-               ;; (assq use-major
-               ;;     (add-to-list 'mumamo-internal-major-modes-alist
-               ;;                  (list use-major
-               ;;                        (mumamo-fetch-major-mode-setup
-               ;;                         use-major nil nil nil))))))))
+;; (assq use-major
+;;     (add-to-list 'mumamo-internal-major-modes-alist
+;;                  (list use-major
+;;                        (mumamo-fetch-major-mode-setup
+;;                         use-major nil nil nil))))))))
 
 (defun mumamo-remove-all-chunk-overlays ()
   "Remove all CHUNK overlays from the current buffer."
@@ -3617,7 +3618,7 @@ after this in the properties below of the now created chunk:
 - 'mumamo-next-major: is nil or the next chunk's major mode.
 - 'mumamo-next-end-fun: function that searches for end of AFTER-CHUNK
 - 'mumamo-next-border-fun: functions that finds borders"
-;;- 'mumamo-next-chunk-funs: nil or similar to the variable `mumamo-current-chunk-family'.
+  ;;- 'mumamo-next-chunk-funs: nil or similar to the variable `mumamo-current-chunk-family'.
   ;;((1 696 nxhtml-mode nil nil nil nil) (696 nil php-mode nil nil nil nil))
   ;;(current (list curr-min curr-max curr-major curr-border-min curr-border-max curr-parseable curr-fw-exc-fun))
   ;;(next    (list next-min next-max next-major next-border-min next-border-max next-parseable next-fw-exc-fun)))
@@ -3867,12 +3868,12 @@ after this in the properties below of the now created chunk:
             (dolist (win (get-buffer-window-list buffer))
               (set-window-buffer win buffer)))
           )
-      ;; Note: window update must be before buffer update because it
-      ;; uses old-margin from the call to function margin-used.
-      ;; (dolist (win (get-buffer-window-list buffer))
-      ;;   (mumamo-set-window-margins-used win))
-      ;; (mumamo-update-chunks-margin-display buffer)
-      ))))
+        ;; Note: window update must be before buffer update because it
+        ;; uses old-margin from the call to function margin-used.
+        ;; (dolist (win (get-buffer-window-list buffer))
+        ;;   (mumamo-set-window-margins-used win))
+        ;; (mumamo-update-chunks-margin-display buffer)
+        ))))
 
 (defun mumamo-new-chunk-value-min (values)
   (let ((this-values (nth 0 values)))
@@ -4070,22 +4071,22 @@ information.
          ;; Note that "curr-*" values are fetched from "mumamo-next-*" values in after-chunk
          (curr-major (if after-chunk-valid
                          (or ;;(progn (msgtrc "At A, after-chunk.next-major=%s" (overlay-get after-chunk 'mumamo-next-major)) nil)
-                             ;; 'mumamo-next-major is used when we are going into a sub chunk.
-                             (overlay-get after-chunk 'mumamo-next-major)
+                          ;; 'mumamo-next-major is used when we are going into a sub chunk.
+                          (overlay-get after-chunk 'mumamo-next-major)
 
-                             ;; We are going out of a sub chunk.
-                             (mumamo-chunk-cadr after-chunk 'mumamo-major-mode)
+                          ;; We are going out of a sub chunk.
+                          (mumamo-chunk-cadr after-chunk 'mumamo-major-mode)
 
-                             ;;(progn (msgtrc "At B") nil)
-                             ;;(mumamo-main-major-mode))
+                          ;;(progn (msgtrc "At B") nil)
+                          ;;(mumamo-main-major-mode))
 
-                             ;; fix-me: Is this some old left-over???
-                             ;; (let ((after-after-chunk (overlay-get after-chunk 'mumamo-prev-chunk)))
-                             ;;   ;;(msgtrc "after-after-chunk...=%s" after-after-chunk)
-                             ;;   (unless after-after-chunk (error "after-after-chunk is nil"))
-                             ;;   ;; Fix-me: use depth diff here (mason example)
-                             ;;   (mumamo-chunk-car after-after-chunk 'mumamo-major-mode))
-                             )
+                          ;; fix-me: Is this some old left-over???
+                          ;; (let ((after-after-chunk (overlay-get after-chunk 'mumamo-prev-chunk)))
+                          ;;   ;;(msgtrc "after-after-chunk...=%s" after-after-chunk)
+                          ;;   (unless after-after-chunk (error "after-after-chunk is nil"))
+                          ;;   ;; Fix-me: use depth diff here (mason example)
+                          ;;   (mumamo-chunk-car after-after-chunk 'mumamo-major-mode))
+                          )
                        ;;(msgtrc "At C")
                        (mumamo-main-major-mode)))
          (curr-chunk-funs
@@ -4096,12 +4097,12 @@ information.
               main-chunk-funs
             ;;(msgtrc "find-next-chunk-values:get-sub-chunk-funs %s" curr-major)
             (mumamo-get-sub-chunk-funs curr-major)))
-          ;; (if (and after-chunk-valid
-          ;;          after-next-chunk-funs)
-          ;;     (if (listp after-next-chunk-funs)
-          ;;         after-next-chunk-funs
-          ;;       nil)
-          ;;   main-chunk-funs))
+         ;; (if (and after-chunk-valid
+         ;;          after-next-chunk-funs)
+         ;;     (if (listp after-next-chunk-funs)
+         ;;         after-next-chunk-funs
+         ;;       nil)
+         ;;   main-chunk-funs))
          (curr-end-fun (when after-chunk-valid
                          (mumamo-chunk-car after-chunk 'mumamo-next-end-fun)))
          ;; Fix-me: there is obviously something wrong below...
@@ -4610,6 +4611,162 @@ this function will not see it since it is run in a timer.)"
   (add-hook 'post-command-hook 'mumamotemp-post-command nil t)
   (add-hook 'pre-command-hook 'mumamotemp-pre-command nil t))
 
+(defsubst mumamo-cancel-idle-set-major-mode ()
+  (when (timerp mumamo-idle-set-major-mode-timer)
+    (cancel-timer mumamo-idle-set-major-mode-timer))
+  (setq mumamo-idle-set-major-mode-timer nil))
+
+(defun mumamo-request-idle-set-major-mode ()
+  "Setup to change major mode from chunk when Emacs is idle."
+  (mumamo-cancel-idle-set-major-mode)
+  (setq mumamo-idle-set-major-mode-timer
+        (run-with-idle-timer
+         mumamo-set-major-mode-delay
+         nil
+         'mumamo-idle-set-major-mode (current-buffer) (selected-window))))
+
+(defvar mumamo-done-first-set-major nil)
+(make-variable-buffer-local 'mumamo-done-first-set-major)
+(put 'mumamo-done-first-set-major 'permanent-local t)
+
+;; Fix-me: Add a property to the symbol instead (like in CUA).
+(defvar mumamo-safe-commands-in-wrong-major
+  '(self-insert-command
+    fill-paragraph ;; It changes major mode
+    forward-char
+    viper-forward-char
+    backward-char
+    viper-backward-char
+    next-line
+    viper-next-line
+    previous-line
+    viper-previous-line
+    scroll-down
+    cua-scroll-down
+    scroll-up
+    cua-scroll-up
+    move-beginning-of-line
+    move-end-of-line
+    nonincremental-search-forward
+    nonincremental-search-backward
+    mumamo-backward-chunk
+    mumamo-forward-chunk
+    ;; Fix-me: add more
+    )
+  )
+
+(defun mumamo-fetch-local-map (major)
+  "Fetch local keymap for major mode MAJOR.
+Do that by turning on the major mode in a new buffer.  Add the
+keymap to `mumamo-major-modes-local-maps'.
+
+Return the fetched local map."
+  (let (temp-buf-name
+        temp-buf
+        local-map)
+    (setq temp-buf-name (concat "mumamo-fetch-major-mode-local-"
+                                (symbol-name major)))
+    (setq temp-buf (get-buffer temp-buf-name))
+    (when temp-buf (kill-buffer temp-buf))
+    (setq temp-buf (get-buffer-create temp-buf-name))
+    (with-current-buffer temp-buf
+      (let ((mumamo-fetching-major t))
+        (funcall major))
+      (setq local-map (current-local-map))
+      (when local-map (setq local-map (copy-keymap (current-local-map))))
+      (add-to-list 'mumamo-major-modes-local-maps
+                   (cons major-mode local-map)))
+    (kill-buffer temp-buf)
+    local-map))
+
+(defvar mumamo-post-command-chunk nil)
+(make-variable-buffer-local 'mumamo-post-command-chunk)
+
+(defun mumamo-post-command-get-chunk (pos)
+  "Get chunk at POS fast."
+  (if (and mumamo-post-command-chunk
+           (overlayp mumamo-post-command-chunk)
+           ;;(progn (message "here a=%s" mumamo-post-command-chunk) t)
+           (overlay-buffer mumamo-post-command-chunk)
+           ;;(progn (message "here b=%s" mumamo-post-command-chunk) t)
+           (< pos (overlay-end mumamo-post-command-chunk))
+           ;;(progn (message "here c=%s" mumamo-post-command-chunk) t)
+           (>= pos (overlay-start mumamo-post-command-chunk))
+           ;;(progn (message "here d=%s" mumamo-post-command-chunk) t)
+           (mumamo-chunk-major-mode mumamo-post-command-chunk)
+           ;;(progn (msgtrc "here e=%s" mumamo-post-command-chunk) t)
+           )
+      mumamo-post-command-chunk
+    ;;(msgtrc "--------------- new post-command-chunk")
+    (setq mumamo-post-command-chunk
+          (or (mumamo-get-existing-new-chunk-at (point))
+              (mumamo-find-chunks (point) "post-command-get-chunk")))))
+
+;; (setq mumamo-set-major-mode-delay 10)
+(defun mumamo-set-major-post-command ()
+  "Change major mode if necessary after a command.
+If the major mode for chunk at `window-point' differ from current
+major mode then change major mode to that for the chunk.  If
+however `mumamo-set-major-mode-delay' is greater than 0 just
+request a change of major mode when Emacs is idle that long.
+
+See the variable above for an explanation why a delay might be
+needed \(and is the default)."
+  ;;(msgtrc "set-major-post-command here")
+  (let* ((in-pre-hook (memq 'mumamo-set-major-pre-command pre-command-hook))
+         (ovl (unless in-pre-hook (mumamo-post-command-get-chunk (point))))
+         (major (when ovl (mumamo-chunk-major-mode ovl))))
+    ;;(msgtrc "set-major-post-command ovl=%s, in-pre-hook=%s" ovl in-pre-hook)
+    (unless (or in-pre-hook (eq major major-mode))
+      (if mumamo-done-first-set-major
+          (if (<= 0 mumamo-set-major-mode-delay)
+              ;; Window point has been moved to a new chunk with a new
+              ;; major mode. Major mode will not be changed directly,
+              ;; but in an idle timer or in pre-command-hook. To avoid
+              ;; that the user get the wrong key bindings for the new
+              ;; chunk fetch the local map directly and apply that.
+              (let* ((map-rec (assoc major mumamo-major-modes-local-maps))
+                     (map (cdr map-rec)))
+                (unless map
+                  (setq map (mumamo-fetch-local-map major)))
+                (unless (eq map 'no-local-map)
+                  (use-local-map map))
+                (add-hook 'pre-command-hook 'mumamo-set-major-pre-command nil t)
+                (mumamo-request-idle-set-major-mode))
+            (mumamo-set-major major)
+            (message "Switched to %s" major-mode))
+        (mumamo-set-major major)))))
+
+(defun mumamo-set-major-pre-command ()
+  "Change major mode if necessary before a command.
+When the key sequence that invoked the command is in current
+local map and major mode is not the major mode for the current
+mumamo chunk then set major mode to that for the chunk."
+  (mumamo-condition-case err
+      ;; First see if we can avoid changing major mode
+      (if (memq this-command mumamo-safe-commands-in-wrong-major)
+          (mumamo-request-idle-set-major-mode)
+        (let* ((ovl (mumamo-find-chunks (point) "mumamo-set-major-pre-command"))
+               (major (mumamo-chunk-major-mode ovl)))
+          (if (not major)
+              (lwarn '(mumamo-set-major-pre-command) :error "major=%s" major)
+            (when (or (not (eq major-mode major))
+                      (not (mumamo-set-major-check-keymap)))
+              (setq major-mode nil)
+              (mumamo-set-major major)
+              ;; Unread the last command key sequence
+              (setq unread-command-events
+                    (append (listify-key-sequence (this-command-keys-vector))
+                            unread-command-events))
+              ;; Some commands, like `viper-command-argument' need to
+              ;; know the last command, so tell them.
+              (setq this-command (lambda ()
+                                   (interactive)
+                                   (setq this-command last-command)))))))
+    (error
+     (mumamo-display-error 'mumamo-set-major-pre-command
+                           "%s" (error-message-string err)))))
+
 (defun mumamo-idle-set-major-mode (buffer window)
   "Set major mode from mumamo chunk when Emacs is idle.
 Do this only if current buffer is BUFFER and then do it in window
@@ -4652,175 +4809,6 @@ explanation."
             (error
              (mumamo-display-error 'mumamo-idle-set-major-mode
                                    "cb=%s, err=%s" (current-buffer) err))))))))
-
-(defun mumamo-request-idle-set-major-mode ()
-  "Setup to change major mode from chunk when Emacs is idle."
-  (when (timerp mumamo-idle-set-major-mode-timer)
-    (cancel-timer mumamo-idle-set-major-mode-timer))
-  (setq mumamo-idle-set-major-mode-timer
-        (run-with-idle-timer
-         mumamo-set-major-mode-delay
-         nil
-         ;;'mumamo-idle-set-major-mode (mumamo-get-chunk-at (point)))))
-         'mumamo-idle-set-major-mode (current-buffer) (selected-window))))
-
-(defvar mumamo-done-first-set-major nil)
-(make-variable-buffer-local 'mumamo-done-first-set-major)
-(put 'mumamo-done-first-set-major 'permanent-local t)
-
-;; Fix-me: Add a property to the symbol instead (like in CUA).
-(defvar mumamo-safe-commands-in-wrong-major
-  '(self-insert-command
-    fill-paragraph ;; It changes major mode
-    forward-char
-    viper-forward-char
-    backward-char
-    viper-backward-char
-    next-line
-    viper-next-line
-    previous-line
-    viper-previous-line
-    scroll-down
-    cua-scroll-down
-    scroll-up
-    cua-scroll-up
-    move-beginning-of-line
-    move-end-of-line
-    nonincremental-search-forward
-    nonincremental-search-backward
-    mumamo-backward-chunk
-    mumamo-forward-chunk
-    ;; Fix-me: add more
-    )
-  )
-
-(defun mumamo-set-major-pre-command ()
-  "Change major mode if necessary before a command.
-When the key sequence that invoked the command is in current
-local map and major mode is not the major mode for the current
-mumamo chunk then set major mode to that for the chunk."
-  (mumamo-condition-case err
-      ;; First see if we can avoid changing major mode
-      (let ((glob-command) ; (lookup-key global-map (this-command-keys-vector)))
-            )
-        (if (memq this-command mumamo-safe-commands-in-wrong-major)
-            nil ;;(msgtrc "safe in wrong major %s" this-command)
-          ;;(msgtrc "not safe in wrong major %s" this-command)
-          (let* ((ovl (mumamo-find-chunks (point) "mumamo-set-major-pre-command"))
-                 (major (mumamo-chunk-major-mode ovl))
-                 (found-this (lookup-key (current-local-map) (this-command-keys-vector)))
-                 )
-            (if (not major)
-                (lwarn '(mumamo-set-major-pre-command) :error "major=%s" major)
-              (when (or (not (eq major-mode major))
-                        (not (mumamo-set-major-check-keymap))
-                        )
-                (setq major-mode nil)
-                (mumamo-set-major major)
-                ;; Unread the last command key sequence
-                (setq unread-command-events
-                      (append (listify-key-sequence (this-command-keys-vector))
-                              unread-command-events))
-                ;; Some commands, like `viper-command-argument' need to
-                ;; know the last command, so tell them.
-                (setq this-command (lambda ()
-                                     (interactive)
-                                     (setq this-command last-command)))
-                )))))
-    (error
-     (mumamo-display-error 'mumamo-set-major-pre-command
-                           "%s" (error-message-string err)))))
-
-(defun mumamo-fetch-local-map (major)
-  "Fetch local keymap for major mode MAJOR.
-Do that by turning on the major mode in a new buffer.  Add the
-keymap to `mumamo-major-modes-local-maps'.
-
-Return the fetched local map."
-  (let (temp-buf-name
-        temp-buf
-        local-map)
-    (setq temp-buf-name (concat "mumamo-fetch-major-mode-local-"
-                                (symbol-name major)))
-    (setq temp-buf (get-buffer temp-buf-name))
-    (when temp-buf (kill-buffer temp-buf))
-    (setq temp-buf (get-buffer-create temp-buf-name))
-    (with-current-buffer temp-buf
-      (let ((mumamo-fetching-major t))
-        (funcall major))
-      (setq local-map (current-local-map))
-      (when local-map (setq local-map (copy-keymap (current-local-map))))
-      (add-to-list 'mumamo-major-modes-local-maps
-                   (cons major-mode local-map)))
-    (kill-buffer temp-buf)
-    local-map))
-
-(defvar mumamo-post-command-chunk nil)
-(make-variable-buffer-local 'mumamo-post-command-chunk)
-
-(defun mumamo-post-command-get-chunk (pos)
-  (if (and mumamo-post-command-chunk
-           (overlayp mumamo-post-command-chunk)
-           ;;(progn (message "here a=%s" mumamo-post-command-chunk) t)
-           (overlay-buffer mumamo-post-command-chunk)
-           ;;(progn (message "here b=%s" mumamo-post-command-chunk) t)
-           (< pos (overlay-end mumamo-post-command-chunk))
-           ;;(progn (message "here c=%s" mumamo-post-command-chunk) t)
-           (>= pos (overlay-start mumamo-post-command-chunk))
-           ;;(progn (message "here d=%s" mumamo-post-command-chunk) t)
-           (mumamo-chunk-major-mode mumamo-post-command-chunk)
-           ;;(progn (message "here e=%s" mumamo-post-command-chunk) t)
-           )
-      mumamo-post-command-chunk
-    ;;(msgtrc "--------------- new post-command-chunk")
-    (setq mumamo-post-command-chunk
-          (or (mumamo-get-existing-new-chunk-at (point))
-              (mumamo-find-chunks (point) "post-command-get-chunk")))))
-
-;; (setq mumamo-set-major-mode-delay 10)
-(defun mumamo-set-major-post-command ()
-  "Change major mode if necessary after a command.
-If the major mode for chunk at `window-point' differ from current
-major mode then change major mode to that for the chunk.  If
-however `mumamo-set-major-mode-delay' is greater than 0 just
-request a change of major mode when Emacs is idle that long.
-
-See the variable above for an explanation why a delay might be
-needed \(and is the default)."
-  ;;(msgtrc "set-major-post-command here")
-  (let* ((in-pre-hook (memq 'mumamo-set-major-pre-command pre-command-hook))
-         (ovl (unless in-pre-hook (mumamo-post-command-get-chunk (point))))
-         (major (when ovl (mumamo-chunk-major-mode ovl))))
-    (msgtrc "set-major-post-command ovl=%s, in-pre-hook=%s" ovl in-pre-hook)
-    (if (and (not in-pre-hook)
-             (not major))
-        (lwarn '(mumamo-set-major-post-command)
-               :error "major=%s" major)
-      (if (and mumamo-done-first-set-major
-                   (or (eq major-mode major)
-                       in-pre-hook))
-          (mumamo-request-idle-set-major-mode)
-        (if mumamo-done-first-set-major
-            (if (<= 0 mumamo-set-major-mode-delay)
-                ;; Window point has been moved to a new chunk with a
-                ;; new major mode.  Major mode will not be changed
-                ;; directly, but in an idle timer.  To avoid that the
-                ;; user get the wrong key bindings for the new chunk
-                ;; fetch the local map directly and apply that.
-                (let* ((map-rec (assoc major mumamo-major-modes-local-maps))
-                       (map (cdr map-rec)))
-                  (unless map
-                    (setq map (mumamo-fetch-local-map major)))
-                  (unless (eq map 'no-local-map)
-                    (use-local-map map))
-                  (add-hook 'pre-command-hook 'mumamo-set-major-pre-command nil t)
-                  ;;(msgtrc "request mumamo-set-major at C")
-                  (mumamo-request-idle-set-major-mode))
-              ;;(msgtrc "mumamo-set-major at C")
-              (mumamo-set-major major)
-              (message "Switched to %s" major-mode))
-          ;;(msgtrc "mumamo-set-major at D")
-          (mumamo-set-major major))))))
 
 (defun mumamo-post-command-1 (&optional no-debug)
   "See `mumamo-post-command'.
@@ -5817,6 +5805,8 @@ default values."
 (defun mumamo-set-major (major)
   "Set major mode to MAJOR for mumamo."
   (mumamo-msgfntfy "mumamo-set-major %s, %s" major (current-buffer))
+  (mumamo-cancel-idle-set-major-mode)
+  (remove-hook 'pre-command-hook 'mumamo-set-major-pre-command t)
   ;;(mumamo-backtrace "mumamo-set-major")
   (remove-hook 'text-mode-hook 'viper-mode) ;; Fix-me: maybe add it back...
   (let ((start-time (get-internal-run-time))
@@ -5929,8 +5919,11 @@ default values."
                   nil t))
 
       ;;(msgtrc "set-major A: buffer-invisibility-spec=%S" buffer-invisibility-spec)
+      ;;(msgtrc "set-major A: word-wrap=%S, cb=%s" word-wrap (current-buffer))
+      ;;(mumamo-backtrace "set-major")
       (funcall major) ;; <-----------------------------------------------
       ;;(msgtrc "set-major B: buffer-invisibility-spec=%S" buffer-invisibility-spec)
+      ;;(msgtrc "set-major B: word-wrap=%S, cb=%s" word-wrap (current-buffer))
 
       (setq font-lock-mode-major-mode major) ;; Tell font-lock it is ok
       (set (make-local-variable 'font-lock-function) 'mumamo-font-lock-function)
@@ -5966,7 +5959,9 @@ default values."
     ;; (dolist (sym mumamo-per-buffer-local-vars)
     ;;   (when (boundp sym)
     ;;     (put sym 'permanent-local nil)))
+    ;;(msgtrc "per-buffer-local-vars-state=%S" per-buffer-local-vars-state)
     (dolist (saved per-buffer-local-vars-state)
+      ;;(msgtrc "restore p buffer: %s, local=%s" (car saved) (local-variable-p (car saved)))
       (unless (local-variable-p (car saved))
         (set (make-local-variable (car saved)) (cdr saved))))
 
@@ -6027,8 +6022,6 @@ default values."
       (mumamo-save-buffer-state nil
         (remove-list-of-text-properties (point-min) (point-max) '(fontified)))
       (setq mumamo-done-first-set-major t))
-
-    (remove-hook 'pre-command-hook 'mumamo-set-major-pre-command t)
 
     ;; Timing, on a 3ghz cpu:
     ;;
@@ -7534,7 +7527,7 @@ For more info see also `rng-get-major-mode-chunk-function'.")
         (setq rng-dtd xmltok-dtd))
       (setq while-n1 0)
       ;;(while (and (> 500 (setq while-n1 (1+ while-n1)))
-      (while (and (mumamo-while 500 'while-n1 "continue")
+      (while (and (mumamo-while 2000 'while-n1 "continue")
                   continue)
         ;; If mumamo (or something similar) is used then jump over parts
         ;; that can not be parsed by nxml-mode.
@@ -7685,9 +7678,9 @@ For more info see also `rng-get-major-mode-chunk-function'.")
     ad-do-it))
 
 (defadvice rng-validate-quick-while-idle (around
-                                    mumamo-ad-rng-validate-quick-while-idle
-                                    activate
-                                    compile)
+                                          mumamo-ad-rng-validate-quick-while-idle
+                                          activate
+                                          compile)
   (if (not (buffer-live-p buffer))
       (rng-kill-timers)
     ad-do-it))
@@ -7766,6 +7759,81 @@ a narrow-to-multiple-regions function!"
  '(("\\<define-mumamo-multi-major-mode\\>" . font-lock-keyword-face)))
 
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Simple defadvice to move into Emacs later
+
+(defun mumamo-ad-desktop-buffer-info (buffer)
+  (set-buffer buffer)
+  (list
+   ;; base name of the buffer; replaces the buffer name if managed by uniquify
+   (and (fboundp 'uniquify-buffer-base-name) (uniquify-buffer-base-name))
+   ;; basic information
+   (desktop-file-name (buffer-file-name) desktop-dirname)
+   (buffer-name)
+   (if mumamo-multi-major-mode mumamo-multi-major-mode major-mode)
+   ;; minor modes
+   (let (ret)
+     (mapc
+      #'(lambda (minor-mode)
+	  (and (boundp minor-mode)
+	       (symbol-value minor-mode)
+	       (let* ((special (assq minor-mode desktop-minor-mode-table))
+		      (value (cond (special (cadr special))
+				   ((functionp minor-mode) minor-mode))))
+		 (when value (add-to-list 'ret value)))))
+      (mapcar #'car minor-mode-alist))
+     ret)
+   ;; point and mark, and read-only status
+   (point)
+   (list (mark t) mark-active)
+   buffer-read-only
+   ;; auxiliary information
+   (when (functionp desktop-save-buffer)
+     (funcall desktop-save-buffer desktop-dirname))
+   ;; local variables
+   (let ((locals desktop-locals-to-save)
+	 (loclist (buffer-local-variables))
+	 (ll))
+     (while locals
+       (let ((here (assq (car locals) loclist)))
+	 (if here
+	     (setq ll (cons here ll))
+	   (when (member (car locals) loclist)
+	     (setq ll (cons (car locals) ll)))))
+       (setq locals (cdr locals)))
+     ll)))
+
+(defadvice desktop-buffer-info (around
+                                mumamo-ad-desktop-buffer-info
+                                activate
+                                compile)
+  (setq ad-return-value (mumamo-ad-desktop-buffer-info (ad-get-arg 0))))
+
+(defun mumamo-ad-set-auto-mode-0 (mode &optional keep-mode-if-same)
+  "Apply MODE and return it.
+If optional arg KEEP-MODE-IF-SAME is non-nil, MODE is chased of
+any aliases and compared to current major mode.  If they are the
+same, do nothing and return nil."
+  (unless (and keep-mode-if-same
+	       (eq (indirect-function mode)
+                   (if mumamo-multi-major-mode
+                       (indirect-function mumamo-multi-major-mode)
+                     (indirect-function major-mode))))
+    (when mode
+      (funcall mode)
+      mode)))
+
+(defadvice set-auto-mode-0 (around
+                            mumamo-ad-set-auto-mode-0
+                            activate
+                            compile)
+  (setq ad-return-value (mumamo-ad-set-auto-mode-0 (ad-get-arg 0)
+                                                   (ad-get-arg 1)
+                                                   )))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; The END
 (when buffer-file-name (message "\nFinished evaluating %s\n" buffer-file-name))
 (when load-file-name (message "\nFinished loading %s\n" load-file-name))
 

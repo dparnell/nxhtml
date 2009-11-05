@@ -21,6 +21,8 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+;; Minor changes by Lennart Borgman
+
 (defconst smarty-version "0.0.5"
   "Smarty Mode version number.")
 
@@ -1220,7 +1222,7 @@ but not if inside a comment or quote)."
 	'("->\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*(" (1 font-lock-function-name-face t t)) ; ->function_call
 	'("\\<\\(\\(?:\\sw\\|\\s_\\)+\\s-*\\)(" (1 font-lock-function-name-face)) ; word(
 	'("\\<\\(\\(?:\\sw\\|\\s_\\)+\\s-*\\)[[]" (1 font-lock-variable-name-face)) ; word[
-	'("\\<[0-9]+" . default)			; number (also matches word)
+	'("\\<[0-9]+" . 'default)			; number (also matches word)
 
 	;; Fontify strings
 	;;'("\"\\([^\"]*\\)\"[^\"]+" (1 font-lock-string-face t t))
@@ -1476,7 +1478,7 @@ Two internet address to download Smarty Mode :
 ------------------
 
 To install Smarty Mode you need to choose an installation directory
-(for example `/usr/local/share/lisp' or `c:\lisp'). The administrator
+\(for example `/usr/local/share/lisp' or `c:\lisp'). The administrator
 must have the write rights on this directory.
 
 With your favorite unzip software, unzip the archive in the
@@ -1490,7 +1492,7 @@ directory contains 2 files `smarty-mode.el' and `smarty-mode.elc' and
 another directory `docs' containing the documentation.
 
 You need to configure XEmacs. open you initialization file `init.el'
-(open the file or start XEmacs then choose the Options menu and Edit
+\(open the file or start XEmacs then choose the Options menu and Edit
 Init File). Add the following lines (the installation directory in
 this example is `/usr/local/share/lisp') :
 
@@ -1903,8 +1905,8 @@ For Smarty functions, see PDF or HTML documentation.
   (easy-menu-define smarty-mode-menu smarty-mode-map
 		    "Menu keymap for Smarty Mode." smarty-mode-menu-list)
 
-  (message "Smarty Mode %s.%s" smarty-version
-	   (if noninteractive "" "  See menu for documentation and release notes."))
+  ;; (message "Smarty Mode %s.%s" smarty-version
+  ;;          (if noninteractive "" "  See menu for documentation and release notes."))
   (smarty-mode-line-update)
   (run-hooks 'smarty-mode-hook))
 

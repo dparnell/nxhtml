@@ -228,13 +228,16 @@ in buffers."
 
 (defun majmodpri-check-normal-mode ()
   "Like `normal-mode', but keep major mode if same."
-  (let ((old-major-mode major-mode)
+  (let ((keep-mode-if-same t)
+        (old-major-mode major-mode)
         (old-mumamo-multi-major-mode (when (boundp 'mumamo-multi-major-mode)
                                        mumamo-multi-major-mode)))
     (report-errors "File mode specification error: %s"
       (set-auto-mode t))
+    (msgtrc "majmodpri-check %s %s %s" (current-buffer) major-mode mumamo-multi-major-mode)
     (unless (and (eq old-major-mode major-mode)
                  (eq old-mumamo-multi-major-mode mumamo-multi-major-mode))
+      (msgtrc "majmodpri-check changing")
       (report-errors "File local-variables error: %s"
         (hack-local-variables))
       ;; Turn font lock off and on, to make sure it takes account of

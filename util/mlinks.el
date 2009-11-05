@@ -262,8 +262,8 @@
 (put 'mlinks-hilight-point-ovl 'permanent-local t)
 
 (defvar mlinks-hilighter-timer nil)
-(make-variable-buffer-local 'mlinks-hilighter-timer)
-(put 'mlinks-hilighter-timer 'permanent-local t)
+;;(make-variable-buffer-local 'mlinks-hilighter-timer)
+;;(put 'mlinks-hilighter-timer 'permanent-local t)
 
 (defun mlinks-toggle-hilight ()
   "Toggle hilighting of links in current buffer."
@@ -273,20 +273,26 @@
       (message "MLinks hilighter was turned on in buffer")
     (message "MLinks hilighter was turned off in buffer")))
 
-(defun mlinks-stop-hilighter ()
+(defun mlinks-stop-hilighter (check-buffers)
   ;;(message "stop-hilighter, mlinks-hilighter-timer=%s, timerp=%s" mlinks-hilighter-timer (timerp mlinks-hilighter-timer))
-  (when (and mlinks-hilighter-timer
-             (timerp mlinks-hilighter-timer))
-    (cancel-timer mlinks-hilighter-timer))
-  (setq mlinks-hilighter-timer nil)
-  (when mlinks-hilight-point-ovl
-    (delete-overlay mlinks-hilight-point-ovl)))
+  (unless (timerp mlinks-hilighter-timer)
+    (setq mlinks-hilighter-timer nil))
+  (when mlinks-hilighter-timer
+      (when (or (not check-buffers)
+                (not (catch 'found-mlink-buffer
+                       (dolist (b (buffer-list))
+                         (with-current-buffer b
+                           (when mlinks-mode
+                             (throw 'found-mlink-buffer t)))))))
+        (cancel-timer mlinks-hilighter-timer)
+        (setq mlinks-hilighter-timer nil))))
 
 (defun mlinks-start-hilighter ()
-  (mlinks-stop-hilighter)
-  ;;(message "start-hilighter")
-  (setq mlinks-hilighter-timer (run-with-idle-timer 0 t 'mlinks-hilighter (current-buffer)))
-  )
+  ;;(mlinks-stop-hilighter t)
+  ;;(when mlinks-hilighter-timer (error "Blä"))
+  (unless (timerp mlinks-hilighter-timer)
+    (setq mlinks-hilighter-timer
+          (run-with-idle-timer 0.1 t 'mlinks-hilighter))))
 
 (defvar mlinks-link-overlay-priority 100)
 
@@ -318,25 +324,21 @@
     (when bounds
       (buffer-substring-no-properties (car bounds) (cdr bounds)))))
 
-(defun mlinks-hilighter (buffer)
-  (save-match-data
-    (if (or (not (bufferp buffer))
-            (not (buffer-live-p buffer)))
-        (cancel-timer mlinks-mark-links-timer)
-      (with-current-buffer buffer
-        (when mlinks-mode
-          (let* ((funs-- (mlinks-get-action 'hili))
-                 (bounds-- (or (mlinks-link-range (point))
-                               (if funs--
-                                   (run-hook-with-args-until-success 'funs--)
-                                 (mlinks-link-range (point))))))
-            (if (and bounds--
-                     t) ;(eq (get-char-property (car bounds--) 'face) 'mlinks-link))
-                (if mlinks-hilight-point-ovl
-                    (move-overlay mlinks-hilight-point-ovl (car bounds--) (cdr bounds--))
-                  (mlinks-make-point-ovl bounds--))
-              (when mlinks-hilight-point-ovl
-                (delete-overlay mlinks-hilight-point-ovl)))))))))
+(defun mlinks-hilighter ()
+  (when mlinks-mode
+    (save-match-data
+      (let* ((funs-- (mlinks-get-action 'hili))
+             (bounds-- (or (mlinks-link-range (point))
+                           (if funs--
+                               (run-hook-with-args-until-success 'funs--)
+                             (mlinks-link-range (point))))))
+        (if (and bounds--
+                 t) ;(eq (get-char-property (car bounds--) 'face) 'mlinks-link))
+            (if mlinks-hilight-point-ovl
+                (move-overlay mlinks-hilight-point-ovl (car bounds--) (cdr bounds--))
+              (mlinks-make-point-ovl bounds--))
+          (when mlinks-hilight-point-ovl
+            (delete-overlay mlinks-hilight-point-ovl)))))))
 
 (defvar mlinks-active-hilight-keymap
   (let ((m (make-sparse-keymap)))
@@ -368,13 +370,13 @@
 
 (defun mlinks-activate-hilight ()
   (add-hook 'pre-command-hook 'mlinks-pre-command nil t)
-  (mlinks-hilighter (current-buffer))
+  (mlinks-hilighter)
   (overlay-put mlinks-hilight-point-ovl 'face 'isearch)
   (overlay-put mlinks-hilight-point-ovl 'keymap mlinks-active-hilight-keymap))
 
 (defun mlinks-deactivate-hilight ()
   (remove-hook 'pre-command-hook 'mlinks-pre-command t)
-  (mlinks-hilighter (current-buffer))
+  (mlinks-hilighter)
   (overlay-put mlinks-hilight-point-ovl 'face 'highlight)
   (overlay-put mlinks-hilight-point-ovl 'keymap mlinks-inactive-hilight-keymap))
 
@@ -712,7 +714,9 @@ By default the link moved to will be active, see
         ;;(mlinks-add-overlays)
         )
     ;;(message "mlinks-mode nil")
-    (mlinks-stop-hilighter)
+    (mlinks-stop-hilighter nil)
+    (when mlinks-hilight-point-ovl
+      (delete-overlay mlinks-hilight-point-ovl))
     (mlinks-stop-marking-links)
     ;;(remove-hook 'after-change-major-mode-hook 'mlinks-after-change-major-mode)
     ;;(remove-hook 'after-change-functions 'mlinks-after-change t)
@@ -728,6 +732,7 @@ By default the link moved to will be active, see
       (mlinks-mode 1)
       )))
 
+;;;###autoload
 (define-globalized-minor-mode mlinks-global-mode mlinks-mode
   mlinks-turn-on-in-buffer
   :group 'mlinks)
