@@ -129,6 +129,10 @@ OVERLAY is the overlay added by `html-write-mode' for this tag."
         (overlay-put overlay 'html-write-url href))
       (goto-char (point)))))
 
+(defun html-write-point-entered-echo (left entered)
+  (let ((msg (get-char-property entered 'help-echo)))
+    (when msg (message "%s" msg))))
+
 (defun html-write-a-tag-actions (tag-begin tag-end overlay)
   "Do actions for <a> tags for tag between TAG-BEGIN and TAG-END.
 OVERLAY is the overlay added by `html-write-mode' for this tag."
@@ -148,6 +152,8 @@ OVERLAY is the overlay added by `html-write-mode' for this tag."
       (when href
         (overlay-put overlay 'face 'html-write-link)
         (overlay-put overlay 'help-echo href)
+        ;; Fix-me: Seems like point-entered must be a text prop
+        (overlay-put overlay 'point-entered 'html-write-point-entered-echo)
         (overlay-put overlay 'mouse-face 'highlight)
         (if (eq ?# (string-to-char href))
             (setq href (concat "file:///" buffer-file-name href))
@@ -376,7 +382,7 @@ START, END and OLD-LEN are the parameters from after change."
 (defun html-write-fontify (bound)
   ;;(message "html-write-fontify %s" bound)
   (let (tag-ovl)
-    (save-match-data
+    ;;(save-match-data
       (let* ((hide-tags-regexp (html-write-make-hide-tags-regexp))
              (next-tag (re-search-forward hide-tags-regexp bound t))
              (tag-beg (when next-tag (match-beginning 0)))
@@ -419,7 +425,8 @@ START, END and OLD-LEN are the parameters from after change."
                ;;(put-text-property start end 'html-write t)
                ;; Fix-me: more careful rear-nonsticky?
                (put-text-property (1- end) end
-                                  'rear-nonsticky '(invisible))))))))
+                                  'rear-nonsticky '(invisible)))))))
+      ;;)
     (when tag-ovl
       (set-match-data (list (copy-marker (overlay-start tag-ovl))
                             (copy-marker (overlay-end tag-ovl))))
@@ -428,7 +435,6 @@ START, END and OLD-LEN are the parameters from after change."
 
 (defun html-write-font-lock (on)
   ;; See mlinks.el
-  ;;(message "html-write-font-lock %s" on)
   (let* ((add-or-remove (if on 'font-lock-add-keywords 'font-lock-remove-keywords))
          (fontify-fun 'html-write-fontify)
          (args (list nil `(( ,fontify-fun ( 0 'html-write-base t ))))))
@@ -437,7 +443,6 @@ START, END and OLD-LEN are the parameters from after change."
       (apply add-or-remove args)
       (font-lock-mode -1)
       (font-lock-mode 1)
-      ;;(message "html-write-font-lock %s Exit" on)
       )))
 
 (provide 'html-write)

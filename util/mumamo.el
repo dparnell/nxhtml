@@ -4715,9 +4715,13 @@ needed \(and is the default)."
   ;;(msgtrc "set-major-post-command here")
   (let* ((in-pre-hook (memq 'mumamo-set-major-pre-command pre-command-hook))
          (ovl (unless in-pre-hook (mumamo-post-command-get-chunk (point))))
-         (major (when ovl (mumamo-chunk-major-mode ovl))))
+         (major (when ovl (mumamo-chunk-major-mode ovl)))
+         (set-it-now (not (or in-pre-hook (eq major major-mode)))))
     ;;(msgtrc "set-major-post-command ovl=%s, in-pre-hook=%s" ovl in-pre-hook)
-    (unless (or in-pre-hook (eq major major-mode))
+    (if (not set-it-now)
+        (unless (eq major major-mode)
+          (when mumamo-idle-set-major-mode-timer
+            (mumamo-request-idle-set-major-mode)))
       (if mumamo-done-first-set-major
           (if (<= 0 mumamo-set-major-mode-delay)
               ;; Window point has been moved to a new chunk with a new
@@ -6797,7 +6801,7 @@ The following rules are used when indenting:
                     (setq last-parent-major-indent 0)
                   (setq last-parent-major-indent (current-column)))))))))
     (mumamo-msgindent "  leaving-submode=%s, entering-submode=%s" leaving-submode entering-submode)
-    (msgtrc "  leaving-submode=%s, entering-submode=%s" leaving-submode entering-submode)
+    ;;(msgtrc "  leaving-submode=%s, entering-submode=%s" leaving-submode entering-submode)
 
     (cond
      ( leaving-submode
@@ -7511,6 +7515,7 @@ For more info see also `rng-get-major-mode-chunk-function'.")
           xmltok-errors
           (while-n1 0)
           (while-n2 0)
+          (old-point -1)
           )
       ;;(msgtrc "> > > > > enter rng-do-some-validation-1, continue-p-function=%s" continue-p-function)
       (setq have-remaining-chars (< (point) point-max))
@@ -7526,9 +7531,10 @@ For more info see also `rng-get-major-mode-chunk-function'.")
           (rng-clear-conditional-region))
         (setq rng-dtd xmltok-dtd))
       (setq while-n1 0)
-      ;;(while (and (> 500 (setq while-n1 (1+ while-n1)))
       (while (and (mumamo-while 2000 'while-n1 "continue")
+                  (/= old-point (point))
                   continue)
+        (setq old-point (point))
         ;; If mumamo (or something similar) is used then jump over parts
         ;; that can not be parsed by nxml-mode.
         (when (and rng-get-major-mode-chunk-function
@@ -7545,7 +7551,6 @@ For more info see also `rng-get-major-mode-chunk-function'.")
               (setq end-major-mode-chunk nil)
               (setq major-mode-chunk (funcall rng-get-major-mode-chunk-function next-non-space-pos "rng-do-some-validation-1 A"))
               (setq while-n2 0)
-              ;;(while (and (> 500 (setq while-n2 (1+ while-n2)))
               (while (and (mumamo-while 500 'while-n2 "major-mode-chunk")
                           major-mode-chunk
                           (not (funcall rng-valid-nxml-major-mode-chunk-function major-mode-chunk))

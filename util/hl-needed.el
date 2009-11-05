@@ -172,10 +172,10 @@ otherwise."
   (when (timerp hl-needed-timer) (cancel-timer hl-needed-timer))
   (setq hl-needed-timer nil))
 
-(defun hl-needed-start-timer ()
+(defun hl-needed-start-timer (wait)
   (hl-needed-cancel-timer)
   (setq hl-needed-timer
-        (run-with-idle-timer hl-needed-idle-time
+        (run-with-idle-timer wait
                              nil 'hl-needed-show-in-timer)))
 
 (defun hl-needed-show-in-timer ()
@@ -244,7 +244,6 @@ Erros may go unnoticed in timers.  This should prevent it."
   (unless (active-minibuffer-window)
     (if (funcall hl-needed-currently-fun)
         (progn
-          ;;(message "HERE last-command=%s, this-command=%s, last-command-event=%s" last-command this-command last-command-event)
           ;; Some time calc for things that pause to show us where we are:
           (let* ((time-pre hl-needed-pre-command-time)
                 (time-now (current-time))
@@ -252,10 +251,11 @@ Erros may go unnoticed in timers.  This should prevent it."
                 (now (+ (nth 1 time-now) (* 0.0000001 (nth 2 time-now)))))
             (if (< 1 (- now pre)) ;; Fix-me: option?
                 nil ;; Don't show anything here, it just disturbs
-              (hl-needed-show)
+              ;;(hl-needed-show)
+              (hl-needed-start-timer 0.2)
               (hl-needed-maybe-flash-timer))))
       ;; Submit an idle timer that can turn highlighting on.
-      (hl-needed-start-timer)
+      (hl-needed-start-timer hl-needed-idle-time)
       ))
     (setq hl-needed-config-change nil)
     (unless (active-minibuffer-window)

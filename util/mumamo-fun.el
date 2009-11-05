@@ -1283,41 +1283,6 @@ This also covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; smarty
 
-;; (defun mumamo-chunk-smarty (pos min max)
-;;   "Find { ... }.  Return range and 'smarty-mode.
-;; See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-;;   (mumamo-find-possible-chunk pos min max
-;;                               'mumamo-search-bw-exc-start-smarty
-;;                               'mumamo-search-bw-exc-end-smarty
-;;                               'mumamo-search-fw-exc-start-smarty
-;;                               'mumamo-search-fw-exc-end-smarty))
-
-;; (defun mumamo-search-bw-exc-start-smarty (pos min)
-;;   "Helper for `mumamo-chunk-smarty'.
-;; POS is where to start search and MIN is where to stop."
-;;   (let ((exc-start (mumamo-chunk-start-bw-str-inc pos min "{")))
-;;     (when (and exc-start
-;;                (<= exc-start pos))
-;;       (cons exc-start 'smarty-mode))))
-
-;; (defun mumamo-search-bw-exc-end-smarty (pos min)
-;;   "Helper for `mumamo-chunk-smarty'.
-;; POS is where to start search and MIN is where to stop."
-;;   (mumamo-chunk-end-bw-str-inc pos min "}"))
-
-;; (defun mumamo-search-fw-exc-start-smarty (pos max)
-;;   "Helper for `mumamo-chunk-smarty'.
-;; POS is where to start search and MAX is where to stop."
-;;   (let ((end-out (mumamo-chunk-start-fw-str-inc pos max "{")))
-;;     end-out))
-
-;; (defun mumamo-search-fw-exc-end-smarty (pos max)
-;;   "Helper for `mumamo-chunk-smarty'.
-;; POS is where to start search and MAX is where to stop."
-;;   (save-match-data
-;;     (mumamo-chunk-end-fw-str-inc pos max "}")))
-
-
 (defun mumamo-chunk-smarty-literal (pos min max)
   "Find {literal} ... {/literal}.  Return range and 'html-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."

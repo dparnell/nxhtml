@@ -517,7 +517,7 @@ With command prefix also show created HTML source in other window.
 ;;;***
 
 ;;;### (autoloads (hl-needed-mode) "hl-needed" "util/hl-needed.el"
-;;;;;;  (19183 27820))
+;;;;;;  (19186 57433))
 ;;; Generated autoloads from util/hl-needed.el
 
 (defvar hl-needed-mode nil "\
@@ -568,7 +568,7 @@ highlighting here.
 ;;;***
 
 ;;;### (autoloads (html-write-mode) "html-write" "util/html-write.el"
-;;;;;;  (19074 12812))
+;;;;;;  (19186 19648))
 ;;; Generated autoloads from util/html-write.el
 
 (autoload 'html-write-mode "html-write" "\
@@ -771,7 +771,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19186 9716))
+;;;;;;  "mumamo" "util/mumamo.el" (19186 55769))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -3251,7 +3251,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/popcmp.el" "util/rebind.el"
 ;;;;;;  "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el" "util/zen-mode.el") (19186 12376 578000))
+;;;;;;  "util/whelp.el" "util/zen-mode.el") (19186 57606 875000))
 
 ;;;***
 
