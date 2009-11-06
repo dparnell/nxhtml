@@ -885,13 +885,6 @@ See also `mumamo-alt-php-tags-mode'."
 
 ;; component calls with content
 
-;; (mumamo-find-possible-chunk-new pos
-;;                                 max
-;;                                 bw-exc-start-fun
-;;                                 fw-exc-start-fun
-;;                                 fw-exc-end-fun
-;;                                 &optional find-borders-fun)
-
 (defun mumamo-chunk-mason-compcont-bw-exc-start-fun (pos min)
   (let ((exc-start (mumamo-chunk-start-bw-str-inc pos min "<&| ")))
     (and exc-start
@@ -1048,41 +1041,21 @@ This also covers inlined style and javascript."
   "Find {% comment %}.  Return range and `django-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (mumamo-quick-static-chunk pos min max "{% comment %}" "{% endcomment %}" t 'mumamo-comment-mode t))
-;;;   (mumamo-find-possible-chunk pos min max
-;;;                               'mumamo-search-bw-exc-start-django4
-;;;                               'mumamo-search-bw-exc-end-django4
-;;;                               'mumamo-search-fw-exc-start-django4
-;;;                               'mumamo-search-fw-exc-end-django4))
 
 (defun mumamo-chunk-django3(pos min max)
   "Find {# ... #}.  Return range and `django-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (mumamo-quick-static-chunk pos min max "{#" "#}" t 'mumamo-comment-mode t))
-;;;   (mumamo-find-possible-chunk pos min max
-;;;                               'mumamo-search-bw-exc-start-django3
-;;;                               'mumamo-search-bw-exc-end-django3
-;;;                               'mumamo-search-fw-exc-start-django3
-;;;                               'mumamo-search-fw-exc-end-django3))
 
 (defun mumamo-chunk-django2(pos min max)
   "Find {{ ... }}.  Return range and `django-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (mumamo-quick-static-chunk pos min max "{{" "}}" t 'django-variable-mode t))
-;;;   (mumamo-find-possible-chunk pos min max
-;;;                               'mumamo-search-bw-exc-start-django2
-;;;                               'mumamo-search-bw-exc-end-django2
-;;;                               'mumamo-search-fw-exc-start-django2
-;;;                               'mumamo-search-fw-exc-end-django2))
 
 (defun mumamo-chunk-django (pos min max)
   "Find {% ... %}.  Return range and `django-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (mumamo-quick-static-chunk pos min max "{%" "%}" t 'django-mode t))
-;;;   (mumamo-find-possible-chunk pos min max
-;;;                               'mumamo-search-bw-exc-start-django
-;;;                               'mumamo-search-bw-exc-end-django
-;;;                               'mumamo-search-fw-exc-start-django
-;;;                               'mumamo-search-fw-exc-end-django))
 
 (defun mumamo-search-bw-exc-start-django (pos min)
   "Helper for `mumamo-chunk-django'.
@@ -2326,7 +2299,54 @@ This also covers inlined style and javascript."
 (defun mumamo-chunk-org-html (pos min max)
   "Find #+BEGIN_HTML ... #+END_HTML, return range and `html-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-quick-static-chunk pos min max "#+BEGIN_HTML" "#+END_HTML" t 'html-mode t))
+  (mumamo-quick-static-chunk pos min max "#+BEGIN_HTML" "#+END_HTML" nil 'html-mode nil))
+
+
+(defun mumamo-search-bw-org-src-start (pos min)
+  "Helper for `mumamo-chunk-org-src'.
+POS is where to start search and MIN is where to stop."
+  (let* ((exc-start (mumamo-chunk-start-bw-str pos min "#+BEGIN_SRC"))
+         (exc-mode (when exc-start
+                     (let ((here (point)))
+                       (goto-char exc-start)
+                       (prog1
+                           (read (current-buffer))
+                         (goto-char here))))))
+    ;;(setq exc-mode (eval exc-mode))
+    ;;(setq exc-mode 'text-mode)
+    ;;(when exc-mode (setq exc-mode (quote exc-mode)))
+    ;;(assert (eq exc-mode 'emacs-lisp-mode) t)
+    (when exc-start
+      (when (<= exc-start pos)
+        (cons exc-start exc-mode)))))
+
+(defun mumamo-search-bw-org-src-end (pos min)
+  "Helper for `mumamo-chunk-org-src'.
+POS is where to start search and MIN is where to stop."
+  (mumamo-chunk-end-bw-str pos min "#+END_SRC"))
+
+(defun mumamo-search-fw-org-src-start (pos max)
+  "Helper for `mumamo-chunk-org-src'.
+POS is where to start search and MAX is where to stop."
+  (mumamo-chunk-start-fw-str pos max "#+BEGIN_SRC"))
+
+(defun mumamo-search-fw-org-src-end (pos max)
+  "Helper for `mumamo-chunk-org-src'.
+POS is where to start search and MAX is where to stop."
+  (save-match-data
+    (mumamo-chunk-end-fw-str pos max "#+END_SRC")))
+
+(defun mumamo-chunk-org-src (pos min max)
+  "Find #+BEGIN_SRC ... #+END_SRC, return range and choosen major mode.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX.
+
+See Info node `(org) Literal Examples' for how to specify major
+mode."
+  (mumamo-find-possible-chunk pos min max
+                              'mumamo-search-bw-org-src-start
+                              'mumamo-search-bw-org-src-end
+                              'mumamo-search-fw-org-src-start
+                              'mumamo-search-fw-org-src-end))
 
 ;;;###autoload
 (define-mumamo-multi-major-mode org-mumamo-mode
@@ -2335,6 +2355,7 @@ Unfortunately this only allows `html-mode' (not `nxhtml-mode') in
 sub chunks."
     ("Org Mode + Html" org-mode
      (mumamo-chunk-org-html
+      mumamo-chunk-org-src
       )))
 
 
