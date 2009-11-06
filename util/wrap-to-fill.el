@@ -48,6 +48,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Wrapping
 
+(defgroup wrap-to-fill nil
+  "Customizing of `wrap-to-fill-column-mode'."
+  :group 'convenience)
+
 ;;;###autoload
 (defcustom wrap-to-fill-left-marg nil
   "Left margin handling for `wrap-to-fill-column-mode'.
@@ -56,7 +60,7 @@ display columns. Otherwise it should be a number which will be
 the left margin."
   :type '(choice (const :tag "Center" nil)
                  (integer :tag "Left margin"))
-  :group 'convenience)
+  :group 'wrap-to-fill)
 (make-variable-buffer-local 'wrap-to-fill-left-marg)
 
 (defvar wrap-to-fill-old-margins 0)
@@ -69,7 +73,7 @@ the left margin."
     fundamental-mode)
   "Major modes where `wrap-to-fill-left-margin' may be nil."
   :type '(repeat command)
-  :group 'convenience)
+  :group 'wrap-to-fill)
 
 
          ;;ThisisaVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongWord ThisisaVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongWord
@@ -92,8 +96,11 @@ the left margin."
     (define-key map [(control ?c) left] 'wrap-to-fill-narrower)
     map))
 
-;; Fix-me: make the `wrap-prefix' behavior an option or separate minor
-;; mode.
+;; Fix-me: Maybe make the `wrap-prefix' behavior an option or separate
+;; minor mode.
+
+;; Fix-me: better handling of left-column in mumamo buffers (and other
+;; if possible).
 
 ;;;###autoload
 (define-minor-mode wrap-to-fill-column-mode
@@ -101,17 +108,18 @@ the left margin."
 By default the display columns are centered, but see the option
 `wrap-to-fill-left-marg'.
 
+Fix-me:
 Note 1: When turning this on `visual-line-mode' is also turned on. This
 is not reset when turning off this mode.
 
-Note 2: The text property `wrap-prefix' is set by this mode to
-indent continuation lines.
+Note 2: The text properties 'wrap-prefix and 'wrap-to-fill-prefix
+is set by this mode to indent continuation lines.
 
 Key bindings added by this minor mode:
 
 \\{wrap-to-fill-column-mode-map}"
   :lighter " WrapFill"
-  :group 'convenience
+  :group 'wrap-to-fill
   ;; (message "wrap-to-fill-column-mode %s, cb=%s, major=%s, multi=%s" wrap-to-fill-column-mode (current-buffer)
   ;;          major-mode mumamo-multi-major-mode)
   (if wrap-to-fill-column-mode
@@ -163,6 +171,26 @@ Key bindings added by this minor mode:
        (goto-char here))))
   (wrap-to-fill-font-lock wrap-to-fill-column-mode))
 (put 'wrap-to-fill-column-mode 'permanent-local t)
+
+(defcustom wrap-to-fill-major-modes '(org-mode
+                                      html-mode
+                                      nxhtml-mode)
+  "Major modes where to turn on `wrap-to-fill-column-mode'"
+  ;;:type '(repeat major-mode)
+  :type '(repeat command)
+  :group 'wrap-to-fill)
+
+(defun wrap-to-fill-turn-on-in-buffer ()
+  "Turn on fun for globalization."
+  (when (catch 'turn-on
+          (dolist (m wrap-to-fill-major-modes)
+            (when (derived-mode-p m)
+              (throw 'turn-on t))))
+    (wrap-to-fill-column-mode 1)))
+
+(define-globalized-minor-mode wrap-to-fill-column-global-mode wrap-to-fill-column-mode
+  wrap-to-fill-turn-on-in-buffer
+  :group 'wrap-to-fill)
 
 ;; Fix-me: There is a confusion between buffer and window margins
 ;; here. Also the doc says that left-margin-width and dito right may
