@@ -517,7 +517,7 @@ With command prefix also show created HTML source in other window.
 ;;;***
 
 ;;;### (autoloads (hl-needed-mode) "hl-needed" "util/hl-needed.el"
-;;;;;;  (19186 57433))
+;;;;;;  (19186 59738))
 ;;; Generated autoloads from util/hl-needed.el
 
 (defvar hl-needed-mode nil "\
@@ -568,7 +568,7 @@ highlighting here.
 ;;;***
 
 ;;;### (autoloads (html-write-mode) "html-write" "util/html-write.el"
-;;;;;;  (19186 19648))
+;;;;;;  (19186 59738))
 ;;; Generated autoloads from util/html-write.el
 
 (autoload 'html-write-mode "html-write" "\
@@ -682,7 +682,7 @@ See also the command `inlimg-mode'.
 
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
 ;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19186
-;;;;;;  4938))
+;;;;;;  59738))
 ;;; Generated autoloads from util/majmodpri.el
 
 (autoload 'majmodpri-sort-lists "majmodpri" "\
@@ -719,7 +719,7 @@ before applying.
 ;;;***
 
 ;;;### (autoloads (mlinks-global-mode mlinks-mode) "mlinks" "util/mlinks.el"
-;;;;;;  (19186 12283))
+;;;;;;  (19186 16098))
 ;;; Generated autoloads from util/mlinks.el
 
 (autoload 'mlinks-mode "mlinks" "\
@@ -771,7 +771,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19186 55769))
+;;;;;;  "mumamo" "util/mumamo.el" (19186 59738))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -794,8 +794,8 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  jsp-html-mumamo-mode gsp-html-mumamo-mode smarty-html-mumamo-mode
 ;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
 ;;;;;;  embperl-html-mumamo-mode mason-html-mumamo-mode nxml-mumamo-mode
-;;;;;;  html-mumamo-mode) "mumamo-fun" "util/mumamo-fun.el" (19185
-;;;;;;  60621))
+;;;;;;  html-mumamo-mode) "mumamo-fun" "util/mumamo-fun.el" (19188
+;;;;;;  22985))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1027,9 +1027,14 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 
 ;;;### (autoloads (org-freemind-to-org-mode org-freemind-from-org-sparse-tree
 ;;;;;;  org-freemind-from-org-mode org-freemind-from-org-mode-node
-;;;;;;  org-freemind-show) "org-freemind" "util/org-freemind.el"
-;;;;;;  (19185 52183))
+;;;;;;  org-freemind-show org-export-as-freemind) "org-freemind"
+;;;;;;  "util/org-freemind.el" (19187 30238))
 ;;; Generated autoloads from util/org-freemind.el
+
+(autoload 'org-export-as-freemind "org-freemind" "\
+Not documented
+
+\(fn ARG &optional HIDDEN EXT-PLIST TO-BUFFER BODY-ONLY PUB-DIR)" t nil)
 
 (autoload 'org-freemind-show "org-freemind" "\
 Show file MM-FILE in Freemind.
@@ -1475,7 +1480,7 @@ handled is governed by `sex-keep-dummy-buffer'.
 ;;;***
 
 ;;;### (autoloads (tabkey2-mode tabkey2-emma-without-tabkey2) "tabkey2"
-;;;;;;  "util/tabkey2.el" (19186 6102))
+;;;;;;  "util/tabkey2.el" (19186 16098))
 ;;; Generated autoloads from util/tabkey2.el
 
 (autoload 'tabkey2-emma-without-tabkey2 "tabkey2" "\
@@ -1796,7 +1801,7 @@ Major mode for editing Template Toolkit files.
 ;;;***
 
 ;;;### (autoloads (smarty-mode) "smarty-mode" "related/smarty-mode.el"
-;;;;;;  (19185 53121))
+;;;;;;  (19186 16098))
 ;;; Generated autoloads from related/smarty-mode.el
 
 (autoload 'smarty-mode "smarty-mode" "\
@@ -2758,7 +2763,7 @@ Not documented
 
 ;;;### (autoloads (wrap-to-fill-column-mode wrap-to-fill-left-marg-modes
 ;;;;;;  wrap-to-fill-left-marg) "wrap-to-fill" "util/wrap-to-fill.el"
-;;;;;;  (19186 2604))
+;;;;;;  (19188 6924))
 ;;; Generated autoloads from util/wrap-to-fill.el
 
 (defvar wrap-to-fill-left-marg nil "\
@@ -2779,11 +2784,12 @@ Use `fill-column' display columns in buffer windows.
 By default the display columns are centered, but see the option
 `wrap-to-fill-left-marg'.
 
+Fix-me:
 Note 1: When turning this on `visual-line-mode' is also turned on. This
 is not reset when turning off this mode.
 
-Note 2: The text property `wrap-prefix' is set by this mode to
-indent continuation lines.
+Note 2: The text properties 'wrap-prefix and 'wrap-to-fill-prefix
+is set by this mode to indent continuation lines.
 
 Key bindings added by this minor mode:
 
@@ -2886,7 +2892,7 @@ Check if external modules used by nXhtml are found.
 ;;;;;;  eruby-nxhtml-mumamo-mode jsp-nxhtml-mumamo-mode gsp-nxhtml-mumamo-mode
 ;;;;;;  smarty-nxhtml-mumamo-mode mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode
 ;;;;;;  django-nxhtml-mumamo-mode embperl-nxhtml-mumamo-mode nxhtml-mumamo-mode)
-;;;;;;  "nxhtml-mumamo" "nxhtml/nxhtml-mumamo.el" (19185 60714))
+;;;;;;  "nxhtml-mumamo" "nxhtml/nxhtml-mumamo.el" (19186 16098))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 
 (autoload 'nxhtml-mumamo-mode "nxhtml-mumamo" "\
@@ -3071,7 +3077,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "nxhtml-menu" "nxhtml/nxhtml-menu.el"
-;;;;;;  (19185 31903))
+;;;;;;  (19188 5837))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "nxhtml-menu" "\
@@ -3244,14 +3250,14 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;;;;  "related/flymu.el" "related/javascript-old.el" "related/php-imenu.el"
 ;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
-;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/custsets.el"
-;;;;;;  "util/ecb-batch-compile.el" "util/ffip.el" "util/fupd.el"
-;;;;;;  "util/htmlfontify.21.el" "util/key-cat.el" "util/mumamo-aspnet.el"
-;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
-;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/popcmp.el" "util/rebind.el"
-;;;;;;  "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el" "util/zen-mode.el") (19186 57606 875000))
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
+;;;;;;  "util/buffer-bg.el" "util/custsets.el" "util/ecb-batch-compile.el"
+;;;;;;  "util/ffip.el" "util/fupd.el" "util/htmlfontify.21.el" "util/key-cat.el"
+;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
+;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
+;;;;;;  "util/popcmp.el" "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el"
+;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
+;;;;;;  (19188 26473 765000))
 
 ;;;***
 

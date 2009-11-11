@@ -243,6 +243,8 @@ The characters \"&<> will be escaped."
                       ))))
     fm-str))
 
+;;(org-freemind-unescape-str-to-org "&#x6d;A&#x224C;B&lt;C&#x3C;&#x3D;")
+;;(org-freemind-unescape-str-to-org "&#x3C;&lt;")
 (defun org-freemind-unescape-str-to-org (fm-str)
   "Do some html-unescaping of FM-STR and return the result.
 This is the opposite of `org-freemind-escape-str-from-org' but it
@@ -253,21 +255,25 @@ will also unescape &#nn;."
     (setq org-str (replace-regexp-in-string "&lt;" "<" org-str))
     (setq org-str (replace-regexp-in-string "&gt;" ">" org-str))
     (setq org-str (replace-regexp-in-string
-               "&#x\\([a-f0-9]\\{2\\}\\);"
-               (lambda (m)
-                     (char-to-string (+ (string-to-number (match-string 1 org-str) 16)
-                                    ?\x800)))
-               org-str))))
+                   "&#x\\([a-f0-9]\\{2,4\\}\\);"
+                   (lambda (m)
+                     (char-to-string
+                      ;; Note: str is scoped dynamically from
+                      ;; `replace-regexp-in-string'.
+                      (+ (string-to-number (match-string 1 str) 16)
+                         0 ;?\x800 ;; What is this for? Encoding?
+                         )))
+                   org-str))))
 
 ;; (org-freemind-test-escape)
-;; (defun org-freemind-test-escape ()
-;;   (let* ((str1 "a quote: \", an amp: &, lt: <; over 256: öåäÖÅÄ")
-;;          (str2 (org-freemind-escape-str-from-org str1))
-;;          (str3 (org-freemind-unescape-str-to-org str2))
-;;         )
-;;     (unless (string= str1 str3)
-;;       (error "str3=%s" str3))
-;;     ))
+(defun org-freemind-test-escape ()
+  (let* ((str1 "a quote: \", an amp: &, lt: <; over 256: öåäÖÅÄ")
+         (str2 (org-freemind-escape-str-from-org str1))
+         (str3 (org-freemind-unescape-str-to-org str2))
+        )
+    (unless (string= str1 str3)
+      (error "str3=%s" str3))
+    ))
 
 (defun org-freemind-convert-links-from-org (org-str)
   "Convert org links in ORG-STR to freemind links and return the result."
@@ -327,6 +333,7 @@ will also unescape &#nn;."
 ;;; Org => FreeMind
 
 (defun org-freemind-convert-text-p (text)
+  "Convert TEXT to html with <p> paragraphs."
   (setq text (org-freemind-escape-str-from-org text))
   (setq text (replace-regexp-in-string (rx "\n" (0+ blank) "\n") "</p><p>\n" text))
   ;;(setq text (replace-regexp-in-string (rx bol (1+ blank) eol) "" text))
@@ -434,7 +441,7 @@ DRAWERS-REGEXP are converted to freemind notes."
                         )))
       (list node-res note-res))))
 
-(defun org-freemind-write-node (this-m2 this-node-end)
+(defun org-freemind-write-node (mm-buffer drawers-regexp num-left-nodes base-level current-level next-level this-m2 this-node-end this-children-visible next-node-start next-has-some-visible-child)
   (let* (this-icons
          this-bg-color
          this-m2-escaped
@@ -472,13 +479,14 @@ DRAWERS-REGEXP are converted to freemind notes."
     (setq this-m2-escaped (org-freemind-escape-str-from-org this-m2))
     (let ((node-notes (org-freemind-org-text-to-freemind-subnode/note
                        this-m2-escaped
-                       this-node-end (1- next-node-start))))
+                       this-node-end
+                       (1- next-node-start)
+                       drawers-regexp)))
       (setq this-rich-node (nth 0 node-notes))
       (setq this-rich-note (nth 1 node-notes)))
     (with-current-buffer mm-buffer
       (insert "<node text=\"" this-m2-escaped "\"")
       (org-freemind-get-node-style this-m2)
-      ;;(when (and (> current-level base-level) (> next-level current-level))
       (when (> next-level current-level)
         (unless (or this-children-visible
                     next-has-some-visible-child)
@@ -496,9 +504,8 @@ DRAWERS-REGEXP are converted to freemind notes."
       )
     (with-current-buffer mm-buffer
       (when this-rich-note (insert this-rich-note))
-      (when this-rich-node (insert this-rich-node))
-      )
-  ))
+      (when this-rich-node (insert this-rich-node))))
+  num-left-nodes)
 
 (defun org-freemind-check-overwrite (file interactively)
   "Check if file FILE already exists.
@@ -650,6 +657,7 @@ Otherwise give an error say the file exists."
                 this-node-end
                 this-children-visible
                 next-m2
+                next-node-start
                 next-level
                 next-has-some-visible-child
                 next-children-visible
@@ -659,9 +667,9 @@ Otherwise give an error say the file exists."
                     (if node-at-line-last (<= (point) node-at-line-last) t)
                     )
               (let* ((next-m1 (match-string-no-properties 1))
-                     (next-node-start (match-beginning 0))
                      (next-node-end (match-end 0))
                      )
+                (setq next-node-start (match-beginning 0))
                 (setq next-m2 (match-string-no-properties 2))
                 (setq next-level (length next-m1))
                 (when (> next-level current-level)
@@ -686,12 +694,11 @@ Otherwise give an error say the file exists."
                       (if next-children-visible t
                         (org-freemind-look-for-visible-child next-level)))
                 (when this-m2
-                  (org-freemind-write-node this-m2 this-node-end))
+                  (setq num-left-nodes (org-freemind-write-node mm-buffer drawers-regexp num-left-nodes base-level current-level next-level this-m2 this-node-end this-children-visible next-node-start next-has-some-visible-child)))
                 (when (if (= num-top1-nodes 1) (> current-level base-level) t)
                   (while (>= current-level next-level)
                     (with-current-buffer mm-buffer
                       (insert "</node>\n")
-                      ;;(insert (format "</node>\ncurrent-level=%s, next-level%s\n" current-level next-level))
                       (setq current-level (1- current-level))
                       (when (< 0 skipped-odd)
                         (setq skipped-odd (1- skipped-odd))
@@ -712,7 +719,7 @@ Otherwise give an error say the file exists."
               (setq next-node-start (if node-at-line-last
                                         (1+ node-at-line-last)
                                       (point-max)))
-              (org-freemind-write-node this-m2 this-node-end)
+              (setq num-left-nodes (org-freemind-write-node mm-buffer drawers-regexp num-left-nodes base-level current-level next-level this-m2 this-node-end this-children-visible next-node-start next-has-some-visible-child))
               (with-current-buffer mm-buffer (insert "</node>\n"))
               ;)
             )
