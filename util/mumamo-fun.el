@@ -524,7 +524,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   "Helper for `mumamo-chunk-inlined-script'.
 POS is where to start search and MIN is where to stop."
   (goto-char (+ pos 7))
-  (let ((marker-start (search-backward "<script" min t))
+  (let ((marker-start (when (< min (point)) (search-backward "<script" min t)))
         exc-mode
         exc-start)
     (when marker-start
