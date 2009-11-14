@@ -258,9 +258,7 @@ will also unescape &#nn;."
                    "&#x\\([a-f0-9]\\{2,4\\}\\);"
                    (lambda (m)
                      (char-to-string
-                      ;; Note: str is scoped dynamically from
-                      ;; `replace-regexp-in-string'.
-                      (+ (string-to-number (match-string 1 str) 16)
+                      (+ (string-to-number (match-string 1 m) 16)
                          0 ;?\x800 ;; What is this for? Encoding?
                          )))
                    org-str))))
@@ -1062,6 +1060,7 @@ PATH should be a list of steps, where each step has the form
   (let ((qname (car node))
         (attributes (cadr node))
         text
+        ;; Fix-me: note is never inserted
         (note (org-freemind-get-richcontent-note-text node))
         (mark "-- This is more about ")
         (icons (org-freemind-get-icon-names node))
