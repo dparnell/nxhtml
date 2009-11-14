@@ -2648,6 +2648,18 @@ This also covers inlined style and javascript."
     )))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; XSL
+
+(define-mumamo-multi-major-mode xsl-nxml-mumamo-mode
+  "Turn on multi major mode for XSL with main mode `nxml-mode'.
+This also covers inlined style and javascript."
+  ("XSL Family" nxml-mode
+   (
+    mumamo-chunk-inlined-style
+    mumamo-chunk-inlined-script
+    )))
+
 (provide 'mumamo-fun)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; mumamo-fun.el ends here
