@@ -1294,6 +1294,105 @@ This also covers inlined style and javascript."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; ssjs - server side javascript
+
+;; http://www.sitepoint.com/blogs/2009/03/10/server-side-javascript-will-be-as-common-as-php/
+;;
+;; It looks like there are different syntaxes, both
+;;
+;;  <script runat="server">...</script> and <% ... %>.
+
+(defun mumamo-chunk-ssjs-% (pos min max)
+  "Find <% ... %>.  Return range and 'javascript-mode.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+  (mumamo-quick-static-chunk pos min max "<%" "%>" t 'javascript-mode t))
+
+(defconst mumamo-ssjs-tag-start-regex
+  (rx "<script"
+      space
+      (0+ (not (any ">")))
+      "runat"
+      (0+ space)
+      "="
+      (0+ space)
+      ?\"
+      ;;(or "text" "application")
+      ;;"/"
+      ;;(or "javascript" "ecmascript")
+      (or "server" "both" "server-proxy")
+      ?\"
+      (0+ (not (any ">")))
+      ">"
+      ;; FIX-ME: Commented out because of bug in Emacs
+      ;;
+      ;;(optional (0+ space) "<![CDATA[" )
+      ))
+
+(defun mumamo-search-bw-exc-start-inlined-ssjs (pos min)
+  "Helper for `mumamo-chunk-inlined-ssjs'.
+POS is where to start search and MIN is where to stop."
+  (goto-char (+ pos 7))
+  (let ((marker-start (when (< min (point)) (search-backward "<script" min t)))
+        exc-mode
+        exc-start)
+    (when marker-start
+      (when (looking-at mumamo-ssjs-tag-start-regex)
+        (setq exc-start (match-end 0))
+        (goto-char exc-start)
+        (when (<= exc-start pos)
+          ;;(cons (point) 'javascript-mode)
+          (list (point) 'javascript-mode '(nxml-mode))
+          )
+        ))))
+
+(defun mumamo-search-fw-exc-start-inlined-ssjs (pos max)
+  "Helper for `mumamo-chunk-inlined-ssjs'.
+POS is where to start search and MAX is where to stop."
+  (goto-char (1+ pos))
+  (skip-chars-backward "^<")
+  ;; Handle <![CDATA[
+  (when (and
+         (eq ?< (char-before))
+         (eq ?! (char-after))
+         (not (bobp)))
+    (backward-char)
+    (skip-chars-backward "^<"))
+  (unless (bobp)
+    (backward-char 1))
+  (let ((exc-start (search-forward "<script" max t))
+        exc-mode)
+    (when exc-start
+      (goto-char (- exc-start 7))
+      (when (looking-at mumamo-ssjs-tag-start-regex)
+        (goto-char (match-end 0))
+        (point)
+        ))))
+
+(defun mumamo-chunk-inlined-ssjs (pos min max)
+  "Find <script runat=...>...</script>.  Return range and 'javascript-mode.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+  (mumamo-find-possible-chunk pos min max
+                              'mumamo-search-bw-exc-start-inlined-ssjs
+                              'mumamo-search-bw-exc-end-inlined-script
+                              'mumamo-search-fw-exc-start-inlined-ssjs
+                              'mumamo-search-fw-exc-end-inlined-script))
+
+;;;###autoload
+(define-mumamo-multi-major-mode ssjs-html-mumamo-mode
+  "Turn on multiple major modes for SSJS with main mode `html-mode'.
+This covers inlined style and javascript."
+  ("HTML Family" html-mode
+   (mumamo-chunk-inlined-style
+    mumamo-chunk-inlined-script
+    mumamo-chunk-inlined-ssjs
+    mumamo-chunk-ssjs-%
+    mumamo-chunk-style=
+    mumamo-chunk-onjs=
+    )))
+(add-hook 'html-mumamo-mode-hook 'mumamo-define-html-file-wide-keys)
+(mumamo-inherit-sub-chunk-family 'ssjs-html-mumamo-mode)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; gsp
 
 (defun mumamo-chunk-gsp (pos min max)
@@ -1314,7 +1413,7 @@ This also covers inlined style and javascript."
       )))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; jsp
+;;;; jsp - Java Server Pages
 
 (defun mumamo-chunk-jsp (pos min max)
   "Find <% ... %>.  Return range and 'java-mode.

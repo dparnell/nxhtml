@@ -3618,7 +3618,6 @@ after this in the properties below of the now created chunk:
 - 'mumamo-next-major: is nil or the next chunk's major mode.
 - 'mumamo-next-end-fun: function that searches for end of AFTER-CHUNK
 - 'mumamo-next-border-fun: functions that finds borders"
-  ;;- 'mumamo-next-chunk-funs: nil or similar to the variable `mumamo-current-chunk-family'.
   ;;((1 696 nxhtml-mode nil nil nil nil) (696 nil php-mode nil nil nil nil))
   ;;(current (list curr-min curr-max curr-major curr-border-min curr-border-max curr-parseable curr-fw-exc-fun))
   ;;(next    (list next-min next-max next-major next-border-min next-border-max next-parseable next-fw-exc-fun)))
@@ -3629,9 +3628,8 @@ after this in the properties below of the now created chunk:
            (next-major      (nth 0 next-values))
            (next-end-fun    (nth 1 next-values))
            (next-border-fun (nth 2 next-values))
-           (next-chunk-funs (nth 3 next-values))
-           (next-depth-diff (nth 4 next-values))
-           (next-indent     (nth 5 next-values))
+           (next-depth-diff (nth 3 next-values))
+           (next-indent     (nth 4 next-values))
            (beg         (nth 0 this-values))
            (end         (nth 1 this-values))
            (maj         (nth 2 this-values))
@@ -3698,7 +3696,6 @@ after this in the properties below of the now created chunk:
       (when this-borders-max (setq bmax (- end this-borders-max)))
       ;;(when after-chunk (message "after-chunk.end=%s, beg=%s, end=%s" (overlay-end after-chunk) beg end))
       ;;(message "fw-funs=%s" fw-funs)
-      (unless (or (not next-chunk-funs) (eq 'none next-chunk-funs)) (error "next-chunk-funs not 'none=%s" next-chunk-funs))
       (when this-chunk
         (overlay-put this-chunk 'mumamo-is-new t)
         (overlay-put this-chunk 'face (mumamo-background-color depth))
@@ -3707,7 +3704,6 @@ after this in the properties below of the now created chunk:
         (overlay-put this-chunk 'mumamo-next-depth-diff next-depth-diff)
         (assert (symbolp next-major) t)
         (overlay-put this-chunk 'mumamo-next-major next-major)
-        ;;(overlay-put this-chunk 'mumamo-next-chunk-funs next-chunk-funs)
         ;; Values for this chunk
         (overlay-put this-chunk 'mumamo-is-closed is-closed)
         (overlay-put this-chunk 'syntax-min-d bmin)
@@ -3729,6 +3725,7 @@ after this in the properties below of the now created chunk:
          (t (error "next-depth-diff=%s" next-depth-diff)))
         ;;(msgtrc "mumamo-next-end-fun=%S" (overlay-get this-chunk 'mumamo-next-end-fun))
 
+        ;; Fix-me: replace 'mumamo-major-mode with multi major mode to make it more flexible.
         (cond
          ((= 1 depth-diff)
           (mumamo-chunk-push this-chunk 'mumamo-major-mode maj))
@@ -3890,7 +3887,6 @@ after this in the properties below of the now created chunk:
          (chunk-next-major      (overlay-get chunk 'mumamo-next-major))
          (chunk-next-end-fun    (mumamo-chunk-car chunk 'mumamo-next-end-fun))
          (chunk-next-border-fun (mumamo-chunk-car chunk 'mumamo-next-border-fun))
-         ;;(chunk-next-chunk-funs (overlay-get chunk 'mumamo-next-chunk-funs))
          (chunk-next-chunk-diff (overlay-get chunk 'mumamo-next-depth-diff))
          (chunk-beg (overlay-start chunk))
          (chunk-end (overlay-end chunk))
@@ -3908,8 +3904,7 @@ after this in the properties below of the now created chunk:
          (values-next-major      (nth 0 next-values))
          (values-next-end-fun    (nth 1 next-values))
          (values-next-border-fun (nth 2 next-values))
-         (values-next-chunk-funs (nth 3 next-values))
-         (values-next-depth-diff (nth 4 next-values))
+         (values-next-depth-diff (nth 3 next-values))
          (values-beg         (nth 0 this-values))
          (values-end         (nth 1 this-values))
          (values-major-mode  (nth 2 this-values))
@@ -3931,8 +3926,6 @@ after this in the properties below of the now created chunk:
          ;;(progn (message "eq-c-v: here c, %s /= %s" chunk-next-border-fun values-next-border-fun) t)
          ;;(eq chunk-next-border-fun    values-next-border-fun)
 
-         ;;(progn (message "eq-c-v: here a, %s /= %s" chunk-next-chunk-funs values-next-chunk-funs) t)
-         ;;(equal chunk-next-chunk-funs values-next-chunk-funs)
          (= chunk-next-chunk-diff     values-next-depth-diff)
          (= chunk-beg values-beg)
          ;;(progn (message "eq-c-v: here b") t)
@@ -3982,7 +3975,6 @@ Use the function `mumamo-inherit-sub-chunk-family-locally' to add
 to this list.")
 
 ;;(mumamo-get-sub-chunk-funs 'html-mode)
-;; Fix-me: remove 'mumamo-next-chunk-funs
 (defun mumamo-get-sub-chunk-funs (major)
   "Get chunk family sub chunk with major mode MAJOR."
   (let ((rec (or
@@ -4006,7 +3998,7 @@ MULTI-USING."
 (defun mumamo-inherit-sub-chunk-family (multi-major)
   "Inherit chunk dividing routines from multi major modes.
 Add chunk family from multi major mode MULTI-MAJOR to
-`mumamo-inherit-chunk-family'.
+`mumamo-sub-chunk-families'.
 
 Sub chunks with major mode the same as MULTI-MAJOR mode will use
 this chunk familyu to find subchunks."
@@ -4030,15 +4022,10 @@ For the first chunk AFTER-CHUNK is nil.  Then use
 ;; property `mumamo-next-values' in AFTER-CHUNK. The values are a
 ;; list:
 
-;;   \(NEXT-MAJOR END-FUNS NEXT-CHUNK-FUNS)
-
 ;; - NEXT-MAJOR is nil or the next chunk's major mode.
 ;; - END-FUNS is nil or a list (END-FUN BORDER-FUN):
 ;;   - END-FUN searches for end of this chunk
 ;;   - BORDER-FUN finds borders
-;; - NEXT-CHUNK-FUNS is nil or similar to
-;; END-FUNS and NEXT-CHUNK-FUNS are used to search for the end of
-;; the current chunk.
 
 Otherwise use the values cached in AFTER-CHUNK for how to search
 for next chunk.  See `mumamo-new-create-chunk' for more
@@ -4067,7 +4054,6 @@ information.
                     1)))
          (main-chunk-funs (let ((chunk-info (cdr mumamo-current-chunk-family)))
                             (cadr chunk-info)))
-         ;;(after-next-chunk-funs (when after-chunk-valid (overlay-get after-chunk 'mumamo-next-chunk-funs)))
          ;; Note that "curr-*" values are fetched from "mumamo-next-*" values in after-chunk
          (curr-major (if after-chunk-valid
                          (or ;;(progn (msgtrc "At A, after-chunk.next-major=%s" (overlay-get after-chunk 'mumamo-next-major)) nil)
@@ -4097,12 +4083,6 @@ information.
               main-chunk-funs
             ;;(msgtrc "find-next-chunk-values:get-sub-chunk-funs %s" curr-major)
             (mumamo-get-sub-chunk-funs curr-major)))
-         ;; (if (and after-chunk-valid
-         ;;          after-next-chunk-funs)
-         ;;     (if (listp after-next-chunk-funs)
-         ;;         after-next-chunk-funs
-         ;;       nil)
-         ;;   main-chunk-funs))
          (curr-end-fun (when after-chunk-valid
                          (mumamo-chunk-car after-chunk 'mumamo-next-end-fun)))
          ;; Fix-me: there is obviously something wrong below...
@@ -4129,7 +4109,6 @@ information.
          indent
          next-major
          curr-end-fun-end
-         (next-chunk-funs 'none)
          next-border-fun
          curr-is-closed
          next-depth-diff
@@ -4361,7 +4340,6 @@ information.
                                 -1
                               1))
       ;;(msgtrc "find-next-chunk-values:here B, curr-min=%s, after-chunk=%s" curr-min after-chunk)
-      (unless next-major (setq next-chunk-funs nil))
       (when (= -1 next-depth-diff)
         ;;(setq next-major (mumamo-chunk-car after-chunk 'mumamo-major-mode))
         ;; We will pop it from 'mumamo-major-mode
@@ -4383,7 +4361,7 @@ information.
       (assert (symbolp next-major) t)
       (let ((current (list curr-min curr-max curr-major curr-border-min curr-border-max curr-parseable
                            curr-chunk-funs after-chunk curr-is-closed))
-            (next    (list next-major next-fw-exc-fun next-border-fun next-chunk-funs next-depth-diff indent)))
+            (next    (list next-major next-fw-exc-fun next-border-fun next-depth-diff indent)))
         ;;(msgtrc "find-next-chunk-values=> current=%s, next=%s" current next)
         (list current next)))))
 
