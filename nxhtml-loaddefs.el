@@ -771,7 +771,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19186 59738))
+;;;;;;  "mumamo" "util/mumamo.el" (19202 9523))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -791,11 +791,11 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  metapost-mumamo-mode ruby-heredoc-mumamo-mode python-heredoc-mumamo-mode
 ;;;;;;  cperl-heredoc-mumamo-mode perl-heredoc-mumamo-mode php-heredoc-mumamo-mode
 ;;;;;;  sh-heredoc-mumamo-mode eruby-html-mumamo-mode eruby-mumamo-mode
-;;;;;;  jsp-html-mumamo-mode gsp-html-mumamo-mode smarty-html-mumamo-mode
-;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
-;;;;;;  embperl-html-mumamo-mode mason-html-mumamo-mode nxml-mumamo-mode
-;;;;;;  html-mumamo-mode) "mumamo-fun" "util/mumamo-fun.el" (19188
-;;;;;;  22985))
+;;;;;;  jsp-html-mumamo-mode gsp-html-mumamo-mode ssjs-html-mumamo-mode
+;;;;;;  smarty-html-mumamo-mode mjt-html-mumamo-mode genshi-html-mumamo-mode
+;;;;;;  django-html-mumamo-mode embperl-html-mumamo-mode mason-html-mumamo-mode
+;;;;;;  nxml-mumamo-mode html-mumamo-mode) "mumamo-fun" "util/mumamo-fun.el"
+;;;;;;  (19203 787))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -842,6 +842,10 @@ This also covers inlined style and javascript." t)
 (autoload 'smarty-html-mumamo-mode "mumamo-fun" "\
 Turn on multiple major modes for Smarty with main mode `html-mode'.
 This also covers inlined style and javascript." t)
+
+(autoload 'ssjs-html-mumamo-mode "mumamo-fun" "\
+Turn on multiple major modes for SSJS with main mode `html-mode'.
+This covers inlined style and javascript." t)
 
 (autoload 'gsp-html-mumamo-mode "mumamo-fun" "\
 Turn on multiple major modes for GSP with main mode `html-mode'.
@@ -1074,7 +1078,7 @@ Convert FreeMind file MM-FILE to `org-mode' file ORG-FILE.
 ;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
 ;;;;;;  unfill-individual-paragraphs unfill-region unfill-paragraph
 ;;;;;;  define-toggle popup-menu-at-point) "ourcomments-util" "util/ourcomments-util.el"
-;;;;;;  (19184 43552))
+;;;;;;  (19201 62995))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -1179,6 +1183,9 @@ Emacs lisp files in two places, the checked out source tree and
 the installed Emacs tree.  If buffer contains an Emacs elisp file
 in one of these places then find the corresponding elisp file in
 the other place. Return the file name of this file.
+
+Rename current buffer using your `uniquify-buffer-name-style' if
+it is set.
 
 When DISPLAY-FILE is non-nil display this file in other window
 and go to the same line number as in the current buffer.
@@ -3250,14 +3257,14 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;;;;  "related/flymu.el" "related/javascript-old.el" "related/php-imenu.el"
 ;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
-;;;;;;  "util/buffer-bg.el" "util/custsets.el" "util/ecb-batch-compile.el"
-;;;;;;  "util/ffip.el" "util/fupd.el" "util/htmlfontify.21.el" "util/key-cat.el"
-;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
-;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
-;;;;;;  "util/popcmp.el" "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "util/whelp.el" "util/zen-mode.el")
-;;;;;;  (19188 26473 765000))
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
+;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/custsets.el"
+;;;;;;  "util/ecb-batch-compile.el" "util/ffip.el" "util/fupd.el"
+;;;;;;  "util/htmlfontify.21.el" "util/key-cat.el" "util/mumamo-aspnet.el"
+;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/popcmp.el" "util/rebind.el"
+;;;;;;  "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
+;;;;;;  "util/whelp.el" "util/zen-mode.el") (19203 904 343000))
 
 ;;;***
 

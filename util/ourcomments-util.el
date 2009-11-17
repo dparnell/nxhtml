@@ -880,6 +880,9 @@ the installed Emacs tree.  If buffer contains an Emacs elisp file
 in one of these places then find the corresponding elisp file in
 the other place. Return the file name of this file.
 
+Rename current buffer using your `uniquify-buffer-name-style' if
+it is set.
+
 When DISPLAY-FILE is non-nil display this file in other window
 and go to the same line number as in the current buffer."
   (interactive (list t))
@@ -917,6 +920,8 @@ and go to the same line number as in the current buffer."
     (unless (file-exists-p other-file)
       (error "Can't find the corresponding file %s" other-file))
     (when display-file
+      (when uniquify-buffer-name-style
+        (rename-buffer (file-name-nondirectory buffer-file-name) t))
       (find-file-other-window other-file)
       (ourcomments-goto-line line-num))
     other-file))
