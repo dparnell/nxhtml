@@ -2,8 +2,8 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 2007
-(defconst nxhtml-menu:version "beta 2.02") ;;Version:
-;; Last-Updated: 2009-11-02 Mon
+;; Moved version to autostart.el.
+;; Last-Updated: 2009-11-18 Wed
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
@@ -178,8 +178,8 @@
     ;; Fix-me: Workaround for Emacs bug on w32
     ;; http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=4015
     (if (eq system-type 'windows-nt)
-        (w32-shell-execute "open" file nil 1)
-      (browse-url-of-file file))
+        (w32-shell-execute nil (concat "file:///" file-to-browse) nil 1)
+      (browse-url-of-file file-to-browse))
     ))
 
 ;;;###autoload
