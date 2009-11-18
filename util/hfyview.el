@@ -47,6 +47,11 @@
 ;;  turn on `hfyview-mode' you get this function on the <apps> key in
 ;;  most situations.
 ;;
+;;
+;;  You can see an example of the output here:
+;;
+;;    http://ourcomments.org/Emacs/nXhtml/doc/htmlfontify-example.html
+;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Change log:

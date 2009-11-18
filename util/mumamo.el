@@ -944,17 +944,38 @@ outer major mode above has indentation 0."
                  (const :tag "No special"))
   :group 'mumamo-indentation)
 
-(defcustom mumamo-major-mode-indent-specials
+(defcustom mumamo-indent-major-to-use
+  '((nxhtml-mode html-mode)
+    )
+  "Major mode to use for indentation.
+This is normally the major mode specified for the chunk. Here you
+can make exceptions."
+  :type '(repeat
+          (list (symbol :tag "Major mode symbol specified")
+                (command :tag "Major mode to use")))
+  :group 'mumamo-indentation)
+
+;;(mumamo-indent-get-major-to-use 'nxhtml-mode)
+;;(mumamo-indent-get-major-to-use 'html-mode)
+(defun mumamo-indent-get-major-to-use (major)
+  (or (cadr (assq major mumamo-indent-major-to-use))
+      major))
+
+(defcustom mumamo-indent-widen-per-major
   '(
     (php-mode (use-widen))
-    (nxhtml-mode ((use-widen (html-mumamo-mode nxhtml-mumamo-mode))))
-    (html-mode ((use-widen (html-mumamo-mode nxhtml-mumamo-mode))))
+    (nxhtml-mode (use-widen (html-mumamo-mode nxhtml-mumamo-mode)))
+    (html-mode (use-widen (html-mumamo-mode nxhtml-mumamo-mode)))
     )
-  "Major mode specials to use during indentation."
+  "Wether do widen buffer during indentation.
+If not then the buffer is narrowed to the current chunk when
+indenting a line in a chunk."
   :type '(repeat
           (list (symbol :tag "Major mode symbol")
                 (set
-                 (const :tag "Widen buffer during indentation" use-widen))))
+                 (const :tag "Widen buffer during indentation" use-widen)
+                 (repeat (command :tag "Widen if multi major is any of those"))
+                 )))
   :group 'mumamo-indentation)
 
 
@@ -2469,8 +2490,6 @@ most major modes."
     ;; More symbols from visual inspection
     before-change-functions
     delayed-mode-hooks
-    imenu-case-fold-search
-    imenu-generic-expression
     isearch-mode
     line-move-ignore-invisible
     local-abbrev-table
@@ -6795,7 +6814,8 @@ The following rules are used when indenting:
      ( entering-submode
        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
        ;;;;; First line in submode
-       (setq this-line-indent-major this-line-major0)
+       ;;(setq this-line-indent-major this-line-major0)
+       (setq this-line-indent-major (mumamo-indent-get-major-to-use this-line-major0))
        ;;(when (and prev-line-major0 (not (eq this-line-major0 prev-line-major0))) (setq this-line-indent-major prev-line-major0))
        (mumamo-msgindent "  this-line-indent-major=%s, major-mode=%s this0=%s" this-line-indent-major major-mode this-line-major0)
        (mumamo-msgindent "  mumamo-submode-indent-offset=%s" mumamo-submode-indent-offset)
@@ -6831,7 +6851,8 @@ The following rules are used when indenting:
        ;; about the requirements of the indent-line-function:
        ;; Fix-me: This may be cured by RMS suggestion to
        ;; temporarily set all variables back to global values?
-       (setq this-line-indent-major this-line-major0)
+       ;;(setq this-line-indent-major this-line-major0)
+       (setq this-line-indent-major (mumamo-indent-get-major-to-use this-line-major0))
        (mumamo-msgindent "  this-line-indent-major=%s" this-line-indent-major)
        (unless (eq this-line-indent-major major-mode) (mumamo-set-major this-line-indent-major))
        ;; Use the major mode at the beginning of since a sub chunk may
@@ -6925,7 +6946,7 @@ The following rules are used when indenting:
 ;; Fix-me: check more carefully for widen since it may lead to bad results.
 (defun mumamo-indent-use-widen (major-mode)
   "Return non-nil if widen before indentation in MAJOR-MODE."
-  (let* ((specials (cadr (assoc major-mode mumamo-major-mode-indent-specials)))
+  (let* ((specials (cadr (assoc major-mode mumamo-indent-widen-per-major)))
          (use-widen (memq 'use-widen specials))
          (use-widen-maybe (assq 'use-widen specials)))
     (or use-widen
