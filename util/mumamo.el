@@ -945,7 +945,9 @@ outer major mode above has indentation 0."
   :group 'mumamo-indentation)
 
 (defcustom mumamo-indent-major-to-use
-  '((nxhtml-mode html-mode)
+  '(
+    ;;(nxhtml-mode html-mode)
+    (html-mode nxhtml-mode)
     )
   "Major mode to use for indentation.
 This is normally the major mode specified for the chunk. Here you
@@ -6998,7 +7000,16 @@ The following rules are used when indenting:
           prev-line-chunks
           last-parent-major-indent
           entering-submode-arg
+          ;; Turn off validation during indentation
+          (old-rng-validate-mode (when (boundp 'rng-validate-mode) rng-validate-mode))
+          (rng-nxml-auto-validate-flag nil)
+          (nxhtml-use-imenu nil)
+          (nxhtml-mode-hook (mumamo-get-hook-value
+                             'nxhtml-mode-hook
+                             '(html-imenu-setup)))
+          ;;
           (while-n1 0))
+      (when old-rng-validate-mode (rng-validate-mode -1))
       ;;(while (and (> 3000 (setq while-n1 (1+ while-n1)))
       (while (and (mumamo-while 3000 'while-n1 "indent-region")
                   (< (point) end)
@@ -7013,7 +7024,8 @@ The following rules are used when indenting:
               (setq last-parent-major-indent (nth 1 ret))
               (setq entering-submode-arg     (nth 2 ret))))
         (setq old-point (point))
-        (forward-line 1)))
+        (forward-line 1))
+      (when old-rng-validate-mode (rng-validate-mode 1)))
     (message "Ready indenting region")))
 
 
