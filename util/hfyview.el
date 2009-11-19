@@ -131,6 +131,7 @@ at any time."
       (define-key (symbol-value map) [(apps)] nil))))
 
 (defun hfyview-fontify-region (start end)
+  "Fontify region between START and END the htmlfontify way."
   ;; If the last command in mumamo resulted in a change of major-mode
   ;; the big bug watcher in mumamo will get us if we do not tell that
   ;; we know what we are doing:
@@ -145,6 +146,9 @@ at any time."
       (htmlfontify-buffer))))
 
 (defun hfyview-buffer-1(start end show-source)
+  "Convert current buffer between START and END to html.
+If SHOW-SOURCE is non-nil then also show produced html in other
+window."
   (let ((hbuf (hfyview-fontify-region start end)))
     (with-current-buffer hbuf
       (setq buffer-file-name nil)
@@ -212,21 +216,21 @@ the Quick Print entry."
 ;;;###autoload
 (defun hfyview-buffer (arg)
   "Convert buffer to html preserving faces and show in web browser.
-With command prefix also show created HTML source in other window."
+With command prefix ARG also show html source in other window."
   (interactive "P")
   (hfyview-buffer-1 nil nil arg))
 
 ;;;###autoload
 (defun hfyview-region (arg)
   "Convert region to html preserving faces and show in web browser.
-With command prefix also show created HTML source in other window."
+With command prefix ARG also show html source in other window."
   (interactive "P")
   (hfyview-buffer-1 (region-beginning) (region-end) arg))
 
 ;;;###autoload
 (defun hfyview-window (arg)
   "Convert window to html preserving faces and show in web browser.
-With command prefix also show created HTML source in other window."
+With command prefix ARG also show html source in other window."
   (interactive "P")
   (hfyview-buffer-1 (window-start) (window-end) arg))
 
@@ -240,8 +244,8 @@ If WHOLE-BUFFERS is non-nil then the whole content of the buffers
 is shown in the XHTML page, otherwise just the part that is
 visible currently on the frame.
 
-With command prefix also show created HTML source in other window."
-  (interactive (list (y-or-n-p "Enter y for whole buffers, n for only visible part: ")))
+With command prefix also show html source in other window."
+  (interactive (list (y-or-n-p "Enter y for whole buffers, n for only visible part? ")))
   (let ((title "Emacs - Frame Dump")
         buf)
     (setq title (frame-parameter (selected-frame) 'name))
@@ -268,6 +272,7 @@ With command prefix also show created HTML source in other window."
           "</div>"))
 
 (defun hfyview-get-minors ()
+  "Return string with active minor mode highlighters."
   (let ((minors ""))
     (dolist (mr minor-mode-alist)
       (let ((mm (car mr))
@@ -279,6 +284,7 @@ With command prefix also show created HTML source in other window."
 
 ;; (hfyview-dekludge-string "<i> ")
 (defun hfyview-dekludge-string (str)
+  "Return html quoted string STR."
   (mapconcat (lambda (c)
                (hfy-html-quote
                 (char-to-string c)))
@@ -286,6 +292,10 @@ With command prefix also show created HTML source in other window."
              ""))
 
 (defun hfyview-fontify-win-to (win tag whole-buffer)
+  "Return html code for window WIN.
+Sorround the code with the html tag <TAG>.
+WHOLE-BUFFER corresponds to the similar argument for
+`hfyview-frame-1'."
   (let* ((bstart (unless whole-buffer (window-start win)))
          (bend   (unless whole-buffer (window-end win)))
          (hbuf (hfyview-fontify-region bstart bend))
@@ -385,7 +395,10 @@ With command prefix also show created HTML source in other window."
 ;;     (with-current-buffer hbuf
 ;;       (browse-url-of-buffer))))
 
-(defun hfyview-ffy-tree-win (win whole-buffer)
+(defun hfyview-fontify-tree-win (win whole-buffer)
+  "Return html code for window WIN.
+WHOLE-BUFFER corresponds to the similar argument for
+`hfyview-frame-1'."
   (with-selected-window win
     (let* ((start (window-start))
            (end (window-end))
@@ -396,15 +409,20 @@ With command prefix also show created HTML source in other window."
       ;;(lwarn t :warning "win=%s, hbuf=%s" win hbuf)
       res)))
 
-(defun hfyview-ffy-tree (wt whole-buffers)
+(defun hfyview-fontify-tree (wt whole-buffers)
+  "Return list of html code for all windows in tree WT.
+WT should be the result of function `window-tree' or a subtree of
+this. For WHOLE-BUFFERS see `hfyview-frame-1'."
   (if (not (listp wt))
-      (hfyview-ffy-tree-win wt whole-buffers)
+      (hfyview-fontify-tree-win wt whole-buffers)
     (let ((ret))
       (dolist (w (cddr wt))
-        (setq ret (cons (hfyview-ffy-tree w whole-buffers) ret)))
+        (setq ret (cons (hfyview-fontify-tree w whole-buffers) ret)))
       (list (car wt) ret))))
 
-(defun hfyview-frame-to-html (res whole-buffers)
+(defun hfyview-frame-to-html (res)
+  "Return list with css and html code for frame.
+RES is the collected result from `hfyview-fontify-tree'."
   (let ((html "")
         (css "")
         (first (car res))
@@ -413,9 +431,9 @@ With command prefix also show created HTML source in other window."
     (cond
      ((memq first '(nil t))
       (dolist (sub (reverse (cadr res)))
-        (let* ((res (hfyview-frame-to-html sub whole-buffers))
-               (h   (nth 0 res))
-               (c   (nth 1 res)))
+        (let* ((fres (hfyview-frame-to-html sub))
+               (h    (nth 0 fres))
+               (c    (nth 1 fres)))
           (when first (setq h (concat "<tr>\n" h "</tr>\n")))
           (setq html (concat html h))
           (setq css  (concat css c))))
@@ -463,6 +481,7 @@ body { font-family: outline-courier new;  font-stretch: normal;  font-weight: 50
 (defvar hfyview-xhtml-footer "</body>\n</html>\n")
 
 (defun hfyview-wm-border-color ()
+  "Return CSS code for color to use in window borders."
   (or (hfy-triplet "SystemActiveTitle")
       (hfy-triplet "blue")))
 
@@ -471,6 +490,10 @@ body { font-family: outline-courier new;  font-stretch: normal;  font-weight: 50
 (defvar hfyview-prompt-face nil)
 
 (defun hfyview-frame-minibuff (use-grabbed)
+  "Return html code for minibuffer.
+If USE-GRABBED is non-nil use what has been grabbed by
+`hfy-grab-echo-content' or `hfy-grab-minibuffer-content'.
+Otherwise make a default content for the minibuffer."
   (if (and use-grabbed
            (or hfy-grabbed-echo-content
                hfy-grabbed-minibuffer-content))
@@ -522,9 +545,15 @@ body { font-family: outline-courier new;  font-stretch: normal;  font-weight: 50
              )))))
 
 (defun hfyview-frame-1(whole-buffers frame-title)
+  "Return buffer with html code for current frame.
+If WHOLE-BUFFERS is non-nil then make scrollable buffers in the
+html output. Otherwise just make html code for the currently
+visible part of the buffers.
+
+FRAME-TITLE is the title to show on the resulting html page."
   (let* ((wt (window-tree))
          (hfyview-selected-window (selected-window))
-         (res (hfyview-ffy-tree (car wt) whole-buffers))
+         (res (hfyview-fontify-tree (car wt) whole-buffers))
          (title-bg-color (hfyview-wm-border-color))
          (title-color (or (hfy-triplet "SystemHilightText")
                                "white"))
@@ -553,7 +582,7 @@ body { font-family: outline-courier new;  font-stretch: normal;  font-weight: 50
     (setq mini-css  (nth 0 minibuf))
     (setq mini-html (nth 1 minibuf))
     (when (string= mini-html "") (setq mini-html "&nbsp;"))
-    (setq res (hfyview-frame-to-html res whole-buffers))
+    (setq res (hfyview-frame-to-html res))
     (setq html (nth 0 res))
     (setq css  (nth 1 res))
     (with-current-buffer outbuf
@@ -589,9 +618,11 @@ body { font-family: outline-courier new;  font-stretch: normal;  font-weight: 50
 ;;   (message "grabbed cm=%s, mb=%s" hfy-grabbed-echo-content hfy-grabbed-minibuffer-content))
 
 (defun hfy-grab-echo-content ()
+  "Return echo area content."
   (setq hfy-grabbed-echo-content (current-message)))
 
 (defun hfy-grab-minibuffer-content ()
+  "Return minibuffer content."
   ;;(interactive)
   (let* ((mw (minibuffer-window))
          (mb (window-buffer mw)))

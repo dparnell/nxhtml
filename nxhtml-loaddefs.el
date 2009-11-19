@@ -480,24 +480,24 @@ such palette into a css-file as hexadecimal color palette.
 ;;;***
 
 ;;;### (autoloads (hfyview-frame hfyview-window hfyview-region hfyview-buffer)
-;;;;;;  "hfyview" "util/hfyview.el" (19064 13016))
+;;;;;;  "hfyview" "util/hfyview.el" (19204 49061))
 ;;; Generated autoloads from util/hfyview.el
 
 (autoload 'hfyview-buffer "hfyview" "\
 Convert buffer to html preserving faces and show in web browser.
-With command prefix also show created HTML source in other window.
+With command prefix ARG also show html source in other window.
 
 \(fn ARG)" t nil)
 
 (autoload 'hfyview-region "hfyview" "\
 Convert region to html preserving faces and show in web browser.
-With command prefix also show created HTML source in other window.
+With command prefix ARG also show html source in other window.
 
 \(fn ARG)" t nil)
 
 (autoload 'hfyview-window "hfyview" "\
 Convert window to html preserving faces and show in web browser.
-With command prefix also show created HTML source in other window.
+With command prefix ARG also show html source in other window.
 
 \(fn ARG)" t nil)
 
@@ -510,7 +510,7 @@ If WHOLE-BUFFERS is non-nil then the whole content of the buffers
 is shown in the XHTML page, otherwise just the part that is
 visible currently on the frame.
 
-With command prefix also show created HTML source in other window.
+With command prefix also show html source in other window.
 
 \(fn WHOLE-BUFFERS)" t nil)
 
@@ -771,7 +771,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19202 9523))
+;;;;;;  "mumamo" "util/mumamo.el" (19205 26852))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -3084,7 +3084,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "nxhtml-menu" "nxhtml/nxhtml-menu.el"
-;;;;;;  (19188 5837))
+;;;;;;  (19203 21568))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "nxhtml-menu" "\
@@ -3264,7 +3264,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/popcmp.el" "util/rebind.el"
 ;;;;;;  "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el" "util/zen-mode.el") (19203 904 343000))
+;;;;;;  "util/whelp.el" "util/zen-mode.el") (19205 27249 218000))
 
 ;;;***
 
