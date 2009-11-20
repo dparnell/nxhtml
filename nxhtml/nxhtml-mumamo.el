@@ -271,7 +271,7 @@ This also covers inlined style and javascript."
   "Turn on multiple major modes for ASP with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
   ("ASP nXhtml Family" nxhtml-mode
-   (mumamo-chunk-asp
+   (mumamo-chunk-asp%
     mumamo-asp-chunk-inlined-script
     mumamo-chunk-inlined-script
     mumamo-chunk-style=

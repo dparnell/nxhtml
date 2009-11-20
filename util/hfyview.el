@@ -5,7 +5,7 @@
 ;; Author: Lennart Borgman
 ;; Created: Fri Oct 21 2005
 (defconst hfyview:version "0.63") ;; Version:
-;; Last-Updated: 2009-08-04 Tue
+;; Last-Updated: 2009-11-20 Fri
 ;; Keywords: printing
 ;; URL: http://OurComments.org/Emacs/DL/elisp/hfyview.el
 ;; Compatibility:
@@ -13,7 +13,9 @@
 ;;
 ;; Features that might be required by this library:
 ;;
-;; `easymenu'.
+  ;; `cl', `cus-edit', `cus-face', `cus-load', `cus-start', `custom',
+  ;; `easymenu', `faces', `font-lock', `htmlfontify', `syntax',
+  ;; `wid-edit', `widget'.
 ;;
 ;;
 ;; You can find htmlfontify.el at
@@ -44,8 +46,8 @@
 ;;
 ;;  There is also a command `hfyview-frame' to take a "screen shot" of
 ;;  your current frame and produce an html look-alike page. If you
-;;  turn on `hfyview-mode' you get this function on the <apps> key in
-;;  most situations.
+;;  turn on `hfyview-frame-mode' you get this function on the <apps>
+;;  key in most situations.
 ;;
 ;;
 ;;  You can see an example of the output here:
@@ -84,20 +86,18 @@
 
 (defvar hfyview-selected-window)
 
-(defvar hfyview-mode-emulation-map
+(defvar hfyview-frame-mode-emulation-map
   (let ((m (make-sparse-keymap)))
     ;;(define-key m [apps] 'hfyview-frame)
     m))
 
-;;(define-key hfyview-mode-emulation-map [apps] 'hfy-show-grabbed)
+(defvar hfyview-frame-mode-emulation-maps
+  (list (cons 'hfyview-frame-mode hfyview-frame-mode-emulation-map)))
 
-(defvar hfyview-mode-emulation-maps
-  (list (cons 'hfyview-mode hfyview-mode-emulation-map)))
-
-;; Fix-me: which are needed?
-(defconst hfyview-mode-other-maps
+;; Fix-me: which are needed? Probably only viper, but have to test.
+(defconst hfyview-frame-mode-other-maps
   '(
-    hfyview-mode-emulation-map
+    hfyview-frame-mode-emulation-map
     minibuffer-local-completion-map
     minibuffer-local-filename-completion-map
     minibuffer-local-isearch-map
@@ -108,26 +108,27 @@
     viper-minibuffer-map
     isearch-mode-map))
 
-(define-minor-mode hfyview-mode
-  "Define some useful keys for `hfyview-frame' etc.
-Put this mode in `emulation-mode-map-alists' so they can be used
-at any time."
+(define-minor-mode hfyview-frame-mode
+  "Define some useful things for `hfyview-frame'.
+The <apps> key is bound to `hfyview-frame' in this mode. When
+this mode is on you can push <apps> to get all of what you see on
+the screen. Without it the minibuffer/echo area will not be
+shown."
   :global t
   :group 'htmlfontify
-  (if hfyview-mode
+  (if hfyview-frame-mode
       (progn
         (add-hook 'pre-command-hook 'hfy-grab-minibuffer-content)
         (add-hook 'post-command-hook 'hfy-grab-echo-content)
-        (add-to-list 'emulation-mode-map-alists 'hfyview-mode-emulation-maps)
-        (dolist (map hfyview-mode-other-maps)
+        (add-to-list 'emulation-mode-map-alists 'hfyview-frame-mode-emulation-maps)
+        (dolist (map hfyview-frame-mode-other-maps)
           (define-key (symbol-value map) [(apps)] 'hfyview-frame)
-          ;;(define-key (symbol-value map) [(apps)] 'hfy-show-grabbed)
           )
         )
     (remove-hook 'pre-command-hook 'hfy-grab-minibuffer-content)
     (remove-hook 'post-command-hook 'hfy-grab-echo-content)
-    (setq emulation-mode-map-alists (delq 'hfyview-mode-emulation-maps emulation-mode-map-alists))
-    (dolist (map hfyview-mode-other-maps)
+    (setq emulation-mode-map-alists (delq 'hfyview-frame-mode-emulation-maps emulation-mode-map-alists))
+    (dolist (map hfyview-frame-mode-other-maps)
       (define-key (symbol-value map) [(apps)] nil))))
 
 (defun hfyview-fontify-region (start end)
@@ -243,6 +244,10 @@ named *hfyview-frame* and show that buffer in a web browser.
 If WHOLE-BUFFERS is non-nil then the whole content of the buffers
 is shown in the XHTML page, otherwise just the part that is
 visible currently on the frame.
+
+If you turn on the minor mode `hfyview-frame-mode' you can also
+get the minibuffer/echo area in the output. See this mode for
+details.
 
 With command prefix also show html source in other window."
   (interactive (list (y-or-n-p "Enter y for whole buffers, n for only visible part? ")))
@@ -504,7 +509,21 @@ Otherwise make a default content for the minibuffer."
              (hbuf (with-current-buffer tmpbuf
                      (let ((inhibit-read-only t))
                        (erase-buffer)
-                       (insert (propertize str 'read-only nil))
+                       ;; Fix-me: move the propertize to a new
+                       ;; copy-buffer in hfy-fontify-buffer. Explained
+                       ;; in mail to Vivek.
+                       (insert (propertize str
+                                           'read-only nil
+                                           'intangible nil
+                                           'field nil
+                                           'modification-hooks nil
+                                           'insert-in-front-hooks nil
+                                           'insert-behind-hooks nil
+                                           'point-entered nil
+                                           'point-left nil
+                                           'font-sticky nil
+                                           'rear-nonsticky nil
+                                           ))
                        (htmlfontify-buffer))))
              bdy-start
              bdy-end
@@ -578,7 +597,7 @@ FRAME-TITLE is the title to show on the resulting html page."
                   (hfyview-wm-border-color)
                   frame-width
                   ))
-    (setq minibuf (hfyview-frame-minibuff hfyview-mode))
+    (setq minibuf (hfyview-frame-minibuff hfyview-frame-mode))
     (setq mini-css  (nth 0 minibuf))
     (setq mini-html (nth 1 minibuf))
     (when (string= mini-html "") (setq mini-html "&nbsp;"))
@@ -609,13 +628,6 @@ FRAME-TITLE is the title to show on the resulting html page."
               hfyview-xhtml-footer)
       (browse-url-of-buffer)
       outbuf)))
-
-;; (global-set-key [f7] '(lambda () (interactive) (message "grabbed=%s" hfy-grabbed-minibuffer-content)))
-;; (global-set-key [f7] '(lambda () (interactive) (message "grabbed cm=%s" hfy-grabbed-echo-content)))
-;; (global-set-key [f7] '(lambda () (interactive) (message "grabbed cm=%s, mb=%s" hfy-grabbed-echo-content hfy-grabbed-minibuffer-content)))
-;; (defun hfy-show-grabbed ()
-;;   (interactive)
-;;   (message "grabbed cm=%s, mb=%s" hfy-grabbed-echo-content hfy-grabbed-minibuffer-content))
 
 (defun hfy-grab-echo-content ()
   "Return echo area content."
