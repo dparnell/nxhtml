@@ -255,6 +255,7 @@
 ;;;; Code:
 
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'desktop))
 (eval-when-compile (require 'flyspell))
 (eval-when-compile (require 'mlinks))
 (eval-when-compile (require 'nxml-mode nil t))

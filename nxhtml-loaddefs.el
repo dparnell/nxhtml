@@ -568,7 +568,7 @@ highlighting here.
 ;;;***
 
 ;;;### (autoloads (html-write-mode) "html-write" "util/html-write.el"
-;;;;;;  (19186 59738))
+;;;;;;  (19205 27542))
 ;;; Generated autoloads from util/html-write.el
 
 (autoload 'html-write-mode "html-write" "\
@@ -599,31 +599,6 @@ easier to see what text you are actually writing in html parts of
 a web file.
 
 \(fn &optional ARG)" t nil)
-
-;;;***
-
-;;;### (autoloads (htmlfontify-buffer) "htmlfontify" "util/htmlfontify.el"
-;;;;;;  (18790 45400))
-;;; Generated autoloads from util/htmlfontify.el
-
-(autoload 'htmlfontify-buffer "htmlfontify" "\
-Create a new buffer, named for the current buffer + a .html extension,
-containing an inline css-stylesheet and formatted css-markup html
-that reproduces the look of the current emacs buffer as closely
-as possible.
-
-Dangerous characters in the existing buffer are turned into html
-entities, so you should even be able to do html-within-html
-fontified display.
-
-You should, however, note that random control or eight-bit
-characters such as ^L () or ¤ (\244) won't get mapped yet.
-
-If the SRCDIR and FILE arguments are set, lookup etags derived
-entries in the `hfy-tags-cache' and add html anchors and
-hyperlinks as appropriate.
-
-\(fn &optional SRCDIR FILE)" t nil)
 
 ;;;***
 
@@ -771,7 +746,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19205 26852))
+;;;;;;  "mumamo" "util/mumamo.el" (19205 27678))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -1029,44 +1004,6 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 
 ;;;***
 
-;;;### (autoloads (org-freemind-to-org-mode org-freemind-from-org-sparse-tree
-;;;;;;  org-freemind-from-org-mode org-freemind-from-org-mode-node
-;;;;;;  org-freemind-show org-export-as-freemind) "org-freemind"
-;;;;;;  "util/org-freemind.el" (19187 30238))
-;;; Generated autoloads from util/org-freemind.el
-
-(autoload 'org-export-as-freemind "org-freemind" "\
-Not documented
-
-\(fn ARG &optional HIDDEN EXT-PLIST TO-BUFFER BODY-ONLY PUB-DIR)" t nil)
-
-(autoload 'org-freemind-show "org-freemind" "\
-Show file MM-FILE in Freemind.
-
-\(fn MM-FILE)" t nil)
-
-(autoload 'org-freemind-from-org-mode-node "org-freemind" "\
-Convert node at line NODE-LINE to the FreeMind file MM-FILE.
-
-\(fn NODE-LINE MM-FILE)" t nil)
-
-(autoload 'org-freemind-from-org-mode "org-freemind" "\
-Convert the `org-mode' file ORG-FILE to the FreeMind file MM-FILE.
-
-\(fn ORG-FILE MM-FILE)" t nil)
-
-(autoload 'org-freemind-from-org-sparse-tree "org-freemind" "\
-Convert visible part of buffer ORG-BUFFER to FreeMind file MM-FILE.
-
-\(fn ORG-BUFFER MM-FILE)" t nil)
-
-(autoload 'org-freemind-to-org-mode "org-freemind" "\
-Convert FreeMind file MM-FILE to `org-mode' file ORG-FILE.
-
-\(fn MM-FILE ORG-FILE)" t nil)
-
-;;;***
-
 ;;;### (autoloads (ourcomments-warning ourcomments-M-x-menu-mode
 ;;;;;;  use-custom-style info-open-file grep-query-replace emacs-Q-nxhtml
 ;;;;;;  emacs-Q emacs--no-desktop emacs--debug-init emacs-buffer-file
@@ -1078,7 +1015,7 @@ Convert FreeMind file MM-FILE to `org-mode' file ORG-FILE.
 ;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
 ;;;;;;  unfill-individual-paragraphs unfill-region unfill-paragraph
 ;;;;;;  define-toggle popup-menu-at-point) "ourcomments-util" "util/ourcomments-util.el"
-;;;;;;  (19201 62995))
+;;;;;;  (19205 32111))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -3084,7 +3021,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "nxhtml-menu" "nxhtml/nxhtml-menu.el"
-;;;;;;  (19203 21568))
+;;;;;;  (19205 63422))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "nxhtml-menu" "\
@@ -3248,23 +3185,75 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;***
 
+;;;### (autoloads (zencoding-preview zencoding-expand-yas zencoding-mode
+;;;;;;  zencoding-expand-line) "zencoding-mode" "util/zencoding-mode.el"
+;;;;;;  (19205 63223))
+;;; Generated autoloads from util/zencoding-mode.el
+
+(autoload 'zencoding-expand-line "zencoding-mode" "\
+Replace the current line's zencode expression with the corresponding expansion.
+If prefix ARG is given or region is visible call `zencoding-preview' to start an
+interactive preview.
+
+Otherwise expand line directly.
+
+For more information see `zencoding-mode'.
+
+\(fn ARG)" t nil)
+
+(autoload 'zencoding-mode "zencoding-mode" "\
+Minor mode for writing HTML and CSS markup.
+With zen coding for HTML and CSS you can write a line like
+
+  ul#name>li.item*2
+
+and have it expanded to
+
+  <ul id=\"name\">
+    <li class=\"item\"></li>
+    <li class=\"item\"></li>
+  </ul>
+
+This minor mode defines keys for quick access:
+
+\\{zencoding-mode-keymap}
+
+Home page URL `http://www.emacswiki.org/emacs/ZenCoding'.
+
+See also `zencoding-expand-line'.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'zencoding-expand-yas "zencoding-mode" "\
+Not documented
+
+\(fn)" t nil)
+
+(autoload 'zencoding-preview "zencoding-mode" "\
+Expand zencode between BEG and END interactively.
+This will show a preview of the expanded zen code and you can
+accept it or skip it.
+
+\(fn BEG END)" t nil)
+
+;;;***
+
 ;;;### (autoloads nil nil ("autostart.el" "autostart22.el" "etc/schema/schema-path-patch.el"
 ;;;;;;  "nxhtml/doc/cedet-build.el" "nxhtml/html-chklnk.el" "nxhtml/html-imenu.el"
 ;;;;;;  "nxhtml/html-move.el" "nxhtml/html-quote.el" "nxhtml/html-wtoc.el"
 ;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el" "nxhtml/nxhtmljs.el"
 ;;;;;;  "nxhtml/outline-magic.el" "nxhtml/wtest.el" "related/flymake-helpers.el"
 ;;;;;;  "related/flymake-js.el" "related/flymake-keys.el" "related/flymake-php.el"
-;;;;;;  "related/flymu.el" "related/javascript-old.el" "related/php-imenu.el"
-;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
-;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
-;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/custsets.el"
-;;;;;;  "util/ecb-batch-compile.el" "util/ffip.el" "util/fupd.el"
-;;;;;;  "util/htmlfontify.21.el" "util/key-cat.el" "util/mumamo-aspnet.el"
-;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
-;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/popcmp.el" "util/rebind.el"
-;;;;;;  "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el" "util/zen-mode.el") (19205 27249 218000))
+;;;;;;  "related/flymu.el" "related/php-imenu.el" "tests/angus77-setup-jde.el"
+;;;;;;  "tests/emacstest-suites.el" "tests/ert2.el" "tests/hfy-test.el"
+;;;;;;  "tests/inemacs/bug1013.el" "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el"
+;;;;;;  "tests/temp-test.el" "util/appmenu-fold.el" "util/buffer-bg.el"
+;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/ffip.el"
+;;;;;;  "util/fupd.el" "util/hfy-cmap.el" "util/htmlfontify.el" "util/key-cat.el"
+;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
+;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
+;;;;;;  "util/popcmp.el" "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el"
+;;;;;;  "util/useful-commands.el" "util/whelp.el") (19205 63588 546000))
 
 ;;;***
 
