@@ -574,6 +574,7 @@ See also `zencoding-expand-line'."
 (defvar zencoding-preview-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "<return>") 'zencoding-preview-accept)
+    (define-key map [(control ?g)] 'zencoding-preview-abort)
     map))
 
 (defun zencoding-preview-accept ()
@@ -657,6 +658,8 @@ accept it or skip it."
     (error (message "zencoding-preview-post: %s" err))))
 
 (defun zencoding-preview-abort ()
+  "Abort zen code preview."
+  (interactive)
   (when (overlayp zencoding-preview-input)
     (delete-overlay zencoding-preview-input))
   (setq zencoding-preview-input nil)
