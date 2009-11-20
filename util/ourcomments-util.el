@@ -50,6 +50,8 @@
 (eval-when-compile (require 'ido))
 ;;(eval-when-compile (require 'mumamo))
 (eval-when-compile (require 'recentf))
+(eval-when-compile (require 'bookmark))
+(eval-when-compile (require 'uniquify))
 
 
 (defun ourcomments-goto-line (line)

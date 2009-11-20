@@ -47,6 +47,10 @@
 ;;
 ;;; Code:
 
+;; Silence byte compiler
+(defvar jit-lock-start)
+(defvar jit-lock-end)
+
 ;;(require 'mumamo) ;; Just for the defmacro ...
 ;;(require 'mlinks nil t)
 

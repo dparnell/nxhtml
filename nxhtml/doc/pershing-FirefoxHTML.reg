@@ -1,0 +1,114 @@
+﻿Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\FirefoxHTML]
+@="Firefox Document"
+"FriendlyTypeName"="Firefox Document"
+
+[HKEY_CURRENT_USER\Software\Classes\FirefoxHTML\DefaultIcon]
+@="C:\\Program Files\\Mozilla Firefox\\firefox.exe,1"
+
+[HKEY_CURRENT_USER\Software\Classes\FirefoxHTML\shell]
+
+[HKEY_CURRENT_USER\Software\Classes\FirefoxHTML\shell\open]
+
+[HKEY_CURRENT_USER\Software\Classes\FirefoxHTML\shell\open\command]
+@="\"C:\\Program Files\\Mozilla Firefox\\firefox.exe\" -requestPending -osint -url \"%1\""
+
+[HKEY_CURRENT_USER\Software\Classes\FirefoxHTML\shell\open\ddeexec]
+@="\"%1\",,0,0,,,,"
+"NoActivateHandler"=""
+
+[HKEY_CURRENT_USER\Software\Classes\FirefoxHTML\shell\open\ddeexec\Application]
+@="Firefox"
+
+[HKEY_CURRENT_USER\Software\Classes\FirefoxHTML\shell\open\ddeexec\Topic]
+@="WWW_OpenURL"
+
+
+﻿Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\FirefoxHTML]
+@="Firefox Document"
+"FriendlyTypeName"="Firefox Document"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\FirefoxHTML\DefaultIcon]
+@="C:\\Program Files\\Mozilla Firefox\\firefox.exe,1"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\FirefoxHTML\shell]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\FirefoxHTML\shell\Edit]
+@="&Edit"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\FirefoxHTML\shell\Edit\command]
+@="\"C:\\Program Files\\Microsoft Office\\Office12\\msohtmed.exe\" %1"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\FirefoxHTML\shell\open]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\FirefoxHTML\shell\open\command]
+@="\"C:\\Program Files\\Mozilla Firefox\\firefox.exe\" -requestPending -osint -url \"%1\""
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\FirefoxHTML\shell\open\ddeexec]
+@="\"%1\",,0,0,,,,"
+"NoActivateHandler"=""
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\FirefoxHTML\shell\open\ddeexec\Application]
+@="Firefox"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\FirefoxHTML\shell\open\ddeexec\Topic]
+@="WWW_OpenURL"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\FirefoxHTML\shell\Print]
+@="&Print"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\FirefoxHTML\shell\Print\command]
+@="\"C:\\Program Files\\Microsoft Office\\Office12\\msohtmed.exe\" /p %1"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\FirefoxHTML\ShellEx]
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Classes\FirefoxHTML\ShellEx\IconHandler]
+@="{42042206-2D85-11D3-8CFF-005004838597}"
+
+
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\FirefoxHTML]
+@="Firefox Document"
+"FriendlyTypeName"="Firefox Document"
+
+[HKEY_CLASSES_ROOT\FirefoxHTML\DefaultIcon]
+@="C:\\Program Files\\Mozilla Firefox\\firefox.exe,1"
+
+[HKEY_CLASSES_ROOT\FirefoxHTML\shell]
+
+[HKEY_CLASSES_ROOT\FirefoxHTML\shell\Edit]
+@="&Edit"
+
+[HKEY_CLASSES_ROOT\FirefoxHTML\shell\Edit\command]
+@="\"C:\\Program Files\\Microsoft Office\\Office12\\msohtmed.exe\" %1"
+
+[HKEY_CLASSES_ROOT\FirefoxHTML\shell\open]
+
+[HKEY_CLASSES_ROOT\FirefoxHTML\shell\open\command]
+@="\"C:\\Program Files\\Mozilla Firefox\\firefox.exe\" -requestPending -osint -url \"%1\""
+
+[HKEY_CLASSES_ROOT\FirefoxHTML\shell\open\ddeexec]
+@="\"%1\",,0,0,,,,"
+"NoActivateHandler"=""
+
+[HKEY_CLASSES_ROOT\FirefoxHTML\shell\open\ddeexec\Application]
+@="Firefox"
+
+[HKEY_CLASSES_ROOT\FirefoxHTML\shell\open\ddeexec\Topic]
+@="WWW_OpenURL"
+
+[HKEY_CLASSES_ROOT\FirefoxHTML\shell\Print]
+@="&Print"
+
+[HKEY_CLASSES_ROOT\FirefoxHTML\shell\Print\command]
+@="\"C:\\Program Files\\Microsoft Office\\Office12\\msohtmed.exe\" /p %1"
+
+[HKEY_CLASSES_ROOT\FirefoxHTML\ShellEx]
+
+[HKEY_CLASSES_ROOT\FirefoxHTML\ShellEx\IconHandler]
+@="{42042206-2D85-11D3-8CFF-005004838597}"
+

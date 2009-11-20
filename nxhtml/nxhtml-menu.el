@@ -547,6 +547,10 @@
                             (tidy-build-menu)
                             (or (derived-mode-p 'html-mode)
                                 (nxhtml-nxhtml-in-buffer)))))
+      (define-key tools-map [zencoding]
+        (list 'menu-item "Zen coding for HTML/CSS" 'zencoding-mode
+              :button '(:toggle . (and (boundp 'zencoding-mode)
+                                       zencoding-mode))))
       (define-key tools-map [nxhtml-flymake]
         (list 'menu-item "Flymake Mode" 'flymake-mode
               :button '(:toggle . (and (boundp 'flymake-mode)
