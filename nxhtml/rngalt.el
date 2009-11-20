@@ -608,7 +608,7 @@ major mode is derived from `nxml-mode'."
   :set (lambda (sym val)
          (set-default sym val)
          (rngalt-update-validation-header-overlay-everywhere))
-  :group 'nxml
+  :group 'relax-ng
   :group 'nxhtml)
 
 (define-toggle rngalt-minimal-validation-header t
@@ -617,7 +617,7 @@ See also `rngalt-display-validation-header'."
   :set (lambda (sym val)
          (set-default sym val)
          (rngalt-update-validation-header-overlay-everywhere))
-  :group 'nxml
+  :group 'relax-ng
   :group 'nxhtml)
 
 (defface rngalt-validation-header-top
