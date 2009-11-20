@@ -770,7 +770,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  smarty-html-mumamo-mode mjt-html-mumamo-mode genshi-html-mumamo-mode
 ;;;;;;  django-html-mumamo-mode embperl-html-mumamo-mode mason-html-mumamo-mode
 ;;;;;;  nxml-mumamo-mode html-mumamo-mode) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19203 787))
+;;;;;;  (19206 4289))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1424,7 +1424,7 @@ handled is governed by `sex-keep-dummy-buffer'.
 ;;;***
 
 ;;;### (autoloads (tabkey2-mode tabkey2-emma-without-tabkey2) "tabkey2"
-;;;;;;  "util/tabkey2.el" (19186 16098))
+;;;;;;  "util/tabkey2.el" (19206 1897))
 ;;; Generated autoloads from util/tabkey2.el
 
 (autoload 'tabkey2-emma-without-tabkey2 "tabkey2" "\
@@ -1730,6 +1730,21 @@ wikipedia-draft-data-file.
 
 (defvar wikipedia-draft-send-archive t "\
 *Archive the reply.")
+
+;;;***
+
+;;;### (autoloads (visual-basic-mode) "visual-basic-mode" "related/visual-basic-mode.el"
+;;;;;;  (19206 4533))
+;;; Generated autoloads from related/visual-basic-mode.el
+
+(autoload 'visual-basic-mode "visual-basic-mode" "\
+A mode for editing Microsoft Visual Basic programs.
+Features automatic indentation, font locking, keyword capitalization,
+and some minor convenience functions.
+Commands:
+\\{visual-basic-mode-map}
+
+\(fn)" t nil)
 
 ;;;***
 
@@ -2836,7 +2851,7 @@ Check if external modules used by nXhtml are found.
 ;;;;;;  eruby-nxhtml-mumamo-mode jsp-nxhtml-mumamo-mode gsp-nxhtml-mumamo-mode
 ;;;;;;  smarty-nxhtml-mumamo-mode mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode
 ;;;;;;  django-nxhtml-mumamo-mode embperl-nxhtml-mumamo-mode nxhtml-mumamo-mode)
-;;;;;;  "nxhtml-mumamo" "nxhtml/nxhtml-mumamo.el" (19186 16098))
+;;;;;;  "nxhtml-mumamo" "nxhtml/nxhtml-mumamo.el" (19206 4330))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 
 (autoload 'nxhtml-mumamo-mode "nxhtml-mumamo" "\
@@ -3187,7 +3202,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;### (autoloads (zencoding-preview zencoding-expand-yas zencoding-mode
 ;;;;;;  zencoding-expand-line) "zencoding-mode" "util/zencoding-mode.el"
-;;;;;;  (19205 63223))
+;;;;;;  (19205 63740))
 ;;; Generated autoloads from util/zencoding-mode.el
 
 (autoload 'zencoding-expand-line "zencoding-mode" "\
@@ -3253,7 +3268,7 @@ accept it or skip it.
 ;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
 ;;;;;;  "util/popcmp.el" "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "util/whelp.el") (19205 63588 546000))
+;;;;;;  "util/useful-commands.el" "util/whelp.el") (19206 4764 468000))
 
 ;;;***
 

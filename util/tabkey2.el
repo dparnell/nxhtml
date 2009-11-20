@@ -779,7 +779,8 @@ See `tabkey2-first' for more information."
   (let ((C-g-binding (or (key-binding [(control ?g)])
                          (key-binding "\C-g")))
         did-more)
-    (when company-mode
+    (when (and (boundp 'company-mode)
+               company-mode)
       ;;(message "tabkey2:company-abort")
       (company-abort)
       (setq did-more t))
