@@ -2279,15 +2279,11 @@ This also covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Asp
 
-(defun mumamo-chunk-asp (pos min max)
-  "Find <% ... %>.  Return range and 'asp-js-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  ;; Fix-me: this is broken!
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-exc-start-asp
-                              'mumamo-search-bw-exc-end-jsp
-                              'mumamo-search-fw-exc-start-jsp
-                              'mumamo-search-fw-exc-end-jsp))
+;;;; asp <%@language="javscript"%>
+
+(defvar mumamo-asp-default-major 'asp-js-mode)
+(make-variable-buffer-local 'mumamo-asp-default-major)
+(put 'mumamo-asp-default-major 'permanent-local t)
 
 (defconst mumamo-asp-lang-marker
   (rx "<%@"
@@ -2301,25 +2297,40 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
       "\""
       (0+ space)))
 
-(defun mumamo-search-bw-exc-start-asp (pos min)
-  "Helper function for `mumamo-chunk-asp'.
-POS is where to start search and MIN is where to stop."
-  (let ((exc-start (mumamo-chunk-start-bw-str pos min "<%")))
-    (when (and exc-start
-               (<= exc-start pos))
-      (let ((here (point))
-            (mode 'asp-vb-mode)
-            lang)
-        (when (re-search-backward mumamo-asp-lang-marker nil t)
-          (setq lang (downcase (match-string-no-properties 1)))
-          (lwarn 't :warning "lang=%s" lang)
-          (cond
-           ((string= lang "javascript")
-            (setq mode 'asp-js-mode))
-           )
-          )
-        (cons exc-start mode)))))
+(defun mumamo-chunk-asp (pos min max)
+  "Find <% ... %>.  Return range and 'asp-js-mode.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+  ;; Fix-me: this is broken!
+  (mumamo-find-possible-chunk pos min max
+                              'mumamo-search-bw-exc-start-asp
+                              'mumamo-search-bw-exc-end-jsp
+                              'mumamo-search-fw-exc-start-jsp
+                              'mumamo-search-fw-exc-end-jsp))
 
+
+;;;; asp <% ...>
+
+(defun mumamo-chunk-asp% (pos min max)
+  "Find <% ... %>.  Return range and 'asp-js-mode or 'asp-vb-mode.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+  (let* ((chunk (mumamo-quick-static-chunk pos min max "<%" "%>" t 'java-mode t))
+         (beg (nth 0 chunk))
+         (here (point))
+         glang)
+    (when chunk
+      (goto-char beg)
+      (if (looking-at mumamo-asp-lang-marker)
+          (progn
+            (setq glang (downcase (match-string 1)))
+            (cond
+             ((string= glang "javascript")
+              (setq mumamo-asp-default-major 'asp-js-mode))
+             ((string= glang "vbscript")
+              (setq mumamo-asp-default-major 'asp-vb-mode))
+             )
+            (setcar (nthcdr 2 chunk) 'mumamo-comment-mode))
+        (setcar (nthcdr 2 chunk) mumamo-asp-default-major))
+      chunk)))
 
 ;;;; asp <script ...>
 
@@ -2336,7 +2347,8 @@ POS is where to start search and MIN is where to stop."
       ;;"/"
       ;;(or "javascript" "ecmascript")
       ;; "text/javascript"
-      (or "javascript" "vbscript")
+      (submatch
+       (or "javascript" "vbscript"))
       ?\"
       (0+ (not (any ">")))
       ">"
@@ -2354,16 +2366,40 @@ POS is where to start search and MIN is where to stop."
         exc-start
         lang)
     (when marker-start
-      (when (looking-at mumamo-script-tag-start-regex)
+      (when (looking-at mumamo-asp-script-tag-start-regex)
         (setq lang (downcase (match-string-no-properties 1)))
         (cond
          ((string= lang "javascript")
           (setq exc-mode 'asp-js-mode))
-         )
-        (setq exc-start (match-end 0))
-        (goto-char exc-start)
-        (when (<= exc-start pos)
-          (cons (point) exc-mode))
+         ((string= lang "vbscript")
+          (setq exc-mode 'asp-vb-mode))))
+      (setq exc-start (match-end 0))
+      (goto-char exc-start)
+      (when (<= exc-start pos)
+        (cons (point) exc-mode))
+      )))
+
+(defun mumamo-asp-search-fw-exc-start-inlined-script (pos max)
+  "Helper for `mumamo-chunk-inlined-script'.
+POS is where to start search and MAX is where to stop."
+  (goto-char (1+ pos))
+  (skip-chars-backward "^<")
+  ;; Handle <![CDATA[
+  (when (and
+         (eq ?< (char-before))
+         (eq ?! (char-after))
+         (not (bobp)))
+    (backward-char)
+    (skip-chars-backward "^<"))
+  (unless (bobp)
+    (backward-char 1))
+  (let ((exc-start (search-forward "<script" max t))
+        exc-mode)
+    (when exc-start
+      (goto-char (- exc-start 7))
+      (when (looking-at mumamo-asp-script-tag-start-regex)
+        (goto-char (match-end 0))
+        (point)
         ))))
 
 (defun mumamo-asp-chunk-inlined-script (pos min max)
@@ -2372,7 +2408,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (mumamo-find-possible-chunk pos min max
                               'mumamo-asp-search-bw-exc-start-inlined-script
                               'mumamo-search-bw-exc-end-inlined-script
-                              'mumamo-search-fw-exc-start-inlined-script
+                              'mumamo-asp-search-fw-exc-start-inlined-script
                               'mumamo-search-fw-exc-end-inlined-script))
 
 ;;;###autoload
@@ -2380,7 +2416,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   "Turn on multiple major modes for ASP with main mode `html-mode'.
 This also covers inlined style and javascript."
   ("ASP Html Family" html-mode
-   (mumamo-chunk-asp
+   (mumamo-chunk-asp%
     mumamo-asp-chunk-inlined-script
     mumamo-chunk-inlined-script
     mumamo-chunk-style=
