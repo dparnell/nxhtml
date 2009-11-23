@@ -2796,6 +2796,15 @@ This also covers inlined style and javascript."
     mumamo-chunk-inlined-script
     )))
 
+(define-mumamo-multi-major-mode xsl-sgml-mumamo-mode
+  "Turn on multi major mode for XSL with main mode `sgml-mode'.
+This also covers inlined style and javascript."
+  ("XSL Family" sgml-mode
+   (
+    mumamo-chunk-inlined-style
+    mumamo-chunk-inlined-script
+    )))
+
 (provide 'mumamo-fun)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; mumamo-fun.el ends here
