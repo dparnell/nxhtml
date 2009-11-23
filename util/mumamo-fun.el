@@ -1524,6 +1524,7 @@ POS, MIN and MAX have the same meaning as there.
 LANG is the programming language.
 Supported values are 'perl."
   ;; Fix-me: LANG
+  ;; Fix-me: use mumamo-end-in-code
   (mumamo-condition-case err
       (let ((old-point (point)))
         (goto-char pos)
@@ -1561,7 +1562,7 @@ Supported values are 'perl."
                (skip-chars-forward " \t")
                (when (memq (char-after) '(?\" ?\'))
                  (setq delimiter (list (char-after))))
-               (when (looking-at (concat delimiter "\\([^\n;]*\\)" delimiter "[[:blank:]]*\n"))
+               (when (looking-at (concat delimiter "\\([^\n<>;]*\\)" delimiter "[[:blank:]]*\n"))
                  (setq heredoc-mark  (buffer-substring-no-properties
                                       (match-beginning 1)
                                       (match-end 1)))

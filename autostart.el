@@ -41,9 +41,9 @@
 
 (message "Nxml/Nxhtml Autostart.el loading ...")
 
-(defconst nxhtml-menu:version "beta 2.02")
-(setq message-log-max t)
-(setq debug-on-error t)
+(defconst nxhtml-menu:version "2.02")
+;;(setq message-log-max t)
+;;(setq debug-on-error t)
 
 (defconst nxhtml-load-time-start (float-time))
 
@@ -60,6 +60,19 @@
 ;; (defun nxhtml-custom-load-and-get-value (symbol)
 ;;   (custom-load-symbol symbol)
 ;;   (symbol-value symbol))
+
+(defun flymake-init-load-flymakemsg ()
+  (require 'flymakemsg))
+
+(defcustom nxhtml-flymake-setup t
+  "Let nXhtml add some addtions to flymake.
+This adds support for CSSS and JavaScript files.
+
+It also adds showing of errors in minibuffer when point is on
+them."
+  :type 'boolean
+  :group 'nxhtml
+  :group 'flymake)
 
 (defun nxhtml-custom-autoload (symbol load &optional noset)
   "Like `custom-autoload', but also run :set for defcustoms etc."
@@ -176,7 +189,13 @@
 
     ;; Load nXhtml
     (load (expand-file-name "nxhtml/nxhtml-autoload" nxhtml-install-dir)))
-    (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
+  (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
+
+  ;; Flymake, this may break some users setup initially, but I see no better way...
+  (when nxhtml-flymake-setup
+    (flymake-js-load)
+    (flymake-css-load)
+    (add-hook 'flymake-mode-hook 'flymake-init-load-flymakemsg))
 
   ;; Tell what have been loaded of nXhtml:
   (nxhtml-list-loaded-features nil)

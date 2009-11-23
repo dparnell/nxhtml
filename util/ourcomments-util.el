@@ -359,6 +359,24 @@ To create a menu item something similar to this can be used:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Widgets
 
+;;;###autoload
+(defun ourcomments-mark-whole-buffer-or-field ()
+  "Mark whole buffer or editable field at point."
+  (interactive)
+  (let* ((field (widget-field-at (point)))
+         (from (when field (widget-field-start field)))
+         (to   (when field (widget-field-end field)))
+         (size (when field (widget-get field :size))))
+    (if (not field)
+        (mark-whole-buffer)
+      (while (and size
+                  (not (zerop size))
+                  (> to from)
+                  (eq (char-after (1- to)) ?\s))
+        (setq to (1- to)))
+      (push-mark (point))
+      (push-mark from nil t)
+      (goto-char to))))
 
 ;; (rassq 'genshi-nxhtml-mumamo-mode mumamo-defined-turn-on-functions)
 ;; (major-modep 'nxhtml-mode)
@@ -389,10 +407,13 @@ To create a menu item something similar to this can be used:
 See `beginning-of-line' for ARG.
 
 If `line-move-visual' is non-nil then the visual line beginning
-is first tried."
+is first tried.
+
+If in a widget field stay in that."
   (interactive "p")
   (let ((pos (point))
-        vis-pos)
+        vis-pos
+        (field (widget-field-at (point))))
     (when line-move-visual
       (line-move-visual -1 t)
       (beginning-of-line)
@@ -410,7 +431,10 @@ is first tried."
       (if (= 0 (current-column))
           (skip-chars-forward " \t")
         (backward-char)
-        (beginning-of-line)))))
+        (beginning-of-line)))
+    (when (and field
+               (< (point) (widget-field-start field)))
+      (goto-char (widget-field-start field)))))
 (put 'ourcomments-move-beginning-of-line 'CUA 'move)
 
 ;;;###autoload
