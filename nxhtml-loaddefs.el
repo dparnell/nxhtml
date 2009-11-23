@@ -480,7 +480,7 @@ such palette into a css-file as hexadecimal color palette.
 ;;;***
 
 ;;;### (autoloads (hfyview-frame hfyview-window hfyview-region hfyview-buffer)
-;;;;;;  "hfyview" "util/hfyview.el" (19204 49061))
+;;;;;;  "hfyview" "util/hfyview.el" (19206 9231))
 ;;; Generated autoloads from util/hfyview.el
 
 (autoload 'hfyview-buffer "hfyview" "\
@@ -509,6 +509,10 @@ named *hfyview-frame* and show that buffer in a web browser.
 If WHOLE-BUFFERS is non-nil then the whole content of the buffers
 is shown in the XHTML page, otherwise just the part that is
 visible currently on the frame.
+
+If you turn on the minor mode `hfyview-frame-mode' you can also
+get the minibuffer/echo area in the output. See this mode for
+details.
 
 With command prefix also show html source in other window.
 
@@ -770,7 +774,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  smarty-html-mumamo-mode mjt-html-mumamo-mode genshi-html-mumamo-mode
 ;;;;;;  django-html-mumamo-mode embperl-html-mumamo-mode mason-html-mumamo-mode
 ;;;;;;  nxml-mumamo-mode html-mumamo-mode) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19206 4289))
+;;;;;;  (19208 12503))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1013,9 +1017,9 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;;;;  narrow-to-comment buffer-narrowed-p describe-command ourcomments-ediff-files
 ;;;;;;  find-emacs-other-file better-fringes-mode describe-key-and-map-briefly
 ;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
-;;;;;;  unfill-individual-paragraphs unfill-region unfill-paragraph
-;;;;;;  define-toggle popup-menu-at-point) "ourcomments-util" "util/ourcomments-util.el"
-;;;;;;  (19205 32111))
+;;;;;;  ourcomments-mark-whole-buffer-or-field unfill-individual-paragraphs
+;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point)
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19210 8487))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
@@ -1067,12 +1071,19 @@ Unfill individual paragraphs in the current region.
 
 \(fn)" t nil)
 
+(autoload 'ourcomments-mark-whole-buffer-or-field "ourcomments-util" "\
+Mark whole buffer or editable field at point.
+
+\(fn)" t nil)
+
 (autoload 'ourcomments-move-beginning-of-line "ourcomments-util" "\
 Move point to beginning of line or indentation.
 See `beginning-of-line' for ARG.
 
 If `line-move-visual' is non-nil then the visual line beginning
 is first tried.
+
+If in a widget field stay in that.
 
 \(fn ARG)" t nil)
 
@@ -1363,6 +1374,29 @@ See `pointback-mode' for more information on Pointback mode.
 
 ;;;***
 
+;;;### (autoloads (rebind-keys-mode) "rebind" "util/rebind.el" (19210
+;;;;;;  10844))
+;;; Generated autoloads from util/rebind.el
+
+(defvar rebind-keys-mode nil "\
+Non-nil if Rebind-Keys mode is enabled.
+See the command `rebind-keys-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `rebind-keys-mode'.")
+
+(nxhtml-custom-autoload 'rebind-keys-mode "rebind" nil)
+
+(autoload 'rebind-keys-mode "rebind" "\
+Rebind keys as defined in `rebind-keys'.
+The key bindings will override almost all other key bindings
+since it is put on emulation level, like for example ``cua-mode'
+and `viper-mode'.
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
 ;;;### (autoloads (rnc-mode) "rnc-mode" "util/rnc-mode.el" (18775
 ;;;;;;  60004))
 ;;; Generated autoloads from util/rnc-mode.el
@@ -1376,7 +1410,7 @@ Major mode for editing RELAX NG Compact Syntax schemas.
 ;;;***
 
 ;;;### (autoloads (search-form) "search-form" "util/search-form.el"
-;;;;;;  (19173 56140))
+;;;;;;  (19210 2777))
 ;;; Generated autoloads from util/search-form.el
 
 (autoload 'search-form "search-form" "\
@@ -1734,7 +1768,7 @@ wikipedia-draft-data-file.
 ;;;***
 
 ;;;### (autoloads (visual-basic-mode) "visual-basic-mode" "related/visual-basic-mode.el"
-;;;;;;  (19206 4533))
+;;;;;;  (19210 19336))
 ;;; Generated autoloads from related/visual-basic-mode.el
 
 (autoload 'visual-basic-mode "visual-basic-mode" "\
@@ -2389,6 +2423,28 @@ Key bindings:
 
 ;;;***
 
+;;;### (autoloads (flymake-js-load) "flymake-js" "related/flymake-js.el"
+;;;;;;  (19210 18357))
+;;; Generated autoloads from related/flymake-js.el
+
+(autoload 'flymake-js-load "flymake-js" "\
+Not documented
+
+\(fn)" nil nil)
+
+;;;***
+
+;;;### (autoloads (flymake-css-load) "flymake-css" "related/flymake-css.el"
+;;;;;;  (19210 12072))
+;;; Generated autoloads from related/flymake-css.el
+
+(autoload 'flymake-css-load "flymake-css" "\
+Not documented
+
+\(fn)" nil nil)
+
+;;;***
+
 ;;;### (autoloads (espresso-mode) "espresso" "related/espresso.el"
 ;;;;;;  (19039 48498))
 ;;; Generated autoloads from related/espresso.el
@@ -2436,8 +2492,8 @@ Key bindings:
 ;;;***
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
-;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (19173
-;;;;;;  56142))
+;;;;;;  winsav-put-window-tree) "winsav" "util/winsav.el" (19209
+;;;;;;  42838))
 ;;; Generated autoloads from util/winsav.el
 
 (autoload 'winsav-put-window-tree "winsav" "\
@@ -2793,7 +2849,7 @@ Used to set up a Tidy menu in your favourite mode.
 ;;;***
 
 ;;;### (autoloads (rngalt-set-validation-header) "rngalt" "nxhtml/rngalt.el"
-;;;;;;  (19173 56140))
+;;;;;;  (19206 61983))
 ;;; Generated autoloads from nxhtml/rngalt.el
 
 (autoload 'rngalt-set-validation-header "rngalt" "\
@@ -3036,7 +3092,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "nxhtml-menu" "nxhtml/nxhtml-menu.el"
-;;;;;;  (19205 63422))
+;;;;;;  (19209 41300))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "nxhtml-menu" "\
@@ -3202,7 +3258,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;### (autoloads (zencoding-preview zencoding-expand-yas zencoding-mode
 ;;;;;;  zencoding-expand-line) "zencoding-mode" "util/zencoding-mode.el"
-;;;;;;  (19205 63740))
+;;;;;;  (19207 737))
 ;;; Generated autoloads from util/zencoding-mode.el
 
 (autoload 'zencoding-expand-line "zencoding-mode" "\
@@ -3258,17 +3314,17 @@ accept it or skip it.
 ;;;;;;  "nxhtml/html-move.el" "nxhtml/html-quote.el" "nxhtml/html-wtoc.el"
 ;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el" "nxhtml/nxhtmljs.el"
 ;;;;;;  "nxhtml/outline-magic.el" "nxhtml/wtest.el" "related/flymake-helpers.el"
-;;;;;;  "related/flymake-js.el" "related/flymake-keys.el" "related/flymake-php.el"
-;;;;;;  "related/flymu.el" "related/php-imenu.el" "tests/angus77-setup-jde.el"
-;;;;;;  "tests/emacstest-suites.el" "tests/ert2.el" "tests/hfy-test.el"
-;;;;;;  "tests/inemacs/bug1013.el" "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el"
-;;;;;;  "tests/temp-test.el" "util/appmenu-fold.el" "util/buffer-bg.el"
+;;;;;;  "related/flymakemsg.el" "related/flymu.el" "related/php-imenu.el"
+;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
+;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
+;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/css-simple-completion.el"
 ;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/ffip.el"
 ;;;;;;  "util/fupd.el" "util/hfy-cmap.el" "util/htmlfontify.el" "util/key-cat.el"
 ;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
-;;;;;;  "util/popcmp.el" "util/rebind.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "util/whelp.el") (19206 4764 468000))
+;;;;;;  "util/popcmp.el" "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
+;;;;;;  "util/whelp.el") (19210 19387 609000))
 
 ;;;***
 

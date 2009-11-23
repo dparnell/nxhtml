@@ -12,12 +12,27 @@ h1, h2, h3, h4 {font-family: Georgia, Georgia, serif; margin: 15px 0 0 5px; colo
 h1 em, h2 em, h3 em, h4 em {font-family: Georgia, Georgia, serif; font-weight: normal}  /* italic words in titles */
 
 h1 {xposition: absolute; right: 0px; top: 30px; font-size: 2.25em; letter-spacing: 0.1em; line-height: 1.00em; padding-right: 10px; border-right: 15px solid #fff}
-h1:first-letter {font-family: Georgia, Georgia, serif; font-size: 2.25em} /* styles the first letter of the main title to make it large */
+h1:first-letter {font-family: Georgia, Georgia, serif; font-size: 1.15em} /* styles the first letter of the main title to make it large */
 
 p#tagline {position: absolute; right: 0px; top: 125px; font-style: italic; color: #648D20; font-size: 0.90em}  /* sits under main title */
 
-h2 {font-size: 1.40em; letter-spacing: 0.05em}
+h2 {
+    font-size: 1.60em;
+    letter-spacing: 0.05em;
+    margin-top: 2.5em;
+}
+hr {
+    color: white;
+    height: 5px;
+    margin-bottom: 1em;
+}
+
 h3 {font-size: 1.00em; letter-spacing: 0.05em}
+
+/* Test text shadows */
+h1 { text-shadow: 0 2px 2px #ff0; }
+h2 { text-shadow: 0 1px 1px #ff0; }
+h3 { text-shadow: 0 1px 0px #ff0; }
 
 p {
 /*     margin: 10px 10px 0 7px; */
@@ -38,11 +53,11 @@ code {font-family: monospace; font-size: 1.20em; color: #E20000}
 
 a:link, a:visited {
     color: #792533;
-    /* font-weight: bold; */
-    /* I can see why a border-bottom was used, but I do not have time to
-       fix it now */
-    /* text-decoration: none; */
-    /*    border-bottom: 1px solid #792533; */
+/* font-weight: bold; */
+/* I can see why a border-bottom was used, but I do not have time to
+   fix it now */
+/* text-decoration: none; */
+/*    border-bottom: 1px solid #792533; */
 }
 a:hover, a:active {color: #fff; border-color: #fff}
 
@@ -128,7 +143,7 @@ li p {
 }
 
 #lftcol table li a {
-    /* text-decoration: none; */
+/* text-decoration: none; */
 }
 #lftcol {   /* left column */
     /*             position: absolute; */
@@ -139,14 +154,18 @@ li p {
     margin-bottom: 50px; /* Quck fix for img menu */
     margin-right: 1em;
     background: transparent;
+    border-left: groove white 2px;
+    padding-left: 15px;
+    margin-left: 25px;
 }
 
 #rgtcol {
     xfloat: left;
     clear: both;
     margin-left: 100px;
-    max-width: 600px;
+    max-width: 550px;
     padding-bottom: 30px; background: transparent; xoverflow: hidden;  /* right column */
+    line-height: 1.2em;
 }
 
 .footer {
@@ -216,6 +235,7 @@ ul#nav li a:hover {background: #9EA219; color: #fff}
 
 #PAGETOC {
     float: left;
+    line-height: 1.2em;
 }
 #PAGETOC * {
     font-size: 12px;
@@ -244,9 +264,12 @@ ul#nav li a:hover {background: #9EA219; color: #fff}
 
 #PAGETOC .tochead {
     font-size: 10px;
-    background-color: #c0ff3e;
-    background-color: #9acd32;
-    background-color: #b3ee3a;
-    padding: 4px;
+    /* background-color: #c0ff3e; */
+    /* background-color: #9acd32; */
+    /* background-color: #b3ee3a; */
+    /* background-color: #ccc; */
+    color: #666;
+    font-style: italic;
+/* padding: 4px; */
 }
 

@@ -163,9 +163,10 @@ div#useit { text-decoration: none; }
       </div>
 
       <div id="rgtcol">
-        <h1 id="mainheader">nXhtml - Emacs Utilities for Web Development</h1>
+        <h1 id="mainheader"><span style="font-size:2.5em">nXhtml</span> - Emacs Utilities for Web Development</h1>
 
         <h2 id="summary">Introduction to nXhtml</h2>
+        <hr />
         <p>
           nXhtml is an addon to Emacs for editing XHTML, PHP and similar things.  It is not
           very well-known, but it looks like at least <a
@@ -179,6 +180,13 @@ div#useit { text-decoration: none; }
         </blockquote>
         <p>
           And that was before I fixed all the bugs ...
+        </p>
+        <p>
+          A good deal of the things in nXhtml (multi major modes for
+          example) can be used for other things than web development,
+          but that is how it started. If you only want to use a part
+          of it just install the whole thing. It saves you time and
+          nothing is really loaded until you use it.
         </p>
 
         <h3 id="featsum">Features</h3>
@@ -472,6 +480,7 @@ div#useit { text-decoration: none; }
         </p>
 
         <h2 id="completion">Completion</h2>
+        <hr />
         <div align="right">
           <img align="right"
                src="img/popup-compl.png"
@@ -615,6 +624,7 @@ div#useit { text-decoration: none; }
         </p>
 
         <h2 id="xmlpath" style="clear:both">Where am I? - XML Path</h2>
+        <hr />
 
         <p>
           If you have for example &lt;div> tags to separate things or long
@@ -629,6 +639,7 @@ div#useit { text-decoration: none; }
         </p>
 
         <h2 id="sites">Why it is Useful that nXhtml has Sites</h2>
+        <hr />
         <p>
           I am writing this in nXhtml mode in Emacs.  Just after I had
           written a piece or added an image on my pc I update the web
@@ -656,6 +667,7 @@ div#useit { text-decoration: none; }
         </p>
 
         <h2 id="mlinks">Why the Links Look Like Links</h2>
+        <hr />
         <p>
           As soon as you open an XHTML file in nXhtml mode you will notice that the links you enter looks like links.
           They are underlined and blue like in a web browser.
@@ -688,6 +700,7 @@ div#useit { text-decoration: none; }
         </p>
 
         <h2 id="tocs">Did You Notice the Table of Contents at the Top?</h2>
+        <hr />
         <p>
           Well, you should notice not because it exactly is the worlds
           most pretty table of content.  But because it is there.  And I
@@ -707,6 +720,7 @@ div#useit { text-decoration: none; }
         </p>
 
         <h2 id="tidy">But I Can't Use this Cause my Files are HTML</h2>
+        <hr />
         <p>
           That is a problem of course.  You need to convert them to XHTML
           because that is what the browsers and all other tools are best
@@ -730,6 +744,7 @@ div#useit { text-decoration: none; }
         </p>
 
         <h2 id="php">And what about Multiple Modes like PHP?</h2>
+        <hr />
         <p>
           nXhtml mode can handle multiple modes in a buffer.  The
           benefits of nXml style completion can still be used.  This
@@ -795,13 +810,7 @@ div#useit { text-decoration: none; }
 
         <h3 id="multi-colors">Why Are Colors Different in Multiple Modes?</h3>
         <p>
-          It has been necessary to replace the nxml-mode style
-          fontification with the sgml-mode style.  All other features
-          of nXml/nXhtml modes should still work however.
-          In all other cases the normal fontification colors are used.
-        </p>
-        <p>
-          Or perhaps you mean the background colors? These are just a
+          Do you mean the background colors? These are just a
           visual aid about the dividing into chunks with different
           major modes and they can be turned off. Do <em>M-x
           customize-group RET mumamo RET</em>.
@@ -818,24 +827,24 @@ div#useit { text-decoration: none; }
         <img alt="CSS embedded in XHTML" src="img/style-in-nxhtml.png" width="448" height="278" />
         <p>
           Currently it can handle PHP, CSS, JavaScript, eRuby, JSP and
-          some other minor cases.  If you can program in elisp it is
+          a lot of others.  If you can program in elisp it is
           not a very big deal adding support for other embedded
           languages.  (I do not use all the languages above myself so
           please give me feedback if there is something you think
           could be done better.)
         </p>
         <p>
-          Please notice also that each major mode handles completion
-          in its own ways.  The popup style completion is currently
-          only used by nXhtml mode, not the other major modes even if
-          they are on the same page.
-        </p>
-        <p>
           The use of multi major modes is not constrained to nXhtml.
           You can use that when editing other files too. To see what
           multi major modes are currently defined in your Emacs
           session see the
-          variable <i>mumamo-defined-turn-on-functions</i>.
+          variable <i>mumamo-list-defined-multi-major-modes</i>.
+        </p>
+        <p>
+          Please notice that each major mode handles completion
+          in its own ways.  The popup style completion is currently
+          only used by nXhtml mode, not the other major modes even if
+          they are on the same page.
         </p>
 
         <h3 id="tips-multi">Tips When Using Multiple Modes</h3>
@@ -889,6 +898,7 @@ div#useit { text-decoration: none; }
         </p>
 
         <h2 id="file-assoc">File Associations within Emacs</h2>
+        <hr />
         <p>
           Some file associations are changed within Emacs to get
           multiple modes to work without requiring the user to do
@@ -900,6 +910,7 @@ div#useit { text-decoration: none; }
         </p>
 
         <h2 id="bloggin">Not for Me, I Am Only Blogging</h2>
+        <hr />
         <p>
           Not for you?
           Ah, wait a minute.
@@ -946,6 +957,7 @@ div#useit { text-decoration: none; }
 <!--         <img alt="Edit part of an XHTML file" src="img/edit-part.png" width="448" height="390" /> -->
 
         <h2 id="bloggin">And Other Goodies...</h2>
+        ¨<hr />
         <p>
           There are a lot of other things in the package too, please
           see the nXhtml menu in Emacs.  You can for example find a

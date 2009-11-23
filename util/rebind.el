@@ -59,54 +59,43 @@
 ;; (rebind-toggle-first-modifier (key-description-to-vector "C-c a") 'shift)
 ;; (rebind-toggle-first-modifier (key-description-to-vector "C-S-c a") 'shift)
 
-(defconst rebind-keys-mode-map (make-sparse-keymap))
+(defvar rebind-keys-mode-map nil)
 
-(defun rebind-update-keymap (symbol value)
-  ;(lwarn t :warning "value=%S" value)
+;;(rebind-update-keymap)
+(defun rebind-update-keymap ()
   (let ((m (make-sparse-keymap)))
-    (dolist (group value)
-      ;(lwarn t :warning "group=%S" group)
+    (dolist (group rebind-keys)
       (when (nth 1 group)
         (dolist (v (nth 2 group))
-          (let* (
-                 (orig-key   (nth 0 v))
+          (let* ((orig-key   (nth 0 v))
                  (comment    (nth 1 v))
                  (enabled    (nth 2 v))
                  (new-choice (nth 3 v))
                  (new-fun    (nth 4 v))
                  (orig-fun (lookup-key global-map orig-key))
                  new-key)
-            (when new-choice
-              (if (memq new-choice '(meta control shift))
-                  (setq new-key (rebind-toggle-first-modifier orig-key new-choice))
-                (setq new-key new-choice))
-              (define-key m new-key orig-fun))
             (when enabled
+              (when new-choice
+                (if (memq new-choice '(meta control shift))
+                    (setq new-key (rebind-toggle-first-modifier orig-key new-choice))
+                  (setq new-key new-choice))
+                (define-key m new-key orig-fun))
               (define-key m orig-key new-fun))))
-        (setq rebind-keys-mode-map m))
-      (set-default symbol value))))
+        (setq rebind-keys-mode-map m))))
+  (setq rebind--emul-keymap-alist (list (cons 'rebind-keys-mode rebind-keys-mode-map))))
 
 (defvar widget-commandp-prompt-value-history nil)
 
-;; (define-widget 'command 'function
-;;   "A major mode lisp function."
-;;   :complete-function (lambda ()
-;;                        (interactive)
-;;                        (lisp-complete-symbol 'commandp))
-;;   :prompt-match 'major-modep
-;;   :prompt-history 'widget-commandp-prompt-value-history
-;;   :match-alternatives '(commandp)
-;;   :validate (lambda (widget)
-;;               (unless (major-modep (widget-value widget))
-;;                 (widget-put widget :error (format "Invalid function: %S"
-;;                                                   (widget-value widget)))
-;;                 widget))
-;;   :value 'fundamental-mode
-;;   :tag "Command function")
+(defgroup rebind-keys nil
+  "Customizaton group for rebind-keys-mode."
+  :group 'convenience
+  :group 'emulations
+  :group 'editing-basics
+  :group 'emacsw32)
 
-;; (customize-option 'rebind-keys)
+;; (customize-option-other-window 'rebind-keys)
+;; (Fetched key bindings from http://www.davidco.com/tips_tools/tip45.html)
 (defcustom rebind-keys
-  ;; (Fetched key bindings from http://www.davidco.com/tips_tools/tip45.html)
   '(
     ("MS Windows - often used key bindings" t
       (
@@ -115,7 +104,7 @@
         "C-a on w32 normally means 'select all'. In Emacs it is `beginning-of-line'."
         t
         shift
-        mark-whole-buffer)
+        ourcomments-mark-whole-buffer-or-field)
       (
        [(control ?o)]
        "C-o on w32 normally means 'open file'. In Emacs it is `open-line'."
@@ -146,16 +135,25 @@
        t
        shift
        hfyview-buffer)
+      (
+       [(home)]
+       "HOME normally stays in a field. By default it does not do that in Emacs."
+       t
+       nil
+       ourcomments-move-beginning-of-line)
        )))
   "Normal Emacs keys that are remapped to follow some other standard.
 The purpose of this variable is to make it easy to switch between
 Emacs key bindings and other standards.
 
-The new bindings is made in the global minor mode
+The new bindings are made in the global minor mode
 `rebind-keys-mode' and will only have effect when this mode is
 on.
 
-You can only move functions bound in the global key map this way."
+*Note:* You can only move functions bound in the global key map
+        this way.
+*Note:* To get CUA keys you should turn on option `cua-mode'.
+*Note:* To get vi key bindings call function `viper-mode'."
   :type '(repeat
           (list
            (string :tag "For what")
@@ -174,27 +172,34 @@ You can only move functions bound in the global key map this way."
                      (key-sequence :tag "New binding for original function"))
              (command :tag "New command on above key"))
             )))
-  :set 'rebind-update-keymap
-  :group 'emacsw32
-  )
+  ;;:set 'rebind-update-keymap
+  :group 'rebind-keys)
 
-(defconst rebind--emul-keymap-alist (list (cons 'rebind-keys-mode rebind-keys-mode-map)))
+(defvar rebind--emul-keymap-alist nil)
 
 (defun rebind-keys-post-command ()
   "Make sure we are first in the list when turned on.
 This is reasonable since we are using this mode to really get the
 key bindings we want!"
-  (setq emulation-mode-map-alists (delq 'rebind--emul-keymap-alist emulation-mode-map-alists))
-  (when rebind-keys-mode
-    (add-to-list 'emulation-mode-map-alists 'rebind--emul-keymap-alist)))
+  (unless (eq 'rebind--emul-keymap-alist (car emulation-mode-map-alists))
+    (setq emulation-mode-map-alists (delq 'rebind--emul-keymap-alist emulation-mode-map-alists))
+    (when rebind-keys-mode
+      (add-to-list 'emulation-mode-map-alists 'rebind--emul-keymap-alist))))
 
+;;;###autoload
 (define-minor-mode rebind-keys-mode
   "Rebind keys as defined in `rebind-keys'.
-The key bindings will override almost all other key bindings."
+The key bindings will override almost all other key bindings
+since it is put on emulation level, like for example ``cua-mode'
+and `viper-mode'."
   :keymap rebind-keys-mode-map
   :global t
+  :group 'rebind-keys
   (if rebind-keys-mode
-      (add-hook 'post-command-hook 'rebind-keys-post-command)
+      (progn
+        (rebind-update-keymap)
+        (rebind-keys-post-command)
+        (add-hook 'post-command-hook 'rebind-keys-post-command t))
     (remove-hook 'post-command-hook 'rebind-keys-post-command)
     (setq emulation-mode-map-alists (delq 'rebind--emul-keymap-alist emulation-mode-map-alists))))
 

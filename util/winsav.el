@@ -1344,21 +1344,23 @@ Run this before Emacs exits."
       ;; default directory since otherwise the winsav file will not be
       ;; loaded at startup. Desktop does not currently do that however
       ;; (report that!).
-      (let* ((full-file (winsav-full-file-name))
-             (default-directory (directory-file-name
-                                 (file-name-directory full-file))))
-        (setq winsav-dirname
-              (file-name-as-directory
-               (expand-file-name
-                (read-directory-name "Directory for winsav file: " nil nil t))))))
-    (condition-case err
-	;;(winsav-save winsav-dirname t)
-	(winsav-save-configuration winsav-dirname)
-      (file-error
-       (unless (yes-or-no-p
-                (format "Error while saving winsav config: %s  Save anyway? "
-                        (error-message-string err)))
-	 (signal (car err) (cdr err))))))
+      (when (y-or-n-p "Winsav was not loaded from file. Save it to file? ")
+        (let* ((full-file (winsav-full-file-name))
+               (default-directory (directory-file-name
+                                   (file-name-directory full-file))))
+          (setq winsav-dirname
+                (file-name-as-directory
+                 (expand-file-name
+                  (read-directory-name "Directory for winsav file: " nil nil t)))))))
+    (when winsav-dirname
+      (condition-case err
+          ;;(winsav-save winsav-dirname t)
+          (winsav-save-configuration winsav-dirname)
+        (file-error
+         (unless (yes-or-no-p
+                  (format "Error while saving winsav config: %s  Save anyway? "
+                          (error-message-string err)))
+           (signal (car err) (cdr err)))))))
   ;; If we own it, we don't anymore.
   ;;(when (eq (emacs-pid) (winsav-owner)) (winsav-release-lock))
   )
