@@ -53,6 +53,20 @@
 (eval-when-compile (require 'bookmark))
 (eval-when-compile (require 'uniquify))
 
+;; (ourcomments-indirect-fun 'html-mumamo)
+;; (ourcomments-indirect-fun 'html-mumamo-mode)
+;;;###autoload
+(defun ourcomments-indirect-fun (fun)
+  "Get the alias for function FUN if any."
+  ;; This code is from `describe-function-1'.
+  (when (and (symbolp fun)
+             (functionp fun))
+    (let ((def (symbol-function fun)))
+      (when (symbolp def)
+        (while (and (fboundp def)
+                    (symbolp (symbol-function def)))
+          (setq def (symbol-function def)))
+        def))))
 
 (defun ourcomments-goto-line (line)
   "A version of `goto-line' for use in elisp code."

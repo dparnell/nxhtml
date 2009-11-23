@@ -302,6 +302,10 @@
       (define-key tools-map [nxhtml-viper-tut]
         (list 'menu-item "Viper try-out tutorial"
               'viper-tutorial))
+      (define-key tools-map [rebind-keys]
+        (list 'menu-item "Rebind Some Keys" 'rebind-keys-mode
+              :button '(:toggle . (and (boundp 'rebind-keys-mode)
+                                       rebind-keys-mode))))
       (define-key tools-map [nxhtml-menu-to-m-x]
         (list 'menu-item "Add Menu Commands to M-x history"
               'ourcomments-M-x-menu-mode

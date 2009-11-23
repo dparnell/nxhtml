@@ -115,9 +115,16 @@ prevent use of them."
 (defsubst majmodpri-priority (mode)
   "Return major mode MODE priority."
   (if (and majmodpri-no-nxml
-           (symbolp mode)
-           (save-match-data
-             (string-match "nxhtml-mumamo" (symbol-name mode))))
+           ;; (symbolp mode)
+           ;; (save-match-data
+           ;;   (string-match "nxhtml-mumamo" (symbol-name mode))))
+           (let* ((real (or (ourcomments-indirect-fun mode)
+                            mode))
+                  (chunk (when real (get real 'mumamo-chunk-family)))
+                  (major-mode (when chunk
+                                (cadr chunk))))
+             (when major-mode
+               (derived-mode-p 'nxml-mode))))
       0
     (length (memq mode majmodpri-mode-priorities))))
 

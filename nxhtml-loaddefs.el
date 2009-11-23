@@ -660,8 +660,8 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
-;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19186
-;;;;;;  59738))
+;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19210
+;;;;;;  50131))
 ;;; Generated autoloads from util/majmodpri.el
 
 (autoload 'majmodpri-sort-lists "majmodpri" "\
@@ -774,7 +774,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  smarty-html-mumamo-mode mjt-html-mumamo-mode genshi-html-mumamo-mode
 ;;;;;;  django-html-mumamo-mode embperl-html-mumamo-mode mason-html-mumamo-mode
 ;;;;;;  nxml-mumamo-mode html-mumamo-mode) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19208 12503))
+;;;;;;  (19210 45748))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -1018,9 +1018,15 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;;;;  find-emacs-other-file better-fringes-mode describe-key-and-map-briefly
 ;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
 ;;;;;;  ourcomments-mark-whole-buffer-or-field unfill-individual-paragraphs
-;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19210 8487))
+;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point
+;;;;;;  ourcomments-indirect-fun) "ourcomments-util" "util/ourcomments-util.el"
+;;;;;;  (19210 50573))
 ;;; Generated autoloads from util/ourcomments-util.el
+
+(autoload 'ourcomments-indirect-fun "ourcomments-util" "\
+Get the alias for function FUN if any.
+
+\(fn FUN)" nil nil)
 
 (autoload 'popup-menu-at-point "ourcomments-util" "\
 Popup the given menu at point.
@@ -3324,7 +3330,7 @@ accept it or skip it.
 ;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
 ;;;;;;  "util/popcmp.el" "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el") (19210 19387 609000))
+;;;;;;  "util/whelp.el") (19210 50587 328000))
 
 ;;;***
 

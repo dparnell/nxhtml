@@ -191,7 +191,10 @@ key bindings we want!"
   "Rebind keys as defined in `rebind-keys'.
 The key bindings will override almost all other key bindings
 since it is put on emulation level, like for example ``cua-mode'
-and `viper-mode'."
+and `viper-mode'.
+
+This is for using for example C-a to mark the whole buffer \(or a
+field). There are some predifined keybindings for this."
   :keymap rebind-keys-mode-map
   :global t
   :group 'rebind-keys
