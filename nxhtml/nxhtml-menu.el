@@ -74,7 +74,7 @@
 (eval-when-compile (when (fboundp 'nxml-mode) (require 'nxhtml-mode)))
 (eval-when-compile (require 'css-color))
 (eval-when-compile (require 'flymake))
-(eval-when-compile (require 'flymake-php))
+;;(eval-when-compile (require 'flymake-php))
 (eval-when-compile (require 'flymake-js))
 (eval-when-compile (require 'udev-ecb))
 ;;(eval-when-compile (require 'udev-cedet))

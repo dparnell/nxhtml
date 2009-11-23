@@ -12,7 +12,7 @@
 ;;
 ;;   `cus-edit', `cus-face', `cus-load', `cus-start', `wid-edit'.
 ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;seasfireplstring                                                             ;;
 ;;
 ;;; Commentary:
 ;;
@@ -21,6 +21,9 @@
 ;;  http://lists.gnu.org/archive/html/emacs-devel/2008-05/msg00152.html
 ;;
 ;; NOT QUITE READY! Tagged files have not been tested.
+;;
+;; Fix-me: work on other windows buffer by default, not buffer from
+;; where search form was created.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -204,6 +207,66 @@
 (make-variable-buffer-local 'search-form-win-config)
 (put 'search-form-win-config 'permanent-local t)
 
+(defun sf-widget-field-value-set (widget value)
+  "Set current text in editing field."
+  (let ((from (widget-field-start widget))
+	(to (widget-field-end widget))
+	(buffer (widget-field-buffer widget))
+	(size (widget-get widget :size))
+	(secret (widget-get widget :secret))
+	(old (current-buffer)))
+    (if (and from to)
+	(progn
+	  (set-buffer buffer)
+	  (while (and size
+		      (not (zerop size))
+		      (> to from)
+		      (eq (char-after (1- to)) ?\s))
+	    (setq to (1- to)))
+          (goto-char to)
+          (delete-region from to)
+          (insert value)
+	  (let ((result (buffer-substring-no-properties from to)))
+	    (when secret
+	      (let ((index 0))
+		(while (< (+ from index) to)
+		  (aset result index
+			(get-char-property (+ from index) 'secret))
+		  (setq index (1+ index)))))
+	    (set-buffer old)
+	    result))
+      (widget-get widget :value))))
+
+(defvar search-form-form nil)
+
+(defun search-form-isearch-end ()
+  (condition-case err
+      (progn
+        (message "sfie: search-form-form=%s" (widget-value (cdr search-form-form)))
+        (remove-hook 'isearch-mode-end-hook 'search-form-isearch-end)
+        ;; enter isearch-string in field
+        (with-current-buffer (car search-form-form)
+          ;; Fix-me: trashes the widget, it disappears... - there seem
+          ;; to be know default set function.
+          ;;(widget-value-set (cdr search-form-form) isearch-string)
+          ))
+    (error (message "search-form-isearch-end: %S" err))))
+
+(defun search-form-isearch-forward (w)
+  (interactive)
+  (add-hook 'isearch-mode-end-hook 'search-form-isearch-end)
+  (with-current-buffer search-form-buffer
+    (setq search-form-form (cons search-form-buffer search-form-sfield))
+    (message "sfif: cb=%s field=%S" (current-buffer) (widget-value (cdr search-form-form)))
+    )
+  (call-interactively 'isearch-forward))
+
+(defun search-form-isearch-backward (w)
+  (interactive)
+  (add-hook 'isearch-mode-end-hook 'search-form-isearch-end)
+  (setq search-form-form search-form-sfield)
+  (call-interactively 'isearch-backward))
+
 ;;;###autoload
 (defun search-form ()
   "Display a form for search and replace."
@@ -241,9 +304,9 @@
     (search-form-insert-fb
      "Incremental String Search" nil
      'isearch-forward
-     (lambda (w) (call-interactively 'isearch-forward))
+     'search-form-isearch-forward
      'isearch-backward
-     (lambda (w) (call-interactively 'isearch-backward)))
+     'search-form-isearch-backward)
 
     (search-form-insert-fb
      "Incremental Regexp Search" nil
@@ -263,16 +326,16 @@
     (widget-insert "\n\n")
     (widget-insert (propertize "* Buffers:" 'face 'font-lock-comment-face) "\n")
     (search-form-insert-fb "String Search" t
-                           'nonincremental-search-forward
-                           (lambda (w) (nonincremental-search-forward search-string))
-                           'nonincremental-search-backward
-                           (lambda (w) (nonincremental-search-backward search-string)))
+                           'search-forward
+                           (lambda (w) (search-forward search-string))
+                           'search-backward
+                           (lambda (w) (search-backward search-string)))
 
     (search-form-insert-fb "Regexp Search" t
-                           'nonincremental-re-search-forward
-                           (lambda (w) (nonincremental-re-search-forward search-string))
-                           'nonincremental-re-search-backward
-                           (lambda (w) (nonincremental-re-search-backward search-string)))
+                           're-search-forward
+                           (lambda (w) (re-search-forward search-string))
+                           're-search-backward
+                           (lambda (w) (re-search-backward search-string)))
 
     ;; occur
     (search-form-insert-search "Occur" 'occur
@@ -338,18 +401,18 @@
 
     ;; fix-me: rdir-query-replace (from to file-regexp root &optional delimited)
     (search-form-insert-replace "Replace in Dir"
-                                'query-replace-regexp
+                                'ldir-query-replace
                                 "Replace in files in directory"
                                 'search-form-ldir-replace)
     (search-form-insert-replace "Replace in Tree"
-                                'query-replace-regexp
+                                'rdir-query-replace
                                 "Replace in files in directory tree"
                                 'search-form-rdir-replace)
 
     (widget-insert "\n")
 
     (search-form-insert-replace "Tagged Files"
-                                'query-replace-regexp
+                                'tags-query-replace
                                 "Replace in files in tags tables"
                                 (lambda (w)
                                   (tags-query-replace search-string replace-string)))

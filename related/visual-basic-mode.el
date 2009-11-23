@@ -123,6 +123,9 @@
 ;; 1.4.8 VB1 correct visual-basic-close-block (Property, + add With /End With)
 ;;           add command visual-basic-insert-item
 
+;; Lennart Borgman:
+;; 2009-11-20
+;; - Added eval-and-compile to visual-basic-label-regexp.
 ;;
 ;; Notes:
 ;; Dave Love
@@ -298,7 +301,8 @@
 (defconst visual-basic-continuation-regexp
   (concat "^.*" visual-basic-looked-at-continuation-regexp))
 
-(defconst visual-basic-label-regexp "^[ \t]*[a-zA-Z0-9_]+:$")
+(eval-and-compile
+  (defconst visual-basic-label-regexp "^[ \t]*[a-zA-Z0-9_]+:$"))
 
 (defconst visual-basic-select-regexp "^[ \t]*[Ss]elect[ \t]+[Cc]ase")
 (defconst visual-basic-case-regexp "^[ \t]*[Cc]ase")
