@@ -922,6 +922,16 @@
                 :enable '(and (boundp 'mumamo-multi-major-mode)
                               mumamo-multi-major-mode
                               (fboundp 'mumamo-clear-all-regions))))
+        (define-key region-map [mumamo-clear-region]
+          (list 'menu-item "Clear Region Chunk at Point"
+                'mumamo-clear-region
+                :enable '(fboundp 'mumamo-clear-region)))
+        (define-key region-map [nxhtml-region-separator2]
+          (list 'menu-item "--" nil))
+        (define-key region-map [mumamo-region-major]
+          (list 'menu-item "Set Region Chunk Major Mode"
+                'mumamo-region-set-major
+                :enable '(fboundp 'mumamo-region-set-major)))
         (define-key region-map [mumamo-add-region-from-string]
           (list 'menu-item "Add Region Chunk from String"
                 'mumamo-add-region-from-string))

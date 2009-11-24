@@ -86,6 +86,7 @@ boundaries."
   (let ((ovl (make-overlay start end)))
     (overlay-put ovl 'mumamo-region 'defined)
     (overlay-put ovl 'face 'mumamo-region)
+    (overlay-put ovl 'priority 2)
     (mumamo-region-set-major ovl major)
     (setq mumamo-regions (cons (list ovl nil) mumamo-regions))
     (mumamo-mark-for-refontification (overlay-start ovl) (overlay-end ovl))
@@ -176,13 +177,14 @@ to work)."
   (let* ((temp-mode-name (concat "mumamo-1-"
                                  (symbol-name major-mode)))
          (temp-mode-sym (intern-soft temp-mode-name)))
-    (unless temp-mode-sym
+    (unless (and temp-mode-sym
+                 (fboundp temp-mode-sym))
       (setq temp-mode-sym (intern temp-mode-name))
       (eval
        `(define-mumamo-multi-major-mode ,temp-mode-sym
           "Temporary multi major mode."
           ("Temporary" ,major-mode nil))))
-    (put temp-mode-sym 'mumamo-temporary t)
+    (put temp-mode-sym 'mumamo-temporary major-mode)
     (funcall temp-mode-sym)))
 
 (defface mumamo-region
@@ -247,8 +249,8 @@ For information about mumamo regions see `mumamo-add-region'."
   (while mumamo-regions
     (mumamo-clear-region-1 (car mumamo-regions))
     (setq mumamo-regions (cdr mumamo-regions)))
-  (when (get mumamo-multi-major-mode 'mumamo-temporary)
-    (normal-mode))
+  (let ((old (get mumamo-multi-major-mode 'mumamo-temporary)))
+    (when old (funcall old)))
   (message "Cleared all mumamo regions"))
 
 (defun mumamo-region-read-major ()
@@ -293,7 +295,9 @@ clear."
   (interactive
    (list (or (mumamo-region-at (point))
              (error "There is no mumamo region at point"))))
-  (let ((region-entry (assoc ovl mumamo-regions)))
+  (let ((region-entry (rassoc (list ovl) mumamo-regions)))
+    (unless region-entry
+      (error "No mumamo region found at point"))
     (mumamo-clear-region-1 region-entry)))
 
 
