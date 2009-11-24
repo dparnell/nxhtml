@@ -521,7 +521,7 @@ With command prefix also show html source in other window.
 ;;;***
 
 ;;;### (autoloads (hl-needed-mode) "hl-needed" "util/hl-needed.el"
-;;;;;;  (19186 59738))
+;;;;;;  (19210 58321))
 ;;; Generated autoloads from util/hl-needed.el
 
 (defvar hl-needed-mode nil "\
@@ -661,7 +661,7 @@ See also the command `inlimg-mode'.
 
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
 ;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19210
-;;;;;;  50131))
+;;;;;;  50719))
 ;;; Generated autoloads from util/majmodpri.el
 
 (autoload 'majmodpri-sort-lists "majmodpri" "\
@@ -750,7 +750,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19205 27678))
+;;;;;;  "mumamo" "util/mumamo.el" (19211 9537))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -1020,11 +1020,11 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point
 ;;;;;;  ourcomments-indirect-fun) "ourcomments-util" "util/ourcomments-util.el"
-;;;;;;  (19210 50573))
+;;;;;;  (19211 2191))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'ourcomments-indirect-fun "ourcomments-util" "\
-Get the alias for function FUN if any.
+Get the alias symbol for function FUN if any.
 
 \(fn FUN)" nil nil)
 
@@ -1381,7 +1381,7 @@ See `pointback-mode' for more information on Pointback mode.
 ;;;***
 
 ;;;### (autoloads (rebind-keys-mode) "rebind" "util/rebind.el" (19210
-;;;;;;  10844))
+;;;;;;  51268))
 ;;; Generated autoloads from util/rebind.el
 
 (defvar rebind-keys-mode nil "\
@@ -1398,6 +1398,9 @@ Rebind keys as defined in `rebind-keys'.
 The key bindings will override almost all other key bindings
 since it is put on emulation level, like for example ``cua-mode'
 and `viper-mode'.
+
+This is for using for example C-a to mark the whole buffer (or a
+field). There are some predifined keybindings for this.
 
 \(fn &optional ARG)" t nil)
 
@@ -2414,21 +2417,6 @@ Major mode for interacting with Firefox via MozRepl.
 
 ;;;***
 
-;;;### (autoloads (javascript-mode) "javascript" "related/javascript.el"
-;;;;;;  (19173 56140))
-;;; Generated autoloads from related/javascript.el
-
-(autoload 'javascript-mode "javascript" "\
-Major mode for editing JavaScript source text.
-
-Key bindings:
-
-\\{javascript-mode-map}
-
-\(fn)" t nil)
-
-;;;***
-
 ;;;### (autoloads (flymake-js-load) "flymake-js" "related/flymake-js.el"
 ;;;;;;  (19210 18357))
 ;;; Generated autoloads from related/flymake-js.el
@@ -2448,21 +2436,6 @@ Not documented
 Not documented
 
 \(fn)" nil nil)
-
-;;;***
-
-;;;### (autoloads (espresso-mode) "espresso" "related/espresso.el"
-;;;;;;  (19039 48498))
-;;; Generated autoloads from related/espresso.el
-
-(autoload 'espresso-mode "espresso" "\
-Major mode for editing JavaScript source text.
-
-Key bindings:
-
-\\{espresso-mode-map}
-
-\(fn)" t nil)
 
 ;;;***
 
@@ -3098,7 +3071,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "nxhtml-menu" "nxhtml/nxhtml-menu.el"
-;;;;;;  (19209 41300))
+;;;;;;  (19210 51174))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "nxhtml-menu" "\
@@ -3330,7 +3303,7 @@ accept it or skip it.
 ;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
 ;;;;;;  "util/popcmp.el" "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el") (19210 50587 328000))
+;;;;;;  "util/whelp.el") (19211 10458 609000))
 
 ;;;***
 
