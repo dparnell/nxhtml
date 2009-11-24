@@ -750,7 +750,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19211 9537))
+;;;;;;  "mumamo" "util/mumamo.el" (19211 12075))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -896,17 +896,25 @@ This also covers inlined style and javascript." t)
 
 ;;;***
 
-;;;### (autoloads (mumamo-add-region) "mumamo-regions" "util/mumamo-regions.el"
-;;;;;;  (19173 56140))
+;;;### (autoloads (mumamo-add-region-from-string mumamo-add-region)
+;;;;;;  "mumamo-regions" "util/mumamo-regions.el" (19211 14098))
 ;;; Generated autoloads from util/mumamo-regions.el
 
 (autoload 'mumamo-add-region "mumamo-regions" "\
-Add a mumamo region.
+Add a mumamo region from selection.
 Mumamo regions are like another layer of chunks above the normal chunks.
 They does not affect the normal chunks, but they overrides them.
 
 To create a mumamo region first select a visible region and then
 call this function.
+
+\(fn)" t nil)
+
+(autoload 'mumamo-add-region-from-string "mumamo-regions" "\
+Add a mumamo region from string at point.
+Works as `mumamo-add-region' but for string or comment at point.
+
+Buffer must be fontified.
 
 \(fn)" t nil)
 
@@ -1020,7 +1028,7 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point
 ;;;;;;  ourcomments-indirect-fun) "ourcomments-util" "util/ourcomments-util.el"
-;;;;;;  (19211 2191))
+;;;;;;  (19211 13045))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'ourcomments-indirect-fun "ourcomments-util" "\
@@ -1309,7 +1317,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (major-modep major-or-multi-majorp) "ourcomments-widgets"
-;;;;;;  "util/ourcomments-widgets.el" (19184 30350))
+;;;;;;  "util/ourcomments-widgets.el" (19211 13671))
 ;;; Generated autoloads from util/ourcomments-widgets.el
  (autoload 'command "ourcomments-widgets")
 
@@ -3069,9 +3077,9 @@ This mode may be turned on automatically in two ways:
 
 ;;;***
 
-;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-browse-region
-;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "nxhtml-menu" "nxhtml/nxhtml-menu.el"
-;;;;;;  (19210 51174))
+;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
+;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19211 14418))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "nxhtml-menu" "\
@@ -3088,6 +3096,12 @@ View file in web browser.
 View region in web browser.
 
 \(fn)" t nil)
+
+(autoload 'nxhtml-minor-mode "nxhtml-menu" "\
+Minor mode to turn on some key and menu bindings.
+See `nxhtml-mode' for more information.
+
+\(fn &optional ARG)" t nil)
 
 (defvar nxhtml-global-minor-mode nil "\
 Non-nil if Nxhtml-Global minor mode is enabled.
@@ -3303,7 +3317,7 @@ accept it or skip it.
 ;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
 ;;;;;;  "util/popcmp.el" "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el") (19211 10458 609000))
+;;;;;;  "util/whelp.el") (19211 14443 31000))
 
 ;;;***
 

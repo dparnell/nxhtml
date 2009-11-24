@@ -895,8 +895,9 @@
       (define-key map [nxhtml-chunk-map]
         (list 'menu-item "Chunks" chunk-map
               :visible `(not (derived-mode-p 'dired-mode))
-              :enable '(and (boundp 'mumamo-multi-major-mode)
-                            mumamo-multi-major-mode)))
+              ;; :enable '(and (boundp 'mumamo-multi-major-mode)
+              ;;               mumamo-multi-major-mode)
+              ))
       (define-key chunk-map [nxhtml-customize-mumamo]
         (list 'menu-item "Customize MuMaMo"
               (lambda () (interactive) (customize-group-other-window 'mumamo))))
@@ -914,13 +915,18 @@
         (list 'menu-item "--" nil))
       (let ((region-map (make-sparse-keymap)))
         (define-key chunk-map [nxhtml-region-map]
-          (list 'menu-item "Make Chunks from Visible Region" region-map))
+          (list 'menu-item "Temprary Region Chunks" region-map))
         (define-key region-map [mumamo-clear-all-regions]
           (list 'menu-item "Clear Region Chunks"
                 'mumamo-clear-all-regions
-                :enable '(fboundp 'mumamo-clear-all-regions)))
+                :enable '(and (boundp 'mumamo-multi-major-mode)
+                              mumamo-multi-major-mode
+                              (fboundp 'mumamo-clear-all-regions))))
+        (define-key region-map [mumamo-add-region-from-string]
+          (list 'menu-item "Add Region Chunk from String"
+                'mumamo-add-region-from-string))
         (define-key region-map [mumamo-add-region]
-          (list 'menu-item "Add Region Chunk"
+          (list 'menu-item "Add Region Chunk from Selection"
                 'mumamo-add-region)))
       (define-key chunk-map [nxhtml-region-separator]
         (list 'menu-item "--" nil))
@@ -1115,6 +1121,7 @@
       (list 'menu-item "nXhtml" nxhtml-minor-mode-menu-map))
     map))
 
+;;;###autoload
 (define-minor-mode nxhtml-minor-mode
   "Minor mode to turn on some key and menu bindings.
 See `nxhtml-mode' for more information."

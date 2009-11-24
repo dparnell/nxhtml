@@ -105,7 +105,8 @@
                            php-mode
                            ))
                    (and (intern-soft (concat sym-name "-hook"))
-                        (boundp (intern-soft (concat sym-name "-hook"))))
+                        ;; This fits `define-derived-mode'
+                        (get (intern-soft (concat sym-name "-hook")) 'variable-documentation))
                    (progn (message "Not a major mode: %s" value)
                           ;;(sit-for 4)
                           nil)
