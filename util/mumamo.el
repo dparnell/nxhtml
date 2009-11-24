@@ -1323,17 +1323,18 @@ is available.  In this case the return value is undefined.
 Otherwise END must be a position in the buffer.  Return the
 mumamo chunk containing the position.  If `mumamo-last-chunk'
 ends before END then create chunks upto END."
-  (let ((chunk (mumamo-find-chunks-1 end tracer))
-        region-info)
-    (when (and end chunk (featurep 'mumamo-regions))
-      (setq region-info (mumamo-get-region-from end))
-      ;;(msgtrc "find-chunks:region-info=%s" region-info)
-      (if (overlayp region-info)
-          (setq chunk region-info)
-        ;;(overlay-put chunk 'obscured (list end region-info))))
-        (mumamo-put-obscure chunk end region-info)))
-    ;;(msgtrc "find-chunks ret chunk=%s" chunk)
-    chunk))
+  (when mumamo-multi-major-mode
+    (let ((chunk (mumamo-find-chunks-1 end tracer))
+          region-info)
+      (when (and end chunk (featurep 'mumamo-regions))
+        (setq region-info (mumamo-get-region-from end))
+        ;;(msgtrc "find-chunks:region-info=%s" region-info)
+        (if (overlayp region-info)
+            (setq chunk region-info)
+          ;;(overlay-put chunk 'obscured (list end region-info))))
+          (mumamo-put-obscure chunk end region-info)))
+      ;;(msgtrc "find-chunks ret chunk=%s" chunk)
+      chunk)))
 
 (defun mumamo-find-chunks-1 (end tracer) ;; min max)
   ;; Note: This code must probably be reentrant.  The globals changed

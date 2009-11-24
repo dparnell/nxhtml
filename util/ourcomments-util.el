@@ -408,6 +408,7 @@ To create a menu item something similar to this can be used:
 ;; (major-modep 'javascript-mode)
 ;; (major-modep 'espresso-mode)
 ;; (major-modep 'css-mode)
+;; (major-modep 'js-mode)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
