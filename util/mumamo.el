@@ -4737,9 +4737,9 @@ needed \(and is the default)."
                   (use-local-map map))
                 (add-hook 'pre-command-hook 'mumamo-set-major-pre-command nil t)
                 (mumamo-request-idle-set-major-mode))
-            (mumamo-set-major major)
+            (mumamo-set-major major ovl)
             (message "Switched to %s" major-mode))
-        (mumamo-set-major major)))))
+        (mumamo-set-major major ovl)))))
 
 (defun mumamo-set-major-pre-command ()
   "Change major mode if necessary before a command.
@@ -4757,7 +4757,7 @@ mumamo chunk then set major mode to that for the chunk."
             (when (or (not (eq major-mode major))
                       (not (mumamo-set-major-check-keymap)))
               (setq major-mode nil)
-              (mumamo-set-major major)
+              (mumamo-set-major major ovl)
               ;; Unread the last command key sequence
               (setq unread-command-events
                     (append (listify-key-sequence (this-command-keys-vector))
@@ -4791,7 +4791,7 @@ explanation."
                      (modified (buffer-modified-p)))
                 (unless (eq major major-mode)
                   ;;(message "mumamo-set-major at A")
-                  (mumamo-set-major major)
+                  (mumamo-set-major major ovl)
                   ;; Fix-me: This is a bug workaround. Possibly in Emacs.
                   (when (and (buffer-modified-p)
                              (not modified))
@@ -5806,7 +5806,7 @@ default values."
 (make-variable-buffer-local 'mumamo-org-startup-done)
 (put 'mumamo-org-startup-done 'permanent-local t)
 
-(defun mumamo-set-major (major)
+(defun mumamo-set-major (major chunk)
   "Set major mode to MAJOR for mumamo."
   (mumamo-msgfntfy "mumamo-set-major %s, %s" major (current-buffer))
   (mumamo-cancel-idle-set-major-mode)
@@ -5925,7 +5925,13 @@ default values."
       ;;(msgtrc "set-major A: buffer-invisibility-spec=%S" buffer-invisibility-spec)
       ;;(msgtrc "set-major A: word-wrap=%S, cb=%s" word-wrap (current-buffer))
       ;;(mumamo-backtrace "set-major")
-      (funcall major) ;; <-----------------------------------------------
+      (save-restriction
+        (let* ((minmax (mumamo-chunk-syntax-min-max chunk t))
+               (min (car minmax))
+               (max (cdr minmax)))
+          (narrow-to-region min max)
+          (funcall major) ;; <-----------------------------------------------
+          ))
       ;;(msgtrc "set-major B: buffer-invisibility-spec=%S" buffer-invisibility-spec)
       ;;(msgtrc "set-major B: word-wrap=%S, cb=%s" word-wrap (current-buffer))
 
@@ -6195,7 +6201,7 @@ mode in the chunk family is nil."
         (when (eq win (selected-window))
           (let* ((ovl (mumamo-find-chunks wp "mumamo-turn-on-actions"))
                  (major (mumamo-chunk-major-mode ovl)))
-            (mumamo-set-major major)))))
+            (mumamo-set-major major ovl)))))
     ;;(msgtrc "mumamo-turn-on-action exit: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
     ;; This did not help for Emacs bug 3467:
     ;;(set-default 'font-lock-keywords-only nil)
@@ -6822,7 +6828,7 @@ The following rules are used when indenting:
        ;;(when (and prev-line-major0 (not (eq this-line-major0 prev-line-major0))) (setq this-line-indent-major prev-line-major0))
        (mumamo-msgindent "  this-line-indent-major=%s, major-mode=%s this0=%s" this-line-indent-major major-mode this-line-major0)
        (mumamo-msgindent "  mumamo-submode-indent-offset=%s" mumamo-submode-indent-offset)
-       (unless (eq this-line-indent-major major-mode) (mumamo-set-major this-line-indent-major))
+       (unless (eq this-line-indent-major major-mode) (mumamo-set-major this-line-indent-major this-line-chunk0))
        (setq want-indent (+ last-parent-major-indent
                             (if (= 0 last-parent-major-indent)
                                 (if mumamo-submode-indent-offset-0
@@ -6857,7 +6863,7 @@ The following rules are used when indenting:
        ;;(setq this-line-indent-major this-line-major0)
        (setq this-line-indent-major (mumamo-indent-get-major-to-use this-line-major0))
        (mumamo-msgindent "  this-line-indent-major=%s" this-line-indent-major)
-       (unless (eq this-line-indent-major major-mode) (mumamo-set-major this-line-indent-major))
+       (unless (eq this-line-indent-major major-mode) (mumamo-set-major this-line-indent-major this-line-chunk0))
        ;; Use the major mode at the beginning of since a sub chunk may
        ;; start at start of line.
        (if (eq this-line-major1 main-major)
@@ -7051,8 +7057,8 @@ mumamo is used."
     ;; always change mode when fill-paragraph-function is
     ;; c-fill-paragraph.
 
-    ;;(unless (eq major major-mode) (mumamo-set-major major))
-    (mumamo-set-major major)
+    ;;(unless (eq major major-mode) (mumamo-set-major major ovl))
+    (mumamo-set-major major ovl)
 
     (save-restriction
       (mumamo-update-obscure ovl (point))
@@ -7194,6 +7200,10 @@ when `c-fill-paragraph' is the real function used."
     (put 'sgml-tag-help 'permanent-local t)
     ))
 
+(eval-after-load 'hl-line
+  (progn
+    (put 'hl-line-overlay 'permanent-local t)
+    ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; New versions of syntax-ppss functions, temporary written as defadvice.

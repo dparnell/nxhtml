@@ -57,7 +57,7 @@
 ;; (ourcomments-indirect-fun 'html-mumamo-mode)
 ;;;###autoload
 (defun ourcomments-indirect-fun (fun)
-  "Get the alias for function FUN if any."
+  "Get the alias symbol for function FUN if any."
   ;; This code is from `describe-function-1'.
   (when (and (symbolp fun)
              (functionp fun))

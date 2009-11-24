@@ -113,8 +113,20 @@ If nil do not turn on `hl-line-mode' when Emacs is idle."
   :type 'boolean
   :group 'hl-needed)
 
-(defcustom hl-needed-flash 1.2
-  "Turn off highlighting after this number of second.
+(defvar hl-needed-face 'hl-needed-face)
+(defface hl-needed-face
+  '((t (:inherit highlight)))
+  "Face for flashing."
+  :group 'hl-needed)
+
+(defcustom hl-needed-flash-delay 0.5
+  "Time to wait before turning on flash highlighting.
+If a key is pressed before this flash highlighting is not done."
+  :type 'float
+  :group 'hl-needed)
+
+(defcustom hl-needed-flash-duration 0.3
+  "Turn off flash highlighting after this number of second.
 Highlighting is turned off only if it was turned on because of
 some change. It will not be turned off if it was turned on
 because Emacs was idle for more than `hl-needed-idle-time'.
@@ -122,7 +134,7 @@ because Emacs was idle for more than `hl-needed-idle-time'.
 The default time is choosen to not disturb too much. I believe
 human short attention may often be of this time. \(Compare eye
 contact time.)"
-  :type 'boolean
+  :type 'float
   :group 'hl-needed)
 
 (defcustom hl-needed-currently-fun 'hl-needed-currently
@@ -150,7 +162,8 @@ otherwise."
     (unless hl-line-mode
       (when hl-needed-mark-line
         (let ((hl-line-mode t)
-              (hl-line-sticky-flag nil))
+              (hl-line-sticky-flag nil)
+              (hl-line-face hl-needed-face))
           (hl-line-highlight))))
     (unless vline-mode
       (when hl-needed-mark-column
@@ -233,11 +246,13 @@ Erros may go unnoticed in timers.  This should prevent it."
 
 (defvar hl-needed-flash-this nil)
 
-(defun hl-needed-maybe-flash-timer ()
+(defun hl-needed-start-maybe-flash-timer ()
   (when (and hl-needed-flash-this
              (not hl-needed-always))
     (hl-needed-cancel-flash-timer)
-    (setq hl-needed-flash-timer (run-with-timer hl-needed-flash nil 'hl-needed-hide-in-timer))))
+    (setq hl-needed-flash-timer
+          (run-with-timer (+ hl-needed-flash-delay hl-needed-flash-duration)
+                          nil 'hl-needed-hide-in-timer))))
 
 (defun hl-needed-check ()
   ;; Cancel `hl-line-mode' and timer
@@ -252,8 +267,8 @@ Erros may go unnoticed in timers.  This should prevent it."
             (if (< 1 (- now pre)) ;; Fix-me: option?
                 nil ;; Don't show anything here, it just disturbs
               ;;(hl-needed-show)
-              (hl-needed-start-timer 0.2)
-              (hl-needed-maybe-flash-timer))))
+              (hl-needed-start-timer hl-needed-flash-delay)
+              (hl-needed-start-maybe-flash-timer))))
       ;; Submit an idle timer that can turn highlighting on.
       (hl-needed-start-timer hl-needed-idle-time)
       ))
@@ -275,7 +290,7 @@ Erros may go unnoticed in timers.  This should prevent it."
         (hl-needed-cancel-timer)
         (hl-needed-cancel-flash-timer)
         (hl-needed-hide)
-        (setq hl-needed-flash-this hl-needed-flash)
+        (setq hl-needed-flash-this hl-needed-flash-duration)
         (setq hl-needed-pre-command-time (current-time)))
     (error
      (message "hl-needed-pre-command error: %s" err))))
