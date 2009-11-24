@@ -4685,23 +4685,26 @@ Return the fetched local map."
 
 (defun mumamo-post-command-get-chunk (pos)
   "Get chunk at POS fast."
-  (if (and mumamo-post-command-chunk
-           (overlayp mumamo-post-command-chunk)
-           ;;(progn (message "here a=%s" mumamo-post-command-chunk) t)
-           (overlay-buffer mumamo-post-command-chunk)
-           ;;(progn (message "here b=%s" mumamo-post-command-chunk) t)
-           (< pos (overlay-end mumamo-post-command-chunk))
-           ;;(progn (message "here c=%s" mumamo-post-command-chunk) t)
-           (>= pos (overlay-start mumamo-post-command-chunk))
-           ;;(progn (message "here d=%s" mumamo-post-command-chunk) t)
-           (mumamo-chunk-major-mode mumamo-post-command-chunk)
-           ;;(progn (msgtrc "here e=%s" mumamo-post-command-chunk) t)
-           )
-      mumamo-post-command-chunk
-    ;;(msgtrc "--------------- new post-command-chunk")
-    (setq mumamo-post-command-chunk
-          (or (mumamo-get-existing-new-chunk-at (point))
-              (mumamo-find-chunks (point) "post-command-get-chunk")))))
+  (let ((have-regions (and (boundp 'mumamo-regions)
+                           mumamo-regions)))
+    (when have-regions (setq mumamo-post-command-chunk nil))
+    (if (and mumamo-post-command-chunk
+             (overlayp mumamo-post-command-chunk)
+             ;;(progn (message "here a=%s" mumamo-post-command-chunk) t)
+             (overlay-buffer mumamo-post-command-chunk)
+             ;;(progn (message "here b=%s" mumamo-post-command-chunk) t)
+             (< pos (overlay-end mumamo-post-command-chunk))
+             ;;(progn (message "here c=%s" mumamo-post-command-chunk) t)
+             (>= pos (overlay-start mumamo-post-command-chunk))
+             ;;(progn (message "here d=%s" mumamo-post-command-chunk) t)
+             (mumamo-chunk-major-mode mumamo-post-command-chunk)
+             ;;(progn (msgtrc "here e=%s" mumamo-post-command-chunk) t)
+             )
+        mumamo-post-command-chunk
+      ;;(msgtrc "--------------- new post-command-chunk")
+      (setq mumamo-post-command-chunk
+            (or (unless have-regions (mumamo-get-existing-new-chunk-at (point)))
+                (mumamo-find-chunks (point) "post-command-get-chunk"))))))
 
 ;; (setq mumamo-set-major-mode-delay 10)
 (defun mumamo-set-major-post-command ()
