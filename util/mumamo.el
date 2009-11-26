@@ -6343,8 +6343,8 @@ use `mumamo-quick-static-chunk'.")
 (defun mumamo-describe-chunks (chunks)
   "Return text describing CHUNKS."
   (let* ((desc
-          (concat "Main major mode: `" (symbol-name (nth 1 chunks)) "'\n"
-                  "\nFunctions for dividing into submodes:\n")))
+          (concat "* Main major mode: `" (symbol-name (nth 1 chunks)) "'\n"
+                  "\n* Functions for dividing into submodes:\n")))
     (dolist (divider (nth 2 chunks))
       (setq desc
             (concat
@@ -6537,12 +6537,10 @@ These are in the file mumamo-test.el."
            spec-doc
            "
 
-This function is called a multi major mode.  The main use for it
-is in `auto-mode-alist' to have Emacs do this setup whenever you
-open a file named in a certain way.  \(You can of course call
-this function directly yourself too.)
 
-It sets up for multiple mode in the following way:
+
+This function is called a multi major mode.  It sets up for
+multiple major modes in the buffer in the following way:
 
 "
            ;; Fix-me: During byte compilation the next line is not
@@ -6550,7 +6548,6 @@ It sets up for multiple mode in the following way:
            ;; not defined. How do I fix this?
            (funcall 'mumamo-describe-chunks chunks2)
            "
-
 At the very end this multi major mode function runs first the hook
 `mumamo-turn-on-hook' and then `" (symbol-name turn-on-hook) "'.
 
@@ -6560,17 +6557,21 @@ major mode's local keymap.
 
 The multi mode keymap is named `" (symbol-name turn-on-map) "'.
 
-Note: When adding new font-lock keywords for major mode chunks
-you should use the function `mumamo-refresh-multi-font-lock'
-afterwards.
 
-This major mode has an alias `mumamo-alias-"
-(symbol-name turn-on-fun) "'.
+
+The main use for a multi major mode is to use it instead of a
+normal major mode in `auto-mode-alist'.  \(You can of course call
+this function directly yourself too.)
 
 The value of `mumamo-multi-major-mode' tells you which multi
 major mode if any has been turned on in a buffer.  For more
 information about multi major modes please see
-`define-mumamo-multi-major-mode'."  )))
+`define-mumamo-multi-major-mode'.
+
+Note: When adding new font-lock keywords for major mode chunks
+you should use the function `mumamo-refresh-multi-font-lock'
+afterwards.
+"  )))
 `(progn
 (add-to-list 'mumamo-defined-multi-major-modes (cons (car ',chunks2) ',turn-on-fun))
 (defvar ,turn-on-hook nil ,turn-on-hook-doc)
@@ -6625,6 +6626,9 @@ A list with major mode at beginning and dito at the end of line
 is returned."
   ;; Fix-me: must take markers into account too when a submode
   ;; includes the markers.
+  ;;(message "mumamo-indent-current-line-chunks multi=%s" mumamo-multi-major-mode)
+  ;;(message "mumamo-indent-current-line-chunks cb=%s" (current-buffer))
+  ;;(message "mumamo-indent-current-line-chunks bt=%s" (mumamo-backtrace "here"))
   (save-restriction
     (widen)
     (let* ((lb-pos (line-beginning-position))

@@ -44,6 +44,7 @@
 ;;
 ;;; Code:
 
+(require 'vc-bzr)
 (eval-when-compile (require 'udev))
 
 (defvar udev-nxhtml-install-dir nil)
@@ -53,7 +54,7 @@
   (interactive (list nil))
   (switch-to-buffer " *nXhtml update initialization*")
   (udev-control-mode)
-  (let ((bzr-prog (executable-find "bzr"))
+  (let ((bzr-prog (executable-find vc-bzr-program))
         (inhibit-read-only t)
         here
         (bzr-org-url "http://bazaar-vcs.org/")
@@ -95,7 +96,9 @@ Launchpad.")
     (when ok
       (unless install-dir
         (setq ok nil)
-        (insert "\n\nCan't find your current nXhtml.
+        (insert "\n
+Can't find your current nXhtml.
+
 If you have nXhtml installed please load it and then run this command again.
 Else click here and tell me where you want nXhtml to be installed:\n\n")
         (insert-text-button " Where? "
@@ -115,14 +118,10 @@ Else click here and tell me where you want nXhtml to be installed:\n\n")
           ;; fix-me
           (progn
             (insert "\n
-Your current nXhtml dir has not synchronized with the repository
-from the beginning.  Therefore a new directory with the name
-'nxhtml' will be created.")
-            (when (string= (file-name-nondirectory
-                            (directory-file-name current-nxhtml-dir))
-                           "nxhtml")
-              (insert "
-Your current nXhtml dir will be renamed by adding '-old' to the name."))
+
+Your current nXhtml dir has not been synchronized with the
+repository yet. Therefore old files will be renamed to
+<old-name>.moved if they do not match.")
             (insert "\n\n")
             (fill-region here (point))
             (setq install-dir (file-name-as-directory current-nxhtml-dir))

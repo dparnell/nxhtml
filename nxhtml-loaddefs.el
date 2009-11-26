@@ -750,7 +750,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification)
-;;;;;;  "mumamo" "util/mumamo.el" (19211 12075))
+;;;;;;  "mumamo" "util/mumamo.el" (19213 46891))
 ;;; Generated autoloads from util/mumamo.el
 
 (autoload 'mumamo-mark-for-refontification "mumamo" "\
@@ -774,7 +774,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  smarty-html-mumamo-mode mjt-html-mumamo-mode genshi-html-mumamo-mode
 ;;;;;;  django-html-mumamo-mode embperl-html-mumamo-mode mason-html-mumamo-mode
 ;;;;;;  nxml-mumamo-mode html-mumamo-mode) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19210 45748))
+;;;;;;  (19213 49816))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -897,7 +897,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (mumamo-add-region-from-string mumamo-add-region)
-;;;;;;  "mumamo-regions" "util/mumamo-regions.el" (19211 14098))
+;;;;;;  "mumamo-regions" "util/mumamo-regions.el" (19211 21300))
 ;;; Generated autoloads from util/mumamo-regions.el
 
 (autoload 'mumamo-add-region "mumamo-regions" "\
@@ -907,6 +907,12 @@ They does not affect the normal chunks, but they overrides them.
 
 To create a mumamo region first select a visible region and then
 call this function.
+
+If the buffer is not in a multi major mode a temporary multi
+major mode will be created applied to the buffer first.
+To get out of this and get back to a single major mode just use
+
+  M-x normal-mode
 
 \(fn)" t nil)
 
@@ -1028,7 +1034,7 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point
 ;;;;;;  ourcomments-indirect-fun) "ourcomments-util" "util/ourcomments-util.el"
-;;;;;;  (19211 13045))
+;;;;;;  (19212 21321))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'ourcomments-indirect-fun "ourcomments-util" "\
@@ -1475,7 +1481,7 @@ handled is governed by `sex-keep-dummy-buffer'.
 ;;;***
 
 ;;;### (autoloads (tabkey2-mode tabkey2-emma-without-tabkey2) "tabkey2"
-;;;;;;  "util/tabkey2.el" (19206 1897))
+;;;;;;  "util/tabkey2.el" (19211 24841))
 ;;; Generated autoloads from util/tabkey2.el
 
 (autoload 'tabkey2-emma-without-tabkey2 "tabkey2" "\
@@ -3079,7 +3085,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19211 14418))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19211 18693))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "nxhtml-menu" "\
@@ -3317,7 +3323,7 @@ accept it or skip it.
 ;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
 ;;;;;;  "util/popcmp.el" "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el"
-;;;;;;  "util/whelp.el") (19211 14443 31000))
+;;;;;;  "util/whelp.el") (19213 56358 593000))
 
 ;;;***
 
