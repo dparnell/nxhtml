@@ -2790,7 +2790,7 @@ This also covers inlined style and javascript."
 (define-mumamo-multi-major-mode xsl-nxml-mumamo-mode
   "Turn on multi major mode for XSL with main mode `nxml-mode'.
 This also covers inlined style and javascript."
-  ("XSL Family" nxml-mode
+  ("XSL HTML Family" nxml-mode
    (
     mumamo-chunk-inlined-style
     mumamo-chunk-inlined-script
@@ -2799,11 +2799,70 @@ This also covers inlined style and javascript."
 (define-mumamo-multi-major-mode xsl-sgml-mumamo-mode
   "Turn on multi major mode for XSL with main mode `sgml-mode'.
 This also covers inlined style and javascript."
-  ("XSL Family" sgml-mode
+  ("XSL SGML Family" sgml-mode
    (
     mumamo-chunk-inlined-style
     mumamo-chunk-inlined-script
     )))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Markdown
+
+(defun mumamo-chunk-markdown-html-1 (pos min max)
+  (save-restriction
+    (goto-char pos)
+    (narrow-to-region (or min (point)) (or max (point-max)))
+    (save-match-data
+      (let ((here (point)))
+        (when (re-search-forward (rx (* space)
+                                     (submatch "<")
+                                     (* (any "a-z"))
+                                     (or ">" (any " \t\n")))
+                                 nil t)
+          (let ((beg (match-beginning 1))
+                (end))
+            (goto-char beg)
+            (condition-case err
+                (progn
+                  (while (not (sgml-skip-tag-forward 1)))
+                  (setq end (point)))
+              (error (message "mumamo-chunk-markdown-html-1: %s" err)))
+            (goto-char here)
+            (when (and beg end)
+              (cons beg end))))))))
+
+(defun mumamo-chunk-markdown-html-fw-exc-fun (pos max)
+  (let ((beg-end (mumamo-chunk-markdown-html-1 pos nil max)))
+    (cdr beg-end)))
+
+(defun mumamo-chunk-markdown-html (pos min max)
+  "Find a chunk of html code in `markdown-mode'.
+Return range and `html-mode'.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+  (let ((beg-end (mumamo-chunk-markdown-html-1 pos nil max)))
+    (when beg-end
+      (let ((beg (car beg-end))
+            (end (cdr beg-end)))
+        (list beg end 'html-mode
+              nil ;; borders
+              nil ;; parseable y
+              'mumamo-chunk-markdown-html-fw-exc-fun
+              nil ;; find-borders fun
+              )))))
+
+(define-mumamo-multi-major-mode markdown-html-mumamo-mode
+  "Turn on multi major markdown mode in buffer.
+Main major mode will be `markdown-mode'.
+Inlined html will be in `html-mode'.
+
+You need `markdown-mode' which you can download from URL
+`http://jblevins.org/projects/markdown-mode/'."
+  ("Markdown HTML Family" markdown-mode
+   (
+    mumamo-chunk-markdown-html
+    )))
+
+
 
 (provide 'mumamo-fun)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
