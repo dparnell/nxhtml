@@ -6,7 +6,10 @@ where autostart.el is the file in the same directory as this
 readme.txt file.
 
 Note 1: If you are using Emacs+EmacsW32 then nXhtml is already
-installed.
+        installed.
 
 Note 2: If you are using Emacs 22 then you need to install nXml
-separately. (It is included in Emacs 23.)
+        separately. (It is included in Emacs 23.)
+
+Note 3: You may optionally also byte compile nXhtml from the nXhtml
+        menu (recommended).
