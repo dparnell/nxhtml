@@ -48,6 +48,7 @@
 (eval-when-compile (add-to-list 'load-path default-directory load-path))
 (eval-when-compile (require 'html-toc))
 
+;;;###autoload
 (defgroup html-wtoc nil
   "Customization group for html-wtoc."
   :group 'nxhtml)

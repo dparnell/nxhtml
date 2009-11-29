@@ -72,6 +72,7 @@
 (eval-when-compile (require 'wikipedia-mode))
 (eval-when-compile (require 'server))
 
+;;;###autoload
 (defgroup as-external nil
   "Settings related to Emacs as external editor."
   :group 'nxhtml

@@ -48,6 +48,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Wrapping
 
+;;;###autoload
 (defgroup wrap-to-fill nil
   "Customizing of `wrap-to-fill-column-mode'."
   :group 'convenience)

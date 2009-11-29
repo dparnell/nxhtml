@@ -267,6 +267,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Custom
 
+;;;###autoload
 (defgroup tabkey2 nil
   "Customization of second tab key press."
   :group 'nxhtml

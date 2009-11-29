@@ -146,6 +146,7 @@
 (require 'outline)
 (require 'hideshow)
 
+;;;###autoload
 (defgroup fold-dwim nil
   "Unified interface to folding commands"
   :prefix "fold-dwim-"

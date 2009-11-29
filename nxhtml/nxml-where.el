@@ -106,6 +106,7 @@ This is a list where the records have the form
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Custom options
 
+;;;###autoload
 (defgroup nxml-where nil
   "Customization group for nxml-where."
   :group 'nxhtml

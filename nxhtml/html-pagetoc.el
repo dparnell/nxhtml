@@ -62,6 +62,7 @@
 ;;(define-key global-map [f2] 'eval-buffer)
 ;;(define-key global-map [f3] 'html-pagetoc-insert-toc)
 
+;;;###autoload
 (defgroup html-pagetoc nil
   "Html page local table of contents settings"
   :group 'nxhtml

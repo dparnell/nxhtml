@@ -482,6 +482,7 @@ No check is done that the file exists."
   ;;(find-file-name-handler "/ftp:c:/eclean/" 'file-exists-p)
   (null (find-file-name-handler filename 'file-exists-p)))
 
+;;;###autoload
 (defgroup html-site nil
   "Customization group for html-site."
   :group 'nxhtml)

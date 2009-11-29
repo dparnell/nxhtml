@@ -55,6 +55,7 @@
 ;; bugs that ought to be fixed first since otherwise it is impossible
 ;; to know where point goes after hiding/unhiding.
 
+;;;###autoload
 (defgroup foldit nil
   "Customization group for foldit folding helpers."
   :group 'nxhtml)

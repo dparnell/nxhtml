@@ -609,6 +609,7 @@ text buttons."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Custom group
 
+;;;###autoload
 (defgroup mumamo nil
   "Customization group for multiple major modes in a buffer."
   :group 'editing
@@ -982,6 +983,7 @@ indenting a line in a chunk."
   :group 'mumamo-indentation)
 
 
+;;;###autoload
 (defgroup mumamo-hi-lock-faces nil
   "Faces for hi-lock that are visible in mumamo multiple modes.
 This is a workaround for the problem that text properties are

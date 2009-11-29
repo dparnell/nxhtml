@@ -47,6 +47,7 @@
 ;;; Customization
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;###autoload
 (defgroup smarty nil
   "Customizations for Smarty mode."
   :prefix "smarty-"

@@ -44,6 +44,7 @@
 ;;
 ;;; Code:
 
+;;;###autoload
 (defgroup nxhtml nil
   "Customization of `nxhtml-mode'."
   :group 'nxml)

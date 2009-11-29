@@ -2162,6 +2162,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; noweb
 
+;;;###autoload
 (defgroup mumamo-noweb2 nil
   "Customization group for `noweb2-mumamo-mode'."
   :group 'mumamo-modes)

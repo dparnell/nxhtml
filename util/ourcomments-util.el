@@ -1538,7 +1538,12 @@ of those in for example common web browsers."
   "Last step in restart Emacs and start `server-mode' if on before."
   (let ((restart-args (when ourcomments-restart-server-mode
                         ;; Delay 3+2 sec to be sure the old server has stopped.
-                        (list "--eval=(run-with-idle-timer 5 nil 'server-mode 1)"))))
+                        (list "--eval=(run-with-idle-timer 5 nil 'server-mode 1)")))
+        ;; Fix-me: There is an Emacs bug here, default-directory shows
+        ;; up in load-path in the new Eamcs if restart-args is like
+        ;; this, but not otherwise. And it has w32 file syntax. The
+        ;; work around below is the best I can find at the moment.
+        (default-directory (file-name-as-directory (expand-file-name (car load-path)))))
     (apply 'call-process (ourcomments-find-emacs) nil 0 nil restart-args)
     ;; Wait to give focus to new Emacs instance:
     (sleep-for 3)))

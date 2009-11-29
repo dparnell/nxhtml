@@ -45,6 +45,7 @@
 
 (eval-when-compile (require 'ourcomments-util))
 
+;;;###autoload
 (defgroup popcmp nil
   "Customization group for popup completion."
   :tag "Completion Style \(popup etc)"

@@ -54,6 +54,7 @@
 ;;(require 'mumamo) ;; Just for the defmacro ...
 ;;(require 'mlinks nil t)
 
+;;;###autoload
 (defgroup html-write nil
   "Customization group for html-write."
   :group 'nxhtml

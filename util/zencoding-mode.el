@@ -425,6 +425,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Zencoding minor mode
 
+;;;###autoload
 (defgroup zencoding nil
   "Customization group for zencoding-mode."
   :group 'convenience)

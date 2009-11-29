@@ -48,6 +48,7 @@
 (eval-when-compile (add-to-list 'load-path default-directory load-path))
 (eval-when-compile (require 'html-site))
 
+;;;###autoload
 (defgroup html-upl nil
   "Customization group for html-upl."
   :group 'nxhtml)

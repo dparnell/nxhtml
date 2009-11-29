@@ -86,8 +86,9 @@
 
 (defvar widget-commandp-prompt-value-history nil)
 
-(defgroup rebind-keys nil
-  "Customizaton group for rebind-keys-mode."
+;;;###autoload
+(defgroup rebind nil
+  "Customizaton group for `rebind-keys-mode'."
   :group 'convenience
   :group 'emulations
   :group 'editing-basics
@@ -172,8 +173,10 @@ on.
                      (key-sequence :tag "New binding for original function"))
              (command :tag "New command on above key"))
             )))
-  ;;:set 'rebind-update-keymap
-  :group 'rebind-keys)
+  :set (lambda (sym val)
+	 (set-default sym val)
+	 (rebind-update-keymap))
+  :group 'rebind)
 
 (defvar rebind--emul-keymap-alist nil)
 
@@ -197,7 +200,7 @@ This is for using for example C-a to mark the whole buffer \(or a
 field). There are some predifined keybindings for this."
   :keymap rebind-keys-mode-map
   :global t
-  :group 'rebind-keys
+  :group 'rebind
   (if rebind-keys-mode
       (progn
         (rebind-update-keymap)

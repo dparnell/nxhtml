@@ -49,6 +49,7 @@
 (require 'hl-line)
 (require 'vline nil t)
 
+;;;###autoload
 (defgroup hl-needed nil
   "Customization group for `hl-needed-mode'."
   :group 'convenience)
