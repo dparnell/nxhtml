@@ -56,6 +56,7 @@
 
 (eval-when-compile (require 'cl))
 
+;;;###autoload
 (defgroup appmenu nil
   "Customization group for `appmenu-mode'."
   :group 'convenience)

@@ -122,6 +122,7 @@ Return the file name."
          )
     (expand-file-name "html-toc" this-dir)))
 
+;;;###autoload
 (defgroup html-toc nil
   "Customization group for html-toc."
   :group 'nxhtml)

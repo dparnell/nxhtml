@@ -573,6 +573,7 @@ buffer with a message about that."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Session saving and restore etc
 
+;;;###autoload
 (defgroup winsav nil
   "Save frames and windows when you exit Emacs."
   :group 'frames)

@@ -53,9 +53,10 @@
 ;;
 ;;; Code:
 
+;;;###autoload
 (defgroup pause nil
   "Customize your health personal Emacs health saver!"
-  :group 'emacs)
+  :group 'convenience)
 
 (defcustom pause-after-minutes 15
   "Pause after this number of minutes."

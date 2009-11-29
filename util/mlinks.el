@@ -71,6 +71,7 @@
 (require 'url-expand)
 (eval-when-compile (require 'appmenu nil t))
 
+;;;###autoload
 (defgroup mlinks nil
   "Customization group for `mlinks-mode'."
   :group 'nxhtml

@@ -71,6 +71,7 @@
                            buffer-file-name))
   "Installation directory for flymake-js.")
 
+;;;###autoload
 (defgroup flymake-js nil
   "Customization group for flymake for javascript."
   :group 'flymake)

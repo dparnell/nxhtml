@@ -84,6 +84,7 @@
                 (throw 'found-prog prog)))))
       "gimp")))
 
+;;;###autoload
 (defgroup gimpedit nil
   "Customization group for GIMP."
   :group 'external

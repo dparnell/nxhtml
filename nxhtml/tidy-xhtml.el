@@ -225,6 +225,7 @@
 
 ;;;;; User Variables
 
+;;;###autoload
 (defgroup tidy nil
   "Provides a simple interface to the HTML Tidy program -- a free
 utility that can fix common errors in your mark-up and clean up

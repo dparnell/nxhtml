@@ -109,6 +109,7 @@
 (defun inlimg-img-spec-p (spec)
   (assoc spec inlimg-modes-img-values))
 
+;;;###autoload
 (defgroup inlimg nil
   "Customization group for inlimg."
   :group 'nxhtml)

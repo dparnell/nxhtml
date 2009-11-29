@@ -101,6 +101,7 @@
     (when (< 0 (length tag))
       (xhtml-help-browse-tag tag))))
 
+;;;###autoload
 (defgroup xhtml-help nil
   "Customization group for xhtml-help."
   :group 'nxhtml

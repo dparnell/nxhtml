@@ -71,6 +71,7 @@
 (defvar n-back-num-active nil)
 
 
+;;;###autoload
 (defgroup n-back nil
   "Customizations for `n-back-game' game."
   :group 'games)

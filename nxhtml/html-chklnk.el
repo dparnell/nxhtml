@@ -60,6 +60,7 @@
 (eval-when-compile (require 'html-site))
 (require 'compile)
 
+;;;###autoload
 (defgroup html-chklnk nil
   "Customization group for html-chklnk."
   :group 'nxhtml)

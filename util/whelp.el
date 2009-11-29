@@ -921,6 +921,7 @@ If not a marker use the current buffer."
     ))
 
 
+;;;###autoload
 (defgroup whelp nil
   "Customization group for whelp."
   :group 'emacs)

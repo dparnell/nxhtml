@@ -125,6 +125,7 @@
   (require 'regexp-opt))
 
 ;; Local variables
+;;;###autoload
 (defgroup php nil
   "Major mode `php-mode' for editing PHP code."
   :prefix "php-"
