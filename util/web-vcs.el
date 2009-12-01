@@ -2,8 +2,8 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2009-11-26 Thu
-(defconst web-vcs:version "0.5") ;; Version:
-;; Last-Updated: 2009-11-27 Fri
+(defconst web-vcs:version "0.6") ;; Version:
+;; Last-Updated: 2009-12-01 Tue
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
@@ -69,11 +69,14 @@
      ;;"/head%3A/\\([^/]*\\)/$"
      )
     )
-  "Regexp pattern for matching links on a VCS web page.
-It is always sub match 1 from these patterns that are used."
+  "Regexp patterns for matching links on a VCS web page.
+The patterns are grouped by VCS web system type.
+
+*Note: It is always sub match 1 from these patterns that are
+       used."
   :type '(repeat
           (list
-           (symbol :tag "VCS web system type identifier")
+           (symbol :tag "VCS web system type specifier")
            (string :tag "Description")
            (regexp :tag "Files URL regexp")
            (regexp :tag "Dirs URL regexp")
@@ -83,79 +86,12 @@ It is always sub match 1 from these patterns that are used."
            ))
   :group 'web-vcs)
 
-;;(call-interactively 'nxhtml-download)
-;;;###autoload
-(defun nxhtml-download (dl-dir revision)
-  "Download or update nXhtml.
-nXhtml is an elisp package, see URL
-`http://www.emacswiki.com/NxhtmlMode/'.
 
-If you already have nXhtml installed you can upgrade it with this
-command.  Otherwise after downloading read the instructions in
-readme.txt in the download directory for setting up nXhtml.
-\(This requires adding only one line to your .emacs, but you may
-optionally also byte compile the files from the nXhtml menu.)
-
-Downloading takes long time \(somewhere between 0.5 hour and 2
-hours) and Emacs will be blocked during download.  So you have
-better start a fresh Emacs to do this in.
-
-Note that you have other options for downloading too.  You may
-either:
-
-- Download a zip file with nXhtml, see URL
-  `http://ourcomments.org/Emacs/nXhtml/doc/nxhtml.html'.
-
-- Use bzr to download, see `web-vcs-get-files-from-root' \(which
-  is called by this command) for more information."
-  (interactive (list nil nil))
-  ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/322
-  ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/"
-  (let ((msg (concat "This will take rather long time (5-15 minutes)\n"
-                     "so you are adviced to do it in a separate Emacs session.\n\n"
-                     "Do you want to download using this Emacs session? "
-                     )))
-    (if (not (y-or-n-p msg))
-        (message "Aborted")
-      (message "")
-      (setq dl-dir (or dl-dir
-                       (when (and (boundp 'nxhtml-install-dir)
-                                  nxhtml-install-dir
-                                  (yes-or-no-p
-                                   (format "Update current nXhtml files (%s)? "
-                                           nxhtml-install-dir)))
-                         nxhtml-install-dir)
-                       (read-directory-name "Download nXhtml to: ")))
-      (let* ((base-link "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/")
-             (rev-link (if revision (number-to-string revision) "head%3A/"))
-             (full-link (concat base-link rev-link)))
-        (web-vcs-get-files-from-root 'lp full-link dl-dir)))))
 
 ;; (web-vcs-get-files-on-page 'lp "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/" t "c:/test/temp13/" t)
 ;; (web-vcs-get-files-on-page 'lp "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/util/" t "temp" t)
 ;; (web-vcs-get-files-on-page 'lp "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/alts/" t "temp" t)
 
-
-;; (web-vcs-num-moved "c:/emacs/p/091105/EmacsW32/nxhtml/")
-(defun web-vcs-num-moved (root)
-  (let* ((file-regexp ".*\\.moved$")
-        (files (directory-files root t file-regexp))
-        (subdirs (directory-files root t)))
-    (dolist (subdir subdirs)
-      (when (and (file-directory-p subdir)
-                 (not (or (string= "/." (substring subdir -2))
-                          (string= "/.." (substring subdir -3)))))
-        (setq files (append files (rdir-get-files subdir file-regexp) nil))))
-    (length files)))
-
-(defun web-vcs-contains-moved-files (dl-dir)
-  (let ((num-moved (web-vcs-num-moved dl-dir)))
-    (when (> num-moved 0)
-      (web-vcs-message-with-face 'font-lock-warning-face
-                                 (concat "There are %d *.moved files (probably from prev download)\n"
-                                         "in %S.\nPlease delete them first.")
-                                 num-moved dl-dir)
-        t)))
 
 ;;;###autoload
 (defun web-vcs-get-files-from-root (web-vcs url dl-dir)
@@ -167,7 +103,9 @@ Show URL first and offer to visit the page.  That page will give
 you information about version control system \(VCS) system used
 etc."
   (unless (web-vcs-contains-moved-files dl-dir)
-    (when (if (not (y-or-n-p (format "Download files from %S.\nVisit that page first? " url)))
+    (when (if (not (y-or-n-p (concat "Download files from \"" url "\".\n"
+                                     "You can see on that page which files will be downloaded.\n\n"
+                                     "Visit that page before downloading? ")))
               t
             (browse-url url)
             (if (y-or-n-p "Start downloading? ")
@@ -177,10 +115,24 @@ etc."
       (message "")
       (web-vcs-get-files-on-page web-vcs url t (file-name-as-directory dl-dir) nil))))
 
+
 (defun web-vcs-get-files-on-page (web-vcs url recursive dl-dir test)
+  "Download files listed by WEB-VCS on web page URL.
+WEB-VCS is a specifier in `web-vcs-links-regexp'.
+
+If RECURSIVE go into sub folders on the web page and download
+files from them too.
+
+Place the files under DL-DIR.
+
+Before downloading check if the downloaded revision already is
+the same as the one on the web page.  This is stored in the file
+web-vcs-revision.txt.  After downloading update this file.
+
+If TEST is non-nil then do not download, just list the files."
   (require 'hi-lock) ;; For faces
   (unless (string= dl-dir (file-name-as-directory (expand-file-name dl-dir)))
-    (error "dl-dir=%S must be a full directory path" dl-dir))
+    (error "Download dir dl-dir=%S must be a full directory path" dl-dir))
   (catch 'command-level
     (when (web-vcs-contains-moved-files dl-dir)
       (throw 'command-level nil))
@@ -193,7 +145,8 @@ etc."
           (message "Can't download then")
           (throw 'command-level nil)))
       (let ((old-win (selected-window)))
-        (switch-to-buffer-other-window "*Messages*")
+        (unless (eq (get-buffer "*Messages*") (window-buffer old-win))
+          (switch-to-buffer-other-window "*Messages*"))
         (goto-char (point-max))
         (insert "\n")
         (insert (propertize (format "\n\nWeb-Vcs Download: %S\n" url) 'face 'hi-gold))
@@ -203,21 +156,40 @@ etc."
         (select-window old-win))
       (let* ((rev-file (expand-file-name "web-vcs-revision.txt" dl-dir))
              (rev-buf (find-file-noselect rev-file))
-             (old-revision (with-current-buffer rev-buf
-                             (save-restriction
-                               (widen)
-                               (buffer-substring-no-properties (point-min) (point-max)))))
-             (ret (web-vcs-get-files-on-page-1
-                   vcs-rec url (if recursive 0 nil) dl-dir old-revision nil test))
-             (dl-revision (nth 0 ret))
-             (moved       (nth 1 ret)))
+             ;; Fix-me: Per web vcs speficier.
+             (old-rev-range (with-current-buffer rev-buf
+                              (widen)
+                              (goto-char (point-min))
+                              (when (re-search-forward (format "%s:\\(.*\\)\n" web-vcs) nil t)
+                                ;;(buffer-substring-no-properties (point-min) (line-end-position))
+                                ;;(match-string 1)
+                                (cons (match-beginning 1) (match-end 1))
+                                )))
+             (old-revision (when old-rev-range
+                             (with-current-buffer rev-buf
+                               (buffer-substring-no-properties (car old-rev-range)
+                                                               (cdr old-rev-range)))))
+             (dl-revision (web-vcs-get-revision-on-page vcs-rec url))
+             ret
+             moved)
+        (when (and old-revision (string= old-revision dl-revision))
+          (when (y-or-n-p (format "You already have revision %s.  Quit? " dl-revision))
+            (message "Aborted")
+            (kill-buffer rev-buf)
+            (throw 'command-level nil)))
+        ;; We do not have a revision number once we start download.
         (with-current-buffer rev-buf
-          (save-restriction
-            (widen)
-            (delete-region (point-min) (point-max))
-            (insert dl-revision)
-            (basic-save-buffer)
-            (kill-buffer)))
+          (delete-region (car old-rev-range) (cdr old-rev-range))
+          (basic-save-buffer))
+        (setq ret (web-vcs-get-files-on-page-1
+                   vcs-rec url (if recursive 0 nil) dl-dir dl-revision test))
+        (setq moved       (nth 1 ret))
+        ;; Now we have a revision number again.
+        (with-current-buffer rev-buf
+          (goto-char (point-max))
+          (insert (format "%s:%s\n" web-vcs dl-revision))
+          (basic-save-buffer)
+          (kill-buffer))
         (if (> moved 0)
             (web-vcs-message-with-face 'hi-yellow
                                        "Download ready, %s. %i files updated (old versions renamed to *.moved)"
@@ -227,62 +199,24 @@ etc."
                                      "Download ready, %s"
                                      (web-vcs-nice-elapsed start-time (current-time))))))))
 
-(defun web-vcs-nice-elapsed (start-time end-time)
-  ;; (format-seconds "%h h %m m %z%s s" 50)
-  ;; (format-seconds "%h h %m m %z%s s" 500)
-  ;; (format-seconds "%h h %m m %z%s s" 5000)
-  (format-seconds "%h h %m m %z%s s" (float-time (time-subtract end-time start-time))))
-  ;; (let* ((elapsed (time-subtract end-time start-time))
-  ;;        ;; (float-time '(0 50 12345))
-  ;;        ;; (format-time-string "%H" '(0 50 12345) t)
-  ;;        (elapsed-h (string-to-number (format-time-string "%H" elapsed t)))
-  ;;        (elapsed-m (string-to-number (format-time-string "%M" elapsed)))
-  ;;        (elapsed-s (string-to-number (format-time-string "%S" elapsed)))
-  ;;        (str (format "%d s" elapsed-s)))
-  ;;   (when (or (> elapsed-h 0)
-  ;;             (> elapsed-m 0))
-  ;;     (setq str (concat (format "%d m " elapsed-m) str))
-  ;;     (when (> elapsed-h 0)
-  ;;       (setq str (concat (format "%d h " elapsed-h) str))))
-  ;;   str))
 
-;; (web-vcs-equal-files "web-vcs.el" "temp.tmp")
-;; (web-vcs-equal-files "../.nosearch" "temp.tmp")
-(defun web-vcs-equal-files (file-a file-b)
-  ;; Fix-me: work around when diff is not present?
-  (let* (
-         ;; (ret (if (eq system-type 'windows-nt)
-         ;;          (call-process "fc" nil nil nil
-         ;;                        "/B" "/OFF"
-         ;;                        (convert-standard-filename file-a)
-         ;;                        (convert-standard-filename file-b))
-         ;;        (call-process diff-command nil nil nil
-         ;;                      "--binary" "-q" file-a file-b)))
-         (cmd (if (eq system-type 'windows-nt)
-                  (list "fc" nil nil nil
-                        "/B" "/OFF"
-                        (convert-standard-filename file-a)
-                        (convert-standard-filename file-b))
-                (list diff-command nil nil nil
-                      "--binary" "-q" file-a file-b)))
-         (ret (apply 'call-process cmd))
-         )
-    ;;(message "ret=%s, cmd=%S" ret cmd) (sit-for 2)
-    (cond
-     ((= 1 ret)
-      nil)
-     ((= 0 ret)
-      t)
-     (t
-      (error "%S returned %d" cmd ret)))))
+(defun web-vcs-get-files-on-page-1 (vcs-rec url recursive dl-dir dl-revision test)
+  "Download files listed by WEB-VCS on web page URL.
+VCS-REC should be an entry like the entries in the list
+`web-vcs-links-regexp'.
 
-(defun web-vcs-get-files-on-page-1 (vcs-rec url recursive dl-dir old-revision dl-revision test)
+If RECURSIVE go into sub folders on the web page and download
+files from them too.
+
+Place the files under DL-DIR.
+
+If TEST is non-nil then do not download, just list the files."
   (let* ((files-href-regexp  (nth 2 vcs-rec))
          (dirs-href-regexp   (nth 3 vcs-rec))
          (file-name-regexp   (nth 4 vcs-rec))
          (revision-regexp    (nth 5 vcs-rec))
          (url-buf (url-retrieve-synchronously url))
-         this-dl-revision
+         this-page-revision
          files
          suburls
          (moved 0)
@@ -295,21 +229,11 @@ etc."
       (unless (file-directory-p dl-dir)
         (make-directory dl-dir t))
       ;; Get revision number
-      (goto-char (point-min))
-      (if (not (re-search-forward revision-regexp nil t))
-          (progn
-            (web-vcs-message-with-face 'hi-salmon "Can't find revision number on %S" url)
-            (throw 'command-level nil))
-        (setq this-dl-revision (match-string 1))
-        (if dl-revision
-            (unless (string= dl-revision this-dl-revision)
-              (web-vcs-message-with-face 'hi-salmon "Revision on %S is %S, but should be %S"
-                                         url this-dl-revision dl-revision)
-              (throw 'command-level nil))
-          (when (string= this-dl-revision old-revision)
-            (web-vcs-message-with-face 'hi-yellow "You already got revision %s"
-                                       this-dl-revision)
-            (throw 'command-level nil))))
+      (setq this-page-revision (web-vcs-get-revision-from-url-buf vcs-rec url url-buf))
+      (unless (string= dl-revision this-page-revision)
+        (web-vcs-message-with-face 'hi-salmon "Revision on %S is %S, but should be %S"
+                                   url this-page-revision dl-revision)
+        (throw 'command-level nil))
       ;; Find files
       (goto-char (point-min))
       (while (re-search-forward files-href-regexp nil t)
@@ -405,13 +329,38 @@ etc."
                                                   suburl
                                                   (1+ recursive)
                                                   full-dl-sub-dir
-                                                  old-revision
-                                                  this-dl-revision
+                                                  this-page-revision
                                                   test)))
             (setq moved (+ moved (nth 1 ret)))
             ))))
-    (list this-dl-revision moved)
+    (list this-page-revision moved)
     ))
+
+
+(defun web-vcs-get-revision-on-page (vcs-rec url)
+  "Get revision number using VCS-REC on page URL.
+VCS-REC should be an entry like the entries in the list
+`web-vcs-links-regexp'."
+  (let ((url-buf (url-retrieve-synchronously url)))
+    (web-vcs-get-revision-from-url-buf vcs-rec url url-buf)))
+
+(defun web-vcs-get-revision-from-url-buf (vcs-rec url url-buf)
+  (let ((revision-regexp    (nth 5 vcs-rec)))
+    ;; Get revision number
+    (with-current-buffer url-buf
+      (goto-char (point-min))
+      (if (not (re-search-forward revision-regexp nil t))
+          (progn
+            (web-vcs-message-with-face 'hi-salmon "Can't find revision number on %S" url)
+            (throw 'command-level nil))
+        (match-string 1)))))
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Helpers
 
 (defun web-vcs-contains-file (dir file)
   (assert (string= dir (file-name-as-directory (expand-file-name dir))) t)
@@ -421,6 +370,33 @@ etc."
     (assert (string= "/" (substring dir (1- dir-len))))
     (when (> (length file) dir-len)
       (string= dir (substring file 0 dir-len)))))
+
+(defun web-vcs-nice-elapsed (start-time end-time)
+  "Format elapsed time between START-TIME and END-TIME nicely.
+Those times should have the same format as time returned by
+`current-time'."
+  (format-seconds "%h h %m m %z%s s" (float-time (time-subtract end-time start-time))))
+
+;; (web-vcs-equal-files "web-vcs.el" "temp.tmp")
+;; (web-vcs-equal-files "../.nosearch" "temp.tmp")
+(defun web-vcs-equal-files (file-a file-b)
+  "Return t if files FILE-A and FILE-B are equal."
+  (let* ((cmd (if (eq system-type 'windows-nt)
+                  (list "fc" nil nil nil
+                        "/B" "/OFF"
+                        (convert-standard-filename file-a)
+                        (convert-standard-filename file-b))
+                (list diff-command nil nil nil
+                      "--binary" "-q" file-a file-b)))
+         (ret (apply 'call-process cmd)))
+    ;;(message "ret=%s, cmd=%S" ret cmd) (sit-for 2)
+    (cond
+     ((= 1 ret)
+      nil)
+     ((= 0 ret)
+      t)
+     (t
+      (error "%S returned %d" cmd ret)))))
 
 ;; (web-vcs-message-with-face 'secondary-selection "I am saying: %s and %s" "Hi" "Farwell!")
 (defun web-vcs-message-with-face (face format-string &rest args)
@@ -458,6 +434,77 @@ Also put FACE on the message in *Messages* buffer."
       (unless (eolp) (goto-char (line-end-position)))
       (put-text-property start (point)
                          'face face))))
+
+;; (web-vcs-num-moved "c:/emacs/p/091105/EmacsW32/nxhtml/")
+(defun web-vcs-num-moved (root)
+  "Return nof files matching *.moved inside directory ROOT."
+  (let* ((file-regexp ".*\\.moved$")
+        (files (directory-files root t file-regexp))
+        (subdirs (directory-files root t)))
+    (dolist (subdir subdirs)
+      (when (and (file-directory-p subdir)
+                 (not (or (string= "/." (substring subdir -2))
+                          (string= "/.." (substring subdir -3)))))
+        (setq files (append files (rdir-get-files subdir file-regexp) nil))))
+    (length files)))
+
+(defun web-vcs-contains-moved-files (dl-dir)
+  "Return t if there are *.moved files in DL-DIR."
+  (let ((num-moved (web-vcs-num-moved dl-dir)))
+    (when (> num-moved 0)
+      (web-vcs-message-with-face 'font-lock-warning-face
+                                 (concat "There are %d *.moved files (probably from prev download)\n"
+                                         "in %S.\nPlease delete them first.")
+                                 num-moved dl-dir)
+        t)))
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Specific
+
+;;(call-interactively 'nxhtml-download)
+;;;###autoload
+(defun nxhtml-download ()
+  "Download or update nXhtml.
+If you already have nXhtml installed you can update it with this
+command.  Otherwise after downloading read the instructions in
+README.txt in the download directory for setting up nXhtml.
+\(This requires adding only one line to your .emacs, but you may
+optionally also byte compile the files from the nXhtml menu.)
+
+To learn more about nXhtml visit its home page at URL
+`http://www.emacswiki.com/NxhtmlMode/'."
+  (interactive)
+  (let ((msg (concat "This will take rather long time (5-15 minutes)\n"
+                     "so you are adviced to do it in a separate Emacs session.\n\n"
+                     "Do you want to download using this Emacs session? "
+                     )))
+    (if (not (y-or-n-p msg))
+        (message "Aborted")
+      (message "")
+      (let ((dl-dir (or (when (and (boundp 'nxhtml-install-dir)
+                                   nxhtml-install-dir
+                                   (yes-or-no-p
+                                    (format "Update current nXhtml files (%s)? "
+                                            nxhtml-install-dir)))
+                          nxhtml-install-dir)
+                        (read-directory-name "Download nXhtml to: ")))
+            (revision nil))
+        ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/322
+        ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/"
+        (nxhtml-download-1 dl-dir revision)))))
+
+(defun nxhtml-download-1 (dl-dir revision)
+  "Download nXhtml to directory DL-DIR.
+If REVISION is nil download latest revision, otherwise the
+specified one."
+  (let* ((base-link "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/")
+         (rev-link (if revision (number-to-string revision) "head%3A/"))
+         (full-link (concat base-link rev-link)))
+    (web-vcs-get-files-from-root 'lp full-link dl-dir)))
 
 
 (provide 'web-vcs)
