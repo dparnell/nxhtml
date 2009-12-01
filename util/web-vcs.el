@@ -111,7 +111,7 @@ either:
   (interactive (list nil nil))
   ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/322
   ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/"
-  (let ((msg (concat "This will take long time (0.5 - 1 hours)\n"
+  (let ((msg (concat "This will take rather long time (5-15 minutes)\n"
                      "so you are adviced to do it in a separate Emacs session.\n\n"
                      "Do you want to download using this Emacs session? "
                      )))
@@ -218,25 +218,33 @@ etc."
             (insert dl-revision)
             (basic-save-buffer)
             (kill-buffer)))
-        (web-vcs-message-with-face 'highlight
-                                   "Download ready, %s. %i files updated, old versions renamed to *.moved."
-                                   (web-vcs-nice-elapsed start-time (current-time))
-                                   moved)))))
+        (if (> moved 0)
+            (web-vcs-message-with-face 'hi-yellow
+                                       "Download ready, %s. %i files updated (old versions renamed to *.moved)"
+                                       (web-vcs-nice-elapsed start-time (current-time))
+                                       moved)
+          (web-vcs-message-with-face 'hi-green
+                                     "Download ready, %s"
+                                     (web-vcs-nice-elapsed start-time (current-time))))))))
 
 (defun web-vcs-nice-elapsed (start-time end-time)
-  (let* ((elapsed (time-subtract end-time start-time))
-         ;; (float-time '(0 50 12345))
-         ;; (format-time-string "%H" '(0 50 12345) t)
-         (elapsed-h (string-to-number (format-time-string "%H" elapsed t)))
-         (elapsed-m (string-to-number (format-time-string "%M" elapsed)))
-         (elapsed-s (string-to-number (format-time-string "%S" elapsed)))
-         (str (format "%d s" elapsed-s)))
-    (when (or (> elapsed-h 0)
-              (> elapsed-m 0))
-      (setq str (concat (format "%d m " elapsed-m) str))
-      (when (> elapsed-h 0)
-        (setq str (concat (format "%d h " elapsed-h) str))))
-    str))
+  ;; (format-seconds "%h h %m m %z%s s" 50)
+  ;; (format-seconds "%h h %m m %z%s s" 500)
+  ;; (format-seconds "%h h %m m %z%s s" 5000)
+  (format-seconds "%h h %m m %z%s s" (float-time (time-subtract end-time start-time))))
+  ;; (let* ((elapsed (time-subtract end-time start-time))
+  ;;        ;; (float-time '(0 50 12345))
+  ;;        ;; (format-time-string "%H" '(0 50 12345) t)
+  ;;        (elapsed-h (string-to-number (format-time-string "%H" elapsed t)))
+  ;;        (elapsed-m (string-to-number (format-time-string "%M" elapsed)))
+  ;;        (elapsed-s (string-to-number (format-time-string "%S" elapsed)))
+  ;;        (str (format "%d s" elapsed-s)))
+  ;;   (when (or (> elapsed-h 0)
+  ;;             (> elapsed-m 0))
+  ;;     (setq str (concat (format "%d m " elapsed-m) str))
+  ;;     (when (> elapsed-h 0)
+  ;;       (setq str (concat (format "%d h " elapsed-h) str))))
+  ;;   str))
 
 ;; (web-vcs-equal-files "web-vcs.el" "temp.tmp")
 ;; (web-vcs-equal-files "../.nosearch" "temp.tmp")
@@ -358,7 +366,8 @@ etc."
                                           file-dl-name))
                     (save-buffer)))))
             ;;(if (and old-src (string= new-src old-src))
-            (if (web-vcs-equal-files file-dl-name temp-file)
+            (if (and old-exists
+                     (web-vcs-equal-files file-dl-name temp-file))
                 (web-vcs-message-with-face 'hi-green "File %S was ok" file-dl-name)
               (when old-exists
                 (let ((backup (concat file-dl-name ".moved")))
@@ -374,8 +383,8 @@ etc."
                   (set-buffer-modified-p nil)
                   (revert-buffer))))
             (let* ((msg-win (get-buffer-window "*Messages*")))
-              (with-selected-window msg-win
-                (set-window-point (point-max))))
+              (with-current-buffer "*Messages*"
+                (set-window-point msg-win (point-max))))
             (redisplay t)
             ;; This is both for user and remote server load.  Do not remove this.
             (sit-for (- 1.0 (float-time (time-subtract (current-time) time-after-url-copy))))
@@ -386,7 +395,7 @@ etc."
         (redisplay t)))
     ;; Download subdirs
     (when suburls
-      (dolist (suburl suburls)
+      (dolist (suburl (reverse suburls))
         (let* ((dl-sub-dir (substring suburl (length url)))
                (full-dl-sub-dir (file-name-as-directory
                                  (expand-file-name dl-sub-dir dl-dir))))
