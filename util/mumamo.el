@@ -392,7 +392,7 @@ errors.")
   "Set to t to stop fontification on errors.")
 
 (defun mumamo-message-with-face (msg face)
-  "Put MSG with face FACE in *Message* buffer."
+  "Put MSG with face FACE in *Messages* buffer."
   (let ((start (+ (with-current-buffer msgtrc-buffer
                     (point-max))
                   1))
@@ -413,7 +413,7 @@ errors.")
   "Tell the user there is a long error message."
   (save-match-data ;; runs in timer
     (mumamo-message-with-face
-     "MuMaMo error, please look in the *Message* buffer"
+     "MuMaMo error, please look in the *Messages* buffer"
      'highlight)))
 
 ;; This code can't be used now because `debugger' is currently not
@@ -452,7 +452,7 @@ errors.")
 
 ;;(mumamo-display-error 'test-lwarn-type "testing 1=%s, 2=%s" "one" 'two)
 (defun mumamo-display-error (lwarn-type format-string &rest args)
-  "Display a message plus traceback in the *Message* buffer.
+  "Display a message plus traceback in the *Messages* buffer.
 Use this for errors that happen during fontification or when
 running a timer.
 
@@ -460,15 +460,15 @@ LWARN-TYPE is used as the type argument to `lwarn' if warnings
 are displayed.  FORMAT-STRING and ARGS are used as the
 corresponding arguments to `message' and `lwarn'.
 
-All the output from this function in the *Message* buffer is
+All the output from this function in the *Messages* buffer is
 displayed with the highlight face.  After the message printed by
 `message' is traceback from where this function was called.
 Note: There is no error generated, just a traceback that is put
-in *Message* as above.
+in *Messages* as above.
 
 Display an error message using `message' and colorize it using
 the `highlight' face to make it more prominent.  Add a backtrace
-colored with the `highlight' face to the buffer *Message*.  Then
+colored with the `highlight' face to the buffer *Messages*.  Then
 display the error message once again after this so that the user
 can see it.
 
