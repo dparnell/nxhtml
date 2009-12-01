@@ -263,6 +263,8 @@
       (define-key help-map [nxhtml-help-separator2] (list 'menu-item "--"))
       (define-key help-map [nxhtml-byte-compile-nxhtml]
         (list 'menu-item "Byte Compile nXhtml" 'nxhtmlmaint-start-byte-compilation))
+      (define-key help-map [nxhtml-web-download]
+        (list 'menu-item "Update nXhtml (from devel sources)" 'nxhtml-download))
       (define-key help-map [nxhtml-features-check]
         (list 'menu-item "Check Optional Features" 'nxhtml-features-check))
       (define-key help-map [nxhtml-customize]

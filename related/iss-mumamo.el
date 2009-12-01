@@ -46,6 +46,7 @@
 
 (require 'pascal nil t)
 (require 'iss-mode nil t)
+(require 'mumamo)
 
 (defun mumamo-chunk-iss-code (pos min max)
   "Find [code]...[, return range and `perl-mode'.
