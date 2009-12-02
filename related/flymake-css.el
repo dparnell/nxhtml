@@ -133,6 +133,7 @@ Test validating some CSS file by running:
 
 ;; Fix-me: remove when this has been giving its proper place in Emacs.
 (unless (fboundp 'newsticker--decode-numeric-entities)
+  (message "Use Emacs 22 workaround for newsticker--decode-numeric-entities")
   (defun newsticker--decode-numeric-entities (string)
     "Decode SGML numeric entities by their respective utf characters.
 This is just a copy of the function in newst-backen.el for Emacs
