@@ -41,9 +41,9 @@
 
 (message "Nxml/Nxhtml Autostart.el loading ...")
 
-(defconst nxhtml-menu:version "2.04")
-;;(setq message-log-max t)
-;;(setq debug-on-error t)
+(defconst nxhtml-menu:version "beta 2.05")
+(setq message-log-max t)
+(setq debug-on-error t)
 
 (defconst nxhtml-load-time-start (float-time))
 

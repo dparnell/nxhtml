@@ -118,8 +118,12 @@ Test validating some CSS file by running:
     (add-to-list 'flymake-err-line-patterns rec)))
 
 
-(unless (featurep 'newsticker-backend)
-  (load "newst-backend"))
+(unless (or (featurep 'newstick-backend) (featurep 'newsticker-backend))
+  (load "newst-backend" t))
+(unless (or (featurep 'newstick-backend) (featurep 'newsticker-backend))
+  (message "newst-backend.el was not loaded, let us try the old name newsticker-backend.el:")
+  (load "newsticker-backend" t))
+
 ;;(defun flymake-make-overlay (beg end tooltip-text face mouse-face)
 (defadvice flymake-make-overlay (before
                                  flymake-css-ad-flymake-make-overlay
