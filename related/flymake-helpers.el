@@ -71,6 +71,6 @@ makes)."
     temp-name))
 
 
-
+(provide 'flymake-helpers)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; flymake-helpers.el ends here
