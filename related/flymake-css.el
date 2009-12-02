@@ -118,38 +118,46 @@ Test validating some CSS file by running:
     (add-to-list 'flymake-err-line-patterns rec)))
 
 
-;; (unless (or (featurep 'newstick-backend) (featurep 'newsticker-backend))
-;;   (load "newst-backend" t))
-;; (unless (or (featurep 'newstick-backend) (featurep 'newsticker-backend))
-;;   (message "newst-backend.el was not loaded, let us try the old name newsticker-backend.el:")
-;;   (load "newsticker-backend" t))
+(unless (or (featurep 'newstick-backend) (featurep 'newsticker-backend))
+  (load "newst-backend" t))
+(unless (or (featurep 'newstick-backend) (featurep 'newsticker-backend))
+  (message "newst-backend.el was not loaded, let us try the old name newsticker-backend.el:")
+  (load "newsticker-backend" t))
 
 ;;(defun flymake-make-overlay (beg end tooltip-text face mouse-face)
 (defadvice flymake-make-overlay (before
                                  flymake-css-ad-flymake-make-overlay
                                  activate
                                  compile)
-  (ad-set-arg 2 (flymake-css-newsticker--decode-numeric-entities (ad-get-arg 2))))
+  (ad-set-arg 2 (newsticker--decode-numeric-entities (ad-get-arg 2))))
 
-(defun flymake-css-newsticker--decode-numeric-entities (string)
-  "Decode SGML numeric entities by their respective utf characters.
+;; Fix-me: remove when this has been giving its proper place in Emacs.
+(unless (fboundp 'newsticker--decode-numeric-entities)
+  (defun newsticker--decode-numeric-entities (string)
+    "Decode SGML numeric entities by their respective utf characters.
+This is just a copy of the function in newst-backen.el for Emacs
+22 users.
+
 This function replaces numeric entities in the input STRING and
 returns the modified string.  For example \"&#42;\" gets replaced
 by \"*\"."
-  (if (and string (stringp string))
-      (let ((start 0))
-        (while (string-match "&#\\([0-9]+\\);" string start)
-          (condition-case nil
-              (setq string (replace-match
-                            (string (read (substring string
-                                                     (match-beginning 1)
-                                                     (match-end 1))))
-                            nil nil string))
-            (error nil))
-          (setq start (1+ (match-beginning 0))))
-        string)
-    nil))
+    (if (and string (stringp string))
+        (let ((start 0))
+          (while (string-match "&#\\([0-9]+\\);" string start)
+            (condition-case nil
+                (setq string (replace-match
+                              (string (read (substring string
+                                                       (match-beginning 1)
+                                                       (match-end 1))))
+                              nil nil string))
+              (error nil))
+            (setq start (1+ (match-beginning 0))))
+          string)
+      nil))
+  )
+
 ;;(eval-after-load 'css-mode (flymake-css-load))
 
+(provide 'flymake-css)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; flymake-css.el ends here
