@@ -296,7 +296,7 @@ Key bindings added by this minor mode:
                 (beg-pos this-bol)
                 (end-pos (line-end-position)))
             (when (equal (get-text-property beg-pos 'wrap-prefix)
-                       (get-text-property beg-pos 'wrap-to-fill-prefix))
+                         (get-text-property beg-pos 'wrap-to-fill-prefix))
               (skip-chars-forward "[:blank:]")
               (setq ind-str (buffer-substring-no-properties beg-pos (point)))
               (mumamo-with-buffer-prepared-for-jit-lock

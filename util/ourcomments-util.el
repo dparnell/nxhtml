@@ -416,6 +416,7 @@ To create a menu item something similar to this can be used:
 
 ;; Changed from move-beginning-of-line to beginning-of-line to support
 ;; physical-line-mode.
+;; Fix-me: use end-of-visual-line etc.
 ;;;###autoload
 (defun ourcomments-move-beginning-of-line(arg)
   "Move point to beginning of line or indentation.
