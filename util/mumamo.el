@@ -5934,9 +5934,11 @@ default values."
       (save-restriction
         (let* ((minmax (mumamo-chunk-syntax-min-max chunk t))
                (min (car minmax))
-               (max (cdr minmax)))
+               (max (cdr minmax))
+               (here (point)))
           (narrow-to-region min max)
           (funcall major) ;; <-----------------------------------------------
+          (goto-char here)
           ))
       ;;(msgtrc "set-major B: buffer-invisibility-spec=%S" buffer-invisibility-spec)
       ;;(msgtrc "set-major B: word-wrap=%S, cb=%s" word-wrap (current-buffer))
@@ -6614,6 +6616,8 @@ afterwards.
 This is the buffer local value of `indent-line-function' when
 mumamo is used."
   (let ((here (point-marker))
+        fontification-functions
+        rng-nxml-auto-validate-flag
         (before-text (<= (current-column) (current-indentation))))
     (mumamo-indent-line-function-1 nil nil nil)
     ;; If the marker was in the indentation part strange things happen
@@ -6667,6 +6671,60 @@ is returned."
 (put 'mumamo-error-ind-0 'error-conditions '(error mumamo-error-ind-0))
 (put 'mumamo-error-ind-0 'error-message "indentation 0 in sub chunk")
 
+(defvar  mumamo-template-indent-buffer nil)
+(make-variable-buffer-local 'mumamo-template-indent-buffer)
+(put 'mumamo-template-indent-buffer 'permanent-local t)
+
+(defun mumamo-get-template-chunk-indent-shift (template-chunk)
+  (assert (overlayp template-chunk) t)
+  (assert (buffer-live-p (overlay-buffer template-chunk)) t)
+  (unless (and mumamo-template-indent-buffer
+               (buffer-live-p mumamo-template-indent-buffer))
+    (setq mumamo-template-indent-buffer
+          (get-buffer-create (concat (buffer-name)
+                                          "-template-indent-buffer")))
+    (with-current-buffer mumamo-template-indent-buffer
+      (let ((major (car (overlay-get template-chunk 'mumamo-major-mode))))
+        (funcall major))))
+  (let ((indentor (overlay-get template-chunk 'mumamo-indentor)))
+    (unless (and indentor
+                 (eq (overlay-buffer indentor)
+                     mumamo-template-indent-buffer))
+      (let* ((this-syntax (mumamo-chunk-syntax-min-max template-chunk t))
+             (this-inner (buffer-substring-no-properties
+                          (cdr this-syntax)
+                          (car this-syntax)))
+             prev-template-chunk
+             (prev (overlay-get template-chunk 'mumamo-prev-chunk)))
+        (while (and prev (not prev-template-chunk))
+          (setq prev (overlay-get prev 'mumamo-prev-chunk))
+          (when prev
+            (setq prev-template-chunk (eq (overlay-get prev 'mumamo-next-indent)
+                                          'mumamo-template-indentor))))
+        (when prev-template-chunk
+          (mumamo-get-template-chunk-indent-shift (overlay-get prev 'mumamo-next-chunk)))
+        (with-current-buffer mumamo-template-indent-buffer
+          (if (not prev-template-chunk)
+              (progn
+                (erase-buffer)
+                (insert this-inner)
+                (indent-to 0))
+            (goto-char (point-max))
+            (insert this-inner)
+            (indent-according-to-mode))
+          (setq indentor (make-overlay (point-at-bol) (point-at-eol)))
+          (overlay-put template-chunk 'mumamo-indentor indentor)
+          (insert "\n")
+          (indent-according-to-mode))))
+    (with-current-buffer mumamo-template-indent-buffer
+      (goto-char (overlay-end indentor))
+      (let ((this-ind (current-indentation))
+            shift)
+        (forward-char)
+        (setq shift (- (current-indentation)
+                       this-ind))
+        shift))))
+
 (defun mumamo-indent-line-function-1 (prev-line-chunks
                                       last-parent-major-indent
                                       entering-submode-arg)
@@ -6690,6 +6748,21 @@ The following rules are used when indenting:
 
 - If the major modes are the same in this and the previous line
   then indentation is done using that major mode.
+
+- Exception: If the chunks are not the same AND there is
+  precisely one chunk between them which have the property value
+  of 'mumamo-next-indent equal to 'mumamo-template-indentor then
+  a special indent using the content of the middle chunk is
+  done. An example of this is eRuby where a middle chunk could
+  look like:
+
+    <% 3.times do %>
+
+  This example will increase indentation for the next line the
+  same way as the chunk content would do in single major mode
+  ruby-mode.
+
+  FIXE-ME: IMPLEMENT THE ABOVE!
 
 - Otherwise if going into a submode indentation is increased by
   `mumamo-submode-indent-offset' (if this is nil then indentation
@@ -6753,6 +6826,14 @@ The following rules are used when indenting:
          (this-line-major3 (mumamo-chunk-major-mode (nth 3 this-line-chunks)))
          (this-depth3 (overlay-get this-line-chunk3 'mumamo-depth))
 
+         (template-indentor (when prev-line-chunk0
+                              (unless (eq this-line-chunk0 prev-line-chunk0)
+                                (let* ((prev (overlay-get this-line-chunk0 'mumamo-prev-chunk))
+                                       (prev-prev (overlay-get prev 'mumamo-prev-chunk)))
+                                  (when (and (eq prev-prev prev-line-chunk0)
+                                             (eq (overlay-get prev-prev 'mumamo-next-indent)
+                                                 'mumamo-template-indentor))
+                                    prev)))))
          this-line-indent-major
          major-indent-line-function
          (main-major (mumamo-main-major-mode))
@@ -6819,7 +6900,24 @@ The following rules are used when indenting:
     (mumamo-msgindent "  leaving-submode=%s, entering-submode=%s" leaving-submode entering-submode)
     ;;(msgtrc "  leaving-submode=%s, entering-submode=%s" leaving-submode entering-submode)
 
+    ;; Fix-me: use this.
+    ;; - clean up after chunk deletion
+    ;; - next line after a template-indentor, what happens?
+    (setq template-indentor nil) ;; fix-me
     (cond
+     ( template-indentor
+       (let ((here (point))
+             (ind-shift (mumamo-get-template-chunk-indent-shift template-indentor)))
+         (message "mumamo-get-template-chunk-indent-shift: shift=%d" ind-shift)
+         (message "current-line: %s" (buffer-substring (point-at-bol) (point-at-eol)))
+         (setq want-indent (+ ind-shift
+                              (progn
+                                (goto-char (overlay-start prev-line-chunk0))
+                                (current-indentation))))
+         (goto-char here))
+       (when (> 0 want-indent)
+         (setq want-indent 0))
+       )
      ( leaving-submode
        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
        ;;;;; First line after submode
@@ -6955,7 +7053,7 @@ The following rules are used when indenting:
                                                 mumamo-submode-indent-offset)))))))))
              )))))
     (when want-indent
-      ;;(msgtrc "indent-line-to %s at line-beginning=%s" want-indent (line-beginning-position))
+      (msgtrc "indent-line-to %s at line-beginning=%s" want-indent (line-beginning-position))
       (indent-line-to want-indent))
     (goto-char here-on-line)
     ;;(message "exit: %s" (list this-line-chunks last-parent-major-indent))
@@ -7021,6 +7119,8 @@ The following rules are used when indenting:
           (old-rng-validate-mode (when (boundp 'rng-validate-mode) rng-validate-mode))
           (rng-nxml-auto-validate-flag nil)
           (nxhtml-use-imenu nil)
+          fontification-functions
+          rng-nxml-auto-validate-flag
           (nxhtml-mode-hook (mumamo-get-hook-value
                              'nxhtml-mode-hook
                              '(html-imenu-setup)))

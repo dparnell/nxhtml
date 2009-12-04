@@ -1443,7 +1443,20 @@ This also covers inlined style and javascript."
 (defun mumamo-chunk-eruby (pos min max)
   "Find <% ... %>.  Return range and 'ruby-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-quick-static-chunk pos min max "<%" "%>" t 'ruby-mode t))
+  (let ((chunk (mumamo-quick-static-chunk pos min max "<%" "%>" t 'ruby-mode t)))
+    (when chunk
+      ;; Put indentation type on 'mumamo-next-indent on the chunk:
+      ;; Fix-me: use this!
+      (setcdr (last chunk) '(mumamo-template-indentor))
+      chunk)))
+
+(defun mumamo-chunk-eruby-comment (pos min max)
+  "Find <%# ... %>.  Return range and 'ruby-mode.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX.
+
+This is needed since otherwise the end marker is thought to be
+part of a comment."
+  (mumamo-quick-static-chunk pos min max "<%#" "%>" t 'mumamo-comment-mode t))
 
 ;; (defun mumamo-search-bw-exc-start-ruby (pos min)
 ;;   "Helper for `mumamo-chunk-ruby'.
@@ -1458,7 +1471,8 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   "Turn on multiple major mode for eRuby with unspecified main mode.
 Current major-mode will be used as the main major mode."
   ("eRuby Family" nil
-   (mumamo-chunk-eruby
+   (mumamo-chunk-eruby-comment
+    mumamo-chunk-eruby
     )))
 
 ;;;###autoload
@@ -1466,7 +1480,8 @@ Current major-mode will be used as the main major mode."
   "Turn on multiple major modes for eRuby with main mode `html-mode'.
 This also covers inlined style and javascript."
   ("eRuby Html Family" html-mode
-   (mumamo-chunk-eruby
+   (mumamo-chunk-eruby-comment
+    mumamo-chunk-eruby
     mumamo-chunk-inlined-style
     mumamo-chunk-inlined-script
     mumamo-chunk-style=

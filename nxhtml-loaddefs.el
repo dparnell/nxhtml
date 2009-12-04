@@ -550,7 +550,7 @@ such palette into a css-file as hexadecimal color palette.
 ;;;***
 
 ;;;### (autoloads (hfyview-frame hfyview-window hfyview-region hfyview-buffer)
-;;;;;;  "hfyview" "util/hfyview.el" (19206 60274))
+;;;;;;  "hfyview" "util/hfyview.el" (19222 37948))
 ;;; Generated autoloads from util/hfyview.el
 
 (autoload 'hfyview-buffer "hfyview" "\
@@ -828,8 +828,8 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
-;;;;;;  mumamo-hi-lock-faces mumamo) "mumamo" "util/mumamo.el" (19221
-;;;;;;  15791))
+;;;;;;  mumamo-hi-lock-faces mumamo) "mumamo" "util/mumamo.el" (19222
+;;;;;;  37270))
 ;;; Generated autoloads from util/mumamo.el
 
 (let ((loads (get 'mumamo 'custom-loads))) (if (member '"mumamo" loads) nil (put 'mumamo 'custom-loads (cons '"mumamo" loads))))
@@ -1787,7 +1787,7 @@ Display vertical line mode as globally.
 ;;;***
 
 ;;;### (autoloads (nxhtml-download web-vcs-get-files-from-root) "web-vcs"
-;;;;;;  "util/web-vcs.el" (19221 38472))
+;;;;;;  "util/web-vcs.el" (19221 40364))
 ;;; Generated autoloads from util/web-vcs.el
 
 (autoload 'web-vcs-get-files-from-root "web-vcs" "\
@@ -2576,7 +2576,7 @@ Major mode for interacting with Firefox via MozRepl.
 ;;;***
 
 ;;;### (autoloads (iss-mumamo) "iss-mumamo" "related/iss-mumamo.el"
-;;;;;;  (19221 36587))
+;;;;;;  (19221 40364))
 ;;; Generated autoloads from related/iss-mumamo.el
 
 (autoload 'iss-mumamo "iss-mumamo" "\
@@ -2617,8 +2617,19 @@ Not documented
 
 ;;;***
 
+;;;### (autoloads (flymake-java-1-load) "flymake-java-1" "related/flymake-java-1.el"
+;;;;;;  (19222 14066))
+;;; Generated autoloads from related/flymake-java-1.el
+
+(autoload 'flymake-java-1-load "flymake-java-1" "\
+Not documented
+
+\(fn)" nil nil)
+
+;;;***
+
 ;;;### (autoloads (flymake-css-load) "flymake-css" "related/flymake-css.el"
-;;;;;;  (19213 56810))
+;;;;;;  (19222 58180))
 ;;; Generated autoloads from related/flymake-css.el
 
 (autoload 'flymake-css-load "flymake-css" "\
@@ -2948,7 +2959,7 @@ Not documented
 
 ;;;### (autoloads (wrap-to-fill-column-mode wrap-to-fill-left-marg-modes
 ;;;;;;  wrap-to-fill-left-marg wrap-to-fill) "wrap-to-fill" "util/wrap-to-fill.el"
-;;;;;;  (19218 42182))
+;;;;;;  (19222 64342))
 ;;; Generated autoloads from util/wrap-to-fill.el
 
 (let ((loads (get 'wrap-to-fill 'custom-loads))) (if (member '"wrap-to-fill" loads) nil (put 'wrap-to-fill 'custom-loads (cons '"wrap-to-fill" loads))))
@@ -3272,7 +3283,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19221 38557))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19221 40364))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 
 (autoload 'nxhtml-edit-with-gimp "nxhtml-menu" "\
@@ -3525,20 +3536,19 @@ accept it or skip it.
 ;;;***
 
 ;;;### (autoloads nil nil ("autostart.el" "autostart22.el" "etc/schema/schema-path-patch.el"
-;;;;;;  "nxhtml/doc/cedet-build.el" "nxhtml/html-imenu.el" "nxhtml/html-move.el"
-;;;;;;  "nxhtml/html-quote.el" "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el"
-;;;;;;  "nxhtml/nxhtmljs.el" "nxhtml/outline-magic.el" "nxhtml/wtest.el"
-;;;;;;  "related/flymake-helpers.el" "related/flymakemsg.el" "related/flymu.el"
-;;;;;;  "related/php-imenu.el" "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
+;;;;;;  "nxhtml/html-imenu.el" "nxhtml/html-move.el" "nxhtml/html-quote.el"
+;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el" "nxhtml/nxhtmljs.el"
+;;;;;;  "nxhtml/outline-magic.el" "nxhtml/wtest.el" "related/flymake-helpers.el"
+;;;;;;  "related/flymakemsg.el" "related/flymu.el" "related/php-imenu.el"
+;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
-;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/css-simple-completion.el"
-;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/ffip.el"
-;;;;;;  "util/fupd.el" "util/hfy-cmap.el" "util/htmlfontify.el" "util/key-cat.el"
-;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
-;;;;;;  "util/nxml-mode-os-additions.el" "util/ocr-user.el" "util/org-panel.el"
-;;;;;;  "util/rxi.el" "util/udev-nxhtml.el" "util/useful-commands.el")
-;;;;;;  (19221 38735 0))
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
+;;;;;;  "util/buffer-bg.el" "util/css-simple-completion.el" "util/custsets.el"
+;;;;;;  "util/ecb-batch-compile.el" "util/ffip.el" "util/fupd.el"
+;;;;;;  "util/hfy-cmap.el" "util/key-cat.el" "util/mumamo-aspnet.el"
+;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
+;;;;;;  "util/useful-commands.el") (19222 64662 234000))
 
 ;;;***
 

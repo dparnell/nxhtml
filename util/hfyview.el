@@ -102,7 +102,7 @@
     minibuffer-local-filename-completion-map
     minibuffer-local-isearch-map
     minibuffer-local-map
-    minibuffer-local-must-match-filename-map
+    ;; minibuffer-local-must-match-filename-map
     minibuffer-local-must-match-map
     minibuffer-local-ns-map
     viper-minibuffer-map

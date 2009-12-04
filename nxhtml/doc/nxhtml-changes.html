@@ -316,6 +316,7 @@
           <a href="#v2.03">v2.03</a>
           <a href="#v2.04">v2.04</a>
           <a href="#v2.05">v2.05</a>
+          <a href="#v2.06">v2.06</a>
         </div>
 
         <dl>
@@ -3328,13 +3329,37 @@
               </li>
             </ul>
           </dd>
-          <dt id="v2.05">2.05 - not yet released</dt>
+          <dt id="v2.05">2.05</dt>
           <dd id="v2.05-dd">
             <ul>
               <li>
                 <span class="bugfix">
                   Fixed a problem in flymake-css.el with loading newst-backend.el (which provides the wrong feature).
                 </span>
+              </li>
+            </ul>
+          </dd>
+          <dt id="v2.06">2.06 - not yet released</dt>
+          <dd id="v2.06-dd">
+            <ul>
+              <li>
+                MuMaMo:
+                <ul>
+                  <li>
+                    Skipped fontification during indentation. (This was troublesome since major mode may have to be changed during indentation.)
+                  </li>
+                  <li>
+                    Included iss-mode and iss-mumamo-mode for editing of Inno Setup scripts.
+                  </li>
+                  <li>
+                    <span class="bugfix">
+                      Comments in eRuby &lt;%# .. %&gt; did not work. Fixed.
+                    </span>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                Included better support for Java in flymake. It will can now recognize makefiles, ant and single java files and try to DTRT.
               </li>
             </ul>
           </dd>

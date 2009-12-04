@@ -41,9 +41,9 @@
 
 (message "Nxml/Nxhtml Autostart.el loading ...")
 
-(defconst nxhtml-menu:version "2.05")
-;;(setq message-log-max t)
-;;(setq debug-on-error t)
+(defconst nxhtml-menu:version "beta 2.06")
+(setq message-log-max t)
+(setq debug-on-error t)
 
 (defconst nxhtml-load-time-start (float-time))
 
@@ -195,6 +195,7 @@ them."
   (when nxhtml-flymake-setup
     (flymake-js-load)
     (flymake-css-load)
+    (flymake-java-1-load)
     (add-hook 'flymake-mode-hook 'flymake-init-load-flymakemsg))
 
   ;; Tell what have been loaded of nXhtml:
