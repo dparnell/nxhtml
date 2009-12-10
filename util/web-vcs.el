@@ -494,8 +494,9 @@ To learn more about nXhtml visit its home page at URL
     (if (not (y-or-n-p msg))
         (message "Aborted")
       (message "")
-      (let* ((dl-dir (or (when (and (boundp 'nxhtml-install-dir)
-                                    nxhtml-install-dir
+      (let* ((has-nxhtml (and (boundp 'nxhtml-install-dir)
+                              nxhtml-install-dir))
+             (dl-dir (or (when (and has-nxhtml
                                     (yes-or-no-p
                                      (format "Update current nXhtml files (%s)? "
                                              nxhtml-install-dir)))
@@ -505,7 +506,8 @@ To learn more about nXhtml visit its home page at URL
              ;; rev number? Can't do that now because of the Emacs bug
              ;; that affects `nxhtml-get-release-revision'.
              (revision nil)
-             (do-byte (when (string= dl-dir nxhtml-install-dir)
+             (do-byte (when (and has-nxhtml
+                                 (string= dl-dir nxhtml-install-dir))
                         (y-or-n-p "Do you want to byte compile the files after downloading? "))))
         ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/322
         ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/"
