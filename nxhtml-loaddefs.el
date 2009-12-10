@@ -828,8 +828,8 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
-;;;;;;  mumamo-hi-lock-faces mumamo) "mumamo" "util/mumamo.el" (19224
-;;;;;;  35742))
+;;;;;;  mumamo-hi-lock-faces mumamo) "mumamo" "util/mumamo.el" (19225
+;;;;;;  48588))
 ;;; Generated autoloads from util/mumamo.el
 
 (let ((loads (get 'mumamo 'custom-loads))) (if (member '"mumamo" loads) nil (put 'mumamo 'custom-loads (cons '"mumamo" loads))))
@@ -1118,10 +1118,10 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;;;;  narrow-to-comment buffer-narrowed-p describe-command ourcomments-ediff-files
 ;;;;;;  find-emacs-other-file better-fringes-mode describe-key-and-map-briefly
 ;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
-;;;;;;  ourcomments-mark-whole-buffer-or-field unfill-individual-paragraphs
+;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point
 ;;;;;;  ourcomments-indirect-fun) "ourcomments-util" "util/ourcomments-util.el"
-;;;;;;  (19223 50674))
+;;;;;;  (19226 14764))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'ourcomments-indirect-fun "ourcomments-util" "\
@@ -1175,6 +1175,11 @@ Unfill the current region.
 
 (autoload 'unfill-individual-paragraphs "ourcomments-util" "\
 Unfill individual paragraphs in the current region.
+
+\(fn)" t nil)
+
+(autoload 'fill-dwim "ourcomments-util" "\
+Fill or unfill paragraph or region.
 
 \(fn)" t nil)
 
@@ -1787,7 +1792,7 @@ Display vertical line mode as globally.
 ;;;***
 
 ;;;### (autoloads (nxhtml-download web-vcs-get-files-from-root) "web-vcs"
-;;;;;;  "util/web-vcs.el" (19222 58462))
+;;;;;;  "util/web-vcs.el" (19233 33615))
 ;;; Generated autoloads from util/web-vcs.el
 
 (autoload 'web-vcs-get-files-from-root "web-vcs" "\
@@ -3548,7 +3553,7 @@ accept it or skip it.
 ;;;;;;  "util/fupd.el" "util/hfy-cmap.el" "util/key-cat.el" "util/mumamo-aspnet.el"
 ;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el") (19224 51072 390000))
+;;;;;;  "util/useful-commands.el") (19233 33769 839000))
 
 ;;;***
 

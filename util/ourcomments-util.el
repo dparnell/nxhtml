@@ -369,9 +369,10 @@ To create a menu item something similar to this can be used:
   "Unfill using the fill function FN."
   (let ((fill-column (1+ (point-max)))) (call-interactively fn)))
 
-(defvar fill-dwim nil)
+(defvar fill-dwim-state nil)
 (defvar fill-dwim-mark nil)
 
+;;;###autoload
 (defun fill-dwim ()
   "Fill or unfill paragraph or region."
   (interactive)
@@ -380,15 +381,15 @@ To create a menu item something similar to this can be used:
       (setq fill-dwim nil))
   (if mark-active
       (progn
-        (if fill-dwim
+        (if fill-dwim-state
             (call-interactively 'unfill-region)
           (call-interactively 'fill-region))
         (setq deactivate-mark nil))
-    (if fill-dwim
+    (if fill-dwim-state
         (call-interactively 'unfill-paragraph)
       (call-interactively 'fill-paragraph)))
   (setq fill-dwim-mark (copy-marker (point)))
-  (setq fill-dwim (not fill-dwim)))
+  (setq fill-dwim-state (not fill-dwim-state)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Widgets
