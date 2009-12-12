@@ -62,6 +62,8 @@ Protected to run in timers and hooks."
       (flymakemsg-show-err-at-point-1)
     (error (message "%s" err))))
 
+(defvar flymakemsg-last-errovl nil)
+
 (defun flymakemsg-show-err-at-point-1 ()
   "If point is on a flymake error, show it in echo area."
   (interactive)
@@ -73,8 +75,6 @@ Protected to run in timers and hooks."
           (message "%s" (propertize
                                     (overlay-get flyovl 'help-echo)
                                     'face 'flymake-errline)))))))
-
-(defvar flymakemsg-last-errovl nil)
 
 (defun flymakemsg-get-errovl (POS)
   "Get flymake error overlay at POS."

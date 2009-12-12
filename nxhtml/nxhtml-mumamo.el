@@ -122,6 +122,32 @@ This also covers inlined style and javascript."
     mumamo-chunk-onjs=
     )))
 
+;;;###autoload
+(define-mumamo-multi-major-mode mason-nxhtml-mumamo-mode
+  "Turn on multiple major modes for Mason using main mode `nxhtml-mode'.
+This covers inlined style and javascript."
+  ("Mason nxhtml Family" nxhtml-mode
+   (
+    mumamo-chunk-mason-perl-line
+    mumamo-chunk-mason-perl-single
+    mumamo-chunk-mason-perl-block
+    mumamo-chunk-mason-perl-init
+    mumamo-chunk-mason-perl-once
+    mumamo-chunk-mason-perl-cleanup
+    mumamo-chunk-mason-perl-shared
+    mumamo-chunk-mason-simple-comp
+    mumamo-chunk-mason-compcont
+    mumamo-chunk-mason-args
+    mumamo-chunk-mason-doc
+    mumamo-chunk-mason-text
+    mumamo-chunk-inlined-style
+    mumamo-chunk-inlined-script
+    mumamo-chunk-style=
+    mumamo-chunk-onjs=
+    )))
+(add-hook 'mason-nxhtml-mumamo-mode-hook 'mumamo-define-html-file-wide-keys)
+;;(mumamo-inherit-sub-chunk-family-locally 'mason-nxhtml-mumamo-mode 'mason-nxhtml-mumamo-mode)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Genshi / kid
 

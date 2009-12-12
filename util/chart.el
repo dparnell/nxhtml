@@ -340,8 +340,7 @@ be a list
       ;;(setq url (concat url "&chxt=y"))
       (message "Sending %s" url)
       (setq content
-            (save-excursion
-              (set-buffer (url-retrieve-synchronously url))
+            (with-current-buffer (url-retrieve-synchronously url)
               (goto-char (point-min))
               (if (search-forward "\n\n" nil t)
                   (buffer-substring-no-properties (point) (point-max))

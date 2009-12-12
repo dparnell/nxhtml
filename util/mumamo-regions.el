@@ -45,6 +45,8 @@
 ;;
 ;;; Code:
 
+(require 'ps-print) ;; For ps-print-ensure-fontified
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Internal side functions etc
 

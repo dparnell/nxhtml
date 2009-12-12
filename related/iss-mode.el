@@ -62,6 +62,8 @@
 
 ;;; Code:
 
+(eval-and-compile (require 'compile))
+
 (defvar iss-compiler-path nil "Path to the iss compiler")
 
 ;;; End of user settings
@@ -127,6 +129,8 @@
   ["InnoSetup Help"  (iss-compiler-help)  t]
   ))
 (easy-menu-add iss-menu)
+
+(defvar compilation-file-regexp-alist) ;; silence compiler, don't know the var.
 
 ;;;###autoload
 (defun iss-mode ()

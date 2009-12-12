@@ -150,6 +150,8 @@ otherwise."
 (defvar hl-needed-window nil)
 (defvar hl-needed-buffer nil)
 (defvar hl-needed-window-start nil)
+(defvar hl-needed-flash-this nil)
+(defvar hl-needed-config-change nil)
 
 (defun hl-needed-show ()
   "Highlight current line and/or column now."
@@ -245,8 +247,6 @@ Erros may go unnoticed in timers.  This should prevent it."
     (when (timerp hl-needed-flash-timer) (cancel-timer hl-needed-flash-timer))
     (setq hl-needed-flash-timer nil))
 
-(defvar hl-needed-flash-this nil)
-
 (defun hl-needed-start-maybe-flash-timer ()
   (when (and hl-needed-flash-this
              (not hl-needed-always))
@@ -254,6 +254,8 @@ Erros may go unnoticed in timers.  This should prevent it."
     (setq hl-needed-flash-timer
           (run-with-timer (+ hl-needed-flash-delay hl-needed-flash-duration)
                           nil 'hl-needed-hide-in-timer))))
+
+(defvar hl-needed-pre-command-time (current-time))
 
 (defun hl-needed-check ()
   ;; Cancel `hl-line-mode' and timer
@@ -278,8 +280,6 @@ Erros may go unnoticed in timers.  This should prevent it."
       (setq hl-needed-window (selected-window))
       (setq hl-needed-buffer (current-buffer))
       (setq hl-needed-window-start (window-start))))
-
-(defvar hl-needed-pre-command-time (current-time))
 
 (defvar hl-needed-after-active-minibuffer nil)
 
@@ -306,7 +306,6 @@ Erros may go unnoticed in timers.  This should prevent it."
 
 (defvar hl-needed-minibuffer-active nil)
 
-(defvar hl-needed-config-change nil)
 (defun hl-needed-config-change ()
   (condition-case err
       (if (active-minibuffer-window)

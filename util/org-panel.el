@@ -107,7 +107,9 @@ active.)"
 ;; Fix-me: add org-mode-map
 ;; (memq 'org-self-insert-command orgpan-org-mode-commands)
 ;; (memq 'org-self-insert-command orgpan-org-commands)
-(defconst orgpan-org-mode-commands nil)
+(defvar orgpan-org-mode-commands nil)
+(setq orgpan-org-mode-commands nil)
+
 (defconst orgpan-org-commands
   '(
     orgpan-copy-subtree
@@ -385,7 +387,7 @@ This refers to the functions `orgpan-paste-subtree',
         (message "Already at top level of the outline")
       (outline-up-heading arg invisible-ok))))
 
-(defconst orgpan-mode-map
+(defvar orgpan-mode-map
   ;; Fix-me: clean up here!
   ;; Fix-me: viper support
   (let ((map (make-sparse-keymap)))

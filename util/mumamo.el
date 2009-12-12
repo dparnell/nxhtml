@@ -232,17 +232,6 @@
 ;; - There is no way in Emacs to tell a mode not to change
 ;;   fontification when changing to or from that mode.
 ;;
-;; - The dividing into chunk is not that simple as I first thought.  I
-;;   have not gone through the logic of this very carefully.  Perhaps
-;;   that is needed.  The current logic is mainly in
-;;   `mumamo-get-chunk-at' and `mumamo-find-possible-chunk'.  (Some
-;;   other routines tries to behave like `mumamo-find-possible-chunk'
-;;   too: `mumamo-chunk-attr=' and `mumamo-quick-static-chunk'.)
-;;
-;; - One idea that I currently have not used is to check outer major
-;;   mode while dividing into chunks.  This could probably be done
-;;   with a small change to `mumamo-create-chunk-values-at'.  However
-;;   `syntax-ppss' etc must also be handled a bit differently.
 ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1272,7 +1261,9 @@ Preserves the `buffer-modified-p' state of the current buffer."
   "Protect from recursive calls.")
 
 ;; Fix-me: temporary things for testing new chunk routines.
-(defconst mumamo-find-chunks-level 0)
+(defvar mumamo-find-chunks-level 0)
+(setq mumamo-find-chunks-level 0)
+
 (defvar mumamo-old-tail nil)
 (make-variable-buffer-local 'mumamo-old-tail)
 (put 'mumamo-old-tail 'permanent-local t)
@@ -7275,30 +7266,38 @@ when `c-fill-paragraph' is the real function used."
 ;; Fix-me: Seems perhaps like c-state-point-min-lit-start is reset in
 ;; c-state-mark-point-min-literal because c-state-literal-at returns
 ;; nil. (Or is (car lit) nil?)
+
+(defvar mumamo-c-state-cache-init nil)
+(make-variable-buffer-local 'mumamo-c-state-cache-init)
+(put 'mumamo-c-state-cache-init 'permanent-local t)
+
 (defun mumamo-c-state-cache-init ()
-  (setq c-state-cache (or c-state-cache nil))
-  (put 'c-state-cache 'permanent-local t)
-  (setq c-state-cache-good-pos (or c-state-cache-good-pos 1))
-  (put 'c-state-cache-good-pos 'permanent-local t)
-  (setq c-state-nonlit-pos-cache (or c-state-nonlit-pos-cache nil))
-  (put 'c-state-nonlit-pos-cache 'permanent-local t)
-  (setq c-state-nonlit-pos-cache-limit (or c-state-nonlit-pos-cache-limit 1))
-  (put 'c-state-nonlit-pos-cache-limit 'permanent-local t)
-  (setq c-state-brace-pair-desert (or c-state-brace-pair-desert nil))
-  (put 'c-state-brace-pair-desert 'permanent-local t)
-  (setq c-state-point-min (or c-state-point-min 1))
-  (put 'c-state-point-min 'permanent-local t)
-  (setq c-state-point-min-lit-type (or c-state-point-min-lit-type nil))
-  (put 'c-state-point-min-lit-type 'permanent-local t)
-  (setq c-state-point-min-lit-start (or c-state-point-min-lit-start nil))
-  (put 'c-state-point-min-lit-start 'permanent-local t)
-  (setq c-state-min-scan-pos (or c-state-min-scan-pos 1))
-  (put 'c-state-min-scan-pos 'permanent-local t)
-  (setq c-state-old-cpp-beg (or c-state-old-cpp-beg nil))
-  (put 'c-state-old-cpp-beg 'permanent-local t)
-  (setq c-state-old-cpp-end (or c-state-old-cpp-end nil))
-  (put 'c-state-old-cpp-end 'permanent-local t)
-  (c-state-mark-point-min-literal))
+  (unless mumamo-c-state-cache-init
+    (msgtrc "c-state-cache-init running")
+    (setq mumamo-c-state-cache-init t)
+    (setq c-state-cache (or c-state-cache nil))
+    (put 'c-state-cache 'permanent-local t)
+    (setq c-state-cache-good-pos (or c-state-cache-good-pos 1))
+    (put 'c-state-cache-good-pos 'permanent-local t)
+    (setq c-state-nonlit-pos-cache (or c-state-nonlit-pos-cache nil))
+    (put 'c-state-nonlit-pos-cache 'permanent-local t)
+    (setq c-state-nonlit-pos-cache-limit (or c-state-nonlit-pos-cache-limit 1))
+    (put 'c-state-nonlit-pos-cache-limit 'permanent-local t)
+    (setq c-state-brace-pair-desert (or c-state-brace-pair-desert nil))
+    (put 'c-state-brace-pair-desert 'permanent-local t)
+    (setq c-state-point-min (or c-state-point-min 1))
+    (put 'c-state-point-min 'permanent-local t)
+    (setq c-state-point-min-lit-type (or c-state-point-min-lit-type nil))
+    (put 'c-state-point-min-lit-type 'permanent-local t)
+    (setq c-state-point-min-lit-start (or c-state-point-min-lit-start nil))
+    (put 'c-state-point-min-lit-start 'permanent-local t)
+    (setq c-state-min-scan-pos (or c-state-min-scan-pos 1))
+    (put 'c-state-min-scan-pos 'permanent-local t)
+    (setq c-state-old-cpp-beg (or c-state-old-cpp-beg nil))
+    (put 'c-state-old-cpp-beg 'permanent-local t)
+    (setq c-state-old-cpp-end (or c-state-old-cpp-end nil))
+    (put 'c-state-old-cpp-end 'permanent-local t)
+    (c-state-mark-point-min-literal)))
 
 (defadvice c-state-cache-init (around
                                mumamo-ad-c-state-cache-init

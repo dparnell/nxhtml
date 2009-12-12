@@ -2122,8 +2122,7 @@ buffer local variables in all buffers."
       (let ((html-buffer (current-buffer))
             (config-buffer (find-file-noselect tidy-config-file t))
             config-variables)
-        (save-excursion
-          (set-buffer config-buffer)
+        (with-current-buffer config-buffer
           (goto-char (point-min)) ;; unnecessary but pedantic
 
           ;; delete all comments
@@ -2140,9 +2139,9 @@ buffer local variables in all buffers."
               (set-default (intern variable) value)
               (setq config-variables
                     (cons (cons variable value) config-variables))
-              (save-excursion
-                (set-buffer html-buffer)
-                (set (intern variable) value))))
+              (with-current-buffer html-buffer
+                (set (intern variable) value))
+	      ))
 
           (set-buffer-modified-p nil) ;; don't save changes
           (kill-buffer config-buffer))
@@ -2173,8 +2172,7 @@ The local values in the current buffer will be saved."
                 (option-alist tidy-options-alist)
                 (outer-buffer (current-buffer))
                 option name symbol value)
-            (save-excursion
-              (set-buffer buffer)
+            (with-current-buffer buffer
               (delete-region (point-min) (point-max)) ;; clear the buffer
 
               ;; need this line so that config file is always non empty
@@ -2183,8 +2181,7 @@ The local values in the current buffer will be saved."
                 (setq option-alist (cdr option-alist))
                 (setq name      (nth 0 option)
                       symbol    (intern (concat "tidy-" name)))
-                (save-excursion ;; this is a local variable
-                  (set-buffer outer-buffer)
+                (with-current-buffer outer-buffer
                   (setq value (symbol-value symbol)))
                 (when (string= value tidy-emacs-encoding-lbl)
                   (setq value (tidy-get-buffer-encoding)))
@@ -2461,8 +2458,7 @@ calling tidy."
     ;;(if (file-exists-p config-file) (delete-file config-file))
 
     ;; scan the buffer for error strings
-    (save-excursion
-      (set-buffer error-buffer)
+    (with-current-buffer error-buffer
       ;;(local-set-key [tab] 'tidy-errbuf-forward)
       (goto-char (point-min))
       (insert "\n")
@@ -2575,8 +2571,7 @@ calling tidy."
       ;; Catch segmentation violations
       ;; Sometimes get this when editing files from Macs
       ;; See the function at the bottom of the file
-      (save-excursion
-        (set-buffer output-buffer)
+      (with-current-buffer output-buffer
         (goto-char (point-min))
         (let ((case-fold-search t))
           (if (looking-at "Segmentation") ;; might work with XEmacs

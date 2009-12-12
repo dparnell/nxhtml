@@ -378,7 +378,7 @@ To create a menu item something similar to this can be used:
   (interactive)
   (or (not fill-dwim-mark)
       (equal (point-marker) fill-dwim-mark)
-      (setq fill-dwim nil))
+      (setq fill-dwim-state nil))
   (if mark-active
       (progn
         (if fill-dwim-state
@@ -1558,14 +1558,18 @@ of those in for example common web browsers."
 
 (defun emacs-restart-in-kill ()
   "Last step in restart Emacs and start `server-mode' if on before."
-  (let ((restart-args (when ourcomments-restart-server-mode
-                        ;; Delay 3+2 sec to be sure the old server has stopped.
-                        (list "--eval=(run-with-idle-timer 5 nil 'server-mode 1)")))
-        ;; Fix-me: There is an Emacs bug here, default-directory shows
-        ;; up in load-path in the new Eamcs if restart-args is like
-        ;; this, but not otherwise. And it has w32 file syntax. The
-        ;; work around below is the best I can find at the moment.
-        (default-directory (file-name-as-directory (expand-file-name (car load-path)))))
+  (let* ((restart-args (when ourcomments-restart-server-mode
+                         ;; Delay 3+2 sec to be sure the old server has stopped.
+                         (list "--eval=(run-with-idle-timer 5 nil 'server-mode 1)")))
+         ;; Fix-me: There is an Emacs bug here, default-directory shows
+         ;; up in load-path in the new Eamcs if restart-args is like
+         ;; this, but not otherwise. And it has w32 file syntax. The
+         ;; work around below is the best I can find at the moment.
+         (first-path (catch 'first
+                       (dolist (p load-path)
+                         (when (file-directory-p p)
+                           (throw 'first p)))))
+         (default-directory (file-name-as-directory (expand-file-name first-path))))
     (apply 'call-process (ourcomments-find-emacs) nil 0 nil restart-args)
     ;; Wait to give focus to new Emacs instance:
     (sleep-for 3)))
