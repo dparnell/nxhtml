@@ -55,6 +55,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'flyspell))
 
 ;;;###autoload
 (defgroup appmenu nil
@@ -150,6 +151,8 @@ Some important but not too often used commands that may be useful
 for most points in a buffer."
   :group 'appmenu)
 
+(defvar appmenu-map-fun) ;; dyn var, silence compiler
+
 (defun appmenu-make-menu-for-point ()
   "Construct a menu based on point.
 This includes some known commands for point and keymap at
@@ -162,16 +165,16 @@ point."
         this-prefix)
     ;; Known for any point
     (when point-map
-      (let ((map-fun (lambda (key fun)
+      (let ((appmenu-map-fun (lambda (key fun)
                        (if (keymapp fun)
-                           (map-keymap map-fun fun)
+                           (map-keymap appmenu-map-fun fun)
                          (when (and (symbolp fun)
                                     (fboundp fun))
                            (let ((mouse-only (assq fun appmenu-mouse-only)))
                              (when mouse-only
                                (setq fun (cadr mouse-only)))
                              (add-to-list 'funs fun)))))))
-        (map-keymap map-fun point-map)))
+        (map-keymap appmenu-map-fun point-map)))
     (dolist (fun funs)
       (let ((desc (when fun (documentation fun))))
         (when desc
