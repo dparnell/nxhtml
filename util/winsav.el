@@ -775,12 +775,16 @@ frame have this minibuffer frame."
                        this-mini-frame))
          (win (frame-first-window this-frame)))
     ;;(message "create-new=%s, frame-with-that-name=%s" create-new frame-with-that-name)
+    (when was-max
+      (winsav-set-maximized-size this-frame)
+      ;; Wait for maximize to occur so horizontal scrolling gets ok.
+      (sit-for 1.5))
     (if create-new
         (winsav-put-window-tree window-tree-params win)
       (modify-frame-parameters this-frame frame-params))
     (setq winsav-last-loaded-frame this-frame)
     (setq winsav-loaded-frames (cons this-frame winsav-loaded-frames))
-    (when was-max (winsav-set-maximized-size this-frame))))
+    ))
 
 (defvar winsav-frame-parameters-to-save
   '(
@@ -835,7 +839,7 @@ frame have this minibuffer frame."
       ;; Note: sit-for must be used, not sleep-for. Using the latter
       ;; prevents the fetching of the new size (for some reason I do not
       ;; understand).
-      (sit-for 0.5)
+      (sit-for 1.5)
       (select-frame-set-input-focus cur-frm))
     t))
 
@@ -868,6 +872,7 @@ whose minibuffer should be used."
            (frm-par (frame-parameters frame))
            (dummy (message "winsav-save-frame buffer 6=%s" (current-buffer)))
            )
+      ;;(y-or-n-p (format "was-max=%s" was-max))
       (message "winsav-save-frame a cb=%s" (current-buffer))
       (setq frm-par
             (delq nil
@@ -1258,25 +1263,25 @@ DIRNAME has the same meaning."
   "Start an idle timer to call `winsav-tell-configuration'."
   (run-with-idle-timer 1 nil 'winsav-tell-configuration))
 
-(defun winsav-nearly-maximized (frame)
-  "Return non-nil if size of frame FRAME is nearly full screen."
-  (let* ((top (frame-parameter frame 'top))
-         (left (frame-parameter frame 'left))
-         (width (frame-pixel-width frame))
-         (height (frame-pixel-height frame))
-         (display-width (display-pixel-width))
-         (display-height (display-pixel-height))
-         (char-height (frame-char-height frame))
-         (height-diff (- display-height height))
-         (terminal-type (framep frame)))
-    ;;(message "w=%s/%s, h=%s/%s, ch=%s, hd=%s" width display-width height display-height char-height height-diff)
-    (cond
-     ((eq 'w32 terminal-type)
-      (and (equal top '(+ -4))
-           (equal left '(+ -4))
-           (= width display-width)
-           (< height-diff (* 4 char-height))
-           )))))
+;; (defun winsav-nearly-maximized (frame)
+;;   "Return non-nil if size of frame FRAME is nearly full screen."
+;;   (let* ((top (frame-parameter frame 'top))
+;;          (left (frame-parameter frame 'left))
+;;          (width (frame-pixel-width frame))
+;;          (height (frame-pixel-height frame))
+;;          (display-width (display-pixel-width))
+;;          (display-height (display-pixel-height))
+;;          (char-height (frame-char-height frame))
+;;          (height-diff (- display-height height))
+;;          (terminal-type (framep frame)))
+;;     ;;(message "w=%s/%s, h=%s/%s, ch=%s, hd=%s" width display-width height display-height char-height height-diff)
+;;     (cond
+;;      ((eq 'w32 terminal-type)
+;;       (and (equal top '(+ -4))
+;;            (equal left '(+ -4))
+;;            (= width display-width)
+;;            (< height-diff (* 4 char-height))
+;;            )))))
 
 ;; (defun winsav-maximize-nearly-maximized (frame)
 ;;   "Maximize frame FRAME if size is nearly full screen."
