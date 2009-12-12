@@ -1749,6 +1749,14 @@ mode."
     (goto-char (overlay-start chunk))
     (push-mark (overlay-end chunk) t t)))
 
+(defun mumamo-narrow-to-chunk-inner ()
+  (interactive)
+  (let* ((chunk (mumamo-find-chunks (point) "mumamo-narrow-to-chunk-innner"))
+         (syntax-min-max (mumamo-chunk-syntax-min-max chunk t))
+         (syntax-min (car syntax-min-max))
+         (syntax-max (cdr syntax-min-max)))
+    (narrow-to-region syntax-min syntax-max)))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -5923,15 +5931,16 @@ default values."
       ;;(msgtrc "set-major A: buffer-invisibility-spec=%S" buffer-invisibility-spec)
       ;;(msgtrc "set-major A: word-wrap=%S, cb=%s" word-wrap (current-buffer))
       ;;(mumamo-backtrace "set-major")
-      (save-restriction
-        (let* ((minmax (mumamo-chunk-syntax-min-max chunk t))
-               (min (car minmax))
-               (max (cdr minmax))
-               (here (point)))
-          (narrow-to-region min max)
-          (funcall major) ;; <-----------------------------------------------
-          (goto-char here)
-          ))
+      (let ((here (point)))
+        (save-restriction
+          (let* ((minmax (mumamo-chunk-syntax-min-max chunk t))
+                 (min (car minmax))
+                 (max (cdr minmax))
+                 (here (point)))
+            (narrow-to-region min max)
+            (funcall major) ;; <-----------------------------------------------
+            ))
+        (goto-char here))
       ;;(msgtrc "set-major B: buffer-invisibility-spec=%S" buffer-invisibility-spec)
       ;;(msgtrc "set-major B: word-wrap=%S, cb=%s" word-wrap (current-buffer))
 
@@ -7369,6 +7378,32 @@ when `c-fill-paragraph' is the real function used."
     (mumamo-c-state-literal-at (ad-get-arg 0))))
 
 
+(defun mumamo-c-state-get-min-scan-pos ()
+  ;; Return the lowest valid scanning pos.  This will be the end of the
+  ;; literal enclosing point-min, or point-min itself.
+      (save-restriction
+	(save-excursion
+	  (widen)
+          (mumamo-narrow-to-chunk-inner)
+          (or (and c-state-min-scan-pos
+                   (>= c-state-min-scan-pos (point-min))
+                   c-state-min-scan-pos)
+              (if (not c-state-point-min-lit-start)
+                  (goto-char (point-min))
+                (goto-char c-state-point-min-lit-start)
+                (if (eq c-state-point-min-lit-type 'string)
+                    (forward-sexp)
+                  (forward-comment 1)))
+              (setq c-state-min-scan-pos (point))))))
+
+(defadvice c-state-get-min-scan-pos (around
+                                     mumamo-ad-c-state-get-min-scan-pos-at
+                                     activate
+                                     compile
+                                     )
+  (if (not mumamo-multi-major-mode)
+      ad-do-it
+    (setq ad-return-value (mumamo-c-state-get-min-scan-pos))))
 
 (eval-after-load 'rng-match
 ;;;   (defun rng-match-init-buffer ()
