@@ -921,9 +921,7 @@ See also `mumamo-alt-php-tags-mode'."
 ;;;###autoload
 (define-mumamo-multi-major-mode mason-html-mumamo-mode
   "Turn on multiple major modes for Mason using main mode `html-mode'.
-This covers inlined style and javascript and PHP.
-
-See also `mumamo-alt-php-tags-mode'."
+This covers inlined style and javascript."
   ("Mason html Family" html-mode
    (
     mumamo-chunk-mason-perl-line

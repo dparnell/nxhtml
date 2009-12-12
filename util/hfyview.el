@@ -296,6 +296,8 @@ With command prefix also show html source in other window."
              (append str)
              ""))
 
+(defvar viper-mode-string) ;; Silence compiler
+
 (defun hfyview-fontify-win-to (win tag whole-buffer)
   "Return html code for window WIN.
 Sorround the code with the html tag <TAG>.

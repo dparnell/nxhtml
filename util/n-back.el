@@ -45,6 +45,8 @@
 ;;
 ;;; Code:
 
+;;(eval-when-compile (require 'viper))
+
 ;; (setq n-back-trials 2)
 
 (require 'winsize) ;; Ehum...
@@ -212,6 +214,25 @@
                (regexp :tag "File name regexp"))
   :group 'n-back)
 
+(defcustom n-back-keys
+  '(
+    [?p]
+    [?c]
+    [?s]
+    [?w]
+    )
+  "Key bindings for answering."
+  :type '(list
+          (key-sequence :tag "position key")
+          (key-sequence :tag "color key")
+          (key-sequence :tag "sound key")
+          (key-sequence :tag "word key")
+          )
+  :set (lambda (sym val)
+         (set-default sym val)
+         (n-back-make-keymap))
+  :group 'n-back-feel)
+
 (defvar n-back-control-mode-map nil)
 
 (defun n-back-key-binding (what)
@@ -262,25 +283,6 @@
     (define-key map (n-back-key-binding 'word)     'n-back-word-answer)
     ;;(define-key map [t] 'ignore)
     (setq n-back-control-mode-map map)))
-
-(defcustom n-back-keys
-  '(
-    [?p]
-    [?c]
-    [?s]
-    [?w]
-    )
-  "Key bindings for answering."
-  :type '(list
-          (key-sequence :tag "position key")
-          (key-sequence :tag "color key")
-          (key-sequence :tag "sound key")
-          (key-sequence :tag "word key")
-          )
-  :set (lambda (sym val)
-         (set-default sym val)
-         (n-back-make-keymap))
-  :group 'n-back-feel)
 
 (defvar n-back-display-hint nil)
 (defcustom n-back-hint t
@@ -502,8 +504,9 @@ new are maybe ... - and you have it available here in Emacs."
     (word     ": word match" nil)
     ))
 
-(defconst n-back-control-status nil
+(defvar n-back-control-status nil
   "For showing status in control window.")
+(setq n-back-control-status nil)
 
 ;;(n-back-set-match-status 'position 'bad)
 (defun n-back-set-match-status (match-type status)
@@ -1216,6 +1219,9 @@ MAX-STRLEN.  Display item with background color COLOR."
   (n-back-update-control-buffer)
   (message "Stopped n-back game")
   (n-back-show-welcome "Stopped"))
+
+(defvar viper-emacs-state-mode-list) ;; silence compiler
+(defvar viper-emacs-state-hook) ;; silence compiler
 
 (define-derived-mode n-back-control-mode nil "N-back"
   "Mode for controlling n-back game."

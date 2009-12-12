@@ -336,7 +336,7 @@ when editing XHTML files.\\<nxhtml-mode-map>
 To see an overview in html format do \\[nxhtml-overview].
 
 * Note: Please observe that when loading nXhtml some file
-  associations are done, see `nxhtml-auto-mode-alist'.
+  associations are done, see `nxhtml-setup-file-assoc'.
 
 The nXhtml menu is added by this mode \(or actually the minor
 mode `nxhtml-minor-mode') and gives quick access and an overview

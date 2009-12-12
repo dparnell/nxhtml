@@ -150,9 +150,7 @@ maximum level of h1-h6 to include.  They should be integers."
 	)
     (setq html-pagetoc-min min-level)
     (setq html-pagetoc-max max-level)
-    (save-excursion
-      (set-buffer toc-buffer)
-      (erase-buffer))
+    (with-current-buffer toc-buffer (erase-buffer))
     (with-temp-buffer
       (insert-buffer-substring curr-buffer)
       ;;(replace-regexp "<!--.*?-->" "")
@@ -220,8 +218,7 @@ maximum level of h1-h6 to include.  They should be integers."
 	    (princ "\n"))
 	  (princ "</td></tr></table>\n")
 	  (princ html-pagetoc-end-cmnt)
-	  (save-excursion
-	    (set-buffer toc-buffer)
+	  (with-current-buffer toc-buffer
 	    (setq toc (buffer-string)))
 	  )
 	) ; save-excursion
