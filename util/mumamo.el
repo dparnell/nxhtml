@@ -6672,18 +6672,33 @@ is returned."
 (put 'mumamo-error-ind-0 'error-conditions '(error mumamo-error-ind-0))
 (put 'mumamo-error-ind-0 'error-message "indentation 0 in sub chunk")
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+;; Template indentation
+
 (defvar  mumamo-template-indent-buffer nil)
 (make-variable-buffer-local 'mumamo-template-indent-buffer)
 (put 'mumamo-template-indent-buffer 'permanent-local t)
 
-(defun mumamo-get-template-chunk-indent-shift (template-chunk)
+(defvar  mumamo-template-indent-change-min nil)
+(make-variable-buffer-local 'mumamo-template-indent-change-min)
+(put 'mumamo-template-indent-hange-min 'permanent-local t)
+
+(defun mumamo-template-indent-after-change (beg end len)
+  (setq mumamo-template-indent-change-min 
+        (if mumamo-template-indent-change-min
+            (min mumamo-template-indent-change-min beg)
+          beg)))
+
+(defun mumamo-template-indent-get-chunk-shift (template-chunk)
   (assert (overlayp template-chunk) t)
   (assert (buffer-live-p (overlay-buffer template-chunk)) t)
   (unless (and mumamo-template-indent-buffer
                (buffer-live-p mumamo-template-indent-buffer))
     (setq mumamo-template-indent-buffer
           (get-buffer-create (concat (buffer-name)
-                                          "-template-indent-buffer")))
+                                     "-template-indent-buffer")))
     (with-current-buffer mumamo-template-indent-buffer
       (let ((major (car (overlay-get template-chunk 'mumamo-major-mode))))
         (funcall major))))
@@ -6703,7 +6718,7 @@ is returned."
             (setq prev-template-chunk (eq (overlay-get prev 'mumamo-next-indent)
                                           'mumamo-template-indentor))))
         (when prev-template-chunk
-          (mumamo-get-template-chunk-indent-shift (overlay-get prev 'mumamo-next-chunk)))
+          (mumamo-template-indent-get-chunk-shift (overlay-get prev 'mumamo-next-chunk)))
         (with-current-buffer mumamo-template-indent-buffer
           (if (not prev-template-chunk)
               (progn
@@ -6908,8 +6923,8 @@ The following rules are used when indenting:
     (cond
      ( template-indentor
        (let ((here (point))
-             (ind-shift (mumamo-get-template-chunk-indent-shift template-indentor)))
-         (message "mumamo-get-template-chunk-indent-shift: shift=%d" ind-shift)
+             (ind-shift (mumamo-template-indent-get-chunk-shift template-indentor)))
+         (message "mumamo-template-indent-get-chunk-shift: shift=%d" ind-shift)
          (message "current-line: %s" (buffer-substring (point-at-bol) (point-at-eol)))
          (setq want-indent (+ ind-shift
                               (progn
