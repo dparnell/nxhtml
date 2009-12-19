@@ -1497,6 +1497,7 @@ This also covers inlined style and javascript."
     ("JAVASCRIPT" javascript-mode)
     ("JAVA" java-mode)
     ("GROOVY" groovy-mode)
+    ("SQL" sql-mode)
     )
   "Matches for heredoc modes.
 The entries in this list have the form
@@ -1751,10 +1752,7 @@ See `mumamo-heredoc-modes' for how to specify heredoc major modes."
 ;;;###autoload
 (define-mumamo-multi-major-mode cperl-heredoc-mumamo-mode
   "Turn on multiple major modes for Perl heredoc document.
-See `mumamo-heredoc-modes' for how to specify heredoc major modes.
-
-Note: I have seen some problems with this.  Use
-`perl-mumamo-mode' instead for now."
+See `mumamo-heredoc-modes' for how to specify heredoc major modes."
   ("Perl HereDoc" cperl-mode
    (mumamo-chunk-perl-heredoc
     )))

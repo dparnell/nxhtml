@@ -380,6 +380,7 @@ To create a menu item something similar to this can be used:
       (equal (point-marker) fill-dwim-mark)
       (setq fill-dwim-state nil))
   (if mark-active
+      ;; This avoids deactivating the mark
       (progn
         (if fill-dwim-state
             (call-interactively 'unfill-region)

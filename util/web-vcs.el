@@ -374,6 +374,7 @@ If TEST is non-nil then do not download, just list the files."
   "Get revision number using VCS-REC on page URL.
 VCS-REC should be an entry like the entries in the list
 `web-vcs-links-regexp'."
+  ;; url-insert-file-contents
   (let ((url-buf (url-retrieve-synchronously url)))
     (web-vcs-get-revision-from-url-buf vcs-rec url-buf url)))
 
@@ -546,6 +547,7 @@ To learn more about nXhtml visit its home page at URL
 
 
 ;; Fix-me: Does not work, Emacs Bug
+;; Maybe use wget? http://gnuwin32.sourceforge.net/packages/wget.htm
 ;; http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=5103
 ;; (nxhtml-get-release-revision)
 (defun nxhtml-get-release-revision ()
