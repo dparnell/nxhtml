@@ -352,6 +352,7 @@ FORMAT-STRING and ARGS have the same meaning as for the function
   ;;(list 'apply (list 'quote 'message) format-string (append '(list) args))
   ;;(list 'progn 'apply (list 'quote 'message) format-string (append '(list) args) nil)
   ;;(list 'apply (list 'quote 'message) format-string (append '(list) args)) ;; <--
+  (message "%s %S" format-string args)
   ;;(list 'apply (list 'quote 'message) (list 'concat "%s: " format-string)
   ;;   (list 'get-internal-run-time) (append '(list) args))
   )
@@ -369,7 +370,7 @@ uses are in this file.
 FORMAT-STRING and ARGS have the same meaning as for the function
 `message'."
   ;;(list 'apply (list 'quote 'msgtrc) format-string (append '(list) args))
-  ;;(list 'apply (list 'quote 'message) format-string (append '(list) args))
+  (list 'apply (list 'quote 'message) format-string (append '(list) args))
   ;;(list 'apply (list 'quote 'message) (list 'concat "%s: " format-string)
   ;;   (list 'get-internal-run-time) (append '(list) args))
   )
@@ -1117,13 +1118,15 @@ Lookup in this list is done by `mumamo-major-mode-from-modespec'."
 (defun mumamo-jit-lock-function (start)
   "This function is added to `fontification-functions' by mumamo.
 START is a parameter given to functions in that hook."
-  (mumamo-msgfntfy "mumamo-jit-lock-function %s, ff=%s, just-changed=%s" start (get-text-property start 'fontified) mumamo-just-changed-major)
+  (mumamo-msgfntfy "mumamo-jit-lock-function %s, ff=%s, just-changed=%s"
+                   start (when start (get-text-property start 'fontified)) mumamo-just-changed-major)
   ;;(msgtrc "jit-lock-function %s, ff=%s, just-changed=%s" start (get-text-property start 'fontified) mumamo-just-changed-major)
   ;;(msgtrc "mumamo-jit-lock-function enter: font-lock-keywords-only def=%s" (default-value 'font-lock-keywords-only))
   (if mumamo-just-changed-major
       (setq mumamo-just-changed-major nil))
   (let ((ret (jit-lock-function start)))
-    (mumamo-msgfntfy "mumamo-jit-lock-function EXIT %s, ff=%s, just-changed=%s" start (get-text-property start 'fontified) mumamo-just-changed-major)
+    (mumamo-msgfntfy "mumamo-jit-lock-function EXIT %s, ff=%s, just-changed=%s"
+                     start (when start (get-text-property start 'fontified)) mumamo-just-changed-major)
     ;;(msgtrc "mumamo-jit-lock-function exit: font-lock-keywords-only def=%s" (default-value 'font-lock-keywords-only))
     ret))
 
@@ -2057,7 +2060,8 @@ fontification."
 
 (defun mumamo-unfontify-region-with (start end major)
   "Unfontify from START to END as in major mode MAJOR."
-  (mumamo-msgfntfy "mumamo-unfontify-region-with %s %s %s, ff=%s" start end major (get-text-property start 'fontified))
+  (mumamo-msgfntfy "mumamo-unfontify-region-with %s %s %s, ff=%s"
+                   start end major (when start (get-text-property start 'fontified)))
   (mumamo-with-major-mode-fontification major
     `(mumamo-do-unfontify ,start ,end)))
 
@@ -6818,7 +6822,7 @@ The following rules are used when indenting:
   - Even above (going out): Same test as for going in, but going
     out happens on current line.
 "
-  ;;(msgtrc "indent-line-function-1 blp=%s" (line-beginning-position))
+  (msgtrc "indent-line-function-1 blp=%s" (line-beginning-position))
   (unless prev-line-chunks
     (save-excursion
       (goto-char (line-beginning-position 1))
@@ -6914,12 +6918,12 @@ The following rules are used when indenting:
                     (setq last-parent-major-indent 0)
                   (setq last-parent-major-indent (current-column)))))))))
     (mumamo-msgindent "  leaving-submode=%s, entering-submode=%s" leaving-submode entering-submode)
-    ;;(msgtrc "  leaving-submode=%s, entering-submode=%s" leaving-submode entering-submode)
+    (msgtrc "  leaving-submode=%s, entering-submode=%s, template-indentor=%s" leaving-submode entering-submode template-indentor)
 
     ;; Fix-me: use this.
     ;; - clean up after chunk deletion
     ;; - next line after a template-indentor, what happens?
-    (setq template-indentor nil) ;; fix-me
+    ;;(setq template-indentor nil) ;; fix-me
     (cond
      ( template-indentor
        (let ((here (point))
@@ -7000,6 +7004,7 @@ The following rules are used when indenting:
            (progn
              (mumamo-msgindent "  In main major mode")
              (mumamo-call-indent-line (nth 0 this-line-chunks))
+             (mumamo-msgindent "  In main major mode B")
              (setq last-parent-major-indent (current-indentation)))
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ;;;;; In sub major mode
@@ -7072,7 +7077,7 @@ The following rules are used when indenting:
       (msgtrc "indent-line-to %s at line-beginning=%s" want-indent (line-beginning-position))
       (indent-line-to want-indent))
     (goto-char here-on-line)
-    ;;(message "exit: %s" (list this-line-chunks last-parent-major-indent))
+    (msgtrc "exit: %s" (list this-line-chunks last-parent-major-indent))
     (list this-line-chunks last-parent-major-indent next-entering-submode)))
 
 ;; Fix-me: use this for first line in a submode

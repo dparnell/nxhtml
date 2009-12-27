@@ -142,6 +142,24 @@
        t
        nil
        ourcomments-move-beginning-of-line)
+      (
+       [(control ?+)]
+       "C-+ often increases font size (in web browsers for example)."
+       t
+       shift
+       text-scale-adjust)
+      (
+       [(control ?-)]
+       "C-- often decreases font size (in web browsers for example)."
+       t
+       shift
+       text-scale-adjust)
+      (
+       [(control ?0)]
+       "C-0 often resets font size (in web browsers for example)."
+       t
+       shift
+       text-scale-adjust)
        )))
   "Normal Emacs keys that are remapped to follow some other standard.
 The purpose of this variable is to make it easy to switch between
@@ -154,7 +172,8 @@ on.
 *Note:* You can only move functions bound in the global key map
         this way.
 *Note:* To get CUA keys you should turn on option `cua-mode'.
-*Note:* To get vi key bindings call function `viper-mode'."
+*Note:* To get vi key bindings call function `viper-mode'.
+*Note:* `text-scale-adjust' already have default key bindings."
   :type '(repeat
           (list
            (string :tag "For what")
@@ -208,6 +227,11 @@ field). There are some predifined keybindings for this."
         (add-hook 'post-command-hook 'rebind-keys-post-command t))
     (remove-hook 'post-command-hook 'rebind-keys-post-command)
     (setq emulation-mode-map-alists (delq 'rebind--emul-keymap-alist emulation-mode-map-alists))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Interactive functions for the keymap
+
 
 
 (provide 'rebind)
