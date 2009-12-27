@@ -64,7 +64,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (appmenu-add appmenu) "appmenu" "util/appmenu.el"
-;;;;;;  (19218 42180))
+;;;;;;  (19235 2999))
 ;;; Generated autoloads from util/appmenu.el
 
 (let ((loads (get 'appmenu 'custom-loads))) (if (member '"appmenu" loads) nil (put 'appmenu 'custom-loads (cons '"appmenu" loads))))
@@ -144,6 +144,18 @@ on blogs.
 See `as-external-alist' for more information.
 
 \(fn &optional ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads (buffer-bg-set-color) "buffer-bg" "util/buffer-bg.el"
+;;;;;;  (19246 46211))
+;;; Generated autoloads from util/buffer-bg.el
+
+(autoload 'buffer-bg-set-color "buffer-bg" "\
+Add an overlay with background color COLOR to buffer BUFFER.
+If COLOR is nil remove previously added overlay.
+
+\(fn COLOR BUFFER)" t nil)
 
 ;;;***
 
@@ -828,8 +840,8 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
-;;;;;;  mumamo-hi-lock-faces mumamo) "mumamo" "util/mumamo.el" (19234
-;;;;;;  64747))
+;;;;;;  mumamo-hi-lock-faces mumamo) "mumamo" "util/mumamo.el" (19245
+;;;;;;  40497))
 ;;; Generated autoloads from util/mumamo.el
 
 (let ((loads (get 'mumamo 'custom-loads))) (if (member '"mumamo" loads) nil (put 'mumamo 'custom-loads (cons '"mumamo" loads))))
@@ -857,7 +869,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  ssjs-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19234 40517))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19236 58484))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (autoload 'html-mumamo-mode "mumamo-fun" "\
@@ -937,10 +949,7 @@ See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
 
 (autoload 'cperl-heredoc-mumamo-mode "mumamo-fun" "\
 Turn on multiple major modes for Perl heredoc document.
-See `mumamo-heredoc-modes' for how to specify heredoc major modes.
-
-Note: I have seen some problems with this.  Use
-`perl-mumamo-mode' instead for now." t)
+See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
 
 (autoload 'python-heredoc-mumamo-mode "mumamo-fun" "\
 Turn on multiple major modes for Perl heredoc document.
@@ -1119,7 +1128,7 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle popup-menu-at-point
 ;;;;;;  ourcomments-indirect-fun) "ourcomments-util" "util/ourcomments-util.el"
-;;;;;;  (19234 48742))
+;;;;;;  (19254 41496))
 ;;; Generated autoloads from util/ourcomments-util.el
 
 (autoload 'ourcomments-indirect-fun "ourcomments-util" "\
@@ -1495,7 +1504,7 @@ See `pointback-mode' for more information on Pointback mode.
 ;;;***
 
 ;;;### (autoloads (rebind-keys-mode rebind) "rebind" "util/rebind.el"
-;;;;;;  (19218 42182))
+;;;;;;  (19254 43283))
 ;;; Generated autoloads from util/rebind.el
 
 (let ((loads (get 'rebind 'custom-loads))) (if (member '"rebind" loads) nil (put 'rebind 'custom-loads (cons '"rebind" loads))))
@@ -1786,36 +1795,6 @@ or call the function `vline-global-mode'.")
 Display vertical line mode as globally.
 
 \(fn &optional ARG)" t nil)
-
-;;;***
-
-;;;### (autoloads (nxhtml-download web-vcs-get-files-from-root) "web-vcs"
-;;;;;;  "util/web-vcs.el" (19233 44477))
-;;; Generated autoloads from util/web-vcs.el
-
-(autoload 'web-vcs-get-files-from-root "web-vcs" "\
-Download a file tree from VCS system using the web interface.
-Use WEB-VCS entry in variable `web-vcs-links-regexp' to download
-files via http from URL to directory DL-DIR.
-
-Show URL first and offer to visit the page.  That page will give
-you information about version control system (VCS) system used
-etc.
-
-\(fn WEB-VCS URL DL-DIR)" nil nil)
-
-(autoload 'nxhtml-download "web-vcs" "\
-Download or update nXhtml.
-If you already have nXhtml installed you can update it with this
-command.  Otherwise after downloading read the instructions in
-README.txt in the download directory for setting up nXhtml.
-\(This requires adding only one line to your .emacs, but you may
-optionally also byte compile the files from the nXhtml menu.)
-
-To learn more about nXhtml visit its home page at URL
-`http://www.emacswiki.com/NxhtmlMode/'.
-
-\(fn)" t nil)
 
 ;;;***
 
@@ -2668,7 +2647,7 @@ Key bindings:
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
 ;;;;;;  winsav winsav-put-window-tree) "winsav" "util/winsav.el"
-;;;;;;  (19218 42182))
+;;;;;;  (19235 10120))
 ;;; Generated autoloads from util/winsav.el
 
 (autoload 'winsav-put-window-tree "winsav" "\
@@ -3481,6 +3460,36 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;***
 
+;;;### (autoloads (nxhtml-download web-vcs-get-files-from-root) "web-vcs"
+;;;;;;  "web-vcs.el" (19255 790))
+;;; Generated autoloads from web-vcs.el
+
+(autoload 'web-vcs-get-files-from-root "web-vcs" "\
+Download a file tree from VCS system using the web interface.
+Use WEB-VCS entry in variable `web-vcs-links-regexp' to download
+files via http from URL to directory DL-DIR.
+
+Show URL first and offer to visit the page.  That page will give
+you information about version control system (VCS) system used
+etc.
+
+\(fn WEB-VCS URL DL-DIR)" nil nil)
+
+(autoload 'nxhtml-download "web-vcs" "\
+Download or update nXhtml.
+If you already have nXhtml installed you can update it with this
+command.  Otherwise after downloading read the instructions in
+README.txt in the download directory for setting up nXhtml.
+\(This requires adding only one line to your .emacs, but you may
+optionally also byte compile the files from the nXhtml menu.)
+
+To learn more about nXhtml visit its home page at URL
+`http://www.emacswiki.com/NxhtmlMode/'.
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads (zencoding-preview zencoding-expand-yas zencoding-mode
 ;;;;;;  zencoding-expand-line zencoding) "zencoding-mode" "util/zencoding-mode.el"
 ;;;;;;  (19218 42182))
@@ -3544,12 +3553,13 @@ accept it or skip it.
 ;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
 ;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
-;;;;;;  "util/appmenu-fold.el" "util/buffer-bg.el" "util/css-simple-completion.el"
-;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/ffip.el"
-;;;;;;  "util/fupd.el" "util/hfy-cmap.el" "util/key-cat.el" "util/mumamo-aspnet.el"
+;;;;;;  "util/appmenu-fold.el" "util/css-simple-completion.el" "util/custsets.el"
+;;;;;;  "util/ecb-batch-compile.el" "util/ffip.el" "util/fupd.el"
+;;;;;;  "util/hfy-cmap.el" "util/key-cat.el" "util/mumamo-aspnet.el"
 ;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el") (19235 1066 890000))
+;;;;;;  "util/useful-commands.el" "web-autoload-2.el" "web-autoload-3.el"
+;;;;;;  "web-autoload.el") (19255 41495 765000))
 
 ;;;***
 
