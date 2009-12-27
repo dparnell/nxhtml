@@ -142,6 +142,18 @@ etc."
       (message "")
       (web-vcs-get-files-on-page web-vcs url t (file-name-as-directory dl-dir) nil))))
 
+(defun web-vcs-get-missing-matching-files (web-vcs url dl-dir files-regexp)
+  "Download missing files from VCS system using the web interface.
+Use WEB-VCS entry in variable `web-vcs-links-regexp' to download
+files via http from URL to directory DL-DIR.
+
+Before downloading offer to visit the page from which the
+downloading will be made.
+"
+  (let ((vcs-rec (or (assq web-vcs web-vcs-links-regexp)
+                     (error "Does not know web-cvs %S" web-vcs))))
+    (web-vcs-get-files-on-page-1 vcs-rec url dl-dir "" files-regexp 0 nil nil)
+    ))
 
 (defun web-vcs-get-files-on-page (web-vcs url recursive dl-dir test)
   "Download files listed by WEB-VCS on web page URL.
@@ -210,7 +222,12 @@ If TEST is non-nil then do not download, just list the files."
             (delete-region (car old-rev-range) (cdr old-rev-range))
             (basic-save-buffer)))
         (setq ret (web-vcs-get-files-on-page-1
-                   vcs-rec url (if recursive 0 nil) dl-dir dl-revision test))
+                   vcs-rec url
+                   dl-dir
+                   ""
+                   nil
+                   (if recursive 0 nil)
+                   dl-revision test))
         (setq moved       (nth 1 ret))
         ;; Now we have a revision number again.
         (with-current-buffer rev-buf
@@ -231,23 +248,31 @@ If TEST is non-nil then do not download, just list the files."
                                      moved))))))
 
 
-(defun web-vcs-get-files-on-page-1 (vcs-rec url recursive dl-dir dl-revision test)
+(defun web-vcs-get-files-on-page-1 (vcs-rec url dl-root dl-relative file-mask recursive dl-revision test)
   "Download files listed by VCS-REC on web page URL.
 VCS-REC should be an entry like the entries in the list
 `web-vcs-links-regexp'.
+
+If FILE-MASK is non nil then it should be a file path.  Only
+files matching this path will be downloaded then.  Each part of
+the path may be a regular expresion \(not containing /).
 
 If RECURSIVE go into sub folders on the web page and download
 files from them too.
 
 Place the files under DL-DIR.
 
-The revision on the page URL should match DL-REVISION.
+The revision on the page URL should match DL-REVISION if this is non-nil.
 
 If TEST is non-nil then do not download, just list the files."
+  ;;(message "web-vcs-get-files-on-page-1 %s %s %s %s %s %s %s %s" vcs-rec url dl-root dl-relative file-mask recursive dl-revision test)
   (let* ((files-href-regexp  (nth 2 vcs-rec))
          (dirs-href-regexp   (nth 3 vcs-rec))
          (file-name-regexp   (nth 4 vcs-rec))
          (revision-regexp    (nth 5 vcs-rec))
+         (dl-dir (file-name-as-directory (expand-file-name dl-relative dl-root)))
+         (lst-dl-relative (web-vcs-file-name-as-list dl-relative))
+         (lst-file-mask   (web-vcs-file-name-as-list file-mask))
          (url-buf (url-retrieve-synchronously url))
          this-page-revision
          files
@@ -263,10 +288,11 @@ If TEST is non-nil then do not download, just list the files."
         (make-directory dl-dir t))
       ;; Get revision number
       (setq this-page-revision (web-vcs-get-revision-from-url-buf vcs-rec url-buf url))
-      (unless (string= dl-revision this-page-revision)
-        (web-vcs-message-with-face 'web-vcs-red "Revision on %S is %S, but should be %S"
-                                   url this-page-revision dl-revision)
-        (throw 'command-level nil))
+      (when dl-revision
+        (unless (string= dl-revision this-page-revision)
+          (web-vcs-message-with-face 'web-vcs-red "Revision on %S is %S, but should be %S"
+                                     url this-page-revision dl-revision)
+          (throw 'command-level nil)))
       ;; Find files
       (goto-char (point-min))
       (while (re-search-forward files-href-regexp nil t)
@@ -287,85 +313,94 @@ If TEST is non-nil then do not download, just list the files."
              (file-name (progn
                           (when (string-match file-name-regexp file-url)
                             (match-string 1 file-url))))
+             (lst-file-name (web-vcs-file-name-as-list file-name))
              (file-dl-name (expand-file-name file-name dl-dir))
+             (file-rel-name (file-relative-name file-dl-name dl-root))
              temp-buf
              )
-        (if test
-            (progn
-              (message "TEST file-url=%S" file-url)
-              (message "TEST file-name=%S" file-name)
-              (message "TEST file-dl-name=%S" file-dl-name)
-              )
-          (while (setq temp-buf (find-buffer-visiting temp-file))
-            (set-buffer-modified-p nil)
-            (kill-buffer temp-buf))
-          ;; Use url-copy-file, this takes care of coding system.
-          (url-copy-file file-url temp-file t t) ;; overwrite, keep time
-          (let* (;; (new-buf (find-file-noselect temp-file))
-                 ;; (new-src (with-current-buffer new-buf
-                 ;;            (save-restriction
-                 ;;              (widen)
-                 ;;              (buffer-substring-no-properties (point-min) (point-max)))))
-                 (time-after-url-copy (current-time))
-                 (old-exists (file-exists-p file-dl-name))
-                 (old-buf-open (find-buffer-visiting file-dl-name))
-                 ;; (old-buf (or old-buf-open
-                 ;;              (when old-exists
-                 ;;                (let ((auto-mode-alist nil))
-                 ;;                  (find-file-noselect file-dl-name)))))
-                 ;; old-src
-                 )
-            (when old-buf-open
-              (when (buffer-modified-p old-buf-open)
-                (save-excursion
-                  (switch-to-buffer old-buf-open)
-                  (when (y-or-n-p (format "Buffer %S is modified, save to make a backup? "
-                                          file-dl-name))
-                    (save-buffer)))))
-            ;;(if (and old-src (string= new-src old-src))
-            (if (and old-exists
-                     (web-vcs-equal-files file-dl-name temp-file))
-                (web-vcs-message-with-face 'hi-green "File %S was ok" file-dl-name)
-              (when old-exists
-                (let ((backup (concat file-dl-name ".moved")))
-                  (when (file-exists-p backup)
-                    (delete-file backup))
-                  (rename-file file-dl-name backup)))
-              (rename-file temp-file file-dl-name)
-              (if old-exists
-                  (web-vcs-message-with-face 'hi-yellow "Updated %S" file-dl-name)
-                (web-vcs-message-with-face 'hi-green "Downloaded %S" file-dl-name))
+        (when (or (not file-mask)
+                  (web-vcs-match-folderwise file-mask file-rel-name))
+          (if test
+              (progn
+                (message "TEST file-url=%S" file-url)
+                (message "TEST file-name=%S" file-name)
+                (message "TEST file-dl-name=%S" file-dl-name)
+                )
+            (while (setq temp-buf (find-buffer-visiting temp-file))
+              (set-buffer-modified-p nil)
+              (kill-buffer temp-buf))
+            ;; Use url-copy-file, this takes care of coding system.
+            (url-copy-file file-url temp-file t t) ;; overwrite, keep time
+            (let* (;; (new-buf (find-file-noselect temp-file))
+                   ;; (new-src (with-current-buffer new-buf
+                   ;;            (save-restriction
+                   ;;              (widen)
+                   ;;              (buffer-substring-no-properties (point-min) (point-max)))))
+                   (time-after-url-copy (current-time))
+                   (old-exists (file-exists-p file-dl-name))
+                   (old-buf-open (find-buffer-visiting file-dl-name))
+                   ;; (old-buf (or old-buf-open
+                   ;;              (when old-exists
+                   ;;                (let ((auto-mode-alist nil))
+                   ;;                  (find-file-noselect file-dl-name)))))
+                   ;; old-src
+                   )
               (when old-buf-open
-                (with-current-buffer old-buf-open
-                  (set-buffer-modified-p nil)
-                  (revert-buffer))))
-            (let* ((msg-win (get-buffer-window "*Messages*")))
-              (with-current-buffer "*Messages*"
-                (set-window-point msg-win (point-max))))
-            (redisplay t)
-            ;; This is both for user and remote server load.  Do not remove this.
-            (sit-for (- 1.0 (float-time (time-subtract (current-time) time-after-url-copy))))
-            ;; (unless old-buf-open
-            ;;   (when old-buf
-            ;;     (kill-buffer old-buf)))
-            ))
+                (when (buffer-modified-p old-buf-open)
+                  (save-excursion
+                    (switch-to-buffer old-buf-open)
+                    (when (y-or-n-p (format "Buffer %S is modified, save to make a backup? "
+                                            file-dl-name))
+                      (save-buffer)))))
+              ;;(if (and old-src (string= new-src old-src))
+              (if (and old-exists
+                       (web-vcs-equal-files file-dl-name temp-file))
+                  (web-vcs-message-with-face 'hi-green "File %S was ok" file-dl-name)
+                (when old-exists
+                  (let ((backup (concat file-dl-name ".moved")))
+                    (when (file-exists-p backup)
+                      (delete-file backup))
+                    (rename-file file-dl-name backup)))
+                (rename-file temp-file file-dl-name)
+                (if old-exists
+                    (web-vcs-message-with-face 'hi-yellow "Updated %S" file-dl-name)
+                  (web-vcs-message-with-face 'hi-green "Downloaded %S" file-dl-name))
+                (when old-buf-open
+                  (with-current-buffer old-buf-open
+                    (set-buffer-modified-p nil)
+                    (revert-buffer))))
+              (let* ((msg-win (get-buffer-window "*Messages*")))
+                (with-current-buffer "*Messages*"
+                  (set-window-point msg-win (point-max))))
+              (redisplay t)
+              ;; This is both for user and remote server load.  Do not remove this.
+              (sit-for (- 1.0 (float-time (time-subtract (current-time) time-after-url-copy))))
+              ;; (unless old-buf-open
+              ;;   (when old-buf
+              ;;     (kill-buffer old-buf)))
+              )))
         (redisplay t)))
     ;; Download subdirs
     (when suburls
       (dolist (suburl (reverse suburls))
         (let* ((dl-sub-dir (substring suburl (length url)))
                (full-dl-sub-dir (file-name-as-directory
-                                 (expand-file-name dl-sub-dir dl-dir))))
-          (unless (web-vcs-contains-file dl-dir full-dl-sub-dir)
-            (error "Subdir %S not in %S" dl-sub-dir dl-dir))
-          (let* ((ret (web-vcs-get-files-on-page-1 vcs-rec
-                                                  suburl
-                                                  (1+ recursive)
-                                                  full-dl-sub-dir
-                                                  this-page-revision
-                                                  test)))
-            (setq moved (+ moved (nth 1 ret)))
-            ))))
+                                 (expand-file-name dl-sub-dir dl-dir)))
+               (rel-dl-sub-dir (file-relative-name full-dl-sub-dir dl-root)))
+          (when (or (not file-mask)
+                    (web-vcs-match-folderwise file-mask rel-dl-sub-dir))
+            (unless (web-vcs-contains-file dl-dir full-dl-sub-dir)
+              (error "Subdir %S not in %S" dl-sub-dir dl-dir))
+            (let* ((ret (web-vcs-get-files-on-page-1 vcs-rec
+                                                     suburl
+                                                     dl-root
+                                                     rel-dl-sub-dir
+                                                     file-mask
+                                                     (1+ recursive)
+                                                     this-page-revision
+                                                     test)))
+              (setq moved (+ moved (nth 1 ret)))
+              )))))
     (list this-page-revision moved)
     ))
 
@@ -398,6 +433,52 @@ The buffer URL-BUF should contain the content on page URL."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Helpers
+
+;;(web-vcs-file-name-as-list "/a/b/c.el")
+;;(web-vcs-file-name-as-list "a/b/c.el")
+;;(web-vcs-file-name-as-list "c:/a/b/c.el")
+;;(web-vcs-file-name-as-list ".*/a/c/")
+;;(web-vcs-file-name-as-list "[^/]*/a/c/") ;; Just avoid this.
+(defun web-vcs-file-name-as-list (filename)
+  "Split file name FILENAME into a list with file names."
+  (let ((lst-name nil)
+        (head filename)
+        (old-head ""))
+    (while (and (not (string= old-head head))
+                (> (length head) 0))
+      (let* ((file-head (directory-file-name head))
+             (tail (file-name-nondirectory (directory-file-name head))))
+        (setq old-head head)
+        (setq head (file-name-directory file-head))
+        ;; For an abs path the final tail is "", use root instead:
+        (when (= 0 (length tail))
+          (setq tail head))
+        (setq lst-name (cons tail lst-name))))
+    lst-name))
+
+;;(web-vcs-match-folderwise ".*/util/mum.el" "top/util/mum.el")
+;;(web-vcs-match-folderwise ".*/util/mu.el" "top/util/mum.el")
+;;(web-vcs-match-folderwise ".*/ut/mum.el" "top/util/mum.el")
+;;(web-vcs-match-folderwise ".*/ut../mum.el" "top/util/mum.el")
+;;(web-vcs-match-folderwise ".*/ut../mum.el" "top/util")
+;;(web-vcs-match-folderwise ".*/ut../mum.el" "top")
+;;(web-vcs-match-folderwise "top/ut../mum.el" "top")
+;;(web-vcs-match-folderwise "util/web-autoload-2.el" "util/nxhtml-company-mode/")
+(defun web-vcs-match-folderwise (regex file)
+  "Split REGEXP as a file path and match against FILE parts."
+  ;;(message "folderwise %S %S" regex file)
+  (let ((lst-regex (web-vcs-file-name-as-list regex))
+        (lst-file  (web-vcs-file-name-as-list file)))
+    (when (>= (length lst-regex) (length lst-file))
+      (catch 'match
+        (while lst-file
+          (let ((head-file  (car lst-file))
+                (head-regex (car lst-regex)))
+            (unless (string-match-p (concat "^" head-regex "$") head-file)
+              (throw 'match nil)))
+          (setq lst-file  (cdr lst-file))
+          (setq lst-regex (cdr lst-regex)))
+        t))))
 
 (defun web-vcs-contains-file (dir file)
   "Return t if DIR contain FILE."
@@ -469,8 +550,8 @@ Also put FACE on the message in *Messages* buffer."
 (defun web-vcs-num-moved (root)
   "Return nof files matching *.moved inside directory ROOT."
   (let* ((file-regexp ".*\\.moved$")
-        (files (directory-files root t file-regexp))
-        (subdirs (directory-files root t)))
+         (files (directory-files root t file-regexp))
+         (subdirs (directory-files root t)))
     (dolist (subdir subdirs)
       (when (and (file-directory-p subdir)
                  (not (or (string= "/." (substring subdir -2))
@@ -497,7 +578,7 @@ Also put FACE on the message in *Messages* buffer."
                                  (concat "There are %d *.moved files (probably from prev download)\n"
                                          "in %S.\nPlease delete them first.")
                                  num-moved dl-dir)
-        t)))
+      t)))
 
 
 
@@ -533,7 +614,7 @@ To learn more about nXhtml visit its home page at URL
                                      (format "Update current nXhtml files (%s)? "
                                              nxhtml-install-dir)))
                            nxhtml-install-dir)
-                         (read-directory-name "Download nXhtml to: ")))
+                         (read-directory-name "Download nXhtml to directory: ")))
              ;; Fix-me: ask for latest revision or release, maybe also
              ;; rev number? Can't do that now because of the Emacs bug
              ;; that affects `nxhtml-get-release-revision'.
@@ -563,15 +644,24 @@ To learn more about nXhtml visit its home page at URL
       (when (re-search-forward rel-ver-regexp nil t)
         (match-string 1)))))
 
+(defvar web-vcs-nxhtml-base-url "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/")
+
+;; Fix-me: make gen for 'lp etc
+(defun nxhtml-download-root-url (revision)
+  (let* ((base-url web-vcs-nxhtml-base-url)
+         (files-url (concat base-url "files/"))
+         (rev-part (if revision (number-to-string revision) "head%3A/")))
+    (concat files-url rev-part)))
+
 (defun nxhtml-download-1 (dl-dir revision do-byte)
   "Download nXhtml to directory DL-DIR.
 If REVISION is nil download latest revision, otherwise the
 specified one.
 
 If DO-BYTE is non-nil byte compile nXhtml after download."
-  (let* ((base-url "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/")
+  (let* ((base-url web-vcs-nxhtml-base-url)
          (files-url (concat base-url "files/"))
-         (revs-url  (concat base-url "changes/"))
+         ;;(revs-url  (concat base-url "changes/"))
          (rev-part (if revision (number-to-string revision) "head%3A/"))
          (full-root-url (concat files-url rev-part)))
     (when (web-vcs-get-files-from-root 'lp full-root-url dl-dir)

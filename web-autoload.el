@@ -147,12 +147,14 @@ directly, otherwise download it first."
 (let ((src (if nil ;; local or remote
                "web-autoload-2"
              `(lp
-               ,(concat web-vcs-nxhtml-base-url "files/")
-               "util/web-autoload-3" nxhtml-install-dir))))
-  (web-autoload 'web-auto2-test1
+               ;;,(concat web-vcs-nxhtml-base-url "files/")
+               ,(nxhtml-download-root-url nil)
+               "util/web-autoload-2" nxhtml-install-dir))))
+  (web-autoload 'web-auto2-test9
                     src
                     "test" t nil))
 
+;; (fset 'web-auto2-test9 nil)
 ;; (web-auto2-test9 "Hi there")
 ;; (web-auto2-test1 "Hi there")
 ;; (find-lisp-object-file-name 'web-auto2-test9 nil)
