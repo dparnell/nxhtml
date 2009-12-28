@@ -6450,6 +6450,7 @@ It has the some priority as minor mode maps.")
        (rassq value mumamo-defined-multi-major-modes)))
 
 ;; fix-me: tell no sub-chunks in sub-chunks
+;;;###autoload
 (defmacro define-mumamo-multi-major-mode (fun-sym spec-doc chunks)
   "Define a function that turn on support for multiple major modes.
 Define a function FUN-SYM that set up to divide the current
