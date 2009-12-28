@@ -181,6 +181,7 @@ them."
     (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
     ;; Turn on `nxhtml-global-minor-mode' unconditionally
+    (message "Turn on `nxhtml-global-minor-mode' unconditionally")
     (nxhtml-global-minor-mode 1)
     (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
