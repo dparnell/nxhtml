@@ -147,7 +147,12 @@ directly, otherwise download it first."
                ;; Finally call the real function
                (if (called-interactively-p ',fun)
                    (call-interactively ',fun)
-                 (apply ',fun args)))
+                 (if (functionp ',fun)
+                     (apply ',fun args)
+                   ;; It is a macro
+                   (let ((the-macro (append `(,fun) args nil)))
+                     (eval the-macro))
+                   )))
            (fset ',fun auto-fun)
            (error "web-autoload: %s" err)
            )))
