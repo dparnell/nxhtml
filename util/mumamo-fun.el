@@ -54,6 +54,9 @@
 (eval-when-compile (add-to-list 'load-path default-directory))
 (require 'mumamo)
 
+;;;###autoload
+(defun mumamo-fun-require ())
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; File wide key bindings
 
