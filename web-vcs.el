@@ -266,7 +266,7 @@ Place the files under DL-DIR.
 The revision on the page URL should match DL-REVISION if this is non-nil.
 
 If TEST is non-nil then do not download, just list the files."
-  (message "web-vcs-get-files-on-page-1 %s %s %s %s %s %s %s %s" vcs-rec url dl-root dl-relative file-mask recursive dl-revision test)
+  ;;(message "web-vcs-get-files-on-page-1 %s %s %s %s %s %s %s %s" vcs-rec url dl-root dl-relative file-mask recursive dl-revision test)
   (let* ((files-href-regexp  (nth 2 vcs-rec))
          (dirs-href-regexp   (nth 3 vcs-rec))
          (file-name-regexp   (nth 4 vcs-rec))
@@ -331,7 +331,7 @@ If TEST is non-nil then do not download, just list the files."
               (set-buffer-modified-p nil)
               (kill-buffer temp-buf))
             ;; Use url-copy-file, this takes care of coding system.
-            (message "url-copy-file %S %S t t" file-url temp-file) ;; overwrite, keep time
+            ;;(message "url-copy-file %S %S t t" file-url temp-file) ;; overwrite, keep time
             (url-copy-file file-url temp-file t t) ;; overwrite, keep time
             (let* (;; (new-buf (find-file-noselect temp-file))
                    ;; (new-src (with-current-buffer new-buf
@@ -468,7 +468,7 @@ The buffer URL-BUF should contain the content on page URL."
 ;;(web-vcs-match-folderwise "util/web-autoload-2.el" "util/nxhtml-company-mode/")
 (defun web-vcs-match-folderwise (regex file)
   "Split REGEXP as a file path and match against FILE parts."
-  (message "folderwise %S %S" regex file)
+  ;;(message "folderwise %S %S" regex file)
   (let ((lst-regex (web-vcs-file-name-as-list regex))
         (lst-file  (web-vcs-file-name-as-list file)))
     (when (>= (length lst-regex) (length lst-file))
@@ -631,6 +631,7 @@ when you need them."
       (if (y-or-n-p (format "Directory %S does not exist, create it? " dl-dir))
           (make-directory dl-dir t)
         (error "Aborted by user")))
+    (setq message-log-max t)
     (unless (file-exists-p web-vcs-el)
       (copy-file web-vcs-el-src web-vcs-el))
     (catch 'command-level
@@ -672,6 +673,7 @@ To learn more about nXhtml visit its home page at URL
     (if (not (y-or-n-p msg))
         (message "Aborted")
       (message "")
+      (setq message-log-max t)
       (let* ((has-nxhtml (and (boundp 'nxhtml-install-dir)
                               nxhtml-install-dir))
              (dl-dir (or (when (and has-nxhtml
