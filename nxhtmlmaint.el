@@ -200,7 +200,20 @@ Update nXhtml autoload file with them."
            ( (match-string 1)
              (setq curr-src (match-string-no-properties 1))
              ;; Remove .el
-             (setq curr-src (substring curr-src 0 -3)))
+             (setq curr-src (substring curr-src 0 -3))
+             ;; Setup up for web autoload
+             (let* ((src-name (file-name-nondirectory curr-src))
+                    (feature (make-symbol src-name))
+                    )
+               (end-of-line)
+               (insert "\n"
+                       "(web-autoload-require '"
+                       (symbol-name feature)
+                       " 'lp"
+                       " (nxhtml-download-root-url nil)"
+                       " \"" curr-src "\""
+                       " nxhtml-install-dir)\n"))
+             )
            ( (match-string 2)
              (let ((file (match-string-no-properties 2)))
                (replace-match (concat "`(lp ,(nxhtml-download-root-url nil)"

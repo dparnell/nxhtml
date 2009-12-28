@@ -89,7 +89,7 @@
 
 ;; Require nxml things conditionally to silence byte compiler under
 ;; Emacs 22.
-(require 'rngalt nil t)
+(eval-and-compile (require 'rngalt nil t))
 
 (require 'url-parse)
 (require 'url-expand)
