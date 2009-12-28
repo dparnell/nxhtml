@@ -330,6 +330,7 @@ If TEST is non-nil then do not download, just list the files."
               (set-buffer-modified-p nil)
               (kill-buffer temp-buf))
             ;; Use url-copy-file, this takes care of coding system.
+            (message "url-copy-file %S %S t t" file-url temp-file) ;; overwrite, keep time
             (url-copy-file file-url temp-file t t) ;; overwrite, keep time
             (let* (;; (new-buf (find-file-noselect temp-file))
                    ;; (new-src (with-current-buffer new-buf
@@ -466,7 +467,7 @@ The buffer URL-BUF should contain the content on page URL."
 ;;(web-vcs-match-folderwise "util/web-autoload-2.el" "util/nxhtml-company-mode/")
 (defun web-vcs-match-folderwise (regex file)
   "Split REGEXP as a file path and match against FILE parts."
-  ;;(message "folderwise %S %S" regex file)
+  (message "folderwise %S %S" regex file)
   (let ((lst-regex (web-vcs-file-name-as-list regex))
         (lst-file  (web-vcs-file-name-as-list file)))
     (when (>= (length lst-regex) (length lst-file))
