@@ -85,7 +85,7 @@ directly, otherwise download it first."
                 (format "%S"
                         src))
        ,interactive
-       (let* ((lib-web (find-lisp-object-file-name ',fun (symbol-function ',fun)))
+       (let* ((lib-web (find-lisp-object-file-name ',fun 'defun))
               (old-hist-elt (load-history-filename-element lib-web))
               (auto-fun (symbol-function ',fun))
               err)
