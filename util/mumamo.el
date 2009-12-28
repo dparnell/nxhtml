@@ -246,7 +246,7 @@
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'desktop))
 (eval-when-compile (require 'flyspell))
-(eval-when-compile (require 'mlinks))
+(eval-when-compile (require 'mlinks nil t))
 (eval-when-compile (require 'nxml-mode nil t))
 (eval-when-compile
   (when (featurep 'nxml-mode)
