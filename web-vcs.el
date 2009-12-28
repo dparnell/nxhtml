@@ -49,6 +49,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl)) ;; assert
+(require 'hi-lock)
 
 (defgroup web-vcs nil
   "Customization group for web-vcs."

@@ -243,6 +243,7 @@ in buffers."
       (set-auto-mode t))
     ;;(msgtrc "majmodpri-check %s %s %s" (current-buffer) major-mode mumamo-multi-major-mode)
     (unless (and (eq old-major-mode major-mode)
+                 old-mumamo-multi-major-mode
                  (eq old-mumamo-multi-major-mode mumamo-multi-major-mode))
       ;;(msgtrc "majmodpri-check changing")
       (report-errors "File local-variables error: %s"
