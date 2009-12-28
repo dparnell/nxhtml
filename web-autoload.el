@@ -80,7 +80,7 @@ directly, otherwise download it first."
 ;; Fix-me: Use TYPE
 (defmacro web-autoload-1 (fun src docstring interactive type)
   `(progn
-     (defun ,fun (&rest args)
+     (,type ,fun (&rest args)
        ,(concat docstring
                 "\n\nArguments are not yet known since the real function is not loaded."
                 "\nFunction is defined by `web-autoload' to be loaded using definition\n\n  "
