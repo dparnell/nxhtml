@@ -842,9 +842,14 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;***
 
 ;;;### (autoloads (define-mumamo-multi-major-mode mumamo-multi-major-modep
-;;;;;;  mumamo-mark-for-refontification mumamo-hi-lock-faces mumamo)
-;;;;;;  "mumamo" "util/mumamo.el" (19256 11084))
+;;;;;;  mumamo-mark-for-refontification mumamo-hi-lock-faces mumamo
+;;;;;;  mumamo-require) "mumamo" "util/mumamo.el" (19256 13371))
 ;;; Generated autoloads from util/mumamo.el
+
+(nxhtml-autoload 'mumamo-require `(lp ,(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir) "\
+Not documented
+
+\(fn)" nil nil)
 
 (let ((loads (get 'mumamo 'custom-loads))) (if (member '"mumamo" loads) nil (put 'mumamo 'custom-loads (cons '"mumamo" loads))))
 
@@ -979,7 +984,7 @@ These are in the file mumamo-test.el.
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode
 ;;;;;;  mumamo-fun-require) "mumamo-fun" "util/mumamo-fun.el" (19256
-;;;;;;  12753))
+;;;;;;  13479))
 ;;; Generated autoloads from util/mumamo-fun.el
 
 (nxhtml-autoload 'mumamo-fun-require `(lp ,(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
@@ -3674,7 +3679,7 @@ accept it or skip it.
 ;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
 ;;;;;;  "util/useful-commands.el" "web-autoload-2.el" "web-autoload-3.el"
-;;;;;;  "web-autoload.el") (19256 12793 265000))
+;;;;;;  "web-autoload.el") (19256 13504 718000))
 
 ;;;***
 

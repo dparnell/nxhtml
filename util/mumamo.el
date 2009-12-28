@@ -257,6 +257,9 @@
 ;; For `define-globalized-minor-mode-with-on-off':
 ;;(require 'ourcomments-util)
 
+;;;###autoload
+(defun mumamo-require ())
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Debugging etc
 
