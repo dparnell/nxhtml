@@ -72,6 +72,7 @@ Loading will be done from the file resulting from expanding
 RELATIVE-URL relative to BASE-DIR.  If this file exists load it
 directly, otherwise download it first."
   (let ((int (when interactive '(interactive))))
+    (setq type (or type 'defun))
     (eval
      `(web-autoload-1 ,fun ,src ,docstring ,int ,type))))
 
