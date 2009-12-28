@@ -112,11 +112,11 @@ not the bug reported there however."
     (ert-simulate-command '(nxhtml-mumamo-mode) t)
     (nxhtmltest-fontify-default-way 2 "trans")
     (ert-simulate-command '(goto-char 74) t)
-    (ert-should (eq major-mode 'text-mode))
+    (ert-should (eq major-mode 'sql-mode))
     (ert-simulate-command '(goto-char 23) t)
     (ert-simulate-command '(backward-delete-char-untabify 1) t)
     (ert-simulate-command '(goto-char 74) t)
-    (ert-should (eq major-mode 'text-mode))
+    (ert-should (eq major-mode 'sql-mode))
     ))
 
 (ert-deftest nxhtml-ert-bug-300946-index ()
