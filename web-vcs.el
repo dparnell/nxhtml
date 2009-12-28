@@ -587,6 +587,61 @@ Also put FACE on the message in *Messages* buffer."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Specific
 
+(defun web-vcs-set&save-option (symbol value)
+  (customize-set-variable symbol value)
+  (customize-set-value symbol value)
+  (customize-mark-to-save symbol)
+  (custom-save-all)
+  (message "web-vcs: Saved option %s with value %s" symbol value))
+
+(defvar web-vcs-nxhtml-base-url "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/")
+
+;; Fix-me: make gen for 'lp etc
+(defun nxhtml-download-root-url (revision)
+  (let* ((base-url web-vcs-nxhtml-base-url)
+         (files-url (concat base-url "files/"))
+         (rev-part (if revision (number-to-string revision) "head%3A/")))
+    (concat files-url rev-part)))
+
+(defun nxhtml-setup-auto-download ()
+  "Set up to autoload nXhtml files from the web.
+This will download some initial files and then download the rest
+when you need them."
+  (interactive)
+  (when (condition-case nil
+            (custom-file)
+          (error nil))
+    (web-vcs-set&save-option 'nxhtml-autoload-web t))
+  (let* ((dl-dir (read-directory-name
+                  "Download nXhtml to directory for auto-downloaded files: "))
+         ;; Need some files:
+         (web-vcs-el-src (or load-file-name
+                             ;;(when (boundp 'bytecomp-filename) bytecomp-filename)
+                             buffer-file-name))
+         (web-vcs-el (expand-file-name (file-name-nondirectory web-vcs-el-src)
+                                       dl-dir))
+         (vcs 'lp)
+         (base-url (nxhtml-download-root-url nil))
+         )
+    (unless (file-exists-p dl-dir)
+      (if (y-or-n-p (format "Directory %S does not exist, create it? " dl-dir))
+          (make-directory dl-dir t)
+        (error "Aborted by user")))
+    (unless (file-exists-p web-vcs-el)
+      (copy-file web-vcs-el-src web-vcs-el))
+    (catch 'command-level
+      (unless (file-exists-p (expand-file-name "autostart.el" dl-dir))
+        (web-vcs-get-missing-matching-files vcs base-url dl-dir "autostart.el"))
+      (unless (file-exists-p (expand-file-name "nxhtml-loaddefs.el" dl-dir))
+        (web-vcs-get-missing-matching-files vcs base-url dl-dir "nxhtml-loaddefs.el"))
+      (unless (file-exists-p (expand-file-name "nxhtml-auto-helpers.el" dl-dir))
+        (web-vcs-get-missing-matching-files vcs base-url dl-dir "nxhtml-auto-helpers.el"))
+      (unless (file-exists-p (expand-file-name "web-autoload.el" dl-dir))
+        (web-vcs-get-missing-matching-files vcs base-url dl-dir "web-autoload.el"))
+      (load-file (expand-file-name "autostart.el" dl-dir))
+    )))
+
+
 ;;(call-interactively 'nxhtml-download)
 ;;;###autoload
 (defun nxhtml-download ()
@@ -643,15 +698,6 @@ To learn more about nXhtml visit its home page at URL
     (with-current-buffer url-buf
       (when (re-search-forward rel-ver-regexp nil t)
         (match-string 1)))))
-
-(defvar web-vcs-nxhtml-base-url "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/")
-
-;; Fix-me: make gen for 'lp etc
-(defun nxhtml-download-root-url (revision)
-  (let* ((base-url web-vcs-nxhtml-base-url)
-         (files-url (concat base-url "files/"))
-         (rev-part (if revision (number-to-string revision) "head%3A/")))
-    (concat files-url rev-part)))
 
 (defun nxhtml-download-1 (dl-dir revision do-byte)
   "Download nXhtml to directory DL-DIR.

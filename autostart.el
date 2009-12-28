@@ -140,6 +140,9 @@ them."
         (display-buffer buf)
       (message ""))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Code that will run on loading this file
+
 (unless (featurep 'nxhtml-autostart)
   ;; Provide the feature here to avoid loading looping on error.
   (provide 'nxhtml-autostart)
