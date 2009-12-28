@@ -89,11 +89,11 @@
 
 ;; Require nxml things conditionally to silence byte compiler under
 ;; Emacs 22.
-(require 'rngalt)
+(require 'rngalt nil t)
 
 (require 'url-parse)
 (require 'url-expand)
-(require 'popcmp)
+(require 'popcmp nil t)
 (eval-when-compile (require 'html-imenu nil t))
 (eval-when-compile (require 'tidy-xhtml nil t))
 (eval-when-compile (require 'html-quote nil t))
