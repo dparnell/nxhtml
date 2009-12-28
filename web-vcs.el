@@ -604,6 +604,10 @@ Also put FACE on the message in *Messages* buffer."
          (rev-part (if revision (number-to-string revision) "head%3A/")))
     (concat files-url rev-part)))
 
+(defvar web-vcs-el-this (or load-file-name
+                            (when (boundp 'bytecomp-filename) bytecomp-filename)
+                            buffer-file-name))
+
 (defun nxhtml-setup-auto-download ()
   "Set up to autoload nXhtml files from the web.
 This will download some initial files and then download the rest
@@ -616,9 +620,7 @@ when you need them."
   (let* ((dl-dir (read-directory-name
                   "Download nXhtml to directory for auto-downloaded files: "))
          ;; Need some files:
-         (web-vcs-el-src (or load-file-name
-                             ;;(when (boundp 'bytecomp-filename) bytecomp-filename)
-                             buffer-file-name))
+         (web-vcs-el-src (concat (file-name-sans-extension web-vcs-el-this) ".el"))
          (web-vcs-el (expand-file-name (file-name-nondirectory web-vcs-el-src)
                                        dl-dir))
          (vcs 'lp)
@@ -640,8 +642,8 @@ when you need them."
       (unless (file-exists-p (expand-file-name "web-autoload.el" dl-dir))
         (web-vcs-get-missing-matching-files vcs base-url dl-dir "web-autoload.el"))
       ;;(load (expand-file-name "etc/schema/schema-path-patch"
-      (unless (file-exists-p (expand-file-name "etc/schema/schema-patch-patch.el" dl-dir))
-        (web-vcs-get-missing-matching-files vcs base-url dl-dir "etc/schema/schema-patch-patch.el"))
+      (unless (file-exists-p (expand-file-name "etc/schema/schema-path-patch.el" dl-dir))
+        (web-vcs-get-missing-matching-files vcs base-url dl-dir "etc/schema/schema-path-patch.el"))
       ;;(load (expand-file-name "nxhtml/nxhtml-autoload" nxhtml-install-dir)))
       (unless (file-exists-p (expand-file-name "nxhtml/nxhtml-autoload.el" dl-dir))
         (web-vcs-get-missing-matching-files vcs base-url dl-dir "nxhtml/nxhtml-autoload.el"))
