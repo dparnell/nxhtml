@@ -150,7 +150,7 @@ directly, otherwise download it first."
                  (if (functionp ',fun)
                      (apply ',fun args)
                    ;; It is a macro
-                   (let ((the-macro (append `(,fun) args nil)))
+                   (let ((the-macro (append '(,fun) args nil)))
                      (eval the-macro))
                    )))
            (fset ',fun auto-fun)
