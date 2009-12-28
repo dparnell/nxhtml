@@ -179,6 +179,38 @@ Update nXhtml autoload file with them."
         (while (search-forward cus-auto nil t)
           (backward-char (1- (length cus-auto)))
           (insert "nxhtml-")))
+      ;; Load auto web helpers
+      (goto-char (point-min))
+      (search-forward "\f")
+      (insert "\n(require 'nxhtml-auto-helpers)\n")
+      ;; Fix autoload calls
+      (goto-char (point-min))
+      (let ((auto "(autoload "))
+        (while (search-forward auto nil t)
+          (backward-char (1- (length auto)))
+          (insert "nxhtml-")))
+      ;; Fix autoload source
+      (goto-char (point-min))
+      (let* ((patt-src "^;;; Generated autoloads from \\(.*\\)$")
+             (patt-auto "^(nxhtml-autoload '[^ ]+ \\(\"[^\"]+\"\\)")
+             (patt (concat "\\(?:" patt-src "\\)\\|\\(?:" patt-auto "\\)"))
+             curr-src)
+        (while (re-search-forward patt nil t)
+          (cond
+           ( (match-string 1)
+             (setq curr-src (match-string-no-properties 1)))
+           ( (match-string 2)
+             (let ((file (match-string-no-properties 2)))
+               (replace-match (concat "`(lp ,(nxhtml-download-root-url nil)"
+                                      " \"" curr-src "\""
+                                      " nxhtml-install-dir)")
+                              nil ;; fixedcase
+                              nil ;; literal
+                              nil ;; string
+                              2   ;; subexp
+                              ))
+             )
+           (t (error "No match???")))))
       ;; Save
       (basic-save-buffer))))
 
