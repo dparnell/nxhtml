@@ -66,7 +66,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'ourcomments-util))
+(eval-when-compile (require 'ourcomments-util nil t))
 (require 'url-parse)
 (require 'url-expand)
 (eval-when-compile (require 'appmenu nil t))

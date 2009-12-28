@@ -45,7 +45,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'nxhtml))
+(eval-when-compile (require 'nxhtml nil t))
 (eval-when-compile (require 'rng-valid nil t))
 (require 'mumamo-fun)
 

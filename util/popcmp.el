@@ -43,7 +43,7 @@
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'ourcomments-util))
+(eval-when-compile (require 'ourcomments-util nil t))
 
 ;;;###autoload
 (defgroup popcmp nil

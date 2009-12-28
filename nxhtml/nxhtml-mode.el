@@ -57,13 +57,13 @@
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'mumamo))
-(eval-when-compile (require 'foldit))
+(eval-when-compile (require 'mumamo nil t))
+(eval-when-compile (require 'foldit nil t))
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'appmenu-fold))
-(eval-when-compile (require 'xhtml-help))
+(eval-when-compile (require 'appmenu-fold nil t))
+(eval-when-compile (require 'xhtml-help nil t))
 ;;(eval-when-compile (require 'nxhtml-menu)
-(eval-when-compile (require 'fold-dwim))
+(eval-when-compile (require 'fold-dwim nil t))
 (eval-when-compile (require 'typesetter nil t))
 ;;(eval-when-compile (require 'outline)
 (eval-when-compile (require 'html-toc nil t))
@@ -94,9 +94,9 @@
 (require 'url-parse)
 (require 'url-expand)
 (require 'popcmp)
-(eval-when-compile (require 'html-imenu))
-(eval-when-compile (require 'tidy-xhtml))
-(eval-when-compile (require 'html-quote))
+(eval-when-compile (require 'html-imenu nil t))
+(eval-when-compile (require 'tidy-xhtml nil t))
+(eval-when-compile (require 'html-quote nil t))
 
 (defun nxhtml-version ()
   "Show nxthml version."

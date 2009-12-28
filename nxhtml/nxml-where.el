@@ -49,7 +49,7 @@
 ;; then enter the text in that file's own buffer.
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'mumamo))
+(eval-when-compile (require 'mumamo nil t))
 (eval-when-compile
   (unless (featurep 'nxhtml-autostart)
     (let ((efn (expand-file-name "../autostart.el")))

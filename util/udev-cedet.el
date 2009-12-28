@@ -49,7 +49,7 @@
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'udev))
+(eval-when-compile (require 'udev nil t))
 
 (defgroup udev-cedet nil
   "Customization group for udev-cedet."
