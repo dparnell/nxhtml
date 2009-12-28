@@ -158,7 +158,40 @@ directly, otherwise download it first."
            )))
      ))
 
+(defvar web-autoload-require-list nil)
 
+(defun web-autoload-require (feature web-vcs base-url relative-url base-dir)
+  "Prepare to download file if necessary when `require' is called.
+WEB-VCS BASE-URL RELATIVE-URL"
+  (add-to-list 'web-autoload-require-list `(,feature ,web-vcs ,base-url ,relative-url ,base-dir))
+  )
+
+(defadvice require (around
+                    web-autoload-ad-require
+                    activate
+                    compile
+                    )
+  (unless (featurep (ad-get-arg 0))
+    (let* ((feature (ad-get-arg 0))
+           (noerror (ad-get-arg 2))
+           (auto-rec (assq feature web-autoload-require-list))
+           (web-vcs      (nth 0 auto-rec))
+           (base-url     (nth 1 auto-rec))
+           (relative-url (nth 2 auto-rec))
+           (base-dir     (nth 3 auto-rec))
+           )
+      (if (not auto-rec)
+          ad-do-it
+        ;; Check if already downloaded first
+        (ad-set-arg 2 t) ;; noerror
+        ad-do-it
+        (unless (featurep feature)
+          ;; Download and try again
+          (catch 'command-level
+            (web-vcs-get-missing-matching-files web-vcs base-url base-dir relative-url))
+          (ad-set-arg 2 noerror)
+          ad-do-it
+          )))))
 
 (provide 'web-autoload)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

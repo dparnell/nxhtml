@@ -130,6 +130,42 @@ To create a menu item something similar to this can be used:
       \(list 'menu-item \"Toggle nice SYMBOL\"
             'SYMBOL-toggle
             :button '(:toggle . SYMBOL)))"
+  (declare (doc-string 3) (debug t))
+  (let* ((SYMBOL-toggle (intern (concat (symbol-name symbol) "-toggle")))
+         (SYMBOL-name (symbol-name symbol))
+         (var-doc doc)
+         (fun-doc (concat "Toggles the \(boolean) value of `"
+                          SYMBOL-name
+                          "'.\n"
+                          "For how to set it permanently see this variable.\n"
+                          ;;"\nDescription of `" SYMBOL-name "':\n" doc
+                          )))
+    ;; (message "define-toggle: SYMBOL-toggle=%S SYMBOL-name=%S" SYMBOL-toggle SYMBOL-name)
+    ;; (message "ret=%S"
+    ;;          (list 'progn
+    ;;             `(append '(defcustom ,symbol ,value ,doc)
+    ;;                     ',args
+    ;;                     nil)
+    ;;             `(defun ,SYMBOL-toggle ()
+    ;;               ,fun-doc
+    ;;               (interactive)
+    ;;               (customize-set-variable (quote ,symbol) (not ,symbol)))
+    ;;             ))
+    ;; (message ";;;;;;;;;;;;;;;;;;;;;;;;")
+    (let ((var `(append '(defcustom ,symbol ,value ,var-doc)
+                ',args
+                nil))
+          (fun `'(defun ,SYMBOL-toggle ()
+                   ,fun-doc
+                   (interactive)
+                   (customize-set-variable (quote ,symbol) (not ,symbol)))))
+      `(list 'progn ,var ,fun))
+    ))
+
+;;(macroexpand (define-toggle my-toggle t "doc" :tag "Short help" :group 'popcmp))
+
+;;;###autoload
+(defmacro define-toggle-old (symbol value doc &rest args)
   (declare (doc-string 3))
   (list
    'progn
