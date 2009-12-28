@@ -75,6 +75,8 @@ directly, otherwise download it first."
     (eval
      `(web-autoload-1 ,fun ,src ,docstring ,int ,type))))
 
+(defvar web-autoload-default-filename-element nil)
+
 ;; Fix-me: Use TYPE
 (defmacro web-autoload-1 (fun src docstring interactive type)
   `(progn
@@ -85,7 +87,8 @@ directly, otherwise download it first."
                 (format "%S"
                         src))
        ,interactive
-       (let* ((lib-web (find-lisp-object-file-name ',fun 'defun))
+       (let* ((lib-web (or (find-lisp-object-file-name ',fun 'defun)
+                           web-autoload-default-filename-element))
               (old-hist-elt (load-history-filename-element lib-web))
               (auto-fun (symbol-function ',fun))
               err)
