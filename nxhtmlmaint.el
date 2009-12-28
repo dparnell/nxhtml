@@ -198,7 +198,9 @@ Update nXhtml autoload file with them."
         (while (re-search-forward patt nil t)
           (cond
            ( (match-string 1)
-             (setq curr-src (match-string-no-properties 1)))
+             (setq curr-src (match-string-no-properties 1))
+             ;; Remove .el
+             (setq curr-src (substring curr-src 0 -3)))
            ( (match-string 2)
              (let ((file (match-string-no-properties 2)))
                (replace-match (concat "`(lp ,(nxhtml-download-root-url nil)"
