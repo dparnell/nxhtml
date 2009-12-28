@@ -71,7 +71,7 @@
 (eval-when-compile (require 'dired))
 (eval-when-compile (require 'gimpedit nil t))
 (eval-when-compile (require 'html-site nil t))
-(eval-when-compile (when (fboundp 'nxml-mode) (require 'nxhtml-mode)))
+(eval-when-compile (when (fboundp 'nxml-mode) (require 'nxhtml-mode nil t)))
 (eval-when-compile (require 'css-color nil t))
 (eval-when-compile (require 'flymake))
 ;;(eval-when-compile (require 'flymake-php))
