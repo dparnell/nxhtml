@@ -843,7 +843,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 
 ;;;### (autoloads (define-mumamo-multi-major-mode mumamo-multi-major-modep
 ;;;;;;  mumamo-mark-for-refontification mumamo-hi-lock-faces mumamo)
-;;;;;;  "mumamo" "util/mumamo.el" (19256 8828))
+;;;;;;  "mumamo" "util/mumamo.el" (19256 11084))
 ;;; Generated autoloads from util/mumamo.el
 
 (let ((loads (get 'mumamo 'custom-loads))) (if (member '"mumamo" loads) nil (put 'mumamo 'custom-loads (cons '"mumamo" loads))))
@@ -977,9 +977,15 @@ These are in the file mumamo-test.el.
 ;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode gsp-html-mumamo-mode
 ;;;;;;  ssjs-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
-;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19236 58484))
+;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode
+;;;;;;  mumamo-fun-require) "mumamo-fun" "util/mumamo-fun.el" (19256
+;;;;;;  12753))
 ;;; Generated autoloads from util/mumamo-fun.el
+
+(nxhtml-autoload 'mumamo-fun-require `(lp ,(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
+Not documented
+
+\(fn)" nil nil)
 
 (nxhtml-autoload 'html-mumamo-mode `(lp ,(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for (X)HTML with main mode `html-mode'.
@@ -3183,7 +3189,7 @@ Check if external modules used by nXhtml are found.
 ;;;;;;  smarty-nxhtml-mumamo-mode mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode
 ;;;;;;  mason-nxhtml-mumamo-mode django-nxhtml-mumamo-mode embperl-nxhtml-mumamo-mode
 ;;;;;;  nxhtml-mumamo-mode) "nxhtml-mumamo" "nxhtml/nxhtml-mumamo.el"
-;;;;;;  (19256 8883))
+;;;;;;  (19256 12778))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 
 (nxhtml-autoload 'nxhtml-mumamo-mode `(lp ,(nxhtml-download-root-url nil) "nxhtml/nxhtml-mumamo" nxhtml-install-dir) "\
@@ -3668,7 +3674,7 @@ accept it or skip it.
 ;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
 ;;;;;;  "util/useful-commands.el" "web-autoload-2.el" "web-autoload-3.el"
-;;;;;;  "web-autoload.el") (19256 9809 953000))
+;;;;;;  "web-autoload.el") (19256 12793 265000))
 
 ;;;***
 
