@@ -638,6 +638,12 @@ when you need them."
         (web-vcs-get-missing-matching-files vcs base-url dl-dir "nxhtml-auto-helpers.el"))
       (unless (file-exists-p (expand-file-name "web-autoload.el" dl-dir))
         (web-vcs-get-missing-matching-files vcs base-url dl-dir "web-autoload.el"))
+      ;;(load (expand-file-name "etc/schema/schema-path-patch"
+      (unless (file-exists-p (expand-file-name "etc/schema/schema-patch-patch.el" dl-dir))
+        (web-vcs-get-missing-matching-files vcs base-url dl-dir "etc/schema/schema-patch-patch.el"))
+      ;;(load (expand-file-name "nxhtml/nxhtml-autoload" nxhtml-install-dir)))
+      (unless (file-exists-p (expand-file-name "nxhtml/nxhtml-autoload.el" dl-dir))
+        (web-vcs-get-missing-matching-files vcs base-url dl-dir "nxhtml/nxhtml-autoload.el"))
       (load-file (expand-file-name "autostart.el" dl-dir))
     )))
 
