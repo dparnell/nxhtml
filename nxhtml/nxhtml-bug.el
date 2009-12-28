@@ -44,7 +44,7 @@
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'nxhtml-menu))
+(eval-when-compile (require 'nxhtml-menu nil t))
 
 (require 'sendmail)
 

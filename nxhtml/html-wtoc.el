@@ -46,7 +46,7 @@
 ;;; Code:
 
 (eval-when-compile (add-to-list 'load-path default-directory load-path))
-(eval-when-compile (require 'html-toc))
+(eval-when-compile (require 'html-toc nil t))
 
 ;;;###autoload
 (defgroup html-wtoc nil

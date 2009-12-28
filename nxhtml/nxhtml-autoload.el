@@ -47,8 +47,8 @@
 
 (message "nxhtml-autoload starting ... (hm, should maybe be renamed ...)")
 
-(eval-when-compile (require 'majmodpri))
-(eval-when-compile (require 'moz))
+(eval-when-compile (require 'majmodpri nil t))
+(eval-when-compile (require 'moz nil t))
 
 ;;; Convenient moving by tags:
 (eval-after-load 'nxml-mode

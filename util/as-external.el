@@ -62,14 +62,14 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'html-write))
-(eval-when-compile (require 'mumamo))
-(eval-when-compile (require 'ourcomments-util))
+(eval-when-compile (require 'html-write nil t))
+(eval-when-compile (require 'mumamo nil t))
+(eval-when-compile (require 'ourcomments-util nil t))
 (eval-when-compile
   (when (featurep 'nxml-mode)
-    (require 'nxhtml)
-    (require 'nxhtml-mumamo)))
-(eval-when-compile (require 'wikipedia-mode))
+    (require 'nxhtml nil t)
+    (require 'nxhtml-mumamo nil t)))
+(eval-when-compile (require 'wikipedia-mode nil t))
 (eval-when-compile (require 'server))
 
 ;;;###autoload

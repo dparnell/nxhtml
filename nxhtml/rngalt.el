@@ -48,7 +48,7 @@
 
 (eval-when-compile (require 'rng-valid))
 (eval-when-compile (require 'rng-nxml))
-(eval-when-compile (unless load-file-name (require 'nxhtml-mode)))
+(eval-when-compile (unless load-file-name (require 'nxhtml-mode nil t)))
 
 (require 'rng-valid)
 ;;(require 'ourcomments-util)

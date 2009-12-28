@@ -351,8 +351,10 @@ FORMAT-STRING and ARGS have the same meaning as for the function
   ;;(list 'apply (list 'quote 'msgtrc) format-string (append '(list) args))
   ;;(list 'apply (list 'quote 'message) format-string (append '(list) args))
   ;;(list 'progn 'apply (list 'quote 'message) format-string (append '(list) args) nil)
-  ;;(list 'apply (list 'quote 'message) format-string (append '(list) args)) ;; <--
-  (message "%s %S" format-string args)
+  ;; (condition-case err
+      ;; (list 'apply (list 'quote 'message) format-string (append '(list) args)) ;; <--
+    ;; (error (message "err in msgfntfy %S" err)))
+  ;;(message "%s %S" format-string args)
   ;;(list 'apply (list 'quote 'message) (list 'concat "%s: " format-string)
   ;;   (list 'get-internal-run-time) (append '(list) args))
   )
@@ -1119,14 +1121,24 @@ Lookup in this list is done by `mumamo-major-mode-from-modespec'."
   "This function is added to `fontification-functions' by mumamo.
 START is a parameter given to functions in that hook."
   (mumamo-msgfntfy "mumamo-jit-lock-function %s, ff=%s, just-changed=%s"
-                   start (when start (get-text-property start 'fontified)) mumamo-just-changed-major)
+                   start
+                   (when start
+                     (save-restriction
+                       (widen)
+                       (get-text-property start 'fontified)))
+                   mumamo-just-changed-major)
   ;;(msgtrc "jit-lock-function %s, ff=%s, just-changed=%s" start (get-text-property start 'fontified) mumamo-just-changed-major)
   ;;(msgtrc "mumamo-jit-lock-function enter: font-lock-keywords-only def=%s" (default-value 'font-lock-keywords-only))
   (if mumamo-just-changed-major
       (setq mumamo-just-changed-major nil))
   (let ((ret (jit-lock-function start)))
     (mumamo-msgfntfy "mumamo-jit-lock-function EXIT %s, ff=%s, just-changed=%s"
-                     start (when start (get-text-property start 'fontified)) mumamo-just-changed-major)
+                     start
+                     (when start
+                       (save-restriction
+                         (widen)
+                         (get-text-property start 'fontified)))
+                     mumamo-just-changed-major)
     ;;(msgtrc "mumamo-jit-lock-function exit: font-lock-keywords-only def=%s" (default-value 'font-lock-keywords-only))
     ret))
 
@@ -1344,7 +1356,8 @@ ends before END then create chunks upto END."
   (unless (and (overlayp mumamo-last-chunk) (overlay-buffer mumamo-last-chunk)) (setq mumamo-last-chunk nil))
   (save-restriction
     (widen)
-    ;;(msgtrc "find-chunks: mumamo-last-change-pos=%s" mumamo-last-change-pos)
+    ;;(msgtrc "find-chunks: tracer=%S mumamo-last-change-pos=%s" tracer mumamo-last-change-pos)
+    ;;(message "find-chunks: tracer=%S mumamo-last-change-pos=%s" tracer mumamo-last-change-pos)
     (let* ((mumamo-find-chunks-1-active t)
            (here (point))
            ;; Any changes?
@@ -1384,10 +1397,12 @@ ends before END then create chunks upto END."
         (assert in-min-border)) ;; 0 len must be in border
       ;;(msgtrc "find-chunks:first-check-from=%s, chunk-at-change-min=%s/%s" first-check-from chunk-at-change-min (mumamo-chunk-major-mode chunk-at-change-min))
       (when mumamo-last-change-pos
+        (message "mumamo-last-change-pos=%S, chunk-at-change-min=%s" mumamo-last-change-pos chunk-at-change-min)
         ;; Fix-me:
+        ;;(when chunk-at-change-min (mumamo-clear-chunk-cache chunk-at-change-min))
         (when chunk-at-change-min
           ;; Fix-me: clearing of cache must be done later.
-          (mumamo-clear-chunk-cache chunk-at-change-min)
+          ;;(mumamo-clear-chunk-cache chunk-at-change-min)
           ;; Divide the chunk list in a part we know are correct and a tail we want to check.
           ;;(while (and (> 500 (setq while-n0 (1+ while-n0)))
           (while (and (mumamo-while 500 'while-n0 "mumamo-last-chunk first-check-from")
@@ -1416,7 +1431,7 @@ ends before END then create chunks upto END."
                       mumamo-last-chunk
                       ;;(= (point-max) (overlay-end mumamo-last-chunk))
                       (= (overlay-end mumamo-last-chunk) (overlay-start mumamo-last-chunk)))
-            ;;(msgtrc "delete-overlay at end")
+            (msgtrc "delete-overlay at end")
             (delete-overlay mumamo-last-chunk)
             (setq mumamo-last-chunk (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))
             (when mumamo-last-chunk (overlay-put mumamo-last-chunk 'mumamo-next-chunk nil)))
@@ -1445,7 +1460,14 @@ ends before END then create chunks upto END."
         (when (>= ok-pos end)
           (setq this-new-chunk (mumamo-get-existing-new-chunk-at end))
           ;;(msgtrc "find-chunks:using old at end=%s, ok-pos=%s, this-new-chunk=%s" end ok-pos this-new-chunk)
-          (unless this-new-chunk (error "Could not find new chunk though ok-pos-new=%s > end=%s (ovls at end=%s)" ok-pos end (overlays-in end end))))
+          (unless this-new-chunk
+            (error "Could not find new chunk though ok-pos-new=%s > end=%s (ovls at end=%s), last-change-pos=%S, level=%d, old-tail=%s, %S"
+                   ok-pos end (overlays-in end end)
+                   mumamo-last-change-pos
+                   mumamo-find-chunks-level
+                   mumamo-old-tail
+                   tracer
+                   )))
         (unless this-new-chunk
           (save-match-data
             (unless  mumamo-find-chunk-is-active
@@ -1521,7 +1543,7 @@ ends before END then create chunks upto END."
                         (while (and (mumamo-while 500 'while-n2 "mumamo-old-tail")
                                     (and mumamo-old-tail (< (overlay-start mumamo-old-tail) ok-pos)))
                           (mumamo-mark-for-refontification (overlay-start mumamo-old-tail) (overlay-end mumamo-old-tail))
-                          ;;(msgtrc "find-chunks:not eq delete %s" mumamo-old-tail)
+                          (msgtrc "find-chunks:not eq delete %s" mumamo-old-tail)
                           (delete-overlay mumamo-old-tail)
                           (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))
                           (or (not mumamo-old-tail)
@@ -1559,6 +1581,7 @@ ends before END then create chunks upto END."
             (goto-char here)
             (setq  mumamo-find-chunk-is-active nil)))
         ;; fix-me: continue here
+        (when chunk-at-change-min (mumamo-clear-chunk-cache chunk-at-change-min))
         (setq mumamo-find-chunks-level (1- mumamo-find-chunks-level))
         ;; Avoid empty overlays at the end of the buffer. Those can
         ;; come from for example deleting to the end of the buffer.
@@ -1572,7 +1595,7 @@ ends before END then create chunks upto END."
                      (= (overlay-start prev-chunk) (overlay-end prev-chunk)))
             (overlay-put prev-chunk 'mumamo-next-chunk nil)
             (overlay-put prev-chunk 'mumamo-prev-chunk nil)
-            ;;(msgtrc "find-chunks:deleting this-new-chunk %s" this-new-chunk)
+            (msgtrc "find-chunks:deleting this-new-chunk %s" this-new-chunk)
             (delete-overlay this-new-chunk)
             (setq this-new-chunk prev-chunk)
             )
@@ -1586,7 +1609,7 @@ ends before END then create chunks upto END."
             ;;(msgtrc "here b, mumamo-old-tail=%s" mumamo-old-tail)
             (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))
             ;;(msgtrc "here c, mumamo-old-tail=%s" mumamo-old-tail)
-            ;;(msgtrc "mumamo-find-chunks-1:after mumamo-old-tail=%s" mumamo-old-tail)
+            (msgtrc "mumamo-find-chunks-1:after mumamo-old-tail=%s" mumamo-old-tail)
             (delete-overlay prev-chunk)
             ;;(msgtrc "mumamo-find-chunks-1:after (delete-overlay prev-chunk), mumamo-old-tail=%s" mumamo-old-tail)
             )
@@ -2061,7 +2084,13 @@ fontification."
 (defun mumamo-unfontify-region-with (start end major)
   "Unfontify from START to END as in major mode MAJOR."
   (mumamo-msgfntfy "mumamo-unfontify-region-with %s %s %s, ff=%s"
-                   start end major (when start (get-text-property start 'fontified)))
+                   start
+                   end
+                   major
+                   (when start
+                     (save-restriction
+                       (widen)
+                       (get-text-property start 'fontified))))
   (mumamo-with-major-mode-fontification major
     `(mumamo-do-unfontify ,start ,end)))
 
@@ -2102,7 +2131,7 @@ This function is called when the minor mode function
                 (when major
                   (unless (eq major main-major)
                     (mumamo-unfontify-chunk o))
-                  ;;(msgtrc "delete-overlay 1")
+                  (msgtrc "delete-overlay 1")
                   (delete-overlay o)
                   ))))
           (mumamo-unfontify-region-with (point-min) (point-max)
@@ -3636,7 +3665,7 @@ See also `mumamo-quick-static-chunk'."
     (let ((ovls (overlays-in (point-min) (point-max))))
       (dolist (ovl ovls)
         (when (overlay-get ovl 'mumamo-is-new)
-          ;;(msgtrc "delete-overlay %s delete-new-chunks" ovl)
+          (msgtrc "delete-overlay %s delete-new-chunks" ovl)
           (delete-overlay ovl))))))
 
 (defun mumamo-new-create-chunk (new-chunk-values)
@@ -4828,6 +4857,7 @@ explanation."
   "See `mumamo-post-command'.
 Turn on `debug-on-error' unless NO-DEBUG is nil."
   (unless no-debug (setq debug-on-error t))
+  (setq mumamo-find-chunks-level 0)
   (mumamo-msgfntfy "mumamo-post-command-1 ENTER: font-lock-mode=%s" font-lock-mode)
   (if font-lock-mode
       (mumamo-set-major-post-command)
@@ -4884,7 +4914,7 @@ Change major mode if necessary."
     (mumamo-condition-case err
         (mumamo-post-command-1 t)
       (error
-       (mumamo-msgfntfy "mumamo-post-command %s" (error-message-string err))
+       (mumamo-msgfntfy "mumamo-post-command %S" err)
        ;; Warnings are to disturbing when run in post-command-hook,
        ;; but this message is important so show it with an highlight.
        (message

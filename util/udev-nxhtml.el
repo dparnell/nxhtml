@@ -45,7 +45,7 @@
 ;;; Code:
 
 (require 'vc-bzr)
-(eval-when-compile (require 'udev))
+(eval-when-compile (require 'udev nil t))
 
 (defvar udev-nxhtml-install-dir nil)
 
