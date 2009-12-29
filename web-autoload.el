@@ -135,7 +135,7 @@ directly, otherwise download it first."
              ;; Fix-me: defadvice require to load from the web if
              ;; necessary? Or rather change all relevant require
              ;; statements?
-             (load dl-file)
+             (load (file-name-sans-extension dl-file))
              (unless (symbol-function ',fun)
                (setq err (format "%s is not in downloaded library %s" ',fun dl-file)))
              ))
