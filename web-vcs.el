@@ -284,7 +284,8 @@ If TEST is non-nil then do not download, just list the files."
       (goto-char (point-min))
       (unless (looking-at "HTTP/.* 200 OK\n")
         (switch-to-buffer url-buf)
-        (error "Download error: %S" url))
+        (message "Download error: %S" url)
+        (throw 'command-level nil))
       (unless (file-directory-p dl-dir)
         (make-directory dl-dir t))
       ;; Get revision number
