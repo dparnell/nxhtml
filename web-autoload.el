@@ -173,6 +173,18 @@ WEB-VCS BASE-URL RELATIVE-URL"
   (add-to-list 'web-autoload-require-list `(,feature ,web-vcs ,base-url ,relative-url ,base-dir))
   )
 
+(defun web-autoload-do-require (feature filename noerror)
+  (let ((feat-name (symbol-name feature))
+        (file (or filename (locate-library feat-name)))
+        (ret feature))
+    (if (not file) ;; Did not exist
+        (unless noerror
+          (error "web-autoload: Cannot locate library %S" feat-name))
+      (if (not (file-exists-p file))
+          (unless noerror
+            (error "web-autoload: Library %S does not exist" file))
+        feature))))
+
 (defadvice require (around
                     web-autoload-ad-require
                                         ;activate
@@ -181,11 +193,16 @@ WEB-VCS BASE-URL RELATIVE-URL"
   (if (or (not (boundp 'web-auto-load-skip-require-advice))
           web-auto-load-skip-require-advice)
       (progn
-        (message "Doing original require, because skipping")
-        ad-do-it)
+        (message "Doing nearly original require %s, because skipping" (ad-get-arg 0))
+        ;;ad-do-it
+        ;; Can't ad-do-it because defadviced functions in load
+        (web-autoload-do-require (ad-get-arg 0)
+                                 (ad-get-arg 1)
+                                 (ad-get-arg 2)))
     (unless (featurep (ad-get-arg 0))
-      (let* ((feature (ad-get-arg 0))
-             (noerror (ad-get-arg 2))
+      (let* ((feature  (ad-get-arg 0))
+             (filename (ad-get-arg 1))
+             (noerror  (ad-get-arg 2))
              (auto-rec (assq feature web-autoload-require-list))
              (web-vcs      (nth 1 auto-rec))
              (base-url     (nth 2 auto-rec))
@@ -194,13 +211,17 @@ WEB-VCS BASE-URL RELATIVE-URL"
              )
         (if (not auto-rec)
             (progn
-              (message "Doing original require, because no auto-rec")
-              ad-do-it)
-          (message "Doing the really adviced require")
+              (message "Doing nearly original require %s, because no auto-rec" feature)
+              ;;ad-do-it
+              (web-autoload-do-require feature filename noerror))
+          (message "Doing the really adviced require for %s" feature)
           ;; Check if already downloaded first
-          (ad-set-arg 2 t) ;; noerror
-          ad-do-it
-          (unless (featurep feature)
+          (condition-case err
+              ;;ad-do-it
+              (web-autoload-do-require feature filename noerror)
+            (error (message "ad-do-it require failed for %s: %s" feature (error-message-string err))))
+          (if (featurep feature)
+              feature
             ;; Download and try again
             (setq relative-url (concat relative-url ".el"))
             (web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s (%S %S => %S)" feature base-url relative-url base-dir)
@@ -209,9 +230,8 @@ WEB-VCS BASE-URL RELATIVE-URL"
             (web-vcs-message-with-face 'font-lock-comment-face "After downloaded feature %s (%S %S => %S)" feature base-url relative-url base-dir)
             ;; Byte compile the downloaded file
             (let ((dl-file (expand-file-name relative-url base-dir)))
-              (web-vcs-byte-compile-file dl-file nil))
-            (ad-set-arg 2 noerror)
-            ad-do-it
+              (web-vcs-byte-compile-file dl-file t))
+            (when (featurep feature) feature)
             ))))))
 
 (provide 'web-autoload)
