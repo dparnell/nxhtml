@@ -607,7 +607,8 @@ The validation header is only displayed in buffers where the main
 major mode is derived from `nxml-mode'."
   :set (lambda (sym val)
          (set-default sym val)
-         (rngalt-update-validation-header-overlay-everywhere))
+         (when (fboundp 'rngalt-update-validation-header-overlay-everywhere)
+           (rngalt-update-validation-header-overlay-everywhere)))
   :group 'relax-ng
   :group 'nxhtml)
 
@@ -616,7 +617,8 @@ major mode is derived from `nxml-mode'."
 See also `rngalt-display-validation-header'."
   :set (lambda (sym val)
          (set-default sym val)
-         (rngalt-update-validation-header-overlay-everywhere))
+         (when (fboundp 'rngalt-update-validation-header-overlay-everywhere)
+           (rngalt-update-validation-header-overlay-everywhere)))
   :group 'relax-ng
   :group 'nxhtml)
 

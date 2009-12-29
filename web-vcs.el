@@ -597,6 +597,7 @@ Also put FACE on the message in *Messages* buffer."
 
 
 (defvar web-vcs-byte-compiling nil)
+(defvar web-vcs-compile-queue nil)
 (defun web-vcs-byte-compile-file (file load)
   "Compile and load FILE. Or just load."
   (let ((compiled-it nil))
@@ -617,7 +618,14 @@ Also put FACE on the message in *Messages* buffer."
         (error
          (web-vcs-message-with-face
           'web-vcs-red "Error in byte compiling %S: %s" file (error-message-string err)))))
+    ;; If we did compile then it is free to compile again now.
+    (when compiled-it
+      (while web-vcs-compile-queue
+        (let ((file (car web-vcs-compile-queue)))
+          (web-vcs-byte-compile-file file t))
+        (setq web-vcs-compile-queue (cdr web-vcs-compile-queue))))
     (unless compiled-it
+      (add-to-list 'web-vcs-compile-queue file)
       (when load
         (let ((web-auto-load-skip-require-advice t))
           (load file))))))
