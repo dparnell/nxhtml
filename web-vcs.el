@@ -606,23 +606,25 @@ Also put FACE on the message in *Messages* buffer."
       (let ((elc-file (concat (file-name-sans-extension file) ".elc")))
         (if (file-exists-p elc-file)
             (progn
-              (load-file elc-file)
+              (when load
+                (load-file elc-file))
               (setq compiled-it t))
           (condition-case err
-              (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" file)
-            (when (ad-is-advised 'require)
-              (ad-disable-advice 'require 'around 'web-autoload-ad-require))
-            (let ((web-auto-load-skip-require-advice t)
-                  (web-vcs-byte-compiling t))
-              (byte-compile-file file load))
-            (when (ad-is-advised 'require)
-              (ad-enable-advice 'require 'around 'web-autoload-ad-require))
-            (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file)
-            (setq compiled-it t))
-          (error
-           (setq compiled-it t)
-           (web-vcs-message-with-face
-            'web-vcs-red "Error in byte compiling %S: %s" file (error-message-string err))))))
+              (progn
+                (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" file)
+                (when (ad-is-advised 'require)
+                  (ad-disable-advice 'require 'around 'web-autoload-ad-require))
+                (let ((web-auto-load-skip-require-advice t)
+                      (web-vcs-byte-compiling t))
+                  (byte-compile-file file load))
+                (when (ad-is-advised 'require)
+                  (ad-enable-advice 'require 'around 'web-autoload-ad-require))
+                (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file)
+                (setq compiled-it t))
+            (error
+             (setq compiled-it t)
+             (web-vcs-message-with-face
+              'web-vcs-red "Error in byte compiling %S: %s" file (error-message-string err)))))))
     ;; If we did compile then it is free to compile again now.
     (when compiled-it
       (while web-vcs-compile-queue
