@@ -134,13 +134,13 @@ directly, otherwise download it first."
                (unless (file-exists-p dl-file)
                  (web-vcs-message-with-face 'web-vcs-red "Could not download file %s" dl-file)
                  (throw 'command-level nil))
-               (web-vcs-byte-compile-file dl-file)
+               (web-vcs-byte-compile-file dl-file t)
                )
              ;; Is it already loaded, or?
              (unless (symbol-function ',fun)
                (let ((dl-file-noel (file-name-sans-extension dl-file)))
                  (load dl-file-noel)
-                 (web-vcs-byte-compile-file dl-file-noel)))
+                 (web-vcs-byte-compile-file dl-file-noel t)))
              (unless (symbol-function ',fun)
                (setq err (format "%s is not in downloaded library %s" ',fun dl-file)))
              ))
@@ -209,7 +209,7 @@ WEB-VCS BASE-URL RELATIVE-URL"
             (web-vcs-message-with-face 'font-lock-comment-face "After downloaded feature %s (%S %S => %S)" feature base-url relative-url base-dir)
             ;; Byte compile the downloaded file
             (let ((dl-file (expand-file-name relative-url base-dir)))
-              (web-vcs-byte-compile-file dl-file))
+              (web-vcs-byte-compile-file dl-file nil))
             (ad-set-arg 2 noerror)
             ad-do-it
             ))))))
