@@ -175,16 +175,12 @@ WEB-VCS BASE-URL RELATIVE-URL"
 
 (defun web-autoload-do-require (feature filename noerror)
   (let* ((feat-name (symbol-name feature))
-         (file (or filename (locate-library feat-name)))
-         (ret feature))
-    (if (not file) ;; Did not exist
-        (unless noerror
-          (error "web-autoload: Cannot locate library %S" feat-name))
-      (if (not (file-exists-p file))
-          (unless noerror
-            (error "web-autoload: Library %S does not exist" file))
-        (load (file-name-sans-extension file))
-        feature))))
+         (lib (or filename feat-name)))
+    (if (load lib noerror)
+        feature
+      (message "web-autoload: Could not (require %s %S %s)" feature filename noerror)
+      nil
+      )))
 
 (defadvice require (around
                     web-autoload-ad-require
@@ -231,8 +227,8 @@ WEB-VCS BASE-URL RELATIVE-URL"
             (web-vcs-message-with-face 'font-lock-comment-face "After downloaded feature %s (%S %S => %S)" feature base-url relative-url base-dir)
             ;; Byte compile the downloaded file
             (let ((dl-file (expand-file-name relative-url base-dir)))
-              (web-vcs-byte-compile-file dl-file t))
-            (when (featurep feature) feature)
+              (web-vcs-byte-compile-file dl-file nil))
+            (web-autoload-do-require feature filename noerror)
             ))))))
 
 (provide 'web-autoload)
