@@ -194,13 +194,7 @@ WEB-VCS BASE-URL RELATIVE-URL"
           (web-vcs-message-with-face 'font-lock-comment-face "After downloaded feature %s (%S %S => %S)" feature base-url relative-url base-dir)
           ;; Byte compile the downloaded file
           (let ((dl-file (expand-file-name relative-url base-dir)))
-            (condition-case err
-                (progn
-                  (message "Start byte compiling %s" dl-file)
-                  (byte-compile-file dl-file)
-                  (message "Ready byte compiling %s" dl-file))
-              (error
-               (web-vcs-message-with-face 'web-vcs-red "Error in byte compilation: %s" (error-message-string err)))))
+            (web-vcs-byte-compile-file dl-file))
           (ad-set-arg 2 noerror)
           ad-do-it
           )))))

@@ -180,7 +180,9 @@ If TEST is non-nil then do not download, just list the files."
                        (error "Does not know web-cvs %S" web-vcs)))
           (start-time (current-time)))
       (unless (file-directory-p dl-dir)
-        (if (yes-or-no-p (format "Directory %S does not exist, create it? " (expand-file-name dl-dir)))
+        (if (yes-or-no-p (format "Directory %S does not exist, create it? "
+                                 (file-name-as-directory
+                                  (expand-file-name dl-dir))))
             (mkdir dl-dir t)
           (message "Can't download then")
           (throw 'command-level nil)))
@@ -629,14 +631,22 @@ when you need them."
             (custom-file)
           (error nil))
     (web-vcs-set&save-option 'nxhtml-autoload-web t))
-  (let* ((dl-dir (read-directory-name
-                  "Download nXhtml to directory for auto-downloaded files: "))
+  (let* ((dl-dir (file-name-as-directory
+                  (read-directory-name
+                   "Download nXhtml to directory for auto-downloaded files: ")))
          ;; Need some files:
          (web-vcs-el-src (concat (file-name-sans-extension web-vcs-el-this) ".el"))
          (web-vcs-el (expand-file-name (file-name-nondirectory web-vcs-el-src)
                                        dl-dir))
          (vcs 'lp)
          (base-url (nxhtml-download-root-url nil))
+         (basic-files '(
+                        "web-autoload.el"
+                        "nxhtml-auto-helpers.el"
+                        "nxhtml-loaddefs.el"
+                        "autostart.el"
+                        "etc/schema/schema-path-patch.el"
+                        "nxhtml/nxhtml-autoload.el"))
          )
     (unless (file-exists-p dl-dir)
       (if (y-or-n-p (format "Directory %S does not exist, create it? " dl-dir))
@@ -645,24 +655,25 @@ when you need them."
     (setq message-log-max t)
     (unless (file-exists-p web-vcs-el)
       (copy-file web-vcs-el-src web-vcs-el))
+    (web-vcs-byte-compile-file web-vcs-el)
     (catch 'command-level
-      (unless (file-exists-p (expand-file-name "autostart.el" dl-dir))
-        (web-vcs-get-missing-matching-files vcs base-url dl-dir "autostart.el"))
-      (unless (file-exists-p (expand-file-name "nxhtml-loaddefs.el" dl-dir))
-        (web-vcs-get-missing-matching-files vcs base-url dl-dir "nxhtml-loaddefs.el"))
-      (unless (file-exists-p (expand-file-name "nxhtml-auto-helpers.el" dl-dir))
-        (web-vcs-get-missing-matching-files vcs base-url dl-dir "nxhtml-auto-helpers.el"))
-      (unless (file-exists-p (expand-file-name "web-autoload.el" dl-dir))
-        (web-vcs-get-missing-matching-files vcs base-url dl-dir "web-autoload.el"))
-      ;;(load (expand-file-name "etc/schema/schema-path-patch"
-      (unless (file-exists-p (expand-file-name "etc/schema/schema-path-patch.el" dl-dir))
-        (web-vcs-get-missing-matching-files vcs base-url dl-dir "etc/schema/schema-path-patch.el"))
-      ;;(load (expand-file-name "nxhtml/nxhtml-autoload" nxhtml-install-dir)))
-      (unless (file-exists-p (expand-file-name "nxhtml/nxhtml-autoload.el" dl-dir))
-        (web-vcs-get-missing-matching-files vcs base-url dl-dir "nxhtml/nxhtml-autoload.el"))
-      (load-file (expand-file-name "autostart.el" dl-dir))
-    )))
+      (dolist (file basic-files)
+        (let ((dl-file (expand-file-name file dl-dir)))
+          (unless (file-exists-p dl-file)
+            (web-vcs-get-missing-matching-files vcs base-url dl-dir file))))
+      (dolist (file basic-files)
+        (let ((dl-file (expand-file-name file dl-dir)))
+          (web-vcs-byte-compile-file dl-file)))
+      (load-file (expand-file-name "autostart.elc" dl-dir)))))
 
+(defun web-vcs-byte-compile-file (file)
+  (condition-case err
+      (progn
+        (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" file)
+        (byte-compile-file file)
+        (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file))
+    (error
+     (web-vcs-message-with-face 'web-vcs-red "Error in byte compiling: %s" (error-message-string err)))))
 
 ;;(call-interactively 'nxhtml-download)
 ;;;###autoload
