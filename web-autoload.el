@@ -191,7 +191,13 @@ WEB-VCS BASE-URL RELATIVE-URL"
             (web-vcs-get-missing-matching-files web-vcs base-url base-dir relative-url))
           ;; Byte compile the downloaded file
           (let ((dl-file (concat (expand-file-name relative-url base-dir) ".el")))
-            (byte-compile-file dl-file))
+            (condition-case err
+                (progn
+                  (message "Start byte compiling %s" dl-file)
+                  (byte-compile-file dl-file)
+                  (message "Ready byte compiling %s" dl-file))
+              (error
+               (message "Error in byte compilation: %s" (error-message-string err)))))
           (ad-set-arg 2 noerror)
           ad-do-it
           )))))
