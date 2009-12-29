@@ -55,7 +55,7 @@
 (eval-when-compile (require 'ourcomments-util nil t))
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'dired))
-(eval-when-compile (require 'ffip))
+(eval-when-compile (require 'ffip nil t))
 (eval-when-compile (require 'grep))
 ;;(defvar html-site-list) ;; Silence compiler
 ;;(defvar html-site-current) ;; Silence compiler
@@ -185,7 +185,7 @@
 (defun html-site-find-file ()
   "Find file in current site."
   (interactive)
-  (require 'ffip)
+  ;;(require 'ffip)
   (ffip-set-current-project html-site-current
                             (html-site-current-site-dir)
                             'nxhtml)
