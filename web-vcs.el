@@ -266,7 +266,7 @@ Place the files under DL-DIR.
 The revision on the page URL should match DL-REVISION if this is non-nil.
 
 If TEST is non-nil then do not download, just list the files."
-  ;;(message "web-vcs-get-files-on-page-1 %s %s %s %s %s %s %s %s" vcs-rec url dl-root dl-relative file-mask recursive dl-revision test)
+  (message "web-vcs-get-files-on-page-1 %s %s %s %s %s %s %s %s" vcs-rec url dl-root dl-relative file-mask recursive dl-revision test)
   (let* ((files-href-regexp  (nth 2 vcs-rec))
          (dirs-href-regexp   (nth 3 vcs-rec))
          (file-name-regexp   (nth 4 vcs-rec))
@@ -333,6 +333,8 @@ If TEST is non-nil then do not download, just list the files."
             ;; Use url-copy-file, this takes care of coding system.
             ;;(message "url-copy-file %S %S t t" file-url temp-file) ;; overwrite, keep time
             (url-copy-file file-url temp-file t t) ;; overwrite, keep time
+            (unless (file-exists-p temp-file)
+              (error "Failed url-copy-file %S %S t t" file-url temp-file))
             (let* (;; (new-buf (find-file-noselect temp-file))
                    ;; (new-src (with-current-buffer new-buf
                    ;;            (save-restriction
