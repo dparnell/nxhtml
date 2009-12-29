@@ -597,18 +597,21 @@ Also put FACE on the message in *Messages* buffer."
 
 
 (defun web-vcs-byte-compile-file (file)
-  (condition-case err
-      (progn
-        (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" file)
-        (when (ad-is-advised 'require)
-          (ad-disable-advice 'require 'around 'web-autoload-ad-require))
-        (let ((web-auto-load-skip-require-advice t))
-          (byte-compile-file file))
-        (when (ad-is-advised 'require)
-          (ad-enable-advice 'require 'around 'web-autoload-ad-require))
-        (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file))
-    (error
-     (web-vcs-message-with-face 'web-vcs-red "Error in byte compiling %S: %s" file (error-message-string err)))))
+  (if (and (boundp 'web-auto-load-skip-require-advice)
+           web-auto-load-skip-require-advice)
+      (message "Skipping byte compiling because already active: %S" file)
+    (condition-case err
+        (progn
+          (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" file)
+          (when (ad-is-advised 'require)
+            (ad-disable-advice 'require 'around 'web-autoload-ad-require))
+          (let ((web-auto-load-skip-require-advice t))
+            (byte-compile-file file))
+          (when (ad-is-advised 'require)
+            (ad-enable-advice 'require 'around 'web-autoload-ad-require))
+          (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file))
+      (error
+       (web-vcs-message-with-face 'web-vcs-red "Error in byte compiling %S: %s" file (error-message-string err))))))
 
 
 
