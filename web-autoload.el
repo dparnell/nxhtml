@@ -136,10 +136,11 @@ directly, otherwise download it first."
                  (throw 'command-level nil))
                (web-vcs-byte-compile-file dl-file)
                )
-             ;; Fix-me: defadvice require to load from the web if
-             ;; necessary? Or rather change all relevant require
-             ;; statements?
-             (load (file-name-sans-extension dl-file))
+             ;; Is it already loaded, or?
+             (unless (symbol-function ',fun)
+               (let ((dl-file-noel (file-name-sans-extension dl-file)))
+                 (load dl-file-noel)
+                 (web-vcs-byte-compile-file dl-file-noel)))
              (unless (symbol-function ',fun)
                (setq err (format "%s is not in downloaded library %s" ',fun dl-file)))
              ))
