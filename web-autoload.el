@@ -174,8 +174,8 @@ WEB-VCS BASE-URL RELATIVE-URL"
                                         ;activate
                     ;;compile
                     )
-  (if (and (boundp 'web-auto-load-skip-require-advice)
-           web-auto-load-skip-require-advice)
+  (if (or (not (boundp 'web-auto-load-skip-require-advice))
+          web-auto-load-skip-require-advice)
       ad-do-it
     (unless (featurep (ad-get-arg 0))
       (let* ((feature (ad-get-arg 0))
