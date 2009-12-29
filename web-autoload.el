@@ -82,6 +82,9 @@ directly, otherwise download it first."
 
 (defvar web-autoload-default-filename-element nil)
 
+;; Fix-me: change name
+(defvar web-auto-load-skip-require-advice nil)
+
 ;; Fix-me: Use TYPE
 (defmacro web-autoload-1 (fun src docstring interactive type)
   `(progn
@@ -119,7 +122,8 @@ directly, otherwise download it first."
              (unless (stringp base-dir)
                (setq base-dir (symbol-value base-dir)))
              (setq dl-file (expand-file-name rel-url-el base-dir))
-             (message "dl-file=%s" dl-file)
+             (message "web-autoload-1: fun=%s dl-file=%S" ',fun dl-file)
+             ;; Fix-me: How to avoid this during byte compiling?
              (unless (file-exists-p dl-file)
                ;; Fix-me: write this function Or, rather use
                ;; web-vcs-get-files-on-page. Make this take another
@@ -168,7 +172,6 @@ WEB-VCS BASE-URL RELATIVE-URL"
   (add-to-list 'web-autoload-require-list `(,feature ,web-vcs ,base-url ,relative-url ,base-dir))
   )
 
-(defvar web-auto-load-skip-require-advice nil)
 (defadvice require (around
                     web-autoload-ad-require
                                         ;activate
