@@ -602,12 +602,13 @@ Also put FACE on the message in *Messages* buffer."
         (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" file)
         (when (ad-is-advised 'require)
           (ad-disable-advice 'require 'around 'web-autoload-ad-require))
-        (byte-compile-file file)
+        (let ((web-auto-load-skip-require-advice t))
+          (byte-compile-file file))
         (when (ad-is-advised 'require)
           (ad-enable-advice 'require 'around 'web-autoload-ad-require))
         (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file))
     (error
-     (web-vcs-message-with-face 'web-vcs-red "Error in byte compiling: %s" (error-message-string err)))))
+     (web-vcs-message-with-face 'web-vcs-red "Error in byte compiling %S: %s" file (error-message-string err)))))
 
 
 
