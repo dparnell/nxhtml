@@ -183,6 +183,7 @@ WEB-VCS BASE-URL RELATIVE-URL"
       (if (not (file-exists-p file))
           (unless noerror
             (error "web-autoload: Library %S does not exist" file))
+        (load (file-name-sans-extension file))
         feature))))
 
 (defadvice require (around
