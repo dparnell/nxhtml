@@ -596,6 +596,19 @@ Also put FACE on the message in *Messages* buffer."
       t)))
 
 
+(defun web-vcs-byte-compile-file (file)
+  (condition-case err
+      (progn
+        (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" file)
+        (when (ad-is-advised 'require)
+          (ad-disable-advice 'require 'around 'web-autoload-ad-require))
+        (byte-compile-file file)
+        (when (ad-is-advised 'require)
+          (ad-enable-advice 'require 'around 'web-autoload-ad-require))
+        (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file))
+    (error
+     (web-vcs-message-with-face 'web-vcs-red "Error in byte compiling: %s" (error-message-string err)))))
+
 
 
 
@@ -661,23 +674,14 @@ when you need them."
         (let ((dl-file (expand-file-name file dl-dir)))
           (unless (file-exists-p dl-file)
             (web-vcs-get-missing-matching-files vcs base-url dl-dir file))))
-      (dolist (file basic-files)
-        (let ((dl-file (expand-file-name file dl-dir)))
-          (web-vcs-byte-compile-file dl-file)))
-      (load-file (expand-file-name "autostart.elc" dl-dir)))))
-
-(defun web-vcs-byte-compile-file (file)
-  (condition-case err
-      (progn
-        (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" file)
-        (when (ad-is-advised 'require)
-          (ad-disable-advice 'require 'around 'web-autoload-ad-require))
-        (byte-compile-file file)
-        (when (ad-is-advised 'require)
-          (ad-enable-advice 'require 'around 'web-autoload-ad-require))
-        (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file))
-    (error
-     (web-vcs-message-with-face 'web-vcs-red "Error in byte compiling: %s" (error-message-string err)))))
+      ;; Autostart.el has not run yet, add current dir to load-path.
+      (let ((load-path (cons (file-name-directory web-vcs-el) load-path)))
+        (dolist (file basic-files)
+          (let ((dl-file (expand-file-name file dl-dir)))
+            (web-vcs-byte-compile-file dl-file))))
+      (ad-activate 'require t)
+      (load-file (expand-file-name "autostart.elc" dl-dir))
+      )))
 
 ;;(call-interactively 'nxhtml-download)
 ;;;###autoload

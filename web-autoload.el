@@ -170,8 +170,8 @@ WEB-VCS BASE-URL RELATIVE-URL"
 
 (defadvice require (around
                     web-autoload-ad-require
-                    activate
-                    compile
+                    ;activate
+                    ;;compile
                     )
   (unless (featurep (ad-get-arg 0))
     (let* ((feature (ad-get-arg 0))
