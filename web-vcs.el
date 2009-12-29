@@ -597,7 +597,7 @@ Also put FACE on the message in *Messages* buffer."
 
 
 (defvar web-vcs-byte-compiling nil)
-(defun web-vcs-byte-compile-file (file)
+(defun web-vcs-byte-compile-file (file load)
   "Compile and load FILE. Or just load."
   (let ((compiled-it nil))
     (if web-vcs-byte-compiling
@@ -609,7 +609,7 @@ Also put FACE on the message in *Messages* buffer."
               (ad-disable-advice 'require 'around 'web-autoload-ad-require))
             (let ((web-auto-load-skip-require-advice t)
                   (web-vcs-byte-compiling t))
-              (byte-compile-file file t))
+              (byte-compile-file file load))
             (when (ad-is-advised 'require)
               (ad-enable-advice 'require 'around 'web-autoload-ad-require))
             (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file)
@@ -618,8 +618,9 @@ Also put FACE on the message in *Messages* buffer."
          (web-vcs-message-with-face
           'web-vcs-red "Error in byte compiling %S: %s" file (error-message-string err)))))
     (unless compiled-it
-      (let ((web-auto-load-skip-require-advice t))
-        (load file)))))
+      (when load
+        (let ((web-auto-load-skip-require-advice t))
+          (load file))))))
 
 
 
@@ -680,7 +681,7 @@ when you need them."
     (setq message-log-max t)
     (unless (file-exists-p web-vcs-el)
       (copy-file web-vcs-el-src web-vcs-el))
-    (web-vcs-byte-compile-file web-vcs-el)
+    (web-vcs-byte-compile-file web-vcs-el t)
     (catch 'command-level
       (dolist (file basic-files)
         (let ((dl-file (expand-file-name file dl-dir)))
@@ -690,7 +691,7 @@ when you need them."
       (let ((load-path (cons (file-name-directory web-vcs-el) load-path)))
         (dolist (file basic-files)
           (let ((dl-file (expand-file-name file dl-dir)))
-            (web-vcs-byte-compile-file dl-file)))
+            (web-vcs-byte-compile-file dl-file nil)))
         (load-library "web-autoload")
         )
       (ad-activate 'require t)
