@@ -140,7 +140,7 @@ directly, otherwise download it first."
              (unless (symbol-function ',fun)
                (let ((dl-file-noel (file-name-sans-extension dl-file)))
                  (load dl-file-noel)
-                 (web-vcs-byte-compile-file dl-file-noel t)))
+                 (web-vcs-byte-compile-file dl-file t)))
              (unless (symbol-function ',fun)
                (setq err (format "%s is not in downloaded library %s" ',fun dl-file)))
              ))
