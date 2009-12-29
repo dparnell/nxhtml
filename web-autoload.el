@@ -174,9 +174,9 @@ WEB-VCS BASE-URL RELATIVE-URL"
   )
 
 (defun web-autoload-do-require (feature filename noerror)
-  (let ((feat-name (symbol-name feature))
-        (file (or filename (locate-library feat-name)))
-        (ret feature))
+  (let* ((feat-name (symbol-name feature))
+         (file (or filename (locate-library feat-name)))
+         (ret feature))
     (if (not file) ;; Did not exist
         (unless noerror
           (error "web-autoload: Cannot locate library %S" feat-name))
