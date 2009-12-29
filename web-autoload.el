@@ -187,6 +187,7 @@ WEB-VCS BASE-URL RELATIVE-URL"
         ad-do-it
         (unless (featurep feature)
           ;; Download and try again
+          (message "Need to download feature %s (%S %S => %S)" feature base-url relative-url base-dir)
           (catch 'command-level
             (web-vcs-get-missing-matching-files web-vcs base-url base-dir relative-url))
           ;; Byte compile the downloaded file
