@@ -596,16 +596,17 @@ Also put FACE on the message in *Messages* buffer."
       t)))
 
 
+(defvar web-vcs-byte-compiling nil)
 (defun web-vcs-byte-compile-file (file)
-  (if (and (boundp 'web-auto-load-skip-require-advice)
-           web-auto-load-skip-require-advice)
+  (if web-vcs-byte-compiling
       (message "Skipping byte compiling because already active: %S" file)
     (condition-case err
         (progn
           (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" file)
           (when (ad-is-advised 'require)
             (ad-disable-advice 'require 'around 'web-autoload-ad-require))
-          (let ((web-auto-load-skip-require-advice t))
+          (let ((web-auto-load-skip-require-advice t)
+                (web-vcs-byte-compiling t))
             (byte-compile-file file))
           (when (ad-is-advised 'require)
             (ad-enable-advice 'require 'around 'web-autoload-ad-require))
