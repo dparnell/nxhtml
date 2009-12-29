@@ -283,8 +283,11 @@ If TEST is non-nil then do not download, just list the files."
     (with-current-buffer url-buf
       (goto-char (point-min))
       (unless (looking-at "HTTP/.* 200 OK\n")
-        (switch-to-buffer url-buf)
-        (message "Download error: %S" url)
+        (let ((status "Statu unknown"))
+          (when (looking-at "HTTP/.* \\(.*\\)\n")
+            (setq status (match-string 1)))
+          (switch-to-buffer url-buf)
+          (message "Download error (%s): %S" status url))
         (throw 'command-level nil))
       (unless (file-directory-p dl-dir)
         (make-directory dl-dir t))
