@@ -598,6 +598,8 @@ Also put FACE on the message in *Messages* buffer."
 
 (defvar web-vcs-byte-compiling nil)
 (defun web-vcs-byte-compile-file (file)
+  (let ((web-auto-load-skip-require-advice t))
+    (load file))
   (if web-vcs-byte-compiling
       (message "Skipping byte compiling because already active: %S" file)
     (condition-case err
