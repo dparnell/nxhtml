@@ -189,6 +189,9 @@ WEB-VCS BASE-URL RELATIVE-URL"
           ;; Download and try again
           (catch 'command-level
             (web-vcs-get-missing-matching-files web-vcs base-url base-dir relative-url))
+          ;; Byte compile the downloaded file
+          (let ((dl-file (concat (expand-file-name relative-url base-dir) ".el")))
+            (byte-compile-file dl-file))
           (ad-set-arg 2 noerror)
           ad-do-it
           )))))
