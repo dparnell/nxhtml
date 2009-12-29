@@ -176,7 +176,9 @@ WEB-VCS BASE-URL RELATIVE-URL"
                     )
   (if (or (not (boundp 'web-auto-load-skip-require-advice))
           web-auto-load-skip-require-advice)
-      ad-do-it
+      (progn
+        (message "Doing original require, because skipping")
+        ad-do-it)
     (unless (featurep (ad-get-arg 0))
       (let* ((feature (ad-get-arg 0))
              (noerror (ad-get-arg 2))
@@ -187,7 +189,10 @@ WEB-VCS BASE-URL RELATIVE-URL"
              (base-dir     (nth 4 auto-rec))
              )
         (if (not auto-rec)
-            ad-do-it
+            (progn
+              (message "Doing original require, because no auto-rec")
+              ad-do-it)
+          (message "Doing the really adviced require")
           ;; Check if already downloaded first
           (ad-set-arg 2 t) ;; noerror
           ad-do-it
