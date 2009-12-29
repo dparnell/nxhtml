@@ -187,9 +187,10 @@ WEB-VCS BASE-URL RELATIVE-URL"
         ad-do-it
         (unless (featurep feature)
           ;; Download and try again
-          (message "Need to download feature %s (%S %S => %S)" feature base-url relative-url base-dir)
+          (web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s (%S %S => %S)" feature base-url relative-url base-dir)
           (catch 'command-level
             (web-vcs-get-missing-matching-files web-vcs base-url base-dir relative-url))
+          (web-vcs-message-with-face 'font-lock-comment-face "After downloaded feature %s (%S %S => %S)" feature base-url relative-url base-dir)
           ;; Byte compile the downloaded file
           (let ((dl-file (concat (expand-file-name relative-url base-dir) ".el")))
             (condition-case err
