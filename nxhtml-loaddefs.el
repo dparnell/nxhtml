@@ -428,6 +428,29 @@ For more information about this see `cusnu-export-cust-group'.
 
 ;;;***
 
+;;;### (autoloads (ffip-find-file-in-dirtree ffip-set-current-project)
+;;;;;;  "ffip" "util/ffip.el" (19257 25242))
+;;; Generated autoloads from util/ffip.el
+(web-autoload-require 'ffip 'lp (nxhtml-download-root-url nil) "util/ffip" nxhtml-install-dir)
+
+
+(nxhtml-autoload 'ffip-set-current-project `(lp ,(nxhtml-download-root-url nil) "util/ffip" nxhtml-install-dir) "\
+Setup ffip project NAME with top directory ROOT of type TYPE.
+ROOT can either be just a directory or a list of directory where
+the first used just for prompting purposes and the files in the
+rest are read into the ffip project.
+
+Type is a type in `ffip-project-file-types'.
+
+\(fn NAME ROOT TYPE)" nil nil)
+
+(nxhtml-autoload 'ffip-find-file-in-dirtree `(lp ,(nxhtml-download-root-url nil) "util/ffip" nxhtml-install-dir) "\
+Find files in directory tree ROOT.
+
+\(fn ROOT)" t nil)
+
+;;;***
+
 ;;;### (autoloads (fold-dwim-turn-on-outline-and-hide-all fold-dwim-turn-on-hs-and-hide
 ;;;;;;  fold-dwim-unhide-hs-and-outline fold-dwim-mode fold-dwim-toggle
 ;;;;;;  fold-dwim) "fold-dwim" "util/fold-dwim.el" (19218 42180))
@@ -782,8 +805,8 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
-;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19256
-;;;;;;  7934))
+;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19257
+;;;;;;  14648))
 ;;; Generated autoloads from util/majmodpri.el
 (web-autoload-require 'majmodpri 'lp (nxhtml-download-root-url nil) "util/majmodpri" nxhtml-install-dir)
 
@@ -1230,7 +1253,7 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (19150 35948))
+;;;;;;  "tests/nxhtmltest-suites.el" (19257 14177))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 (web-autoload-require 'nxhtmltest-suites 'lp (nxhtml-download-root-url nil) "tests/nxhtmltest-suites" nxhtml-install-dir)
 
@@ -1298,7 +1321,7 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
 ;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19256 58069))
+;;;;;;  "util/ourcomments-util.el" (19257 6189))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp (nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir)
 
@@ -3389,8 +3412,8 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
-;;;;;;  nxhtml-mode) "nxhtml-mode" "nxhtml/nxhtml-mode.el" (19256
-;;;;;;  55451))
+;;;;;;  nxhtml-mode) "nxhtml-mode" "nxhtml/nxhtml-mode.el" (19257
+;;;;;;  1670))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 (web-autoload-require 'nxhtml-mode 'lp (nxhtml-download-root-url nil) "nxhtml/nxhtml-mode" nxhtml-install-dir)
 
@@ -3524,7 +3547,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19256 5687))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19256 5733))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp (nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir)
 
@@ -3661,7 +3684,7 @@ FILENAME could be either the remote or the local file.
 ;;;### (autoloads (html-site html-site-query-replace html-site-rgrep
 ;;;;;;  html-site-find-file html-site-dired-current html-site-set-site
 ;;;;;;  html-site-buffer-or-dired-file-name) "html-site" "nxhtml/html-site.el"
-;;;;;;  (19256 4680))
+;;;;;;  (19257 25182))
 ;;; Generated autoloads from nxhtml/html-site.el
 (web-autoload-require 'html-site 'lp (nxhtml-download-root-url nil) "nxhtml/html-site" nxhtml-install-dir)
 
@@ -3738,7 +3761,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;***
 
 ;;;### (autoloads (nxhtml-download web-vcs-get-files-from-root) "web-vcs"
-;;;;;;  "web-vcs.el" (19256 9279))
+;;;;;;  "web-vcs.el" (19257 24333))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -3835,12 +3858,12 @@ accept it or skip it.
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
 ;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
 ;;;;;;  "util/appmenu-fold.el" "util/css-simple-completion.el" "util/custsets.el"
-;;;;;;  "util/ecb-batch-compile.el" "util/ffip.el" "util/fupd.el"
-;;;;;;  "util/hfy-cmap.el" "util/key-cat.el" "util/mumamo-aspnet.el"
-;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/hfy-cmap.el"
+;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
+;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
 ;;;;;;  "util/useful-commands.el" "web-autoload-2.el" "web-autoload-3.el"
-;;;;;;  "web-autoload.el") (19256 60424 734000))
+;;;;;;  "web-autoload.el") (19257 25296 562000))
 
 ;;;***
 
