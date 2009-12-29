@@ -128,7 +128,9 @@ directly, otherwise download it first."
                ;;(url-copy-file file-url dl-file nil t) ;; don't overwrite, keep time
                (web-vcs-get-missing-matching-files vcs base-url base-dir rel-url-el)
                (unless (file-exists-p dl-file)
-                 (error "Could not download file %s" dl-file))
+                 (web-vcs-message-with-face 'web-vcs-red "Could not download file %s" dl-file)
+                 (throw 'command-level nil))
+               (web-vcs-byte-compile-file dl-file)
                )
              ;; Fix-me: defadvice require to load from the web if
              ;; necessary? Or rather change all relevant require
