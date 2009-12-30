@@ -6587,8 +6587,9 @@ multiple major modes in the buffer in the following way:
 
 "
            ;; Fix-me: During byte compilation the next line is not
-           ;; expanded as I thought because the functions in CHUNK is
-           ;; not defined. How do I fix this?
+           ;; expanded as I thought because the functions in CHUNKS
+           ;; are not defined. How do I fix this?  Move out the
+           ;; define-mumamo-multi-major-mode calls?
            (funcall 'mumamo-describe-chunks chunks2)
            "
 At the very end this multi major mode function runs first the hook

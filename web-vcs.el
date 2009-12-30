@@ -50,6 +50,8 @@
 
 (eval-when-compile (require 'cl)) ;; assert
 (require 'hi-lock)
+(require 'advice)
+(require 'web-autoload nil t)
 
 (defgroup web-vcs nil
   "Customization group for web-vcs."
@@ -639,16 +641,20 @@ Also put FACE on the message in *Messages* buffer."
 
 
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Specific
-
 (defun web-vcs-set&save-option (symbol value)
   (customize-set-variable symbol value)
   (customize-set-value symbol value)
   (customize-mark-to-save symbol)
   (custom-save-all)
   (message "web-vcs: Saved option %s with value %s" symbol value))
+
+(defvar web-vcs-el-this (or load-file-name
+                            (when (boundp 'bytecomp-filename) bytecomp-filename)
+                            buffer-file-name))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Specific for nXhtml
 
 (defvar web-vcs-nxhtml-base-url "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/")
 
@@ -658,10 +664,6 @@ Also put FACE on the message in *Messages* buffer."
          (files-url (concat base-url "files/"))
          (rev-part (if revision (number-to-string revision) "head%3A/")))
     (concat files-url rev-part)))
-
-(defvar web-vcs-el-this (or load-file-name
-                            (when (boundp 'bytecomp-filename) bytecomp-filename)
-                            buffer-file-name))
 
 (defun nxhtml-setup-auto-download ()
   "Set up to autoload nXhtml files from the web.
@@ -688,6 +690,8 @@ when you need them."
                         "autostart.el"
                         "etc/schema/schema-path-patch.el"
                         "nxhtml/nxhtml-autoload.el"))
+         (byte-comp (or (not (boundp 'web-autoload-autocompile))
+                        web-autoload-autocompile))
          )
     (unless (file-exists-p dl-dir)
       (if (y-or-n-p (format "Directory %S does not exist, create it? " dl-dir))
@@ -696,7 +700,8 @@ when you need them."
     (setq message-log-max t)
     (unless (file-exists-p web-vcs-el)
       (copy-file web-vcs-el-src web-vcs-el))
-    (web-vcs-byte-compile-file web-vcs-el t)
+    (when byte-comp
+      (web-vcs-byte-compile-file web-vcs-el t))
     (catch 'command-level
       (dolist (file basic-files)
         (let ((dl-file (expand-file-name file dl-dir)))
@@ -704,13 +709,14 @@ when you need them."
             (web-vcs-get-missing-matching-files vcs base-url dl-dir file))))
       ;; Autostart.el has not run yet, add current dir to load-path.
       (let ((load-path (cons (file-name-directory web-vcs-el) load-path)))
-        (dolist (file basic-files)
-          (let ((dl-file (expand-file-name file dl-dir)))
-            (web-vcs-byte-compile-file dl-file nil)))
+        (when byte-comp
+          (dolist (file basic-files)
+            (let ((dl-file (expand-file-name file dl-dir)))
+              (web-vcs-byte-compile-file dl-file nil))))
         (load-library "web-autoload")
         )
       (ad-activate 'require t)
-      (load-file (expand-file-name "autostart.elc" dl-dir))
+      (load (expand-file-name "autostart" dl-dir))
       )))
 
 ;;(call-interactively 'nxhtml-download)
