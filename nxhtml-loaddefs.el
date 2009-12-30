@@ -902,7 +902,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 
 ;;;### (autoloads (define-mumamo-multi-major-mode mumamo-multi-major-modep
 ;;;;;;  mumamo-mark-for-refontification mumamo-hi-lock-faces mumamo
-;;;;;;  mumamo-require) "mumamo" "util/mumamo.el" (19256 13371))
+;;;;;;  mumamo-require) "mumamo" "util/mumamo.el" (19257 55520))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp (nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir)
 
@@ -1321,7 +1321,7 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
 ;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19257 6189))
+;;;;;;  "util/ourcomments-util.el" (19259 27759))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp (nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir)
 
@@ -1570,7 +1570,7 @@ Not documented
 (nxhtml-autoload 'emacs-Q `(lp ,(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Start new Emacs without any customization whatsoever.
 
-\(fn)" t nil)
+\(fn &rest ARGS)" t nil)
 
 (nxhtml-autoload 'emacs-Q-nxhtml `(lp ,(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Start new Emacs with -Q and load nXhtml.
@@ -3285,7 +3285,7 @@ Used to set up a Tidy menu in your favourite mode.
 ;;;***
 
 ;;;### (autoloads (rngalt-set-validation-header) "rngalt" "nxhtml/rngalt.el"
-;;;;;;  (19257 43212))
+;;;;;;  (19258 42706))
 ;;; Generated autoloads from nxhtml/rngalt.el
 (web-autoload-require 'rngalt 'lp (nxhtml-download-root-url nil) "nxhtml/rngalt" nxhtml-install-dir)
 
@@ -3761,7 +3761,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;***
 
 ;;;### (autoloads (nxhtml-download web-vcs-get-files-from-root) "web-vcs"
-;;;;;;  "web-vcs.el" (19257 54353))
+;;;;;;  "web-vcs.el" (19259 37646))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -3863,7 +3863,7 @@ accept it or skip it.
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
 ;;;;;;  "util/useful-commands.el" "web-autoload-2.el" "web-autoload-3.el"
-;;;;;;  "web-autoload.el") (19257 54406 281000))
+;;;;;;  "web-autoload.el") (19259 42867 984000))
 
 ;;;***
 

@@ -653,6 +653,7 @@ Files will be downloaded to directory DL-DIR."
                         "nxhtml-auto-helpers.el"
                         "nxhtml-loaddefs.el"
                         "autostart.el"
+                        "web-autostart.el"
                         "etc/schema/schema-path-patch.el"
                         "nxhtml/nxhtml-autoload.el"))
          (byte-comp (or (not (boundp 'web-autoload-autocompile))
@@ -682,7 +683,7 @@ Files will be downloaded to directory DL-DIR."
         (load-library "web-autoload")
         )
       (ad-activate 'require t)
-      (load (expand-file-name "autostart" dl-dir))
+      (load (expand-file-name "web-autostart" dl-dir))
       )))
 
 ;;(call-interactively 'nxhtml-download)
@@ -763,6 +764,8 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
 
 ;;;;;; Start Testing function
 ;; (emacs-Q "web-vcs.el" "-f" "eval-buffer" "-f" "nxhtml-temp-setup-auto-download")
+;; (emacs-Q "web-vcs.el" "-l" "c:/test/d27/web-autostart.el")
+;; (emacs-Q "web-vcs.el" "-l" "c:/test/d27/autostart.el")
 (defun nxhtml-temp-setup-auto-download ()
   (when (fboundp 'w32-send-sys-command) (w32-send-sys-command #xf030) (sit-for 2))
   (view-echo-area-messages)

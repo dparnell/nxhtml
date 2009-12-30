@@ -47,8 +47,8 @@
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'nxhtml nil t))
 (eval-when-compile (require 'rng-valid nil t))
-;;(require 'mumamo-fun)
-(mumamo-fun-require)
+(require 'mumamo-fun)
+;;(mumamo-fun-require)
 
 ;; (defgroup nxhtml-auto-val-head nil
 ;;   "Automatic turn on of XHTML validation headers."

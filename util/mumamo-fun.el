@@ -55,8 +55,8 @@
 ;;(require 'mumamo)
 (mumamo-require)
 
-;;;###autoload
-(defun mumamo-fun-require ())
+;;;#autoload
+;;(defun mumamo-fun-require ())
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; File wide key bindings
@@ -71,6 +71,7 @@
 ;;   (intern-soft (concat (symbol-name mumamo-multi-major-mode) "-hook")))
 
 (defun mumamo-define-html-file-wide-keys ()
+  "Define keys in multi major mode keymap for html files."
   (let ((map (mumamo-multi-mode-map)))
     (define-key map [(control ?c) (control ?h) ?b] 'nxhtml-browse-file)
     ))
@@ -83,7 +84,8 @@
 
 (defun mumamo-chunk-attr= (pos min max attr= attr=is-regex attr-regex submode)
   "This should work similar to `mumamo-find-possible-chunk'.
-See `mumamo-chunk-style=' for an example of use."
+See `mumamo-chunk-style=' for an example of use.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (mumamo-chunk-attr=-new pos max attr= attr=is-regex attr-regex submode))
 
 (defun mumamo-chunk-attr=-new-fw-exc-fun (pos max)
