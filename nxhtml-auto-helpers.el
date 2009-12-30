@@ -47,10 +47,8 @@
 (require 'web-autoload)
 (require 'web-vcs)
 
-(defcustom nxhtml-autoload-web t
-  "If t download from web if necessary."
-  :type 'boolean
-  :group 'nxhtml)
+(defvar nxhtml-autoload-web nil
+  "If t download from web if necessary.")
 
 (defun nxhtml-autoload (fun src &optional docstring interactive type)
   (if nxhtml-autoload-web
