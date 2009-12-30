@@ -598,52 +598,6 @@ Also put FACE on the message in *Messages* buffer."
       t)))
 
 
-(defvar web-vcs-byte-compiling nil)
-(defvar web-vcs-compile-queue nil)
-(defun web-vcs-byte-compile-file (file load)
-  "Compile and load FILE. Or just load."
-  (let ((compiled-it nil)
-        (old-comp-buf (get-buffer " *Compiler Input*")))
-    (when old-comp-buf
-      (with-current-buffer old-comp-buf
-        (rename-buffer (generate-new-buffer-name "*Compiler Input old*"))))
-    (setq web-vcs-byte-compiling nil) ;; Fix-me: remove this code, perhaps...
-    (if web-vcs-byte-compiling
-        (message "Skipping byte compiling because already active: %S" file)
-      (let ((elc-file (concat (file-name-sans-extension file) ".elc")))
-        (if (file-exists-p elc-file)
-            (progn
-              (when load
-                (load-file elc-file))
-              (setq compiled-it t))
-          (condition-case err
-              (progn
-                (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" file)
-                (when (ad-is-advised 'require)
-                  (ad-disable-advice 'require 'around 'web-autoload-ad-require))
-                (let ((web-auto-load-skip-require-advice t)
-                      (web-vcs-byte-compiling t))
-                  (byte-compile-file file load))
-                (when (ad-is-advised 'require)
-                  (ad-enable-advice 'require 'around 'web-autoload-ad-require))
-                (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file)
-                (setq compiled-it t))
-            (error
-             (setq compiled-it t)
-             (web-vcs-message-with-face
-              'web-vcs-red "Error in byte compiling %S: %s" file (error-message-string err)))))))
-    ;; If we did compile then it is free to compile again now.
-    (when compiled-it
-      (while web-vcs-compile-queue
-        (let ((file (car web-vcs-compile-queue)))
-          (setq web-vcs-compile-queue (cdr web-vcs-compile-queue))
-          (web-vcs-byte-compile-file file t))))
-    (unless compiled-it
-      (add-to-list 'web-vcs-compile-queue file)
-      (when load
-        (let ((web-auto-load-skip-require-advice t))
-          ;;(load file)
-          )))))
 
 
 
@@ -659,6 +613,13 @@ Also put FACE on the message in *Messages* buffer."
                             buffer-file-name))
 
 
+(require 'bytecomp)
+(defun web-vcs-byte-compile-newer-file (el-file load)
+  (let ((elc-file (byte-compile-dest-file el-file)))
+    (when (or (not (file-exists-p elc-file))
+              (file-newer-than-file-p el-file elc-file))
+      (byte-compile-file el-file load))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Specific for nXhtml
 
@@ -671,34 +632,31 @@ Also put FACE on the message in *Messages* buffer."
          (rev-part (if revision (number-to-string revision) "head%3A/")))
     (concat files-url rev-part)))
 
-(defun nxhtml-setup-auto-download ()
+(defun nxhtml-setup-auto-download (dl-dir)
   "Set up to autoload nXhtml files from the web.
 This will download some initial files and then download the rest
-when you need them."
-  (interactive)
+when you need them.
+
+Files will be downloaded to directory DL-DIR."
+  (interactive "DDownload nXhtml to directory for auto-downloaded files: ")
   (when (condition-case nil
             (custom-file)
           (error nil))
     (web-vcs-set&save-option 'nxhtml-autoload-web t))
-  (let* ((dl-dir (file-name-as-directory
-                  (read-directory-name
-                   "Download nXhtml to directory for auto-downloaded files: ")))
-         ;; Need some files:
+  (let* (;; Need some files:
          (web-vcs-el-src (concat (file-name-sans-extension web-vcs-el-this) ".el"))
          (web-vcs-el (expand-file-name (file-name-nondirectory web-vcs-el-src)
                                        dl-dir))
          (vcs 'lp)
          (base-url (nxhtml-download-root-url nil))
-         (basic-files '(
-                        "web-autoload.el"
+         (basic-files '("web-autoload.el"
                         "nxhtml-auto-helpers.el"
                         "nxhtml-loaddefs.el"
                         "autostart.el"
                         "etc/schema/schema-path-patch.el"
                         "nxhtml/nxhtml-autoload.el"))
          (byte-comp (or (not (boundp 'web-autoload-autocompile))
-                        web-autoload-autocompile))
-         )
+                        web-autoload-autocompile)))
     (unless (file-exists-p dl-dir)
       (if (y-or-n-p (format "Directory %S does not exist, create it? " dl-dir))
           (make-directory dl-dir t)
@@ -707,7 +665,8 @@ when you need them."
     (unless (file-exists-p web-vcs-el)
       (copy-file web-vcs-el-src web-vcs-el))
     (when byte-comp
-      (web-vcs-byte-compile-file web-vcs-el t))
+      ;; Fix-me: check age
+      (web-vcs-byte-compile-newer-file web-vcs-el t))
     (catch 'command-level
       (dolist (file basic-files)
         (let ((dl-file (expand-file-name file dl-dir)))
@@ -717,8 +676,9 @@ when you need them."
       (let ((load-path (cons (file-name-directory web-vcs-el) load-path)))
         (when byte-comp
           (dolist (file basic-files)
-            (let ((dl-file (expand-file-name file dl-dir)))
-              (web-vcs-byte-compile-file dl-file nil))))
+            (let ((el-file (expand-file-name file dl-dir)))
+              ;; Fix-me: check age
+              (web-vcs-byte-compile-newer-file el-file nil))))
         (load-library "web-autoload")
         )
       (ad-activate 'require t)
@@ -800,6 +760,14 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
         (web-vcs-message-with-face 'hi-yellow "Will start byte compilation of nXhtml in 10 seconds")
         (sit-for 10)
         (nxhtmlmaint-start-byte-compilation)))))
+
+;;;;;; Start Testing function
+;; (emacs-Q "web-vcs.el" "-f" "eval-buffer" "-f" "nxhtml-temp-setup-auto-download")
+(defun nxhtml-temp-setup-auto-download ()
+  (when (fboundp 'w32-send-sys-command) (w32-send-sys-command #xf030) (sit-for 2))
+  (view-echo-area-messages)
+  (nxhtml-setup-auto-download "c:/test/d27"))
+;;;;;; End Testing function
 
 
 (provide 'web-vcs)
