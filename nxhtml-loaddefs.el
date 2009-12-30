@@ -3285,7 +3285,7 @@ Used to set up a Tidy menu in your favourite mode.
 ;;;***
 
 ;;;### (autoloads (rngalt-set-validation-header) "rngalt" "nxhtml/rngalt.el"
-;;;;;;  (19256 4987))
+;;;;;;  (19257 43212))
 ;;; Generated autoloads from nxhtml/rngalt.el
 (web-autoload-require 'rngalt 'lp (nxhtml-download-root-url nil) "nxhtml/rngalt" nxhtml-install-dir)
 
@@ -3761,7 +3761,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;***
 
 ;;;### (autoloads (nxhtml-download web-vcs-get-files-from-root) "web-vcs"
-;;;;;;  "web-vcs.el" (19257 24333))
+;;;;;;  "web-vcs.el" (19257 54353))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -3863,7 +3863,7 @@ accept it or skip it.
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
 ;;;;;;  "util/useful-commands.el" "web-autoload-2.el" "web-autoload-3.el"
-;;;;;;  "web-autoload.el") (19257 25296 562000))
+;;;;;;  "web-autoload.el") (19257 54406 281000))
 
 ;;;***
 

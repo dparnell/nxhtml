@@ -601,6 +601,9 @@ nxhtml.el.
         (when rngalt-validation-header
           (rngalt-update-validation-header-overlay))))))
 
+;; (setq x (macroexpand '(defcustom my-temp-opt t "doc" :type 'boolean)))
+;; (setq x (macroexpand '(define-minor-mode my-temp-mode "doc")))
+;; (setq x (macroexpand '(define-toggle my-temp-toggle t "doc")))
 (define-toggle rngalt-display-validation-header t
   "Display XML validation headers at the top of buffer when t.
 The validation header is only displayed in buffers where the main
