@@ -181,11 +181,27 @@ WEB-VCS BASE-URL RELATIVE-URL"
     (setq web-autoload-compile-queue (cons (cons file load)
                                            web-autoload-compile-queue))
     (if (< 1 (length web-autoload-compile-queue))
-        (throw 'web-autoload-comp-to-top nil)
+        (throw 'web-autoload-comp-to-top t)
       (while web-autoload-compile-queue
-        (catch 'web-autoload-comp-to-top
-          (when (web-autoload-byte-compile-file-1)
-            (setq web-autoload-compile-queue (cdr web-autoload-compile-queue))))))))
+        (when (catch 'web-autoload-comp-to-top
+                (when (web-autoload-byte-compile-file-1)
+                  (setq web-autoload-compile-queue (cdr web-autoload-compile-queue)))
+                nil)
+          ;; Clean up before restart
+          (let* ((bc-input-buffer (get-buffer " *Compiler Input*"))
+                 (bc-outbuffer (get-buffer-create " *Compiler Output*"))
+                 (active-comp (cadr web-autoload-compile-queue))
+                 (active-file (car active-comp))
+                 (active-elc (byte-compile-dest-file active-file))
+            ;; Delete bytecomp buffers
+            (when bc-input-buffer (kill-buffer bc-input-buffer))
+            (when bc-outbuffer
+              (kill-buffer bc-outbuffer)
+              (setq bytecomp-outbuffer nil))
+            ;; Delete half finished elc file
+            (when (file-exists-p active-elc)
+              (delete-file active-elc))
+            )))))))
 
 (defun web-autoload-byte-compile-file-1 ()
   "Compile and load FILE. Or just load."

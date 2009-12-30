@@ -52,8 +52,8 @@
 ;;; Code:
 
 (eval-when-compile (add-to-list 'load-path default-directory))
-;;(require 'mumamo)
-(mumamo-require)
+(eval-when-compile (require 'mumamo))
+;;(mumamo-require)
 
 ;;;#autoload
 ;;(defun mumamo-fun-require ())

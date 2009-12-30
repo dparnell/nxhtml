@@ -5756,7 +5756,8 @@ by the user.
                              compile
                              )
     ;;(msgtrc "c-after-change: major-mode=%s c-nonsymbol-token-regexp=%s" major-mode c-nonsymbol-token-regexp)
-    (when (derived-mode-p 'c-mode)
+    (when (or (not mumamo-multi-major-mode)
+              (derived-mode-p 'c-mode))
       ad-do-it))
   )
 
