@@ -697,74 +697,6 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; HTML w html-mode
 
-(defun mumamo-chunk-alt-php (pos min max)
-  "Find (?php ... ?), return range and `php-mode'.
-Workaround for the problem that I can not tame `nxml-mode' to recognize <?php.
-
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (when mumamo-alt-php-tags-mode
-    (mumamo-quick-static-chunk pos min max "(?php" "?)" t 'php-mode t)))
-
-(defun mumamo-chunk-alt-php= (pos min max)
-  "Find (?= ... ?), return range and `php-mode'.
-Workaround for the problem that I can not tame `nxml-mode' to recognize <?php.
-
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (when mumamo-alt-php-tags-mode
-    (mumamo-quick-static-chunk pos min max "(?=" "?)" t 'php-mode t)))
-
-;;;###autoload
-(define-mumamo-multi-major-mode html-mumamo-mode
-  "Turn on multiple major modes for (X)HTML with main mode `html-mode'.
-This covers inlined style and javascript and PHP."
-  ("HTML Family" html-mode
-   (mumamo-chunk-xml-pi
-    mumamo-chunk-alt-php
-    mumamo-chunk-alt-php=
-    mumamo-chunk-inlined-style
-    mumamo-chunk-inlined-script
-    mumamo-chunk-style=
-    mumamo-chunk-onjs=
-    )))
-(add-hook 'html-mumamo-mode-hook 'mumamo-define-html-file-wide-keys)
-(mumamo-inherit-sub-chunk-family 'html-mumamo-mode)
-
-;; (define-mumamo-multi-major-mode xml-pi-only-mumamo-mode
-;;   "Test"
-;;   ("HTML Family" html-mode
-;;    (mumamo-chunk-xml-pi
-;;     )))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; XHTML w nxml-mode
-
-(defun mumamo-alt-php-write-contents ()
-  "For `write-contents-functions' when `mumamo-chunk-alt-php' is used."
-  (let ((here (point)))
-    (save-match-data
-      (save-restriction
-        (widen)
-        (condition-case nil
-            (atomic-change-group
-              (progn
-                (goto-char (point-min))
-                (while (search-forward "(?php" nil t)
-                  (replace-match "<?php"))
-                (goto-char (point-min))
-                (while (search-forward "(?=" nil t)
-                  (replace-match "<?="))
-                (goto-char (point-min))
-                (while (search-forward "?)" nil t)
-                  (replace-match "?>"))
-                (basic-save-buffer-1)
-                (signal 'mumamo-error-ind-0 nil)))
-          (mumamo-error-ind-0)))
-      (set-buffer-modified-p nil))
-    (goto-char here))
-  ;; saved, return t
-  t)
-
 (put 'mumamo-alt-php-tags-mode 'permanent-local t)
 (define-minor-mode mumamo-alt-php-tags-mode
   "Minor mode for using '(?php' instead of '<?php' in buffer.
@@ -833,6 +765,74 @@ just `php-mode' if there is no html code in the file."
           (replace-match "?>"))
         (goto-char here)))
     (remove-hook 'write-contents-functions 'mumamo-alt-php-write-contents t)))
+
+(defun mumamo-chunk-alt-php (pos min max)
+  "Find (?php ... ?), return range and `php-mode'.
+Workaround for the problem that I can not tame `nxml-mode' to recognize <?php.
+
+See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+  (when mumamo-alt-php-tags-mode
+    (mumamo-quick-static-chunk pos min max "(?php" "?)" t 'php-mode t)))
+
+(defun mumamo-chunk-alt-php= (pos min max)
+  "Find (?= ... ?), return range and `php-mode'.
+Workaround for the problem that I can not tame `nxml-mode' to recognize <?php.
+
+See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+  (when mumamo-alt-php-tags-mode
+    (mumamo-quick-static-chunk pos min max "(?=" "?)" t 'php-mode t)))
+
+;;;###autoload
+(define-mumamo-multi-major-mode html-mumamo-mode
+  "Turn on multiple major modes for (X)HTML with main mode `html-mode'.
+This covers inlined style and javascript and PHP."
+  ("HTML Family" html-mode
+   (mumamo-chunk-xml-pi
+    mumamo-chunk-alt-php
+    mumamo-chunk-alt-php=
+    mumamo-chunk-inlined-style
+    mumamo-chunk-inlined-script
+    mumamo-chunk-style=
+    mumamo-chunk-onjs=
+    )))
+(add-hook 'html-mumamo-mode-hook 'mumamo-define-html-file-wide-keys)
+(mumamo-inherit-sub-chunk-family 'html-mumamo-mode)
+
+;; (define-mumamo-multi-major-mode xml-pi-only-mumamo-mode
+;;   "Test"
+;;   ("HTML Family" html-mode
+;;    (mumamo-chunk-xml-pi
+;;     )))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; XHTML w nxml-mode
+
+(defun mumamo-alt-php-write-contents ()
+  "For `write-contents-functions' when `mumamo-chunk-alt-php' is used."
+  (let ((here (point)))
+    (save-match-data
+      (save-restriction
+        (widen)
+        (condition-case nil
+            (atomic-change-group
+              (progn
+                (goto-char (point-min))
+                (while (search-forward "(?php" nil t)
+                  (replace-match "<?php"))
+                (goto-char (point-min))
+                (while (search-forward "(?=" nil t)
+                  (replace-match "<?="))
+                (goto-char (point-min))
+                (while (search-forward "?)" nil t)
+                  (replace-match "?>"))
+                (basic-save-buffer-1)
+                (signal 'mumamo-error-ind-0 nil)))
+          (mumamo-error-ind-0)))
+      (set-buffer-modified-p nil))
+    (goto-char here))
+  ;; saved, return t
+  t)
 
 ;;;###autoload
 (define-mumamo-multi-major-mode nxml-mumamo-mode
