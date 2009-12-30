@@ -1043,17 +1043,11 @@ These are in the file mumamo-test.el.
 ;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode gsp-html-mumamo-mode
 ;;;;;;  ssjs-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
-;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode
-;;;;;;  mumamo-fun-require) "mumamo-fun" "util/mumamo-fun.el" (19256
-;;;;;;  13479))
+;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19259 44355))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp (nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir)
 
-
-(nxhtml-autoload 'mumamo-fun-require `(lp ,(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
-Not documented
-
-\(fn)" nil nil)
 
 (nxhtml-autoload 'html-mumamo-mode `(lp ,(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for (X)HTML with main mode `html-mode'.
@@ -3354,7 +3348,7 @@ Check if external modules used by nXhtml are found.
 ;;;;;;  smarty-nxhtml-mumamo-mode mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode
 ;;;;;;  mason-nxhtml-mumamo-mode django-nxhtml-mumamo-mode embperl-nxhtml-mumamo-mode
 ;;;;;;  nxhtml-mumamo-mode) "nxhtml-mumamo" "nxhtml/nxhtml-mumamo.el"
-;;;;;;  (19256 12778))
+;;;;;;  (19259 46062))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 (web-autoload-require 'nxhtml-mumamo 'lp (nxhtml-download-root-url nil) "nxhtml/nxhtml-mumamo" nxhtml-install-dir)
 
@@ -3761,7 +3755,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;***
 
 ;;;### (autoloads (nxhtml-download web-vcs-get-files-from-root) "web-vcs"
-;;;;;;  "web-vcs.el" (19259 37646))
+;;;;;;  "web-vcs.el" (19259 44062))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -3863,7 +3857,7 @@ accept it or skip it.
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
 ;;;;;;  "util/useful-commands.el" "web-autoload-2.el" "web-autoload-3.el"
-;;;;;;  "web-autoload.el") (19259 42867 984000))
+;;;;;;  "web-autoload.el" "web-autostart.el") (19259 46288 156000))
 
 ;;;***
 
