@@ -602,7 +602,12 @@ Also put FACE on the message in *Messages* buffer."
 (defvar web-vcs-compile-queue nil)
 (defun web-vcs-byte-compile-file (file load)
   "Compile and load FILE. Or just load."
-  (let ((compiled-it nil))
+  (let ((compiled-it nil)
+        (old-comp-buf (get-buffer " *Compiler Input*")))
+    (when old-comp-buf
+      (with-current-buffer old-comp-buf
+        (rename-buffer (generate-new-buffer-name "*Compiler Input old*"))))
+    (setq web-vcs-byte-compiling nil) ;; Fix-me: remove this code, perhaps...
     (if web-vcs-byte-compiling
         (message "Skipping byte compiling because already active: %S" file)
       (let ((elc-file (concat (file-name-sans-extension file) ".elc")))
@@ -637,7 +642,8 @@ Also put FACE on the message in *Messages* buffer."
       (add-to-list 'web-vcs-compile-queue file)
       (when load
         (let ((web-auto-load-skip-require-advice t))
-          (load file))))))
+          ;;(load file)
+          )))))
 
 
 
