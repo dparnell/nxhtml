@@ -82,7 +82,10 @@ directly, otherwise download it first."
 
 (defvar web-autoload-default-filename-element nil)
 
-(defvar web-autoload-autocompile nil)
+(defcustom web-autoload-autocompile t
+  "Byt compile downloaded files if t."
+  :type 'boolean
+  :group 'web-vcs)
 
 ;; Fix-me: change name
 (defvar web-auto-load-skip-require-advice nil)
@@ -137,14 +140,14 @@ directly, otherwise download it first."
                  (web-vcs-message-with-face 'web-vcs-red "Could not download file %s" dl-file)
                  (throw 'command-level nil))
                (when web-autoload-autocompile
-                   (web-vcs-byte-compile-file dl-file t))
+                   (web-autoload-byte-compile-file dl-file t))
                )
              ;; Is it already loaded, or?
              (unless (symbol-function ',fun)
                (let ((dl-file-noel (file-name-sans-extension dl-file)))
                  (load dl-file-noel)
                  (when web-autoload-autocompile
-                   (web-vcs-byte-compile-file dl-file t))))
+                   (web-autoload-byte-compile-file dl-file t))))
              (unless (symbol-function ',fun)
                (setq err (format "%s is not in downloaded library %s" ',fun dl-file)))
              ))
@@ -177,11 +180,55 @@ WEB-VCS BASE-URL RELATIVE-URL"
   (add-to-list 'web-autoload-require-list `(,feature ,web-vcs ,base-url ,relative-url ,base-dir))
   )
 
+;; Fix-me: Set up a byte compilation queue. Move function for byte compiling here.
+(defvar web-autoload-compile-queue nil)
+(defun web-autoload-byte-compile-file (file load)
+  (web-vcs-message-with-face 'web-vcs-gold "Add to compile queue (%S %s)" file load)
+  (setq web-autoload-compile-queue (cons (cons file load)
+                                         web-autoload-compile-queue))
+  (if (< 1 (length web-autoload-compile-queue))
+      (throw 'web-autoload-comp-to-top nil)
+    (while web-autoload-compile-queue
+      (catch 'web-autoload-comp-to-top
+        (when (web-autoload-byte-compile-file-1)
+          (setq web-autoload-compile-queue (cdr web-autoload-compile-queue)))))))
+
+(defun web-autoload-byte-compile-file-1 ()
+  "Compile and load FILE. Or just load."
+  (let* ((compiled-it nil)
+         (first-entry (car web-autoload-compile-queue))
+         (file (car first-entry))
+         (load (cdr first-entry))
+         (elc-file (byte-compile-dest-file file))
+         (need-compile (or (not (file-exists-p elc-file))
+                           (file-newer-than-file-p file elc-file))))
+      (if (not need-compile)
+          (when load
+            (load elc-file))
+        (condition-case err
+            (progn
+              (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" file)
+              ;;(when (ad-is-advised 'require) (ad-disable-advice 'require 'around 'web-autoload-ad-require))
+              (let ((web-auto-load-skip-require-advice nil))
+                (byte-compile-file file load))
+              ;;(when (ad-is-advised 'require) (ad-enable-advice 'require 'around 'web-autoload-ad-require))
+              (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file))
+          (error
+           (web-vcs-message-with-face
+            'web-vcs-red "Error in byte compiling %S: %s" file (error-message-string err))))))
+  ;; Always return t on normal exits to tell to remove the (possibly)
+  ;; compiled entry.
+  t)
+
+;; Fix-me: protect against deep nesting
 (defun web-autoload-do-require (feature filename noerror)
   (let* ((feat-name (symbol-name feature))
          (lib (or filename feat-name)))
     (if (load lib noerror t)
-        feature
+        (progn
+          (unless (featurep feature)
+            (error "web-autoload: Required feature `%s' was not provided" feature))
+          feature)
       nil
       )))
 
@@ -195,8 +242,9 @@ WEB-VCS BASE-URL RELATIVE-URL"
         (noerror  (ad-get-arg 2)))
     (if (featurep feature)
         feature
-      (if (or (not (boundp 'web-auto-load-skip-require-advice))
-              web-auto-load-skip-require-advice)
+      (if (and noerror
+               (or (not (boundp 'web-auto-load-skip-require-advice))
+                   web-auto-load-skip-require-advice))
           (progn
             (message "Doing nearly original require %s, because skipping" (ad-get-arg 0))
             ;; Can't ad-do-it because defadviced functions in load
@@ -226,7 +274,7 @@ WEB-VCS BASE-URL RELATIVE-URL"
               ;; Byte compile the downloaded file
               (let ((dl-file (expand-file-name relative-url base-dir)))
                 (when web-autoload-autocompile
-                  (web-vcs-byte-compile-file dl-file nil)))
+                  (web-autoload-byte-compile-file dl-file nil)))
               (web-autoload-do-require feature filename noerror)
               )))))))
 
