@@ -654,7 +654,7 @@ See also `mumamo-margin-use'.
 
 Note: When `linum-mode' is on the right margin is always used
 now \(since `linum-mode' uses the left)."
-  ;;:group 'mumamo-display
+  :group 'mumamo-display
   (mumamo-update-this-buffer-margin-use)
   (if mumamo-margin-info-mode
       (progn

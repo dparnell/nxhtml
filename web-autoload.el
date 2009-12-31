@@ -202,7 +202,7 @@ WEB-VCS BASE-URL RELATIVE-URL"
     (setq byte-compile-variables nil)
     (setq byte-compile-bound-variables nil)
     (setq byte-compile-const-variables nil)
-    (setq byte-compile-macro-environment byte-compile-initial-macro-environment)
+    ;;(setq byte-compile-macro-environment byte-compile-initial-macro-environment)
     (setq byte-compile-function-environment nil)
     (setq byte-compile-unresolved-functions nil)
     (setq byte-compile-noruntime-functions nil)
@@ -210,7 +210,7 @@ WEB-VCS BASE-URL RELATIVE-URL"
     (setq byte-compile-output nil)
     (setq byte-compile-depth 0)
     (setq byte-compile-maxdepth 0)
-    (setq byte-code-vector nil)
+    ;;(setq byte-code-vector nil)
     (setq byte-compile-current-form nil)
     (setq byte-compile-dest-file nil)
     (setq byte-compile-current-file nil)
@@ -264,19 +264,35 @@ WEB-VCS BASE-URL RELATIVE-URL"
          (need-compile (or (not (file-exists-p elc-file))
                            (file-newer-than-file-p file elc-file))))
       (if (not need-compile)
-          (when load
-            (load elc-file))
-        (condition-case err
-            (progn
-              (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" file)
-              ;;(when (ad-is-advised 'require) (ad-disable-advice 'require 'around 'web-autoload-ad-require))
-              (let ((web-auto-load-skip-require-advice t))
-                (byte-compile-file file load))
-              ;;(when (ad-is-advised 'require) (ad-enable-advice 'require 'around 'web-autoload-ad-require))
-              (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file))
-          (error
-           (web-vcs-message-with-face
-            'web-vcs-red "Error in byte compiling %S: %s" file (error-message-string err)))))
+          nil ;;(when load (load elc-file))
+        (when nil
+          (condition-case err
+              (progn
+                (web-vcs-message-with-face 'font-lock-comment-face "Start batch byte compiling %S" file)
+                (let ((emacs-exe (locate-file invocation-name (list invocation-directory) exec-suffixes))
+                      (comp-buf (get-buffer-create "*Compile-Log*"))
+                      (this-win (selected-window)))
+                  (switch-to-buffer-other-window comp-buf)
+                  (goto-char (point-max))
+                  (select-window this-win)
+                  (apply 'call-process emacs-exe nil comp-buf nil "-Q" "-batch" "-f" "batch-byte-compile" file nil))
+                (web-vcs-message-with-face 'font-lock-comment-face "Ready batch byte compiling %S" file))
+            (error
+             (web-vcs-message-with-face
+              'web-vcs-red "Error in batch byte compiling %S: %s" file (error-message-string err)))))
+        (unless (file-exists-p elc-file)
+          (condition-case err
+              (progn
+                (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" file)
+                ;;(when (ad-is-advised 'require) (ad-disable-advice 'require 'around 'web-autoload-ad-require))
+                (let ((web-auto-load-skip-require-advice t)) (byte-compile-file file load))
+                ;;(when (ad-is-advised 'require) (ad-enable-advice 'require 'around 'web-autoload-ad-require))
+                (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file))
+            (error
+             (web-vcs-message-with-face
+              'web-vcs-red "Error in byte compiling %S: %s" file (error-message-string err))))
+          )
+        )
       ;; fix-me: Always return t on normal exits to tell to remove the
       ;; (possibly) compiled entry.
       (when (file-exists-p elc-file) t)))
@@ -303,9 +319,10 @@ WEB-VCS BASE-URL RELATIVE-URL"
         (noerror  (ad-get-arg 2)))
     (if (featurep feature)
         feature
-      (if (and noerror
-               (or (not (boundp 'web-auto-load-skip-require-advice))
-                   web-auto-load-skip-require-advice))
+      (if (or filename
+              (and noerror
+                   (or (not (boundp 'web-auto-load-skip-require-advice))
+                       web-auto-load-skip-require-advice)))
           (progn
             (message "Doing nearly original require %s, because skipping" (ad-get-arg 0))
             ;; Can't ad-do-it because defadviced functions in load
@@ -318,32 +335,51 @@ WEB-VCS BASE-URL RELATIVE-URL"
                (relative-url (nth 3 auto-rec))
                (base-dir     (nth 4 auto-rec)))
           (if (not auto-rec)
-              (progn
-                (message "Doing nearly original require %s, because no auto-rec" feature)
+              ad-do-it
+            (let* ((full-el      (concat (expand-file-name relative-url base-dir) ".el"))
+                   (full-elc     (byte-compile-dest-file full-el)))
+              (if (not auto-rec)
+                  (progn
+                    (message "Doing nearly original require %s, because no auto-rec" feature)
+                    ;;(web-autoload-do-require feature filename noerror)
+                    ;;(ad-set-arg 2 t)
+                    ad-do-it
+                    ;;(ad-set-arg 2 noerror)
+                    )
+                (web-vcs-message-with-face 'web-vcs-gold "Doing the really adviced require for %s" feature)
+                ;; Check if already downloaded first
+                (unless (file-exists-p full-el)
+                  ;; Download and try again
+                  (setq relative-url (concat relative-url ".el"))
+                  (web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s (%S %S => %S)" feature base-url relative-url base-dir)
+                  (catch 'command-level
+                    (web-vcs-get-missing-matching-files web-vcs base-url base-dir relative-url))
+                  (web-vcs-message-with-face 'font-lock-comment-face "After downloaded feature %s (%S %S => %S)" feature base-url relative-url base-dir))
+                (unless (file-exists-p full-elc)
+                  ;; Byte compile the downloaded file
+                  (when web-autoload-autocompile
+                    (web-autoload-byte-compile-file full-el t)))
                 ;;(web-autoload-do-require feature filename noerror)
-                (ad-set-arg 2 t)
                 ad-do-it
-                (ad-set-arg 2 noerror)
-                )
-            (web-vcs-message-with-face 'web-vcs-gold "Doing the really adviced require for %s" feature)
-            ;; Check if already downloaded first
-            (condition-case err
-                (web-autoload-do-require feature filename noerror)
-              (error (message "ad-do-it require failed for %s: %s" feature (error-message-string err))))
-            (if (featurep feature)
-                feature
-              ;; Download and try again
-              (setq relative-url (concat relative-url ".el"))
-              (web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s (%S %S => %S)" feature base-url relative-url base-dir)
-              (catch 'command-level
-                (web-vcs-get-missing-matching-files web-vcs base-url base-dir relative-url))
-              (web-vcs-message-with-face 'font-lock-comment-face "After downloaded feature %s (%S %S => %S)" feature base-url relative-url base-dir)
-              ;; Byte compile the downloaded file
-              (let ((dl-file (expand-file-name relative-url base-dir)))
-                (when web-autoload-autocompile
-                  (web-autoload-byte-compile-file dl-file nil)))
-              (web-autoload-do-require feature filename noerror)
-              )))))))
+                ))))))))
+
+(defun big-trace ()
+  (setq trace-buffer "*Messages*")
+  (trace-function-background 'byte-compile-form)
+  (trace-function-background 'byte-compile-file-form)
+  (trace-function-background 'byte-optimize-form)
+  (trace-function-background 'byte-compile-normal-call)
+  (trace-function-background 'byte-compile-cl-warn)
+  (trace-function-background 'byte-compile-const-symbol-p)
+  (trace-function-background 'byte-compile-warn)
+  (trace-function-background 'byte-compile-warning-enabled-p)
+  (trace-function-background 'byte-compile-callargs-warn)
+  (trace-function-background 'byte-compile-splice-in-already-compiled-code)
+  (trace-function-background 'byte-inline-lapcode)
+  (trace-function-background 'byte-decompile-bytecode-1)
+  )
+
+;;(big-trace)
 
 (provide 'web-autoload)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
