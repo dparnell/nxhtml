@@ -105,7 +105,8 @@ directly, otherwise download it first."
               (old-hist-elt (load-history-filename-element lib-web))
               (auto-fun (symbol-function ',fun))
               err)
-         (fset ',fun nil)
+         ;; Fix-me: Can't do this because we may have to go back here again...
+         ;;(fset ',fun nil)
          (if (not (listp ',src))
              ;; Just a local file, for testing of logics.
              (let ((lib-file (locate-library ',src)))
@@ -127,21 +128,23 @@ directly, otherwise download it first."
              (unless (stringp base-dir)
                (setq base-dir (symbol-value base-dir)))
              (setq dl-file (expand-file-name rel-url-el base-dir))
-             (web-vcs-message-with-face 'web-vcs-gold "web-autoload-1: fun=%s dl-file=%S" ',fun dl-file)
+             (web-vcs-message-with-face 'web-vcs-gold "web-autoload-1: BEG fun=%s dl-file=%S" ',fun dl-file)
              ;; Fix-me: How to avoid this during byte compiling?
              (unless (file-exists-p dl-file)
                (web-vcs-get-missing-matching-files vcs base-url base-dir rel-url-el)
                (unless (file-exists-p dl-file)
                  (web-vcs-message-with-face 'web-vcs-red "Could not download file %s" dl-file)
-                 (throw 'command-level nil))
-               (when web-autoload-autocompile
-                   (web-autoload-byte-compile-file dl-file t)))
+                 (throw 'command-level nil)))
+             (when web-autoload-autocompile
+               (web-autoload-byte-compile-file dl-file t))
              ;; Is it already loaded, or?
-             (unless (symbol-function ',fun)
+             ;; Fix-me: rethink!
+             (unless nil ;(symbol-function ',fun)
                (let ((dl-file-noel (file-name-sans-extension dl-file)))
                  (load dl-file-noel)))
              (unless (symbol-function ',fun)
                (setq err (format "%s is not in downloaded library %s" ',fun dl-file)))
+             (web-vcs-message-with-face 'web-vcs-gold "web-autoload-1: END fun=%s dl-file=%S" ',fun dl-file)
              ))
          (if (not err)
              (progn
@@ -173,6 +176,61 @@ WEB-VCS BASE-URL RELATIVE-URL"
   )
 
 ;; Fix-me: Set up a byte compilation queue. Move function for byte compiling here.
+
+(defvar web-autoload-cleanup-dummy-el
+  (let* ((this-dir (file-name-directory (or load-file-name
+                                            (when (boundp 'bytecomp-filename) bytecomp-filename)
+                                            buffer-file-name))))
+    (expand-file-name "temp-cleanup.el" this-dir)))
+
+(defun web-autoload-try-cleanup-after-failed-compile ()
+  (let* ((bc-input-buffer (get-buffer " *Compiler Input*"))
+         (bc-outbuffer (get-buffer " *Compiler Output*"))
+         (active-comp (car web-autoload-compile-queue))
+         (active-file (car active-comp))
+         (active-elc (byte-compile-dest-file active-file)))
+    ;; Delete bytecomp buffers
+    (web-vcs-message-with-face 'web-vcs-gold "Trying to cleanup %s %s %s" bc-input-buffer bc-outbuffer active-elc)
+    (when bc-input-buffer (kill-buffer bc-input-buffer))
+    (when bc-outbuffer
+      (kill-buffer bc-outbuffer)
+      (setq bytecomp-outbuffer nil))
+    ;; Delete half finished elc file
+    (when (file-exists-p active-elc)
+      (delete-file active-elc))
+    (setq byte-compile-constants nil)
+    (setq byte-compile-variables nil)
+    (setq byte-compile-bound-variables nil)
+    (setq byte-compile-const-variables nil)
+    (setq byte-compile-macro-environment byte-compile-initial-macro-environment)
+    (setq byte-compile-function-environment nil)
+    (setq byte-compile-unresolved-functions nil)
+    (setq byte-compile-noruntime-functions nil)
+    (setq byte-compile-tag-number 0)
+    (setq byte-compile-output nil)
+    (setq byte-compile-depth 0)
+    (setq byte-compile-maxdepth 0)
+    (setq byte-code-vector nil)
+    (setq byte-compile-current-form nil)
+    (setq byte-compile-dest-file nil)
+    (setq byte-compile-current-file nil)
+    (setq byte-compile-current-group nil)
+    (setq byte-compile-current-buffer nil)
+    (setq byte-compile-read-position nil)
+    (setq byte-compile-last-position nil)
+    (setq byte-compile-last-warned-form nil)
+    (setq byte-compile-last-logged-file nil)
+    ;;(defvar bytecomp-outbuffer)
+    ;;(defvar byte-code-meter)
+    ;; Try compiling something ...
+    (unless (file-exists-p web-autoload-cleanup-dummy-el)
+      (let ((buf (find-file-noselect web-autoload-cleanup-dummy-el)))
+        (with-current-buffer buf
+          (insert ";; Dummy")
+          (basic-save-buffer)
+          (kill-buffer))))
+    (byte-compile-file web-autoload-cleanup-dummy-el nil)))
+
 (defvar web-autoload-compile-queue nil)
 (defun web-autoload-byte-compile-file (file load)
   (if nil ;;(file-exists-p file)
@@ -181,27 +239,20 @@ WEB-VCS BASE-URL RELATIVE-URL"
     (setq web-autoload-compile-queue (cons (cons file load)
                                            web-autoload-compile-queue))
     (if (< 1 (length web-autoload-compile-queue))
-        (throw 'web-autoload-comp-to-top t)
-      (while web-autoload-compile-queue
-        (when (catch 'web-autoload-comp-to-top
-                (when (web-autoload-byte-compile-file-1)
-                  (setq web-autoload-compile-queue (cdr web-autoload-compile-queue)))
-                nil)
-          ;; Clean up before restart
-          (let* ((bc-input-buffer (get-buffer " *Compiler Input*"))
-                 (bc-outbuffer (get-buffer-create " *Compiler Output*"))
-                 (active-comp (cadr web-autoload-compile-queue))
-                 (active-file (car active-comp))
-                 (active-elc (byte-compile-dest-file active-file))
-            ;; Delete bytecomp buffers
-            (when bc-input-buffer (kill-buffer bc-input-buffer))
-            (when bc-outbuffer
-              (kill-buffer bc-outbuffer)
-              (setq bytecomp-outbuffer nil))
-            ;; Delete half finished elc file
-            (when (file-exists-p active-elc)
-              (delete-file active-elc))
-            )))))))
+        (throw 'web-autoload-comp-restart t)
+      (web-autoload-byte-compile-queue))))
+
+;;(web-autoload-byte-compile-queue)
+(defun web-autoload-byte-compile-queue ()
+  (while web-autoload-compile-queue
+    (when (catch 'web-autoload-comp-restart
+            (if (not (web-autoload-byte-compile-file-1))
+                t ;; Try again
+              (setq web-autoload-compile-queue (cdr web-autoload-compile-queue))
+              nil))
+      ;; Clean up before restart
+      (web-autoload-try-cleanup-after-failed-compile))
+    ))
 
 (defun web-autoload-byte-compile-file-1 ()
   "Compile and load FILE. Or just load."
@@ -225,10 +276,10 @@ WEB-VCS BASE-URL RELATIVE-URL"
               (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file))
           (error
            (web-vcs-message-with-face
-            'web-vcs-red "Error in byte compiling %S: %s" file (error-message-string err))))))
-  ;; Always return t on normal exits to tell to remove the (possibly)
-  ;; compiled entry.
-  t)
+            'web-vcs-red "Error in byte compiling %S: %s" file (error-message-string err)))))
+      ;; fix-me: Always return t on normal exits to tell to remove the
+      ;; (possibly) compiled entry.
+      (when (file-exists-p elc-file) t)))
 
 ;; Fix-me: protect against deep nesting
 (defun web-autoload-do-require (feature filename noerror)
@@ -258,7 +309,9 @@ WEB-VCS BASE-URL RELATIVE-URL"
           (progn
             (message "Doing nearly original require %s, because skipping" (ad-get-arg 0))
             ;; Can't ad-do-it because defadviced functions in load
-            (web-autoload-do-require feature filename noerror))
+            ;;(web-autoload-do-require feature filename noerror)
+            ad-do-it
+            )
         (let* ((auto-rec (assq feature web-autoload-require-list))
                (web-vcs      (nth 1 auto-rec))
                (base-url     (nth 2 auto-rec))
@@ -267,7 +320,11 @@ WEB-VCS BASE-URL RELATIVE-URL"
           (if (not auto-rec)
               (progn
                 (message "Doing nearly original require %s, because no auto-rec" feature)
-                (web-autoload-do-require feature filename noerror))
+                ;;(web-autoload-do-require feature filename noerror)
+                (ad-set-arg 2 t)
+                ad-do-it
+                (ad-set-arg 2 noerror)
+                )
             (web-vcs-message-with-face 'web-vcs-gold "Doing the really adviced require for %s" feature)
             ;; Check if already downloaded first
             (condition-case err

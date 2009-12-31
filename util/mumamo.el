@@ -355,8 +355,8 @@ FORMAT-STRING and ARGS have the same meaning as for the function
   ;;(list 'apply (list 'quote 'message) format-string (append '(list) args))
   ;;(list 'progn 'apply (list 'quote 'message) format-string (append '(list) args) nil)
   ;; (condition-case err
-      ;; (list 'apply (list 'quote 'message) format-string (append '(list) args)) ;; <--
-    ;; (error (message "err in msgfntfy %S" err)))
+  ;; (list 'apply (list 'quote 'message) format-string (append '(list) args)) ;; <--
+  ;; (error (message "err in msgfntfy %S" err)))
   ;;(message "%s %S" format-string args)
   ;;(list 'apply (list 'quote 'message) (list 'concat "%s: " format-string)
   ;;   (list 'get-internal-run-time) (append '(list) args))
@@ -653,8 +653,8 @@ right margin.  \(The '-mode' part of the major mode is stripped.)
 See also `mumamo-margin-use'.
 
 Note: When `linum-mode' is on the right margin is always used
-\(since `linum-mode' uses the left)."
-  :group 'mumamo-display
+now \(since `linum-mode' uses the left)."
+  ;;:group 'mumamo-display
   (mumamo-update-this-buffer-margin-use)
   (if mumamo-margin-info-mode
       (progn
@@ -664,7 +664,7 @@ Note: When `linum-mode' is on the right margin is always used
     ;;(remove-hook 'window-configuration-change-hook 'mumamo-update-this-buffer-margin-use t)
     (remove-hook 'linum-mode-hook 'mumamo-update-this-buffer-margin-use t)
     ))
-(put 'mumamo-margin-info-mode 'permanent-local t)
+;;(put 'mumamo-margin-info-mode 'permanent-local t)
 
 (defun mumamo-margin-info-mode-turn-off ()
   (mumamo-margin-info-mode -1))
@@ -6617,33 +6617,33 @@ Note: When adding new font-lock keywords for major mode chunks
 you should use the function `mumamo-refresh-multi-font-lock'
 afterwards.
 "  )))
-`(progn
-(add-to-list 'mumamo-defined-multi-major-modes (cons (car ',chunks2) ',turn-on-fun))
-(defvar ,turn-on-hook nil ,turn-on-hook-doc)
-(defvar ,turn-on-map (make-sparse-keymap)
-  ,(concat "Keymap for multi major mode function `"
-           (symbol-name turn-on-fun) "'"))
-(defvar ,turn-on-fun nil)
-(make-variable-buffer-local ',turn-on-fun)
-(put ',turn-on-fun 'permanent-local t)
-(put ',turn-on-fun 'mumamo-chunk-family (copy-tree ',chunks2))
-(put ',turn-on-fun-alias 'mumamo-chunk-family (copy-tree ',chunks2))
-(defun ,turn-on-fun nil ,docstring
-  (interactive)
-  (let ((old-major-mode (or mumamo-major-mode
-                            major-mode)))
-    (kill-all-local-variables)
-    (run-hooks 'change-major-mode-hook)
-    (setq mumamo-multi-major-mode ',turn-on-fun)
-    (setq ,turn-on-fun t)
-    (mumamo-add-multi-keymap ',turn-on-fun ,turn-on-map)
-    (setq mumamo-current-chunk-family (copy-tree ',chunks2))
-    (mumamo-turn-on-actions old-major-mode)
-    (run-hooks ',turn-on-hook)))
-(defalias ',turn-on-fun-alias ',turn-on-fun)
-(when (intern-soft ',turn-on-fun-old)
-  (defalias ',turn-on-fun-old ',turn-on-fun))
-)))
+    `(progn
+       (add-to-list 'mumamo-defined-multi-major-modes (cons (car ',chunks2) ',turn-on-fun))
+       (defvar ,turn-on-hook nil ,turn-on-hook-doc)
+       (defvar ,turn-on-map (make-sparse-keymap)
+         ,(concat "Keymap for multi major mode function `"
+                  (symbol-name turn-on-fun) "'"))
+       (defvar ,turn-on-fun nil)
+       (make-variable-buffer-local ',turn-on-fun)
+       (put ',turn-on-fun 'permanent-local t)
+       (put ',turn-on-fun 'mumamo-chunk-family (copy-tree ',chunks2))
+       (put ',turn-on-fun-alias 'mumamo-chunk-family (copy-tree ',chunks2))
+       (defun ,turn-on-fun nil ,docstring
+         (interactive)
+         (let ((old-major-mode (or mumamo-major-mode
+                                   major-mode)))
+           (kill-all-local-variables)
+           (run-hooks 'change-major-mode-hook)
+           (setq mumamo-multi-major-mode ',turn-on-fun)
+           (setq ,turn-on-fun t)
+           (mumamo-add-multi-keymap ',turn-on-fun ,turn-on-map)
+           (setq mumamo-current-chunk-family (copy-tree ',chunks2))
+           (mumamo-turn-on-actions old-major-mode)
+           (run-hooks ',turn-on-hook)))
+       (defalias ',turn-on-fun-alias ',turn-on-fun)
+       (when (intern-soft ',turn-on-fun-old)
+         (defalias ',turn-on-fun-old ',turn-on-fun))
+       )))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -7394,34 +7394,34 @@ when `c-fill-paragraph' is the real function used."
     (goto-char is-here)
     ret))
 
-  ;; (save-restriction
-  ;;   (widen)
-  ;;   (let* ((chunk (mumamo-find-chunks (point) "mumamo-c-state-literal-at"))
-  ;;          (syntax-min-max (mumamo-chunk-syntax-min-max chunk t)))
-  ;;     (narrow-to-region (car syntax-min-max) (cdr syntax-min-max)))
-  ;;   (save-excursion
-  ;;     (let ((c c-state-nonlit-pos-cache)
-  ;;           pos npos lit)
-  ;;       ;; Trim the cache to take account of buffer changes.
-  ;;       (while (and c (> (car c) c-state-nonlit-pos-cache-limit))
-  ;;         (setq c (cdr c)))
-  ;;       (setq c-state-nonlit-pos-cache c)
+;; (save-restriction
+;;   (widen)
+;;   (let* ((chunk (mumamo-find-chunks (point) "mumamo-c-state-literal-at"))
+;;          (syntax-min-max (mumamo-chunk-syntax-min-max chunk t)))
+;;     (narrow-to-region (car syntax-min-max) (cdr syntax-min-max)))
+;;   (save-excursion
+;;     (let ((c c-state-nonlit-pos-cache)
+;;           pos npos lit)
+;;       ;; Trim the cache to take account of buffer changes.
+;;       (while (and c (> (car c) c-state-nonlit-pos-cache-limit))
+;;         (setq c (cdr c)))
+;;       (setq c-state-nonlit-pos-cache c)
 
-  ;;       (while (and c (> (car c) here))
-  ;;         (setq c (cdr c)))
-  ;;       (setq pos (or (car c) (point-min)))
+;;       (while (and c (> (car c) here))
+;;         (setq c (cdr c)))
+;;       (setq pos (or (car c) (point-min)))
 
-  ;;       (while (<= (setq npos (+ pos c-state-nonlit-pos-interval))
-  ;;       	   here)
-  ;;         (setq lit (c-state-pp-to-literal pos npos))
-  ;;         (setq pos (or (cdr lit) npos)) ; end of literal containing npos.
-  ;;         (setq c-state-nonlit-pos-cache (cons pos c-state-nonlit-pos-cache)))
+;;       (while (<= (setq npos (+ pos c-state-nonlit-pos-interval))
+;;       	   here)
+;;         (setq lit (c-state-pp-to-literal pos npos))
+;;         (setq pos (or (cdr lit) npos)) ; end of literal containing npos.
+;;         (setq c-state-nonlit-pos-cache (cons pos c-state-nonlit-pos-cache)))
 
-  ;;       (if (> pos c-state-nonlit-pos-cache-limit)
-  ;;           (setq c-state-nonlit-pos-cache-limit pos))
-  ;;       (if (< pos here)
-  ;;           (setq lit (c-state-pp-to-literal pos here)))
-  ;;       lit))))
+;;       (if (> pos c-state-nonlit-pos-cache-limit)
+;;           (setq c-state-nonlit-pos-cache-limit pos))
+;;       (if (< pos here)
+;;           (setq lit (c-state-pp-to-literal pos here)))
+;;       lit))))
 
 
 (defadvice c-state-literal-at (around
@@ -7437,20 +7437,20 @@ when `c-fill-paragraph' is the real function used."
 (defun mumamo-c-state-get-min-scan-pos ()
   ;; Return the lowest valid scanning pos.  This will be the end of the
   ;; literal enclosing point-min, or point-min itself.
-      (save-restriction
-	(save-excursion
-	  (widen)
-          (mumamo-narrow-to-chunk-inner)
-          (or (and c-state-min-scan-pos
-                   (>= c-state-min-scan-pos (point-min))
-                   c-state-min-scan-pos)
-              (if (not c-state-point-min-lit-start)
-                  (goto-char (point-min))
-                (goto-char c-state-point-min-lit-start)
-                (if (eq c-state-point-min-lit-type 'string)
-                    (forward-sexp)
-                  (forward-comment 1)))
-              (setq c-state-min-scan-pos (point))))))
+  (save-restriction
+    (save-excursion
+      (widen)
+      (mumamo-narrow-to-chunk-inner)
+      (or (and c-state-min-scan-pos
+               (>= c-state-min-scan-pos (point-min))
+               c-state-min-scan-pos)
+          (if (not c-state-point-min-lit-start)
+              (goto-char (point-min))
+            (goto-char c-state-point-min-lit-start)
+            (if (eq c-state-point-min-lit-type 'string)
+                (forward-sexp)
+              (forward-comment 1)))
+          (setq c-state-min-scan-pos (point))))))
 
 (defadvice c-state-get-min-scan-pos (around
                                      mumamo-ad-c-state-get-min-scan-pos-at
