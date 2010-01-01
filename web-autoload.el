@@ -80,7 +80,9 @@ directly, otherwise download it first."
     (eval
      `(web-autoload-1 ,fun ,src ,docstring ,int ,type))))
 
-(defvar web-autoload-default-filename-element nil)
+(defun web-autoload-default-filename-element ()
+  ;; Fix-me: el or elc?
+  (expand-file-name "nxhtml-loaddefs.elc" nxhtml-install-dir))
 
 (defcustom web-autoload-autocompile t
   "Byt compile downloaded files if t."
@@ -101,7 +103,7 @@ directly, otherwise download it first."
                         src))
        ,interactive
        (let* ((lib-web (or (find-lisp-object-file-name ',fun 'defun)
-                           web-autoload-default-filename-element))
+                           (web-autoload-default-filename-element)))
               (old-hist-elt (load-history-filename-element lib-web))
               (auto-fun (symbol-function ',fun))
               err)
@@ -116,56 +118,42 @@ directly, otherwise download it first."
            ;; If file is a list then it should be a web url:
            ;;   (web-vcs base-url relative-url base-dir)
            ;; Convert from repository url to file download url.
-           (let* ((vcs      (nth 0 ',src))
-                  (base-url (nth 1 ',src))
+           (let* (;;(vcs      (nth 0 ',src))
+                  ;;(base-url (nth 1 ',src))
                   (rel-url  (nth 2 ',src))
-                  (base-dir (nth 3 ',src))
-                  (rel-url-el (concat rel-url ".el"))
-                  file-url
-                  dl-file)
-             (unless (stringp base-url)
-               (setq base-url (symbol-value base-url)))
-             (unless (stringp base-dir)
-               (setq base-dir (symbol-value base-dir)))
-             (setq dl-file (expand-file-name rel-url-el base-dir))
-             (web-vcs-message-with-face 'web-vcs-gold "web-autoload-1: BEG fun=%s dl-file=%S" ',fun dl-file)
-             ;; Fix-me: How to avoid this during byte compiling?
-             (unless (file-exists-p dl-file)
-               (web-vcs-get-missing-matching-files vcs base-url base-dir rel-url-el)
-               (unless (file-exists-p dl-file)
-                 (web-vcs-message-with-face 'web-vcs-red "Could not download file %s" dl-file)
-                 (throw 'command-level nil)))
-             (when web-autoload-autocompile
-               (web-autoload-byte-compile-file dl-file t))
-             ;; Is it already loaded, or?
-             ;; Fix-me: rethink!
-             (unless nil ;(symbol-function ',fun)
-               (let ((dl-file-noel (file-name-sans-extension dl-file)))
-                 (load dl-file-noel)))
-             (unless (symbol-function ',fun)
-               (setq err (format "%s is not in downloaded library %s" ',fun dl-file)))
-             (web-vcs-message-with-face 'web-vcs-gold "web-autoload-1: END fun=%s dl-file=%S" ',fun dl-file)
+                  ;;(base-dir (nth 3 ',src))
+                  ;;(rel-url-el (concat rel-url ".el"))
+                  ;;file-url
+                  ;;dl-file
+                  )
+             ;;(unless (stringp base-url) (setq base-url (symbol-value base-url)))
+             ;;(unless (stringp base-dir) (setq base-dir (symbol-value base-dir)))
+             ;;(setq dl-file (expand-file-name rel-url-el base-dir))
+             (web-vcs-message-with-face 'web-vcs-gold "web-autoload-1: BEG fun=%s" ',fun)
+             ;; Fix-me: assume we can do require (instead of load, so
+             ;; we do not have to defadvice load to).
+             (require (intern (file-name-nondirectory rel-url)))
+             (when (equal (symbol-function ',fun) auto-fun)
+               (error "Couldn't web autoload function ',fun"))
+             (web-vcs-message-with-face 'web-vcs-gold "web-autoload-1: END fun=%s" ',fun)
              ))
-         (if (not err)
-             (progn
-               ;; Delete old load-history entry for ,fun. A new entry
-               ;; has been added.
-               (let* ((tail (cdr old-hist-elt))
-                      (new-tail (when tail (delete (cons 'defun ',fun) tail))))
-                 (when tail (setcdr old-hist-elt new-tail)))
-               ;; Finally call the real function
-               (if (called-interactively-p ',fun)
-                   (call-interactively ',fun)
-                 (if (functionp ',fun)
-                     (apply ',fun args)
-                   ;; It is a macro
-                   (let ((the-macro (append '(,fun) args nil)))
-                     (eval the-macro))
-                   )))
-           (fset ',fun auto-fun)
-           (error "web-autoload: %s" err)
-           )))
-     ))
+         ;; Fix-me: Wrong place to do the cleanup! It must be done
+         ;; after loading a file. All autoload in that file must be
+         ;; deleted from the nxhtml-loaddefs entry.
+         ;;
+         ;; Delete old load-history entry for ,fun. A new entry
+         ;; has been added.
+         (let* ((tail (cdr old-hist-elt))
+                (new-tail (when tail (delete (cons 'defun ',fun) tail))))
+           (when tail (setcdr old-hist-elt new-tail)))
+         ;; Finally call the real function
+         (if (called-interactively-p ',fun)
+             (call-interactively ',fun)
+           (if (functionp ',fun)
+               (apply ',fun args)
+             ;; It is a macro
+             (let ((the-macro (append '(,fun) args nil)))
+               (eval the-macro))))))))
 
 (defvar web-autoload-require-list nil)
 
@@ -183,10 +171,10 @@ WEB-VCS BASE-URL RELATIVE-URL"
                                             buffer-file-name))))
     (expand-file-name "temp-cleanup.el" this-dir)))
 
-(defun web-autoload-try-cleanup-after-failed-compile ()
+(defun web-autoload-try-cleanup-after-failed-compile (active-comp)
   (let* ((bc-input-buffer (get-buffer " *Compiler Input*"))
          (bc-outbuffer (get-buffer " *Compiler Output*"))
-         (active-comp (car web-autoload-compile-queue))
+         ;;(active-comp (car web-autoload-compile-queue))
          (active-file (car active-comp))
          (active-elc (byte-compile-dest-file active-file)))
     ;; Delete bytecomp buffers
@@ -198,61 +186,70 @@ WEB-VCS BASE-URL RELATIVE-URL"
     ;; Delete half finished elc file
     (when (file-exists-p active-elc)
       (delete-file active-elc))
-    (setq byte-compile-constants nil)
-    (setq byte-compile-variables nil)
-    (setq byte-compile-bound-variables nil)
-    (setq byte-compile-const-variables nil)
-    ;;(setq byte-compile-macro-environment byte-compile-initial-macro-environment)
-    (setq byte-compile-function-environment nil)
-    (setq byte-compile-unresolved-functions nil)
-    (setq byte-compile-noruntime-functions nil)
-    (setq byte-compile-tag-number 0)
-    (setq byte-compile-output nil)
-    (setq byte-compile-depth 0)
-    (setq byte-compile-maxdepth 0)
-    ;;(setq byte-code-vector nil)
-    (setq byte-compile-current-form nil)
-    (setq byte-compile-dest-file nil)
-    (setq byte-compile-current-file nil)
-    (setq byte-compile-current-group nil)
-    (setq byte-compile-current-buffer nil)
-    (setq byte-compile-read-position nil)
-    (setq byte-compile-last-position nil)
-    (setq byte-compile-last-warned-form nil)
-    (setq byte-compile-last-logged-file nil)
-    ;;(defvar bytecomp-outbuffer)
-    ;;(defvar byte-code-meter)
-    ;; Try compiling something ...
-    (unless (file-exists-p web-autoload-cleanup-dummy-el)
-      (let ((buf (find-file-noselect web-autoload-cleanup-dummy-el)))
-        (with-current-buffer buf
-          (insert ";; Dummy")
-          (basic-save-buffer)
-          (kill-buffer))))
-    (byte-compile-file web-autoload-cleanup-dummy-el nil)))
+    ;; Delete load-history entry
+    (setq load-history (cdr load-history))
+    ;; Try to reset some variables (just guesses)
+    (when nil
+      (setq byte-compile-constants nil)
+      (setq byte-compile-variables nil)
+      (setq byte-compile-bound-variables nil)
+      (setq byte-compile-const-variables nil)
+      ;;(setq byte-compile-macro-environment byte-compile-initial-macro-environment)
+      (setq byte-compile-function-environment nil)
+      (setq byte-compile-unresolved-functions nil)
+      (setq byte-compile-noruntime-functions nil)
+      (setq byte-compile-tag-number 0)
+      (setq byte-compile-output nil)
+      (setq byte-compile-depth 0)
+      (setq byte-compile-maxdepth 0)
+      ;;(setq byte-code-vector nil)
+      (setq byte-compile-current-form nil)
+      (setq byte-compile-dest-file nil)
+      (setq byte-compile-current-file nil)
+      (setq byte-compile-current-group nil)
+      (setq byte-compile-current-buffer nil)
+      (setq byte-compile-read-position nil)
+      (setq byte-compile-last-position nil)
+      (setq byte-compile-last-warned-form nil)
+      (setq byte-compile-last-logged-file nil)
+      ;;(defvar bytecomp-outbuffer)
+      ;;(defvar byte-code-meter)
+      )
+    ;; Try compiling something go get right state ...
+    (when t
+      (unless (file-exists-p web-autoload-cleanup-dummy-el)
+        (let ((buf (find-file-noselect web-autoload-cleanup-dummy-el)))
+          (with-current-buffer buf
+            (insert ";; Dummy")
+            (basic-save-buffer)
+            (kill-buffer))))
+      (byte-compile-file web-autoload-cleanup-dummy-el nil))))
 
 (defvar web-autoload-compile-queue nil)
 (defun web-autoload-byte-compile-file (file load)
   (if nil ;;(file-exists-p file)
       (byte-compile-file file load)
-    (web-vcs-message-with-face 'web-vcs-gold "Add to compile queue (%S %s)" file load)
-    (setq web-autoload-compile-queue (cons (cons file load)
-                                           web-autoload-compile-queue))
-    (if (< 1 (length web-autoload-compile-queue))
-        (throw 'web-autoload-comp-restart t)
-      (web-autoload-byte-compile-queue))))
+    (let ((added-entry (cons file load)))
+      (if (member added-entry web-autoload-compile-queue)
+          (setq added-entry nil)
+        (web-vcs-message-with-face 'web-vcs-gold "Add to compile queue (%S %s)" file load)
+        (setq web-autoload-compile-queue (cons added-entry
+                                               web-autoload-compile-queue)))
+      (if (and added-entry
+               (< 1 (length web-autoload-compile-queue)))
+          (throw 'web-autoload-comp-restart t)
+        (web-autoload-byte-compile-queue)))))
 
 ;;(web-autoload-byte-compile-queue)
 (defun web-autoload-byte-compile-queue ()
-  (while web-autoload-compile-queue
-    (when (catch 'web-autoload-comp-restart
-            (if (not (web-autoload-byte-compile-file-1))
-                t ;; Try again
-              (setq web-autoload-compile-queue (cdr web-autoload-compile-queue))
-              nil))
-      ;; Clean up before restart
-      (web-autoload-try-cleanup-after-failed-compile))
-    ))
+  (let ((top-entry))
+    (while (and web-autoload-compile-queue
+                (not (equal top-entry
+                            (car web-autoload-compile-queue))))
+      (setq top-entry (car web-autoload-compile-queue))
+      (catch 'web-autoload-comp-restart
+        (web-autoload-byte-compile-file-1)
+        (setq web-autoload-compile-queue (cdr web-autoload-compile-queue))))))
 
 (defun web-autoload-byte-compile-file-1 ()
   "Compile and load FILE. Or just load."
@@ -263,39 +260,47 @@ WEB-VCS BASE-URL RELATIVE-URL"
          (elc-file (byte-compile-dest-file file))
          (need-compile (or (not (file-exists-p elc-file))
                            (file-newer-than-file-p file elc-file))))
-      (if (not need-compile)
-          nil ;;(when load (load elc-file))
-        (when nil
-          (condition-case err
-              (progn
-                (web-vcs-message-with-face 'font-lock-comment-face "Start batch byte compiling %S" file)
-                (let ((emacs-exe (locate-file invocation-name (list invocation-directory) exec-suffixes))
-                      (comp-buf (get-buffer-create "*Compile-Log*"))
-                      (this-win (selected-window)))
-                  (switch-to-buffer-other-window comp-buf)
-                  (goto-char (point-max))
-                  (select-window this-win)
-                  (apply 'call-process emacs-exe nil comp-buf nil "-Q" "-batch" "-f" "batch-byte-compile" file nil))
-                (web-vcs-message-with-face 'font-lock-comment-face "Ready batch byte compiling %S" file))
-            (error
-             (web-vcs-message-with-face
-              'web-vcs-red "Error in batch byte compiling %S: %s" file (error-message-string err)))))
-        (unless (file-exists-p elc-file)
-          (condition-case err
-              (progn
-                (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" file)
-                ;;(when (ad-is-advised 'require) (ad-disable-advice 'require 'around 'web-autoload-ad-require))
-                (let ((web-auto-load-skip-require-advice t)) (byte-compile-file file load))
-                ;;(when (ad-is-advised 'require) (ad-enable-advice 'require 'around 'web-autoload-ad-require))
-                (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file))
-            (error
-             (web-vcs-message-with-face
-              'web-vcs-red "Error in byte compiling %S: %s" file (error-message-string err))))
-          )
-        )
-      ;; fix-me: Always return t on normal exits to tell to remove the
-      ;; (possibly) compiled entry.
-      (when (file-exists-p elc-file) t)))
+    (if (not need-compile)
+        nil ;;(when load (load elc-file))
+      (when (catch 'web-autoload-comp-restart
+              (condition-case err
+                  (progn
+                    (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" file)
+                    ;;(when (ad-is-advised 'require) (ad-disable-advice 'require 'around 'web-autoload-ad-require))
+                    (let ((web-auto-load-skip-require-advice t)) (byte-compile-file file load))
+                    ;;(when (ad-is-advised 'require) (ad-enable-advice 'require 'around 'web-autoload-ad-require))
+                    (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file)
+                    ;; Return nil to tell there are no known problems
+                    (if (file-exists-p elc-file)
+                        nil
+                      (web-vcs-message-with-face
+                       'web-vcs-red "Error: byte compiling did not produce %S" elc-file)
+                      t))
+                (error
+                 (web-vcs-message-with-face
+                  'web-vcs-red "Error in byte compiling %S: %s" file (error-message-string err))
+                 t ;; error
+                 )))
+        ;; Clean up before restart
+        (web-autoload-try-cleanup-after-failed-compile first-entry)
+        (throw 'web-autoload-comp-restart t)
+        ))))
+
+        ;; (when nil
+        ;;   (condition-case err
+        ;;       (progn
+        ;;         (web-vcs-message-with-face 'font-lock-comment-face "Start batch byte compiling %S" file)
+        ;;         (let ((emacs-exe (locate-file invocation-name (list invocation-directory) exec-suffixes))
+        ;;               (comp-buf (get-buffer-create "*Compile-Log*"))
+        ;;               (this-win (selected-window)))
+        ;;           (switch-to-buffer-other-window comp-buf)
+        ;;           (goto-char (point-max))
+        ;;           (select-window this-win)
+        ;;           (apply 'call-process emacs-exe nil comp-buf nil "-Q" "-batch" "-f" "batch-byte-compile" file nil))
+        ;;         (web-vcs-message-with-face 'font-lock-comment-face "Ready batch byte compiling %S" file))
+        ;;     (error
+        ;;      (web-vcs-message-with-face
+        ;;       'web-vcs-red "Error in batch byte compiling %S: %s" file (error-message-string err)))))
 
 ;; Fix-me: protect against deep nesting
 (defun web-autoload-do-require (feature filename noerror)

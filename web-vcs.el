@@ -341,12 +341,12 @@ If TEST is non-nil then do not download, just list the files"
               (kill-buffer temp-buf))
             ;; Use url-copy-file, this takes care of coding system.
             ;;(message "url-copy-file %S %S t t" file-url temp-file) ;; overwrite, keep time
-            (web-vcs-message-with-face 'font-lock-comment-face "Starting url-copy-file %S %S t t" file-url temp-file)
+            ;;(web-vcs-message-with-face 'font-lock-comment-face "Starting url-copy-file %S %S t t" file-url temp-file)
             (url-copy-file file-url temp-file t t) ;; overwrite, keep time
             (unless (file-exists-p temp-file)
               (web-vcs-message-with-face 'web-vcs-red "Failed url-copy-file %S %S t t" file-url temp-file)
               (throw 'command-level nil))
-            (web-vcs-message-with-face 'font-lock-comment-face "Finished url-copy-file %S %S t t" file-url temp-file)
+            ;;(web-vcs-message-with-face 'font-lock-comment-face "Finished url-copy-file %S %S t t" file-url temp-file)
             (let* (;; (new-buf (find-file-noselect temp-file))
                    ;; (new-src (with-current-buffer new-buf
                    ;;            (save-restriction
@@ -377,7 +377,7 @@ If TEST is non-nil then do not download, just list the files"
                     (when (file-exists-p backup)
                       (delete-file backup))
                     (rename-file file-dl-name backup)))
-                (web-vcs-message-with-face 'font-lock-comment-face "Doing rename-file %S %S" temp-file file-dl-name)
+                ;;(web-vcs-message-with-face 'font-lock-comment-face "Doing rename-file %S %S" temp-file file-dl-name)
                 (rename-file temp-file file-dl-name)
                 (if old-exists
                     (web-vcs-message-with-face 'hi-yellow "Updated %S" file-dl-name)

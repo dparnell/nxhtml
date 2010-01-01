@@ -168,7 +168,6 @@ them."
     (add-to-list 'load-path nxhtml-install-dir)
     (add-to-list 'load-path company-dir)
     (add-to-list 'load-path tests-dir)
-    (setq web-autoload-default-filename-element nxhtml-install-dir)
 
     (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
