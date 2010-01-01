@@ -90,7 +90,7 @@ directly, otherwise download it first."
   :group 'web-vcs)
 
 ;; Fix-me: change name
-(defvar web-auto-load-skip-require-advice nil)
+(defvar web-autoload-skip-require-advice nil)
 
 ;; Fix-me: Use TYPE
 (defmacro web-autoload-1 (fun src docstring interactive type)
@@ -132,9 +132,12 @@ directly, otherwise download it first."
              (web-vcs-message-with-face 'web-vcs-gold "web-autoload-1: BEG fun=%s" ',fun)
              ;; Fix-me: assume we can do require (instead of load, so
              ;; we do not have to defadvice load to).
-             (require (intern (file-name-nondirectory rel-url)))
+             (when (catch 'web-autoload-comp-restart
+                     (require (intern (file-name-nondirectory rel-url)))
+                     nil)
+               (web-autoload-byte-compile-queue))
              (when (equal (symbol-function ',fun) auto-fun)
-               (error "Couldn't web autoload function ',fun"))
+               (error "Couldn't web autoload function %s" ',fun))
              (web-vcs-message-with-face 'web-vcs-gold "web-autoload-1: END fun=%s" ',fun)
              ))
          ;; Fix-me: Wrong place to do the cleanup! It must be done
@@ -187,7 +190,8 @@ WEB-VCS BASE-URL RELATIVE-URL"
     (when (file-exists-p active-elc)
       (delete-file active-elc))
     ;; Delete load-history entry
-    (setq load-history (cdr load-history))
+    (when nil
+      (setq load-history (cdr load-history)))
     ;; Try to reset some variables (just guesses)
     (when nil
       (setq byte-compile-constants nil)
@@ -216,7 +220,7 @@ WEB-VCS BASE-URL RELATIVE-URL"
       ;;(defvar byte-code-meter)
       )
     ;; Try compiling something go get right state ...
-    (when t
+    (when nil
       (unless (file-exists-p web-autoload-cleanup-dummy-el)
         (let ((buf (find-file-noselect web-autoload-cleanup-dummy-el)))
           (with-current-buffer buf
@@ -235,14 +239,16 @@ WEB-VCS BASE-URL RELATIVE-URL"
         (web-vcs-message-with-face 'web-vcs-gold "Add to compile queue (%S %s)" file load)
         (setq web-autoload-compile-queue (cons added-entry
                                                web-autoload-compile-queue)))
-      (if (and added-entry
-               (< 1 (length web-autoload-compile-queue)))
-          (throw 'web-autoload-comp-restart t)
-        (web-autoload-byte-compile-queue)))))
+      (when added-entry
+        (if web-autoload-byte-compile-queue-active
+            (throw 'web-autoload-comp-restart t)
+          (web-autoload-byte-compile-queue))))))
 
+(defvar web-autoload-byte-compile-queue-active nil) ;; Dyn var
 ;;(web-autoload-byte-compile-queue)
 (defun web-autoload-byte-compile-queue ()
-  (let ((top-entry))
+  (let ((top-entry)
+        (web-autoload-byte-compile-queue-active t))
     (while (and web-autoload-compile-queue
                 (not (equal top-entry
                             (car web-autoload-compile-queue))))
@@ -255,52 +261,63 @@ WEB-VCS BASE-URL RELATIVE-URL"
   "Compile and load FILE. Or just load."
   (let* ((compiled-it nil)
          (first-entry (car web-autoload-compile-queue))
-         (file (car first-entry))
+         (el-file (car first-entry))
          (load (cdr first-entry))
-         (elc-file (byte-compile-dest-file file))
+         (elc-file (byte-compile-dest-file el-file))
          (need-compile (or (not (file-exists-p elc-file))
                            (file-newer-than-file-p file elc-file))))
     (if (not need-compile)
         nil ;;(when load (load elc-file))
+      (web-autoload-do-eval-requires el-file)
       (when (catch 'web-autoload-comp-restart
               (condition-case err
                   (progn
-                    (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" file)
+                    (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" el-file)
                     ;;(when (ad-is-advised 'require) (ad-disable-advice 'require 'around 'web-autoload-ad-require))
-                    (let ((web-auto-load-skip-require-advice t)) (byte-compile-file file load))
+                    (let ((web-autoload-skip-require-advice t)) (byte-compile-file el-file load))
                     ;;(when (ad-is-advised 'require) (ad-enable-advice 'require 'around 'web-autoload-ad-require))
-                    (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" file)
+                    (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" el-file)
                     ;; Return nil to tell there are no known problems
                     (if (file-exists-p elc-file)
                         nil
                       (web-vcs-message-with-face
                        'web-vcs-red "Error: byte compiling did not produce %S" elc-file)
+                      ;; Clean up before restart
+                      (web-autoload-try-cleanup-after-failed-compile first-entry)
                       t))
                 (error
                  (web-vcs-message-with-face
-                  'web-vcs-red "Error in byte compiling %S: %s" file (error-message-string err))
+                  'web-vcs-red "Error in byte compiling %S: %s" el-file (error-message-string err))
+                 ;; Clean up before restart
+                 (web-autoload-try-cleanup-after-failed-compile first-entry)
                  t ;; error
                  )))
-        ;; Clean up before restart
-        (web-autoload-try-cleanup-after-failed-compile first-entry)
         (throw 'web-autoload-comp-restart t)
         ))))
 
-        ;; (when nil
-        ;;   (condition-case err
-        ;;       (progn
-        ;;         (web-vcs-message-with-face 'font-lock-comment-face "Start batch byte compiling %S" file)
-        ;;         (let ((emacs-exe (locate-file invocation-name (list invocation-directory) exec-suffixes))
-        ;;               (comp-buf (get-buffer-create "*Compile-Log*"))
-        ;;               (this-win (selected-window)))
-        ;;           (switch-to-buffer-other-window comp-buf)
-        ;;           (goto-char (point-max))
-        ;;           (select-window this-win)
-        ;;           (apply 'call-process emacs-exe nil comp-buf nil "-Q" "-batch" "-f" "batch-byte-compile" file nil))
-        ;;         (web-vcs-message-with-face 'font-lock-comment-face "Ready batch byte compiling %S" file))
-        ;;     (error
-        ;;      (web-vcs-message-with-face
-        ;;       'web-vcs-red "Error in batch byte compiling %S: %s" file (error-message-string err)))))
+(defun web-autoload-do-eval-requires (el-file)
+  "Do eval-when-compile and eval-and-compile."
+  (message "web-autoload-do-eval-requires %S" el-file)
+  (let ((old-buf (find-buffer-visiting el-file)))
+    (with-current-buffer (or old-buf (find-file-noselect el-file))
+      (let ((here (point))
+            (web-autoload-require-skip-noerror-entries t))
+        (save-restriction
+          (widen)
+          (goto-char (point-min))
+          (message "web-autoload-do-eval-requires cb=%s" (current-buffer))
+          (while (progn
+                   (while (progn (skip-chars-forward " \t\n\^l")
+                                 (looking-at ";"))
+                     (forward-line 1))
+                   (not (eobp)))
+            (let ((form (read (current-buffer))))
+              (when (memq (car form) '(eval-when-compile eval-and-compile))
+                (web-vcs-message-with-face 'web-vcs-gold "eval %S" form)
+                (eval form))
+              )))
+        (if old-buf (kill-buffer) (goto-char here))))))
+
 
 ;; Fix-me: protect against deep nesting
 (defun web-autoload-do-require (feature filename noerror)
@@ -314,10 +331,12 @@ WEB-VCS BASE-URL RELATIVE-URL"
       nil
       )))
 
+(defvar web-autoload-require-skip-noerror-entries nil)
+
 (defadvice require (around
                     web-autoload-ad-require
-                                        ;activate
-                    ;;compile
+                    ;;activate
+                    compile
                     )
   (let ((feature  (ad-get-arg 0))
         (filename (ad-get-arg 1))
@@ -326,14 +345,16 @@ WEB-VCS BASE-URL RELATIVE-URL"
         feature
       (if (or filename
               (and noerror
-                   (or (not (boundp 'web-auto-load-skip-require-advice))
-                       web-auto-load-skip-require-advice)))
+                   (or (not (boundp 'web-autoload-skip-require-advice))
+                       web-autoload-skip-require-advice)))
           (progn
             (message "Doing nearly original require %s, because skipping" (ad-get-arg 0))
             ;; Can't ad-do-it because defadviced functions in load
             ;;(web-autoload-do-require feature filename noerror)
             ad-do-it
             )
+        (unless (and noerror
+                     web-autoload-require-skip-noerror-entries)
         (let* ((auto-rec (assq feature web-autoload-require-list))
                (web-vcs      (nth 1 auto-rec))
                (base-url     (nth 2 auto-rec))
@@ -360,13 +381,14 @@ WEB-VCS BASE-URL RELATIVE-URL"
                   (catch 'command-level
                     (web-vcs-get-missing-matching-files web-vcs base-url base-dir relative-url))
                   (web-vcs-message-with-face 'font-lock-comment-face "After downloaded feature %s (%S %S => %S)" feature base-url relative-url base-dir))
-                (unless (file-exists-p full-elc)
-                  ;; Byte compile the downloaded file
-                  (when web-autoload-autocompile
+                (when web-autoload-autocompile
+                  (unless (file-exists-p full-elc)
+                    ;; Byte compile the downloaded file
                     (web-autoload-byte-compile-file full-el t)))
                 ;;(web-autoload-do-require feature filename noerror)
+                (web-vcs-message-with-face 'web-vcs-gold "Doing finally require for %s" feature)
                 ad-do-it
-                ))))))))
+                )))))))))
 
 (defun big-trace ()
   (setq trace-buffer "*Messages*")

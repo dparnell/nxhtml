@@ -902,7 +902,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 
 ;;;### (autoloads (define-mumamo-multi-major-mode mumamo-multi-major-modep
 ;;;;;;  mumamo-mark-for-refontification mumamo-hi-lock-faces mumamo
-;;;;;;  mumamo-require) "mumamo" "util/mumamo.el" (19257 55520))
+;;;;;;  mumamo-require) "mumamo" "util/mumamo.el" (19260 21260))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp (nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir)
 
@@ -1044,7 +1044,7 @@ These are in the file mumamo-test.el.
 ;;;;;;  ssjs-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19259 44355))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19259 49435))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp (nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir)
 
@@ -3755,7 +3755,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;***
 
 ;;;### (autoloads (nxhtml-download web-vcs-get-files-from-root) "web-vcs"
-;;;;;;  "web-vcs.el" (19259 44062))
+;;;;;;  "web-vcs.el" (19261 27887))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -3857,7 +3857,7 @@ accept it or skip it.
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
 ;;;;;;  "util/useful-commands.el" "web-autoload-2.el" "web-autoload-3.el"
-;;;;;;  "web-autoload.el" "web-autostart.el") (19259 46288 156000))
+;;;;;;  "web-autoload.el" "web-autostart.el") (19262 14651 109000))
 
 ;;;***
 

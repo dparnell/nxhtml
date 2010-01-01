@@ -44,13 +44,12 @@
 ;;
 ;;; Code:
 
-(let* ((this-dir (file-name-directory (or load-file-name
+(let ((this-dir (file-name-directory (or load-file-name
                                          (when (boundp 'bytecomp-filename) bytecomp-filename)
-                                         buffer-file-name)))
-      (load-path (cons this-dir load-path)))
-  (require 'nxhtml-auto-helpers)
+                                         buffer-file-name))))
+  (load (expand-file-name "nxhtml-auto-helpers" this-dir))
   (setq nxhtml-autoload-web t)
-  (load "autostart"))
+  (load (expand-file-name "autostart" this-dir)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; web-autostart.el ends here

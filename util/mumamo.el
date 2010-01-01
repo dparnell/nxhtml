@@ -244,6 +244,7 @@
 ;;;; Code:
 
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'cc-engine))
 (eval-when-compile (require 'desktop))
 (eval-when-compile (require 'flyspell))
 (eval-when-compile (require 'mlinks nil t))
@@ -257,8 +258,486 @@
 ;; For `define-globalized-minor-mode-with-on-off':
 ;;(require 'ourcomments-util)
 
+
+;;;autoload
+;;(defun mumamo-require ())
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Some variables
+
+(defvar mumamo-major-mode-indent-line-function nil)
+(make-variable-buffer-local 'mumamo-major-mode-indent-line-function)
+
+(defvar mumamo-buffer-locals-per-major nil)
+(make-variable-buffer-local 'mumamo-buffer-locals-per-major)
+(put 'mumamo-buffer-locals-per-major 'permanent-local t)
+
+(defvar mumamo-just-changed-major nil
+  "Avoid refontification when switching major mode.
+Set to t by `mumamo-set-major'.  Checked and reset to nil by
+`mumamo-jit-lock-function'.")
+(make-variable-buffer-local 'mumamo-just-changed-major)
+
+(defvar mumamo-multi-major-mode nil
+  "The function that handles multiple major modes.
+If this is nil then multiple major modes in the buffer is not
+handled by mumamo.
+
+Set by functions defined by `define-mumamo-multi-major-mode'.")
+(make-variable-buffer-local 'mumamo-multi-major-mode)
+(put 'mumamo-multi-major-mode 'permanent-local t)
+
+(defvar mumamo-set-major-running nil
+  "Internal use.  Handling of mumamo turn off.")
+
+(defun mumamo-chunk-car (chunk prop)
+  (car (overlay-get chunk prop)))
+
+(defun mumamo-chunk-cadr (chunk prop)
+  (cadr (overlay-get chunk prop)))
+
+;; (let ((l '(1 2))) (setcar (nthcdr 1 l) 10) l)
+;; setters
+(defsubst mumamo-chunk-value-set-min (chunk-values min)
+  "In CHUNK-VALUES set min value to MIN.
+CHUNK-VALUES should have the format return by
+`mumamo-create-chunk-values-at'."
+  (setcar (nthcdr 0 chunk-values) min))
+(defsubst mumamo-chunk-value-set-max (chunk-values max)
+  "In CHUNK-VALUES set max value to MAX.
+See also `mumamo-chunk-value-set-min'."
+  (setcar (nthcdr 1 chunk-values) max))
+(defsubst mumamo-chunk-value-set-syntax-min (chunk-values min)
+  "In CHUNK-VALUES set min syntax diff value to MIN.
+See also `mumamo-chunk-value-set-min'."
+  (setcar (nthcdr 3 chunk-values) min))
+(defsubst mumamo-chunk-value-set-syntax-max (chunk-values max)
+  "In CHUNK-VALUES set max syntax diff value to MAX.
+See also `mumamo-chunk-value-set-min'."
+  (setcar (nthcdr 3 chunk-values) max))
+;; getters
+(defsubst mumamo-chunk-value-min    (chunk-values)
+  "Get min value from CHUNK-VALUES.
+See also `mumamo-chunk-value-set-min'."
+  (nth 0 chunk-values))
+(defsubst mumamo-chunk-value-max    (chunk-values)
+  "Get max value from CHUNK-VALUES.
+See also `mumamo-chunk-value-set-min'."
+  (nth 1 chunk-values))
+(defsubst mumamo-chunk-value-major  (chunk-values)
+  "Get major value from CHUNK-VALUES.
+See also `mumamo-chunk-value-set-min'."
+  (nth 2 chunk-values))
+(defsubst mumamo-chunk-value-syntax-min    (chunk-values)
+  "Get min syntax diff value from CHUNK-VALUES.
+See also `mumamo-chunk-value-set-min'."
+  (nth 3 chunk-values))
+(defsubst mumamo-chunk-value-syntax-max    (chunk-values)
+  "Get max syntax diff value from CHUNK-VALUES.
+See also `mumamo-chunk-value-set-min'."
+  (nth 4 chunk-values))
+(defsubst mumamo-chunk-value-parseable-by    (chunk-values)
+  "Get parseable-by from CHUNK-VALUES.
+See also `mumamo-chunk-value-set-min'.
+For parseable-by see `mumamo-find-possible-chunk'."
+  (nth 5 chunk-values))
+;; (defsubst mumamo-chunk-prev-chunk (chunk-values)
+;;   "Get previous chunk from CHUNK-VALUES.
+;; See also `mumamo-chunk-value-set-min'."
+;;   (nth 6 chunk-values))
+(defsubst mumamo-chunk-value-fw-exc-fun (chunk-values)
+  "Get function that find chunk end from CHUNK-VALUES.
+See also `mumamo-chunk-value-set-min'."
+  (nth 6 chunk-values))
+
+(defsubst mumamo-chunk-major-mode (chunk)
+  "Get major mode specified in CHUNK."
+  ;;(assert chunk)
+  ;;(assert (overlay-buffer chunk))
+  (let ((mode-spec (if chunk
+                       (mumamo-chunk-car chunk 'mumamo-major-mode)
+                     (mumamo-main-major-mode))))
+    (mumamo-major-mode-from-modespec mode-spec)))
+
+(defsubst mumamo-chunk-syntax-min-max (chunk no-obscure)
+  (when chunk
+    (let* ((ovl-end   (overlay-end chunk))
+           (ovl-start (overlay-start chunk))
+           (syntax-min (min ovl-end
+                            (+ ovl-start
+                               (or (overlay-get chunk 'syntax-min-d)
+                                   0))))
+           (syntax-max
+            (max ovl-start
+                 (- (overlay-end chunk)
+                    (or (overlay-get chunk 'syntax-max-d)
+                        0)
+                    ;; Note: We must subtract one here because
+                    ;; overlay-end is +1 from the last point in the
+                    ;; overlay. (This cured the problem with
+                    ;; kubica-freezing-i.html that made Emacs loop in
+                    ;; font-lock-extend-region-multiline.)
+                    1 )))
+           (obscure (unless no-obscure (overlay-get chunk 'obscured)))
+           (region-info (cadr obscure))
+           (obscure-min (car region-info))
+           (obscure-max (cdr region-info))
+           ;;(dummy (message "syn-mn-mx:obs=%s r-info=%s ob=%s/%s" obscure region-info obscure-min obscure-max ))
+           (actual-min (max (or obscure-min ovl-start)
+                            (or syntax-min ovl-start)))
+           (actual-max (min (or obscure-max ovl-end)
+                            (or syntax-max ovl-end)))
+           (maj (mumamo-chunk-car chunk 'mumamo-major-mode))
+           ;;(dummy (message "syn-mn-mx:obs=%s r-info=%s ob=%s/%s ac=%s/%s" obscure region-info obscure-min obscure-max actual-min actual-max))
+           )
+      (cons actual-min actual-max))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Macros
+
+;; Borrowed from font-lock.el
+(defmacro mumamo-save-buffer-state (varlist &rest body)
+  "Bind variables according to VARLIST and eval BODY restoring buffer state.
+Do not record undo information during evaluation of BODY."
+  (declare (indent 1) (debug let))
+  (let ((modified (make-symbol "modified")))
+    `(let* ,(append varlist
+                    `((,modified (buffer-modified-p))
+                      (buffer-undo-list t)
+                      (inhibit-read-only t)
+                      (inhibit-point-motion-hooks t)
+                      (inhibit-modification-hooks t)
+                      deactivate-mark
+                      buffer-file-name
+                      buffer-file-truename))
+       (progn
+         ,@body)
+       (unless ,modified
+         (restore-buffer-modified-p nil)))))
+
+;; From jit-lock.el:
+(defmacro mumamo-jit-with-buffer-unmodified (&rest body)
+  "Eval BODY, preserving the current buffer's modified state."
+  (declare (debug t))
+  (let ((modified (make-symbol "modified")))
+    `(let ((,modified (buffer-modified-p)))
+       (unwind-protect
+           (progn ,@body)
+         (unless ,modified
+           (restore-buffer-modified-p nil))))))
+
+(defmacro mumamo-with-buffer-prepared-for-jit-lock (&rest body)
+  "Execute BODY in current buffer, overriding several variables.
+Preserves the `buffer-modified-p' state of the current buffer."
+  (declare (debug t))
+  `(mumamo-jit-with-buffer-unmodified
+    (let ((buffer-undo-list t)
+          (inhibit-read-only t)
+          (inhibit-point-motion-hooks t)
+          (inhibit-modification-hooks t)
+          deactivate-mark
+          buffer-file-name
+          buffer-file-truename)
+      ,@body)))
+
+(defmacro mumamo-condition-case (var body-form &rest handlers)
+  "Like `condition-case', but optional.
+If `mumamo-use-condition-case' is non-nil then do
+
+  (condition-case VAR
+      BODY-FORM
+    HANDLERS).
+
+Otherwise just evaluate BODY-FORM."
+  (declare (indent 2) (debug t))
+  `(if (not mumamo-use-condition-case)
+       (let* ((debugger (or mumamo-debugger 'debug))
+              (debug-on-error (if debugger t debug-on-error)))
+         ,body-form)
+     (condition-case ,var
+         ,body-form
+       ,@handlers)))
+
+(defmacro mumamo-msgfntfy (format-string &rest args)
+  "Give some messages during fontification.
+This macro should just do nothing during normal use.  However if
+there are any problems you can uncomment one of the lines in this
+macro and recompile/reeval mumamo.el to get those messages.
+
+You have to search the code to see where you will get them.  All
+uses are in this file.
+
+FORMAT-STRING and ARGS have the same meaning as for the function
+`message'."
+  ;;(list 'apply (list 'quote 'msgtrc) format-string (append '(list) args))
+  ;;(list 'apply (list 'quote 'message) format-string (append '(list) args))
+  ;;(list 'progn 'apply (list 'quote 'message) format-string (append '(list) args) nil)
+  ;; (condition-case err
+  ;; (list 'apply (list 'quote 'message) format-string (append '(list) args)) ;; <--
+  ;; (error (message "err in msgfntfy %S" err)))
+  ;;(message "%s %S" format-string args)
+  ;;(list 'apply (list 'quote 'message) (list 'concat "%s: " format-string)
+  ;;   (list 'get-internal-run-time) (append '(list) args))
+  )
+;;(mumamo-msgfntfy "my-format=%s" (get-internal-run-time))
+
+(defmacro mumamo-msgindent (format-string &rest args)
+  "Give some messages during indentation.
+This macro should just do nothing during normal use.  However if
+there are any problems you can uncomment one of the lines in this
+macro and recompile/reeval mumamo.el to get those messages.
+
+You have to search the code to see where you will get them.  All
+uses are in this file.
+
+FORMAT-STRING and ARGS have the same meaning as for the function
+`message'."
+  ;;(list 'apply (list 'quote 'msgtrc) format-string (append '(list) args))
+  (list 'apply (list 'quote 'message) format-string (append '(list) args))
+  ;;(list 'apply (list 'quote 'message) (list 'concat "%s: " format-string)
+  ;;   (list 'get-internal-run-time) (append '(list) args))
+  )
+
+(defmacro mumamo-with-major-mode-setup (major for-what &rest body)
+  "Run code with some local variables set as in specified major mode.
+Set variables as needed for major mode MAJOR when doing FOR-WHAT
+and then run BODY using `with-syntax-table'.
+
+FOR-WHAT is used to choose another major mode than MAJOR in
+certain cases.  It should be 'fontification or 'indentation.
+
+Note: We must let-bind the variables here instead of make them buffer
+local since they otherwise could be wrong at \(point) in top
+level \(ie user interaction level)."
+  (declare (indent 2) (debug t))
+  `(let ((need-major-mode (mumamo-get-major-mode-substitute ,major ,for-what)))
+     ;;(msgtrc "mumamo-with-major-mode-setup %s => %s, modified=%s" ,major need-major-mode (buffer-modified-p))
+     ;;(msgtrc "with-major-mode-setup <<<<<<<<<< body=%S\n>>>>>>>>>>" '(progn ,@body))
+     ;;(msgtrc "with-major-mode-setup:in buffer %s after-chunk=%s" (current-buffer) (when (boundp 'after-chunk) after-chunk))
+     (let ((major-mode need-major-mode)
+           (evaled-set-mode (mumamo-get-major-mode-setup need-major-mode)))
+       ;;(message ">>>>>> before %s" evaled-set-mode)
+       ;;(message ">>>>>> before %s, body=%s" evaled-set-mode (list ,@body))
+       (funcall (symbol-value evaled-set-mode)
+                (list 'progn
+                      ,@body))
+       ;;(mumamo-msgfntfy "<<<<<< after evaled-set-mode modified=%s" (buffer-modified-p))
+       )))
+
+(defmacro mumamo-with-major-mode-fontification (major &rest body)
+  "With fontification variables set as major mode MAJOR eval BODY.
+This is used during font locking and indentation.  The variables
+affecting those are set as they are in major mode MAJOR.
+
+See the code in `mumamo-fetch-major-mode-setup' for exactly which
+local variables that are set."
+  (declare (indent 1) (debug t))
+  `(mumamo-with-major-mode-setup ,major 'fontification
+     ,@body))
+;; Fontification disappears in for example *grep* if
+;; font-lock-mode-major-mode is 'permanent-local t.
+;;(put 'font-lock-mode-major-mode 'permanent-local t)
+
+(defmacro mumamo-with-major-mode-indentation (major &rest body)
+  "With indentation variables set as in another major mode do things.
+Same as `mumamo-with-major-mode-fontification' but for
+indentation.  See that function for some notes about MAJOR and
+BODY."
+  (declare (indent 1) (debug t))
+  `(mumamo-with-major-mode-setup ,major 'indentation ,@body))
+
+;; fix-me: tell no sub-chunks in sub-chunks
 ;;;###autoload
-(defun mumamo-require ())
+(defmacro define-mumamo-multi-major-mode (fun-sym spec-doc chunks)
+  "Define a function that turn on support for multiple major modes.
+Define a function FUN-SYM that set up to divide the current
+buffer into chunks with different major modes.
+
+The documentation string for FUN-SYM should contain the special
+documentation in the string SPEC-DOC, general documentation for
+functions of this type and information about chunks.
+
+The new function will use the definitions in CHUNKS \(which is
+called a \"chunk family\") to make the dividing of the buffer.
+
+The function FUN-SYM can be used to setup a buffer instead of a
+major mode function:
+
+- The function FUN-SYM can be called instead of calling a major
+  mode function when you want to use multiple major modes in a
+  buffer.
+
+- The defined function can be used instead of a major mode
+  function in for example `auto-mode-alist'.
+
+- As the very last thing FUN-SYM will run the hook FUN-SYM-hook,
+  just as major modes do.
+
+- There is also a general hook, `mumamo-turn-on-hook', which is
+  run when turning on mumamo with any of these functions.  This
+  is run right before the hook specific to any of the functions
+  above that turns on the multiple major mode support.
+
+- The multi major mode FUN-SYM has a keymap named FUN-SYM-map.
+  This overrides the major modes' keymaps since it is handled as
+  a minor mode keymap.
+
+- There is also a special mumamo keymap, `mumamo-map' that is
+  active in every buffer with a multi major mode.  This is also
+  handled as a minor mode keymap and therefor overrides the major
+  modes' keymaps.
+
+- However when this support for multiple major mode is on the
+  buffer is divided into chunks, each with its own major mode.
+
+- The chunks are fontified according the major mode assigned to
+  them for that.
+
+- Indenting is also done according to the major mode assigned to
+  them for that.
+
+- The actual major mode used in the buffer is changed to the one
+  in the chunk when moving point between these chunks.
+
+- When major mode is changed the hooks for the new major mode,
+  `after-change-major-mode-hook' and `change-major-mode-hook' are
+  run.
+
+- There will be an alias for FUN-SYM called mumamo-alias-FUN-SYM.
+  This can be used to check whic multi major modes have been
+  defined.
+
+** A little bit more technical description:
+
+The dividing of a buffer into chunks is done during fontification
+by `mumamo-get-chunk-at'.
+
+The name of the function is saved in in the buffer local variable
+`mumamo-multi-major-mode' when the function is called.
+
+All functions defined by this macro is added to the list
+`mumamo-defined-multi-major-modes'.
+
+Basically Mumamo handles only major modes that uses jit-lock.
+However as a special effort also `nxml-mode' and derivatives
+thereof are handled.  Since it seems impossible to me to restrict
+those major modes fontification to only a chunk without changing
+`nxml-mode' the fontification is instead done by
+`html-mode'/`sgml-mode' for chunks using `nxml-mode' and its
+derivates.
+
+CHUNKS is a list where each entry have the format
+
+  \(CHUNK-DEF-NAME MAIN-MAJOR-MODE SUBMODE-CHUNK-FUNCTIONS)
+
+CHUNK-DEF-NAME is the key name by which the entry is recognized.
+MAIN-MAJOR-MODE is the major mode used when there is no chunks.
+If this is nil then `major-mode' before turning on this mode will
+be used.
+
+SUBMODE-CHUNK-FUNCTIONS is a list of the functions that does the
+chunk division of the buffer.  They are tried in the order they
+appear here during the chunk division process.
+
+If you want to write new functions for chunk divisions then
+please see `mumamo-find-possible-chunk'.  You can perhaps also
+use `mumamo-quick-static-chunk' which is more easy-to-use
+alternative.  See also the file mumamo-fun.el where there are
+many routines for chunk division.
+
+When you write those new functions you may want to use some of
+the functions for testing chunks:
+
+ `mumamo-test-create-chunk-at'  `mumamo-test-create-chunks-at-all'
+ `mumamo-test-easy-make'        `mumamo-test-fontify-region'
+
+These are in the file mumamo-test.el."
+  ;;(let ((c (if (symbolp chunks) (symbol-value chunks) chunks))) (message "c=%S" c))
+  (let* (;;(mumamo-describe-chunks (make-symbol "mumamo-describe-chunks"))
+         (turn-on-fun (if (symbolp fun-sym)
+                          fun-sym
+                        (error "Parameter FUN-SYM must be a symbol")))
+         (turn-on-fun-alias (intern (concat "mumamo-alias-" (symbol-name fun-sym))))
+         ;; Backward compatibility nXhtml v 1.60
+         (turn-on-fun-old (when (string= (substring (symbol-name fun-sym) -5)
+                                         "-mode")
+                            (intern (substring (symbol-name fun-sym) 0 -5))))
+         (turn-on-hook (intern (concat (symbol-name turn-on-fun) "-hook")))
+         (turn-on-map  (intern (concat (symbol-name turn-on-fun) "-map")))
+         (turn-on-hook-doc (concat "Hook run at the very end of `"
+                                   (symbol-name turn-on-fun) "'."))
+         (chunks2 (if (symbolp chunks)
+                      (symbol-value chunks)
+                    chunks))
+         (docstring
+          (concat
+           spec-doc
+           "
+
+
+
+This function is called a multi major mode.  It sets up for
+multiple major modes in the buffer in the following way:
+
+"
+           ;; Fix-me: During byte compilation the next line is not
+           ;; expanded as I thought because the functions in CHUNKS
+           ;; are not defined. How do I fix this?  Move out the
+           ;; define-mumamo-multi-major-mode calls?
+           (funcall 'mumamo-describe-chunks chunks2)
+           "
+At the very end this multi major mode function runs first the hook
+`mumamo-turn-on-hook' and then `" (symbol-name turn-on-hook) "'.
+
+There is a keymap specific to this multi major mode, but it is
+not returned by `current-local-map' which returns the chunk's
+major mode's local keymap.
+
+The multi mode keymap is named `" (symbol-name turn-on-map) "'.
+
+
+
+The main use for a multi major mode is to use it instead of a
+normal major mode in `auto-mode-alist'.  \(You can of course call
+this function directly yourself too.)
+
+The value of `mumamo-multi-major-mode' tells you which multi
+major mode if any has been turned on in a buffer.  For more
+information about multi major modes please see
+`define-mumamo-multi-major-mode'.
+
+Note: When adding new font-lock keywords for major mode chunks
+you should use the function `mumamo-refresh-multi-font-lock'
+afterwards.
+"  )))
+    `(progn
+       (add-to-list 'mumamo-defined-multi-major-modes (cons (car ',chunks2) ',turn-on-fun))
+       (defvar ,turn-on-hook nil ,turn-on-hook-doc)
+       (defvar ,turn-on-map (make-sparse-keymap)
+         ,(concat "Keymap for multi major mode function `"
+                  (symbol-name turn-on-fun) "'"))
+       (defvar ,turn-on-fun nil)
+       (make-variable-buffer-local ',turn-on-fun)
+       (put ',turn-on-fun 'permanent-local t)
+       (put ',turn-on-fun 'mumamo-chunk-family (copy-tree ',chunks2))
+       (put ',turn-on-fun-alias 'mumamo-chunk-family (copy-tree ',chunks2))
+       (defun ,turn-on-fun nil ,docstring
+         (interactive)
+         (let ((old-major-mode (or mumamo-major-mode
+                                   major-mode)))
+           (kill-all-local-variables)
+           (run-hooks 'change-major-mode-hook)
+           (setq mumamo-multi-major-mode ',turn-on-fun)
+           (setq ,turn-on-fun t)
+           (mumamo-add-multi-keymap ',turn-on-fun ,turn-on-map)
+           (setq mumamo-current-chunk-family (copy-tree ',chunks2))
+           (mumamo-turn-on-actions old-major-mode)
+           (run-hooks ',turn-on-hook)))
+       (defalias ',turn-on-fun-alias ',turn-on-fun)
+       (when (intern-soft ',turn-on-fun-old)
+         (defalias ',turn-on-fun-old ',turn-on-fun))
+       )))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Debugging etc
@@ -340,45 +819,6 @@ Arguments FORMAT-STRING and ARGS are like for `message'."
     (with-current-buffer mumamo-message-file-buffer
       (erase-buffer))))
 
-(defmacro mumamo-msgfntfy (format-string &rest args)
-  "Give some messages during fontification.
-This macro should just do nothing during normal use.  However if
-there are any problems you can uncomment one of the lines in this
-macro and recompile/reeval mumamo.el to get those messages.
-
-You have to search the code to see where you will get them.  All
-uses are in this file.
-
-FORMAT-STRING and ARGS have the same meaning as for the function
-`message'."
-  ;;(list 'apply (list 'quote 'msgtrc) format-string (append '(list) args))
-  ;;(list 'apply (list 'quote 'message) format-string (append '(list) args))
-  ;;(list 'progn 'apply (list 'quote 'message) format-string (append '(list) args) nil)
-  ;; (condition-case err
-  ;; (list 'apply (list 'quote 'message) format-string (append '(list) args)) ;; <--
-  ;; (error (message "err in msgfntfy %S" err)))
-  ;;(message "%s %S" format-string args)
-  ;;(list 'apply (list 'quote 'message) (list 'concat "%s: " format-string)
-  ;;   (list 'get-internal-run-time) (append '(list) args))
-  )
-;;(mumamo-msgfntfy "my-format=%s" (get-internal-run-time))
-
-(defmacro mumamo-msgindent (format-string &rest args)
-  "Give some messages during indentation.
-This macro should just do nothing during normal use.  However if
-there are any problems you can uncomment one of the lines in this
-macro and recompile/reeval mumamo.el to get those messages.
-
-You have to search the code to see where you will get them.  All
-uses are in this file.
-
-FORMAT-STRING and ARGS have the same meaning as for the function
-`message'."
-  ;;(list 'apply (list 'quote 'msgtrc) format-string (append '(list) args))
-  (list 'apply (list 'quote 'message) format-string (append '(list) args))
-  ;;(list 'apply (list 'quote 'message) (list 'concat "%s: " format-string)
-  ;;   (list 'get-internal-run-time) (append '(list) args))
-  )
 (defvar mumamo-display-error-lwarn nil
   "Set to t to call `lwarn' on fontification errors.
 If this is t then `*Warnings*' buffer will popup on fontification
@@ -536,24 +976,6 @@ uses safe_eval and safe_call."
 (defvar mumamo-debugger 'mumamo-debug-to-backtrace)
 (make-variable-buffer-local 'mumamo-debugger)
 (put 'mumamo-debugger 'permanent-local t)
-
-(defmacro mumamo-condition-case (var body-form &rest handlers)
-  "Like `condition-case', but optional.
-If `mumamo-use-condition-case' is non-nil then do
-
-  (condition-case VAR
-      BODY-FORM
-    HANDLERS).
-
-Otherwise just evaluate BODY-FORM."
-  (declare (indent 2) (debug t))
-  `(if (not mumamo-use-condition-case)
-       (let* ((debugger (or mumamo-debugger 'debug))
-              (debug-on-error (if debugger t debug-on-error)))
-         ,body-form)
-     (condition-case ,var
-         ,body-form
-       ,@handlers)))
 
 ;; (defun my-test-err4 ()
 ;;   (interactive)
@@ -1204,31 +1626,6 @@ the some meaning as there."
   (add-hook 'fontification-functions 'mumamo-jit-lock-function nil t)
   )
 
-;; From jit-lock.el:
-(defmacro mumamo-jit-with-buffer-unmodified (&rest body)
-  "Eval BODY, preserving the current buffer's modified state."
-  (declare (debug t))
-  (let ((modified (make-symbol "modified")))
-    `(let ((,modified (buffer-modified-p)))
-       (unwind-protect
-           (progn ,@body)
-         (unless ,modified
-           (restore-buffer-modified-p nil))))))
-
-(defmacro mumamo-with-buffer-prepared-for-jit-lock (&rest body)
-  "Execute BODY in current buffer, overriding several variables.
-Preserves the `buffer-modified-p' state of the current buffer."
-  (declare (debug t))
-  `(mumamo-jit-with-buffer-unmodified
-    (let ((buffer-undo-list t)
-          (inhibit-read-only t)
-          (inhibit-point-motion-hooks t)
-          (inhibit-modification-hooks t)
-          deactivate-mark
-          buffer-file-name
-          buffer-file-truename)
-      ,@body)))
-
 ;; Fix-me: integrate this with fontify-region!
 (defvar mumamo-find-chunks-timer nil)
 (make-variable-buffer-local 'mumamo-find-chunks-timer)
@@ -1791,26 +2188,6 @@ mode."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Font lock functions
 
-;; Borrowed from font-lock.el
-(defmacro mumamo-save-buffer-state (varlist &rest body)
-  "Bind variables according to VARLIST and eval BODY restoring buffer state.
-Do not record undo information during evaluation of BODY."
-  (declare (indent 1) (debug let))
-  (let ((modified (make-symbol "modified")))
-    `(let* ,(append varlist
-                    `((,modified (buffer-modified-p))
-                      (buffer-undo-list t)
-                      (inhibit-read-only t)
-                      (inhibit-point-motion-hooks t)
-                      (inhibit-modification-hooks t)
-                      deactivate-mark
-                      buffer-file-name
-                      buffer-file-truename))
-       (progn
-         ,@body)
-       (unless ,modified
-         (restore-buffer-modified-p nil)))))
-
 ;;;###autoload
 (defun mumamo-mark-for-refontification (min max)
   "Mark region between MIN and MAX for refontification."
@@ -1902,54 +2279,6 @@ mode to use."
     (unless (commandp ret-major) (setq ret-major 'mumamo-bad-mode))
     ;;(when (eq for-what 'indentation) (message "ret.ind=%s, major=%s, m=%s" ret major m))
     ret-major))
-
-(defmacro mumamo-with-major-mode-setup (major for-what &rest body)
-  "Run code with some local variables set as in specified major mode.
-Set variables as needed for major mode MAJOR when doing FOR-WHAT
-and then run BODY using `with-syntax-table'.
-
-FOR-WHAT is used to choose another major mode than MAJOR in
-certain cases.  It should be 'fontification or 'indentation.
-
-Note: We must let-bind the variables here instead of make them buffer
-local since they otherwise could be wrong at \(point) in top
-level \(ie user interaction level)."
-  (declare (indent 2) (debug t))
-  `(let ((need-major-mode (mumamo-get-major-mode-substitute ,major ,for-what)))
-     ;;(msgtrc "mumamo-with-major-mode-setup %s => %s, modified=%s" ,major need-major-mode (buffer-modified-p))
-     ;;(msgtrc "with-major-mode-setup <<<<<<<<<< body=%S\n>>>>>>>>>>" '(progn ,@body))
-     ;;(msgtrc "with-major-mode-setup:in buffer %s after-chunk=%s" (current-buffer) (when (boundp 'after-chunk) after-chunk))
-     (let ((major-mode need-major-mode)
-           (evaled-set-mode (mumamo-get-major-mode-setup need-major-mode)))
-       ;;(message ">>>>>> before %s" evaled-set-mode)
-       ;;(message ">>>>>> before %s, body=%s" evaled-set-mode (list ,@body))
-       (funcall (symbol-value evaled-set-mode)
-                (list 'progn
-                      ,@body))
-       ;;(mumamo-msgfntfy "<<<<<< after evaled-set-mode modified=%s" (buffer-modified-p))
-       )))
-
-(defmacro mumamo-with-major-mode-fontification (major &rest body)
-  "With fontification variables set as major mode MAJOR eval BODY.
-This is used during font locking and indentation.  The variables
-affecting those are set as they are in major mode MAJOR.
-
-See the code in `mumamo-fetch-major-mode-setup' for exactly which
-local variables that are set."
-  (declare (indent 1) (debug t))
-  `(mumamo-with-major-mode-setup ,major 'fontification
-     ,@body))
-;; Fontification disappears in for example *grep* if
-;; font-lock-mode-major-mode is 'permanent-local t.
-;;(put 'font-lock-mode-major-mode 'permanent-local t)
-
-(defmacro mumamo-with-major-mode-indentation (major &rest body)
-  "With indentation variables set as in another major mode do things.
-Same as `mumamo-with-major-mode-fontification' but for
-indentation.  See that function for some notes about MAJOR and
-BODY."
-  (declare (indent 1) (debug t))
-  `(mumamo-with-major-mode-setup ,major 'indentation ,@body))
 
 (defun mumamo-assert-fontified-t (start end)
   "Assert that the region START to END has 'fontified t."
@@ -2098,15 +2427,6 @@ fontification."
     `(mumamo-do-unfontify ,start ,end)))
 
 
-(defvar mumamo-multi-major-mode nil
-  "The function that handles multiple major modes.
-If this is nil then multiple major modes in the buffer is not
-handled by mumamo.
-
-Set by functions defined by `define-mumamo-multi-major-mode'.")
-(make-variable-buffer-local 'mumamo-multi-major-mode)
-(put 'mumamo-multi-major-mode 'permanent-local t)
-
 
 (defun mumamo-backtrace (label)
   (msgtrc "%s:backtrace in START buffer %s <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n%s"
@@ -2169,12 +2489,6 @@ this to ensure that the whole buffer is fontified."
         (narrow-to-region syntax-min syntax-max)
         (mumamo-unfontify-region-with syntax-min syntax-max major)))))
 
-(defvar mumamo-just-changed-major nil
-  "Avoid refontification when switching major mode.
-Set to t by `mumamo-set-major'.  Checked and reset to nil by
-`mumamo-jit-lock-function'.")
-(make-variable-buffer-local 'mumamo-just-changed-major)
-
 (defun mumamo-fontify-region (start end &optional verbose)
   "Fontify between START and END.
 Take the major mode chunks into account while doing this.
@@ -2228,66 +2542,6 @@ the major mode for the chunk."
 (defun mumamo-chunk-pop (chunk prop)
   (overlay-put chunk prop (cdr (overlay-get (overlay-get chunk 'mumamo-prev-chunk)
                                             prop))))
-(defun mumamo-chunk-car (chunk prop)
-  (car (overlay-get chunk prop)))
-
-(defun mumamo-chunk-cadr (chunk prop)
-  (cadr (overlay-get chunk prop)))
-
-;; (let ((l '(1 2))) (setcar (nthcdr 1 l) 10) l)
-;; setters
-(defsubst mumamo-chunk-value-set-min (chunk-values min)
-  "In CHUNK-VALUES set min value to MIN.
-CHUNK-VALUES should have the format return by
-`mumamo-create-chunk-values-at'."
-  (setcar (nthcdr 0 chunk-values) min))
-(defsubst mumamo-chunk-value-set-max (chunk-values max)
-  "In CHUNK-VALUES set max value to MAX.
-See also `mumamo-chunk-value-set-min'."
-  (setcar (nthcdr 1 chunk-values) max))
-(defsubst mumamo-chunk-value-set-syntax-min (chunk-values min)
-  "In CHUNK-VALUES set min syntax diff value to MIN.
-See also `mumamo-chunk-value-set-min'."
-  (setcar (nthcdr 3 chunk-values) min))
-(defsubst mumamo-chunk-value-set-syntax-max (chunk-values max)
-  "In CHUNK-VALUES set max syntax diff value to MAX.
-See also `mumamo-chunk-value-set-min'."
-  (setcar (nthcdr 3 chunk-values) max))
-;; getters
-(defsubst mumamo-chunk-value-min    (chunk-values)
-  "Get min value from CHUNK-VALUES.
-See also `mumamo-chunk-value-set-min'."
-  (nth 0 chunk-values))
-(defsubst mumamo-chunk-value-max    (chunk-values)
-  "Get max value from CHUNK-VALUES.
-See also `mumamo-chunk-value-set-min'."
-  (nth 1 chunk-values))
-(defsubst mumamo-chunk-value-major  (chunk-values)
-  "Get major value from CHUNK-VALUES.
-See also `mumamo-chunk-value-set-min'."
-  (nth 2 chunk-values))
-(defsubst mumamo-chunk-value-syntax-min    (chunk-values)
-  "Get min syntax diff value from CHUNK-VALUES.
-See also `mumamo-chunk-value-set-min'."
-  (nth 3 chunk-values))
-(defsubst mumamo-chunk-value-syntax-max    (chunk-values)
-  "Get max syntax diff value from CHUNK-VALUES.
-See also `mumamo-chunk-value-set-min'."
-  (nth 4 chunk-values))
-(defsubst mumamo-chunk-value-parseable-by    (chunk-values)
-  "Get parseable-by from CHUNK-VALUES.
-See also `mumamo-chunk-value-set-min'.
-For parseable-by see `mumamo-find-possible-chunk'."
-  (nth 5 chunk-values))
-;; (defsubst mumamo-chunk-prev-chunk (chunk-values)
-;;   "Get previous chunk from CHUNK-VALUES.
-;; See also `mumamo-chunk-value-set-min'."
-;;   (nth 6 chunk-values))
-(defsubst mumamo-chunk-value-fw-exc-fun (chunk-values)
-  "Get function that find chunk end from CHUNK-VALUES.
-See also `mumamo-chunk-value-set-min'."
-  (nth 6 chunk-values))
-
 
 ;; (defvar mumamo-chunks-to-remove nil
 ;;   "Internal.  Chunk overlays marked for removal.")
@@ -3110,48 +3364,6 @@ See `mumamo-major-modes' for an explanation."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Chunk and chunk family properties
-
-(defsubst mumamo-chunk-major-mode (chunk)
-  "Get major mode specified in CHUNK."
-  ;;(assert chunk)
-  ;;(assert (overlay-buffer chunk))
-  (let ((mode-spec (if chunk
-                       (mumamo-chunk-car chunk 'mumamo-major-mode)
-                     (mumamo-main-major-mode))))
-    (mumamo-major-mode-from-modespec mode-spec)))
-
-(defsubst mumamo-chunk-syntax-min-max (chunk no-obscure)
-  (when chunk
-    (let* ((ovl-end   (overlay-end chunk))
-           (ovl-start (overlay-start chunk))
-           (syntax-min (min ovl-end
-                            (+ ovl-start
-                               (or (overlay-get chunk 'syntax-min-d)
-                                   0))))
-           (syntax-max
-            (max ovl-start
-                 (- (overlay-end chunk)
-                    (or (overlay-get chunk 'syntax-max-d)
-                        0)
-                    ;; Note: We must subtract one here because
-                    ;; overlay-end is +1 from the last point in the
-                    ;; overlay. (This cured the problem with
-                    ;; kubica-freezing-i.html that made Emacs loop in
-                    ;; font-lock-extend-region-multiline.)
-                    1 )))
-           (obscure (unless no-obscure (overlay-get chunk 'obscured)))
-           (region-info (cadr obscure))
-           (obscure-min (car region-info))
-           (obscure-max (cdr region-info))
-           ;;(dummy (message "syn-mn-mx:obs=%s r-info=%s ob=%s/%s" obscure region-info obscure-min obscure-max ))
-           (actual-min (max (or obscure-min ovl-start)
-                            (or syntax-min ovl-start)))
-           (actual-max (min (or obscure-max ovl-end)
-                            (or syntax-max ovl-end)))
-           (maj (mumamo-chunk-car chunk 'mumamo-major-mode))
-           ;;(dummy (message "syn-mn-mx:obs=%s r-info=%s ob=%s/%s ac=%s/%s" obscure region-info obscure-min obscure-max actual-min actual-max))
-           )
-      (cons actual-min actual-max))))
 
 (defun mumamo-syntax-maybe-completable (pnt)
   "Return non-nil if at point PNT non-printable characters may occur.
@@ -4869,6 +5081,8 @@ Turn on `debug-on-error' unless NO-DEBUG is nil."
   ;;(msgtrc "mumamo-post-command-1 EXIT: font-lock-keywords-only =%s" (default-value 'font-lock-keywords-only))
   )
 
+(defvar mumamo-has-bug3467 (mumamo-check-has-bug3467 nil))
+
 (defun mumamo-emacs-start-bug3467-timer-if-needed ()
   "Work around for Emacs bug 3467. The only one I have found."
   (when mumamo-has-bug3467
@@ -4907,8 +5121,6 @@ Turn on `debug-on-error' unless NO-DEBUG is nil."
         )
     ))
 
-(defvar mumamo-has-bug3467 (mumamo-check-has-bug3467 nil))
-
 (defun mumamo-post-command ()
   "Run this in `post-command-hook'.
 Change major mode if necessary."
@@ -4925,9 +5137,6 @@ Change major mode if necessary."
          "%s\n- Please try M-: (mumamo-post-command-1) to see what happened."
          'face 'highlight)
         (error-message-string err))))))
-
-(defvar mumamo-set-major-running nil
-  "Internal use.  Handling of mumamo turn off.")
 
 (defun mumamo-change-major-function ()
   "Function added to `change-major-mode-hook'.
@@ -5828,10 +6037,6 @@ mode."
 ;;     ))
 ;; ;;(benchmark 1000 '(mumamo-testing-new))
 
-(defvar mumamo-buffer-locals-per-major nil)
-(make-variable-buffer-local 'mumamo-buffer-locals-per-major)
-(put 'mumamo-buffer-locals-per-major 'permanent-local t)
-
 (defun mumamo-get-hook-value (hook remove)
   "Return hook HOOK value with entries in REMOVE removed.
 Remove also t. The value returned is a list of both local and
@@ -6159,9 +6364,6 @@ default values."
   (font-lock-default-function mode))
 
 
-(defvar mumamo-major-mode-indent-line-function nil)
-(make-variable-buffer-local 'mumamo-major-mode-indent-line-function)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Turning on/off multi major modes
 
@@ -6452,198 +6654,6 @@ It has the some priority as minor mode maps.")
   "Return t if VALUE is a multi major mode function."
   (and (fboundp value)
        (rassq value mumamo-defined-multi-major-modes)))
-
-;; fix-me: tell no sub-chunks in sub-chunks
-;;;###autoload
-(defmacro define-mumamo-multi-major-mode (fun-sym spec-doc chunks)
-  "Define a function that turn on support for multiple major modes.
-Define a function FUN-SYM that set up to divide the current
-buffer into chunks with different major modes.
-
-The documentation string for FUN-SYM should contain the special
-documentation in the string SPEC-DOC, general documentation for
-functions of this type and information about chunks.
-
-The new function will use the definitions in CHUNKS \(which is
-called a \"chunk family\") to make the dividing of the buffer.
-
-The function FUN-SYM can be used to setup a buffer instead of a
-major mode function:
-
-- The function FUN-SYM can be called instead of calling a major
-  mode function when you want to use multiple major modes in a
-  buffer.
-
-- The defined function can be used instead of a major mode
-  function in for example `auto-mode-alist'.
-
-- As the very last thing FUN-SYM will run the hook FUN-SYM-hook,
-  just as major modes do.
-
-- There is also a general hook, `mumamo-turn-on-hook', which is
-  run when turning on mumamo with any of these functions.  This
-  is run right before the hook specific to any of the functions
-  above that turns on the multiple major mode support.
-
-- The multi major mode FUN-SYM has a keymap named FUN-SYM-map.
-  This overrides the major modes' keymaps since it is handled as
-  a minor mode keymap.
-
-- There is also a special mumamo keymap, `mumamo-map' that is
-  active in every buffer with a multi major mode.  This is also
-  handled as a minor mode keymap and therefor overrides the major
-  modes' keymaps.
-
-- However when this support for multiple major mode is on the
-  buffer is divided into chunks, each with its own major mode.
-
-- The chunks are fontified according the major mode assigned to
-  them for that.
-
-- Indenting is also done according to the major mode assigned to
-  them for that.
-
-- The actual major mode used in the buffer is changed to the one
-  in the chunk when moving point between these chunks.
-
-- When major mode is changed the hooks for the new major mode,
-  `after-change-major-mode-hook' and `change-major-mode-hook' are
-  run.
-
-- There will be an alias for FUN-SYM called mumamo-alias-FUN-SYM.
-  This can be used to check whic multi major modes have been
-  defined.
-
-** A little bit more technical description:
-
-The dividing of a buffer into chunks is done during fontification
-by `mumamo-get-chunk-at'.
-
-The name of the function is saved in in the buffer local variable
-`mumamo-multi-major-mode' when the function is called.
-
-All functions defined by this macro is added to the list
-`mumamo-defined-multi-major-modes'.
-
-Basically Mumamo handles only major modes that uses jit-lock.
-However as a special effort also `nxml-mode' and derivatives
-thereof are handled.  Since it seems impossible to me to restrict
-those major modes fontification to only a chunk without changing
-`nxml-mode' the fontification is instead done by
-`html-mode'/`sgml-mode' for chunks using `nxml-mode' and its
-derivates.
-
-CHUNKS is a list where each entry have the format
-
-  \(CHUNK-DEF-NAME MAIN-MAJOR-MODE SUBMODE-CHUNK-FUNCTIONS)
-
-CHUNK-DEF-NAME is the key name by which the entry is recognized.
-MAIN-MAJOR-MODE is the major mode used when there is no chunks.
-If this is nil then `major-mode' before turning on this mode will
-be used.
-
-SUBMODE-CHUNK-FUNCTIONS is a list of the functions that does the
-chunk division of the buffer.  They are tried in the order they
-appear here during the chunk division process.
-
-If you want to write new functions for chunk divisions then
-please see `mumamo-find-possible-chunk'.  You can perhaps also
-use `mumamo-quick-static-chunk' which is more easy-to-use
-alternative.  See also the file mumamo-fun.el where there are
-many routines for chunk division.
-
-When you write those new functions you may want to use some of
-the functions for testing chunks:
-
- `mumamo-test-create-chunk-at'  `mumamo-test-create-chunks-at-all'
- `mumamo-test-easy-make'        `mumamo-test-fontify-region'
-
-These are in the file mumamo-test.el."
-  ;;(let ((c (if (symbolp chunks) (symbol-value chunks) chunks))) (message "c=%S" c))
-  (let* (;;(mumamo-describe-chunks (make-symbol "mumamo-describe-chunks"))
-         (turn-on-fun (if (symbolp fun-sym)
-                          fun-sym
-                        (error "Parameter FUN-SYM must be a symbol")))
-         (turn-on-fun-alias (intern (concat "mumamo-alias-" (symbol-name fun-sym))))
-         ;; Backward compatibility nXhtml v 1.60
-         (turn-on-fun-old (when (string= (substring (symbol-name fun-sym) -5)
-                                         "-mode")
-                            (intern (substring (symbol-name fun-sym) 0 -5))))
-         (turn-on-hook (intern (concat (symbol-name turn-on-fun) "-hook")))
-         (turn-on-map  (intern (concat (symbol-name turn-on-fun) "-map")))
-         (turn-on-hook-doc (concat "Hook run at the very end of `"
-                                   (symbol-name turn-on-fun) "'."))
-         (chunks2 (if (symbolp chunks)
-                      (symbol-value chunks)
-                    chunks))
-         (docstring
-          (concat
-           spec-doc
-           "
-
-
-
-This function is called a multi major mode.  It sets up for
-multiple major modes in the buffer in the following way:
-
-"
-           ;; Fix-me: During byte compilation the next line is not
-           ;; expanded as I thought because the functions in CHUNKS
-           ;; are not defined. How do I fix this?  Move out the
-           ;; define-mumamo-multi-major-mode calls?
-           (funcall 'mumamo-describe-chunks chunks2)
-           "
-At the very end this multi major mode function runs first the hook
-`mumamo-turn-on-hook' and then `" (symbol-name turn-on-hook) "'.
-
-There is a keymap specific to this multi major mode, but it is
-not returned by `current-local-map' which returns the chunk's
-major mode's local keymap.
-
-The multi mode keymap is named `" (symbol-name turn-on-map) "'.
-
-
-
-The main use for a multi major mode is to use it instead of a
-normal major mode in `auto-mode-alist'.  \(You can of course call
-this function directly yourself too.)
-
-The value of `mumamo-multi-major-mode' tells you which multi
-major mode if any has been turned on in a buffer.  For more
-information about multi major modes please see
-`define-mumamo-multi-major-mode'.
-
-Note: When adding new font-lock keywords for major mode chunks
-you should use the function `mumamo-refresh-multi-font-lock'
-afterwards.
-"  )))
-    `(progn
-       (add-to-list 'mumamo-defined-multi-major-modes (cons (car ',chunks2) ',turn-on-fun))
-       (defvar ,turn-on-hook nil ,turn-on-hook-doc)
-       (defvar ,turn-on-map (make-sparse-keymap)
-         ,(concat "Keymap for multi major mode function `"
-                  (symbol-name turn-on-fun) "'"))
-       (defvar ,turn-on-fun nil)
-       (make-variable-buffer-local ',turn-on-fun)
-       (put ',turn-on-fun 'permanent-local t)
-       (put ',turn-on-fun 'mumamo-chunk-family (copy-tree ',chunks2))
-       (put ',turn-on-fun-alias 'mumamo-chunk-family (copy-tree ',chunks2))
-       (defun ,turn-on-fun nil ,docstring
-         (interactive)
-         (let ((old-major-mode (or mumamo-major-mode
-                                   major-mode)))
-           (kill-all-local-variables)
-           (run-hooks 'change-major-mode-hook)
-           (setq mumamo-multi-major-mode ',turn-on-fun)
-           (setq ,turn-on-fun t)
-           (mumamo-add-multi-keymap ',turn-on-fun ,turn-on-map)
-           (setq mumamo-current-chunk-family (copy-tree ',chunks2))
-           (mumamo-turn-on-actions old-major-mode)
-           (run-hooks ',turn-on-hook)))
-       (defalias ',turn-on-fun-alias ',turn-on-fun)
-       (when (intern-soft ',turn-on-fun-old)
-         (defalias ',turn-on-fun-old ',turn-on-fun))
-       )))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
