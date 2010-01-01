@@ -900,31 +900,12 @@ See `mlinks-mode' for more information on Mlinks mode.
 
 ;;;***
 
-;;;### (autoloads (define-mumamo-multi-major-mode mumamo-multi-major-modep
-;;;;;;  mumamo-mark-for-refontification mumamo-hi-lock-faces mumamo
-;;;;;;  mumamo-require) "mumamo" "util/mumamo.el" (19260 21260))
+;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
+;;;;;;  mumamo-hi-lock-faces mumamo define-mumamo-multi-major-mode)
+;;;;;;  "mumamo" "util/mumamo.el" (19262 20321))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp (nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir)
 
-
-(nxhtml-autoload 'mumamo-require `(lp ,(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir) "\
-Not documented
-
-\(fn)" nil nil)
-
-(let ((loads (get 'mumamo 'custom-loads))) (if (member '"mumamo" loads) nil (put 'mumamo 'custom-loads (cons '"mumamo" loads))))
-
-(let ((loads (get 'mumamo-hi-lock-faces 'custom-loads))) (if (member '"mumamo" loads) nil (put 'mumamo-hi-lock-faces 'custom-loads (cons '"mumamo" loads))))
-
-(nxhtml-autoload 'mumamo-mark-for-refontification `(lp ,(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir) "\
-Mark region between MIN and MAX for refontification.
-
-\(fn MIN MAX)" nil nil)
-
-(nxhtml-autoload 'mumamo-multi-major-modep `(lp ,(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir) "\
-Return t if VALUE is a multi major mode function.
-
-\(fn VALUE)" nil nil)
 
 (nxhtml-autoload 'define-mumamo-multi-major-mode `(lp ,(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir) "\
 Define a function that turn on support for multiple major modes.
@@ -1032,6 +1013,20 @@ the functions for testing chunks:
 These are in the file mumamo-test.el.
 
 \(fn FUN-SYM SPEC-DOC CHUNKS)" nil (quote macro))
+
+(let ((loads (get 'mumamo 'custom-loads))) (if (member '"mumamo" loads) nil (put 'mumamo 'custom-loads (cons '"mumamo" loads))))
+
+(let ((loads (get 'mumamo-hi-lock-faces 'custom-loads))) (if (member '"mumamo" loads) nil (put 'mumamo-hi-lock-faces 'custom-loads (cons '"mumamo" loads))))
+
+(nxhtml-autoload 'mumamo-mark-for-refontification `(lp ,(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir) "\
+Mark region between MIN and MAX for refontification.
+
+\(fn MIN MAX)" nil nil)
+
+(nxhtml-autoload 'mumamo-multi-major-modep `(lp ,(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir) "\
+Return t if VALUE is a multi major mode function.
+
+\(fn VALUE)" nil nil)
 
 ;;;***
 
@@ -1696,12 +1691,38 @@ See `pointback-mode' for more information on Pointback mode.
 
 ;;;***
 
-;;;### (autoloads (popcmp) "popcmp" "util/popcmp.el" (19256 5147))
+;;;### (autoloads (popcmp-completion-style popcmp) "popcmp" "util/popcmp.el"
+;;;;;;  (19262 21616))
 ;;; Generated autoloads from util/popcmp.el
 (web-autoload-require 'popcmp 'lp (nxhtml-download-root-url nil) "util/popcmp" nxhtml-install-dir)
 
 
 (let ((loads (get 'popcmp 'custom-loads))) (if (member '"popcmp" loads) nil (put 'popcmp 'custom-loads (cons '"popcmp" loads))))
+
+(defvar popcmp-completion-style (cond (t 'popcmp-popup)) "\
+Completion style.
+The currently available completion styles are:
+
+- popcmp-popup: Use OS popup menus (default).
+- emacs-default: Emacs default completion.
+- Company Mode completion.
+- anything: The Anything elisp lib completion style.
+
+The style of completion set here is not implemented for all
+completions.  The scope varies however with which completion
+style you have choosen.
+
+For information about Company Mode and how to use it see URL
+`http://www.emacswiki.org/emacs/CompanyMode'.
+
+For information about Anything and how to use it see URL
+`http://www.emacswiki.org/emacs/Anything'.
+
+See also the options `popcmp-short-help-beside-alts' and
+`popcmp-group-alternatives' which are also availabe when popup
+completion is available.")
+
+(nxhtml-custom-autoload 'popcmp-completion-style "popcmp" nil)
 
 ;;;***
 
@@ -3857,7 +3878,7 @@ accept it or skip it.
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
 ;;;;;;  "util/useful-commands.el" "web-autoload-2.el" "web-autoload-3.el"
-;;;;;;  "web-autoload.el" "web-autostart.el") (19262 14651 109000))
+;;;;;;  "web-autoload.el" "web-autostart.el") (19262 21648 109000))
 
 ;;;***
 
