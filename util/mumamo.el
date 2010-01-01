@@ -5081,16 +5081,8 @@ Turn on `debug-on-error' unless NO-DEBUG is nil."
   ;;(msgtrc "mumamo-post-command-1 EXIT: font-lock-keywords-only =%s" (default-value 'font-lock-keywords-only))
   )
 
-(defvar mumamo-has-bug3467 (mumamo-check-has-bug3467 nil))
 
-(defun mumamo-emacs-start-bug3467-timer-if-needed ()
-  "Work around for Emacs bug 3467. The only one I have found."
-  (when mumamo-has-bug3467
-    (run-with-idle-timer 0 nil 'mumamo-emacs-bug3467-workaround)))
 
-(defun mumamo-emacs-bug3467-workaround ()
-  "Work around for Emacs bug 3467. The only one I have found."
-  (set-default 'font-lock-keywords-only nil))
 
 (defvar mumamo-bug-3467-w14 41)
 (defvar mumamo-bug-3467-w15 51)
@@ -5120,6 +5112,20 @@ Turn on `debug-on-error' unless NO-DEBUG is nil."
         (/= (default-value 'mumamo-bug-3467-w14) 41)
         )
     ))
+
+(defvar mumamo-has-bug3467 (mumamo-check-has-bug3467 nil))
+
+(defun mumamo-emacs-start-bug3467-timer-if-needed ()
+  "Work around for Emacs bug 3467. The only one I have found."
+  (when mumamo-has-bug3467
+    (run-with-idle-timer 0 nil 'mumamo-emacs-bug3467-workaround)))
+
+(defun mumamo-emacs-bug3467-workaround ()
+  "Work around for Emacs bug 3467. The only one I have found."
+  (set-default 'font-lock-keywords-only nil))
+
+
+
 
 (defun mumamo-post-command ()
   "Run this in `post-command-hook'.
