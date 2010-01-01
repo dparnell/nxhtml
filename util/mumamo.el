@@ -474,7 +474,7 @@ FORMAT-STRING and ARGS have the same meaning as for the function
   ;;(list 'apply (list 'quote 'message) format-string (append '(list) args))
   ;;(list 'progn 'apply (list 'quote 'message) format-string (append '(list) args) nil)
   ;; (condition-case err
-  (list 'apply (list 'quote 'message) format-string (append '(list) args)) ;; <--
+  ;; (list 'apply (list 'quote 'message) format-string (append '(list) args)) ;; <--
   ;; (error (message "err in msgfntfy %S" err)))
   ;;(message "%s %S" format-string args)
   ;;(list 'apply (list 'quote 'message) (list 'concat "%s: " format-string)
@@ -2327,8 +2327,8 @@ that does syntactic fontification."
               )
              ;; Extend like in `font-lock-default-fontify-region':
              (funs font-lock-extend-region-functions)
-             (font-lock-beg start)
-             (font-lock-end end)
+             (font-lock-beg (max chunk-syntax-min start))
+             (font-lock-end (min chunk-syntax-max end))
              (while-n1 0))
         ;;(while (and (> 500 (setq while-n1 (1+ while-n1)))
         (while (and (mumamo-while 500 'while-n1 "funs")
