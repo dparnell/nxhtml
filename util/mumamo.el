@@ -474,7 +474,7 @@ FORMAT-STRING and ARGS have the same meaning as for the function
   ;;(list 'apply (list 'quote 'message) format-string (append '(list) args))
   ;;(list 'progn 'apply (list 'quote 'message) format-string (append '(list) args) nil)
   ;; (condition-case err
-  ;; (list 'apply (list 'quote 'message) format-string (append '(list) args)) ;; <--
+  (list 'apply (list 'quote 'message) format-string (append '(list) args)) ;; <--
   ;; (error (message "err in msgfntfy %S" err)))
   ;;(message "%s %S" format-string args)
   ;;(list 'apply (list 'quote 'message) (list 'concat "%s: " format-string)
