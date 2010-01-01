@@ -119,6 +119,7 @@
     (company-mode 1)
     (company-set-major-mode-backend)))
 
+;;;###autoload
 (defcustom popcmp-completion-style (cond
                                     ;;((and (fboundp 'global-company-mode) 'company-mode) 'company-mode)
                                     (t 'popcmp-popup))
