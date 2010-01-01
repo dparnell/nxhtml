@@ -6602,7 +6602,9 @@ use `mumamo-quick-static-chunk'.")
              desc
              "\n`" (symbol-name divider)
              "'\n   "
-             (let ((doc (documentation divider t)))
+             (let ((doc (if (functionp divider)
+                            (documentation divider t)
+                          "(Function not compiled when building doc)")))
                (if (not doc)
                    "(Not documented)"
                  (substring doc 0 (string-match "\n" doc)))))))
