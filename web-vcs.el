@@ -48,7 +48,7 @@
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'cl)) ;; assert
+(eval-when-compile (require 'cl))
 (require 'hi-lock)
 (require 'advice)
 (require 'web-autoload nil t)
@@ -106,16 +106,50 @@ The patterns are grouped by VCS web system type.
 
 (defface web-vcs-gold
   '((((background dark)) (:background "gold" :foreground "black"))
-    (t (:background "gold")))
+    (t (:foreground "black" :background "gold")))
   "Face for hi-lock mode."
   :group 'web-vcs)
 
 (defface web-vcs-red
   '((((background dark)) (:background "red" :foreground "black"))
-    (t (:background "red")))
+    (t (:foreground "black" :background "#f86")))
   "Face for hi-lock mode."
   :group 'web-vcs)
 
+(defface web-vcs-green
+  '((((background dark)) (:background "red" :foreground "black"))
+    (t (:foreground "black" :background "#8f6")))
+  "Face for hi-lock mode."
+  :group 'web-vcs)
+
+(defcustom web-vcs-default-download-directory
+  '~/.emacs.d/
+  "Default download directory."
+  :type '(choice (const :tag "~/.emacs.d/" '~/.emacs.d/)
+                 (const :tag "Fist site-lisp in `load-path'" 'site-lisp-dir)
+                 (const :tag "Directory where `site-run-file' lives" 'site-run-dir)
+                 (string :tag "Specify directory"))
+  :group 'web-vcs)
+
+;;(web-vcs-default-download-directory)
+(defun web-vcs-default-download-directory ()
+  "Try to find a suitable place.
+Considers site-start.el, site-
+"
+  (let ((site-run-dir (file-name-directory (locate-library site-run-file)))
+        (site-lisp-dir (catch 'first-site-lisp
+                         (dolist (d load-path)
+                           (let ((dir (file-name-nondirectory (directory-file-name d))))
+                             (when (string= dir "site-lisp")
+                               (throw 'first-site-lisp (file-name-as-directory d)))))))
+        )
+    (message "site-run-dir=%S site-lisp-dir=%S" site-run-dir site-lisp-dir)
+    (case web-vcs-default-download-directory
+      ('~/.emacs.d/ "~/.emacs.d/")
+      ('site-lisp-dir site-lisp-dir)
+      ('site-run-dir site-run-dir)
+      (t web-vcs-default-download-directory))
+    ))
 
 
 ;; (web-vcs-get-files-on-page 'lp "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/" t "c:/test/temp13/" t)
@@ -155,8 +189,7 @@ downloading will be made.
 "
   (let ((vcs-rec (or (assq web-vcs web-vcs-links-regexp)
                      (error "Does not know web-cvs %S" web-vcs))))
-    (web-vcs-get-files-on-page-1 vcs-rec url dl-dir "" files-regexp 0 nil nil)
-    ))
+    (web-vcs-get-files-on-page-1 vcs-rec url dl-dir "" files-regexp 0 nil nil)))
 
 (defun web-vcs-get-files-on-page (web-vcs url recursive dl-dir test)
   "Download files listed by WEB-VCS on web page URL.
@@ -371,7 +404,7 @@ If TEST is non-nil then do not download, just list the files"
               ;;(if (and old-src (string= new-src old-src))
               (if (and old-exists
                        (web-vcs-equal-files file-dl-name temp-file))
-                  (web-vcs-message-with-face 'hi-green "File %S was ok" file-dl-name)
+                  (web-vcs-message-with-face 'web-vcs-green "File %S was ok" file-dl-name)
                 (when old-exists
                   (let ((backup (concat file-dl-name ".moved")))
                     (when (file-exists-p backup)
@@ -381,7 +414,7 @@ If TEST is non-nil then do not download, just list the files"
                 (rename-file temp-file file-dl-name)
                 (if old-exists
                     (web-vcs-message-with-face 'hi-yellow "Updated %S" file-dl-name)
-                  (web-vcs-message-with-face 'hi-green "Downloaded %S" file-dl-name))
+                  (web-vcs-message-with-face 'web-vcs-green "Downloaded %S" file-dl-name))
                 (when old-buf-open
                   (with-current-buffer old-buf-open
                     (set-buffer-modified-p nil)
@@ -632,13 +665,86 @@ Also put FACE on the message in *Messages* buffer."
          (rev-part (if revision (number-to-string revision) "head%3A/")))
     (concat files-url rev-part)))
 
+
+;;(nxhtml-default-download-directory)
+(defun nxhtml-default-download-directory ()
+  (let* ((ur (expand-file-name "" "~"))
+         (ur-len (length ur))
+         (full (if (and (boundp 'nxhtml-install-dir)
+                        nxhtml-install-dir)
+                   nxhtml-install-dir
+                 (file-name-as-directory
+                  (expand-file-name "nxhtml"
+                                    (web-vcs-default-download-directory)))))
+         (full-len (length full)))
+    (if (and (> full-len ur-len)
+             (string= ur (substring full 0 ur-len)))
+        (concat "~" (substring full ur-len))
+      full)))
+
+;;(web-vcs-read-nxhtml-dl-dir "Test")
+(defun web-vcs-read-nxhtml-dl-dir (prompt)
+  (when (and (boundp 'nxhtml-install-dir)
+             nxhtml-install-dir)
+    (setq prompt (concat prompt
+                         " (default current nXhtml dir)")))
+  (setq prompt (concat prompt ": "))
+  (read-directory-name prompt
+                       (nxhtml-default-download-directory)))
+
+;; Fix-me: really do this? Is it safe enough?
+(defun nxhtml-add-loading-to-dot-emacs (file-to-load)
+  (unless (file-name-absolute-p file-to-load)
+    (error "nxhtml-add-loading-to-dot-emacs: Not abs file name: %S" file-to-load))
+  (let ((old-buf (find-buffer-visiting "~/.emacs"))
+        (true-to-load (file-truename file-to-load))
+        (curr-loaded  (when (and (boundp 'nxhtml-install-dir)
+                                 nxhtml-install-dir)
+                        (file-truename
+                         (expand-file-name (file-name-nondirectory file-to-load)
+                                           nxhtml-install-dir)))))
+    (with-current-buffer (or old-buf (find-file-noselect "~/.emacs"))
+      (save-restriction
+        (widen)
+        (catch 'done
+          (while (progn
+                   (while (progn (skip-chars-forward " \t\n\^l")
+                                 (looking-at ";"))
+                     (forward-line 1))
+                   (not (eobp)))
+            (let ((start (point))
+                  (form (read (current-buffer))))
+              (when (eq (nth 0 form) 'load)
+                (let* ((form-file (nth 1 form))
+                       (true-form-file (file-truename form-file)))
+                  (when (string= true-form-file true-to-load)
+                    (throw 'done nil))
+                  (when (string= true-form-file curr-loaded)
+                    (if (yes-or-no-p "Replace old nXhtml loading in ~/.emacs? ")
+                        (progn
+                          (goto-char start) ;; at form start now
+                          (forward-char (length "(load "))
+                          (skip-chars-forward " \t\n\^l") ;; at start of string
+                          (setq start here)
+                          (setq form (read (current-buffer)))
+                          (delete-region start (point))
+                          (insert (format "%S" file-to-load))
+                          (basic-save-buffer))
+                      (web-vcs-message-with-face "Can't continue then")
+                      (throw 'command-level)))))))
+          ;; At end of file
+          (insert (format "\n(load  %S)\n" file-to-load
+          )))
+        (when old-buf (kill-buffer old-buf))))))
+
+;;;###autoload
 (defun nxhtml-setup-auto-download (dl-dir)
   "Set up to autoload nXhtml files from the web.
 This will download some initial files and then download the rest
 when you need them.
 
 Files will be downloaded to directory DL-DIR."
-  (interactive "DDownload nXhtml to directory for auto-downloaded files: ")
+  (interactive (list (web-vcs-read-nxhtml-dl-dir "Download nXhtml part by part to directory")))
   (when (condition-case nil
             (custom-file)
           (error nil))
@@ -688,7 +794,7 @@ Files will be downloaded to directory DL-DIR."
 
 ;;(call-interactively 'nxhtml-download)
 ;;;###autoload
-(defun nxhtml-download ()
+(defun nxhtml-download-all (dl-dir)
   "Download or update nXhtml.
 If you already have nXhtml installed you can update it with this
 command.  Otherwise after downloading read the instructions in
@@ -698,7 +804,7 @@ optionally also byte compile the files from the nXhtml menu.)
 
 To learn more about nXhtml visit its home page at URL
 `http://www.emacswiki.com/NxhtmlMode/'."
-  (interactive)
+  (interactive (list (web-vcs-read-nxhtml-dl-dir "Download nXhtml to directory")))
   (let ((msg (concat "Downloading nXhtml through Launchpad web interface will take rather long\n"
                      "time (5-15 minutes) so you may want to do it in a separate Emacs session.\n\n"
                      "Do you want to download using this Emacs session? "
@@ -709,12 +815,6 @@ To learn more about nXhtml visit its home page at URL
       (setq message-log-max t)
       (let* ((has-nxhtml (and (boundp 'nxhtml-install-dir)
                               nxhtml-install-dir))
-             (dl-dir (or (when (and has-nxhtml
-                                    (yes-or-no-p
-                                     (format "Update current nXhtml files (%s)? "
-                                             nxhtml-install-dir)))
-                           nxhtml-install-dir)
-                         (read-directory-name "Download nXhtml to directory: ")))
              ;; Fix-me: ask for latest revision or release, maybe also
              ;; rev number? Can't do that now because of the Emacs bug
              ;; that affects `nxhtml-get-release-revision'.
