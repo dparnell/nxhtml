@@ -179,10 +179,6 @@ Update nXhtml autoload file with them."
         (while (search-forward cus-auto nil t)
           (backward-char (1- (length cus-auto)))
           (insert "nxhtml-")))
-      ;; Load auto web helpers
-      ;;(goto-char (point-min))
-      ;;(search-forward "\f")
-      ;;(insert "\n(require 'nxhtml-auto-helpers)\n")
       ;; Fix autoload calls
       (goto-char (point-min))
       (let ((auto "(autoload "))
@@ -193,7 +189,8 @@ Update nXhtml autoload file with them."
       (goto-char (point-min))
       (let* ((patt-src "^;;; Generated autoloads from \\(.*\\)$")
              (patt-auto "^(nxhtml-autoload '[^ ]+ \\(\"[^\"]+\"\\)")
-             (patt (concat "\\(?:" patt-src "\\)\\|\\(?:" patt-auto "\\)"))
+             (patt-cust "^(nxhtml-custom-autoload '[^ ]+ \\(\"[^\"]+\"\\)")
+             (patt (concat "\\(?:" patt-src "\\)\\|\\(?:" patt-auto "\\)\\|\\(?:" patt-cust "\\)"))
              curr-src)
         (while (re-search-forward patt nil t)
           (cond
@@ -214,15 +211,22 @@ Update nXhtml autoload file with them."
                        " \"" curr-src "\""
                        " nxhtml-install-dir)\n"))
              )
-           ( (match-string 2)
-             (let ((file (match-string-no-properties 2)))
+           ( (match-string 3)
+             ;; (custom-autoload 'sym "lib" nil) is will give a
+             ;; (require 'lib) so everything is ok here.
+             nil)
+           ( (or (match-string 2)
+                 (match-string 3)
+                 )
+             (let* ((subexp (if (match-string 2) 2 3))
+                    (file (match-string-no-properties subexp)))
                (replace-match (concat "`(lp ,(nxhtml-download-root-url nil)"
                                       " \"" curr-src "\""
                                       " nxhtml-install-dir)")
                               nil ;; fixedcase
                               nil ;; literal
                               nil ;; string
-                              2   ;; subexp
+                              subexp   ;; subexp
                               ))
              )
            (t (error "No match???")))))

@@ -684,14 +684,24 @@ Also put FACE on the message in *Messages* buffer."
       full)))
 
 ;;(web-vcs-read-nxhtml-dl-dir "Test")
-(defun web-vcs-read-nxhtml-dl-dir (prompt)
-  (when (and (boundp 'nxhtml-install-dir)
-             nxhtml-install-dir)
-    (setq prompt (concat prompt
-                         " (default current nXhtml dir)")))
-  (setq prompt (concat prompt ": "))
-  (read-directory-name prompt
-                       (nxhtml-default-download-directory)))
+(defun web-vcs-read-nxhtml-dl-dir (prompt load-from-web)
+  (if (and (boundp 'nxhtml-install-dir)
+           nxhtml-install-dir)
+      (unless (eq load-from-web nxhtml-autoload-web)
+        (when load-from-web
+          (unless (boundp 'nxhtml-menu:version)
+            (error "nxhtml-install-dir set but no version found"))
+          (unless (string-match "^[\.0-9]+" nxhtml-menu:version)
+            (error "Can't find current version nxhtml-menu:version=%S" nxhtml-menu:version))
+          (let* ((ver-str (match-string 0 nxhtml-menu:version))
+                 (ver-num (string-to-number ver-str)))
+            (when (< ver-str 2.06)
+                (error "Too old nXhtml. Please upgrade first or delete the old version.")))
+          (when (yes-or-no-p "Convert to updating nXhtml part by part? ")
+              nxhtml-install-dir)))
+    (setq prompt (concat prompt ": "))
+    (read-directory-name prompt
+                         (nxhtml-default-download-directory))))
 
 (defvar nxhtml-handheld-wincfg nil)
 (defun nxhtml-handheld-restore-wincg ()
@@ -714,7 +724,7 @@ Also put FACE on the message in *Messages* buffer."
                 "\n")
         (copy-region-as-kill here (point))
         (insert "\nThe line above is in the clipboard so you can just paste it where you want it.\n")
-        (insert "When ready kill this buffer")
+        (insert "When ready kill this buffer.")
         (goto-char here))
       (setq buffer-read-only t)
       (set-buffer-modified-p nil))
@@ -722,10 +732,15 @@ Also put FACE on the message in *Messages* buffer."
     (find-file-other-window (custom-file))
     ))
 
+;; (nxhtml-add-loading-to-custom-file "test-file")
 (defun nxhtml-add-loading-to-custom-file (file-to-load)
-  (if (yes-or-no-p "Should I add loading of nXhtml to (custom-file) for you? ")
-      (nxhtml-add-loading-to-custom-file-auto file-to-load)
-    (nxhtml-handheld-add-loading-to-custom-file file-to-load)))
+  (let ((prompt (concat "Basic setup of nXhtml is done, but it must be loaded from (custom-file)"
+                        "\nShould I add loading of nXhtml to (custom-file) for you? ")))
+    (if (yes-or-no-p prompt)
+        (nxhtml-add-loading-to-custom-file-auto file-to-load)
+      (if (yes-or-no-p "Should I guide you through how to do it? ")
+          (nxhtml-handheld-add-loading-to-custom-file file-to-load)
+        (message "OK, You need to add (load %S) to your init file" file-to-load)))))
 
 ;; Fix-me: really do this? Is it safe enough?
 (defun nxhtml-add-loading-to-custom-file-auto (file-to-load)
@@ -776,7 +791,7 @@ This will download some initial files and then download the rest
 when you need them.
 
 Files will be downloaded to directory DL-DIR."
-  (interactive (list (web-vcs-read-nxhtml-dl-dir "Download nXhtml part by part to directory")))
+  (interactive (list (web-vcs-read-nxhtml-dl-dir "Download nXhtml part by part to directory" t)))
   (let* (;; Need some files:
          (web-vcs-el-src (concat (file-name-sans-extension web-vcs-el-this) ".el"))
          (web-vcs-el (expand-file-name (file-name-nondirectory web-vcs-el-src)
@@ -814,11 +829,16 @@ Files will be downloaded to directory DL-DIR."
           (dolist (file basic-files)
             (let ((el-file (expand-file-name file dl-dir)))
               ;; Fix-me: check age
+              (message "maybe bytecomp %S" el-file)
+              (when (boundp 'majmodpri-sort-after-load)
+                (message "majmodpri-sort-after-load =%S" majmodpri-sort-after-load))
               (web-vcs-byte-compile-newer-file el-file nil)))))
       (let ((autostart-file (expand-file-name "autostart" dl-dir)))
         ;;(ad-activate 'require t) ;; fix-me, remove
-        (load autostart-file)
+        (message "before load %S" autostart-file)
         (web-vcs-set&save-option 'nxhtml-autoload-web t)
+        (load autostart-file)
+        (message "after load %S" autostart-file)
         (nxhtml-add-loading-to-custom-file autostart-file)
         ))))
 
@@ -834,7 +854,7 @@ optionally also byte compile the files from the nXhtml menu.)
 
 To learn more about nXhtml visit its home page at URL
 `http://www.emacswiki.com/NxhtmlMode/'."
-  (interactive (list (web-vcs-read-nxhtml-dl-dir "Download nXhtml to directory")))
+  (interactive (list (web-vcs-read-nxhtml-dl-dir "Download nXhtml to directory" nil)))
   (let ((msg (concat "Downloading nXhtml through Launchpad web interface will take rather long\n"
                      "time (5-15 minutes) so you may want to do it in a separate Emacs session.\n\n"
                      "Do you want to download using this Emacs session? "

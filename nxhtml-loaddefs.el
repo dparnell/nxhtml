@@ -520,7 +520,7 @@ Turn on `outline-minor-mode' and call `hide-body'.
 ;;;***
 
 ;;;### (autoloads (foldit-global-mode foldit-mode foldit) "foldit"
-;;;;;;  "util/foldit.el" (19218 42180))
+;;;;;;  "util/foldit.el" (19262 52850))
 ;;; Generated autoloads from util/foldit.el
 (web-autoload-require 'foldit 'lp (nxhtml-download-root-url nil) "util/foldit" nxhtml-install-dir)
 
@@ -707,7 +707,7 @@ highlighting here.
 ;;;***
 
 ;;;### (autoloads (html-write-mode html-write) "html-write" "util/html-write.el"
-;;;;;;  (19218 42180))
+;;;;;;  (19262 53037))
 ;;; Generated autoloads from util/html-write.el
 (web-autoload-require 'html-write 'lp (nxhtml-download-root-url nil) "util/html-write" nxhtml-install-dir)
 
@@ -746,7 +746,7 @@ a web file.
 ;;;***
 
 ;;;### (autoloads (inlimg-toggle-slicing inlimg-toggle-display inlimg-global-mode
-;;;;;;  inlimg-mode inlimg) "inlimg" "util/inlimg.el" (19218 42180))
+;;;;;;  inlimg-mode inlimg) "inlimg" "util/inlimg.el" (19262 52187))
 ;;; Generated autoloads from util/inlimg.el
 (web-autoload-require 'inlimg 'lp (nxhtml-download-root-url nil) "util/inlimg" nxhtml-install-dir)
 
@@ -803,8 +803,8 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
-;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19257
-;;;;;;  14648))
+;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19262
+;;;;;;  60885))
 ;;; Generated autoloads from util/majmodpri.el
 (web-autoload-require 'majmodpri 'lp (nxhtml-download-root-url nil) "util/majmodpri" nxhtml-install-dir)
 
@@ -1320,7 +1320,7 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
 ;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19262 41765))
+;;;;;;  "util/ourcomments-util.el" (19262 51651))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp (nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir)
 
@@ -3300,7 +3300,7 @@ Show xhtml reference for tag name at or before point.
 ;;;***
 
 ;;;### (autoloads (tidy-build-menu tidy) "tidy-xhtml" "nxhtml/tidy-xhtml.el"
-;;;;;;  (19256 5002))
+;;;;;;  (19262 51956))
 ;;; Generated autoloads from nxhtml/tidy-xhtml.el
 (web-autoload-require 'tidy-xhtml 'lp (nxhtml-download-root-url nil) "nxhtml/tidy-xhtml" nxhtml-install-dir)
 
@@ -3793,7 +3793,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;### (autoloads (nxhtml-download-all nxhtml-setup-auto-download
 ;;;;;;  web-vcs-get-files-from-root) "web-vcs" "web-vcs.el" (19262
-;;;;;;  49143))
+;;;;;;  62650))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -3903,13 +3903,13 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19262 51314
-;;;;;;  31000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19262 65397
+;;;;;;  875000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19262 49421))
+;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19262 65387))
 ;;; Generated autoloads from nxhtmlmaint.el
 (web-autoload-require 'nxhtmlmaint 'lp (nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir)
 
