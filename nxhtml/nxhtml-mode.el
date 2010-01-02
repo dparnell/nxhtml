@@ -60,6 +60,7 @@
 (eval-when-compile (require 'mumamo nil t))
 (eval-when-compile (require 'foldit nil t))
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'hideshow))
 (eval-when-compile (require 'appmenu-fold nil t))
 (eval-when-compile (require 'xhtml-help nil t))
 ;;(eval-when-compile (require 'nxhtml-menu)
