@@ -991,6 +991,7 @@ should be one of 'left, 'up, 'right and 'down."
 
 ;;; User feedback
 
+;;;###autoload
 (defun winsize-set-mode-line-colors (on)
   "Turn mode line colors on if ON is non-nil, otherwise off."
   (if on

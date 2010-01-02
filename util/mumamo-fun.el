@@ -70,6 +70,7 @@
 ;;   "Return mumamo multi mode hook symbol."
 ;;   (intern-soft (concat (symbol-name mumamo-multi-major-mode) "-hook")))
 
+;;;###autoload
 (defun mumamo-define-html-file-wide-keys ()
   "Define keys in multi major mode keymap for html files."
   (let ((map (mumamo-multi-mode-map)))

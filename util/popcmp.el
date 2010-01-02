@@ -43,6 +43,7 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 (eval-when-compile (require 'ourcomments-util nil t))
 
 ;;;###autoload
@@ -78,8 +79,6 @@
     (message (propertize "popcmp-completion-style: style `%s' is not available"
                          'face 'secondary-selection)
              style)))
-
-
 
 
 

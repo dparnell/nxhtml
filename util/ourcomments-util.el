@@ -52,6 +52,8 @@
 (eval-when-compile (require 'recentf))
 (eval-when-compile (require 'bookmark))
 (eval-when-compile (require 'uniquify))
+(require 'cus-edit)
+(require 'org)
 
 ;; (ourcomments-indirect-fun 'html-mumamo)
 ;; (ourcomments-indirect-fun 'html-mumamo-mode)

@@ -1042,11 +1042,17 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode gsp-html-mumamo-mode
 ;;;;;;  ssjs-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
-;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19259 49532))
+;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode
+;;;;;;  mumamo-define-html-file-wide-keys) "mumamo-fun" "util/mumamo-fun.el"
+;;;;;;  (19262 50057))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp (nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir)
 
+
+(nxhtml-autoload 'mumamo-define-html-file-wide-keys `(lp ,(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
+Define keys in multi major mode keymap for html files.
+
+\(fn)" nil nil)
 
 (nxhtml-autoload 'html-mumamo-mode `(lp ,(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for (X)HTML with main mode `html-mode'.
@@ -1197,7 +1203,7 @@ Buffer must be fontified.
 ;;;***
 
 ;;;### (autoloads (n-back-game n-back) "n-back" "util/n-back.el"
-;;;;;;  (19234 64976))
+;;;;;;  (19262 51207))
 ;;; Generated autoloads from util/n-back.el
 (web-autoload-require 'n-back 'lp (nxhtml-download-root-url nil) "util/n-back" nxhtml-install-dir)
 
@@ -1696,7 +1702,7 @@ See `pointback-mode' for more information on Pointback mode.
 ;;;***
 
 ;;;### (autoloads (popcmp-completion-style popcmp) "popcmp" "util/popcmp.el"
-;;;;;;  (19262 21616))
+;;;;;;  (19262 50379))
 ;;; Generated autoloads from util/popcmp.el
 (web-autoload-require 'popcmp 'lp (nxhtml-download-root-url nil) "util/popcmp" nxhtml-install-dir)
 
@@ -3015,8 +3021,9 @@ See also option `winsav-save-mode' and command
 
 ;;;***
 
-;;;### (autoloads (winsize-save-window-configuration winsize-balance-siblings
-;;;;;;  resize-windows) "winsize" "util/winsize.el" (19157 2168))
+;;;### (autoloads (winsize-set-mode-line-colors winsize-save-window-configuration
+;;;;;;  winsize-balance-siblings resize-windows) "winsize" "util/winsize.el"
+;;;;;;  (19262 51273))
 ;;; Generated autoloads from util/winsize.el
 (web-autoload-require 'winsize 'lp (nxhtml-download-root-url nil) "util/winsize" nxhtml-install-dir)
 
@@ -3216,6 +3223,11 @@ current window and its siblings.
 Not documented
 
 \(fn)" t nil)
+
+(nxhtml-autoload 'winsize-set-mode-line-colors `(lp ,(nxhtml-download-root-url nil) "util/winsize" nxhtml-install-dir) "\
+Turn mode line colors on if ON is non-nil, otherwise off.
+
+\(fn ON)" nil nil)
 
 ;;;***
 
@@ -3891,8 +3903,8 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19262 49435
-;;;;;;  578000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19262 51314
+;;;;;;  31000))
 
 ;;;***
 
