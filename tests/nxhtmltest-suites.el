@@ -43,7 +43,7 @@
 ;;; Code:
 
 ;;(eval-when-compile (require 'cl))
-(require 'cl)
+(eval-when-compile (require 'cl))
 (require 'mumamo)
 (require 'nxhtml)
 (require 'nxhtml-mumamo)

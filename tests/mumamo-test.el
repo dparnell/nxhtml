@@ -26,7 +26,7 @@
 ;;; Code:
 
 ;;(eval-when-compile (require 'mumamo))
-(require 'mumamo)
+(eval-when-compile (require 'mumamo))
 (require 'whelp)
 
 ;;;;;;; TESTS, run in fundamental-mode buffer
