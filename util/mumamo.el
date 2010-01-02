@@ -1797,7 +1797,7 @@ ends before END then create chunks upto END."
         (assert in-min-border)) ;; 0 len must be in border
       ;;(msgtrc "find-chunks:first-check-from=%s, chunk-at-change-min=%s/%s" first-check-from chunk-at-change-min (mumamo-chunk-major-mode chunk-at-change-min))
       (when mumamo-last-change-pos
-        (message "mumamo-last-change-pos=%S, chunk-at-change-min=%s" mumamo-last-change-pos chunk-at-change-min)
+        ;;(message "mumamo-last-change-pos=%S, chunk-at-change-min=%s" mumamo-last-change-pos chunk-at-change-min)
         ;; Fix-me:
         ;;(when chunk-at-change-min (mumamo-clear-chunk-cache chunk-at-change-min))
         (when chunk-at-change-min
@@ -1831,7 +1831,7 @@ ends before END then create chunks upto END."
                       mumamo-last-chunk
                       ;;(= (point-max) (overlay-end mumamo-last-chunk))
                       (= (overlay-end mumamo-last-chunk) (overlay-start mumamo-last-chunk)))
-            (msgtrc "delete-overlay at end")
+            ;;(msgtrc "delete-overlay at end")
             (delete-overlay mumamo-last-chunk)
             (setq mumamo-last-chunk (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))
             (when mumamo-last-chunk (overlay-put mumamo-last-chunk 'mumamo-next-chunk nil)))
@@ -1943,7 +1943,7 @@ ends before END then create chunks upto END."
                         (while (and (mumamo-while 500 'while-n2 "mumamo-old-tail")
                                     (and mumamo-old-tail (< (overlay-start mumamo-old-tail) ok-pos)))
                           (mumamo-mark-for-refontification (overlay-start mumamo-old-tail) (overlay-end mumamo-old-tail))
-                          (msgtrc "find-chunks:not eq delete %s" mumamo-old-tail)
+                          ;;(msgtrc "find-chunks:not eq delete %s" mumamo-old-tail)
                           (delete-overlay mumamo-old-tail)
                           (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))
                           (or (not mumamo-old-tail)
@@ -2454,7 +2454,7 @@ This function is called when the minor mode function
                 (when major
                   (unless (eq major main-major)
                     (mumamo-unfontify-chunk o))
-                  (msgtrc "delete-overlay 1")
+                  ;;(msgtrc "delete-overlay 1")
                   (delete-overlay o)
                   ))))
           (mumamo-unfontify-region-with (point-min) (point-max)
@@ -3880,7 +3880,7 @@ See also `mumamo-quick-static-chunk'."
     (let ((ovls (overlays-in (point-min) (point-max))))
       (dolist (ovl ovls)
         (when (overlay-get ovl 'mumamo-is-new)
-          (msgtrc "delete-overlay %s delete-new-chunks" ovl)
+          ;;(msgtrc "delete-overlay %s delete-new-chunks" ovl)
           (delete-overlay ovl))))))
 
 (defun mumamo-new-create-chunk (new-chunk-values)
