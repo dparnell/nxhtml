@@ -57,6 +57,56 @@
 ;;                               (when (boundp 'bytecomp-filename) bytecomp-filename)
 ;;                               buffer-file-name)))
 
+;; emacs-uq-byte-compile-buffer
+;;(nxhtml-byte-compile-file)
+(defun nxhtml-byte-compile-file (file)
+  "Byte compile FILE in a new Emacs sub process.
+nXhtml subdirectories are added to the front of `load-path'
+during compilation.
+
+FILE is set to `buffer-file-name' when called interactively."
+  (interactive (list (buffer-file-name)))
+  (unless (eq major-mode 'emacs-lisp-mode)
+    (error "Must be in emacs-list-mode"))
+  (unless nxhtml-install-dir
+    (error "nXhtml must be loaded"))
+  (let ((old-emacsloadpath (getenv "EMACSLOADPATH"))
+        (newlp (getenv "EMACSLOADPATH"))
+        (out-buf (get-buffer-create "*nXhtml Compilation"))
+        (file (buffer-file-name))
+        start)
+    (dolist (p '("util" "nxhtml" "related"))
+      (let ((full-p (expand-file-name p nxhtml-install-dir)))
+        (setq newlp (concat full-p ";" newlp))))
+    (if nil
+        (progn
+          (setenv "EMACSLOADPATH" newlp)
+          (emacs-Q buffer-file-name "-f" "emacs-lisp-byte-compile")
+          (setenv "EMACSLOADPATH" old-emacsloadpath))
+      (display-buffer out-buf)
+      (with-selected-window (get-buffer-window out-buf)
+        (with-current-buffer out-buf
+          (setq default-directory nxhtml-install-dir)
+          (widen)
+          (goto-char (point-max))
+          (when (= 0 (buffer-size))
+            (insert (propertize "nXhtml compilation output" 'face 'font-lock-comment-face)))
+          (let ((inhibit-read-only t))
+            (insert "\n\n"))
+          (setq start (point))
+          (compilation-mode)
+          (setenv "EMACSLOADPATH" newlp)
+          (apply 'call-process (ourcomments-find-emacs) nil out-buf t
+                 "-Q" "--batch" file "-f" "emacs-lisp-byte-compile" nil)
+          (setenv "EMACSLOADPATH" old-emacsloadpath)
+          (goto-char start)
+          (while (re-search-forward "^\\([a-zA-Z0-9/\._-]+\\):[0-9]+:[0-9]+:" nil t)
+            (let ((rel-file (file-relative-name file))
+                  (inhibit-read-only t))
+              (replace-match rel-file nil nil nil 1)))
+          (goto-char (point-max))
+          (font-lock-mode -1) (font-lock-mode 1))))))
+
 ;; (defun nxhtml-custom-load-and-get-value (symbol)
 ;;   (custom-load-symbol symbol)
 ;;   (symbol-value symbol))

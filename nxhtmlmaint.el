@@ -50,7 +50,8 @@
 ;;
 ;;; Code:
 
-;;(eval-when-compile (require 'ourcomments-util))
+(eval-when-compile (require 'ourcomments-util))
+(eval-when-compile (require 'advice))
 
 (defvar nxhtmlmaint-dir
   (file-name-directory (if load-file-name load-file-name buffer-file-name))
@@ -385,8 +386,8 @@ then instead delete the compiled files."
         (when (or force (file-newer-than-file-p el-src elc-dst))
           ;;(message "fn=%s" (file-name-nondirectory el-src))
           (when t ;;(string= "nxhtml-menu.el" (file-name-nondirectory el-src))
-            (message "(byte-compile-file %s)" el-src)
-            (unless (byte-compile-file el-src)
+            (message "(nxhtml-byte-compile-file %s)" el-src)
+            (unless (nxhtml-byte-compile-file el-src)
               (message "Couldn't compile %s" el-src))
             )
           ))))

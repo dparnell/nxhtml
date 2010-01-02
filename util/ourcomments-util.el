@@ -939,7 +939,7 @@ what they will do ;-)."
     (set-fringe-bitmap-face bitmap face-important)))
 
 (defface better-fringes-bitmap
-  '((t (:foreground "khaki")))
+  '((t (:foreground "dark khaki")))
   "Face for bitmap fringes."
   :group 'better-fringes
   :group 'nxhtml)
