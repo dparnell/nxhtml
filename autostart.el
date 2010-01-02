@@ -193,8 +193,7 @@ Otherwise setup for normal local autoloading."
     ;; Autoloading etc
     (load (expand-file-name "web-autoload" nxhtml-install-dir))
     (load (expand-file-name "web-vcs" nxhtml-install-dir))
-    (when t ;nxhtml-autoload-web
-      (ad-activate 'require t))
+    (when nxhtml-autoload-web (ad-activate 'require t))
 
     ;; Fix-me: Why must as-external be loaded? Why doesn't it work in batch?
     ;;(unless noninteractive (require 'as-external))

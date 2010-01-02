@@ -44,8 +44,8 @@
 ;;
 ;;; Code:
 
-(require 'new-key-seq-widget)
-(require 'ourcomments-widgets)
+(eval-when-compile (require 'new-key-seq-widget nil t))
+(eval-when-compile (require 'ourcomments-widgets nil t))
 
 
 (defun rebind-toggle-first-modifier (orig-key-seq mod)
