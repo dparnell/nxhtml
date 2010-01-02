@@ -151,7 +151,7 @@ To create a menu item something similar to this can be used:
       ;;(message "\nvar=%S\nfun=%S\n" var fun)
       ;; Fix-me: I am having problems with this one, see
       ;; http://lists.gnu.org/archive/html/help-gnu-emacs/2009-12/msg00608.html
-      `(progn ,fun ,var)
+      `(progn ,var ,fun)
     )))
 
 ;;(macroexpand '(define-toggle my-toggle t "doc" :tag "Short help" :group 'popcmp))
