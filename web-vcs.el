@@ -321,7 +321,7 @@ If TEST is non-nil then do not download, just list the files"
     (with-current-buffer url-buf
       (goto-char (point-min))
       (unless (looking-at "HTTP/.* 200 OK\n")
-        (let ((status "Statu unknown"))
+        (let ((status "Status unknown"))
           (when (looking-at "HTTP/.* \\(.*\\)\n")
             (setq status (match-string 1)))
           (switch-to-buffer url-buf)
@@ -359,8 +359,7 @@ If TEST is non-nil then do not download, just list the files"
              (lst-file-name (web-vcs-file-name-as-list file-name))
              (file-dl-name (expand-file-name file-name dl-dir))
              (file-rel-name (file-relative-name file-dl-name dl-root))
-             temp-buf
-             )
+             temp-buf)
         (when (or (not file-mask)
                   (web-vcs-match-folderwise file-mask file-rel-name))
           (if test
@@ -372,28 +371,17 @@ If TEST is non-nil then do not download, just list the files"
             (while (setq temp-buf (find-buffer-visiting temp-file))
               (set-buffer-modified-p nil)
               (kill-buffer temp-buf))
-            ;; Use url-copy-file, this takes care of coding system.
-            ;;(message "url-copy-file %S %S t t" file-url temp-file) ;; overwrite, keep time
             ;;(web-vcs-message-with-face 'font-lock-comment-face "Starting url-copy-file %S %S t t" file-url temp-file)
+            (when (file-exists-p temp-file) (delete-file temp-file))
             (url-copy-file file-url temp-file t t) ;; overwrite, keep time
-            (unless (file-exists-p temp-file)
+            (unless (or (file-exists-p temp-file)
+                        (= 0 (nth 7 (file-attributes temp-file)))) ;; file size 0
               (web-vcs-message-with-face 'web-vcs-red "Failed url-copy-file %S %S t t" file-url temp-file)
               (throw 'command-level nil))
             ;;(web-vcs-message-with-face 'font-lock-comment-face "Finished url-copy-file %S %S t t" file-url temp-file)
-            (let* (;; (new-buf (find-file-noselect temp-file))
-                   ;; (new-src (with-current-buffer new-buf
-                   ;;            (save-restriction
-                   ;;              (widen)
-                   ;;              (buffer-substring-no-properties (point-min) (point-max)))))
-                   (time-after-url-copy (current-time))
+            (let* ((time-after-url-copy (current-time))
                    (old-exists (file-exists-p file-dl-name))
-                   (old-buf-open (find-buffer-visiting file-dl-name))
-                   ;; (old-buf (or old-buf-open
-                   ;;              (when old-exists
-                   ;;                (let ((auto-mode-alist nil))
-                   ;;                  (find-file-noselect file-dl-name)))))
-                   ;; old-src
-                   )
+                   (old-buf-open (find-buffer-visiting file-dl-name)))
               (when old-buf-open
                 (when (buffer-modified-p old-buf-open)
                   (save-excursion
@@ -401,7 +389,6 @@ If TEST is non-nil then do not download, just list the files"
                     (when (y-or-n-p (format "Buffer %S is modified, save to make a backup? "
                                             file-dl-name))
                       (save-buffer)))))
-              ;;(if (and old-src (string= new-src old-src))
               (if (and old-exists
                        (web-vcs-equal-files file-dl-name temp-file))
                   (web-vcs-message-with-face 'web-vcs-green "File %S was ok" file-dl-name)
@@ -734,13 +721,13 @@ Also put FACE on the message in *Messages* buffer."
 
 ;; (nxhtml-add-loading-to-custom-file "test-file")
 (defun nxhtml-add-loading-to-custom-file (file-to-load)
-  (let ((prompt (concat "Basic setup of nXhtml is done, but it must be loaded from (custom-file)"
+  (let ((prompt (concat "Basic setup of nXhtml is done, but it must be loaded from (custom-file)."
                         "\nShould I add loading of nXhtml to (custom-file) for you? ")))
     (if (yes-or-no-p prompt)
         (nxhtml-add-loading-to-custom-file-auto file-to-load)
       (if (yes-or-no-p "Should I guide you through how to do it? ")
           (nxhtml-handheld-add-loading-to-custom-file file-to-load)
-        (message "OK, You need to add (load %S) to your init file" file-to-load)))))
+        (message "OK. You need to add (load %S) to your init file" file-to-load)))))
 
 ;; Fix-me: really do this? Is it safe enough?
 (defun nxhtml-add-loading-to-custom-file-auto (file-to-load)
