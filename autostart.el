@@ -74,6 +74,25 @@ them."
   :group 'nxhtml
   :group 'flymake)
 
+(defcustom nxhtml-autoload-web nil
+  "If t download files from web if necessary.
+If t then during `require' nXhtml files can be downloaded from
+the nXhtml repository on the web.  This will currently download
+the development sources, latest version."
+  :type 'boolean
+  :group 'nxhtml)
+
+(defun nxhtml-autoload (fun src &optional docstring interactive type)
+  "Generalized `autoload'. May setup autoload from the web.
+If `nxhtml-autoload-web' is t then setup autoloading from the web.
+Otherwise setup for normal local autoloading."
+  (if nxhtml-autoload-web
+      (web-autoload fun src docstring interactive type)
+    (let ((file src))
+      (when (listp file)
+        (setq file (file-name-nondirectory (nth 2 file))))
+      (autoload fun file docstring interactive type))))
+
 (defun nxhtml-custom-autoload (symbol load &optional noset)
   "Like `custom-autoload', but also run :set for defcustoms etc."
   ;; Fix-me: is-boundp is currently always t because of the order in
@@ -172,6 +191,8 @@ them."
     (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
     ;; Autoloading etc
+    (load (expand-file-name "web-autoload" nxhtml-install-dir))
+    (load (expand-file-name "web-vcs" nxhtml-install-dir))
 
     ;; Fix-me: Why must as-external be loaded? Why doesn't it work in batch?
     ;;(unless noninteractive (require 'as-external))

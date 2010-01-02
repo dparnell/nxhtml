@@ -158,14 +158,6 @@ directly, otherwise download it first."
              (let ((the-macro (append '(,fun) args nil)))
                (eval the-macro))))))))
 
-(defvar web-autoload-require-list nil)
-
-(defun web-autoload-require (feature web-vcs base-url relative-url base-dir)
-  "Prepare to download file if necessary when `require' is called.
-WEB-VCS BASE-URL RELATIVE-URL"
-  (add-to-list 'web-autoload-require-list `(,feature ,web-vcs ,base-url ,relative-url ,base-dir))
-  )
-
 ;; Fix-me: Set up a byte compilation queue. Move function for byte compiling here.
 
 (defvar web-autoload-cleanup-dummy-el
@@ -405,6 +397,14 @@ WEB-VCS BASE-URL RELATIVE-URL"
   (trace-function-background 'byte-compile-splice-in-already-compiled-code)
   (trace-function-background 'byte-inline-lapcode)
   (trace-function-background 'byte-decompile-bytecode-1)
+  )
+
+(defvar web-autoload-require-list nil)
+
+(defun web-autoload-require (feature web-vcs base-url relative-url base-dir)
+  "Prepare to download file if necessary when `require' is called.
+WEB-VCS BASE-URL RELATIVE-URL"
+  (add-to-list 'web-autoload-require-list `(,feature ,web-vcs ,base-url ,relative-url ,base-dir))
   )
 
 ;;(big-trace)

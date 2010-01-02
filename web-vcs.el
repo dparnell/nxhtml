@@ -637,9 +637,10 @@ Also put FACE on the message in *Messages* buffer."
 (defun web-vcs-set&save-option (symbol value)
   (customize-set-variable symbol value)
   (customize-set-value symbol value)
-  (customize-mark-to-save symbol)
-  (custom-save-all)
-  (message "web-vcs: Saved option %s with value %s" symbol value))
+  (when (condition-case nil (custom-file) (error nil))
+    (customize-mark-to-save symbol)
+    (custom-save-all)
+    (message "web-vcs: Saved option %s with value %s" symbol value)))
 
 (defvar web-vcs-el-this (or load-file-name
                             (when (boundp 'bytecomp-filename) bytecomp-filename)
@@ -692,8 +693,35 @@ Also put FACE on the message in *Messages* buffer."
   (read-directory-name prompt
                        (nxhtml-default-download-directory)))
 
+(defvar nxhtml-handheld-wincfg nil)
+(defun nxhtml-handheld-restore-wincg ()
+  (when nxhtml-handheld-wincfg
+    (set-window-configuration nxhtml-handheld-wincfg)
+    (setq nxhtml-handheld-wincfg nil)))
+
+;;(nxhtml-handheld-add-loading-to-dot-emacs "TEST-ME")
+(defun nxhtml-handheld-add-loading-to-dot-emacs (load-str)
+  (setq nxhtml-handheld-wincfg (current-window-configuration))
+  (delete-other-windows)
+  (let ((info-buf (get-buffer-create "Information about how to add nXhtml to .emacs")))
+    (with-current-buffer info-buf
+      (add-hook 'kill-buffer-hook 'nxhtml-handheld-restore-wincg nil t)
+      (insert "Insert the folloing line to .emacs (it is in the clipboard now):\n\n")
+      (let ((here (point)))
+        (insert "  "
+                (propertize load-str 'face 'secondary-selection)
+                "\n")
+        (copy-region-as-kill here (point))
+        (insert "\nWhen ready kill this buffer")
+        (goto-char here))
+      (setq read-only-t)
+      (set-buffer-modified-p nil))
+    (set-window-buffer (selected-window) info-buf)
+    (find-file-other-window "~/.emacs")
+    ))
+
 ;; Fix-me: really do this? Is it safe enough?
-(defun nxhtml-add-loading-to-dot-emacs (file-to-load)
+(defun nxhtml-add-loading-to-dot-emacs (file-to-load by-hand)
   (unless (file-name-absolute-p file-to-load)
     (error "nxhtml-add-loading-to-dot-emacs: Not abs file name: %S" file-to-load))
   (let ((old-buf (find-buffer-visiting "~/.emacs"))
@@ -745,10 +773,7 @@ when you need them.
 
 Files will be downloaded to directory DL-DIR."
   (interactive (list (web-vcs-read-nxhtml-dl-dir "Download nXhtml part by part to directory")))
-  (when (condition-case nil
-            (custom-file)
-          (error nil))
-    (web-vcs-set&save-option 'nxhtml-autoload-web t))
+  (web-vcs-set&save-option 'nxhtml-autoload-web t)
   (let* (;; Need some files:
          (web-vcs-el-src (concat (file-name-sans-extension web-vcs-el-this) ".el"))
          (web-vcs-el (expand-file-name (file-name-nondirectory web-vcs-el-src)
@@ -789,7 +814,7 @@ Files will be downloaded to directory DL-DIR."
         (load-library "web-autoload")
         )
       (ad-activate 'require t)
-      (load (expand-file-name "web-autostart" dl-dir))
+      (load (expand-file-name "autostart" dl-dir))
       )))
 
 ;;(call-interactively 'nxhtml-download)
