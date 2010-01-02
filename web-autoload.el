@@ -181,7 +181,7 @@ WEB-VCS BASE-URL RELATIVE-URL"
          (active-file (car active-comp))
          (active-elc (byte-compile-dest-file active-file)))
     ;; Delete bytecomp buffers
-    (web-vcs-message-with-face 'web-vcs-gold "Trying to cleanup %s %s %s" bc-input-buffer bc-outbuffer active-elc)
+    (web-vcs-message-with-face 'web-vcs-red "Trying to cleanup (%s %s %s)" bc-input-buffer bc-outbuffer active-elc)
     (when bc-input-buffer (kill-buffer bc-input-buffer))
     (when bc-outbuffer
       (kill-buffer bc-outbuffer)
@@ -273,6 +273,7 @@ WEB-VCS BASE-URL RELATIVE-URL"
               (condition-case err
                   (progn
                     (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" el-file)
+                    (web-vcs-message-with-face 'hi-pink "Compiling QUEUE: %S" web-autoload-compile-queue)
                     ;;(when (ad-is-advised 'require) (ad-disable-advice 'require 'around 'web-autoload-ad-require))
                     (let ((web-autoload-skip-require-advice t)) (byte-compile-file el-file load))
                     ;;(when (ad-is-advised 'require) (ad-enable-advice 'require 'around 'web-autoload-ad-require))
