@@ -371,7 +371,7 @@ See `majmodpri-sort-lists' for more information."
   '(
     chart
     gpl
-    nxhtml-autoload
+    ;;nxhtml-autoload
     php-mode
     rnc-mode
     ruby-mode

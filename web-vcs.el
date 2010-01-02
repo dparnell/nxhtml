@@ -707,13 +707,14 @@ Also put FACE on the message in *Messages* buffer."
         (load-str (format "(load %S)" file-to-load)))
     (with-current-buffer info-buf
       (add-hook 'kill-buffer-hook 'nxhtml-handheld-restore-wincg nil t)
-      (insert "Insert the folloing line to (custom-file) (it is in the clipboard now):\n\n")
+      (insert "Insert the following line to (custom-file), ie the file in the other window:\n\n")
       (let ((here (point)))
         (insert "  "
                 (propertize load-str 'face 'secondary-selection)
                 "\n")
         (copy-region-as-kill here (point))
-        (insert "\nWhen ready kill this buffer")
+        (insert "\nThe line above is in the clipboard so you can just paste it where you want it.\n")
+        (insert "When ready kill this buffer")
         (goto-char here))
       (setq buffer-read-only t)
       (set-buffer-modified-p nil))
@@ -793,7 +794,7 @@ Files will be downloaded to directory DL-DIR."
                         web-autoload-autocompile
                       t)))
     (unless (file-exists-p dl-dir)
-      (if (y-or-n-p (format "Directory %S does not exist, create it? " dl-dir))
+      (if (yes-or-no-p (format "Directory %S does not exist, create it? " dl-dir))
           (make-directory dl-dir t)
         (error "Aborted by user")))
     (setq message-log-max t)

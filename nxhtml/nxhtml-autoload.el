@@ -45,7 +45,9 @@
 ;;
 ;;; Code:
 
-(message "nxhtml-autoload starting ... (hm, should maybe be renamed ...)")
+(eval-when-compile (require 'cl))
+(eval-when (load)
+  (message "nxhtml-autoload starting ... (hm, should maybe be renamed ...)"))
 
 (eval-when-compile (require 'majmodpri nil t))
 (eval-when-compile (require 'moz nil t))
@@ -133,13 +135,14 @@ order."
   (add-to-list 'auto-mode-alist '("\\.css\\'"      . css-mode))
   (add-to-list 'auto-mode-alist '("\\.rnc\\'"      . rnc-mode))
 
-  (majmodpri-sort-lists))
+  (majmodpri-sort-lists)
+  (message "nxhtml-autoload finished"))
 
 (defvar nxhtml-src-dir (file-name-directory
                         (if load-file-name load-file-name buffer-file-name)))
 
-(nxhtml-setup-file-assoc)
-(message "nxhtml-autoload finished")
+(eval-when (load)
+  (nxhtml-setup-file-assoc))
 
 (provide 'nxhtml-autoload)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
