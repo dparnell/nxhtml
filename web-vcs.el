@@ -699,14 +699,15 @@ Also put FACE on the message in *Messages* buffer."
     (set-window-configuration nxhtml-handheld-wincfg)
     (setq nxhtml-handheld-wincfg nil)))
 
-;;(nxhtml-handheld-add-loading-to-dot-emacs "TEST-ME")
-(defun nxhtml-handheld-add-loading-to-dot-emacs (load-str)
+;;(nxhtml-handheld-add-loading-to-custom-file "TEST-ME")
+(defun nxhtml-handheld-add-loading-to-custom-file (file-to-load)
   (setq nxhtml-handheld-wincfg (current-window-configuration))
   (delete-other-windows)
-  (let ((info-buf (get-buffer-create "Information about how to add nXhtml to .emacs")))
+  (let ((info-buf (get-buffer-create "Information about how to add nXhtml to (custom-file)"))
+        (load-str (format "(load %S") file-to-load))
     (with-current-buffer info-buf
       (add-hook 'kill-buffer-hook 'nxhtml-handheld-restore-wincg nil t)
-      (insert "Insert the folloing line to .emacs (it is in the clipboard now):\n\n")
+      (insert "Insert the folloing line to (custom-file) (it is in the clipboard now):\n\n")
       (let ((here (point)))
         (insert "  "
                 (propertize load-str 'face 'secondary-selection)
@@ -714,24 +715,24 @@ Also put FACE on the message in *Messages* buffer."
         (copy-region-as-kill here (point))
         (insert "\nWhen ready kill this buffer")
         (goto-char here))
-      (setq read-only-t)
+      (setq read-only t)
       (set-buffer-modified-p nil))
     (set-window-buffer (selected-window) info-buf)
-    (find-file-other-window "~/.emacs")
+    (find-file-other-window (custom-file))
     ))
 
+(defun nxhtml-add-loading-to-custom-file (file-to-load)
+  (if (yes-or-no "Should I add loading of nXhtml to (custom-file) for you? ")
+      (nxhtml-add-loading-to-custom-file-auto file-to-load)
+    (nxhtml-handheld-add-loading-to-custom-file file-to-load)))
+
 ;; Fix-me: really do this? Is it safe enough?
-(defun nxhtml-add-loading-to-dot-emacs (file-to-load by-hand)
+(defun nxhtml-add-loading-to-custom-file-auto (file-to-load)
   (unless (file-name-absolute-p file-to-load)
-    (error "nxhtml-add-loading-to-dot-emacs: Not abs file name: %S" file-to-load))
-  (let ((old-buf (find-buffer-visiting "~/.emacs"))
-        (true-to-load (file-truename file-to-load))
-        (curr-loaded  (when (and (boundp 'nxhtml-install-dir)
-                                 nxhtml-install-dir)
-                        (file-truename
-                         (expand-file-name (file-name-nondirectory file-to-load)
-                                           nxhtml-install-dir)))))
-    (with-current-buffer (or old-buf (find-file-noselect "~/.emacs"))
+    (error "nxhtml-add-loading-to-custom-file: Not abs file name: %S" file-to-load))
+  (let ((old-buf (find-buffer-visiting (custom-file)))
+        (full-to-load (expand-file-name file-to-load)))
+    (with-current-buffer (or old-buf (find-file-noselect (custom-file)))
       (save-restriction
         (widen)
         (catch 'done
@@ -744,25 +745,26 @@ Also put FACE on the message in *Messages* buffer."
                   (form (read (current-buffer))))
               (when (eq (nth 0 form) 'load)
                 (let* ((form-file (nth 1 form))
-                       (true-form-file (file-truename form-file)))
-                  (when (string= true-form-file true-to-load)
+                       (full-form-file (expand-file-name form-file)))
+                  (when (string= full-form-file full-to-load)
                     (throw 'done nil))
-                  (when (string= true-form-file curr-loaded)
-                    (if (yes-or-no-p "Replace old nXhtml loading in ~/.emacs? ")
+                  (when (and (string= (file-name-nondirectory full-form-file)
+                                      (file-name-nondirectory full-to-load))
+                             (not (string= full-form-file full-to-load)))
+                    (if (yes-or-no-p "Replace current nXhtml loading in (custom-file)? ")
                         (progn
                           (goto-char start) ;; at form start now
                           (forward-char (length "(load "))
                           (skip-chars-forward " \t\n\^l") ;; at start of string
-                          (setq start here)
+                          (setq start (point))
                           (setq form (read (current-buffer)))
                           (delete-region start (point))
-                          (insert (format "%S" file-to-load))
+                          (insert (format "%S" full-to-load))
                           (basic-save-buffer))
-                      (web-vcs-message-with-face "Can't continue then")
-                      (throw 'command-level)))))))
+                      (web-vcs-message-with-face 'web-vcs-red "Can't continue then")
+                      (throw 'command-level nil)))))))
           ;; At end of file
-          (insert (format "\n(load  %S)\n" file-to-load
-          )))
+          (insert (format "\n(load  %S)\n" file-to-load)))
         (when old-buf (kill-buffer old-buf))))))
 
 ;;;###autoload
@@ -773,7 +775,6 @@ when you need them.
 
 Files will be downloaded to directory DL-DIR."
   (interactive (list (web-vcs-read-nxhtml-dl-dir "Download nXhtml part by part to directory")))
-  (web-vcs-set&save-option 'nxhtml-autoload-web t)
   (let* (;; Need some files:
          (web-vcs-el-src (concat (file-name-sans-extension web-vcs-el-this) ".el"))
          (web-vcs-el (expand-file-name (file-name-nondirectory web-vcs-el-src)
@@ -787,8 +788,9 @@ Files will be downloaded to directory DL-DIR."
                         ;;"web-autostart.el"
                         "etc/schema/schema-path-patch.el"
                         "nxhtml/nxhtml-autoload.el"))
-         (byte-comp (or (not (boundp 'web-autoload-autocompile))
-                        web-autoload-autocompile)))
+         (byte-comp (if (boundp 'web-autoload-autocompile)
+                        web-autoload-autocompile
+                      t)))
     (unless (file-exists-p dl-dir)
       (if (y-or-n-p (format "Directory %S does not exist, create it? " dl-dir))
           (make-directory dl-dir t)
@@ -810,12 +812,13 @@ Files will be downloaded to directory DL-DIR."
           (dolist (file basic-files)
             (let ((el-file (expand-file-name file dl-dir)))
               ;; Fix-me: check age
-              (web-vcs-byte-compile-newer-file el-file nil))))
-        (load-library "web-autoload")
-        )
-      (ad-activate 'require t)
-      (load (expand-file-name "autostart" dl-dir))
-      )))
+              (web-vcs-byte-compile-newer-file el-file nil)))))
+      (let ((autostart-file (expand-file-name "autostart" dl-dir)))
+        ;;(ad-activate 'require t) ;; fix-me, remove
+        (load autostart-file)
+        (web-vcs-set&save-option 'nxhtml-autoload-web t)
+        (nxhtml-add-loading-to-custom-file autostart-file)
+        ))))
 
 ;;(call-interactively 'nxhtml-download)
 ;;;###autoload
