@@ -44,8 +44,8 @@
 ;;
 ;;; Code:
 
-(require 'cl)
-(require 'ourcomments-util)
+(eval-when-compile (require 'cl))
+(eval-when-compile (require 'ourcomments-util))
 
 (eval-and-compile
   (defvar nxhtmltest-bin-Q

@@ -771,6 +771,14 @@ Also put FACE on the message in *Messages* buffer."
           (basic-save-buffer))
         (unless old-buf (kill-buffer old-buf))))))
 
+(defvar nxhtml-basic-files '("web-autoload.el"
+                             ;;"nxhtml-auto-helpers.el"
+                             "nxhtml-loaddefs.el"
+                             "autostart.el"
+                             ;;"web-autostart.el"
+                             "etc/schema/schema-path-patch.el"
+                             "nxhtml/nxhtml-autoload.el"))
+
 ;;;###autoload
 (defun nxhtml-setup-auto-download (dl-dir)
   "Set up to autoload nXhtml files from the web.
@@ -785,13 +793,6 @@ Files will be downloaded to directory DL-DIR."
                                        dl-dir))
          (vcs 'lp)
          (base-url (nxhtml-download-root-url nil))
-         (basic-files '("web-autoload.el"
-                        ;;"nxhtml-auto-helpers.el"
-                        "nxhtml-loaddefs.el"
-                        "autostart.el"
-                        ;;"web-autostart.el"
-                        "etc/schema/schema-path-patch.el"
-                        "nxhtml/nxhtml-autoload.el"))
          (byte-comp (if (boundp 'web-autoload-autocompile)
                         web-autoload-autocompile
                       t)))
@@ -806,14 +807,14 @@ Files will be downloaded to directory DL-DIR."
       ;; Fix-me: check age
       (web-vcs-byte-compile-newer-file web-vcs-el t))
     (catch 'command-level
-      (dolist (file basic-files)
+      (dolist (file nxhtml-basic-files)
         (let ((dl-file (expand-file-name file dl-dir)))
           (unless (file-exists-p dl-file)
             (web-vcs-get-missing-matching-files vcs base-url dl-dir file))))
       ;; Autostart.el has not run yet, add current dir to load-path.
       (let ((load-path (cons (file-name-directory web-vcs-el) load-path)))
         (when byte-comp
-          (dolist (file basic-files)
+          (dolist (file nxhtml-basic-files)
             (let ((el-file (expand-file-name file dl-dir)))
               ;; Fix-me: check age
               (message "maybe bytecomp %S" el-file)

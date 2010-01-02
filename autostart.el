@@ -191,14 +191,22 @@ Otherwise setup for normal local autoloading."
     (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
     ;; Autoloading etc
-    (load (expand-file-name "web-autoload" nxhtml-install-dir))
-    (load (expand-file-name "web-vcs" nxhtml-install-dir))
-    (when nxhtml-autoload-web (ad-activate 'require t))
+    (load (expand-file-name "web-vcs" nxhtml-install-dir) (not nxhtml-autoload-web))
+    (when nxhtml-autoload-web
+      (when (catch 'miss
+              (dolist (file nxhtml-basic-files)
+                (let ((dl-file (expand-file-name file nxhtml-install-dir)))
+                  (unless (file-exists-p dl-file)
+                    (throw 'miss t))))
+              nil)
+        (nxhtml-setup-auto-download nxhtml-install-dir))
+      (ad-activate 'require t))
+    (load (expand-file-name "web-autoload" nxhtml-install-dir) (not nxhtml-autoload-web))
 
     ;; Fix-me: Why must as-external be loaded? Why doesn't it work in batch?
     ;;(unless noninteractive (require 'as-external))
 
-    (load (expand-file-name "nxhtml-loaddefs" nxhtml-install-dir))
+    (load (expand-file-name "nxhtml-loaddefs" nxhtml-install-dir) nxhtml-autoload-web)
     (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
     ;; Turn on `nxhtml-global-minor-mode' unconditionally
