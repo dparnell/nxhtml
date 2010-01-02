@@ -2257,6 +2257,8 @@ First column is Tidy's name, second Emacs' name."
 
 (defconst tidy-control-buffer-name "Tidy Control Buffer")
 
+(defvar tidy-output-encoding) ;; dyn var
+
 (defun tidy-buffer ()
   "Run the HTML Tidy program on the current buffer.
 Show the errors in a buffer with buttons to:
@@ -2364,7 +2366,8 @@ calling tidy."
 
       (let ((output-mode (if (not (featurep 'mumamo))
                              major-mode
-                           (if mumamo-multi-major-mode
+                           (if (and (boundp 'mumamo-multi-major-mode)
+                                    mumamo-multi-major-mode)
                                mumamo-multi-major-mode
                              major-mode))))
         (with-current-buffer output-buffer

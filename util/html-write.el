@@ -51,7 +51,7 @@
 (defvar jit-lock-start)
 (defvar jit-lock-end)
 
-;;(require 'mumamo) ;; Just for the defmacro ...
+(eval-when-compile (require 'mumamo)) ;; Just for the defmacro ...
 ;;(require 'mlinks nil t)
 
 ;;;###autoload

@@ -301,6 +301,7 @@ Note: This minor mode uses `font-lock-mode'."
       (progn
         (let ((major-mode (or (and (boundp 'mumamo-multi-major-mode)
                                    mumamo-multi-major-mode
+                                   (fboundp 'mumamo-main-major-mode)
                                    (mumamo-main-major-mode))
                               major-mode)))
           (add-hook 'font-lock-mode-hook 'inlimg-on-font-lock-off)

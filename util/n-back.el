@@ -48,8 +48,9 @@
 ;;(eval-when-compile (require 'viper))
 
 ;; (setq n-back-trials 2)
+(eval-when-compile (require 'cl))
 
-(require 'winsize) ;; Ehum...
+(require 'winsize nil t) ;; Ehum...
 ;;(require 'new-key-seq-widget)
 
 (defvar n-back-game-window nil)
@@ -228,9 +229,9 @@
           (key-sequence :tag "sound key")
           (key-sequence :tag "word key")
           )
-  :set (lambda (sym val)
-         (set-default sym val)
-         (n-back-make-keymap))
+  ;; :set (lambda (sym val)
+  ;;        (set-default sym val)
+  ;;        (n-back-make-keymap))
   :group 'n-back-feel)
 
 (defvar n-back-control-mode-map nil)
@@ -472,6 +473,7 @@ new are maybe ... - and you have it available here in Emacs."
 ;; finger for auditory targets.  No responses were required for
 ;; non-targets.
   (interactive)
+  (n-back-make-keymap)
   (when window-system
     (unless (frame-live-p n-back-frame)
       (setq n-back-frame (make-frame
@@ -479,9 +481,9 @@ new are maybe ... - and you have it available here in Emacs."
                                 '(tool-bar-lines . 0)
                                 '(menu-bar-lines . 0)
                                 (case (frame-parameter nil 'background-mode)
-                                  ('light '(background-color . "cornsilk"))
-                                  ('dark  '(background-color . "MidnightBlue"))
-                                  (t nil))
+                                  (light '(background-color . "cornsilk"))
+                                  (dark  '(background-color . "MidnightBlue"))
+                                  (otherwise nil))
                                 '(height . 45)
                                 '(width . 150)))))
     (select-frame n-back-frame)
@@ -958,7 +960,7 @@ MAX-STRLEN.  Display item with background color COLOR."
        (case n-back-challenge-change
          (up "Congratulations! I see you need more challenge, raising difficulty!")
          (down "Making it a bit easier for now to make your playing more fun.")
-         (t "This game challenges seems the right way for you now.")))
+         (otherwise "This game challenges seems the right way for you now.")))
       (let* ((dir (when (boundp 'nxhtml-install-dir)
                     (expand-file-name "nxhtml/doc/img/" nxhtml-install-dir)))
              (up-imgs '("rembrandt-self-portrait.jpg"
@@ -977,7 +979,7 @@ MAX-STRLEN.  Display item with background color COLOR."
              ;; (setq n-back-trials 1)
              (pic (when dir (case n-back-challenge-change
                               (up (nth (random (length up-imgs)) up-imgs))
-                              (t  (nth (random (length t-imgs))  t-imgs)))))
+                              (otherwise  (nth (random (length t-imgs))  t-imgs)))))
              (src (when dir (expand-file-name pic dir)))
              img)
            (when (and src (file-exists-p src))
