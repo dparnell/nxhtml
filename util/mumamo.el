@@ -712,7 +712,8 @@ you should use the function `mumamo-refresh-multi-font-lock'
 afterwards.
 "  )))
     `(progn
-       (add-to-list 'mumamo-defined-multi-major-modes (cons (car ',chunks2) ',turn-on-fun))
+       ;;(add-to-list 'mumamo-defined-multi-major-modes (cons (car ',chunks2) ',turn-on-fun))
+       (mumamo-add-to-defined-multi-major-modes (cons (car ',chunks2) ',turn-on-fun))
        (defvar ,turn-on-hook nil ,turn-on-hook-doc)
        (defvar ,turn-on-map (make-sparse-keymap)
          ,(concat "Keymap for multi major mode function `"
@@ -738,6 +739,10 @@ afterwards.
        (when (intern-soft ',turn-on-fun-old)
          (defalias ',turn-on-fun-old ',turn-on-fun))
        )))
+
+;;;###autoload
+(defun mumamo-add-to-defined-multi-major-modes (entry)
+  (add-to-list 'mumamo-defined-multi-major-modes entry))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Debugging etc

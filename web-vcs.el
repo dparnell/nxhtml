@@ -781,10 +781,10 @@ Files will be downloaded to directory DL-DIR."
          (vcs 'lp)
          (base-url (nxhtml-download-root-url nil))
          (basic-files '("web-autoload.el"
-                        "nxhtml-auto-helpers.el"
+                        ;;"nxhtml-auto-helpers.el"
                         "nxhtml-loaddefs.el"
                         "autostart.el"
-                        "web-autostart.el"
+                        ;;"web-autostart.el"
                         "etc/schema/schema-path-patch.el"
                         "nxhtml/nxhtml-autoload.el"))
          (byte-comp (or (not (boundp 'web-autoload-autocompile))
@@ -889,6 +889,7 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
 
 ;;;;;; Start Testing function
 ;; (emacs-Q "web-vcs.el" "-f" "eval-buffer" "-f" "nxhtml-temp-setup-auto-download")
+;; (emacs-Q "-l" "c:/test/d27/web-vcs" "-f" "nxhtml-temp-setup-auto-download")
 ;; (emacs-Q "web-vcs.el" "-l" "c:/test/d27/web-autostart.el")
 ;; (emacs-Q "web-vcs.el" "-l" "c:/test/d27/autostart.el")
 (defun nxhtml-temp-setup-auto-download ()

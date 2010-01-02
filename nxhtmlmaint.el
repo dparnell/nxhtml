@@ -180,9 +180,9 @@ Update nXhtml autoload file with them."
           (backward-char (1- (length cus-auto)))
           (insert "nxhtml-")))
       ;; Load auto web helpers
-      (goto-char (point-min))
-      (search-forward "\f")
-      (insert "\n(require 'nxhtml-auto-helpers)\n")
+      ;;(goto-char (point-min))
+      ;;(search-forward "\f")
+      ;;(insert "\n(require 'nxhtml-auto-helpers)\n")
       ;; Fix autoload calls
       (goto-char (point-min))
       (let ((auto "(autoload "))

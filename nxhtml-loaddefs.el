@@ -3,7 +3,6 @@
 ;; This file should be updated by `nxhtmlmaint-get-file-autoloads',
 ;; `nxhtmlmaint-get-dir-autoloads' or `nxhtmlmaint-get-all-autoloads'.
 
-
 ;;;### (autoloads (cancel-secondary-selection set-secondary-selection
 ;;;;;;  anchored-transpose) "anchored-transpose" "util/anchored-transpose.el"
 ;;;;;;  (19213 56956))
@@ -900,8 +899,9 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;***
 
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
-;;;;;;  mumamo-hi-lock-faces mumamo define-mumamo-multi-major-mode)
-;;;;;;  "mumamo" "util/mumamo.el" (19262 20321))
+;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
+;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
+;;;;;;  (19262 49383))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp (nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir)
 
@@ -1013,6 +1013,11 @@ These are in the file mumamo-test.el.
 
 \(fn FUN-SYM SPEC-DOC CHUNKS)" nil (quote macro))
 
+(nxhtml-autoload 'mumamo-add-to-defined-multi-major-modes `(lp ,(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir) "\
+Not documented
+
+\(fn ENTRY)" nil nil)
+
 (let ((loads (get 'mumamo 'custom-loads))) (if (member '"mumamo" loads) nil (put 'mumamo 'custom-loads (cons '"mumamo" loads))))
 
 (let ((loads (get 'mumamo-hi-lock-faces 'custom-loads))) (if (member '"mumamo" loads) nil (put 'mumamo-hi-lock-faces 'custom-loads (cons '"mumamo" loads))))
@@ -1038,7 +1043,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  ssjs-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19259 49435))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19259 49532))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp (nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir)
 
@@ -1309,7 +1314,7 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
 ;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19259 27759))
+;;;;;;  "util/ourcomments-util.el" (19262 41765))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp (nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir)
 
@@ -3299,7 +3304,7 @@ Used to set up a Tidy menu in your favourite mode.
 ;;;***
 
 ;;;### (autoloads (rngalt-set-validation-header) "rngalt" "nxhtml/rngalt.el"
-;;;;;;  (19258 42706))
+;;;;;;  (19262 42029))
 ;;; Generated autoloads from nxhtml/rngalt.el
 (web-autoload-require 'rngalt 'lp (nxhtml-download-root-url nil) "nxhtml/rngalt" nxhtml-install-dir)
 
@@ -3368,7 +3373,7 @@ Check if external modules used by nXhtml are found.
 ;;;;;;  smarty-nxhtml-mumamo-mode mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode
 ;;;;;;  mason-nxhtml-mumamo-mode django-nxhtml-mumamo-mode embperl-nxhtml-mumamo-mode
 ;;;;;;  nxhtml-mumamo-mode) "nxhtml-mumamo" "nxhtml/nxhtml-mumamo.el"
-;;;;;;  (19259 46062))
+;;;;;;  (19262 39966))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 (web-autoload-require 'nxhtml-mumamo 'lp (nxhtml-download-root-url nil) "nxhtml/nxhtml-mumamo" nxhtml-install-dir)
 
@@ -3774,8 +3779,9 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;***
 
-;;;### (autoloads (nxhtml-download web-vcs-get-files-from-root) "web-vcs"
-;;;;;;  "web-vcs.el" (19261 27887))
+;;;### (autoloads (nxhtml-download-all nxhtml-setup-auto-download
+;;;;;;  web-vcs-get-files-from-root) "web-vcs" "web-vcs.el" (19262
+;;;;;;  49143))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -3791,7 +3797,16 @@ etc.
 
 \(fn WEB-VCS URL DL-DIR)" nil nil)
 
-(nxhtml-autoload 'nxhtml-download `(lp ,(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir) "\
+(nxhtml-autoload 'nxhtml-setup-auto-download `(lp ,(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir) "\
+Set up to autoload nXhtml files from the web.
+This will download some initial files and then download the rest
+when you need them.
+
+Files will be downloaded to directory DL-DIR.
+
+\(fn DL-DIR)" t nil)
+
+(nxhtml-autoload 'nxhtml-download-all `(lp ,(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir) "\
 Download or update nXhtml.
 If you already have nXhtml installed you can update it with this
 command.  Otherwise after downloading read the instructions in
@@ -3802,7 +3817,7 @@ optionally also byte compile the files from the nXhtml menu.)
 To learn more about nXhtml visit its home page at URL
 `http://www.emacswiki.com/NxhtmlMode/'.
 
-\(fn)" t nil)
+\(fn DL-DIR)" t nil)
 
 ;;;***
 
@@ -3864,11 +3879,11 @@ accept it or skip it.
 ;;;***
 
 ;;;### (autoloads nil nil ("autostart.el" "autostart22.el" "etc/schema/schema-path-patch.el"
-;;;;;;  "nxhtml-auto-helpers.el" "nxhtml/html-imenu.el" "nxhtml/html-move.el"
-;;;;;;  "nxhtml/html-quote.el" "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el"
-;;;;;;  "nxhtml/nxhtmljs.el" "nxhtml/outline-magic.el" "nxhtml/wtest.el"
-;;;;;;  "related/flymake-helpers.el" "related/flymakemsg.el" "related/flymu.el"
-;;;;;;  "related/php-imenu.el" "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
+;;;;;;  "nxhtml/html-imenu.el" "nxhtml/html-move.el" "nxhtml/html-quote.el"
+;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el" "nxhtml/nxhtmljs.el"
+;;;;;;  "nxhtml/outline-magic.el" "nxhtml/wtest.el" "related/flymake-helpers.el"
+;;;;;;  "related/flymakemsg.el" "related/flymu.el" "related/php-imenu.el"
+;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
 ;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
 ;;;;;;  "util/appmenu-fold.el" "util/css-simple-completion.el" "util/custsets.el"
@@ -3876,13 +3891,13 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "web-autoload-2.el" "web-autoload-3.el"
-;;;;;;  "web-autoload.el" "web-autostart.el") (19262 21648 109000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19262 49435
+;;;;;;  578000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19256 60415))
+;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19262 49421))
 ;;; Generated autoloads from nxhtmlmaint.el
 (web-autoload-require 'nxhtmlmaint 'lp (nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir)
 
