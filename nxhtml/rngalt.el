@@ -56,8 +56,9 @@
                         (when (boundp 'bytecomp-filename) bytecomp-filename)
                         buffer-file-name))
          (this-dir (file-name-directory this-file))
-         (util-dir (expand-file-name "../util/" this-dir)))
-    (load (expand-file-name "ourcomments-util" util-dir))))
+         (util-dir (expand-file-name "../util/" this-dir))
+         (load-path (cons util-dir load-path)))
+    (require 'ourcomments-util)))
 ;;(require 'ourcomments-util)
 
 ;; (setq x (macroexpand '(defcustom my-temp-opt t "doc" :type 'boolean)))
