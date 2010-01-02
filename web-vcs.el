@@ -704,7 +704,7 @@ Also put FACE on the message in *Messages* buffer."
   (setq nxhtml-handheld-wincfg (current-window-configuration))
   (delete-other-windows)
   (let ((info-buf (get-buffer-create "Information about how to add nXhtml to (custom-file)"))
-        (load-str (format "(load %S") file-to-load))
+        (load-str (format "(load %S)" file-to-load)))
     (with-current-buffer info-buf
       (add-hook 'kill-buffer-hook 'nxhtml-handheld-restore-wincg nil t)
       (insert "Insert the folloing line to (custom-file) (it is in the clipboard now):\n\n")
@@ -715,14 +715,14 @@ Also put FACE on the message in *Messages* buffer."
         (copy-region-as-kill here (point))
         (insert "\nWhen ready kill this buffer")
         (goto-char here))
-      (setq read-only t)
+      (setq buffer-read-only t)
       (set-buffer-modified-p nil))
     (set-window-buffer (selected-window) info-buf)
     (find-file-other-window (custom-file))
     ))
 
 (defun nxhtml-add-loading-to-custom-file (file-to-load)
-  (if (yes-or-no "Should I add loading of nXhtml to (custom-file) for you? ")
+  (if (yes-or-no-p "Should I add loading of nXhtml to (custom-file) for you? ")
       (nxhtml-add-loading-to-custom-file-auto file-to-load)
     (nxhtml-handheld-add-loading-to-custom-file file-to-load)))
 
@@ -764,8 +764,9 @@ Also put FACE on the message in *Messages* buffer."
                       (web-vcs-message-with-face 'web-vcs-red "Can't continue then")
                       (throw 'command-level nil)))))))
           ;; At end of file
-          (insert (format "\n(load  %S)\n" file-to-load)))
-        (when old-buf (kill-buffer old-buf))))))
+          (insert (format "\n(load  %S)\n" file-to-load))
+          (basic-save-buffer))
+        (unless old-buf (kill-buffer old-buf))))))
 
 ;;;###autoload
 (defun nxhtml-setup-auto-download (dl-dir)
