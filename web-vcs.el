@@ -367,8 +367,10 @@ If TEST is non-nil then do not download, just list the files"
              (file-dl-name (expand-file-name file-name dl-dir))
              (file-rel-name (file-relative-name file-dl-name dl-root))
              temp-buf)
+        ;;(message "web-vcs-get-revision-from-url-buf: %S %S" file-mask file-rel-name)
         (when (or (not file-mask)
                   (web-vcs-match-folderwise file-mask file-rel-name))
+          ;;(message "matched %S" file-rel-name)
           (if test
               (progn
                 (message "TEST file-url=%S" file-url)
@@ -464,8 +466,10 @@ If TEST is non-nil then do not download, just list the files"
                (full-dl-sub-dir (file-name-as-directory
                                  (expand-file-name dl-sub-dir dl-dir)))
                (rel-dl-sub-dir (file-relative-name full-dl-sub-dir dl-root)))
+          ;;(message "web-vcs-get-revision-from-url-buf dir: %S %S" file-mask rel-dl-sub-dir)
           (when (or (not file-mask)
                     (web-vcs-match-folderwise file-mask rel-dl-sub-dir))
+            ;;(message "matched dir %S" rel-dl-sub-dir)
             (unless (web-vcs-contains-file dl-dir full-dl-sub-dir)
               (error "Subdir %S not in %S" dl-sub-dir dl-dir))
             (let* ((ret (web-vcs-get-files-on-page-1 vcs-rec
@@ -518,20 +522,24 @@ The buffer URL-BUF should contain the content on page URL."
 ;;(web-vcs-file-name-as-list "[^/]*/a/c/") ;; Just avoid this.
 (defun web-vcs-file-name-as-list (filename)
   "Split file name FILENAME into a list with file names."
-  (let ((lst-name nil)
-        (head filename)
-        (old-head ""))
-    (while (and (not (string= old-head head))
-                (> (length head) 0))
-      (let* ((file-head (directory-file-name head))
-             (tail (file-name-nondirectory (directory-file-name head))))
-        (setq old-head head)
-        (setq head (file-name-directory file-head))
-        ;; For an abs path the final tail is "", use root instead:
-        (when (= 0 (length tail))
-          (setq tail head))
-        (setq lst-name (cons tail lst-name))))
-    lst-name))
+  ;; We can't use the primitives since they converts \ to / and
+  ;; therefore damages the reg exps.  Just use our knowledge of the
+  ;; internal file name representation instead.
+  (split-string filename "/"))
+  ;; (let ((lst-name nil)
+  ;;       (head filename)
+  ;;       (old-head ""))
+  ;;   (while (and (not (string= old-head head))
+  ;;               (> (length head) 0))
+  ;;     (let* ((file-head (directory-file-name head))
+  ;;            (tail (file-name-nondirectory (directory-file-name head))))
+  ;;       (setq old-head head)
+  ;;       (setq head (file-name-directory file-head))
+  ;;       ;; For an abs path the final tail is "", use root instead:
+  ;;       (when (= 0 (length tail))
+  ;;         (setq tail head))
+  ;;       (setq lst-name (cons tail lst-name))))
+  ;;   lst-name))
 
 ;;(web-vcs-match-folderwise ".*/util/mum.el" "top/util/mum.el")
 ;;(web-vcs-match-folderwise ".*/util/mu.el" "top/util/mum.el")
@@ -551,7 +559,8 @@ The buffer URL-BUF should contain the content on page URL."
         (while lst-file
           (let ((head-file  (car lst-file))
                 (head-regex (car lst-regex)))
-            (unless (string-match-p (concat "^" head-regex "$") head-file)
+            (unless (or (= 0 (length head-file)) ;; Last /, if present, gives ""
+                        (string-match-p (concat "^" head-regex "$") head-file))
               (throw 'match nil)))
           (setq lst-file  (cdr lst-file))
           (setq lst-regex (cdr lst-regex)))
@@ -1152,12 +1161,13 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
             (let ((full-f (expand-file-name f dir)))
               (unless (file-exists-p full-f)
                 (setq miss-names (cons f miss-names)))))
-          (setq files-regexp (expand-file-name (regexp-opt miss-names) relative-dir)))
+          (setq files-regexp (regexp-opt miss-names)))
       (setq files-regexp ".*"))
     (unless (file-exists-p sub-dir) (make-directory sub-dir t))
-    (setq relative-files (file-relative-name (expand-file-name files-regexp
-							       sub-dir)
-					     nxhtml-install-dir))
+    (setq relative-files
+	  (concat (file-relative-name (file-name-as-directory sub-dir)
+				      nxhtml-install-dir)
+		  files-regexp))
     (web-vcs-get-missing-matching-files 'lp root-url nxhtml-install-dir
 					relative-files)))
 
