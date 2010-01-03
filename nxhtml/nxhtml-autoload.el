@@ -140,8 +140,8 @@ order."
 
 ;;(defvar nxhtml-src-dir (file-name-directory (if load-file-name load-file-name buffer-file-name)))
 
-(eval-when (load)
-  (nxhtml-setup-file-assoc))
+;;(eval-when (load) (nxhtml-setup-file-assoc))
+(nxhtml-setup-file-assoc)
 
 (provide 'nxhtml-autoload)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
