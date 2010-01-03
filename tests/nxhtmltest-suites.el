@@ -45,6 +45,7 @@
 ;;(eval-when-compile (require 'cl))
 (eval-when-compile (require 'cl))
 (require 'mumamo)
+(require 'mumamo-fun)
 (require 'nxhtml)
 (require 'nxhtml-mumamo)
 (when (fboundp 'nxml-mode)
