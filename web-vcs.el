@@ -119,6 +119,11 @@ The patterns are grouped by VCS web system type.
   "Face for web-vcs messages."
   :group 'web-vcs)
 
+(defface web-vcs-yellow
+  '((t (:foreground "black" :background "yellow")))
+  "Face for web-vcs messages."
+  :group 'web-vcs)
+
 (defface web-vcs-pink
   '((t (:foreground "black" :background "pink")))
   "Face for web-vcs messages."
@@ -282,7 +287,7 @@ If TEST is non-nil then do not download, just list the files."
         (web-vcs-message-with-face 'web-vcs-gold "  Time elapsed: %S"
                                    (web-vcs-nice-elapsed start-time (current-time)))
         (when (> moved 0)
-          (web-vcs-message-with-face 'hi-yellow
+          (web-vcs-message-with-face 'web-vcs-yellow
                                      "  %i files updated (old versions renamed to *.moved)"
                                      moved))))))
 
@@ -1134,6 +1139,28 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
       (let ((autostart-file (expand-file-name "autostart" dl-dir)))
         (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file nil))))))
 
+;;(nxhtml-maybe-download-files (expand-file-name "nxhtml/doc/img/" nxhtml-install-dir) nil)
+;;;###autoload
+(defun nxhtml-maybe-download-files (sub-dir file-name-list)
+  (let (relative-files
+        (root-url (nxhtml-download-root-url nil))
+        files-regexp
+        miss-names)
+    (if file-name-list
+        (progn
+          (dolist (f file-name-list)
+            (let ((full-f (expand-file-name f dir)))
+              (unless (file-exists-p full-f)
+                (setq miss-names (cons f miss-names)))))
+          (setq files-regexp (expand-file-name (regexp-opt miss-names) relative-dir)))
+      (setq files-regexp ".*"))
+    (unless (file-exists-p sub-dir) (make-directory sub-dir t))
+    (setq relative-files (file-relative-name (expand-file-name files-regexp
+							       sub-dir)
+					     nxhtml-install-dir))
+    (web-vcs-get-missing-matching-files 'lp root-url nxhtml-install-dir
+					relative-files)))
+
 ;; Fix-me: Does not work, Emacs Bug
 ;; Maybe use wget? http://gnuwin32.sourceforge.net/packages/wget.htm
 ;; http://emacsbugs.donarmstrong.com/cgi-bin/bugreport.cgi?bug=5103
@@ -1162,13 +1189,14 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
                                  exec-suffixes)))
     (dolist (p elp-list)
       (when (file-exists-p p)
-        (let* ((dir (file-name-directory p))
-               (last (file-name-nondirectory p))
-               (last-dir (file-name-nondirectory
-                          (directory-file-name dir))))
-          (unless (and (string= "nxhtml" last-dir)
-                       (member last '("util" "test" "nxhtml" "related" "alt")))
-            (setq new-elp-list (cons p new-elp-list))))))
+        (unless (string= nxhtml-install-dir p)
+          (let* ((dir (file-name-directory p))
+                 (last (file-name-nondirectory p))
+                 (last-dir (file-name-nondirectory
+                            (directory-file-name dir))))
+            (unless (and (string= "nxhtml" last-dir)
+                         (member last '("util" "test" "nxhtml" "related" "alt")))
+              (setq new-elp-list (cons p new-elp-list)))))))
     (setq new-elp (mapconcat 'identity (reverse new-elp-list) ";"))
     (setenv "EMACSLOADPATH" new-elp)
     ;;(setq ret (apply 'emacs-Q args))

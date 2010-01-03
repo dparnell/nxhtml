@@ -10,7 +10,7 @@
 ;;
 ;; Features that might be required by this library:
 ;;
-  ;; `winsize'.
+;; `winsize'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -141,9 +141,9 @@
 (defcustom n-back-level 1
   "The n-Back level."
   :type '(radio (const 1)
-                 (const 2)
-                 (const 3)
-                 (const 4))
+                (const 2)
+                (const 3)
+                (const 4))
   :set (lambda (sym val)
          (set-default sym val)
          (when (featurep 'n-back)
@@ -240,10 +240,10 @@
   "Return key binding used for WHAT match answers."
   (nth
    (case what
-    (position 0)
-    (color    1)
-    (sound    2)
-    (word     3))
+     (position 0)
+     (color    1)
+     (sound    2)
+     (word     3))
    n-back-keys))
 
 (defun n-back-make-keymap ()
@@ -450,28 +450,28 @@ that used in the report by Jaeggi mentioned at the above URL.
 
 Not all features in Brain Workshop are implemented here, but some
 new are maybe ... - and you have it available here in Emacs."
-;; -----
-;; Below is a short excerpt from the report by Jaeggi et al which
-;; gave the idea to the game:
+  ;; -----
+  ;; Below is a short excerpt from the report by Jaeggi et al which
+  ;; gave the idea to the game:
 
-;; Training task.  For the training task, we used the same material
-;; as described by Jaeggi et al.  (33), which was a dual n-Back task
-;; where squares at eight different locations were presented
-;; sequentially on a computer screen at a rate of 3 s (stimulus
-;; length, 500 ms; interstimulus interval, 2,500 ms).
-;; Simultaneously with the presentation of the squares, one of eight
-;; consonants was presented sequentially through headphones.  A
-;; response was required whenever one of the presented stimuli
-;; matched the one presented n positions back in the sequence.  The
-;; value of n was the same for both streams of stimuli.  There were
-;; six auditory and six visual targets per block (four appearing in
-;; only one modality, and two appearing in both modalities
-;; simultaneously), and their positions were determined randomly.
-;; Participants made responses manually by pressing on the letter
-;; ‘‘A’’ of a standard keyboard with their left index finger for
-;; visual targets, and on the letter ‘‘L’’ with their right index
-;; finger for auditory targets.  No responses were required for
-;; non-targets.
+  ;; Training task.  For the training task, we used the same material
+  ;; as described by Jaeggi et al.  (33), which was a dual n-Back task
+  ;; where squares at eight different locations were presented
+  ;; sequentially on a computer screen at a rate of 3 s (stimulus
+  ;; length, 500 ms; interstimulus interval, 2,500 ms).
+  ;; Simultaneously with the presentation of the squares, one of eight
+  ;; consonants was presented sequentially through headphones.  A
+  ;; response was required whenever one of the presented stimuli
+  ;; matched the one presented n positions back in the sequence.  The
+  ;; value of n was the same for both streams of stimuli.  There were
+  ;; six auditory and six visual targets per block (four appearing in
+  ;; only one modality, and two appearing in both modalities
+  ;; simultaneously), and their positions were determined randomly.
+  ;; Participants made responses manually by pressing on the letter
+  ;; ‘‘A’’ of a standard keyboard with their left index finger for
+  ;; visual targets, and on the letter ‘‘L’’ with their right index
+  ;; finger for auditory targets.  No responses were required for
+  ;; non-targets.
   (interactive)
   (n-back-make-keymap)
   (when window-system
@@ -781,34 +781,38 @@ If type WORST is non-nil try to include that."
                             miss
                             (floor (* 100 (cdr res))))))))
 
-    (setq buffer-read-only t))))
+      (setq buffer-read-only t))))
 
 (defun n-back-show-welcome (msg)
   "Show welcome startup info and message MSG."
-  (with-current-buffer n-back-game-buffer
-    (let ((src (or (when (boundp 'nxhtml-install-dir)
-                     (expand-file-name "nxhtml/doc/img/fun-brain-2.png" nxhtml-install-dir))
-                   "c:/program files/brain workshop/res/brain_graphic.png"))
-          img
-          buffer-read-only)
-      (erase-buffer)
-      ;;(insert (propertize "\nEmacs n-back game (after Brain Workshop)\n\n" 'face '(:height 2.0)))
-      (insert (propertize "\nEmacs n-back game (after Brain Workshop)\n\n" 'face 'n-back-welcome-header))
-      (if (file-exists-p src)
-          (condition-case err
-              (setq img (create-image src nil nil
-                                      :relief 0
-                                      ;;:margin inlimg-margins
-                                      ))
-            (error (setq img (error-message-string err))))
-        (setq img (concat "Image not found: " src)))
-      (if (stringp img)
-          (insert img)
-        (insert-image img))
-      (insert (propertize "\n\nPlay for fun and maybe a somewhat happier brain"
-                          'face 'n-back-welcome))
-      (when msg (insert "\n\n" msg))
-      )))
+  (when (and n-back-game-buffer
+             (buffer-live-p n-back-game-buffer))
+    (with-current-buffer n-back-game-buffer
+      (let ((src (or (when (boundp 'nxhtml-install-dir)
+                       (expand-file-name "nxhtml/doc/img/fun-brain-2.png" nxhtml-install-dir))
+                     "c:/program files/brain workshop/res/brain_graphic.png"))
+            img
+            buffer-read-only)
+        (erase-buffer)
+        ;;(insert (propertize "\nEmacs n-back game (after Brain Workshop)\n\n" 'face '(:height 2.0)))
+        (insert (propertize "\nEmacs n-back game (after Brain Workshop)\n\n" 'face 'n-back-welcome-header))
+        (unless (file-exists-p src)
+          (n-back-maybe-download-files (file-name-directory src) (list (file-name-nondirectory src))))
+        (if (file-exists-p src)
+            (condition-case err
+                (setq img (create-image src nil nil
+                                        :relief 0
+                                        ;;:margin inlimg-margins
+                                        ))
+              (error (setq img (error-message-string err))))
+          (setq img (concat "Image not found: " src)))
+        (if (stringp img)
+            (insert img)
+          (insert-image img))
+        (insert (propertize "\n\nPlay for fun and maybe a somewhat happier brain"
+                            'face 'n-back-welcome))
+        (when msg (insert "\n\n" msg))
+        ))))
 
 (defun n-back-setup-windows ()
   "Setup game frame and windows."
@@ -918,8 +922,8 @@ MAX-STRLEN.  Display item with background color COLOR."
   (message "  ") ;; For easier reading *Messages*
   (n-back-update-info)
   (if (not n-back-active-match-types)
-    (message (propertize "No active match types"
-                         'face 'secondary-selection))
+      (message (propertize "No active match types"
+                           'face 'secondary-selection))
     ;;(setq n-back-result nil)
     (n-back-init-control-status)
     (n-back-init-this-result)
@@ -939,6 +943,10 @@ MAX-STRLEN.  Display item with background color COLOR."
          n-back-sec-per-trial
          nil ;;n-back-sec-per-trial
          'n-back-display-in-timer)))
+
+(defun n-back-maybe-download-files (dir file-name-list)
+  (when (fboundp 'nxhtml-maybe-download-files)
+    (nxhtml-maybe-download-files dir file-name-list)))
 
 (defun n-back-finish-game ()
   "Finish the game."
@@ -982,16 +990,19 @@ MAX-STRLEN.  Display item with background color COLOR."
                               (otherwise  (nth (random (length t-imgs))  t-imgs)))))
              (src (when dir (expand-file-name pic dir)))
              img)
-           (when (and src (file-exists-p src))
-             (condition-case err
-                 (setq img (create-image src nil nil
-                                         :relief 0
-                                         ))
-               (error (setq img (error-message-string err)))))
-           (if (stringp img)
-               img
-             (insert "\n\n")
-             (insert-image img)))))
+        (when (and src (not (file-exists-p src)))
+          ;; Time to download?
+          (n-back-maybe-download-files (file-name-directory src) (append up-imgs t-imgs nil)))
+        (when (and src (file-exists-p src))
+          (condition-case err
+              (setq img (create-image src nil nil
+                                      :relief 0
+                                      ))
+            (error (setq img (error-message-string err)))))
+        (if (stringp img)
+            img
+          (insert "\n\n")
+          (insert-image img)))))
   (message "Game over"))
 
 (defun n-back-display-random ()
@@ -1247,26 +1258,26 @@ MAX-STRLEN.  Display item with background color COLOR."
   (winsize-set-mode-line-colors nil))
 
 (defvar n-back-game-settings-symbols
-    '(
-      ;;n-back-keys
-      n-back-level
-      n-back-active-match-types
-      n-back-allowed-match-types
-      n-back-auto-challenge
-      ;;n-back-colors
-      ;;n-back-words
-      ;;n-back-sound-volume
-      ;;n-back-sounds
-      n-back-sec-per-trial
-      ;;n-back-keybinding-color
-      ;;n-back-trials
-      ))
+  '(
+    ;;n-back-keys
+    n-back-level
+    n-back-active-match-types
+    n-back-allowed-match-types
+    n-back-auto-challenge
+    ;;n-back-colors
+    ;;n-back-words
+    ;;n-back-sound-volume
+    ;;n-back-sounds
+    n-back-sec-per-trial
+    ;;n-back-keybinding-color
+    ;;n-back-trials
+    ))
 
 (defun n-back-save-game-settings ()
   "Save game settings."
   (interactive)
   (dolist (var n-back-game-settings-symbols)
-  )
+    )
   (custom-save-all))
 
 (defun n-back-reset-game-to-saved ()
