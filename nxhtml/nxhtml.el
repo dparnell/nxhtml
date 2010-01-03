@@ -44,6 +44,9 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+(eval-when-compile (require 'loadhist))
+
 ;;;###autoload
 (defgroup nxhtml nil
   "Customization of `nxhtml-mode'."

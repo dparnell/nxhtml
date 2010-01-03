@@ -683,7 +683,8 @@
           (define-key toc-map [nxhtml-html-wtoc]
             (list 'menu-item "Merge Pages and TOC"
                   'html-wtoc-write-pages-with-toc
-                  :enable '(and (html-site-current-page-list))))
+                  :enable '(or (not (featurep 'html-site))
+                               (html-site-current-page-list))))
           (define-key toc-map [nxthml-html-toc]
             (list 'menu-item "With Frames" 'html-toc-menu-map
                   :filter 'nxhtml-insert-menu-dynamically)))
@@ -733,8 +734,9 @@
       (define-key upl-map [nxhtml-upl-sep] (list 'menu-item "--"))
       (define-key upl-map [nxhtml-upl-upload-site-with-toc]
         (list 'menu-item "Upload Site with TOC" 'html-upl-upload-site-with-toc
-              :visible '(and (html-site-current-merge-dir)
-                             (html-site-current-ensure-file-in-site file))))
+              :visible '(or (not (featurep 'html-site))
+                            (and (html-site-current-merge-dir)
+                                 (html-site-current-ensure-file-in-site file)))))
       (define-key upl-map [nxhtml-upl-upload-site]
         (list 'menu-item "Upload Site" 'html-upl-upload-site))
       (define-key upl-map [nxhtml-upl-upload-file]
