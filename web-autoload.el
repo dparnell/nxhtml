@@ -294,7 +294,8 @@ This is used after inspecting downloaded elisp files."
                     (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" el-file)
                     (web-vcs-message-with-face 'hi-pink "Compiling QUEUE: %S" web-autoload-compile-queue)
                     ;;(when (ad-is-advised 'require) (ad-disable-advice 'require 'around 'web-autoload-ad-require))
-                    (let ((web-autoload-skip-require-advice t)) (byte-compile-file el-file load))
+                    ;; Fix-me: different byte-compile commands for different packages:
+                    (let ((web-autoload-skip-require-advice t)) (nxhtml-byte-compile-file el-file load))
                     ;;(when (ad-is-advised 'require) (ad-enable-advice 'require 'around 'web-autoload-ad-require))
                     (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" el-file)
                     ;; Return nil to tell there are no known problems
