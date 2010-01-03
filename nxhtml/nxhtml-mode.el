@@ -57,18 +57,18 @@
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'mumamo nil t))
-(eval-when-compile (require 'foldit nil t))
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'hideshow))
+
 (eval-when-compile (require 'appmenu-fold nil t))
-(eval-when-compile (require 'xhtml-help nil t))
-;;(eval-when-compile (require 'nxhtml-menu)
 (eval-when-compile (require 'fold-dwim nil t))
-(eval-when-compile (require 'typesetter nil t))
-;;(eval-when-compile (require 'outline)
-(eval-when-compile (require 'html-toc nil t))
+(eval-when-compile (require 'foldit nil t))
 (eval-when-compile (require 'html-pagetoc nil t))
+(eval-when-compile (require 'html-toc nil t))
+(eval-when-compile (require 'mumamo nil t))
+(eval-when-compile (require 'mlinks nil t))
+(eval-and-compile (require 'typesetter nil t))
+(eval-when-compile (require 'xhtml-help nil t))
 (eval-when-compile
   (unless (or (< emacs-major-version 23)
               (featurep 'nxhtml-autostart))
@@ -83,7 +83,6 @@
     (require 'rng-valid)
     (require 'rng-nxml)))
 
-(require 'typesetter nil t)
 (require 'button)
 (require 'loadhist)
 (require 'nxml-mode)

@@ -248,6 +248,7 @@
 (eval-when-compile (require 'desktop))
 (eval-when-compile (require 'flyspell))
 (eval-when-compile (require 'mlinks nil t))
+(eval-when-compile (require 'rngalt nil t))
 (eval-when-compile (require 'nxml-mode nil t))
 (eval-when-compile
   (when (featurep 'nxml-mode)
@@ -259,8 +260,40 @@
 ;;(require 'ourcomments-util)
 
 
-;;;autoload
-;;(defun mumamo-require ())
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; rng-valid.el support
+
+(defvar rng-get-major-mode-chunk-function nil
+  "Function to use to get major mode chunk.
+It should take one argument, the position where to get the major
+mode chunk.
+
+This is to be set by multiple major mode frame works, like
+mumamo.
+
+See also `rng-valid-nxml-major-mode-chunk-function' and
+`rng-end-major-mode-chunk-function'.  Note that all three
+variables must be set.")
+(make-variable-buffer-local 'rng-get-major-mode-chunk-function)
+(put 'rng-get-major-mode-chunk-function 'permanent-local t)
+
+(defvar rng-valid-nxml-major-mode-chunk-function nil
+  "Function to use to check if nxml can parse major mode chunk.
+It should take one argument, the chunk.
+
+For more info see also `rng-get-major-mode-chunk-function'.")
+(make-variable-buffer-local 'rng-valid-nxml-major-mode-chunk-function)
+(put 'rng-valid-nxml-major-mode-chunk-function 'permanent-local t)
+
+(defvar rng-end-major-mode-chunk-function nil
+  "Function to use to get the end of a major mode chunk.
+It should take one argument, the chunk.
+
+For more info see also `rng-get-major-mode-chunk-function'.")
+(make-variable-buffer-local 'rng-end-major-mode-chunk-function)
+(put 'rng-end-major-mode-chunk-function 'permanent-local t)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -7805,37 +7838,6 @@ Do here also other necessary adjustments for this."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; rng-valid.el support
-
-(defvar rng-get-major-mode-chunk-function nil
-  "Function to use to get major mode chunk.
-It should take one argument, the position where to get the major
-mode chunk.
-
-This is to be set by multiple major mode frame works, like
-mumamo.
-
-See also `rng-valid-nxml-major-mode-chunk-function' and
-`rng-end-major-mode-chunk-function'.  Note that all three
-variables must be set.")
-(make-variable-buffer-local 'rng-get-major-mode-chunk-function)
-(put 'rng-get-major-mode-chunk-function 'permanent-local t)
-
-(defvar rng-valid-nxml-major-mode-chunk-function nil
-  "Function to use to check if nxml can parse major mode chunk.
-It should take one argument, the chunk.
-
-For more info see also `rng-get-major-mode-chunk-function'.")
-(make-variable-buffer-local 'rng-valid-nxml-major-mode-chunk-function)
-(put 'rng-valid-nxml-major-mode-chunk-function 'permanent-local t)
-
-(defvar rng-end-major-mode-chunk-function nil
-  "Function to use to get the end of a major mode chunk.
-It should take one argument, the chunk.
-
-For more info see also `rng-get-major-mode-chunk-function'.")
-(make-variable-buffer-local 'rng-end-major-mode-chunk-function)
-(put 'rng-end-major-mode-chunk-function 'permanent-local t)
-
 
 ;; Fix-me: The solution in this defadvice is temporary. The defadvice
 ;; for rng-do-some-validation should be fixed instead.
