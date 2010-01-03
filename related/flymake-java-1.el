@@ -44,6 +44,8 @@
 ;;
 ;;; Code:
 
+(eval-and-compile (require 'flymake))
+
 (defun flymake-init-maybe-find-buildfile-dir (source-file-name buildfile-name)
   "Find buildfile, store its dir in buffer data and return its dir, if found."
   (let* ((buildfile-dir

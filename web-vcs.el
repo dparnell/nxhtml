@@ -105,20 +105,22 @@ The patterns are grouped by VCS web system type.
   :group 'web-vcs)
 
 (defface web-vcs-gold
-  '((((background dark)) (:background "gold" :foreground "black"))
-    (t (:foreground "black" :background "gold")))
+  '((t (:foreground "black" :background "gold")))
   "Face for web-vcs messages."
   :group 'web-vcs)
 
 (defface web-vcs-red
-  '((((background dark)) (:background "red" :foreground "black"))
-    (t (:foreground "black" :background "#f86")))
+  '((t (:foreground "black" :background "#f86")))
   "Face for web-vcs messages."
   :group 'web-vcs)
 
 (defface web-vcs-green
-  '((((background dark)) (:background "red" :foreground "black"))
-    (t (:foreground "black" :background "#8f6")))
+  '((t (:foreground "black" :background "#8f6")))
+  "Face for web-vcs messages."
+  :group 'web-vcs)
+
+(defface web-vcs-pink
+  '((t (:foreground "black" :background "pink")))
   "Face for web-vcs messages."
   :group 'web-vcs)
 
@@ -323,7 +325,7 @@ If TEST is non-nil then do not download, just list the files"
         (let ((status "Status unknown"))
           (when (looking-at "HTTP/.* \\(.*\\)\n")
             (setq status (match-string 1)))
-          (switch-to-buffer url-buf)
+          (display-buffer url-buf)
           (web-vcs-message-with-face 'web-vcs-red "Download error (%s): %S" status url))
         (throw 'command-level nil))
       (unless (file-directory-p dl-dir)

@@ -69,6 +69,7 @@
 (eval-when-compile (require 'mlinks nil t))
 (eval-and-compile (require 'typesetter nil t))
 (eval-when-compile (require 'xhtml-help nil t))
+(eval-when-compile (require 'popcmp nil t))
 (eval-when-compile
   (unless (or (< emacs-major-version 23)
               (featurep 'nxhtml-autostart))
@@ -107,6 +108,20 @@
 ;;"Holds the original `nxml-fontify-attribute' function.")
 ;;(fset 'nxhtml-nxml-fontify-attribute (symbol-function 'nxml-fontify-attribute))
 
+
+(define-toggle nxhtml-tag-do-also t
+  "When completing tag names do some more if non-nil.
+For some tag names additional things can be done at completion to
+speed writing up.  For example for an <img ...> tag `nxhtml-mode'
+can prompt for src attribute and add width and height attributes
+if this attribute points to a local file.
+
+You can add additional elisp code for completing to
+`nxhtml-complete-tag-do-also'."
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (nxhtml-turn-onoff-tag-do-also value))
+  :group 'nxhtml)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1640,20 +1655,6 @@ occurence of a tag name is used.")
             )
         (remove-hook 'rngalt-complete-tag-hooks 'nxhtml-complete-tag-do-also t)
         ))))
-
-(define-toggle nxhtml-tag-do-also t
-  "When completing tag names do some more if non-nil.
-For some tag names additional things can be done at completion to
-speed writing up.  For example for an <img ...> tag `nxhtml-mode'
-can prompt for src attribute and add width and height attributes
-if this attribute points to a local file.
-
-You can add additional elisp code for completing to
-`nxhtml-complete-tag-do-also'."
-  :set (lambda (symbol value)
-         (set-default symbol value)
-         (nxhtml-turn-onoff-tag-do-also value))
-  :group 'nxhtml)
 
 (defun nxhtml-check-tag-do-also ()
   (when nxhtml-tag-do-also

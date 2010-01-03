@@ -292,7 +292,7 @@ This is used after inspecting downloaded elisp files."
               (condition-case err
                   (progn
                     (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" el-file)
-                    (web-vcs-message-with-face 'hi-pink "Compiling QUEUE: %S" web-autoload-compile-queue)
+                    (web-vcs-message-with-face 'web-vcs-pink "Compiling QUEUE: %S" web-autoload-compile-queue)
                     ;;(when (ad-is-advised 'require) (ad-disable-advice 'require 'around 'web-autoload-ad-require))
                     ;; Fix-me: different byte-compile commands for different packages:
                     (let ((web-autoload-skip-require-advice t)) (nxhtml-byte-compile-file el-file load))
