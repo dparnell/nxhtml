@@ -1203,7 +1203,7 @@ Buffer must be fontified.
 ;;;***
 
 ;;;### (autoloads (n-back-game n-back) "n-back" "util/n-back.el"
-;;;;;;  (19262 51207))
+;;;;;;  (19264 41454))
 ;;; Generated autoloads from util/n-back.el
 (web-autoload-require 'n-back 'lp (nxhtml-download-root-url nil) "util/n-back" nxhtml-install-dir)
 
@@ -1252,7 +1252,7 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (19263 12078))
+;;;;;;  "tests/nxhtmltest-suites.el" (19264 37853))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 (web-autoload-require 'nxhtmltest-suites 'lp (nxhtml-download-root-url nil) "tests/nxhtmltest-suites" nxhtml-install-dir)
 
@@ -3791,9 +3791,9 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;***
 
-;;;### (autoloads (nxhtml-setup-download-all nxhtml-setup-auto-download
-;;;;;;  nxhtml-setup-install web-vcs-get-files-from-root) "web-vcs"
-;;;;;;  "web-vcs.el" (19264 25233))
+;;;### (autoloads (nxhtml-maybe-download-files nxhtml-setup-download-all
+;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install web-vcs-get-files-from-root)
+;;;;;;  "web-vcs" "web-vcs.el" (19264 41484))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -3871,6 +3871,11 @@ For more information about auto download of nXhtml files see
 
 \(fn DL-DIR)" t nil)
 
+(nxhtml-autoload 'nxhtml-maybe-download-files `(lp ,(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir) "\
+Not documented
+
+\(fn DIR FILE-NAME-LIST)" nil nil)
+
 ;;;***
 
 ;;;### (autoloads (zencoding-preview zencoding-expand-yas zencoding-mode
@@ -3943,8 +3948,8 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19264 37502
-;;;;;;  62000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19264 41522
+;;;;;;  953000))
 
 ;;;***
 
