@@ -226,75 +226,83 @@ Otherwise setup for normal local autoloading."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Code that will run on loading this file
 
+(if (< emacs-major-version 23)
+    (unless (featurep 'autostart22)
+      (load (expand-file-name "autostart22" nxhtml-install-dir)))
+  ;; Check that the nxml-mode included with Emacs is used. There
+  ;; has been some problems on Debian with this.
+  (let ((nxml-mode-file (locate-library "nxml-mode"))
+        (help-file      (locate-library "help")))
+    (unless (string= (expand-file-name ".." help-file)
+                     (expand-file-name "../.." nxml-mode-file))
+      (error "Wrong nxml-mode=%s used, please use the one that comes with Emacs" nxml-mode-file))))
+
+(let* ((util-dir (file-name-as-directory (expand-file-name "util" nxhtml-install-dir)))
+       (related-dir (file-name-as-directory (expand-file-name "related" nxhtml-install-dir)))
+       (nxhtml-dir (file-name-as-directory (expand-file-name "nxhtml" nxhtml-install-dir)))
+       (company-dir (file-name-as-directory (expand-file-name "util/nxhtml-company-mode" nxhtml-install-dir)))
+       (tests-dir (file-name-as-directory (expand-file-name "tests" nxhtml-install-dir))))
+  (add-to-list 'load-path nxhtml-dir)
+  (add-to-list 'load-path related-dir)
+  (add-to-list 'load-path util-dir)
+  (add-to-list 'load-path nxhtml-install-dir)
+  (add-to-list 'load-path company-dir)
+  (add-to-list 'load-path tests-dir)
+
+  (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
+
+  ;; Autoloading etc
+  (unless (featurep 'web-vcs)
+    (load (expand-file-name "web-vcs" nxhtml-install-dir) (not nxhtml-autoload-web)))
+
+  (when (catch 'miss
+          (dolist (file nxhtml-basic-files)
+            (let ((dl-file (expand-file-name file nxhtml-install-dir)))
+              (unless (file-exists-p dl-file)
+                (throw 'miss t))))
+          nil)
+    (nxhtml-setup-auto-download nxhtml-install-dir))
+
+  (unless (featurep 'web-autoload)
+    (load (expand-file-name "web-autoload" nxhtml-install-dir) (not nxhtml-autoload-web)))
+
+  (when nxhtml-autoload-web
+    (ad-activate 'require t))
+
+  ;; Fix-me: Why must as-external be loaded? Why doesn't it work in batch?
+  ;;(unless noninteractive (require 'as-external))
+
+  (unless (featurep 'nxhtml-loaddefs)
+    (load (expand-file-name "nxhtml-loaddefs" nxhtml-install-dir) nxhtml-autoload-web))
+  (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
+
+  ;; Turn on `nxhtml-global-minor-mode' unconditionally
+  (message "Turn on `nxhtml-global-minor-mode' unconditionally")
+  (nxhtml-global-minor-mode 1)
+  (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
+
+  ;; Patch the rnc include paths
+  (when (fboundp 'nxml-mode)
+    (load (expand-file-name "etc/schema/schema-path-patch"
+                            nxhtml-install-dir))
+    (rncpp-patch-xhtml-loader))
+  (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
+
+  ;; Load nXhtml
+  (unless (featurep 'nxhtml-autoload)
+    (load (expand-file-name "nxhtml/nxhtml-autoload" nxhtml-install-dir))))
+(message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
+
+;; Flymake, this may break some users setup initially, but I see no better way...
+(when nxhtml-flymake-setup
+  (flymake-js-load)
+  (flymake-css-load)
+  (flymake-java-1-load)
+  (add-hook 'flymake-mode-hook 'flymake-init-load-flymakemsg))
+
 (unless (featurep 'nxhtml-autostart)
   ;; Provide the feature here to avoid loading looping on error.
   (provide 'nxhtml-autostart)
-
-  (if (< emacs-major-version 23)
-      (load (expand-file-name "autostart22" nxhtml-install-dir))
-    ;; Check that the nxml-mode included with Emacs is used. There
-    ;; has been some problems on Debian with this.
-    (let ((nxml-mode-file (locate-library "nxml-mode"))
-          (help-file      (locate-library "help")))
-      (unless (string= (expand-file-name ".." help-file)
-                       (expand-file-name "../.." nxml-mode-file))
-        (error "Wrong nxml-mode=%s used, please use the one that comes with Emacs" nxml-mode-file))))
-
-  (let* ((util-dir (file-name-as-directory (expand-file-name "util" nxhtml-install-dir)))
-         (related-dir (file-name-as-directory (expand-file-name "related" nxhtml-install-dir)))
-         (nxhtml-dir (file-name-as-directory (expand-file-name "nxhtml" nxhtml-install-dir)))
-         (company-dir (file-name-as-directory (expand-file-name "util/nxhtml-company-mode" nxhtml-install-dir)))
-         (tests-dir (file-name-as-directory (expand-file-name "tests" nxhtml-install-dir))))
-    (add-to-list 'load-path nxhtml-dir)
-    (add-to-list 'load-path related-dir)
-    (add-to-list 'load-path util-dir)
-    (add-to-list 'load-path nxhtml-install-dir)
-    (add-to-list 'load-path company-dir)
-    (add-to-list 'load-path tests-dir)
-
-    (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
-
-    ;; Autoloading etc
-    (load (expand-file-name "web-vcs" nxhtml-install-dir) (not nxhtml-autoload-web))
-    (when nxhtml-autoload-web
-      (when (catch 'miss
-              (dolist (file nxhtml-basic-files)
-                (let ((dl-file (expand-file-name file nxhtml-install-dir)))
-                  (unless (file-exists-p dl-file)
-                    (throw 'miss t))))
-              nil)
-        (nxhtml-setup-auto-download nxhtml-install-dir))
-      (ad-activate 'require t))
-    (load (expand-file-name "web-autoload" nxhtml-install-dir) (not nxhtml-autoload-web))
-
-    ;; Fix-me: Why must as-external be loaded? Why doesn't it work in batch?
-    ;;(unless noninteractive (require 'as-external))
-
-    (load (expand-file-name "nxhtml-loaddefs" nxhtml-install-dir) nxhtml-autoload-web)
-    (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
-
-    ;; Turn on `nxhtml-global-minor-mode' unconditionally
-    (message "Turn on `nxhtml-global-minor-mode' unconditionally")
-    (nxhtml-global-minor-mode 1)
-    (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
-
-    ;; Patch the rnc include paths
-    (when (fboundp 'nxml-mode)
-      (load (expand-file-name "etc/schema/schema-path-patch"
-                              nxhtml-install-dir))
-      (rncpp-patch-xhtml-loader))
-    (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
-
-    ;; Load nXhtml
-    (load (expand-file-name "nxhtml/nxhtml-autoload" nxhtml-install-dir)))
-  (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
-
-  ;; Flymake, this may break some users setup initially, but I see no better way...
-  (when nxhtml-flymake-setup
-    (flymake-js-load)
-    (flymake-css-load)
-    (flymake-java-1-load)
-    (add-hook 'flymake-mode-hook 'flymake-init-load-flymakemsg))
 
   ;; Tell what have been loaded of nXhtml:
   (nxhtml-list-loaded-features nil)

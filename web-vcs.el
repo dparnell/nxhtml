@@ -410,28 +410,36 @@ If TEST is non-nil then do not download, just list the files"
                 ;; Fix-me: paranoid?
                 (when (and (boundp 'web-autoload-paranoid)
                            web-autoload-paranoid)
-                  (let* ((comp-buf (get-buffer "*Compilation*"))
-                        (comp-win (and comp-buf
-                                       (get-buffer-window comp-buf)))
-                        (msg-win (get-buffer-window "*Messages*"))
-                        )
-                    (unless msg-win
-                      (display-buffer "*Messages*")
-                      (setq msg-win (get-buffer-window "*Messages*")))
-                    (if comp-win
-                        (progn
-                          (select-window comp-win)
-                          (find-file file-dl-name))
-                      (select-window msg-win)
-                      (find-file-other-window file-dl-name))
-                    (web-vcs-message-with-face
-                     'secondary-selection
-                     (concat "Please check the downloaded file and then continue by doing"
-                             "\n\n  M-x nxhtml-setup-auto-download\n"))
-                    (with-selected-window msg-win
-                      (goto-char (point-max)))
-                    (throw 'command-level nil)
-                    )))
+                  (save-window-excursion
+                    (let* ((comp-buf (get-buffer "*Compilation*"))
+                           (comp-win (and comp-buf
+                                          (get-buffer-window comp-buf)))
+                           (msg-win (get-buffer-window "*Messages*"))
+                           )
+                      (unless msg-win
+                        (display-buffer "*Messages*")
+                        (setq msg-win (get-buffer-window "*Messages*")))
+                      (if comp-win
+                          (progn
+                            (select-window comp-win)
+                            (find-file file-dl-name))
+                        (select-window msg-win)
+                        (find-file-other-window file-dl-name))
+                      (web-vcs-message-with-face
+                       'secondary-selection
+                       (concat "Please check the downloaded file and then continue by doing any of"
+                               "\n    C-c C-c (or M-x exit-recursive-edit)"
+                               "\nOr, for no more breaks to check files do"
+                               "\n    C-c C-n (or M-x web-autoload-continue-no-stop)"
+                               "\n"))
+                      (message "")
+                      (with-selected-window msg-win
+                        (goto-char (point-max)))
+                      ;; Fix-me: put this on another key, emulation-mode-map-alist etc
+                      (global-set-key [(control ?c)(control ?c)] 'exit-recursive-edit)
+                      (global-set-key [(control ?c)(control ?n)] 'web-autoload-continue-no-stop)
+                      (recursive-edit)
+                      ))))
               (let* ((msg-win (get-buffer-window "*Messages*")))
                 (with-current-buffer "*Messages*"
                   (set-window-point msg-win (point-max))))
@@ -991,67 +999,70 @@ Note: If your nXhtml is to old you can't use this function
                  (nxhtml-check-convert-to-part-by-part)
                  (list
                   (catch 'command-level
-                    (unless (yes-or-no-p "Convert to updating nXhtml part by part? ")
-                      (throw 'command-level nil))
+                    (unless nxhtml-autoload-web
+                      (unless (yes-or-no-p "Convert to updating nXhtml part by part? ")
+                        (throw 'command-level nil)))
                     (web-vcs-read-nxhtml-dl-dir "Download nXhtml part by part to directory")))))
-  (if (not dl-dir)
-      (unless (called-interactively-p)
-        (error "dl-dir show be a directory"))
-    (nxhtml-check-convert-to-part-by-part)
-    (when (and (boundp 'nxhtml-install-dir)
-               nxhtml-install-dir)
-      (unless (string= (file-truename dl-dir)
-                       (file-truename nxhtml-install-dir))
-        (error "Download dir must be same as nxhtml-install-dir=%S" nxhtml-install-dir)))
-    (let* (;; Need some files:
-           (web-vcs-el-src (concat (file-name-sans-extension web-vcs-el-this) ".el"))
-           (web-vcs-el (expand-file-name (file-name-nondirectory web-vcs-el-src)
-                                         dl-dir))
-           (vcs 'lp)
-           (base-url (nxhtml-download-root-url nil))
-           (byte-comp (if (boundp 'web-autoload-autocompile)
-                          web-autoload-autocompile
-                        t))
-           (has-nxhtml (and (boundp 'nxhtml-install-dir)
-                            nxhtml-install-dir)))
-      (unless (file-exists-p dl-dir)
-        (if (yes-or-no-p (format "Directory %S does not exist, create it? " dl-dir))
-            (make-directory dl-dir t)
-          (error "Aborted by user")))
-      (setq message-log-max t)
-      (delete-other-windows)
-      (switch-to-buffer "*Messages*")
-      (message "")
-      (message "")
-      (web-vcs-message-with-face 'web-vcs-green "==== Starting nXhtml part by part state ====")
-      (unless (file-exists-p web-vcs-el)
-        (copy-file web-vcs-el-src web-vcs-el))
-      (when byte-comp
-        ;; Fix-me: check age
-        (web-vcs-byte-compile-newer-file web-vcs-el t))
-      (catch 'web-autoload-comp-restart
-        (dolist (file nxhtml-basic-files)
-          (let ((dl-file (expand-file-name file dl-dir)))
-            (unless (file-exists-p dl-file)
-              (web-vcs-get-missing-matching-files vcs base-url dl-dir file))))
-        ;; Autostart.el has not run yet, add current dir to load-path.
-        (let ((load-path (cons (file-name-directory web-vcs-el) load-path)))
-          (when byte-comp
-            (dolist (file nxhtml-basic-files)
-              (let ((el-file (expand-file-name file dl-dir)))
-                ;; Fix-me: check age
-                (message "maybe bytecomp %S" el-file)
-                (when (boundp 'majmodpri-sort-after-load)
-                  (message "majmodpri-sort-after-load =%S" majmodpri-sort-after-load))
-                (web-vcs-byte-compile-newer-file el-file nil)))))
-        (let ((autostart-file (expand-file-name "autostart" dl-dir)))
-          ;;(ad-deactivate 'require)
-          (web-vcs-set&save-option 'nxhtml-autoload-web t)
-          (message "before load %S" autostart-file)
-          (load autostart-file)
-          (unless (ad-is-active 'require) (ad-activate 'require))
-          (message "after load %S" autostart-file)
-          (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file t)))))))
+  (catch 'command-level
+    (if (not dl-dir)
+        (unless (called-interactively-p)
+          (error "dl-dir should be a directory"))
+      (nxhtml-check-convert-to-part-by-part)
+      (when (and (boundp 'nxhtml-install-dir)
+                 nxhtml-install-dir)
+        (unless (string= (file-truename dl-dir)
+                         (file-truename nxhtml-install-dir))
+          (error "Download dir must be same as nxhtml-install-dir=%S" nxhtml-install-dir)))
+      (let* (;; Need some files:
+             (web-vcs-el-src (concat (file-name-sans-extension web-vcs-el-this) ".el"))
+             (web-vcs-el (expand-file-name (file-name-nondirectory web-vcs-el-src)
+                                           dl-dir))
+             (vcs 'lp)
+             (base-url (nxhtml-download-root-url nil))
+             (byte-comp (if (boundp 'web-autoload-autocompile)
+                            web-autoload-autocompile
+                          t))
+             (has-nxhtml (and (boundp 'nxhtml-install-dir)
+                              nxhtml-install-dir)))
+        (unless (file-exists-p dl-dir)
+          (if (yes-or-no-p (format "Directory %S does not exist, create it? " dl-dir))
+              (make-directory dl-dir t)
+            (error "Aborted by user")))
+        (setq message-log-max t)
+        (delete-other-windows)
+        (switch-to-buffer "*Messages*")
+        (message "")
+        (message "")
+        (web-vcs-message-with-face 'web-vcs-green "==== Starting nXhtml part by part state ====")
+        (unless (file-exists-p web-vcs-el)
+          (copy-file web-vcs-el-src web-vcs-el))
+        (when byte-comp
+          ;; Fix-me: check age
+          (web-vcs-byte-compile-newer-file web-vcs-el t))
+        (catch 'web-autoload-comp-restart
+          (dolist (file nxhtml-basic-files)
+            (let ((dl-file (expand-file-name file dl-dir)))
+              (unless (file-exists-p dl-file)
+                (web-vcs-get-missing-matching-files vcs base-url dl-dir file))))
+          ;; Autostart.el has not run yet, add current dir to load-path.
+          (let ((load-path (cons (file-name-directory web-vcs-el) load-path)))
+            (when byte-comp
+              (dolist (file nxhtml-basic-files)
+                (let ((el-file (expand-file-name file dl-dir)))
+                  ;; Fix-me: check age
+                  (message "maybe bytecomp %S" el-file)
+                  (when (boundp 'majmodpri-sort-after-load)
+                    (message "majmodpri-sort-after-load =%S" majmodpri-sort-after-load))
+                  (web-vcs-byte-compile-newer-file el-file nil)))))
+          (let ((autostart-file (expand-file-name "autostart" dl-dir)))
+            ;;(ad-deactivate 'require)
+            (web-vcs-set&save-option 'nxhtml-autoload-web t)
+            (message "before load %S" autostart-file)
+            (load autostart-file)
+            (unless (ad-is-active 'require) (ad-activate 'require))
+            (message "after load %S" autostart-file)
+            (display-buffer "*Messages*")
+            (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file t))))))))
 
 ;;(call-interactively 'nxhtml-download)
 ;;;###autoload
