@@ -46,11 +46,10 @@
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'rng-valid))
+(eval-and-compile (require 'rng-valid))
 (eval-when-compile (require 'rng-nxml))
 (eval-when-compile (unless load-file-name (require 'nxhtml-mode nil t)))
 
-(require 'rng-valid)
 (eval-when-compile
   (let* ((this-file (or load-file-name
                         (when (boundp 'bytecomp-filename) bytecomp-filename)

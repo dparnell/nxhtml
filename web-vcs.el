@@ -49,7 +49,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'hi-lock)
+(eval-when-compile (require 'cus-edit))
 (require 'advice)
 (require 'web-autoload nil t)
 
@@ -107,19 +107,19 @@ The patterns are grouped by VCS web system type.
 (defface web-vcs-gold
   '((((background dark)) (:background "gold" :foreground "black"))
     (t (:foreground "black" :background "gold")))
-  "Face for hi-lock mode."
+  "Face for web-vcs messages."
   :group 'web-vcs)
 
 (defface web-vcs-red
   '((((background dark)) (:background "red" :foreground "black"))
     (t (:foreground "black" :background "#f86")))
-  "Face for hi-lock mode."
+  "Face for web-vcs messages."
   :group 'web-vcs)
 
 (defface web-vcs-green
   '((((background dark)) (:background "red" :foreground "black"))
     (t (:foreground "black" :background "#8f6")))
-  "Face for hi-lock mode."
+  "Face for web-vcs messages."
   :group 'web-vcs)
 
 (defcustom web-vcs-default-download-directory
@@ -205,7 +205,6 @@ the same as the one on the web page.  This is stored in the file
 web-vcs-revision.txt.  After downloading update this file.
 
 If TEST is non-nil then do not download, just list the files."
-  (require 'hi-lock) ;; For faces
   (unless (string= dl-dir (file-name-as-directory (expand-file-name dl-dir)))
     (error "Download dir dl-dir=%S must be a full directory path" dl-dir))
   (catch 'command-level
@@ -652,9 +651,6 @@ Also put FACE on the message in *Messages* buffer."
       t)))
 
 
-
-
-
 (defun web-vcs-set&save-option (symbol value)
   (customize-set-variable symbol value)
   (customize-set-value symbol value)
@@ -875,14 +871,13 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
       (setq buffer-read-only t)
       (set-buffer-modified-p nil))
     (set-window-buffer (selected-window) info-buf)
-    (find-file-other-window (custom-file))
-    ))
+    (find-file-other-window (custom-file))))
 
 ;; (nxhtml-add-loading-to-custom-file "test-file")
 (defun nxhtml-add-loading-to-custom-file (file-to-load part-by-part)
   (message "")
-  (if (not (and (fboundp 'custom-file)
-                (condition-case nil (custom-file) (error nil))))
+  (require 'cus-edit)
+  (if (not (condition-case nil (custom-file) (error nil)))
       (progn
         (message "")
         (web-vcs-message-with-face
