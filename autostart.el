@@ -59,21 +59,27 @@
 
 ;; emacs-uq-byte-compile-buffer
 ;;(nxhtml-byte-compile-file)
-(defun nxhtml-byte-compile-file (file)
+;; byte-compile-file
+(defun nxhtml-byte-compile-file (file &optional load)
   "Byte compile FILE in a new Emacs sub process.
 nXhtml subdirectories are added to the front of `load-path'
 during compilation.
 
-FILE is set to `buffer-file-name' when called interactively."
+FILE is set to `buffer-file-name' when called interactively.
+If LOAD"
   (interactive (list (buffer-file-name)))
-  (unless (eq major-mode 'emacs-lisp-mode)
-    (error "Must be in emacs-list-mode"))
+  (when (called-interactively-p)
+    (unless (eq major-mode 'emacs-lisp-mode)
+      (error "Must be in emacs-lisp-mode")))
   (unless nxhtml-install-dir
     (error "nXhtml must be loaded"))
   (let ((old-emacsloadpath (getenv "EMACSLOADPATH"))
         (newlp (getenv "EMACSLOADPATH"))
         (out-buf (get-buffer-create "*nXhtml Compilation"))
-        (file (buffer-file-name))
+        (elc-file (byte-compile-dest-file file))
+        (this-emacs-exe (locate-file invocation-name
+                                     (list invocation-directory)
+                                     exec-suffixes))
         start)
     (dolist (p '("util" "nxhtml" "related"))
       (let ((full-p (expand-file-name p nxhtml-install-dir)))
@@ -95,9 +101,12 @@ FILE is set to `buffer-file-name' when called interactively."
             (insert "\n\n"))
           (setq start (point))
           (compilation-mode)
+          (when (file-exists-p elc-file) (delete-file elc-file))
           (setenv "EMACSLOADPATH" newlp)
-          (apply 'call-process (ourcomments-find-emacs) nil out-buf t
+          (message "before call-process compile %S" file)
+          (apply 'call-process this-emacs-exe nil out-buf t
                  "-Q" "--batch" file "-f" "emacs-lisp-byte-compile" nil)
+          (message "after call-process compile %S" file)
           (setenv "EMACSLOADPATH" old-emacsloadpath)
           (goto-char start)
           (while (re-search-forward "^\\([a-zA-Z0-9/\._-]+\\):[0-9]+:[0-9]+:" nil t)
@@ -105,7 +114,12 @@ FILE is set to `buffer-file-name' when called interactively."
                   (inhibit-read-only t))
               (replace-match rel-file nil nil nil 1)))
           (goto-char (point-max))
-          (font-lock-mode -1) (font-lock-mode 1))))))
+          (font-lock-mode -1) (font-lock-mode 1))))
+    (when (file-exists-p elc-file)
+      (message "nxhtml-byte-compile-file: Compiling ready %S load=%s" elc-file load)
+      (when load (load elc-file))
+      t)
+    ))
 
 ;; (defun nxhtml-custom-load-and-get-value (symbol)
 ;;   (custom-load-symbol symbol)

@@ -132,6 +132,10 @@ directly, otherwise download it first."
              (web-vcs-message-with-face 'web-vcs-gold "web-autoload-1: BEG fun=%s" ',fun)
              ;; Fix-me: assume we can do require (instead of load, so
              ;; we do not have to defadvice load to).
+             (unless (ad-is-advised 'require)
+               (error "web-autoload-1: require is not advised"))
+             (unless (ad-is-active 'require)
+               (error "web-autoload-1: require advice is not active"))
              (when (catch 'web-autoload-comp-restart
                      (require (intern (file-name-nondirectory rel-url)))
                      nil)
@@ -267,7 +271,7 @@ directly, otherwise download it first."
                     (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" el-file)
                     (web-vcs-message-with-face 'hi-pink "Compiling QUEUE: %S" web-autoload-compile-queue)
                     ;;(when (ad-is-advised 'require) (ad-disable-advice 'require 'around 'web-autoload-ad-require))
-                    (let ((web-autoload-skip-require-advice t)) (nxhtml-byte-compile-file el-file load))
+                    (let ((web-autoload-skip-require-advice t)) (byte-compile-file el-file load))
                     ;;(when (ad-is-advised 'require) (ad-enable-advice 'require 'around 'web-autoload-ad-require))
                     (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" el-file)
                     ;; Return nil to tell there are no known problems
@@ -329,7 +333,7 @@ directly, otherwise download it first."
 (defadvice require (around
                     web-autoload-ad-require
                     ;;activate
-                    compile
+                    ;;compile
                     )
   (let ((feature  (ad-get-arg 0))
         (filename (ad-get-arg 1))
