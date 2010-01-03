@@ -253,6 +253,10 @@ directly, otherwise download it first."
         (web-autoload-byte-compile-file-1)
         (setq web-autoload-compile-queue (cdr web-autoload-compile-queue))))))
 
+(defun web-autoload-continue ()
+  (interactive)
+  (web-autoload-byte-compile-queue))
+
 (defun web-autoload-byte-compile-file-1 ()
   "Compile and load FILE. Or just load."
   (let* ((compiled-it nil)

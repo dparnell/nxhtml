@@ -406,7 +406,31 @@ If TEST is non-nil then do not download, just list the files"
                 (when old-buf-open
                   (with-current-buffer old-buf-open
                     (set-buffer-modified-p nil)
-                    (revert-buffer))))
+                    (revert-buffer)))
+                ;; Fix-me: paranoid?
+                (when (fboundp 'web-autoload-continue)
+                  (let* ((comp-buf (get-buffer "*Compilation*"))
+                        (comp-win (and comp-buf
+                                       (get-buffer-window comp-buf)))
+                        (msg-win (get-buffer-window "*Messages*"))
+                        )
+                    (unless msg-win
+                      (display-buffer "*Messages*")
+                      (setq msg-win (get-buffer-window "*Messages*")))
+                    (if comp-win
+                        (progn
+                          (select-window comp-win)
+                          (find-file file-dl-name))
+                      (select-window msg-win)
+                      (find-file-other-window file-dl-name))
+                    (web-vcs-message-with-face
+                     'secondary-selection
+                     (concat "Please check the downloaded file and then continue by doing"
+                             "\n\n  M-x web-autoload-continue"))
+                    (with-selected-window msg-win
+                      (goto-char (point-max)))
+                    (throw 'command-level nil)
+                    )))
               (let* ((msg-win (get-buffer-window "*Messages*")))
                 (with-current-buffer "*Messages*"
                   (set-window-point msg-win (point-max))))
@@ -1004,7 +1028,7 @@ Note: If your nXhtml is to old you can't use this function
       (when byte-comp
         ;; Fix-me: check age
         (web-vcs-byte-compile-newer-file web-vcs-el t))
-      (catch 'command-level
+      (catch 'web-autoload-comp-restart
         (dolist (file nxhtml-basic-files)
           (let ((dl-file (expand-file-name file dl-dir)))
             (unless (file-exists-p dl-file)
@@ -1141,7 +1165,7 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
   "Test autoload in a new emacs, started with 'emacs -Q'.
 You can choose where to download the files and just delete them
 when you have tested enough."
-  (interactive "DDirectory for test of auto download of nXhtml: ")
+  (interactive (list (read-directory-name "Directory for test of auto download of nXhtml: ")))
   (let ((this-dir (file-name-directory web-vcs-el-this))
         (this-name (file-name-nondirectory web-vcs-el-this))
         that-file)
