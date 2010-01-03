@@ -559,8 +559,8 @@
       (define-key tools-map [nxhtml-tidy-map]
         (list 'menu-item "Tidy XHTML" 'tidy-menu-symbol
               :filter 'nxhtml-insert-menu-dynamically
-              ;;:visible '(and (fboundp 'tidy-build-menu) (tidy-build-menu))
-              :enable '(and ;;(fboundp 'tidy-build-menu) (tidy-build-menu)
+              :visible '(and (fboundp 'tidy-build-menu) (tidy-build-menu))
+              :enable '(and (fboundp 'tidy-build-menu) (tidy-build-menu)
                             (or (derived-mode-p 'html-mode)
                                 (nxhtml-nxhtml-in-buffer)))))
       (define-key tools-map [zencoding]
