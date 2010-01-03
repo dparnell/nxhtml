@@ -687,7 +687,13 @@ There are two different ways to do it:
 You can convert between those ways by calling this function again.
 
 To learn more about nXhtml visit its home page at URL
-`http://www.emacswiki.com/NxhtmlMode/'."
+`http://www.emacswiki.com/NxhtmlMode/'.
+
+If you want to test auto download \(but not use it further) there
+is a special function for that, you answer T here:
+
+   (T) Test automatic download part by part: `nxhtml-setup-test-auto-download'
+"
   (interactive (let ((curr-cfg (current-window-configuration)))
                  (list
                   (let* ((key nil)
@@ -701,10 +707,12 @@ To learn more about nXhtml visit its home page at URL
                          (prompt (concat "Setup nXhtml install."
                                          "\n" current-way
                                          "\n"
-                                         "\n(1) Download whole at once, or (2) part by part as needed?"
+                                         "\n(1) Download whole at once, or (2) part by part as needed"
+                                         "\n(T) For temporary testing downloading part by part"
+                                         "\n"
                                          "\n(? for help, q to quit): "))
                          (please nil))
-                    (while (not (member key '(?1 ?2 ?q 7)))
+                    (while (not (member key '(?1 ?2 ?T ?q 7)))
                       (if (not (member key '(??)))
                           (when key
                             (unless please
@@ -721,11 +729,14 @@ To learn more about nXhtml visit its home page at URL
                       (7 (set-window-configuration curr-cfg)
                           nil)
                       (?1 'whole)
-                      (?2 'part-by-part))))))
+                      (?2 'part-by-part)
+                      (?T 'test-part-by-part)
+                      )))))
   (message "")
   (case way
-    (part-by-part (call-interactively 'nxhtml-setup-auto-download))
     (whole (call-interactively 'nxhtml-setup-download-all))
+    (part-by-part (call-interactively 'nxhtml-setup-auto-download))
+    (test-part-by-part (call-interactively 'nxhtml-setup-test-auto-download))
     ((eq nil way) nil)
     (t (error "Unknown way = %S" way))))
 
@@ -983,6 +994,9 @@ Note: If your nXhtml is to old you can't use this function
             (make-directory dl-dir t)
           (error "Aborted by user")))
       (setq message-log-max t)
+      (delete-other-windows)
+      (switch-to-buffer "*Messages*")
+      (message "")
       (message "")
       (web-vcs-message-with-face 'web-vcs-green "==== Starting nXhtml part by part state ====")
       (unless (file-exists-p web-vcs-el)
@@ -1101,7 +1115,10 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
          (elp-list (split-string elp ";"))
          (new-elp-list nil)
          (new-elp "")
-         ret)
+         ret
+         (emacs-exe (locate-file invocation-name
+                                 (list invocation-directory)
+                                 exec-suffixes)))
     (dolist (p elp-list)
       (when (file-exists-p p)
         (let* ((dir (file-name-directory p))
@@ -1113,9 +1130,34 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
             (setq new-elp-list (cons p new-elp-list))))))
     (setq new-elp (mapconcat 'identity (reverse new-elp-list) ";"))
     (setenv "EMACSLOADPATH" new-elp)
-    (setq ret (apply 'emacs-Q args))
+    ;;(setq ret (apply 'emacs-Q args))
+    (setq ret (apply 'call-process emacs-exe nil 0 nil "-Q" args))
     (setenv "EMACSLOADPATH" elp)
     ret))
+
+;; (call-interactively-p 'nxhtml-setup-test-auto-download)
+;; (nxhtml-setup-test-auto-download "c:/test2/")
+(defun nxhtml-setup-test-auto-download (test-dir)
+  "Test autoload in a new emacs, started with 'emacs -Q'.
+You can choose where to download the files and just delete them
+when you have tested enough."
+  (interactive "DDirectory for test of auto download of nXhtml: ")
+  (let ((this-dir (file-name-directory web-vcs-el-this))
+        (this-name (file-name-nondirectory web-vcs-el-this))
+        that-file)
+    (when (and (file-exists-p test-dir)
+             (not (y-or-n-p (format "Directory %S exists, really test there? " test-dir))))
+        (error "Aborted"))
+    (unless (file-exists-p test-dir) (make-directory test-dir))
+    (setq that-file (expand-file-name this-name test-dir))
+    (when (file-exists-p that-file) (delete-file that-file))
+    (copy-file web-vcs-el-this that-file)
+    (emacs-Q-no-nxhtml "-l" that-file "-f" "nxhtml-setup-test-auto-download-do-it-here")))
+
+(defun nxhtml-setup-test-auto-download-do-it-here ()
+  "Helper for `nxhtml-setup-test-auto-down-load'."
+  (let ((this-dir (file-name-directory web-vcs-el-this)))
+    (nxhtml-setup-auto-download this-dir)))
 
 ;;;;;; Start Testing function
 ;; (emacs-Q-no-nxhtml "web-vcs.el" "-f" "eval-buffer" "-f" "nxhtml-temp-setup-auto-download")
