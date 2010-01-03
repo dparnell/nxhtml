@@ -83,7 +83,7 @@ If LOAD"
                                      (list invocation-directory)
                                      exec-suffixes))
         start)
-    (dolist (p '("related" "nxhtml" "util" "."))
+    (dolist (p '("tests" "related" "nxhtml" "util" "."))
       (let ((full-p (expand-file-name p nxhtml-install-dir)))
         (setq newlp (concat full-p ";" newlp))))
     (if nil

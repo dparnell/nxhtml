@@ -3578,7 +3578,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19264 25862))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19264 34113))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp (nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir)
 
@@ -3942,8 +3942,8 @@ accept it or skip it.
 ;;;;;;  "util/fupd.el" "util/hfy-cmap.el" "util/key-cat.el" "util/mumamo-aspnet.el"
 ;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19264 31613
-;;;;;;  406000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19264 34208
+;;;;;;  312000))
 
 ;;;***
 
