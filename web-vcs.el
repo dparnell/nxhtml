@@ -913,7 +913,7 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
         (error "Can't find current version nxhtml-menu:version=%S" nxhtml-menu:version))
       (let* ((ver-str (match-string 0 nxhtml-menu:version))
              (ver-num (string-to-number ver-str)))
-        (when (< ver-num 2.06)
+        (when (< ver-num 2.07)
           (web-vcs-message-with-face 'web-vcs-red "Too old nXhtml for download part by part.")
           (throw 'command-level nil))))))
 
