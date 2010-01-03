@@ -843,7 +843,7 @@ before applying.
 ;;;***
 
 ;;;### (autoloads (mlinks-global-mode mlinks-mode mlinks) "mlinks"
-;;;;;;  "util/mlinks.el" (19256 5098))
+;;;;;;  "util/mlinks.el" (19264 26678))
 ;;; Generated autoloads from util/mlinks.el
 (web-autoload-require 'mlinks 'lp (nxhtml-download-root-url nil) "util/mlinks" nxhtml-install-dir)
 
@@ -901,7 +901,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19262 49383))
+;;;;;;  (19264 27275))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp (nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir)
 
@@ -1044,7 +1044,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode
 ;;;;;;  mumamo-define-html-file-wide-keys) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19262 50057))
+;;;;;;  (19264 23175))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp (nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir)
 
@@ -1252,7 +1252,7 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (19257 14177))
+;;;;;;  "tests/nxhtmltest-suites.el" (19263 11862))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 (web-autoload-require 'nxhtmltest-suites 'lp (nxhtml-download-root-url nil) "tests/nxhtmltest-suites" nxhtml-install-dir)
 
@@ -1277,7 +1277,7 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run-Q) "nxhtmltest-Q" "tests/nxhtmltest-Q.el"
-;;;;;;  (19150 35948))
+;;;;;;  (19263 11768))
 ;;; Generated autoloads from tests/nxhtmltest-Q.el
 (web-autoload-require 'nxhtmltest-Q 'lp (nxhtml-download-root-url nil) "tests/nxhtmltest-Q" nxhtml-install-dir)
 
@@ -1320,7 +1320,7 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
 ;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19262 51651))
+;;;;;;  "util/ourcomments-util.el" (19263 57325))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp (nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir)
 
@@ -1737,7 +1737,7 @@ completion is available.")
 ;;;***
 
 ;;;### (autoloads (rebind-keys-mode rebind) "rebind" "util/rebind.el"
-;;;;;;  (19254 43283))
+;;;;;;  (19263 7912))
 ;;; Generated autoloads from util/rebind.el
 (web-autoload-require 'rebind 'lp (nxhtml-download-root-url nil) "util/rebind" nxhtml-install-dir)
 
@@ -2874,7 +2874,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (flymake-java-1-load) "flymake-java-1" "related/flymake-java-1.el"
-;;;;;;  (19222 14066))
+;;;;;;  (19264 26206))
 ;;; Generated autoloads from related/flymake-java-1.el
 (web-autoload-require 'flymake-java-1 'lp (nxhtml-download-root-url nil) "related/flymake-java-1" nxhtml-install-dir)
 
@@ -3316,7 +3316,7 @@ Used to set up a Tidy menu in your favourite mode.
 ;;;***
 
 ;;;### (autoloads (rngalt-set-validation-header) "rngalt" "nxhtml/rngalt.el"
-;;;;;;  (19262 42029))
+;;;;;;  (19264 23277))
 ;;; Generated autoloads from nxhtml/rngalt.el
 (web-autoload-require 'rngalt 'lp (nxhtml-download-root-url nil) "nxhtml/rngalt" nxhtml-install-dir)
 
@@ -3361,7 +3361,7 @@ See `nxml-where-mode' for more information on Nxml-Where mode.
 ;;;***
 
 ;;;### (autoloads (nxhtml-features-check nxhtml-customize nxhtml)
-;;;;;;  "nxhtml" "nxhtml/nxhtml.el" (19218 42180))
+;;;;;;  "nxhtml" "nxhtml/nxhtml.el" (19264 26321))
 ;;; Generated autoloads from nxhtml/nxhtml.el
 (web-autoload-require 'nxhtml 'lp (nxhtml-download-root-url nil) "nxhtml/nxhtml" nxhtml-install-dir)
 
@@ -3385,7 +3385,7 @@ Check if external modules used by nXhtml are found.
 ;;;;;;  smarty-nxhtml-mumamo-mode mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode
 ;;;;;;  mason-nxhtml-mumamo-mode django-nxhtml-mumamo-mode embperl-nxhtml-mumamo-mode
 ;;;;;;  nxhtml-mumamo-mode) "nxhtml-mumamo" "nxhtml/nxhtml-mumamo.el"
-;;;;;;  (19262 39966))
+;;;;;;  (19264 31083))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 (web-autoload-require 'nxhtml-mumamo 'lp (nxhtml-download-root-url nil) "nxhtml/nxhtml-mumamo" nxhtml-install-dir)
 
@@ -3443,8 +3443,8 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
-;;;;;;  nxhtml-mode) "nxhtml-mode" "nxhtml/nxhtml-mode.el" (19257
-;;;;;;  1670))
+;;;;;;  nxhtml-mode) "nxhtml-mode" "nxhtml/nxhtml-mode.el" (19264
+;;;;;;  31121))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 (web-autoload-require 'nxhtml-mode 'lp (nxhtml-download-root-url nil) "nxhtml/nxhtml-mode" nxhtml-install-dir)
 
@@ -3578,7 +3578,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19256 5733))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19264 25862))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp (nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir)
 
@@ -3715,7 +3715,7 @@ FILENAME could be either the remote or the local file.
 ;;;### (autoloads (html-site html-site-query-replace html-site-rgrep
 ;;;;;;  html-site-find-file html-site-dired-current html-site-set-site
 ;;;;;;  html-site-buffer-or-dired-file-name) "html-site" "nxhtml/html-site.el"
-;;;;;;  (19257 25182))
+;;;;;;  (19264 26797))
 ;;; Generated autoloads from nxhtml/html-site.el
 (web-autoload-require 'html-site 'lp (nxhtml-download-root-url nil) "nxhtml/html-site" nxhtml-install-dir)
 
@@ -3791,9 +3791,9 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;***
 
-;;;### (autoloads (nxhtml-download-all nxhtml-setup-auto-download
-;;;;;;  web-vcs-get-files-from-root) "web-vcs" "web-vcs.el" (19262
-;;;;;;  62650))
+;;;### (autoloads (nxhtml-setup-download-all nxhtml-setup-auto-download
+;;;;;;  nxhtml-setup-install web-vcs-get-files-from-root) "web-vcs"
+;;;;;;  "web-vcs.el" (19264 25233))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -3809,25 +3809,65 @@ etc.
 
 \(fn WEB-VCS URL DL-DIR)" nil nil)
 
-(nxhtml-autoload 'nxhtml-setup-auto-download `(lp ,(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir) "\
-Set up to autoload nXhtml files from the web.
-This will download some initial files and then download the rest
-when you need them.
+(nxhtml-autoload 'nxhtml-setup-install `(lp ,(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir) "\
+Setup and start nXhtml installation.
 
-Files will be downloaded to directory DL-DIR.
+There are two different ways to do it:
 
-\(fn DL-DIR)" t nil)
+  (1) Download all at once: `nxhtml-setup-download-all'
+  (2) Automatically download part by part: `nxhtml-setup-auto-download'
 
-(nxhtml-autoload 'nxhtml-download-all `(lp ,(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir) "\
-Download or update nXhtml.
-If you already have nXhtml installed you can update it with this
-command.  Otherwise after downloading read the instructions in
-README.txt in the download directory for setting up nXhtml.
-\(This requires adding only one line to your .emacs, but you may
-optionally also byte compile the files from the nXhtml menu.)
+You can convert between those ways by calling this function again.
+You can also do this by setting the option `nxhtml-autoload-web' yourself.
 
 To learn more about nXhtml visit its home page at URL
 `http://www.emacswiki.com/NxhtmlMode/'.
+
+If you want to test auto download (but not use it further) there
+is a special function for that, you answer T here:
+
+   (T) Test automatic download part by part: `nxhtml-setup-test-auto-download'
+
+\(fn WAY)" t nil)
+
+(nxhtml-autoload 'nxhtml-setup-auto-download `(lp ,(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir) "\
+Set up to autoload nXhtml files from the web.
+
+This function will download some initial files and then setup to
+download the rest when you need them.
+
+Files will be downloaded under the directory root you specify in
+DL-DIR.
+
+If you already have nXhtml installed and loaded this function
+will only let you download to that directory.  In that case you
+can use this function to upgrade individual files.  Just delete
+them and they will be downloaded as you need them.  (But beware
+that sometimes there might be problem because the files gets out
+of phase.  A future version will try to take care of this.)
+
+You may switch by this mode of downloading or downloading the
+whole of nXhtml by once.  To switch just call the command
+`nxhtml-setup-install'.
+
+See also the command `nxhtml-setup-download-all'.
+
+Note: If your nXhtml is to old you can't use this function
+      directly.  You have to upgrade first, se the function
+      above.
+
+\(fn DL-DIR)" t nil)
+
+(nxhtml-autoload 'nxhtml-setup-download-all `(lp ,(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir) "\
+Download or update all of nXhtml.
+
+If you already have nXhtml installed you can update it with this
+command. If you want to update only certain files you can do so
+by switching (maybe temporary) to automatic downloading with the
+command `nxhtml-setup-install'.
+
+For more information about auto download of nXhtml files see
+`nxhtml-setup-auto-download'.
 
 \(fn DL-DIR)" t nil)
 
@@ -3897,19 +3937,18 @@ accept it or skip it.
 ;;;;;;  "related/flymakemsg.el" "related/flymu.el" "related/php-imenu.el"
 ;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
-;;;;;;  "util/appmenu-fold.el" "util/css-simple-completion.el" "util/custsets.el"
-;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/hfy-cmap.el"
-;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
-;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
+;;;;;;  "util/css-simple-completion.el" "util/custsets.el" "util/ecb-batch-compile.el"
+;;;;;;  "util/fupd.el" "util/hfy-cmap.el" "util/key-cat.el" "util/mumamo-aspnet.el"
+;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19262 65397
-;;;;;;  875000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19264 31613
+;;;;;;  406000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19262 65387))
+;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19264 31595))
 ;;; Generated autoloads from nxhtmlmaint.el
 (web-autoload-require 'nxhtmlmaint 'lp (nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir)
 

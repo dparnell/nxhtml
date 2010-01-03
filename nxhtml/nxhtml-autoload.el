@@ -138,8 +138,7 @@ order."
   (majmodpri-sort-lists)
   (message "nxhtml-autoload finished"))
 
-(defvar nxhtml-src-dir (file-name-directory
-                        (if load-file-name load-file-name buffer-file-name)))
+;;(defvar nxhtml-src-dir (file-name-directory (if load-file-name load-file-name buffer-file-name)))
 
 (eval-when (load)
   (nxhtml-setup-file-assoc))

@@ -311,8 +311,8 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
         (nxhtmlmaint-byte-compile-all)
       ;;(when noninteractive (setq process-args (append process-args '("-batch"))))
       (setq process-args (append process-args
-                                 (list "-l" this-file
-                                       "-l" auto-file
+                                 (list "-l" auto-file
+                                       "-l" this-file
                                        "-f" "nxhtmlmaint-byte-compile-all")))
       (message "process-args=%S" process-args)
       (message "Starting new Emacs instance for byte compiling ...")
@@ -365,7 +365,8 @@ See `nxhtmlmaint-start-byte-compilation' for byte compiling."
     (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir t t))
   (message "Byte uncompiling is ready, restart Emacs to use the elisp files"))
 
-(defconst nxhtmlmaint-nonbyte-compile-dirs '("." ".." "alts" "nxml-mode-20041004" "old" "tests"))
+(defconst nxhtmlmaint-nonbyte-compile-dirs
+  '("." ".." "alts" "nxml-mode-20041004" "old" "tests" "nxhtml-company-mode"))
 
 ;; Fix-me: simplify this now that nxml is not included
 (defun nxhtmlmaint-byte-compile-dir (dir force del-elc)
