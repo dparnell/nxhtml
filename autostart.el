@@ -75,7 +75,9 @@ If LOAD"
     (error "nXhtml must be loaded"))
   (let ((old-emacsloadpath (getenv "EMACSLOADPATH"))
         (newlp (getenv "EMACSLOADPATH"))
-        (out-buf (get-buffer-create "*nXhtml Compilation"))
+        ;; Fix-me: name of compile log buffer. When should it be
+        ;; deleted? How do I bind it to byte-compile-file? Or do I?
+        (out-buf (get-buffer-create "*Compile-Log*"))
         (elc-file (byte-compile-dest-file file))
         (this-emacs-exe (locate-file invocation-name
                                      (list invocation-directory)
