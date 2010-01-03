@@ -87,7 +87,7 @@ directly, otherwise download it first."
 (defcustom web-autoload-autocompile t
   "Byt compile downloaded files if t."
   :type 'boolean
-  :group 'web-vcs)
+  :group 'web-autoload)
 
 ;; Fix-me: change name
 (defvar web-autoload-skip-require-advice nil)
@@ -252,6 +252,11 @@ directly, otherwise download it first."
       (catch 'web-autoload-comp-restart
         (web-autoload-byte-compile-file-1)
         (setq web-autoload-compile-queue (cdr web-autoload-compile-queue))))))
+
+(defcustom web-autoload-paranoid t
+  "Be paranoid and check each file after download."
+  :type 'boolean
+  :group 'web-autoload)
 
 (defun web-autoload-continue ()
   (interactive)

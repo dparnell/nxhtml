@@ -408,7 +408,8 @@ If TEST is non-nil then do not download, just list the files"
                     (set-buffer-modified-p nil)
                     (revert-buffer)))
                 ;; Fix-me: paranoid?
-                (when (fboundp 'web-autoload-continue)
+                (when (and (boundp 'web-autoload-paranoid)
+                           web-autoload-paranoid)
                   (let* ((comp-buf (get-buffer "*Compilation*"))
                         (comp-win (and comp-buf
                                        (get-buffer-window comp-buf)))
