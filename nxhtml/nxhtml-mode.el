@@ -67,23 +67,27 @@
 (eval-when-compile (require 'html-toc nil t))
 (eval-when-compile (require 'mumamo nil t))
 (eval-when-compile (require 'mlinks nil t))
+(eval-when-compile (require 'ourcomments-util nil t))
 (eval-and-compile (require 'typesetter nil t))
 (eval-when-compile (require 'xhtml-help nil t))
 (eval-when-compile (require 'popcmp nil t))
-(eval-when-compile
-  (unless (or (< emacs-major-version 23)
-              (featurep 'nxhtml-autostart))
-    (let ((efn (expand-file-name
-                "../autostart.el"
-                (file-name-directory
-                 (or load-file-name
-                     (when (boundp 'bytecomp-filename) bytecomp-filename)
-                     buffer-file-name)))))
-      (message "efn=%s" efn)
-      (load efn))
-    (require 'rng-valid)
-    (require 'rng-nxml)))
+;; (eval-when-compile
+;;   (unless (or (< emacs-major-version 23)
+;;               (boundp 'nxhtml-menu:version)
+;;               (featurep 'nxhtml-autostart))
+;;     (let ((efn (expand-file-name
+;;                 "../autostart.el"
+;;                 (file-name-directory
+;;                  (or load-file-name
+;;                      (when (boundp 'bytecomp-filename) bytecomp-filename)
+;;                      buffer-file-name)))))
+;;       (message "efn=%s" efn)
+;;       (load efn))
+;;     (require 'rng-valid)
+;;     (require 'rng-nxml)))
 
+(require 'rng-valid nil t)
+(require 'rng-nxml nil t)
 (require 'button)
 (require 'loadhist)
 (require 'nxml-mode)
@@ -109,6 +113,18 @@
 ;;(fset 'nxhtml-nxml-fontify-attribute (symbol-function 'nxml-fontify-attribute))
 
 
+(defun nxhtml-turn-onoff-tag-do-also (on)
+  (add-hook 'nxhtml-mode-hook 'nxhtml-check-tag-do-also)
+  (dolist (b (buffer-list))
+    (when (with-current-buffer b
+            (eq major-mode 'nxhtml-mode))
+      (if on
+          (progn
+            (add-hook 'rngalt-complete-tag-hooks 'nxhtml-complete-tag-do-also t t)
+            )
+        (remove-hook 'rngalt-complete-tag-hooks 'nxhtml-complete-tag-do-also t)
+        ))))
+
 (define-toggle nxhtml-tag-do-also t
   "When completing tag names do some more if non-nil.
 For some tag names additional things can be done at completion to
@@ -122,6 +138,10 @@ You can add additional elisp code for completing to
          (set-default symbol value)
          (nxhtml-turn-onoff-tag-do-also value))
   :group 'nxhtml)
+
+(defun nxhtml-check-tag-do-also ()
+  (when nxhtml-tag-do-also
+    (nxhtml-turn-onoff-tag-do-also t)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1644,22 +1664,6 @@ occurence of a tag name is used.")
       (funcall (cadr tagrec))))
   )
 
-(defun nxhtml-turn-onoff-tag-do-also (on)
-  (add-hook 'nxhtml-mode-hook 'nxhtml-check-tag-do-also)
-  (dolist (b (buffer-list))
-    (when (with-current-buffer b
-            (eq major-mode 'nxhtml-mode))
-      (if on
-          (progn
-            (add-hook 'rngalt-complete-tag-hooks 'nxhtml-complete-tag-do-also t t)
-            )
-        (remove-hook 'rngalt-complete-tag-hooks 'nxhtml-complete-tag-do-also t)
-        ))))
-
-(defun nxhtml-check-tag-do-also ()
-  (when nxhtml-tag-do-also
-    (nxhtml-turn-onoff-tag-do-also t)))
-
 
 ;;;###autoload
 (define-minor-mode nxhtml-validation-header-mode
@@ -2724,9 +2728,7 @@ nXhtml and can be opened from the nXhtml menu under
                      (font-size (read-number "Font size (px): " 12))
                      (css-template-file (read-file-name
                                          "CSS template file: "
-                                         (expand-file-name
-                                          "../etc/templates/"
-                                          nxhtml-src-dir)
+                                         (expand-file-name "etc/templates/" nxhtml-install-dir)
                                          nil
                                          t
                                          "rollover-2v.css"

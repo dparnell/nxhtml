@@ -247,7 +247,6 @@
 (eval-when-compile (require 'cc-engine))
 (eval-when-compile (require 'desktop))
 (eval-when-compile (require 'flyspell))
-(eval-when-compile (require 'mlinks nil t))
 (eval-when-compile (require 'rngalt nil t))
 (eval-when-compile (require 'nxml-mode nil t))
 (eval-when-compile
@@ -6278,7 +6277,6 @@ default values."
         (set (make-local-variable (car saved)) (cdr saved))))
 
     (mumamo-addback-to-hooks)
-    ;;(when (and (featurep 'mlinks) mlinks-mode) (add-hook 'after-change-functions 'mlinks-after-change t t))
 
     (setq cursor-type old-cursor-type)
     (run-hooks 'mumamo-after-change-major-mode-hook)

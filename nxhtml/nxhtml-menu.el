@@ -248,7 +248,7 @@
 
 
 
-(defconst nxhtml-minor-mode-menu-map
+(defvar nxhtml-minor-mode-menu-map
   (let ((map (make-sparse-keymap "nxhtml-minor-mode-menu")))
 
     (let ((help-map (make-sparse-keymap)))
@@ -277,7 +277,12 @@
       (define-key help-map [nxhtml-tutorials]
         (list 'menu-item "nXhtml Tutorials" 'nxhtml-tutorials))
       (define-key help-map [nxhtml-overview]
-        (list 'menu-item (concat "nXhtml Version " nxhtml-menu:version " Overview") 'nxhtml-overview))
+        (list 'menu-item (concat "nXhtml Version "
+                                 (if (boundp 'nxhtml-menu:version)
+                                     nxhtml-menu:version
+                                   "(unknown)")
+                                 " Overview")
+              'nxhtml-overview))
       (define-key help-map [nxhtml-welcome]
         (list 'menu-item "Welcome to nXhtml" 'nxhtml-welcome))
       (define-key map [nxhtml-help-map]

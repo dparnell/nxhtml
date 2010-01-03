@@ -157,9 +157,9 @@ This covers inlined style and javascript."
   "Like `nxhtml-mode' but with Genshi rnc.
 You should not use this! This is just a part of
 `genshi-nxhtml-mumamo-mode', use that instead."
-  (let* ((schema-dir (expand-file-name "../etc/schema/" nxhtml-src-dir))
+  (let* ((schema-dir (expand-file-name "etc/schema/" nxhtml-install-dir))
          (genshi-rnc (expand-file-name "qtmstr-xhtml.rnc" schema-dir)))
-    (message "nxhtml-src-dir =%s" nxhtml-src-dir)
+    ;;(message "nxhtml-src-dir =%s" nxhtml-src-dir)
     (message "schema-dir =%s" schema-dir)
     (when (or (not rng-current-schema-file-name)
               (string= "xhtml.rnc" (file-name-nondirectory rng-current-schema-file-name)))
@@ -201,9 +201,9 @@ This also covers inlined style and javascript."
   "Like `nxhtml-mode' but with genshi rnc.
 You should not use this! This is just a part of
 `mjt-nxhtml-mumamo-mode', use that instead."
-  (let* ((schema-dir (expand-file-name "../etc/schema/" nxhtml-src-dir))
+  (let* ((schema-dir (expand-file-name "etc/schema/" nxhtml-install-dir))
          (genshi-rnc (expand-file-name "mjt.rnc" schema-dir)))
-    (message "nxhtml-src-dir =%s" nxhtml-src-dir)
+    ;;(message "nxhtml-src-dir =%s" nxhtml-src-dir)
     (message "schema-dir =%s" schema-dir)
     (when (or (not rng-current-schema-file-name)
               (string= "xhtml.rnc" (file-name-nondirectory rng-current-schema-file-name)))
