@@ -1659,12 +1659,13 @@ If there is no buffer file then instead start with `dired'."
   (message "Started 'emacs --no-desktop' - it will be ready soon ..."))
 
 ;;;###autoload
-(defun emacs-Q(&rest args)
+(defun emacs-Q (&rest args)
   "Start new Emacs without any customization whatsoever."
   (interactive)
-  (apply 'call-process (ourcomments-find-emacs) nil 0 nil "-Q"
-         args)
-  (message "Started 'emacs -Q' - it will be ready soon ..."))
+  (let ((ret (apply 'call-process (ourcomments-find-emacs) nil 0 nil "-Q"
+                    args)))
+    (message "Started 'emacs -Q' - it will be ready soon ...")
+    ret))
 
 ;;;###autoload
 (defun emacs-Q-nxhtml()

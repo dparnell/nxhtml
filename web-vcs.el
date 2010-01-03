@@ -670,25 +670,137 @@ Also put FACE on the message in *Messages* buffer."
         (concat "~" (substring full ur-len))
       full)))
 
+(eval-when-compile (require 'cl))
+;;(call-interactively 'nxhtml-setup-install)
+;; (read-key "Prompt: ")
+;; (y-or-n-p "Prompt")
+;;;###autoload
+(defun nxhtml-setup-install (way)
+  "Setup and start nXhtml installation.
+
+There are two different ways to do it:
+
+  (1) Download all at once: `nxhtml-setup-download-all'
+  (2) Automatically download part by part: `nxhtml-setup-auto-download'
+
+You can convert between those ways by calling this function again.
+
+To learn more about nXhtml visit its home page at URL
+`http://www.emacswiki.com/NxhtmlMode/'."
+  (interactive (let ((curr-cfg (current-window-configuration)))
+                 (list
+                  (let* ((key nil)
+                         (current-way (if (and (boundp 'nxhtml-install-dir)
+                                               nxhtml-install-dir)
+                                          (if nxhtml-autoload-web
+                                              "Your current setup is to download part by part from the web."
+                                            "Your current setup it to download all of nXhtml at once.")
+                                        "(You have not currently installed nXhtml.)"))
+                         (prompt (concat "Setup nXhtml install."
+                                         "\n" current-way
+                                         "\n"
+                                         "\n(1) Download whole at once, or (2) part by part as needed?"
+                                         "\n(? for help, q to quit): "))
+                         (please nil))
+                    (while (not (member key '(?1 ?2 ?q 7)))
+                      (if (not (member key '(??)))
+                          (when key
+                            (unless please
+                              (setq prompt (concat "Please answer with one of the alternatives.\n\n"
+                                                   prompt))
+                              (setq please t)))
+                        (describe-function 'nxhtml-setup-install)
+                        (select-window (get-buffer-window (help-buffer)))
+                        (delete-other-windows))
+                      (setq key (my-read-key prompt))
+                      ;;(message "key = %S" key) (sit-for 1)
+                      )
+                    (case key
+                      (7 (set-window-configuration curr-cfg)
+                          nil)
+                      (?1 'whole)
+                      (?2 'part-by-part))))))
+  (message "")
+  (case way
+    (part-by-part (call-interactively 'nxhtml-setup-auto-download))
+    (whole (call-interactively 'nxhtml-setup-download-all))
+    ((eq nil way) nil)
+    (t (error "Unknown way = %S" way))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Temporary helpers, possibly included in Emacs
+
+(defun my-read-and-accept-key (prompt accepted &optional reject-message help-function)
+  (let ((key nil)
+        rejected)
+    (while (not (member key accepted))
+      (if (and help-function
+               (or (member key help-event-list)
+                   (eq key ??)))
+          (funcall help-function)
+        (unless rejected
+          (setq rejected t)
+          (setq prompt (concat (or reject-message "Please answer with one of the alternatives.")
+                               "\n\n"
+                               prompt))
+          (setq key (my-read-key prompt)))))
+    key))
+
+(defun my-read-key (&optional prompt)
+  "Read a key from the keyboard.
+Contrary to `read-event' this will not return a raw event but instead will
+obey the input decoding and translations usually done by `read-key-sequence'.
+So escape sequences and keyboard encoding are taken into account.
+When there's an ambiguity because the key looks like the prefix of
+some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
+  (let ((overriding-terminal-local-map read-key-empty-map)
+	(overriding-local-map nil)
+	(old-global-map (current-global-map))
+        (timer (run-with-idle-timer
+                ;; Wait long enough that Emacs has the time to receive and
+                ;; process all the raw events associated with the single-key.
+                ;; But don't wait too long, or the user may find the delay
+                ;; annoying (or keep hitting more keys which may then get
+                ;; lost or misinterpreted).
+                ;; This is only relevant for keys which Emacs perceives as
+                ;; "prefixes", such as C-x (because of the C-x 8 map in
+                ;; key-translate-table and the C-x @ map in function-key-map)
+                ;; or ESC (because of terminal escape sequences in
+                ;; input-decode-map).
+                read-key-delay t
+                (lambda ()
+                  (let ((keys (this-command-keys-vector)))
+                    (unless (zerop (length keys))
+                      ;; `keys' is non-empty, so the user has hit at least
+                      ;; one key; there's no point waiting any longer, even
+                      ;; though read-key-sequence thinks we should wait
+                      ;; for more input to decide how to interpret the
+                      ;; current input.
+                      (throw 'read-key keys)))))))
+    (unwind-protect
+        (progn
+	  (use-global-map read-key-empty-map)
+          (message (concat (apply 'propertize prompt (member 'face minibuffer-prompt-properties))
+                           (propertize " " 'face 'cursor)))
+	  (aref	(catch 'read-key (read-key-sequence-vector nil nil t)) 0))
+      (cancel-timer timer)
+      (use-global-map old-global-map))))
+
+;; End temp helpers
+;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;(web-vcs-read-nxhtml-dl-dir "Test")
-(defun web-vcs-read-nxhtml-dl-dir (prompt load-from-web)
-  (if (and (boundp 'nxhtml-install-dir)
+(defun web-vcs-read-nxhtml-dl-dir (prompt)
+  "Return current nXhtml install dir or read dir."
+  (or (and (boundp 'nxhtml-install-dir)
            nxhtml-install-dir)
-      (unless (eq load-from-web nxhtml-autoload-web)
-        (when load-from-web
-          (unless (boundp 'nxhtml-menu:version)
-            (error "nxhtml-install-dir set but no version found"))
-          (unless (string-match "^[\.0-9]+" nxhtml-menu:version)
-            (error "Can't find current version nxhtml-menu:version=%S" nxhtml-menu:version))
-          (let* ((ver-str (match-string 0 nxhtml-menu:version))
-                 (ver-num (string-to-number ver-str)))
-            (when (< ver-str 2.06)
-                (error "Too old nXhtml. Please upgrade first or delete the old version.")))
-          (when (yes-or-no-p "Convert to updating nXhtml part by part? ")
-              nxhtml-install-dir)))
-    (setq prompt (concat prompt ": "))
-    (read-directory-name prompt
-                         (nxhtml-default-download-directory))))
+      (let* ((pr (concat
+                  "A directory named 'nxhtml' will be created below the root you give."
+                  "\n"
+                  prompt))
+             (root (read-directory-name pr (nxhtml-default-download-directory))))
+        (when root
+          (expand-file-name "nxhtml" root)))))
 
 (defvar nxhtml-handheld-wincfg nil)
 (defun nxhtml-handheld-restore-wincg ()
@@ -720,14 +832,26 @@ Also put FACE on the message in *Messages* buffer."
     ))
 
 ;; (nxhtml-add-loading-to-custom-file "test-file")
-(defun nxhtml-add-loading-to-custom-file (file-to-load)
-  (let ((prompt (concat "Basic setup of nXhtml is done, but it must be loaded from (custom-file)."
-                        "\nShould I add loading of nXhtml to (custom-file) for you? ")))
-    (if (yes-or-no-p prompt)
-        (nxhtml-add-loading-to-custom-file-auto file-to-load)
-      (if (yes-or-no-p "Should I guide you through how to do it? ")
-          (nxhtml-handheld-add-loading-to-custom-file file-to-load)
-        (message "OK. You need to add (load %S) to your init file" file-to-load)))))
+(defun nxhtml-add-loading-to-custom-file (file-to-load part-by-part)
+  (web-vcs-set&save-option 'nxhtml-autoload-web part-by-part)
+  (message "")
+  (if (not (and (fboundp 'custom-file)
+                (condition-case nil (custom-file) (error nil))))
+      (web-vcs-message-with-face 'web-vcs-red
+                                 (concat
+                                  "To finish the setup of nXhtml you must add"
+                                  "\n\n  (load %S)"
+                                  "\n\nto your custom-file if you have not done it yet."
+                                  "\n\nYou must also customize the variable `nxhtml-autoload-web'.\n")
+                                 file-to-load)
+    (let ((prompt (concat "Basic setup of nXhtml is done, but it must be loaded from (custom-file)."
+                          "\nShould I add loading of nXhtml to (custom-file) for you? ")))
+      (if (yes-or-no-p prompt)
+          (nxhtml-add-loading-to-custom-file-auto file-to-load)
+        (if (yes-or-no-p "Should I guide you through how to do it? ")
+            (nxhtml-handheld-add-loading-to-custom-file file-to-load)
+          (web-vcs-message-with-face 'web-vcs-green
+                                     "OK. You need to add (load %S) to your init file" file-to-load))))))
 
 ;; Fix-me: really do this? Is it safe enough?
 (defun nxhtml-add-loading-to-custom-file-auto (file-to-load)
@@ -779,70 +903,138 @@ Also put FACE on the message in *Messages* buffer."
                              "etc/schema/schema-path-patch.el"
                              "nxhtml/nxhtml-autoload.el"))
 
+(defun nxhtml-check-convert-to-part-by-part ()
+  (when (and (boundp 'nxhtml-install-dir)
+             nxhtml-install-dir)
+    (unless nxhtml-autoload-web
+      (unless (boundp 'nxhtml-menu:version)
+        (error "nxhtml-install-dir set but no version found"))
+      (unless (string-match "[\.0-9]+" nxhtml-menu:version)
+        (error "Can't find current version nxhtml-menu:version=%S" nxhtml-menu:version))
+      (let* ((ver-str (match-string 0 nxhtml-menu:version))
+             (ver-num (string-to-number ver-str)))
+        (when (< ver-num 2.06)
+          (web-vcs-message-with-face 'web-vcs-red "Too old nXhtml for download part by part.")
+          (throw 'command-level nil))))))
+
 ;;;###autoload
 (defun nxhtml-setup-auto-download (dl-dir)
   "Set up to autoload nXhtml files from the web.
-This will download some initial files and then download the rest
-when you need them.
 
-Files will be downloaded to directory DL-DIR."
-  (interactive (list (web-vcs-read-nxhtml-dl-dir "Download nXhtml part by part to directory" t)))
-  (let* (;; Need some files:
-         (web-vcs-el-src (concat (file-name-sans-extension web-vcs-el-this) ".el"))
-         (web-vcs-el (expand-file-name (file-name-nondirectory web-vcs-el-src)
-                                       dl-dir))
-         (vcs 'lp)
-         (base-url (nxhtml-download-root-url nil))
-         (byte-comp (if (boundp 'web-autoload-autocompile)
-                        web-autoload-autocompile
-                      t)))
-    (unless (file-exists-p dl-dir)
-      (if (yes-or-no-p (format "Directory %S does not exist, create it? " dl-dir))
-          (make-directory dl-dir t)
-        (error "Aborted by user")))
-    (setq message-log-max t)
-    (unless (file-exists-p web-vcs-el)
-      (copy-file web-vcs-el-src web-vcs-el))
-    (when byte-comp
-      ;; Fix-me: check age
-      (web-vcs-byte-compile-newer-file web-vcs-el t))
-    (catch 'command-level
-      (dolist (file nxhtml-basic-files)
-        (let ((dl-file (expand-file-name file dl-dir)))
-          (unless (file-exists-p dl-file)
-            (web-vcs-get-missing-matching-files vcs base-url dl-dir file))))
-      ;; Autostart.el has not run yet, add current dir to load-path.
-      (let ((load-path (cons (file-name-directory web-vcs-el) load-path)))
-        (when byte-comp
-          (dolist (file nxhtml-basic-files)
-            (let ((el-file (expand-file-name file dl-dir)))
-              ;; Fix-me: check age
-              (message "maybe bytecomp %S" el-file)
-              (when (boundp 'majmodpri-sort-after-load)
-                (message "majmodpri-sort-after-load =%S" majmodpri-sort-after-load))
-              (web-vcs-byte-compile-newer-file el-file nil)))))
-      (let ((autostart-file (expand-file-name "autostart" dl-dir)))
-        ;;(ad-activate 'require t) ;; fix-me, remove
-        (message "before load %S" autostart-file)
-        (web-vcs-set&save-option 'nxhtml-autoload-web t)
-        (load autostart-file)
-        (message "after load %S" autostart-file)
-        (nxhtml-add-loading-to-custom-file autostart-file)
-        ))))
+This function will download some initial files and then setup to
+download the rest when you need them.
+
+Files will be downloaded under the directory root you specify in
+DL-DIR.
+
+If you already have nXhtml installed and loaded this function
+will only let you download to that directory.  In that case you
+can use this function to upgrade individual files.  Just delete
+them and they will be downloaded as you need them.  \(But beware
+that sometimes there might be problem because the files gets out
+of phase.  A future version will try to take care of this.)
+
+You may switch by this mode of downloading or downloading the
+whole of nXhtml by once.  To switch just call the command
+`nxhtml-setup-install'.
+
+See also the command `nxhtml-setup-download-all'.
+
+Note: If your nXhtml is to old you can't use this function
+      directly.  You have to upgrade first, se the function
+      above."
+  (interactive (progn
+                 (describe-function 'nxhtml-setup-auto-download)
+                 (select-window (get-buffer-window (help-buffer)))
+                 (delete-other-windows)
+                 (nxhtml-check-convert-to-part-by-part)
+                 (list
+                  (catch 'command-level
+                    (unless (yes-or-no-p "Convert to updating nXhtml part by part? ")
+                      (throw 'command-level nil))
+                    (web-vcs-read-nxhtml-dl-dir "Download nXhtml part by part to directory")))))
+  (if (not dl-dir)
+      (unless (called-interactively-p)
+        (error "dl-dir show be a directory"))
+    (nxhtml-check-convert-to-part-by-part)
+    (when (and (boundp 'nxhtml-install-dir)
+               nxhtml-install-dir)
+      (unless (string= (file-truename dl-dir)
+                       (file-truename nxhtml-install-dir))
+        (error "Download dir must be same as nxhtml-install-dir=%S" nxhtml-install-dir)))
+    (let* (;; Need some files:
+           (web-vcs-el-src (concat (file-name-sans-extension web-vcs-el-this) ".el"))
+           (web-vcs-el (expand-file-name (file-name-nondirectory web-vcs-el-src)
+                                         dl-dir))
+           (vcs 'lp)
+           (base-url (nxhtml-download-root-url nil))
+           (byte-comp (if (boundp 'web-autoload-autocompile)
+                          web-autoload-autocompile
+                        t))
+           (has-nxhtml (and (boundp 'nxhtml-install-dir)
+                            nxhtml-install-dir)))
+      (unless (file-exists-p dl-dir)
+        (if (yes-or-no-p (format "Directory %S does not exist, create it? " dl-dir))
+            (make-directory dl-dir t)
+          (error "Aborted by user")))
+      (setq message-log-max t)
+      (message "")
+      (web-vcs-message-with-face 'web-vcs-green "==== Starting nXhtml part by part state ====")
+      (unless (file-exists-p web-vcs-el)
+        (copy-file web-vcs-el-src web-vcs-el))
+      (when byte-comp
+        ;; Fix-me: check age
+        (web-vcs-byte-compile-newer-file web-vcs-el t))
+      (catch 'command-level
+        (dolist (file nxhtml-basic-files)
+          (let ((dl-file (expand-file-name file dl-dir)))
+            (unless (file-exists-p dl-file)
+              (web-vcs-get-missing-matching-files vcs base-url dl-dir file))))
+        ;; Autostart.el has not run yet, add current dir to load-path.
+        (let ((load-path (cons (file-name-directory web-vcs-el) load-path)))
+          (when byte-comp
+            (dolist (file nxhtml-basic-files)
+              (let ((el-file (expand-file-name file dl-dir)))
+                ;; Fix-me: check age
+                (message "maybe bytecomp %S" el-file)
+                (when (boundp 'majmodpri-sort-after-load)
+                  (message "majmodpri-sort-after-load =%S" majmodpri-sort-after-load))
+                (web-vcs-byte-compile-newer-file el-file nil)))))
+        (let ((autostart-file (expand-file-name "autostart" dl-dir)))
+          ;;(ad-deactivate 'require)
+          (message "before load %S" autostart-file)
+          (load autostart-file)
+          (unless (ad-is-active 'require) (ad-activate 'require))
+          (message "after load %S" autostart-file)
+          (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file t))
+          )))))
 
 ;;(call-interactively 'nxhtml-download)
 ;;;###autoload
-(defun nxhtml-download-all (dl-dir)
-  "Download or update nXhtml.
-If you already have nXhtml installed you can update it with this
-command.  Otherwise after downloading read the instructions in
-README.txt in the download directory for setting up nXhtml.
-\(This requires adding only one line to your .emacs, but you may
-optionally also byte compile the files from the nXhtml menu.)
+(defun nxhtml-setup-download-all (dl-dir)
+  "Download or update all of nXhtml.
 
-To learn more about nXhtml visit its home page at URL
-`http://www.emacswiki.com/NxhtmlMode/'."
-  (interactive (list (web-vcs-read-nxhtml-dl-dir "Download nXhtml to directory" nil)))
+If you already have nXhtml installed you can update it with this
+command. If you want to update only certain files you can do so
+by switching \(maybe temporary) to automatic downloading with the
+command `nxhtml-setup-install'.
+
+For more information about auto download see
+`nxhtml-setup-auto-download'."
+  (interactive (progn
+                 (describe-function 'nxhtml-setup-auto-download)
+                 (select-window (get-buffer-window (help-buffer)))
+                 (delete-other-windows)
+                 ;;(nxhtml-check-convert-to-part-by-part)
+                 (list
+                  (catch 'command-level
+                    (unless (yes-or-no-p "Download all of nXhtml? ")
+                      (throw 'command-level nil))
+                    (web-vcs-read-nxhtml-dl-dir "Download nXhtml to directory")))))
+
+  (if (not dl-dir)
+      (unless (called-interactively-p)
+        (error "dl-dir show be a directory"))
   (let ((msg (concat "Downloading nXhtml through Launchpad web interface will take rather long\n"
                      "time (5-15 minutes) so you may want to do it in a separate Emacs session.\n\n"
                      "Do you want to download using this Emacs session? "
@@ -851,18 +1043,11 @@ To learn more about nXhtml visit its home page at URL
         (message "Aborted")
       (message "")
       (setq message-log-max t)
-      (let* ((has-nxhtml (and (boundp 'nxhtml-install-dir)
-                              nxhtml-install-dir))
-             ;; Fix-me: ask for latest revision or release, maybe also
-             ;; rev number? Can't do that now because of the Emacs bug
-             ;; that affects `nxhtml-get-release-revision'.
-             (revision nil)
-             (do-byte (when (and has-nxhtml
-                                 (string= dl-dir nxhtml-install-dir))
-                        (y-or-n-p "Do you want to byte compile the files after downloading? "))))
+      (let ((do-byte (y-or-n-p "Do you want to byte compile the files after downloading? ")))
         ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/322
         ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/"
-        (nxhtml-download-1 dl-dir revision do-byte)))))
+        (nxhtml-download-1 dl-dir revision do-byte)
+        )))))
 
 
 ;; Fix-me: Does not work, Emacs Bug
@@ -888,7 +1073,9 @@ If REVISION is nil download latest revision, otherwise the
 specified one.
 
 If DO-BYTE is non-nil byte compile nXhtml after download."
-  (let* ((base-url web-vcs-nxhtml-base-url)
+  (let* ((has-nxhtml (and (boundp 'nxhtml-install-dir)
+                          nxhtml-install-dir))
+         (base-url web-vcs-nxhtml-base-url)
          (files-url (concat base-url "files/"))
          ;;(revs-url  (concat base-url "changes/"))
          (rev-part (if revision (number-to-string revision) "head%3A/"))
@@ -896,15 +1083,38 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
     (when (web-vcs-get-files-from-root 'lp full-root-url dl-dir)
       (when do-byte
         (sit-for 10)
-        (web-vcs-message-with-face 'hi-yellow "Will start byte compilation of nXhtml in 10 seconds")
+        (web-vcs-message-with-face 'hi-yellow
+                                   "Will start byte compilation of nXhtml in new Emacs in 10 seconds")
         (sit-for 10)
-        (nxhtmlmaint-start-byte-compilation)))))
+        (nxhtmlmaint-start-byte-compilation)
+        (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file nil))))))
+
+(defun emacs-Q-no-nxhtml (&rest args)
+  (let* ((elp (getenv "EMACSLOADPATH"))
+         (elp-list (split-string elp ";"))
+         (new-elp-list nil)
+         (new-elp "")
+         ret)
+    (dolist (p elp-list)
+      (when (file-exists-p p)
+        (let* ((dir (file-name-directory p))
+               (last (file-name-nondirectory p))
+               (last-dir (file-name-nondirectory
+                          (directory-file-name dir))))
+          (unless (and (string= "nxhtml" last-dir)
+                       (member last '("util" "test" "nxhtml" "related" "alt")))
+            (setq new-elp-list (cons p new-elp-list))))))
+    (setq new-elp (mapconcat 'identity (reverse new-elp-list) ";"))
+    (setenv "EMACSLOADPATH" new-elp)
+    (setq ret (apply 'emacs-Q args))
+    (setenv "EMACSLOADPATH" elp)
+    ret))
 
 ;;;;;; Start Testing function
-;; (emacs-Q "web-vcs.el" "-f" "eval-buffer" "-f" "nxhtml-temp-setup-auto-download")
-;; (emacs-Q "-l" "c:/test/d27/web-vcs" "-f" "nxhtml-temp-setup-auto-download")
-;; (emacs-Q "web-vcs.el" "-l" "c:/test/d27/web-autostart.el")
-;; (emacs-Q "web-vcs.el" "-l" "c:/test/d27/autostart.el")
+;; (emacs-Q-no-nxhtml "web-vcs.el" "-f" "eval-buffer" "-f" "nxhtml-temp-setup-auto-download")
+;; (emacs-Q-no-nxhtml "-l" "c:/test/d27/web-vcs" "-f" "nxhtml-temp-setup-auto-download")
+;; (emacs-Q-no-nxhtml "web-vcs.el" "-l" "c:/test/d27/web-autostart.el")
+;; (emacs-Q-no-nxhtml "web-vcs.el" "-l" "c:/test/d27/autostart.el")
 (defun nxhtml-temp-setup-auto-download ()
   (when (fboundp 'w32-send-sys-command) (w32-send-sys-command #xf030) (sit-for 2))
   (view-echo-area-messages)
