@@ -1214,7 +1214,11 @@ See `nxhtml-minor-mode-modes'."
   (expand-file-name "nxhtml/doc/nxhtml.html" nxhtml-install-dir))
 
 (defun nxhtml-docfile-url ()
-  (concat "file://" (nxhtml-docfile)))
+  (let ((local-docfile (concat "file://" (nxhtml-docfile))))
+    (if (and nxhtml-autoload-web
+             (not (file-exists-p local-docfile)))
+        "http://ourcomments.org/Emacs/nXhtml/doc/nxhtml.html"
+      local-docfile)))
 
 ;;;###autoload
 (defun nxhtml-overview ()
