@@ -255,13 +255,26 @@ directly, otherwise download it first."
         (setq web-autoload-compile-queue (cdr web-autoload-compile-queue))))))
 
 (defcustom web-autoload-paranoid t
-  "Be paranoid and check each file after download."
+  "Be paranoid and break to check each file after download."
   :type 'boolean
   :group 'web-autoload)
 
-(defun web-autoload-continue ()
+(defun web-autoload-continue-no-stop ()
+  "Continue web auto download.
+This is used after inspecting downloaded elisp files.  Set
+`web-autoload-paranoid' to nil before contiuning to avoid further
+breaks to check downloaded files."
   (interactive)
-  (web-autoload-byte-compile-queue))
+  (setq web-autoload-paranoid nil)
+  (web-autoload-continue))
+
+(defun web-autoload-continue ()
+  "Continue web auto download.
+This is used after inspecting downloaded elisp files."
+  (interactive)
+  (if (< 0 (recursion-depth))
+      (exit-recursive-edit)
+    (web-autoload-byte-compile-queue)))
 
 (defun web-autoload-byte-compile-file-1 ()
   "Compile and load FILE. Or just load."

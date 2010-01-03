@@ -6460,8 +6460,9 @@ mode in the chunk family is nil."
         (mumamo-get-chunk-save-buffer-state wp)
         (when (eq win (selected-window))
           (let* ((ovl (mumamo-find-chunks wp "mumamo-turn-on-actions"))
-                 (major (mumamo-chunk-major-mode ovl)))
-            (mumamo-set-major major ovl)))))
+                 (major (when ovl (mumamo-chunk-major-mode ovl))))
+            (when major
+              (mumamo-set-major major ovl))))))
     ;;(msgtrc "mumamo-turn-on-action exit: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
     ;; This did not help for Emacs bug 3467:
     ;;(set-default 'font-lock-keywords-only nil)

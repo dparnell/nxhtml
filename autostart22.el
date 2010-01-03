@@ -65,6 +65,7 @@
       (error "Can't find rng-auto.el, please edit %s" this-file))
     (load rng-auto-file)))
 
+(provide 'autostart22)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; autostart22.el ends here
