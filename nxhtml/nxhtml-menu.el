@@ -1208,11 +1208,10 @@ See `nxhtml-minor-mode-modes'."
 ;;(message "nxhtml-menu:here C")
 
 
+;; (file-exists-p (nxhtml-docfile))
+;; (find-file (nxhtml-docfile))
 (defun nxhtml-docfile ()
-  (let* ((libfile (locate-library "nxhtml"))
-         (docfile (expand-file-name "doc/nxhtml.html"
-                                    (file-name-directory libfile))))
-    docfile))
+  (expand-file-name "nxhtml/doc/nxhtml.html" nxhtml-install-dir))
 
 (defun nxhtml-docfile-url ()
   (concat "file://" (nxhtml-docfile)))
