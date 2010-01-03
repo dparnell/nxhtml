@@ -427,7 +427,7 @@ If TEST is non-nil then do not download, just list the files"
                     (web-vcs-message-with-face
                      'secondary-selection
                      (concat "Please check the downloaded file and then continue by doing"
-                             "\n\n  M-x web-autoload-continue"))
+                             "\n\n  M-x web-autoload-continue\n"))
                     (with-selected-window msg-win
                       (goto-char (point-max)))
                     (throw 'command-level nil)

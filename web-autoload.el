@@ -384,7 +384,7 @@ directly, otherwise download it first."
                   ;; Download and try again
                   (setq relative-url (concat relative-url ".el"))
                   (web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s (%S %S => %S)" feature base-url relative-url base-dir)
-                  (catch 'command-level
+                  (catch 'web-autoload-comp-restart
                     (web-vcs-get-missing-matching-files web-vcs base-url base-dir relative-url))
                   (web-vcs-message-with-face 'font-lock-comment-face "After downloaded feature %s (%S %S => %S)" feature base-url relative-url base-dir))
                 (when web-autoload-autocompile
