@@ -692,7 +692,8 @@ To learn more about nXhtml visit its home page at URL
                   (let* ((key nil)
                          (current-way (if (and (boundp 'nxhtml-install-dir)
                                                nxhtml-install-dir)
-                                          (if nxhtml-autoload-web
+                                          (if (and (boundp 'nxhtml-autoload-web)
+                                                   nxhtml-autoload-web)
                                               "Your current setup is to download part by part from the web."
                                             "Your current setup it to download all of nXhtml at once.")
                                         "(You have not currently installed nXhtml.)"))
@@ -833,7 +834,6 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
 
 ;; (nxhtml-add-loading-to-custom-file "test-file")
 (defun nxhtml-add-loading-to-custom-file (file-to-load part-by-part)
-  (web-vcs-set&save-option 'nxhtml-autoload-web part-by-part)
   (message "")
   (if (not (and (fboundp 'custom-file)
                 (condition-case nil (custom-file) (error nil))))
@@ -906,16 +906,17 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
 (defun nxhtml-check-convert-to-part-by-part ()
   (when (and (boundp 'nxhtml-install-dir)
              nxhtml-install-dir)
-    (unless nxhtml-autoload-web
-      (unless (boundp 'nxhtml-menu:version)
-        (error "nxhtml-install-dir set but no version found"))
-      (unless (string-match "[\.0-9]+" nxhtml-menu:version)
-        (error "Can't find current version nxhtml-menu:version=%S" nxhtml-menu:version))
-      (let* ((ver-str (match-string 0 nxhtml-menu:version))
-             (ver-num (string-to-number ver-str)))
-        (when (< ver-num 2.07)
-          (web-vcs-message-with-face 'web-vcs-red "Too old nXhtml for download part by part.")
-          (throw 'command-level nil))))))
+    (unless (and (boundp 'nxhtml-autoload-web)
+                 nxhtml-autoload-web)
+      (if (not (boundp 'nxhtml-menu:version))
+          (error "nxhtml-install-dir set but no version found")
+        (unless (string-match "[\.0-9]+" nxhtml-menu:version)
+          (error "Can't find current version nxhtml-menu:version=%S" nxhtml-menu:version))
+        (let* ((ver-str (match-string 0 nxhtml-menu:version))
+               (ver-num (string-to-number ver-str)))
+          (when (< ver-num 2.07)
+            (web-vcs-message-with-face 'web-vcs-red "Too old nXhtml for download part by part.")
+            (throw 'command-level nil)))))))
 
 ;;;###autoload
 (defun nxhtml-setup-auto-download (dl-dir)
@@ -1002,12 +1003,12 @@ Note: If your nXhtml is to old you can't use this function
                 (web-vcs-byte-compile-newer-file el-file nil)))))
         (let ((autostart-file (expand-file-name "autostart" dl-dir)))
           ;;(ad-deactivate 'require)
+          (web-vcs-set&save-option 'nxhtml-autoload-web t)
           (message "before load %S" autostart-file)
           (load autostart-file)
           (unless (ad-is-active 'require) (ad-activate 'require))
           (message "after load %S" autostart-file)
-          (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file t))
-          )))))
+          (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file t)))))))
 
 ;;(call-interactively 'nxhtml-download)
 ;;;###autoload
@@ -1046,9 +1047,33 @@ For more information about auto download see
       (let ((do-byte (y-or-n-p "Do you want to byte compile the files after downloading? ")))
         ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/322
         ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/"
-        (nxhtml-download-1 dl-dir revision do-byte)
+        (nxhtml-download-1 dl-dir nil do-byte)
         )))))
 
+
+(defun nxhtml-download-1 (dl-dir revision do-byte)
+  "Download nXhtml to directory DL-DIR.
+If REVISION is nil download latest revision, otherwise the
+specified one.
+
+If DO-BYTE is non-nil byte compile nXhtml after download."
+  (let* ((has-nxhtml (and (boundp 'nxhtml-install-dir)
+                          nxhtml-install-dir))
+         (base-url web-vcs-nxhtml-base-url)
+         (files-url (concat base-url "files/"))
+         ;;(revs-url  (concat base-url "changes/"))
+         (rev-part (if revision (number-to-string revision) "head%3A/"))
+         (full-root-url (concat files-url rev-part)))
+    (when (web-vcs-get-files-from-root 'lp full-root-url dl-dir)
+      (web-vcs-set&save-option 'nxhtml-autoload-web nil)
+      (when do-byte
+        (sit-for 10)
+        (web-vcs-message-with-face 'hi-yellow
+                                   "Will start byte compilation of nXhtml in new Emacs in 10 seconds")
+        (sit-for 10)
+        (nxhtmlmaint-start-byte-compilation))
+      (let ((autostart-file (expand-file-name "autostart" dl-dir)))
+        (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file nil))))))
 
 ;; Fix-me: Does not work, Emacs Bug
 ;; Maybe use wget? http://gnuwin32.sourceforge.net/packages/wget.htm
@@ -1066,28 +1091,6 @@ For more information about auto download see
     (with-current-buffer url-buf
       (when (re-search-forward rel-ver-regexp nil t)
         (match-string 1)))))
-
-(defun nxhtml-download-1 (dl-dir revision do-byte)
-  "Download nXhtml to directory DL-DIR.
-If REVISION is nil download latest revision, otherwise the
-specified one.
-
-If DO-BYTE is non-nil byte compile nXhtml after download."
-  (let* ((has-nxhtml (and (boundp 'nxhtml-install-dir)
-                          nxhtml-install-dir))
-         (base-url web-vcs-nxhtml-base-url)
-         (files-url (concat base-url "files/"))
-         ;;(revs-url  (concat base-url "changes/"))
-         (rev-part (if revision (number-to-string revision) "head%3A/"))
-         (full-root-url (concat files-url rev-part)))
-    (when (web-vcs-get-files-from-root 'lp full-root-url dl-dir)
-      (when do-byte
-        (sit-for 10)
-        (web-vcs-message-with-face 'hi-yellow
-                                   "Will start byte compilation of nXhtml in new Emacs in 10 seconds")
-        (sit-for 10)
-        (nxhtmlmaint-start-byte-compilation)
-        (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file nil))))))
 
 (defun emacs-Q-no-nxhtml (&rest args)
   (let* ((elp (getenv "EMACSLOADPATH"))
