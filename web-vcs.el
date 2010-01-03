@@ -718,6 +718,7 @@ There are two different ways to do it:
   (2) Automatically download part by part: `nxhtml-setup-auto-download'
 
 You can convert between those ways by calling this function again.
+You can also do this by setting the option `nxhtml-autoload-web' yourself.
 
 To learn more about nXhtml visit its home page at URL
 `http://www.emacswiki.com/NxhtmlMode/'.
@@ -884,13 +885,20 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
                 (condition-case nil (custom-file) (error nil))))
       (progn
         (message "")
-        (web-vcs-message-with-face 'web-vcs-red
-                                   (concat
-                                    "To finish the setup of nXhtml you must add"
-                                    "\n\n  (load %S)"
-                                    "\n\nto your custom-file if you have not done it yet."
-                                    "\n\nYou must also customize the variable `nxhtml-autoload-web'.\n")
-                                   file-to-load)
+        (web-vcs-message-with-face
+         'web-vcs-red
+         (concat "Since you have started this Emacs session without running your init files"
+                 "\nthe installation can not do the part that does the init file setup."
+                 "\nTo finish the setup of nXhtml you must add"
+                 "\n\n  (load %S)"
+                 "\n\nto your custom-file if you have not done it yet."
+                 "\nYou must also customize the variable `nxhtml-autoload-web' to tell that"
+                 (if part-by-part
+                     "\nyou want to download nXhml files as you need them."
+                   "\nyou do not want to allow automatic downloading of nXhtml files."
+                   )
+                 "\n")
+         file-to-load)
         (message ""))
     (let ((prompt (concat "Basic setup of nXhtml is done, but it must be loaded from (custom-file)."
                           "\nShould I add loading of nXhtml to (custom-file) for you? ")))
@@ -1074,7 +1082,7 @@ command. If you want to update only certain files you can do so
 by switching \(maybe temporary) to automatic downloading with the
 command `nxhtml-setup-install'.
 
-For more information about auto download see
+For more information about auto download of nXhtml files see
 `nxhtml-setup-auto-download'."
   (interactive (progn
                  (describe-function 'nxhtml-setup-auto-download)
