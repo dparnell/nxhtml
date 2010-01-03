@@ -330,7 +330,8 @@ If TEST is non-nil then do not download, just list the files"
       (unless (file-directory-p dl-dir)
         (make-directory dl-dir t))
       ;; Get revision number
-      (setq this-page-revision (web-vcs-get-revision-from-url-buf vcs-rec url-buf url))
+      (when dl-revision
+        (setq this-page-revision (web-vcs-get-revision-from-url-buf vcs-rec url-buf url)))
       (when dl-revision
         (unless (string= dl-revision this-page-revision)
           (web-vcs-message-with-face 'web-vcs-red "Revision on %S is %S, but should be %S"
@@ -837,13 +838,16 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
   (message "")
   (if (not (and (fboundp 'custom-file)
                 (condition-case nil (custom-file) (error nil))))
-      (web-vcs-message-with-face 'web-vcs-red
-                                 (concat
-                                  "To finish the setup of nXhtml you must add"
-                                  "\n\n  (load %S)"
-                                  "\n\nto your custom-file if you have not done it yet."
-                                  "\n\nYou must also customize the variable `nxhtml-autoload-web'.\n")
-                                 file-to-load)
+      (progn
+        (message "")
+        (web-vcs-message-with-face 'web-vcs-red
+                                   (concat
+                                    "To finish the setup of nXhtml you must add"
+                                    "\n\n  (load %S)"
+                                    "\n\nto your custom-file if you have not done it yet."
+                                    "\n\nYou must also customize the variable `nxhtml-autoload-web'.\n")
+                                   file-to-load)
+        (message ""))
     (let ((prompt (concat "Basic setup of nXhtml is done, but it must be loaded from (custom-file)."
                           "\nShould I add loading of nXhtml to (custom-file) for you? ")))
       (if (yes-or-no-p prompt)
