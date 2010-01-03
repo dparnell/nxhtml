@@ -110,16 +110,22 @@
           (derived-mode-p 'html-mode)))
       (nxhtml-nxml-in-buffer)))
 
+(defun buffer-or-dired-file-name ()
+  "Return buffer file name or file pointed to in dired."
+  (if (derived-mode-p 'dired-mode)
+      (dired-get-file-for-visit)
+    buffer-file-name))
+
 (defun nxhtml-this-file-can-have-toc (&optional file)
   (unless file
-    (setq file (html-site-buffer-or-dired-file-name)))
+    (setq file (buffer-or-dired-file-name)))
   (and (nxhtml-buffer-possibly-local-viewable file)
        (html-site-current-merge-dir)
        (html-site-current-ensure-file-in-site file)))
 
 (defun nxhtml-buffer-possibly-local-viewable (&optional file)
   (unless file
-    (setq file (html-site-buffer-or-dired-file-name)))
+    (setq file (buffer-or-dired-file-name)))
   (or (and file
            (member (file-name-extension file)
                    '("html" "htm" "gif" "png")))))
@@ -149,7 +155,8 @@
       buffer-file-name))
 
 (defun nxhtml-gimp-can-edit ()
-  (gimpedit-can-edit (nxhtml-menu-image-file)))
+  (or (not (featurep 'gimp))
+      (gimpedit-can-edit (nxhtml-menu-image-file))))
 
 ;;;###autoload
 (defun nxhtml-edit-with-gimp ()
@@ -161,7 +168,7 @@
 (defun nxhtml-browse-file (file)
   "View file in web browser."
   (interactive (list
-                (or (html-site-buffer-or-dired-file-name)
+                (or (buffer-or-dired-file-name)
                     (read-file-name "File: "))))
   (let* ((buf (if (buffer-file-name)
                   (current-buffer)
@@ -552,10 +559,8 @@
       (define-key tools-map [nxhtml-tidy-map]
         (list 'menu-item "Tidy XHTML" 'tidy-menu-symbol
               :filter 'nxhtml-insert-menu-dynamically
-              :visible '(and (fboundp 'tidy-build-menu)
-                             (tidy-build-menu))
-              :enable '(and (fboundp 'tidy-build-menu)
-                            (tidy-build-menu)
+              ;;:visible '(and (fboundp 'tidy-build-menu) (tidy-build-menu))
+              :enable '(and ;;(fboundp 'tidy-build-menu) (tidy-build-menu)
                             (or (derived-mode-p 'html-mode)
                                 (nxhtml-nxhtml-in-buffer)))))
       (define-key tools-map [zencoding]
@@ -731,7 +736,8 @@
       (define-key upl-map [nxhtml-upl-dired-sep] (list 'menu-item "--"))
       (define-key upl-map [nxhtml-upl-edit-remote-wtoc]
         (list 'menu-item "Edit Remote File With TOC" 'html-upl-edit-remote-file-with-toc
-              :visible '(nxhtml-this-file-can-have-toc)))
+              :visible '(or (not (featurep 'html-site))
+                            (nxhtml-this-file-can-have-toc))))
       (define-key upl-map [nxhtml-upl-edit-remote]
         (list 'menu-item "Edit Remote File" 'html-upl-edit-remote-file))
       (define-key upl-map [nxhtml-upl-ediff-file]
