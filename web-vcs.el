@@ -50,8 +50,15 @@
 
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'cus-edit))
+(eval-when-compile (require 'nxhtmlmaint nil t))
 (require 'advice)
 (require 'web-autoload nil t)
+
+;; (require 'url)
+;;(require 'url-parse)
+(eval-when-compile (require 'url-http))
+;; (require 'url-util)
+(eval-when-compile (require 'mm-decode))
 
 (defgroup web-vcs nil
   "Customization group for web-vcs."
@@ -318,26 +325,48 @@ If TEST is non-nil then do not download, just list the files"
          (dl-dir (file-name-as-directory (expand-file-name dl-relative dl-root)))
          (lst-dl-relative (web-vcs-file-name-as-list dl-relative))
          (lst-file-mask   (web-vcs-file-name-as-list file-mask))
-         (url-buf (url-retrieve-synchronously url))
+         ;;(url-buf (url-retrieve-synchronously url))
          this-page-revision
          files
          suburls
          (moved 0)
-         (temp-file (expand-file-name "web-vcs-temp.tmp" dl-dir)))
-    (with-current-buffer url-buf
-      (goto-char (point-min))
-      (unless (looking-at "HTTP/.* 200 OK\n")
-        (let ((status "Status unknown"))
-          (when (looking-at "HTTP/.* \\(.*\\)\n")
-            (setq status (match-string 1)))
-          (display-buffer url-buf)
-          (web-vcs-message-with-face 'web-vcs-red "Download error (%s): %S" status url))
-        (throw 'command-level nil))
-      (unless (file-directory-p dl-dir)
-        (make-directory dl-dir t))
+         (temp-file      (expand-file-name "web-vcs-temp.tmp"      dl-dir))
+         (temp-file-base (expand-file-name "web-vcs-temp-list.tmp" dl-dir))
+         temp-list-file
+         http-sts)
+    ;; Fix-me: It looks like there is a bug in url-copy-file so that
+    ;; it runs synchronously. Try to workaround the problem by making
+    ;; a new file temp file name.
+    (unless (file-directory-p dl-dir) (make-directory dl-dir t))
+    (setq temp-list-file (make-temp-name temp-file-base))
+    (message "before url-copy-file %S" temp-list-file)
+    (setq http-sts (web-vcs-url-copy-file url temp-list-file t t)) ;; overwrite, keep time
+    (message "after  url-copy-file %S" temp-list-file)
+    (unless (and (file-exists-p temp-list-file)
+                 (< 0 (nth 7 (file-attributes temp-list-file))) ;; file size 0
+                 (memq http-sts '(200 201)))
+      (web-vcs-message-with-face 'web-vcs-red "Failed url-copy-file %s %S %S t t" http-sts url temp-list-file)
+      ;; Fix-me: better error handling
+      (throw 'command-level nil))
+    (with-temp-buffer
+      (insert-file-contents temp-list-file)
+      (delete-file temp-list-file)
+      ;; (set-visited-file-name nil t)
+      ;; (message "before (delete-file %S)" temp-list-file)
+      ;; (when (file-exists-p temp-list-file) (delete-file temp-list-file))
+      ;; (message "after  (delete-file %S)" temp-list-file)
+
+      ;; (goto-char (point-min))
+      ;; (unless (looking-at "HTTP/.* 200 OK\n")
+      ;;   (let ((status "Status unknown"))
+      ;;     (when (looking-at "HTTP/.* \\(.*\\)\n")
+      ;;       (setq status (match-string 1)))
+      ;;     (display-buffer url-buf)
+      ;;     (web-vcs-message-with-face 'web-vcs-red "Download error (%s): %S" status url))
+      ;;   (throw 'command-level nil))
       ;; Get revision number
       (when dl-revision
-        (setq this-page-revision (web-vcs-get-revision-from-url-buf vcs-rec url-buf url)))
+        (setq this-page-revision (web-vcs-get-revision-from-url-buf vcs-rec (current-buffer) url)))
       (when dl-revision
         (unless (string= dl-revision this-page-revision)
           (web-vcs-message-with-face 'web-vcs-red "Revision on %S is %S, but should be %S"
@@ -366,7 +395,8 @@ If TEST is non-nil then do not download, just list the files"
              (lst-file-name (web-vcs-file-name-as-list file-name))
              (file-dl-name (expand-file-name file-name dl-dir))
              (file-rel-name (file-relative-name file-dl-name dl-root))
-             temp-buf)
+             temp-buf
+             http-sts)
         ;;(message "web-vcs-get-revision-from-url-buf: %S %S" file-mask file-rel-name)
         (when (or (not file-mask)
                   (web-vcs-match-folderwise file-mask file-rel-name))
@@ -377,15 +407,18 @@ If TEST is non-nil then do not download, just list the files"
                 (message "TEST file-name=%S" file-name)
                 (message "TEST file-dl-name=%S" file-dl-name)
                 )
+            ;; Fix-me: Remove?
             (while (setq temp-buf (find-buffer-visiting temp-file))
               (set-buffer-modified-p nil)
               (kill-buffer temp-buf))
             ;;(web-vcs-message-with-face 'font-lock-comment-face "Starting url-copy-file %S %S t t" file-url temp-file)
             (when (file-exists-p temp-file) (delete-file temp-file))
-            (url-copy-file file-url temp-file t t) ;; overwrite, keep time
-            (unless (or (file-exists-p temp-file)
-                        (= 0 (nth 7 (file-attributes temp-file)))) ;; file size 0
-              (web-vcs-message-with-face 'web-vcs-red "Failed url-copy-file %S %S t t" file-url temp-file)
+            (setq http-sts (web-vcs-url-copy-file file-url temp-file t t)) ;; overwrite, keep time
+            (unless (and (file-exists-p temp-file)
+                         (< 0 (nth 7 (file-attributes temp-file))) ;; file size 0
+                         (memq http-sts '(200 201)))
+              (web-vcs-message-with-face 'web-vcs-red "Failed url-copy-file %s %S %S t t" http-sts file-url temp-file)
+              ;; Fix-me: better error handling
               (throw 'command-level nil))
             ;;(web-vcs-message-with-face 'font-lock-comment-face "Finished url-copy-file %S %S t t" file-url temp-file)
             (let* ((time-after-url-copy (current-time))
@@ -768,7 +801,7 @@ is a special function for that, you answer T here:
                         (describe-function 'nxhtml-setup-install)
                         (select-window (get-buffer-window (help-buffer)))
                         (delete-other-windows))
-                      (setq key (my-read-key prompt))
+                      (setq key (web-vcs-read-key prompt))
                       ;;(message "key = %S" key) (sit-for 1)
                       )
                     (case key
@@ -789,7 +822,37 @@ is a special function for that, you answer T here:
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Temporary helpers, possibly included in Emacs
 
-(defun my-read-and-accept-key (prompt accepted &optional reject-message help-function)
+;; Modified just to return http status
+(defun web-vcs-url-copy-file (url newname &optional ok-if-already-exists
+			  keep-time preserve-uid-gid)
+  "Copy URL to NEWNAME.  Both args must be strings.
+Signals a `file-already-exists' error if file NEWNAME already exists,
+unless a third argument OK-IF-ALREADY-EXISTS is supplied and non-nil.
+A number as third arg means request confirmation if NEWNAME already exists.
+This is what happens in interactive use with M-x.
+Fourth arg KEEP-TIME non-nil means give the new file the same
+last-modified time as the old one.  (This works on only some systems.)
+Fifth arg PRESERVE-UID-GID is ignored.
+A prefix arg makes KEEP-TIME non-nil."
+  (if (and (file-exists-p newname)
+	   (not ok-if-already-exists))
+      (error "Opening output file: File already exists, %s" newname))
+  (let ((buffer (url-retrieve-synchronously url))
+	(handle nil)
+        (ret nil))
+    (if (not buffer)
+	(error "Retrieving url %s gave no buffer" url))
+    (with-current-buffer buffer
+      (when (< 0 (buffer-size))
+        (require 'url-http)
+        (setq ret (url-http-parse-response)))
+      (setq handle (mm-dissect-buffer t)))
+    (mm-save-part-to-file handle newname)
+    (kill-buffer buffer)
+    (mm-destroy-parts handle)
+    ret))
+
+(defun web-vcs-read-and-accept-key (prompt accepted &optional reject-message help-function)
   (let ((key nil)
         rejected)
     (while (not (member key accepted))
@@ -802,10 +865,10 @@ is a special function for that, you answer T here:
           (setq prompt (concat (or reject-message "Please answer with one of the alternatives.")
                                "\n\n"
                                prompt))
-          (setq key (my-read-key prompt)))))
+          (setq key (web-vcs-read-key prompt)))))
     key))
 
-(defun my-read-key (&optional prompt)
+(defun web-vcs-read-key (&optional prompt)
   "Read a key from the keyboard.
 Contrary to `read-event' this will not return a raw event but instead will
 obey the input decoding and translations usually done by `read-key-sequence'.
@@ -1158,7 +1221,7 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
     (if file-name-list
         (progn
           (dolist (f file-name-list)
-            (let ((full-f (expand-file-name f dir)))
+            (let ((full-f (expand-file-name f sub-dir)))
               (unless (file-exists-p full-f)
                 (setq miss-names (cons f miss-names)))))
           (setq files-regexp (regexp-opt miss-names)))

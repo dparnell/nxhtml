@@ -399,5 +399,6 @@ then instead delete the compiled files."
         (unless (member name nxhtmlmaint-nonbyte-compile-dirs)
           (nxhtmlmaint-byte-compile-dir f force del-elc))))))
 
+(provide 'nxhtmlmaint)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; nxhtmlmaint.el ends here
