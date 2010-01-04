@@ -352,11 +352,13 @@
     (define-key m [?w]      'mlinks-goto-other-window)
     (define-key m [?f]      'mlinks-goto-other-frame)
     (define-key m [mouse-1] 'mlinks-goto)
+    (set-keymap-parent m mlinks-mode-map)
     m))
 
 (defvar mlinks-inactive-hilight-keymap
   (let ((m (make-sparse-keymap)))
     (define-key m [mouse-1] 'mlinks-goto)
+    (set-keymap-parent m mlinks-mode-map)
     m))
 
 (defun mlinks-pre-command ()

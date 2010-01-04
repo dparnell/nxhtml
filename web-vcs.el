@@ -466,6 +466,7 @@ If TEST is non-nil then do not download, just list the files"
                             (find-file file-dl-name))
                         (select-window msg-win)
                         (find-file-other-window file-dl-name))
+                      (message "\n\n")
                       (web-vcs-message-with-face
                        'secondary-selection
                        (concat "Please check the downloaded file and then continue by doing any of"
@@ -958,7 +959,7 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
   (require 'cus-edit)
   (if (not (condition-case nil (custom-file) (error nil)))
       (progn
-        (message "")
+        (message "\n\n")
         (web-vcs-message-with-face
          'web-vcs-red
          (concat "Since you have started this Emacs session without running your init files"

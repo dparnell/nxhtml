@@ -249,7 +249,7 @@
       (define-key help-map [nxhtml-byte-compile-nxhtml]
         (list 'menu-item "Byte Compile nXhtml" 'nxhtmlmaint-start-byte-compilation))
       (define-key help-map [nxhtml-web-download]
-        (list 'menu-item "Update nXhtml (from devel sources)" 'nxhtml-download))
+        (list 'menu-item "Update nXhtml (from devel sources)" 'nxhtml-setup-install))
       (define-key help-map [nxhtml-features-check]
         (list 'menu-item "Check Optional Features" 'nxhtml-features-check))
       (define-key help-map [nxhtml-customize]
@@ -292,7 +292,7 @@
       (define-key tools-map [nxhtml-last-resort-separator]
         (list 'menu-item "--" nil))
       (define-key tools-map [nxhtml-viper-tut]
-        (list 'menu-item "Viper try-out tutorial"
+        (list 'menu-item "Viper Try-Out Tutorial"
               'viper-tutorial))
       (define-key tools-map [rebind-keys]
         (list 'menu-item "Rebind Some Keys" 'rebind-keys-mode
@@ -520,7 +520,7 @@
               :button '(:toggle . (and (boundp 'as-external-mode)
                                        as-external-mode))))
       (define-key tools-map [nxhtml-sex-mode]
-        (list 'menu-item "Open files in External Apps"
+        (list 'menu-item "Open Files in External Apps"
               'sex-mode
               :button '(:toggle . (and (boundp 'sex-mode)
                                        sex-mode))))
@@ -886,8 +886,6 @@
       (define-key map [nxhtml-chunk-map]
         (list 'menu-item "Chunks" chunk-map
               :visible `(not (derived-mode-p 'dired-mode))
-              ;; :enable '(and (boundp 'mumamo-multi-major-mode)
-              ;;               mumamo-multi-major-mode)
               ))
       (define-key chunk-map [nxhtml-customize-mumamo]
         (list 'menu-item "Customize MuMaMo"
@@ -933,14 +931,20 @@
         (list 'menu-item "--" nil))
       (define-key chunk-map [mumamo-mark-chunk]
         (list 'menu-item "Mark Chunk"
-              'mumamo-mark-chunk))
+              'mumamo-mark-chunk
+              :enable '(and (boundp 'mumamo-multi-major-mode)
+                            mumamo-multi-major-mode)))
       (define-key chunk-map [nxhtml-separator-mark-chunk] (list 'menu-item "--"))
       (define-key chunk-map [mumamo-backward-chunk]
         (list 'menu-item "Backward Chunk"
-              'mumamo-backward-chunk))
+              'mumamo-backward-chunk
+              :enable '(and (boundp 'mumamo-multi-major-mode)
+                            mumamo-multi-major-mode)))
       (define-key chunk-map [mumamo-forward-chunk]
         (list 'menu-item "Forward Chunk"
-              'mumamo-forward-chunk)))
+              'mumamo-forward-chunk
+              :enable '(and (boundp 'mumamo-multi-major-mode)
+                            mumamo-multi-major-mode))))
     (let ((tag-map (make-sparse-keymap)))
       (define-key map [nxhtml-tag-map]
         (list 'menu-item "Move by Tag" tag-map
@@ -1108,7 +1112,7 @@
         (list 'menu-item "--" nil
               :visible '(nxhtml-nxml-html-in-buffer)))
       (define-key cmpl-map [nxhtml-tab-complete]
-        (list 'menu-item "Indent and then Complete" 'tabkey2-first))
+        (list 'menu-item "Indent and then Complete (TabKey2)" 'tabkey2-first))
       )
 
     map))
@@ -1157,19 +1161,18 @@ the buffer."
 (defun nxhtml-maybe-turn-on-minor-mode ()
   "Maybe turn on `nxhtml-minor-mode'.
 See `nxhtml-minor-mode-modes'."
-  (unless (or (minibufferp (current-buffer))
-              (string= " " (substring (buffer-name) 0 1))
-              (string= "*" (substring (buffer-name) 0 1))
-              )
-    (let ((on (and (boundp 'mumamo-multi-major-mode)
-                   mumamo-multi-major-mode)))
-      (dolist (major nxhtml-minor-mode-modes)
-        (when (derived-mode-p major)
-          (setq on t)))
-;;       (when (string= "php" (file-name-extension (buffer-file-name)))
-;;         (lwarn 't :warning "on=%s, major-mode=%s" on major-mode))
-      (when on
-        (nxhtml-minor-mode 1)))))
+  (nxhtml-minor-mode 1))
+  ;; (unless (or (minibufferp (current-buffer))
+  ;;             (string= " " (substring (buffer-name) 0 1))
+  ;;             (string= "*" (substring (buffer-name) 0 1))
+  ;;             )
+  ;;   (let ((on (and (boundp 'mumamo-multi-major-mode)
+  ;;                  mumamo-multi-major-mode)))
+  ;;     (dolist (major nxhtml-minor-mode-modes)
+  ;;       (when (derived-mode-p major)
+  ;;         (setq on t)))
+  ;;     (when on
+  ;;       (nxhtml-minor-mode 1)))))
 
 ;;;###autoload
 (define-globalized-minor-mode nxhtml-global-minor-mode
