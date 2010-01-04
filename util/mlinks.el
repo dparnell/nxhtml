@@ -240,6 +240,7 @@
     (define-key m [(control ?c) ?\r S-tab] 'mlinks-backward-link)
     (define-key m [(control ?c) ?\r tab]   'mlinks-forward-link)
     (define-key m [(control ?c) ?\r ?h]    'mlinks-toggle-hilight)
+    (define-key m [(control ?c) ?\r ?c]    'mlinks-copy-link-text)
     m))
 
 (defun mlinks-want-marked-links ()
@@ -557,8 +558,10 @@ Uses `switch-to-buffer-other-frame'."
   )
 
 (defun mlinks-appmenu ()
+  ;; Fix-me: reverse the list
   (let ((link-val (mlinks-link-at-point))
-        (map (make-sparse-keymap "mlinks-appmenu")))
+        (map (make-sparse-keymap "mlinks-appmenu"))
+        (num 2))
     (when (mlinks-get-action 'prev)
       (define-key map [mlinks-next-link]
         (list 'menu-item "Next Link" 'mlinks-forward-link)))
@@ -577,7 +580,9 @@ Uses `switch-to-buffer-other-frame'."
              (choices)
              (answer)
              )
-        (define-key map [mlinks-href-sep] (list 'menu-item "--"))
+        (when (> (length map) num)
+          (define-key map [mlinks-href-sep] (list 'menu-item "--")))
+        (setq num (length map))
         (when view-web
           (define-key map [mlinks-href-view-web]
             (list 'menu-item "Browse Link Web Url"
@@ -623,7 +628,9 @@ Uses `switch-to-buffer-other-frame'."
                 (list 'menu-item "&Browse Linked File URL"
                       `(lambda () (interactive)
                          (browse-url ,url))))))
-          (define-key map [mlinks-href-sep-2] (list 'menu-item "--"))
+          (when (> (length map) num)
+            (define-key map [mlinks-href-sep-2] (list 'menu-item "--")))
+          (setq num (length map))
           (unless (equal file (buffer-file-name))
             (define-key map [mlinks-href-edit]
               (list 'menu-item "&Open Linked File"
@@ -641,13 +648,34 @@ Uses `switch-to-buffer-other-frame'."
                     `(lambda () (interactive)
                        (mlinks-goto)))))
           )
-        (define-key map [mlinks-href-sep-1] (list 'menu-item "--"))
-        (define-key map [mlinks-href-copy-link]
-          (list 'menu-item "&Copy Link"
-                `(lambda () (interactive)
-                   (x-select-text ,link-val))))))
+        (when (> (length map) num)
+          (define-key map [mlinks-href-sep-1] (list 'menu-item "--")))
+        (setq num (length map))
+        (when link-val
+          (define-key map [mlinks-href-copy-link]
+            (list 'menu-item "&Copy Link Text"
+                  'mlinks-copy-link-text)))))
     (when (> (length map) 2)
       map)))
+
+(defun mlinks-copy-link-text ()
+  "Copy text of current `mlink-mode' link to clipboard."
+  (interactive)
+  (let ((ovl mlinks-hilight-point-ovl))
+    (if (and ovl
+             (overlayp ovl)
+             (eq (current-buffer)
+                 (overlay-buffer ovl))
+             (<= (overlay-start ovl)
+                 (point))
+             (>= (overlay-end ovl)
+                 (point)))
+        (let* ((beg (overlay-start ovl))
+               (end (overlay-end ovl))
+               (str (buffer-substring beg end)))
+          (copy-region-as-kill beg end)
+          (message "Copied %d chars to clipboard" (length str)))
+      (message "No link here to copy"))))
 
 (defun mlinks-add-appmenu ()
   "Add entries for MLinks to AppMenu."

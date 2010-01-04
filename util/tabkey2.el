@@ -1605,12 +1605,12 @@ BUF: buffer"
            (tit "Complete")
            (map (make-sparse-keymap tit)))
       (define-key map [tabkey2-usage]
-        (list 'menu-item "Show available completion functions"
+        (list 'menu-item "Show Available Completion Functions for TabKey2"
               'tabkey2-show-completion-functions))
       (define-key map [tabkey2-divider-1] (list 'menu-item "--"))
-      (let ((set-map (make-sparse-keymap "Set completion")))
+      (let ((set-map (make-sparse-keymap "Set Completion")))
         (define-key map [tabkey2-choose]
-          (list 'menu-item "Set Primary Tab completion for buffer" set-map))
+          (list 'menu-item "Set Primary TabKey2 Tab Completion in Buffer" set-map))
         (dolist (cf-rec cf-r)
           (let ((dsc (nth 0 cf-rec))
                 (fun (nth 1 cf-rec)))
@@ -1633,7 +1633,7 @@ BUF: buffer"
                 '(:radio . (null tabkey2-chosen-completion-function))))
         (define-key set-map [tabkey2-set-header-div] (list 'menu-item "--"))
         (define-key set-map [tabkey2-set-header]
-          (list 'menu-item "Set Primary Tab completion for buffer"))
+          (list 'menu-item "Set Primary Tab Completion for Buffer"))
         )
       (define-key map [tabkey2-divider] (list 'menu-item "--"))
       (dolist (cf-rec cf-r)

@@ -372,6 +372,10 @@ This is used after inspecting downloaded elisp files."
             (message "Doing nearly original require %s, because skipping" (ad-get-arg 0))
             ;; Can't ad-do-it because defadviced functions in load
             ;;(web-autoload-do-require feature filename noerror)
+            ;;
+            ;; Fix-me: Implement lazy loading here? Could it be done with while-no-input?
+            ;;
+            ;;(when (assq feature web-autoload-require-list) )
             ad-do-it
             )
         (unless (and noerror
