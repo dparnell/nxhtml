@@ -464,10 +464,11 @@ collected when the popup menu is shown you do not have to care as
 much about computation time as for entries in the menu bar."
   :global t
   :keymap appmenu-mode-map
-  :group 'appmenu)
-(if appmenu-mode
+  :group 'appmenu
+  (if appmenu-mode
     (add-hook 'post-command-hook 'appmenu-auto-help-post-command nil t)
-  (remove-hook 'post-command-hook 'appmenu-auto-help-post-command t))
+    (remove-hook 'post-command-hook 'appmenu-auto-help-post-command t)))
+
 (when (and appmenu-mode
            (not (boundp 'define-globa-minor-mode-bug)))
   (appmenu-mode 1))

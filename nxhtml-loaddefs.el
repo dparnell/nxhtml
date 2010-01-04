@@ -66,7 +66,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (appmenu-mode appmenu-add appmenu) "appmenu" "util/appmenu.el"
-;;;;;;  (19265 25839))
+;;;;;;  (19265 55781))
 ;;; Generated autoloads from util/appmenu.el
 (web-autoload-require 'appmenu 'lp (nxhtml-download-root-url nil) "util/appmenu" nxhtml-install-dir)
 
@@ -82,7 +82,10 @@ DEFINITION as explained there.
 
 (defvar appmenu-mode nil "\
 Non-nil if Appmenu mode is enabled.
-See the command `appmenu-mode' for a description of this minor mode.")
+See the command `appmenu-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `appmenu-mode'.")
 
 (nxhtml-custom-autoload 'appmenu-mode "appmenu" nil)
 
@@ -93,7 +96,10 @@ context sensitive popup menus with commands from different major
 and minor modes. Using this different modes may cooperate about
 the use of popup menus.
 
-The popup menu is on these keys:
+There is also the command `appmenu-as-help' that shows the key
+bindings at current point in the help buffer.
+
+The popup menu and the help buffer version are on these keys:
 
 \\{appmenu-mode-map}
 
@@ -300,13 +306,25 @@ Below are some examples.  To test them mark an example and do
 
 ;;;***
 
-;;;### (autoloads (css-color-mode css-color-global-mode css-color)
-;;;;;;  "css-color" "util/css-color.el" (18969 63118))
+;;;### (autoloads (css-color-test css-color-global-mode css-color-mode
+;;;;;;  css-color) "css-color" "util/css-color.el" (19265 53460))
 ;;; Generated autoloads from util/css-color.el
 (web-autoload-require 'css-color 'lp (nxhtml-download-root-url nil) "util/css-color" nxhtml-install-dir)
 
 
 (let ((loads (get 'css-color 'custom-loads))) (if (member '"css-color" loads) nil (put 'css-color 'custom-loads (cons '"css-color" loads))))
+
+(nxhtml-autoload 'css-color-mode `(lp ,(nxhtml-download-root-url nil) "util/css-color" nxhtml-install-dir) "\
+Show hex color literals with the given color as background.
+In this mode hexadecimal colour specifications like #6600ff are
+displayed with the specified colour as background.
+
+Certain keys are bound to special colour editing commands when
+point is at a hexadecimal colour:
+
+\\{css-color-map}
+
+\(fn &optional ARG)" t nil)
 
 (defvar css-color-global-mode nil "\
 Non-nil if Css-Color-Global mode is enabled.
@@ -325,17 +343,19 @@ See `css-color-mode' for more information on Css-Color mode.
 
 \(fn &optional ARG)" t nil)
 
-(nxhtml-autoload 'css-color-mode `(lp ,(nxhtml-download-root-url nil) "util/css-color" nxhtml-install-dir) "\
-Show hex color literals with the given color as background.
-In this mode hexadecimal colour specifications like #3253ff are
-displayed with the specified colour as background.
+(nxhtml-autoload 'css-color-test `(lp ,(nxhtml-download-root-url nil) "util/css-color" nxhtml-install-dir) "\
+Test colors interactively.
+The colors are displayed in the echo area. You can specify the
+colors as any viable css color.  Example:
 
-Certain keys are bound to special colour editing commands when
-point is at a hexadecimal colour:
+  red
+  #f00
+  #0C0
+  #b0ff00
+  hsla(100, 50%, 25%)
+  rgb(255,100,120)
 
-\\{css-color-map}
-
-\(fn &optional ARG)" t nil)
+\(fn FG-COLOR BG-COLOR)" t nil)
 
 ;;;***
 
@@ -873,7 +893,7 @@ before applying.
 ;;;***
 
 ;;;### (autoloads (mlinks-global-mode mlinks-mode mlinks) "mlinks"
-;;;;;;  "util/mlinks.el" (19265 25307))
+;;;;;;  "util/mlinks.el" (19265 39804))
 ;;; Generated autoloads from util/mlinks.el
 (web-autoload-require 'mlinks 'lp (nxhtml-download-root-url nil) "util/mlinks" nxhtml-install-dir)
 
@@ -3720,7 +3740,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19265 25608))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19265 42776))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp (nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir)
 
@@ -3935,7 +3955,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;### (autoloads (nxhtml-maybe-download-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install web-vcs-get-files-from-root)
-;;;;;;  "web-vcs" "web-vcs.el" (19265 14046))
+;;;;;;  "web-vcs" "web-vcs.el" (19265 55135))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -4092,8 +4112,8 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19265 27246
-;;;;;;  453000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19265 55828
+;;;;;;  703000))
 
 ;;;***
 
