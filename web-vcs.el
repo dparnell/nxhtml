@@ -298,6 +298,28 @@ If TEST is non-nil then do not download, just list the files."
                                      "  %i files updated (old versions renamed to *.moved)"
                                      moved))))))
 
+(defun web-vcs-url-copy-file-and-check (url dl-file)
+  (let ((http-sts nil)
+        (file-created nil)
+        (file-nonempty nil)
+        (fail-reason nil))
+    (message "before url-copy-file %S" dl-file)
+    (setq http-sts (web-vcs-url-copy-file url dl-file nil t)) ;; don't overwrite, keep time
+    (message "after  url-copy-file %S" dl-file)
+    (setq file-created (file-exists-p dl-file))
+    (setq file-nonempty (< 0 (nth 7 (file-attributes dl-file)))) ;; file size 0
+    (unless (and file-created
+                 file-nonempty
+                 (memq http-sts '(200 201)))
+      (setq fail-reason
+            (cond
+             (http-sts (format "HTTP %s" http-sts))
+             (file-nonempty "File looks bad")
+             (t "No file created")))
+      ;; Requires user attention and intervention
+      (web-vcs-message-with-face 'web-vcs-red "Failed url-copy-file %s, %S %S" fail-reason url dl-file)
+      (web-vcs-message-with-face 'web-vcs-yellow "Please retry what you did before!")
+      (throw 'command-level nil))))
 
 (defun web-vcs-get-files-on-page-1 (vcs-rec url dl-root dl-relative file-mask recursive dl-revision test)
   "Download files listed by VCS-REC on web page URL.
@@ -339,15 +361,16 @@ If TEST is non-nil then do not download, just list the files"
     ;; a new file temp file name.
     (unless (file-directory-p dl-dir) (make-directory dl-dir t))
     (setq temp-list-file (make-temp-name temp-file-base))
-    (message "before url-copy-file %S" temp-list-file)
-    (setq http-sts (web-vcs-url-copy-file url temp-list-file t t)) ;; overwrite, keep time
-    (message "after  url-copy-file %S" temp-list-file)
-    (unless (and (file-exists-p temp-list-file)
-                 (< 0 (nth 7 (file-attributes temp-list-file))) ;; file size 0
-                 (memq http-sts '(200 201)))
-      (web-vcs-message-with-face 'web-vcs-red "Failed url-copy-file %s %S %S t t" http-sts url temp-list-file)
-      ;; Fix-me: better error handling
-      (throw 'command-level nil))
+    ;; (message "before url-copy-file %S" temp-list-file)
+    ;; (setq http-sts (web-vcs-url-copy-file url temp-list-file t t)) ;; overwrite, keep time
+    ;; (message "after  url-copy-file %S" temp-list-file)
+    ;; (unless (and (file-exists-p temp-list-file)
+    ;;              (< 0 (nth 7 (file-attributes temp-list-file))) ;; file size 0
+    ;;              (memq http-sts '(200 201)))
+    ;;   (web-vcs-message-with-face 'web-vcs-red "Failed url-copy-file %s %S %S t t" http-sts url temp-list-file)
+    ;;   ;; Fix-me: better error handling
+    ;;   (throw 'command-level nil))
+    (web-vcs-url-copy-file-and-check url temp-list-file)
     (with-temp-buffer
       (insert-file-contents temp-list-file)
       (delete-file temp-list-file)
@@ -413,13 +436,15 @@ If TEST is non-nil then do not download, just list the files"
               (kill-buffer temp-buf))
             ;;(web-vcs-message-with-face 'font-lock-comment-face "Starting url-copy-file %S %S t t" file-url temp-file)
             (when (file-exists-p temp-file) (delete-file temp-file))
-            (setq http-sts (web-vcs-url-copy-file file-url temp-file t t)) ;; overwrite, keep time
-            (unless (and (file-exists-p temp-file)
-                         (< 0 (nth 7 (file-attributes temp-file))) ;; file size 0
-                         (memq http-sts '(200 201)))
-              (web-vcs-message-with-face 'web-vcs-red "Failed url-copy-file %s %S %S t t" http-sts file-url temp-file)
-              ;; Fix-me: better error handling
-              (throw 'command-level nil))
+            ;; (setq http-sts (web-vcs-url-copy-file file-url temp-file t t)) ;; overwrite, keep time
+            ;; (unless (and (file-exists-p temp-file)
+            ;;              (< 0 (nth 7 (file-attributes temp-file))) ;; file size 0
+            ;;              (memq http-sts '(200 201)))
+            ;;   (web-vcs-message-with-face 'web-vcs-red "Failed url-copy-file %s %S %S t t" http-sts file-url temp-file)
+            ;;   ;; Fix-me: better error handling
+            ;;   (throw 'command-level nil))
+
+            (web-vcs-url-copy-file-and-check file-url temp-file)
             ;;(web-vcs-message-with-face 'font-lock-comment-face "Finished url-copy-file %S %S t t" file-url temp-file)
             (let* ((time-after-url-copy (current-time))
                    (old-exists (file-exists-p file-dl-name))
