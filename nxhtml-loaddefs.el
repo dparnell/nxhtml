@@ -65,8 +65,8 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (appmenu-add appmenu) "appmenu" "util/appmenu.el"
-;;;;;;  (19235 2999))
+;;;### (autoloads (appmenu-mode appmenu-add appmenu) "appmenu" "util/appmenu.el"
+;;;;;;  (19265 25839))
 ;;; Generated autoloads from util/appmenu.el
 (web-autoload-require 'appmenu 'lp (nxhtml-download-root-url nil) "util/appmenu" nxhtml-install-dir)
 
@@ -79,6 +79,36 @@ Add an entry to this list with ID, PRIORITY, TEST, TITLE and
 DEFINITION as explained there.
 
 \(fn ID PRIORITY TEST TITLE DEFINITION)" nil nil)
+
+(defvar appmenu-mode nil "\
+Non-nil if Appmenu mode is enabled.
+See the command `appmenu-mode' for a description of this minor mode.")
+
+(nxhtml-custom-autoload 'appmenu-mode "appmenu" nil)
+
+(nxhtml-autoload 'appmenu-mode `(lp ,(nxhtml-download-root-url nil) "util/appmenu" nxhtml-install-dir) "\
+Use a context sensitive popup menu.
+AppMenu (appmenu.el) is a framework for creating cooperative
+context sensitive popup menus with commands from different major
+and minor modes. Using this different modes may cooperate about
+the use of popup menus.
+
+The popup menu is on these keys:
+
+\\{appmenu-mode-map}
+
+The variable `appmenu-alist' is where the popup menu entries
+comes from.
+
+If there is a `keymap' property at point then relevant bindings
+from this is also shown in the popup menu.
+
+You can write functions that use whatever information you want in
+Emacs to construct these entries. Since this information is only
+collected when the popup menu is shown you do not have to care as
+much about computation time as for entries in the menu bar.
+
+\(fn &optional ARG)" t nil)
 
 ;;;***
 
@@ -843,7 +873,7 @@ before applying.
 ;;;***
 
 ;;;### (autoloads (mlinks-global-mode mlinks-mode mlinks) "mlinks"
-;;;;;;  "util/mlinks.el" (19264 26678))
+;;;;;;  "util/mlinks.el" (19265 25307))
 ;;; Generated autoloads from util/mlinks.el
 (web-autoload-require 'mlinks 'lp (nxhtml-download-root-url nil) "util/mlinks" nxhtml-install-dir)
 
@@ -1203,7 +1233,7 @@ Buffer must be fontified.
 ;;;***
 
 ;;;### (autoloads (n-back-game n-back) "n-back" "util/n-back.el"
-;;;;;;  (19264 41454))
+;;;;;;  (19264 46226))
 ;;; Generated autoloads from util/n-back.el
 (web-autoload-require 'n-back 'lp (nxhtml-download-root-url nil) "util/n-back" nxhtml-install-dir)
 
@@ -1835,7 +1865,7 @@ handled is governed by `sex-keep-dummy-buffer'.
 ;;;***
 
 ;;;### (autoloads (tabkey2-mode tabkey2-emma-without-tabkey2 tabkey2)
-;;;;;;  "tabkey2" "util/tabkey2.el" (19218 42182))
+;;;;;;  "tabkey2" "util/tabkey2.el" (19265 26702))
 ;;; Generated autoloads from util/tabkey2.el
 (web-autoload-require 'tabkey2 'lp (nxhtml-download-root-url nil) "util/tabkey2" nxhtml-install-dir)
 
@@ -2934,6 +2964,118 @@ Key bindings:
 
 ;;;***
 
+;;;### (autoloads (nxhtml-setup-download-all nxhtml-setup-auto-download
+;;;;;;  nxhtml-setup-install web-vcs-get-files-from-root) "web-vcs"
+;;;;;;  "nxhtml/doc/img/web-vcs.el" (19264 42575))
+;;; Generated autoloads from nxhtml/doc/img/web-vcs.el
+(web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "nxhtml/doc/img/web-vcs" nxhtml-install-dir)
+
+
+(nxhtml-autoload 'web-vcs-get-files-from-root `(lp ,(nxhtml-download-root-url nil) "nxhtml/doc/img/web-vcs" nxhtml-install-dir) "\
+Download a file tree from VCS system using the web interface.
+Use WEB-VCS entry in variable `web-vcs-links-regexp' to download
+files via http from URL to directory DL-DIR.
+
+Show URL first and offer to visit the page.  That page will give
+you information about version control system (VCS) system used
+etc.
+
+\(fn WEB-VCS URL DL-DIR)" nil nil)
+
+(nxhtml-autoload 'nxhtml-setup-install `(lp ,(nxhtml-download-root-url nil) "nxhtml/doc/img/web-vcs" nxhtml-install-dir) "\
+Setup and start nXhtml installation.
+
+There are two different ways to do it:
+
+  (1) Download all at once: `nxhtml-setup-download-all'
+  (2) Automatically download part by part: `nxhtml-setup-auto-download'
+
+You can convert between those ways by calling this function again.
+You can also do this by setting the option `nxhtml-autoload-web' yourself.
+
+To learn more about nXhtml visit its home page at URL
+`http://www.emacswiki.com/NxhtmlMode/'.
+
+If you want to test auto download (but not use it further) there
+is a special function for that, you answer T here:
+
+   (T) Test automatic download part by part: `nxhtml-setup-test-auto-download'
+
+\(fn WAY)" t nil)
+
+(nxhtml-autoload 'nxhtml-setup-auto-download `(lp ,(nxhtml-download-root-url nil) "nxhtml/doc/img/web-vcs" nxhtml-install-dir) "\
+Set up to autoload nXhtml files from the web.
+
+This function will download some initial files and then setup to
+download the rest when you need them.
+
+Files will be downloaded under the directory root you specify in
+DL-DIR.
+
+If you already have nXhtml installed and loaded this function
+will only let you download to that directory.  In that case you
+can use this function to upgrade individual files.  Just delete
+them and they will be downloaded as you need them.  (But beware
+that sometimes there might be problem because the files gets out
+of phase.  A future version will try to take care of this.)
+
+You may switch by this mode of downloading or downloading the
+whole of nXhtml by once.  To switch just call the command
+`nxhtml-setup-install'.
+
+See also the command `nxhtml-setup-download-all'.
+
+Note: If your nXhtml is to old you can't use this function
+      directly.  You have to upgrade first, se the function
+      above.
+
+\(fn DL-DIR)" t nil)
+
+(nxhtml-autoload 'nxhtml-setup-download-all `(lp ,(nxhtml-download-root-url nil) "nxhtml/doc/img/web-vcs" nxhtml-install-dir) "\
+Download or update all of nXhtml.
+
+If you already have nXhtml installed you can update it with this
+command. If you want to update only certain files you can do so
+by switching (maybe temporary) to automatic downloading with the
+command `nxhtml-setup-install'.
+
+For more information about auto download of nXhtml files see
+`nxhtml-setup-auto-download'.
+
+\(fn DL-DIR)" t nil)
+
+;;;***
+
+;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
+;;;;;;  "nxhtmlmaint" "nxhtml/doc/img/nxhtmlmaint.el" (19264 42569))
+;;; Generated autoloads from nxhtml/doc/img/nxhtmlmaint.el
+(web-autoload-require 'nxhtmlmaint 'lp (nxhtml-download-root-url nil) "nxhtml/doc/img/nxhtmlmaint" nxhtml-install-dir)
+
+
+(nxhtml-autoload 'nxhtmlmaint-start-byte-compilation `(lp ,(nxhtml-download-root-url nil) "nxhtml/doc/img/nxhtmlmaint" nxhtml-install-dir) "\
+Start byte compilation of nXhtml in new Emacs instance.
+Byte compiling in general makes elisp code run 5-10 times faster
+which is quite noticeable when you use nXhtml.
+
+This will also update the file nxhtml-loaddefs.el.
+
+You must restart Emacs to use the byte compiled files.
+
+If for some reason the byte compiled files does not work you can
+remove then with `nxhtmlmaint-byte-uncompile-all'.
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'nxhtmlmaint-byte-uncompile-all `(lp ,(nxhtml-download-root-url nil) "nxhtml/doc/img/nxhtmlmaint" nxhtml-install-dir) "\
+Delete byte compiled files in nXhtml.
+This will also update the file nxhtml-loaddefs.el.
+
+See `nxhtmlmaint-start-byte-compilation' for byte compiling.
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
 ;;;;;;  winsav winsav-put-window-tree) "winsav" "util/winsav.el"
 ;;;;;;  (19235 10120))
@@ -3578,7 +3720,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19264 34113))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19265 25608))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp (nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir)
 
@@ -3793,7 +3935,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;### (autoloads (nxhtml-maybe-download-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install web-vcs-get-files-from-root)
-;;;;;;  "web-vcs" "web-vcs.el" (19264 41484))
+;;;;;;  "web-vcs" "web-vcs.el" (19265 14046))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -3874,7 +4016,7 @@ For more information about auto download of nXhtml files see
 (nxhtml-autoload 'nxhtml-maybe-download-files `(lp ,(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir) "\
 Not documented
 
-\(fn DIR FILE-NAME-LIST)" nil nil)
+\(fn SUB-DIR FILE-NAME-LIST)" nil nil)
 
 ;;;***
 
@@ -3936,6 +4078,8 @@ accept it or skip it.
 ;;;***
 
 ;;;### (autoloads nil nil ("autostart.el" "autostart22.el" "etc/schema/schema-path-patch.el"
+;;;;;;  "nxhtml/doc/img/autostart.el" "nxhtml/doc/img/autostart22.el"
+;;;;;;  "nxhtml/doc/img/nxhtml-loaddefs.el" "nxhtml/doc/img/web-autoload.el"
 ;;;;;;  "nxhtml/html-imenu.el" "nxhtml/html-move.el" "nxhtml/html-quote.el"
 ;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el" "nxhtml/nxhtmljs.el"
 ;;;;;;  "nxhtml/outline-magic.el" "nxhtml/wtest.el" "related/flymake-helpers.el"
@@ -3948,13 +4092,13 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19264 41522
-;;;;;;  953000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19265 27246
+;;;;;;  453000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19264 31595))
+;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19265 8091))
 ;;; Generated autoloads from nxhtmlmaint.el
 (web-autoload-require 'nxhtmlmaint 'lp (nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir)
 
