@@ -39,6 +39,9 @@
 ;;
 ;;; Code:
 
+;; Fix-me: Split out the definitions from this file so it can be
+;; loaded during byte compilation.
+
 (message "Nxml/Nxhtml Autostart.el loading ...")
 
 (defconst nxhtml-menu:version "beta 2.07")
