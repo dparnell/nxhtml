@@ -4,14 +4,14 @@
 
 ;; Author:  Lennart Borgman <lennart DOT borgman AT gmail DOT com>
 ;; Created: Thu Jan 05 14:00:26 2006
-(defconst appmenu:version "0.62") ;; Version:
-;; Last-Updated: 2008-06-15T17:54:40+0200 Sun
+(defconst appmenu:version "0.63") ;; Version:
+;; Last-Updated: 2010-01-04 Mon
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   `cl'.
+;;   None
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -56,6 +56,8 @@
 
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'flyspell))
+(eval-when-compile (require 'ourcomments-util nil t))
+(eval-when-compile (require 'mumamo nil t))
 
 ;;;###autoload
 (defgroup appmenu nil
@@ -153,11 +155,11 @@ for most points in a buffer."
 
 (defvar appmenu-map-fun) ;; dyn var, silence compiler
 
-(defun appmenu-make-menu-for-point ()
-  "Construct a menu based on point.
+(defun appmenu-make-menu-for-point (this-point)
+  "Construct a menu based on point THIS-POINT.
 This includes some known commands for point and keymap at
 point."
-  (let ((point-map (get-char-property (point) 'keymap))
+  (let ((point-map (get-char-property this-point 'keymap))
         (funs appmenu-at-any-point)
         (map (make-sparse-keymap "At point"))
         (num 0)
@@ -165,15 +167,16 @@ point."
         this-prefix)
     ;; Known for any point
     (when point-map
-      (let ((appmenu-map-fun (lambda (key fun)
-                       (if (keymapp fun)
-                           (map-keymap appmenu-map-fun fun)
-                         (when (and (symbolp fun)
-                                    (fboundp fun))
-                           (let ((mouse-only (assq fun appmenu-mouse-only)))
-                             (when mouse-only
-                               (setq fun (cadr mouse-only)))
-                             (add-to-list 'funs fun)))))))
+      (let ((appmenu-map-fun
+             (lambda (key fun)
+               (if (keymapp fun)
+                   (map-keymap appmenu-map-fun fun)
+                 (when (and (symbolp fun)
+                            (fboundp fun))
+                   (let ((mouse-only (assq fun appmenu-mouse-only)))
+                     (when mouse-only
+                       (setq fun (cadr mouse-only)))
+                     (add-to-list 'funs fun)))))))
         (map-keymap appmenu-map-fun point-map)))
     (dolist (fun funs)
       (let ((desc (when fun (documentation fun))))
@@ -194,6 +197,83 @@ point."
             (list 'menu-item desc fun)))))
     (when (> num 0) map)))
 
+(defvar appmenu-level) ;; dyn var
+(defvar appmenu-funs) ;; dyn var
+(defvar appmenu-events) ;; dyn var
+
+(defun appmenu-keymap-map-fun (ev def)
+  ;;(message "%s %s" ev def)
+  (if (keymapp def)
+        (progn
+          (add-to-list 'appmenu-funs (list appmenu-level ev))
+          (setq appmenu-events (cons ev appmenu-events))
+          (setq appmenu-level (1+ appmenu-level))
+
+          (map-keymap 'appmenu-keymap-map-fun def)
+
+          (setq appmenu-events (cdr appmenu-events))
+          (setq appmenu-level (1- appmenu-level)))
+      (when (and (symbolp def)
+                 (fboundp def))
+        (let ((mouse-only (assq def appmenu-mouse-only)))
+          (when mouse-only
+            (setq def (cadr mouse-only))))
+        (add-to-list 'appmenu-funs (list appmenu-level (cons ev appmenu-events) def)))))
+
+;;(appmenu-as-help (point))
+(defun appmenu-as-help (this-point)
+  "Show keybindings specific done current point in buffer.
+This shows the binding in the help buffer.
+
+Tip: This may be helpful if you are using `css-color-mode'."
+  (interactive (list (copy-marker (point))))
+  ;; Split this for debugging
+  (let ((menu-here
+         (with-current-buffer (or (and (markerp this-point)
+                                       (marker-buffer this-point))
+                                  (current-buffer))
+           (get-char-property this-point 'keymap))))
+    ;;(describe-variable 'menu-here)
+    (appmenu-as-help-1 menu-here this-point)))
+
+(defun appmenu-as-help-1 (menu-here this-point)
+  (let ((appmenu-level 0)
+        (appmenu-funs nil)
+        (appmenu-events nil))
+    (when menu-here
+      (map-keymap 'appmenu-keymap-map-fun menu-here))
+    ;;(describe-variable 'appmenu-funs)
+    (with-output-to-temp-buffer (help-buffer)
+      (help-setup-xref (list #'appmenu-as-help this-point) (interactive-p))
+      (with-current-buffer (help-buffer)
+        (let ((fmt " %s%15s     %-30s\n"))
+          (insert (propertize "AppMenu as Help\n\n" 'face 'font-lock-comment-face))
+          (insert (propertize (format fmt "" "Key" "Function") 'face 'font-lock-function-name-face))
+          (insert (propertize (format fmt "" "---" "--------") 'face 'font-lock-function-name-face))
+          (if (not menu-here)
+              (insert (format "\n\nThere are no keys at point %s in buffer %S at the moment"
+                              (+ 0 this-point)
+                              (when (markerp this-point))))
+            (dolist (rec appmenu-funs)
+            (let* ((lev (nth 0 rec))
+                   (ev  (nth 1 rec))
+                   (fun (nth 2 rec))
+                   (doc (when fun (documentation fun)))
+                   (d1  (when doc (car (split-string doc "[\n]")))))
+              (if fun
+                  (insert (format fmt
+                                  "" ;;(make-string (* 4 lev) ?\ )
+                                  (key-description (reverse ev))
+                                  d1)
+                          (if nil (format "(%s)" fun) ""))
+                ;;(insert (format "something else=%S\n" rec))
+                )))
+            (insert (format "\n\nThese keys are for point %s in buffer %S"
+                            (+ 0 this-point)
+                            (when (markerp this-point)
+                              (buffer-name (marker-buffer this-point)))))))))))
+
+
 (defun appmenu-map ()
   "Return menu keymap to use for popup menu."
   (let* ((map (make-sparse-keymap
@@ -204,7 +284,7 @@ point."
          (num-minor 0)
          (id 0)
          (point-menu (when appmenu-show-point-menu
-                       (appmenu-make-menu-for-point))))
+                       (appmenu-make-menu-for-point (point)))))
     ;; AppMenu itself
     (when appmenu-show-help
       (define-key map [appmenu-customize]
@@ -266,20 +346,96 @@ point."
     (when is-mouse
       (goto-char (posn-point (event-start last-input-event)))
       (sit-for 0.01))
-    ;;active-minibuffer-window)
-    ;;(condition-case err
-        (let ((menu (appmenu-map)))
-          (if menu
-              (popup-menu-at-point menu)
-            (message "Appmenu is empty")))
-      ;;(quit nil))
-    ))
+    (let ((menu (appmenu-map)))
+      (if menu
+          (popup-menu-at-point menu)
+        (message "Appmenu is empty")))))
 
 (defvar appmenu-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [apps] 'appmenu-popup)
-    (define-key map [mouse-3] 'appmenu-popup)
+    (define-key map [apps]         'appmenu-popup)
+    (define-key map [mouse-3]      'appmenu-popup)
+    (define-key map [(control apps)] 'appmenu-as-help)
     map))
+
+
+;;(setq appmenu-auto-help 4)
+(defcustom appmenu-auto-help 2
+  "Automatically show help on keymap at current point.
+This shows up after the number of seconds in this variable.
+If it it nil this feature is off.
+
+This feature is only on in `appmenu-mode'."
+  :type '(choice (number :tag "Number of seconds to wait")
+                 (const :tag "Turned off" nil))
+  :set (lambda (sym val)
+         (set-default sym val)
+         (if val
+             (add-hook 'post-command-hook 'appmenu-auto-help-post-command nil t)
+           (remove-hook 'post-command-hook 'appmenu-auto-help-post-command t)))
+  :group 'appmenu)
+
+(defvar appmenu-auto-help-timer nil)
+
+(defsubst appmenu-on-keymap (where)
+  (get-text-property (point) 'keymap))
+
+(defsubst appmenu-auto-help-add-wcfg (at-point wcfg)
+  (mumamo-with-buffer-prepared-for-jit-lock
+   (add-text-properties at-point (1+ at-point)
+                        (list 'point-left 'appmenu-auto-help-maybe-remove
+                              'appmenu-auto-help-wcfg wcfg))))
+
+(defsubst appmenu-auto-help-remove-wcfg (at-point)
+  (mumamo-with-buffer-prepared-for-jit-lock
+   (remove-list-of-text-properties at-point (1+ at-point)
+                                   '(css-color-wcfg point-left))))
+
+(defun appmenu-auto-help-maybe-remove (at-point new-point)
+  "Run in 'point-left property.
+Restores window configuration."
+  (let ((old-wcfg (get-text-property at-point 'appmenu-auto-help-wcfg)))
+    (appmenu-auto-help-remove-wcfg at-point)
+    (if (appmenu-on-keymap new-point)
+        (appmenu-auto-help-add-wcfg new-point old-wcfg)
+      (if old-wcfg
+          (set-window-configuration old-wcfg)
+        (message "trying help-xref-go-back...")
+        (help-xref-go-back (help-buffer))))))
+
+(defun appmenu-as-help-in-timer ()
+  (condition-case err
+      (when (and appmenu-auto-help
+                 (appmenu-on-keymap (point)))
+        (let* ((old-help-win (get-buffer-window (help-buffer)))
+               (wcfg (unless old-help-win
+                      (current-window-configuration))))
+          (unless old-help-win
+            (display-buffer (help-buffer)))
+          (appmenu-auto-help-add-wcfg (point) wcfg)
+          (appmenu-as-help (copy-marker (point)))))
+    (error (message "appmenu-as-help-in-timer: %s" (error-message-string err)))))
+
+(defun appmenu-auto-help-cancel-timer ()
+  (when (timerp appmenu-auto-help-timer)
+    (cancel-timer appmenu-auto-help-timer))
+  (setq appmenu-auto-help-timer nil))
+
+(defun appmenu-auto-help-post-command ()
+  (when (fboundp 'appmenu-as-help)
+    (condition-case err
+        (appmenu-auto-help-post-command-1)
+      (error (message "css-color-post-command: %s" (error-message-string err))))))
+
+;; #fff  #c9ff33
+(defun appmenu-auto-help-post-command-1 ()
+  (appmenu-auto-help-cancel-timer)
+  (and appmenu-auto-help
+       (appmenu-on-keymap (point))
+       (not (get-text-property (point) 'appmenu-auto-help-wcfg))
+       (setq appmenu-auto-help-timer
+             (run-with-idle-timer appmenu-auto-help nil 'appmenu-as-help-in-timer))))
+
 
 ;;;###autoload
 (define-minor-mode appmenu-mode
@@ -289,7 +445,10 @@ context sensitive popup menus with commands from different major
 and minor modes. Using this different modes may cooperate about
 the use of popup menus.
 
-The popup menu is on these keys:
+There is also the command `appmenu-as-help' that shows the key
+bindings at current point in the help buffer.
+
+The popup menu and the help buffer version are on these keys:
 
 \\{appmenu-mode-map}
 
@@ -306,6 +465,9 @@ much about computation time as for entries in the menu bar."
   :global t
   :keymap appmenu-mode-map
   :group 'appmenu)
+(if appmenu-mode
+    (add-hook 'post-command-hook 'appmenu-auto-help-post-command nil t)
+  (remove-hook 'post-command-hook 'appmenu-auto-help-post-command t))
 (when (and appmenu-mode
            (not (boundp 'define-globa-minor-mode-bug)))
   (appmenu-mode 1))
