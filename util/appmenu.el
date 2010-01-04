@@ -240,7 +240,7 @@ point."
         (define-key map [appmenu-at-point-div]
           (list 'menu-item "--")))
       (define-key map [appmenu-at-point]
-        (list 'menu-item "At current point"
+        (list 'menu-item "Bound To Point"
               point-menu)))
     (setq map-len (appmenu-keymap-len map))
     (when (> map-len map-init-len)
@@ -281,6 +281,7 @@ point."
     (define-key map [mouse-3] 'appmenu-popup)
     map))
 
+;;;###autoload
 (define-minor-mode appmenu-mode
   "Use a context sensitive popup menu.
 AppMenu (appmenu.el) is a framework for creating cooperative
@@ -288,7 +289,9 @@ context sensitive popup menus with commands from different major
 and minor modes. Using this different modes may cooperate about
 the use of popup menus.
 
-By default the popup menu is on [apps] and [mouse-3].
+The popup menu is on these keys:
+
+\\{appmenu-mode-map}
 
 The variable `appmenu-alist' is where the popup menu entries
 comes from.

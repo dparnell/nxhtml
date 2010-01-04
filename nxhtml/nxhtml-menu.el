@@ -3,36 +3,14 @@
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 2007
 ;; Moved version to autostart.el.
-;; Last-Updated: 2009-11-18 Wed
+;; Last-Updated: 2010-01-04 Mon
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-  ;; `appmenu', `appmenu-fold', `apropos', `backquote', `button',
-  ;; `bytecomp', `cl', `comint', `compile', `css-color', `cus-edit',
-  ;; `cus-face', `cus-load', `cus-start', `dired', `easymenu',
-  ;; `ediff', `ediff-diff', `ediff-help', `ediff-init', `ediff-merg',
-  ;; `ediff-mult', `ediff-util', `ediff-wind', `ffip', `flymake',
-  ;; `flymake-js', `flymake-php', `flyspell', `fold-dwim', `foldit',
-  ;; `fupd', `gimpedit', `grep', `help-mode', `hideshow',
-  ;; `html-imenu', `html-pagetoc', `html-quote', `html-site',
-  ;; `html-toc', `html-upl', `ido', `ietf-drums', `imenu', `ispell',
-  ;; `loadhist', `mail-parse', `mail-prsvr', `mailcap', `mlinks',
-  ;; `mm-util', `mumamo', `nxhtml-mode', `nxml-enc', `nxml-glyph',
-  ;; `nxml-mode', `nxml-ns', `nxml-outln', `nxml-parse', `nxml-rap',
-  ;; `nxml-util', `ourcomments-util', `outline', `popcmp', `qp',
-  ;; `recentf', `rfc2045', `rfc2047', `rfc2231', `ring', `rng-dt',
-  ;; `rng-loc', `rng-match', `rng-nxml', `rng-parse', `rng-pttrn',
-  ;; `rng-uri', `rng-util', `rng-valid', `rngalt', `rx',
-  ;; `setup-helper', `sgml-mode', `tidy-xhtml', `time-date', `timer',
-  ;; `timezone', `tls', `tool-bar', `tree-widget', `typesetter',
-  ;; `udev', `udev-ecb', `udev-rinari', `url', `url-auth', `url-c',
-  ;; `url-cookie', `url-expand', `url-gw', `url-history', `url-http',
-  ;; `url-methods', `url-parse', `url-privacy', `url-proxy',
-  ;; `url-util', `url-vars', `view', `w32-reg-iface', `w32-regdat',
-  ;; `wid-edit', `xhtml-help', `xml', `xmltok'.
+;;   None
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -320,6 +298,11 @@
         (list 'menu-item "Rebind Some Keys" 'rebind-keys-mode
               :button '(:toggle . (and (boundp 'rebind-keys-mode)
                                        rebind-keys-mode))))
+      (define-key tools-map [nxhtml-appmenu]
+        (list 'menu-item "Context Sensitive AppMenu"
+              'appmenu-mode
+              :button '(:toggle . (and (boundp 'appmenu-mode)
+                                       appmenu-mode))))
       (define-key tools-map [nxhtml-menu-to-m-x]
         (list 'menu-item "Add Menu Commands to M-x history"
               'ourcomments-M-x-menu-mode
@@ -859,13 +842,6 @@
               :enable '(and (boundp 'mlinks-mode)
                             mlinks-mode)
               :help "Go to previous MLinks link"))
-
-;;       (define-key link-map [nxhtml-next-href]
-;;         (list 'menu-item "Next Link" 'nxhtml-next-href
-;;          :help "Go to next href field"))
-;;       (define-key link-map [nxhtml-prev-href]
-;;         (list 'menu-item "Previous Link" 'nxhtml-prev-href
-;;          :help "Go to previous href field"))
 
       (define-key map [nxhtml-link-map]
         (list 'menu-item "Links" link-map
