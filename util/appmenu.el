@@ -59,7 +59,7 @@
 (eval-when-compile (require 'help-mode))
 (eval-when-compile (require 'ourcomments-util nil t))
 (eval-when-compile (require 'mumamo nil t))
-(eval-when-compile (require 'mlinks nil t))
+;;(eval-when-compile (require 'mlinks nil t))
 
 ;;;###autoload
 (defgroup appmenu nil
