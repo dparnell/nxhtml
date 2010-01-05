@@ -345,9 +345,9 @@ If TEST is non-nil then do not download, just list the files."
         (fail-reason nil))
     (when dest-file (web-vcs-log url dest-file nil))
     (display-buffer "*Messages*")
-    (message "before url-copy-file %S" dl-file)
+    ;;(message "before url-copy-file %S" dl-file)
     (setq http-sts (web-vcs-url-copy-file url dl-file nil t)) ;; don't overwrite, keep time
-    (message "after  url-copy-file %S" dl-file)
+    ;;(message "after  url-copy-file %S" dl-file)
     (setq file-created (file-exists-p dl-file))
     (setq file-nonempty (< 0 (nth 7 (file-attributes dl-file)))) ;; file size 0
     (if (and file-created
@@ -385,8 +385,7 @@ Place the files under DL-DIR.
 The revision on the page URL should match DL-REVISION if this is non-nil.
 
 If TEST is non-nil then do not download, just list the files"
-  ;;(message "web-vcs-get-files-on-page-1 %s %s %s %s %s %s %s %s" vcs-rec url dl-root dl-relative file-mask recursive dl-revision test)
-  (web-vcs-message-with-face 'font-lock-comment-face "web-vcs-get-files-on-page-1 %S %S %S %S" url dl-root dl-relative file-mask)
+  ;;(web-vcs-message-with-face 'font-lock-comment-face "web-vcs-get-files-on-page-1 %S %S %S %S" url dl-root dl-relative file-mask)
   (let* ((files-href-regexp  (nth 2 vcs-rec))
          (dirs-href-regexp   (nth 3 vcs-rec))
          (file-name-regexp   (nth 4 vcs-rec))
@@ -1219,7 +1218,7 @@ Note: If your nXhtml is to old you can't use this function
               (dolist (file nxhtml-basic-files)
                 (let ((el-file (expand-file-name file dl-dir)))
                   ;; Fix-me: check age
-                  (message "maybe bytecomp %S" el-file)
+                  ;;(message "maybe bytecomp %S" el-file)
                   (when (boundp 'majmodpri-sort-after-load)
                     (message "majmodpri-sort-after-load =%S" majmodpri-sort-after-load))
                   (web-vcs-byte-compile-newer-file el-file nil)))))

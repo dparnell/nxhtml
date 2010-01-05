@@ -66,7 +66,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (appmenu-mode appmenu-add appmenu) "appmenu" "util/appmenu.el"
-;;;;;;  (19266 36393))
+;;;;;;  (19266 61866))
 ;;; Generated autoloads from util/appmenu.el
 (web-autoload-require 'appmenu 'lp (nxhtml-download-root-url nil) "util/appmenu" nxhtml-install-dir)
 
@@ -893,7 +893,7 @@ before applying.
 ;;;***
 
 ;;;### (autoloads (mlinks-global-mode mlinks-mode mlinks) "mlinks"
-;;;;;;  "util/mlinks.el" (19266 35806))
+;;;;;;  "util/mlinks.el" (19266 55427))
 ;;; Generated autoloads from util/mlinks.el
 (web-autoload-require 'mlinks 'lp (nxhtml-download-root-url nil) "util/mlinks" nxhtml-install-dir)
 
@@ -951,7 +951,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19264 27275))
+;;;;;;  (19266 53060))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp (nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir)
 
@@ -3740,7 +3740,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19265 42776))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19266 60332))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp (nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir)
 
@@ -3955,7 +3955,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;### (autoloads (nxhtml-maybe-download-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install web-vcs-get-files-from-root)
-;;;;;;  "web-vcs" "web-vcs.el" (19265 56239))
+;;;;;;  "web-vcs" "web-vcs.el" (19266 61254))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -4112,8 +4112,8 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19266 36502
-;;;;;;  500000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19266 61881
+;;;;;;  484000))
 
 ;;;***
 
