@@ -158,21 +158,25 @@
     (nxhtml-mode
      ((hion t)
       (fontify mlinks-html-fontify)
+      (goto mlinks-html-style-goto)
       )
      )
     (nxml-mode
      ((hion t)
       (fontify mlinks-html-fontify)
+      (goto mlinks-html-style-goto)
       )
      )
     (sgml-mode
      ((hion t)
       (fontify mlinks-html-fontify)
+      (goto mlinks-html-style-goto)
       )
      )
     (html-mode
      ((hion t)
       (fontify mlinks-html-fontify)
+      (goto mlinks-html-style-goto)
       )
      )
     )
@@ -216,10 +220,12 @@
 (defun mlinks-get-mode-value (which)
   (let* ((major major-mode)
          (mode-rec (assoc major mlinks-mode-functions)))
-    (while (and major
-                (not mode-rec))
-      (setq major (get major 'derived-mode-parent))
-      (setq mode-rec (assoc major mlinks-mode-functions)))
+    (catch 'mode-rec
+      (while (and major
+                  (not mode-rec))
+        (setq major (get major 'derived-mode-parent))
+        (setq mode-rec (assoc major mlinks-mode-functions))
+        (when mode-rec (throw 'mode-rec nil))))
     (when mode-rec
       (let* ((mode (car mode-rec))
              (funs-alist (cadr mode-rec))
@@ -767,6 +773,9 @@ Uses `switch-to-buffer-other-frame'."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;; nxhtml-mode ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun mlinks-html-style-goto ()
+  (mlinks-html-style-mode-fun t))
+
 (defvar mlinks-html-link-regexp
   ;; This value takes care of nxhtml-strval-mode (and is therefore a little bit incorrect ...)
   ;;"\\(?:^\\|[[:space:]]\\)\\(?:href\\|src\\)[[:space:]]*=[[:space:]]*\"\\([^<«\"]*\\)\""
@@ -786,6 +795,28 @@ Uses `switch-to-buffer-other-frame'."
               (0+ (not (any "\'"))))
              "'")))))
 
+(defun mlinks-html-style-mode-fun (goto)
+  (let (start
+        end
+        bounds)
+    (save-excursion
+      (forward-char)
+      (when (< 0 (skip-chars-forward "^\"'" (line-end-position)))
+        (forward-char)
+        (save-match-data
+          (when (looking-back
+                 mlinks-html-link-regexp
+                 (line-beginning-position -1))
+            (let ((which (if (match-beginning 1) 1 2)))
+              (setq start (1+ (match-beginning which)))
+              (setq end   (1- (match-end which))))
+            (setq bounds (cons start end))))))
+    (when start
+      (if (not goto)
+          bounds
+        (let ((href-val (buffer-substring-no-properties start end)))
+          (mlinks-html-href-act-on href-val))
+        t))))
 
 (defun mlink-check-file-to-edit (file)
   (assert (file-name-absolute-p file))
