@@ -66,7 +66,8 @@
 
 (eval-when-compile (require 'windmove))
 (eval-when-compile (require 'winsav nil t))
-(require 'ourcomments-widgets)
+(eval-when-compile (require 'ourcomments-widgets))
+(eval-when-compile (require 'ring))
 
 ;;; Custom variables
 
