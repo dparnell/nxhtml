@@ -49,10 +49,15 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'cus-edit))
+(eval-and-compile (require 'cus-edit))
 (eval-when-compile (require 'nxhtmlmaint nil t))
 (require 'advice)
 (require 'web-autoload nil t)
+
+;; Fix-me:
+(defvar nxhtml-menu:version) ;; silence compiler
+(defvar nxhtml-install-dir) ;; silence compiler
+(defvar nxhtml-autoload-web) ;; silence compiler
 
 ;; (require 'url)
 ;;(require 'url-parse)
@@ -298,24 +303,64 @@ If TEST is non-nil then do not download, just list the files."
                                      "  %i files updated (old versions renamed to *.moved)"
                                      moved))))))
 
-(defun web-vcs-url-copy-file-and-check (url dl-file)
+(defcustom web-vcs-log-file "~/.emacs.d/web-vcs-log.org"
+  "Log file for web-vcs."
+  :type 'file
+  :group 'web-vcs)
+
+(defun web-vcs-edit-log ()
+  "Open log file."
+  (interactive)
+  (find-file web-vcs-log-file))
+
+;; Fix-me: Add some package descriptor to log
+(defun web-vcs-log (url dl-file msg)
+  (unless (file-exists-p web-vcs-log-file)
+    (let ((dir (file-name-directory web-vcs-log-file)))
+      (unless (file-directory-p dir)
+        (make-directory dir))))
+  (with-current-buffer (find-file-noselect web-vcs-log-file)
+    (save-restriction
+      (widen)
+      (let ((today-entries (format-time-string "* %Y-%m-%d"))
+            (now (format-time-string "%H-%M-%S GMT" nil t)))
+        (goto-char (point-max))
+        (unless (re-search-backward (concat "^" today-entries) nil t)
+          (goto-char (point-max))
+          (insert "\n" today-entries "\n"))
+        (goto-char (point-max))
+        (when url
+          (insert "** Downloading file " now "\n"
+                  (format "   file [[file:%s][%s]]\n   from %s\n" dl-file dl-file url)
+           ))
+        (when msg (insert msg))
+      )
+    (basic-save-buffer)
+    )))
+
+(defun web-vcs-url-copy-file-and-check (url dl-file dest-file)
   (let ((http-sts nil)
         (file-created nil)
         (file-nonempty nil)
         (fail-reason nil))
+    (when dest-file (web-vcs-log url dest-file nil))
+    (display-buffer "*Messages*")
     (message "before url-copy-file %S" dl-file)
     (setq http-sts (web-vcs-url-copy-file url dl-file nil t)) ;; don't overwrite, keep time
     (message "after  url-copy-file %S" dl-file)
     (setq file-created (file-exists-p dl-file))
     (setq file-nonempty (< 0 (nth 7 (file-attributes dl-file)))) ;; file size 0
-    (unless (and file-created
-                 file-nonempty
-                 (memq http-sts '(200 201)))
+    (if (and file-created
+             file-nonempty
+             (memq http-sts '(200 201)))
+        (when dest-file (web-vcs-log nil nil "   Done.\n"))
       (setq fail-reason
             (cond
              (http-sts (format "HTTP %s" http-sts))
              (file-nonempty "File looks bad")
              (t "No file created")))
+      (unless dest-file (web-vcs-log url dl-file "TEMP FILE"))
+      (web-vcs-log nil nil (format "   *Failed:* %s\n" fail-reason))
       ;; Requires user attention and intervention
       (web-vcs-message-with-face 'web-vcs-red "Failed url-copy-file %s, %S %S" fail-reason url dl-file)
       (display-buffer "*Messages*")
@@ -372,7 +417,7 @@ If TEST is non-nil then do not download, just list the files"
     ;;   (web-vcs-message-with-face 'web-vcs-red "Failed url-copy-file %s %S %S t t" http-sts url temp-list-file)
     ;;   ;; Fix-me: better error handling
     ;;   (throw 'command-level nil))
-    (web-vcs-url-copy-file-and-check url temp-list-file)
+    (web-vcs-url-copy-file-and-check url temp-list-file nil)
     (with-temp-buffer
       (insert-file-contents temp-list-file)
       (delete-file temp-list-file)
@@ -447,7 +492,7 @@ If TEST is non-nil then do not download, just list the files"
             ;;   ;; Fix-me: better error handling
             ;;   (throw 'command-level nil))
 
-            (web-vcs-url-copy-file-and-check file-url temp-file)
+            (web-vcs-url-copy-file-and-check file-url temp-file file-dl-name)
             ;;(web-vcs-message-with-face 'font-lock-comment-face "Finished url-copy-file %S %S t t" file-url temp-file)
             (let* ((time-after-url-copy (current-time))
                    (old-exists (file-exists-p file-dl-name))
@@ -494,13 +539,16 @@ If TEST is non-nil then do not download, just list the files"
                             (find-file file-dl-name))
                         (select-window msg-win)
                         (find-file-other-window file-dl-name))
-                      (message "\n\n")
+                      (message "-")
+                      (message "")
                       (web-vcs-message-with-face
                        'secondary-selection
-                       (concat "Please check the downloaded file and then continue by doing any of"
+                       (concat "Please check the downloaded file and then continue by doing"
                                "\n    C-c C-c (or M-x exit-recursive-edit)"
-                               "\nOr, for no more breaks to check files do"
+                               "\n\nOr, for no more breaks to check files do"
                                "\n    C-c C-n (or M-x web-autoload-continue-no-stop)"
+                               "\n\nTo see the log file you can do"
+                               "\n    M-x web-vcs-edit-log"
                                "\n"))
                       (message "")
                       (with-selected-window msg-win
@@ -508,7 +556,14 @@ If TEST is non-nil then do not download, just list the files"
                       ;; Fix-me: put this on another key, emulation-mode-map-alist etc
                       (global-set-key [(control ?c)(control ?c)] 'exit-recursive-edit)
                       (global-set-key [(control ?c)(control ?n)] 'web-autoload-continue-no-stop)
-                      (recursive-edit)
+                      (let ((proceed nil))
+                        (while (not proceed)
+                          (condition-case err
+                              (catch 'top-level
+                                (recursive-edit)
+                                (setq proceed t))
+                            (error (message "%s" (error-message-string err))))))
+                      (display-buffer "*Messages*")
                       ))))
               (let* ((msg-win (get-buffer-window "*Messages*")))
                 (with-current-buffer "*Messages*"
@@ -1171,10 +1226,9 @@ Note: If your nXhtml is to old you can't use this function
           (let ((autostart-file (expand-file-name "autostart" dl-dir)))
             ;;(ad-deactivate 'require)
             (web-vcs-set&save-option 'nxhtml-autoload-web t)
-            (message "before load %S" autostart-file)
+            (web-vcs-log nil nil "* nXhtml: Download Part by Part as Needed\n")
             (load autostart-file)
             (unless (ad-is-active 'require) (ad-activate 'require))
-            (message "after load %S" autostart-file)
             (display-buffer "*Messages*")
             (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file t))))))))
 
@@ -1211,6 +1265,7 @@ For more information about auto download of nXhtml files see
     (if (not (y-or-n-p msg))
         (message "Aborted")
       (message "")
+      (web-vcs-log nil nil "* nXhtml: Download All\n")
       (setq message-log-max t)
       (let ((do-byte (y-or-n-p "Do you want to byte compile the files after downloading? ")))
         ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/322

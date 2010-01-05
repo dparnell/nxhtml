@@ -248,8 +248,15 @@
       (define-key help-map [nxhtml-help-separator2] (list 'menu-item "--"))
       (define-key help-map [nxhtml-byte-compile-nxhtml]
         (list 'menu-item "Byte Compile nXhtml" 'nxhtmlmaint-start-byte-compilation))
-      (define-key help-map [nxhtml-web-download]
-        (list 'menu-item "Update nXhtml (from devel sources)" 'nxhtml-setup-install))
+      ;; Downloads
+      (let ((download-map (make-sparse-keymap)))
+        (define-key help-map [nxhtml-downloading]
+          (list 'menu-item "Download nXhtml Updates" download-map))
+        (define-key download-map [nxhtml-web-download-log]
+          (list 'menu-item "View Download Log" 'web-vcs-edit-log))
+        (define-key download-map [nxhtml-web-download]
+          (list 'menu-item "Update nXhtml (from devel sources)" 'nxhtml-setup-install))
+        )
       (define-key help-map [nxhtml-features-check]
         (list 'menu-item "Check Optional Features" 'nxhtml-features-check))
       (define-key help-map [nxhtml-customize]
