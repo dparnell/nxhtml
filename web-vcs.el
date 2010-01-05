@@ -1208,22 +1208,20 @@ download the rest when you need them.
 Files will be downloaded under the directory root you specify in
 DL-DIR.
 
-If you already have nXhtml installed and loaded this function
-will only let you download to that directory.  In that case you
-can use this function to upgrade individual files.  Just delete
-them and they will be downloaded as you need them.  \(But beware
-that sometimes there might be problem because the files gets out
-of phase.  A future version will try to take care of this.)
+Note that files will not be upgraded automatically.  The auto
+downloading is just for files you are missing. (This may change a
+bit in the future.) If you want to upgrade those files that you
+have downloaded you can just call `nxhtml-update-existing-files'.
 
-You may switch by this mode of downloading or downloading the
-whole of nXhtml by once.  To switch just call the command
-`nxhtml-setup-install'.
+You can easily switch between this mode of downloading or
+downloading the whole of nXhtml by once.  To switch just call the
+command `nxhtml-setup-install'.
 
 See also the command `nxhtml-setup-download-all'.
 
 Note: If your nXhtml is to old you can't use this function
       directly.  You have to upgrade first, se the function
-      above."
+      above. Version 2.07 or above is good for this."
   (interactive (progn
                  (describe-function 'nxhtml-setup-auto-download)
                  (select-window (get-buffer-window (help-buffer)))
@@ -1255,7 +1253,8 @@ Note: If your nXhtml is to old you can't use this function
                             web-autoload-autocompile
                           t))
              (has-nxhtml (and (boundp 'nxhtml-install-dir)
-                              nxhtml-install-dir)))
+                              nxhtml-install-dir))
+             (web-vcs-folder-cache nil))
         (unless (file-exists-p dl-dir)
           (if (yes-or-no-p (format "Directory %S does not exist, create it? " dl-dir))
               (make-directory dl-dir t)
@@ -1301,10 +1300,15 @@ Note: If your nXhtml is to old you can't use this function
 (defun nxhtml-setup-download-all (dl-dir)
   "Download or update all of nXhtml.
 
-If you already have nXhtml installed you can update it with this
-command. If you want to update only certain files you can do so
-by switching \(maybe temporary) to automatic downloading with the
-command `nxhtml-setup-install'.
+You can download all if nXhtml with this command.
+
+To update existing files use `nxhtml-update-existing-files'.
+
+If you want to download only those files you are actually using
+then call `nxhtml-setup-auto-download' instead.
+
+See the command `nxhtml-setup-install' for a convenient way to
+call these commands.
 
 For more information about auto download of nXhtml files see
 `nxhtml-setup-auto-download'."
@@ -1350,7 +1354,8 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
          (files-url (concat base-url "files/"))
          ;;(revs-url  (concat base-url "changes/"))
          (rev-part (if revision (number-to-string revision) "head%3A/"))
-         (full-root-url (concat files-url rev-part)))
+         (full-root-url (concat files-url rev-part))
+         (web-vcs-folder-cache nil))
     (when (web-vcs-get-files-from-root 'lp full-root-url dl-dir)
       (web-vcs-set&save-option 'nxhtml-autoload-web nil)
       (when do-byte
@@ -1377,7 +1382,14 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
 ;;(directory-files default-directory nil "[^#~]$")
 (defun nxhtml-update-existing-files ()
   "Update existing nXhtml files from the development sources.
-Only files you already have will be updated."
+Only files you already have will be updated.
+
+Note that this works both if you have setup nXhtml to auto
+download files as you need them or if you have downloaded all of
+nXhtml at once.
+
+For more information about installing and updating nXhtml see the
+command `nxhtml-setup-install'."
   (interactive)
   ;; Fix-me: (not here). Cache the dir pages dynamically.
   (message "")
@@ -1433,8 +1445,9 @@ Only files you already have will be updated."
 	  (concat (file-relative-name (file-name-as-directory sub-dir)
 				      nxhtml-install-dir)
 		  files-regexp))
-    (web-vcs-get-missing-matching-files 'lp root-url nxhtml-install-dir
-					relative-files)))
+    (let ((web-vcs-folder-cache nil))
+      (web-vcs-get-missing-matching-files 'lp root-url nxhtml-install-dir
+                                          relative-files))))
 
 ;; Fix-me: Does not work, Emacs Bug
 ;; Maybe use wget? http://gnuwin32.sourceforge.net/packages/wget.htm
