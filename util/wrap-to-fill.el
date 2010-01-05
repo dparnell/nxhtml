@@ -44,6 +44,7 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'mumamo))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Wrapping

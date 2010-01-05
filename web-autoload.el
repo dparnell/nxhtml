@@ -178,6 +178,7 @@ directly, otherwise download it first."
          (active-file (car active-comp))
          (active-elc (byte-compile-dest-file active-file)))
     ;; Delete bytecomp buffers
+    (display-buffer "*Messages*")
     (web-vcs-message-with-face 'web-vcs-red "Trying to cleanup (%s %s %s)" bc-input-buffer bc-outbuffer active-elc)
     (when bc-input-buffer (kill-buffer bc-input-buffer))
     (when bc-outbuffer
@@ -301,12 +302,14 @@ This is used after inspecting downloaded elisp files."
                     ;; Return nil to tell there are no known problems
                     (if (file-exists-p elc-file)
                         nil
+                      (display-buffer "*Messages*")
                       (web-vcs-message-with-face
                        'web-vcs-red "Error: byte compiling did not produce %S" elc-file)
                       ;; Clean up before restart
                       (web-autoload-try-cleanup-after-failed-compile first-entry)
                       t))
                 (error
+                 (display-buffer "*Messages*")
                  (web-vcs-message-with-face
                   'web-vcs-red "Error in byte compiling %S: %s" el-file (error-message-string err))
                  ;; Clean up before restart

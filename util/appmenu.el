@@ -56,8 +56,10 @@
 
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'flyspell))
+(eval-when-compile (require 'help-mode))
 (eval-when-compile (require 'ourcomments-util nil t))
 (eval-when-compile (require 'mumamo nil t))
+(eval-when-compile (require 'mlinks nil t))
 
 ;;;###autoload
 (defgroup appmenu nil
@@ -247,13 +249,17 @@ Tip: This may be helpful if you are using `css-color-mode'."
       (help-setup-xref (list #'appmenu-as-help this-point) (interactive-p))
       (with-current-buffer (help-buffer)
         (let ((fmt " %s%15s     %-30s\n"))
-          (insert (propertize "AppMenu as Help\n\n" 'face 'font-lock-comment-face))
-          (insert (propertize (format fmt "" "Key" "Function") 'face 'font-lock-function-name-face))
-          (insert (propertize (format fmt "" "---" "--------") 'face 'font-lock-function-name-face))
+          (insert (propertize
+                   ;;"AppMenu: Keys found at point in buffer\n\n"
+                   (format "Appmenu: Key bindings specific to point %s in buffer %S\n\n"
+                           (+ 0 this-point)
+                           (when (markerp this-point)
+                             (buffer-name (marker-buffer this-point))))
+                   'face 'font-lock-comment-face))
           (if (not menu-here)
-              (insert (format "\n\nThere are no keys at point %s in buffer %S at the moment"
-                              (+ 0 this-point)
-                              (when (markerp this-point))))
+              (insert "\n\nThere are no point specific key bindings there now.")
+            (insert (propertize (format fmt "" "Key" "Function") 'face 'font-lock-function-name-face))
+            (insert (propertize (format fmt "" "---" "--------") 'face 'font-lock-function-name-face))
             (dolist (rec appmenu-funs)
             (let* ((lev (nth 0 rec))
                    (ev  (nth 1 rec))
@@ -262,16 +268,12 @@ Tip: This may be helpful if you are using `css-color-mode'."
                    (d1  (when doc (car (split-string doc "[\n]")))))
               (if fun
                   (insert (format fmt
-                                  "" ;;(make-string (* 4 lev) ?\ )
+                                  "" ;;(concat "*" (make-string (* 4 lev) ?\ ))
                                   (key-description (reverse ev))
                                   d1)
                           (if nil (format "(%s)" fun) ""))
                 ;;(insert (format "something else=%S\n" rec))
-                )))
-            (insert (format "\n\nThese keys are for point %s in buffer %S"
-                            (+ 0 this-point)
-                            (when (markerp this-point)
-                              (buffer-name (marker-buffer this-point)))))))))))
+                )))))))))
 
 
 (defun appmenu-map ()
@@ -375,10 +377,35 @@ This feature is only on in `appmenu-mode'."
            (remove-hook 'post-command-hook 'appmenu-auto-help-post-command t)))
   :group 'appmenu)
 
+(defcustom appmenu-auto-match-keymaps
+  '(css-color)
+  "Keymaps listed here can be avoided."
+  :type '(set (const unknown)
+              (const mlink)
+              (const css-color))
+  :group 'appmenu)
+
 (defvar appmenu-auto-help-timer nil)
 
-(defsubst appmenu-on-keymap (where)
-  (get-text-property (point) 'keymap))
+(defun appmenu-dump-keymap (km)
+  (let ((fun (lambda (ev def)
+               (message "ev=%S def=%S" ev def)
+               (when (keymapp def)
+                 (map-keymap fun def)))))
+    (map-keymap fun km)))
+
+(defun appmenu-on-keymap (where)
+  (setq where (or where (point)))
+  (let* ((rec (get-char-property-and-overlay where 'keymap))
+         (kmp (car rec))
+         (ovl (cdr rec)))
+    (when kmp
+      (or (memq 'unknown appmenu-auto-match-keymaps)
+          (and (memq 'mlinks appmenu-auto-match-keymaps)
+               (boundp 'mlinks-point-hilighter-overlay)
+               (eq ovl mlinks-point-hilighter-overlay))
+          (and (memq 'css-color appmenu-auto-match-keymaps)
+               (get-text-property where 'css-color-type))))))
 
 (defsubst appmenu-auto-help-add-wcfg (at-point wcfg)
   (mumamo-with-buffer-prepared-for-jit-lock
@@ -389,7 +416,7 @@ This feature is only on in `appmenu-mode'."
 (defsubst appmenu-auto-help-remove-wcfg (at-point)
   (mumamo-with-buffer-prepared-for-jit-lock
    (remove-list-of-text-properties at-point (1+ at-point)
-                                   '(css-color-wcfg point-left))))
+                                   '(appmenu-auto-help-wcfg point-left))))
 
 (defun appmenu-auto-help-maybe-remove (at-point new-point)
   "Run in 'point-left property.
@@ -403,9 +430,11 @@ Restores window configuration."
         (message "trying help-xref-go-back...")
         (help-xref-go-back (help-buffer))))))
 
-(defun appmenu-as-help-in-timer ()
+(defun appmenu-as-help-in-timer (win buf)
   (condition-case err
-      (when (and appmenu-auto-help
+      (when (and (eq (selected-window) win)
+                 (eq (current-buffer) buf)
+                 appmenu-auto-help
                  (appmenu-on-keymap (point)))
         (let* ((old-help-win (get-buffer-window (help-buffer)))
                (wcfg (unless old-help-win
@@ -434,7 +463,9 @@ Restores window configuration."
        (appmenu-on-keymap (point))
        (not (get-text-property (point) 'appmenu-auto-help-wcfg))
        (setq appmenu-auto-help-timer
-             (run-with-idle-timer appmenu-auto-help nil 'appmenu-as-help-in-timer))))
+             (run-with-idle-timer appmenu-auto-help nil 'appmenu-as-help-in-timer
+                                  (selected-window)
+                                  (current-buffer)))))
 
 
 ;;;###autoload
@@ -466,8 +497,8 @@ much about computation time as for entries in the menu bar."
   :keymap appmenu-mode-map
   :group 'appmenu
   (if appmenu-mode
-    (add-hook 'post-command-hook 'appmenu-auto-help-post-command nil t)
-    (remove-hook 'post-command-hook 'appmenu-auto-help-post-command t)))
+      (add-hook 'post-command-hook 'appmenu-auto-help-post-command)
+    (remove-hook 'post-command-hook 'appmenu-auto-help-post-command)))
 
 (when (and appmenu-mode
            (not (boundp 'define-globa-minor-mode-bug)))

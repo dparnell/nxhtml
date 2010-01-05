@@ -318,7 +318,9 @@ If TEST is non-nil then do not download, just list the files."
              (t "No file created")))
       ;; Requires user attention and intervention
       (web-vcs-message-with-face 'web-vcs-red "Failed url-copy-file %s, %S %S" fail-reason url dl-file)
-      (web-vcs-message-with-face 'web-vcs-yellow "Please retry what you did before!")
+      (display-buffer "*Messages*")
+      (message "\n")
+      (web-vcs-message-with-face 'web-vcs-yellow "\nPlease retry what you did before!\n\n")
       (throw 'command-level nil))))
 
 (defun web-vcs-get-files-on-page-1 (vcs-rec url dl-root dl-relative file-mask recursive dl-revision test)
@@ -392,6 +394,7 @@ If TEST is non-nil then do not download, just list the files"
         (setq this-page-revision (web-vcs-get-revision-from-url-buf vcs-rec (current-buffer) url)))
       (when dl-revision
         (unless (string= dl-revision this-page-revision)
+          (display-buffer "*Messages*")
           (web-vcs-message-with-face 'web-vcs-red "Revision on %S is %S, but should be %S"
                                      url this-page-revision dl-revision)
           (throw 'command-level nil)))
@@ -563,6 +566,7 @@ The buffer URL-BUF should contain the content on page URL."
       (goto-char (point-min))
       (if (not (re-search-forward revision-regexp nil t))
           (progn
+            (display-buffer "*Messages*")
             (web-vcs-message-with-face 'web-vcs-red "Can't find revision number on %S" url)
             (throw 'command-level nil))
         (match-string 1)))))
@@ -984,6 +988,7 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
   (require 'cus-edit)
   (if (not (condition-case nil (custom-file) (error nil)))
       (progn
+        (display-buffer "*Messages*")
         (message "\n\n")
         (web-vcs-message-with-face
          'web-vcs-red
@@ -1044,6 +1049,7 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
                           (delete-region start (point))
                           (insert (format "%S" full-to-load))
                           (basic-save-buffer))
+                      (display-buffer "*Messages*")
                       (web-vcs-message-with-face 'web-vcs-red "Can't continue then")
                       (throw 'command-level nil)))))))
           ;; At end of file
