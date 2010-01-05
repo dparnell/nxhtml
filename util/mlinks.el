@@ -380,7 +380,8 @@ Any command cancels this state."
 This moves the hilight point overlay to point or deletes it."
   ;; This runs in a timer, protect it.
   (condition-case err
-      (mlinks-point-hilighter-1)
+      (let ((inhibit-point-motion-hooks t))
+        (mlinks-point-hilighter-1))
     (error "mlinks-point-hilighter error: %s" (error-message-string err))))
 
 (defun mlinks-point-hilighter-1 ()
