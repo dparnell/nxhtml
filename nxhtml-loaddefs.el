@@ -66,7 +66,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (appmenu-mode appmenu-add appmenu) "appmenu" "util/appmenu.el"
-;;;;;;  (19265 55781))
+;;;;;;  (19266 36393))
 ;;; Generated autoloads from util/appmenu.el
 (web-autoload-require 'appmenu 'lp (nxhtml-download-root-url nil) "util/appmenu" nxhtml-install-dir)
 
@@ -307,7 +307,7 @@ Below are some examples.  To test them mark an example and do
 ;;;***
 
 ;;;### (autoloads (css-color-test css-color-global-mode css-color-mode
-;;;;;;  css-color) "css-color" "util/css-color.el" (19265 53460))
+;;;;;;  css-color) "css-color" "util/css-color.el" (19265 60063))
 ;;; Generated autoloads from util/css-color.el
 (web-autoload-require 'css-color 'lp (nxhtml-download-root-url nil) "util/css-color" nxhtml-install-dir)
 
@@ -570,7 +570,7 @@ Turn on `outline-minor-mode' and call `hide-body'.
 ;;;***
 
 ;;;### (autoloads (foldit-global-mode foldit-mode foldit) "foldit"
-;;;;;;  "util/foldit.el" (19262 52850))
+;;;;;;  "util/foldit.el" (19265 59154))
 ;;; Generated autoloads from util/foldit.el
 (web-autoload-require 'foldit 'lp (nxhtml-download-root-url nil) "util/foldit" nxhtml-install-dir)
 
@@ -893,7 +893,7 @@ before applying.
 ;;;***
 
 ;;;### (autoloads (mlinks-global-mode mlinks-mode mlinks) "mlinks"
-;;;;;;  "util/mlinks.el" (19265 39804))
+;;;;;;  "util/mlinks.el" (19266 35806))
 ;;; Generated autoloads from util/mlinks.el
 (web-autoload-require 'mlinks 'lp (nxhtml-download-root-url nil) "util/mlinks" nxhtml-install-dir)
 
@@ -3395,7 +3395,7 @@ Turn mode line colors on if ON is non-nil, otherwise off.
 
 ;;;### (autoloads (wrap-to-fill-column-mode wrap-to-fill-left-marg-modes
 ;;;;;;  wrap-to-fill-left-marg wrap-to-fill) "wrap-to-fill" "util/wrap-to-fill.el"
-;;;;;;  (19222 64342))
+;;;;;;  (19265 59135))
 ;;; Generated autoloads from util/wrap-to-fill.el
 (web-autoload-require 'wrap-to-fill 'lp (nxhtml-download-root-url nil) "util/wrap-to-fill" nxhtml-install-dir)
 
@@ -3955,7 +3955,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;### (autoloads (nxhtml-maybe-download-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install web-vcs-get-files-from-root)
-;;;;;;  "web-vcs" "web-vcs.el" (19265 55135))
+;;;;;;  "web-vcs" "web-vcs.el" (19265 56239))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -4112,8 +4112,8 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19265 55828
-;;;;;;  703000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19266 36502
+;;;;;;  500000))
 
 ;;;***
 

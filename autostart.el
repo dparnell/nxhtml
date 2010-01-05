@@ -63,6 +63,17 @@
 ;; emacs-uq-byte-compile-buffer
 ;;(nxhtml-byte-compile-file)
 ;; byte-compile-file
+(defun nxhtml-byte-recompile-file (file &optional load)
+  "Byte recompile FILE file if necessary.
+For more information see `nxhtml-byte-compile-file'.
+Loading is done if recompiled and LOAD is t."
+  (interactive (list (buffer-file-name)
+                     t))
+  (let ((elc-file (byte-compile-dest-file file)))
+    (if (file-newer-than-file-p file elc-file)
+        (nxhtml-byte-compile-file file load)
+      (message "Byte compilation of this file is up to date."))))
+
 (defun nxhtml-byte-compile-file (file &optional load)
   "Byte compile FILE in a new Emacs sub process.
 nXhtml subdirectories are added to the front of `load-path'

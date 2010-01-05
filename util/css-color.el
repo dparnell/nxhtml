@@ -398,7 +398,7 @@ point is at a hexadecimal colour:
     (css-color-mode -1)))
 
 (defvar css-color-map
-  (let ((m (make-sparse-keymap)))
+  (let ((m (make-sparse-keymap "css-color")))
     (define-key m "=" 'css-color-up)
     (define-key m "-" 'css-color-down)
     (define-key m "h" 'css-color-hue-up)
@@ -413,7 +413,7 @@ point is at a hexadecimal colour:
   "Mode map for `css-color-minor-mode'")
 
 (defvar css-color-generic-map
-  (let ((m (make-sparse-keymap)))
+  (let ((m (make-sparse-keymap "css-color")))
     (define-key m "=" 'css-color-num-up)
     (define-key m "-" 'css-color-num-down)
     (define-key m " " 'css-color-cycle-type)
