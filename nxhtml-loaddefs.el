@@ -87,7 +87,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `appmenu-mode'.")
 
-(nxhtml-custom-autoload 'appmenu-mode "appmenu" nil)
+(nxhtml-custom-autoload 'appmenu-mode 'appmenu nil)
 
 (nxhtml-autoload 'appmenu-mode `(lp ,(nxhtml-download-root-url nil) "util/appmenu" nxhtml-install-dir) "\
 Use a context sensitive popup menu.
@@ -171,7 +171,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `as-external-mode'.")
 
-(nxhtml-custom-autoload 'as-external-mode "as-external" nil)
+(nxhtml-custom-autoload 'as-external-mode 'as-external nil)
 
 (nxhtml-autoload 'as-external-mode `(lp ,(nxhtml-download-root-url nil) "util/as-external" nxhtml-install-dir) "\
 If non-nil check if Emacs is called as external editor.
@@ -333,7 +333,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `css-color-global-mode'.")
 
-(nxhtml-custom-autoload 'css-color-global-mode "css-color" nil)
+(nxhtml-custom-autoload 'css-color-global-mode 'css-color nil)
 
 (nxhtml-autoload 'css-color-global-mode `(lp ,(nxhtml-download-root-url nil) "util/css-color" nxhtml-install-dir) "\
 Toggle Css-Color mode in every possible buffer.
@@ -442,7 +442,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `css-palette-global-mode'.")
 
-(nxhtml-custom-autoload 'css-palette-global-mode "css-palette" nil)
+(nxhtml-custom-autoload 'css-palette-global-mode 'css-palette nil)
 
 (nxhtml-autoload 'css-palette-global-mode `(lp ,(nxhtml-download-root-url nil) "util/css-palette" nxhtml-install-dir) "\
 Toggle Css-Palette mode in every possible buffer.
@@ -541,7 +541,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `fold-dwim-mode'.")
 
-(nxhtml-custom-autoload 'fold-dwim-mode "fold-dwim" nil)
+(nxhtml-custom-autoload 'fold-dwim-mode 'fold-dwim nil)
 
 (nxhtml-autoload 'fold-dwim-mode `(lp ,(nxhtml-download-root-url nil) "util/fold-dwim" nxhtml-install-dir) "\
 Key binding for `fold-dwim-toggle'.
@@ -593,7 +593,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `foldit-global-mode'.")
 
-(nxhtml-custom-autoload 'foldit-global-mode "foldit" nil)
+(nxhtml-custom-autoload 'foldit-global-mode 'foldit nil)
 
 (nxhtml-autoload 'foldit-global-mode `(lp ,(nxhtml-download-root-url nil) "util/foldit" nxhtml-install-dir) "\
 Toggle Foldit mode in every possible buffer.
@@ -716,7 +716,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `hl-needed-mode'.")
 
-(nxhtml-custom-autoload 'hl-needed-mode "hl-needed" nil)
+(nxhtml-custom-autoload 'hl-needed-mode 'hl-needed nil)
 
 (nxhtml-autoload 'hl-needed-mode `(lp ,(nxhtml-download-root-url nil) "util/hl-needed" nxhtml-install-dir) "\
 Try to highlight current line and column when needed.
@@ -828,7 +828,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `inlimg-global-mode'.")
 
-(nxhtml-custom-autoload 'inlimg-global-mode "inlimg" nil)
+(nxhtml-custom-autoload 'inlimg-global-mode 'inlimg nil)
 
 (nxhtml-autoload 'inlimg-global-mode `(lp ,(nxhtml-download-root-url nil) "util/inlimg" nxhtml-install-dir) "\
 Toggle Inlimg mode in every possible buffer.
@@ -936,7 +936,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `mlinks-global-mode'.")
 
-(nxhtml-custom-autoload 'mlinks-global-mode "mlinks" nil)
+(nxhtml-custom-autoload 'mlinks-global-mode 'mlinks nil)
 
 (nxhtml-autoload 'mlinks-global-mode `(lp ,(nxhtml-download-root-url nil) "util/mlinks" nxhtml-install-dir) "\
 Toggle Mlinks mode in every possible buffer.
@@ -1485,7 +1485,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `better-fringes-mode'.")
 
-(nxhtml-custom-autoload 'better-fringes-mode "ourcomments-util" nil)
+(nxhtml-custom-autoload 'better-fringes-mode 'ourcomments-util nil)
 
 (nxhtml-autoload 'better-fringes-mode `(lp ,(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Choose another fringe bitmap color and bottom angle.
@@ -1587,7 +1587,7 @@ following way:
 Those keys are selected to at least be a little bit reminiscent
 of those in for example common web browsers.")
 
-(nxhtml-custom-autoload 'ourcomments-ido-ctrl-tab "ourcomments-util" nil)
+(nxhtml-custom-autoload 'ourcomments-ido-ctrl-tab 'ourcomments-util nil)
 
 (nxhtml-autoload 'emacs-restart `(lp ,(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Restart Emacs and start `server-mode' if on before.
@@ -1651,7 +1651,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `ourcomments-M-x-menu-mode'.")
 
-(nxhtml-custom-autoload 'ourcomments-M-x-menu-mode "ourcomments-util" nil)
+(nxhtml-custom-autoload 'ourcomments-M-x-menu-mode 'ourcomments-util nil)
 
 (nxhtml-autoload 'ourcomments-M-x-menu-mode `(lp ,(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Add commands started from Emacs menus to M-x history.
@@ -1705,7 +1705,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `pause-mode'.")
 
-(nxhtml-custom-autoload 'pause-mode "pause" nil)
+(nxhtml-custom-autoload 'pause-mode 'pause nil)
 
 (nxhtml-autoload 'pause-mode `(lp ,(nxhtml-download-root-url nil) "util/pause" nxhtml-install-dir) "\
 This minor mode tries to make you take a break!
@@ -1739,7 +1739,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `global-pointback-mode'.")
 
-(nxhtml-custom-autoload 'global-pointback-mode "pointback" nil)
+(nxhtml-custom-autoload 'global-pointback-mode 'pointback nil)
 
 (nxhtml-autoload 'global-pointback-mode `(lp ,(nxhtml-download-root-url nil) "util/pointback" nxhtml-install-dir) "\
 Toggle Pointback mode in every possible buffer.
@@ -1782,7 +1782,7 @@ See also the options `popcmp-short-help-beside-alts' and
 `popcmp-group-alternatives' which are also availabe when popup
 completion is available.")
 
-(nxhtml-custom-autoload 'popcmp-completion-style "popcmp" nil)
+(nxhtml-custom-autoload 'popcmp-completion-style 'popcmp nil)
 
 ;;;***
 
@@ -1801,7 +1801,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `rebind-keys-mode'.")
 
-(nxhtml-custom-autoload 'rebind-keys-mode "rebind" nil)
+(nxhtml-custom-autoload 'rebind-keys-mode 'rebind nil)
 
 (nxhtml-autoload 'rebind-keys-mode `(lp ,(nxhtml-download-root-url nil) "util/rebind" nxhtml-install-dir) "\
 Rebind keys as defined in `rebind-keys'.
@@ -1858,7 +1858,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `sex-mode'.")
 
-(nxhtml-custom-autoload 'sex-mode "sex-mode" nil)
+(nxhtml-custom-autoload 'sex-mode 'sex-mode nil)
 
 (nxhtml-autoload 'sex-mode `(lp ,(nxhtml-download-root-url nil) "util/sex-mode" nxhtml-install-dir) "\
 Open certain files in external programs.
@@ -1904,7 +1904,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `tabkey2-mode'.")
 
-(nxhtml-custom-autoload 'tabkey2-mode "tabkey2" nil)
+(nxhtml-custom-autoload 'tabkey2-mode 'tabkey2 nil)
 
 (nxhtml-autoload 'tabkey2-mode `(lp ,(nxhtml-download-root-url nil) "util/tabkey2" nxhtml-install-dir) "\
 More fun with Tab key number two (completion etc).
@@ -2098,7 +2098,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `vline-global-mode'.")
 
-(nxhtml-custom-autoload 'vline-global-mode "vline" nil)
+(nxhtml-custom-autoload 'vline-global-mode 'vline nil)
 
 (nxhtml-autoload 'vline-global-mode `(lp ,(nxhtml-download-root-url nil) "util/vline" nxhtml-install-dir) "\
 Display vertical line mode as globally.
@@ -2770,7 +2770,7 @@ For Smarty functions, see PDF or HTML documentation.
 (defvar php-file-patterns '("\\.php[s34]?\\'" "\\.phtml\\'" "\\.inc\\'") "\
 List of file patterns for which to automatically invoke `php-mode'.")
 
-(nxhtml-custom-autoload 'php-file-patterns "php-mode" nil)
+(nxhtml-custom-autoload 'php-file-patterns 'php-mode nil)
 
 (nxhtml-autoload 'php-mode `(lp ,(nxhtml-download-root-url nil) "related/php-mode" nxhtml-install-dir) "\
 Major mode for editing PHP code.
@@ -2806,7 +2806,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `global-mozadd-refresh-edited-on-save-mode'.")
 
-(nxhtml-custom-autoload 'global-mozadd-refresh-edited-on-save-mode "mozadd" nil)
+(nxhtml-custom-autoload 'global-mozadd-refresh-edited-on-save-mode 'mozadd nil)
 
 (nxhtml-autoload 'global-mozadd-refresh-edited-on-save-mode `(lp ,(nxhtml-download-root-url nil) "related/mozadd" nxhtml-install-dir) "\
 Toggle Mozadd-Refresh-Edited-On-Save mode in every possible buffer.
@@ -2840,7 +2840,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `global-mozadd-mirror-mode'.")
 
-(nxhtml-custom-autoload 'global-mozadd-mirror-mode "mozadd" nil)
+(nxhtml-custom-autoload 'global-mozadd-mirror-mode 'mozadd nil)
 
 (nxhtml-autoload 'global-mozadd-mirror-mode `(lp ,(nxhtml-download-root-url nil) "related/mozadd" nxhtml-install-dir) "\
 Toggle Mozadd-Mirror mode in every possible buffer.
@@ -3127,7 +3127,7 @@ run.
 Non-nil if Winsav-Save mode is enabled.
 See the command `winsav-save-mode' for a description of this minor mode.")
 
-(nxhtml-custom-autoload 'winsav-save-mode "winsav" nil)
+(nxhtml-custom-autoload 'winsav-save-mode 'winsav nil)
 
 (nxhtml-autoload 'winsav-save-mode `(lp ,(nxhtml-download-root-url nil) "util/winsav" nxhtml-install-dir) "\
 Toggle winsav configuration saving mode.
@@ -3408,12 +3408,12 @@ Used by `wrap-to-fill-column-mode'. If nil then center the
 display columns. Otherwise it should be a number which will be
 the left margin.")
 
-(nxhtml-custom-autoload 'wrap-to-fill-left-marg "wrap-to-fill" t)
+(nxhtml-custom-autoload 'wrap-to-fill-left-marg 'wrap-to-fill t)
 
 (defvar wrap-to-fill-left-marg-modes '(text-mode fundamental-mode) "\
 Major modes where `wrap-to-fill-left-margin' may be nil.")
 
-(nxhtml-custom-autoload 'wrap-to-fill-left-marg-modes "wrap-to-fill" t)
+(nxhtml-custom-autoload 'wrap-to-fill-left-marg-modes 'wrap-to-fill t)
 
 (nxhtml-autoload 'wrap-to-fill-column-mode `(lp ,(nxhtml-download-root-url nil) "util/wrap-to-fill" nxhtml-install-dir) "\
 Use `fill-column' display columns in buffer windows.
@@ -3510,7 +3510,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `nxml-where-global-mode'.")
 
-(nxhtml-custom-autoload 'nxml-where-global-mode "nxml-where" nil)
+(nxhtml-custom-autoload 'nxml-where-global-mode 'nxml-where nil)
 
 (nxhtml-autoload 'nxml-where-global-mode `(lp ,(nxhtml-download-root-url nil) "nxhtml/nxml-where" nxhtml-install-dir) "\
 Toggle Nxml-Where mode in every possible buffer.
@@ -3773,7 +3773,7 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `nxhtml-global-minor-mode'.")
 
-(nxhtml-custom-autoload 'nxhtml-global-minor-mode "nxhtml-menu" nil)
+(nxhtml-custom-autoload 'nxhtml-global-minor-mode 'nxhtml-menu nil)
 
 (nxhtml-autoload 'nxhtml-global-minor-mode `(lp ,(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir) "\
 Toggle Nxhtml minor mode in every possible buffer.
@@ -3955,7 +3955,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;### (autoloads (nxhtml-maybe-download-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install web-vcs-get-files-from-root)
-;;;;;;  "web-vcs" "web-vcs.el" (19266 61254))
+;;;;;;  "web-vcs" "web-vcs.el" (19266 65449))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -3974,6 +3974,9 @@ etc.
 (nxhtml-autoload 'nxhtml-setup-install `(lp ,(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir) "\
 Setup and start nXhtml installation.
 
+This is for setup and install directly from the nXhtml
+development sources.
+
 There are two different ways to do it:
 
   (1) Download all at once: `nxhtml-setup-download-all'
@@ -3989,6 +3992,11 @@ If you want to test auto download (but not use it further) there
 is a special function for that, you answer T here:
 
    (T) Test automatic download part by part: `nxhtml-setup-test-auto-download'
+
+======
+*Note*
+If you want to download a zip file with latest released version instead then
+please see URL `http://ourcomments.org/Emacs/nXhtml/doc/nxhtml.html'.
 
 \(fn WAY)" t nil)
 
@@ -4112,13 +4120,13 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19266 61881
-;;;;;;  484000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19267 4045
+;;;;;;  515000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19265 8091))
+;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19267 4008))
 ;;; Generated autoloads from nxhtmlmaint.el
 (web-autoload-require 'nxhtmlmaint 'lp (nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir)
 
