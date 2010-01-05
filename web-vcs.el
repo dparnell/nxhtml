@@ -1,3 +1,4 @@
+(setq debug-on-error t)
 ;;; web-vcs.el --- Download file trees from VCS web pages
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
@@ -199,7 +200,7 @@ Considers site-start.el, site-
 ;; (web-vcs-get-files-on-page 'lp "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/util/" t "temp" t)
 ;; (web-vcs-get-files-on-page 'lp "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/alts/" t "temp" t)
 
-(defvar web-vcs-folder-cache) ;; dyn var
+(defvar web-vcs-folder-cache nil) ;; dyn var
 (defun web-vcs-add-folder-cache (url buf)
   (add-to-list 'web-vcs-folder-cache (list url buf)))
 (defun web-vcs-ass-folder-cache (url)
@@ -568,7 +569,7 @@ If TEST is non-nil then do not download, just list the files"
               (switch-to-buffer old-buf-open)
               (when (y-or-n-p (format "Buffer %S is modified, save to make a backup? " dl-file-name))
                 (save-buffer))))
-          (if (web-vcs-equal-files dl-file-name temp-file)
+          (if (and dl-file-time (web-vcs-equal-files dl-file-name temp-file))
               (progn
                 (when url-file-time (set-file-times dl-file-name url-file-time))
                 (web-vcs-message-with-face 'web-vcs-green "File %S was ok" dl-file-name))
