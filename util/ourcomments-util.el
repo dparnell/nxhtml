@@ -1540,7 +1540,7 @@ function."
   (ido-mode (or ido-mode 'buffer)))
 
 ;;;###autoload
-(defcustom ourcomments-ido-ctrl-tab nil
+(define-minor-mode ourcomments-ido-ctrl-tab
   "Enable buffer switching using C-Tab with function `ido-mode'.
 This changes buffer switching with function `ido-mode' the
 following way:
@@ -1556,24 +1556,22 @@ following way:
 
 Those keys are selected to at least be a little bit reminiscent
 of those in for example common web browsers."
-  :type 'boolean
-  :set (lambda (sym val)
-         (set-default sym val)
-         (if val
-             (ourcomments-ido-ctrl-tab-activate)
-           (ad-disable-advice 'ido-visit-buffer 'before
-                              'ourcomments-advice-ido-visit-buffer)
-           (ad-disable-advice 'ido-mode 'after
-                              'ourcomments-advice-ido-mode)
-           ;; For some reason this little complicated construct is
-           ;; needed. If they are not there the defadvice
-           ;; disappears. Huh.
-           ;;(if ourcomments-ido-old-state
-           ;;    (ido-mode ourcomments-ido-old-state)
-           ;;  (when ido-mode (ido-mode -1)))
-           ))
+  :global t
   :group 'emacsw32
-  :group 'convenience)
+  :group 'convenience
+  (if ourcomments-ido-ctrl-tab
+      (ourcomments-ido-ctrl-tab-activate)
+    (ad-disable-advice 'ido-visit-buffer 'before
+                       'ourcomments-advice-ido-visit-buffer)
+    (ad-disable-advice 'ido-mode 'after
+                       'ourcomments-advice-ido-mode)
+    ;; For some reason this little complicated construct is
+    ;; needed. If they are not there the defadvice
+    ;; disappears. Huh.
+    ;;(if ourcomments-ido-old-state
+    ;;    (ido-mode ourcomments-ido-old-state)
+    ;;  (when ido-mode (ido-mode -1)))
+    ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; New Emacs instance

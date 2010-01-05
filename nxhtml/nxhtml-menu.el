@@ -254,6 +254,11 @@
           (list 'menu-item "Download nXhtml Updates" download-map))
         (define-key download-map [nxhtml-web-download-log]
           (list 'menu-item "View Download Log" 'web-vcs-edit-log))
+        (define-key download-map [nxhtml-web-auto-download]
+          (list 'menu-item "Autoload from Devel Sources"
+                'nxhtml-autoload-web
+                :button '(:toggle . (and (boundp 'nxhtml-autoload-web)
+                                         nxhtml-autoload-web))))
         (define-key download-map [nxhtml-web-download]
           (list 'menu-item "Update nXhtml (from devel sources)" 'nxhtml-setup-install))
         )
@@ -315,6 +320,11 @@
               'ourcomments-M-x-menu-mode
               :button '(:toggle . (and (boundp 'ourcomments-M-x-menu-mode)
                                        ourcomments-M-x-menu-mode))))
+      (define-key tools-map [nxhtml-ctrl-tab]
+        (list 'menu-item "Ctrl-TAB Buffer Switching"
+              'ourcomments-ido-ctrl-tab
+              :button '(:toggle . (and (boundp 'ourcomments-ido-ctrl-tab)
+                                       ourcomments-ido-ctrl-tab))))
 
       (define-key tools-map [nxhtml-folding-separator]
         (list 'menu-item "--" nil))
