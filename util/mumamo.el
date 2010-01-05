@@ -2550,9 +2550,7 @@ mumamo is used is this function."
       (mumamo-display-error 'mumamo-fontify-region
                             "Just changed major, should not happen")
     (mumamo-condition-case err
-        (let ((debugger 'mumamo-debug-to-backtrace)
-              (debug-on-error t))
-          (mumamo-fontify-region-1 start end verbose))
+        (mumamo-fontify-region-1 start end verbose)
       (error
        (mumamo-display-error 'mumamo-fontify-region "%s"
                              (error-message-string err))))))
@@ -2592,8 +2590,10 @@ CHUNK-MIN and CHUNK-MAX."
   (overlay-put chunk 'syntax-ppss-last  nil)
   (overlay-put chunk 'syntax-ppss-cache nil)
   (overlay-put chunk 'syntax-ppss-stats nil)
-  (mumamo-save-buffer-state nil
-    (remove-list-of-text-properties chunk-min chunk-max '(syntax-table))))
+  (save-restriction
+    (widen)
+    (mumamo-save-buffer-state nil
+      (remove-list-of-text-properties chunk-min chunk-max '(syntax-table)))))
 
 ;; Fix-me: If I open nxhtml-changes.html and then go to the bottom of
 ;; the file at once syntax-ppss seems to be upset. It is however cured
