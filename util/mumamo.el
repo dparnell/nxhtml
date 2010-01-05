@@ -2590,10 +2590,8 @@ CHUNK-MIN and CHUNK-MAX."
   (overlay-put chunk 'syntax-ppss-last  nil)
   (overlay-put chunk 'syntax-ppss-cache nil)
   (overlay-put chunk 'syntax-ppss-stats nil)
-  (save-restriction
-    (widen)
-    (mumamo-save-buffer-state nil
-      (remove-list-of-text-properties chunk-min chunk-max '(syntax-table)))))
+  (mumamo-save-buffer-state nil
+    (remove-list-of-text-properties chunk-min chunk-max '(syntax-table))))
 
 ;; Fix-me: If I open nxhtml-changes.html and then go to the bottom of
 ;; the file at once syntax-ppss seems to be upset. It is however cured
@@ -2725,7 +2723,7 @@ most major modes."
             ;;(msgtrc "chunk mumamo-border-face: %s" chunk)
             (mumamo-msgfntfy "mumamo-fontify-region-1, here=%s chunk-min=%s syn-mn/mx=%s/%s" here chunk-min syntax-min syntax-max)
             (when (<= here syntax-min)
-              (mumamo-flush-chunk-syntax chunk chunk-min chunk-max))
+              (mumamo-flush-chunk-syntax chunk syntax-min syntax-max))
             (when (and (<= here syntax-min)
                        (< chunk-min border-min))
               (put-text-property chunk-min border-min

@@ -204,7 +204,6 @@ point."
 (defvar appmenu-events) ;; dyn var
 
 (defun appmenu-keymap-map-fun (ev def)
-  ;;(message "%s %s" ev def)
   (if (keymapp def)
         (progn
           (add-to-list 'appmenu-funs (list appmenu-level ev))
@@ -401,11 +400,12 @@ This feature is only on in `appmenu-mode'."
          (ovl (cdr rec)))
     (when kmp
       (or (memq 'unknown appmenu-auto-match-keymaps)
+          (and (memq 'css-color appmenu-auto-match-keymaps)
+               (get-text-property where 'css-color-type))
           (and (memq 'mlinks appmenu-auto-match-keymaps)
                (boundp 'mlinks-point-hilighter-overlay)
                (eq ovl mlinks-point-hilighter-overlay))
-          (and (memq 'css-color appmenu-auto-match-keymaps)
-               (get-text-property where 'css-color-type))))))
+          ))))
 
 (defsubst appmenu-auto-help-add-wcfg (at-point wcfg)
   (mumamo-with-buffer-prepared-for-jit-lock
@@ -427,7 +427,6 @@ Restores window configuration."
         (appmenu-auto-help-add-wcfg new-point old-wcfg)
       (if old-wcfg
           (set-window-configuration old-wcfg)
-        (message "trying help-xref-go-back...")
         (help-xref-go-back (help-buffer))))))
 
 (defun appmenu-as-help-in-timer (win buf)
