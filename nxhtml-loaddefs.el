@@ -3097,8 +3097,8 @@ See `nxhtmlmaint-start-byte-compilation' for byte compiling.
 ;;;***
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
-;;;;;;  winsav winsav-put-window-tree) "winsav" "util/winsav.el"
-;;;;;;  (19235 10120))
+;;;;;;  winsav winsav-rotate winsav-put-window-tree) "winsav" "util/winsav.el"
+;;;;;;  (19267 20473))
 ;;; Generated autoloads from util/winsav.el
 (web-autoload-require 'winsav 'lp (nxhtml-download-root-url nil) "util/winsav" nxhtml-install-dir)
 
@@ -3120,6 +3120,24 @@ At the very end of this function the hook `winsav-after-put' is
 run.
 
 \(fn SAVED-TREE WINDOW &optional COPY-WIN-OVL WIN-OVL-ALL-BUFS)" nil nil)
+
+(nxhtml-autoload 'winsav-rotate `(lp ,(nxhtml-download-root-url nil) "util/winsav" nxhtml-install-dir) "\
+Rotate window configuration on selected frame.
+MIRROR should be either 'mirror-left-right, 'mirror-top-bottom or
+nil.  In the first case the window configuration is mirrored
+vertically and in the second case horizontally.  If MIRROR is nil
+the configuration is not mirrored.
+
+If TRANSPOSE is non-nil then the window structure is transposed
+along the diagonal from top left to bottom right (in analogy with
+matrix transosition).
+
+If called interactively MIRROR will is 'mirror-left-right by
+default, but 'mirror-top-bottom if called with prefix.  TRANSPOSE
+is t. This mean that the window configuration will be turned one
+quarter clockwise (or counter clockwise with prefix).
+
+\(fn MIRROR TRANSPOSE)" t nil)
 
 (let ((loads (get 'winsav 'custom-loads))) (if (member '"winsav" loads) nil (put 'winsav 'custom-loads (cons '"winsav" loads))))
 
@@ -3185,7 +3203,7 @@ See also option `winsav-save-mode' and command
 
 ;;;### (autoloads (winsize-set-mode-line-colors winsize-save-window-configuration
 ;;;;;;  winsize-balance-siblings resize-windows) "winsize" "util/winsize.el"
-;;;;;;  (19262 51273))
+;;;;;;  (19267 19589))
 ;;; Generated autoloads from util/winsize.el
 (web-autoload-require 'winsize 'lp (nxhtml-download-root-url nil) "util/winsize" nxhtml-install-dir)
 
@@ -3955,7 +3973,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;### (autoloads (nxhtml-maybe-download-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install web-vcs-get-files-from-root)
-;;;;;;  "web-vcs" "web-vcs.el" (19266 65449))
+;;;;;;  "web-vcs" "web-vcs.el" (19267 18382))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -4120,13 +4138,13 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19267 4045
-;;;;;;  515000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19267 20494
+;;;;;;  265000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19267 4008))
+;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19267 18720))
 ;;; Generated autoloads from nxhtmlmaint.el
 (web-autoload-require 'nxhtmlmaint 'lp (nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir)
 

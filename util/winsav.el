@@ -474,6 +474,7 @@ debugging by tells how far down we are in the call chain."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Window rotating and mirroring
 
+;;;###autoload
 (defun winsav-rotate (mirror transpose)
   "Rotate window configuration on selected frame.
 MIRROR should be either 'mirror-left-right, 'mirror-top-bottom or
