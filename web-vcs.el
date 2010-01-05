@@ -199,6 +199,16 @@ Considers site-start.el, site-
 ;; (web-vcs-get-files-on-page 'lp "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/util/" t "temp" t)
 ;; (web-vcs-get-files-on-page 'lp "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/alts/" t "temp" t)
 
+(defvar web-vcs-folder-cache) ;; dyn var
+(defun web-vcs-add-folder-cache (url buf)
+  (add-to-list 'web-vcs-folder-cache (list url buf)))
+(defun web-vcs-ass-folder-cache (url)
+  (assoc url web-vcs-folder-cache))
+(defun web-vcs-clear-folder-cache ()
+  (while web-vcs-folder-cache
+    (let ((ub (car web-vcs-folder-cache)))
+      (setq web-vcs-folder-cache (cdr web-vcs-folder-cache))
+      (kill (nth 1 ub)))))
 
 ;;;###autoload
 (defun web-vcs-get-files-from-root (web-vcs url dl-dir)
@@ -440,6 +450,7 @@ If TEST is non-nil then do not download, just list the files"
          (moved 0)
          (temp-file-base (expand-file-name "web-vcs-temp-list.tmp" dl-dir))
          temp-list-file
+         temp-list-buf
          http-sts)
     ;; Fix-me: It looks like there is maybe a bug in url-copy-file so
     ;; that it runs synchronously. Try to workaround the problem by
@@ -449,9 +460,13 @@ If TEST is non-nil then do not download, just list the files"
     (unless (file-directory-p dl-dir) (make-directory dl-dir t))
     ;;(message "TRACE: dl-dir=%S" dl-dir)
     (setq temp-list-file (make-temp-name temp-file-base))
-    (web-vcs-url-copy-file-and-check url temp-list-file nil)
-    (with-temp-buffer
-      (insert-file-contents temp-list-file)
+    (setq temp-list-buf (web-vcs-ass-folder-cache url))
+    (unless temp-list-buf
+      (setq temp-list-buf (generate-new-buffer "web-wcs-folder"))
+      (web-vcs-url-copy-file-and-check url temp-list-file nil)
+      (with-current-buffer temp-list-buf
+        (insert-file-contents temp-list-file)))
+    (with-current-buffer temp-list-buf
       (delete-file temp-list-file)
       ;;(find-file-noselect temp-list-file)
       (when dl-revision
@@ -511,7 +526,8 @@ If TEST is non-nil then do not download, just list the files"
     (list this-page-revision moved)))
 
 (defun web-vcs-download-files (vcs-rec files dl-dir dl-root file-mask)
-  (require 'hi-lock) (web-vcs-message-with-face 'hi-black-hb "%s %s" dl-dir file-mask)
+  ;;(require 'hi-lock) (web-vcs-message-with-face 'hi-black-hb "%s %s" dl-dir file-mask)
+  ;;(message "files=%S" files)
   (dolist (file (reverse files))
     (let* ((url-file          (nth 0 file))
            (url-file-time-str (nth 1 file))
@@ -525,6 +541,7 @@ If TEST is non-nil then do not download, just list the files"
            (file-rel-name (file-relative-name dl-file-name dl-root))
            (temp-file      (expand-file-name "web-vcs-temp.tmp"      dl-dir))
            temp-buf)
+      ;;(message "%s match=%s" file-rel-name (web-vcs-match-folderwise file-mask file-rel-name))
       (cond
        ((not (web-vcs-match-folderwise file-mask file-rel-name)))
        ;;((progn (message "url=%s    dl=%s   %s  %s" (current-time-string url-file-time) (current-time-string dl-file-time) dl-dir file-rel-name) nil))
@@ -551,9 +568,10 @@ If TEST is non-nil then do not download, just list the files"
               (switch-to-buffer old-buf-open)
               (when (y-or-n-p (format "Buffer %S is modified, save to make a backup? " dl-file-name))
                 (save-buffer))))
-          (if (and dl-file-time
-                   (web-vcs-equal-files dl-file-name temp-file))
-              (web-vcs-message-with-face 'web-vcs-green "File %S was ok" dl-file-name)
+          (if (web-vcs-equal-files dl-file-name temp-file)
+              (progn
+                (when url-file-time (set-file-times dl-file-name url-file-time))
+                (web-vcs-message-with-face 'web-vcs-green "File %S was ok" dl-file-name))
             (when dl-file-time
               (let ((backup (concat dl-file-name ".moved")))
                 (rename-file dl-file-name backup t)))
@@ -1357,32 +1375,45 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
 ;;(directory-files default-directory nil "\\el$")
 ;;(directory-files default-directory nil "[^#~]$")
 (defun nxhtml-update-existing-files ()
-  "Update existing nXhtml files from the development sources."
+  "Update existing nXhtml files from the development sources.
+Only files you already have will be updated."
   (interactive)
+  ;; Fix-me: (not here). Cache the dir pages dynamically.
+  (message "")
+  (web-vcs-message-with-face 'web-vcs-yellow "\n\nStarting updating your nXhtml files.\n\n")
   (let ((vcs 'lp)
         (base-url (nxhtml-download-root-url nil))
-        (dl-dir nxhtml-install-dir))
-    (nxhtml-update-existing-files-1 vcs base-url dl-dir dl-dir)))
+        (dl-dir nxhtml-install-dir)
+        web-vcs-folder-cache)
+    (setq dl-dir (file-name-as-directory dl-dir))
+    (nxhtml-update-existing-files-1 vcs base-url dl-dir dl-dir)
+    (web-vcs-clear-folder-cache))
+  (web-vcs-message-with-face 'web-vcs-yellow "\n\nFinished updating your nXhtml files.\n\n"))
 
 (defun nxhtml-update-existing-files-1 (vcs base-url dl-dir this-dir)
-  (let ((files-and-dirs (directory-files this-dir nil "[^#~]$"))
+  (let ((files-and-dirs (directory-files this-dir nil "\\(?:\\.elc\\|\\.moved\\|[^#~]\\)$"))
         files
         dirs
         (this-rel (file-relative-name this-dir dl-dir))
         file-mask)
+    (when (string= "./" this-rel) (setq this-rel ""))
     (dolist (df files-and-dirs)
       (if (and (file-directory-p df)
                (not (member df '("." ".."))))
           (setq dirs (cons df dirs))
         (setq files (cons df files))))
-    (setq file-mask (concat this-rel "/" (regexp-opt files)))
+    ;;(web-vcs-message-with-face 'hi-blue "this-rel=%S  %S %S" this-rel  dl-dir this-dir)
+    (setq file-mask (concat this-rel (regexp-opt files)))
+    ;;(web-vcs-message-with-face 'hi-blue "r=%S" file-mask)
     (web-vcs-get-missing-matching-files vcs base-url dl-dir file-mask)
     (dolist (d dirs)
-      (nxhtml-update-existing-files-1 vcs base-url dl-dir (expand-file-name d this-dir)))))
+      (nxhtml-update-existing-files-1 vcs base-url dl-dir
+                                      (file-name-as-directory
+                                       (expand-file-name d this-dir))))))
 
 
 ;;(nxhtml-maybe-download-files (expand-file-name "nxhtml/doc/img/" nxhtml-install-dir) nil)
-###autoload
+;;;###autoload
 (defun nxhtml-maybe-download-files (sub-dir file-name-list)
   (let (relative-files
         (root-url (nxhtml-download-root-url nil))
