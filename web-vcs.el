@@ -76,9 +76,33 @@
      ;; Comment:
      "http://www.launchpad.com/ uses this 2009-11-29 with Loggerhead 1.10 (generic?)"
      ;; Files URL regexp:
-     ,(rx "href=\""
-          (submatch (regexp ".*/download/[^\"]*"))
-          "\"")
+     ;;
+     ;; Extend this format to catch date/time too.
+     ;;
+     ;; ((patt (rx ...))
+     ;;  ;; use subexp numbers
+     ;;  (url 1)
+     ;;  (time 2)
+     ;;  (rev 3))
+
+     ((time 1)
+      (url 2)
+      (patt ,(rx "<td class=\"date\">"
+                 (submatch (regexp "[^<]*"))
+                 "</td>"
+                 (0+ space)
+                 "<td class=\"timedate2\">"
+                 (regexp ".+")
+                 "</td>"
+                 (*? (regexp ".\\|\n"))
+                 "href=\""
+                 (submatch (regexp ".*/download/[^\"]*"))
+                 "\"")))
+
+     ;; ,(rx "href=\""
+     ;;      (submatch (regexp ".*/download/[^\"]*"))
+     ;;      "\"")
+
      ;; Dirs URL regexp:
      ,(rx "href=\""
           (submatch (regexp ".*%3A/[^\"]*/"))
@@ -333,10 +357,8 @@ If TEST is non-nil then do not download, just list the files."
           (insert "** Downloading file " now "\n"
                   (format "   file [[file:%s][%s]]\n   from %s\n" dl-file dl-file url)
            ))
-        (when msg (insert msg))
-      )
-    (basic-save-buffer)
-    )))
+        (when msg (insert msg)))
+    (basic-save-buffer))))
 
 (defun web-vcs-url-copy-file-and-check (url dl-file dest-file)
   (let ((http-sts nil)
@@ -386,9 +408,10 @@ The revision on the page URL should match DL-REVISION if this is non-nil.
 
 If TEST is non-nil then do not download, just list the files"
   ;;(web-vcs-message-with-face 'font-lock-comment-face "web-vcs-get-files-on-page-1 %S %S %S %S" url dl-root dl-relative file-mask)
-  (let* ((files-href-regexp  (nth 2 vcs-rec))
+  (let* (
+         ;;(files-href-regexp  (nth 2 vcs-rec))
+         (files-matcher      (nth 2 vcs-rec))
          (dirs-href-regexp   (nth 3 vcs-rec))
-         (file-name-regexp   (nth 4 vcs-rec))
          (revision-regexp    (nth 5 vcs-rec))
          (dl-dir (file-name-as-directory (expand-file-name dl-relative dl-root)))
          (lst-dl-relative (web-vcs-file-name-as-list dl-relative))
@@ -398,42 +421,19 @@ If TEST is non-nil then do not download, just list the files"
          files
          suburls
          (moved 0)
-         (temp-file      (expand-file-name "web-vcs-temp.tmp"      dl-dir))
          (temp-file-base (expand-file-name "web-vcs-temp-list.tmp" dl-dir))
          temp-list-file
          http-sts)
-    ;; Fix-me: It looks like there is a bug in url-copy-file so that
-    ;; it runs synchronously. Try to workaround the problem by making
-    ;; a new file temp file name.
+    ;; Fix-me: It looks like there is maybe a bug in url-copy-file so
+    ;; that it runs synchronously. Try to workaround the problem by
+    ;; making a new file temp file name.
     (unless (file-directory-p dl-dir) (make-directory dl-dir t))
     (setq temp-list-file (make-temp-name temp-file-base))
-    ;; (message "before url-copy-file %S" temp-list-file)
-    ;; (setq http-sts (web-vcs-url-copy-file url temp-list-file t t)) ;; overwrite, keep time
-    ;; (message "after  url-copy-file %S" temp-list-file)
-    ;; (unless (and (file-exists-p temp-list-file)
-    ;;              (< 0 (nth 7 (file-attributes temp-list-file))) ;; file size 0
-    ;;              (memq http-sts '(200 201)))
-    ;;   (web-vcs-message-with-face 'web-vcs-red "Failed url-copy-file %s %S %S t t" http-sts url temp-list-file)
-    ;;   ;; Fix-me: better error handling
-    ;;   (throw 'command-level nil))
     (web-vcs-url-copy-file-and-check url temp-list-file nil)
     (with-temp-buffer
       (insert-file-contents temp-list-file)
       (delete-file temp-list-file)
-      ;; (set-visited-file-name nil t)
-      ;; (message "before (delete-file %S)" temp-list-file)
-      ;; (when (file-exists-p temp-list-file) (delete-file temp-list-file))
-      ;; (message "after  (delete-file %S)" temp-list-file)
-
-      ;; (goto-char (point-min))
-      ;; (unless (looking-at "HTTP/.* 200 OK\n")
-      ;;   (let ((status "Status unknown"))
-      ;;     (when (looking-at "HTTP/.* \\(.*\\)\n")
-      ;;       (setq status (match-string 1)))
-      ;;     (display-buffer url-buf)
-      ;;     (web-vcs-message-with-face 'web-vcs-red "Download error (%s): %S" status url))
-      ;;   (throw 'command-level nil))
-      ;; Get revision number
+      ;;(find-file-noselect temp-list-file)
       (when dl-revision
         (setq this-page-revision (web-vcs-get-revision-from-url-buf vcs-rec (current-buffer) url)))
       (when dl-revision
@@ -444,8 +444,13 @@ If TEST is non-nil then do not download, just list the files"
           (throw 'command-level nil)))
       ;; Find files
       (goto-char (point-min))
-      (while (re-search-forward files-href-regexp nil t)
-        (add-to-list 'files (match-string 1)))
+      (let ((files-href-regexp (nth 1 (assq 'patt files-matcher)))
+            (url-num           (nth 1 (assq 'url  files-matcher)))
+            (time-num          (nth 1 (assq 'time files-matcher))))
+        (while (re-search-forward files-href-regexp nil t)
+          (let ((file (match-string url-num))
+                (time (match-string time-num)))
+            (add-to-list 'files (list file time)))))
       ;; Find subdirs
       (when recursive
         (goto-char (point-min))
@@ -457,124 +462,7 @@ If TEST is non-nil then do not download, just list the files"
               (add-to-list 'suburls suburl)))))
       (kill-buffer))
     ;; Download files
-    (dolist (file (reverse files))
-      (let* ((file-url file)
-             (file-name (progn
-                          (when (string-match file-name-regexp file-url)
-                            (match-string 1 file-url))))
-             (lst-file-name (web-vcs-file-name-as-list file-name))
-             (file-dl-name (expand-file-name file-name dl-dir))
-             (file-rel-name (file-relative-name file-dl-name dl-root))
-             temp-buf
-             http-sts)
-        ;;(message "web-vcs-get-revision-from-url-buf: %S %S" file-mask file-rel-name)
-        (when (or (not file-mask)
-                  (web-vcs-match-folderwise file-mask file-rel-name))
-          ;;(message "matched %S" file-rel-name)
-          (if test
-              (progn
-                (message "TEST file-url=%S" file-url)
-                (message "TEST file-name=%S" file-name)
-                (message "TEST file-dl-name=%S" file-dl-name)
-                )
-            ;; Fix-me: Remove?
-            (while (setq temp-buf (find-buffer-visiting temp-file))
-              (set-buffer-modified-p nil)
-              (kill-buffer temp-buf))
-            ;;(web-vcs-message-with-face 'font-lock-comment-face "Starting url-copy-file %S %S t t" file-url temp-file)
-            (when (file-exists-p temp-file) (delete-file temp-file))
-            ;; (setq http-sts (web-vcs-url-copy-file file-url temp-file t t)) ;; overwrite, keep time
-            ;; (unless (and (file-exists-p temp-file)
-            ;;              (< 0 (nth 7 (file-attributes temp-file))) ;; file size 0
-            ;;              (memq http-sts '(200 201)))
-            ;;   (web-vcs-message-with-face 'web-vcs-red "Failed url-copy-file %s %S %S t t" http-sts file-url temp-file)
-            ;;   ;; Fix-me: better error handling
-            ;;   (throw 'command-level nil))
-
-            (web-vcs-url-copy-file-and-check file-url temp-file file-dl-name)
-            ;;(web-vcs-message-with-face 'font-lock-comment-face "Finished url-copy-file %S %S t t" file-url temp-file)
-            (let* ((time-after-url-copy (current-time))
-                   (old-exists (file-exists-p file-dl-name))
-                   (old-buf-open (find-buffer-visiting file-dl-name)))
-              (when old-buf-open
-                (when (buffer-modified-p old-buf-open)
-                  (save-excursion
-                    (switch-to-buffer old-buf-open)
-                    (when (y-or-n-p (format "Buffer %S is modified, save to make a backup? "
-                                            file-dl-name))
-                      (save-buffer)))))
-              (if (and old-exists
-                       (web-vcs-equal-files file-dl-name temp-file))
-                  (web-vcs-message-with-face 'web-vcs-green "File %S was ok" file-dl-name)
-                (when old-exists
-                  (let ((backup (concat file-dl-name ".moved")))
-                    (when (file-exists-p backup)
-                      (delete-file backup))
-                    (rename-file file-dl-name backup)))
-                ;;(web-vcs-message-with-face 'font-lock-comment-face "Doing rename-file %S %S" temp-file file-dl-name)
-                (rename-file temp-file file-dl-name)
-                (if old-exists
-                    (web-vcs-message-with-face 'hi-yellow "Updated %S" file-dl-name)
-                  (web-vcs-message-with-face 'web-vcs-green "Downloaded %S" file-dl-name))
-                (when old-buf-open
-                  (with-current-buffer old-buf-open
-                    (set-buffer-modified-p nil)
-                    (revert-buffer)))
-                ;; Fix-me: paranoid?
-                (when (and (boundp 'web-autoload-paranoid)
-                           web-autoload-paranoid)
-                  (save-window-excursion
-                    (let* ((comp-buf (get-buffer "*Compilation*"))
-                           (comp-win (and comp-buf
-                                          (get-buffer-window comp-buf)))
-                           (msg-win (get-buffer-window "*Messages*"))
-                           )
-                      (unless msg-win
-                        (display-buffer "*Messages*")
-                        (setq msg-win (get-buffer-window "*Messages*")))
-                      (if comp-win
-                          (progn
-                            (select-window comp-win)
-                            (find-file file-dl-name))
-                        (select-window msg-win)
-                        (find-file-other-window file-dl-name))
-                      (message "-")
-                      (message "")
-                      (web-vcs-message-with-face
-                       'secondary-selection
-                       (concat "Please check the downloaded file and then continue by doing"
-                               "\n    C-c C-c (or M-x exit-recursive-edit)"
-                               "\n\nOr, for no more breaks to check files do"
-                               "\n    C-c C-n (or M-x web-autoload-continue-no-stop)"
-                               "\n\nTo see the log file you can do"
-                               "\n    M-x web-vcs-edit-log"
-                               "\n"))
-                      (message "")
-                      (with-selected-window msg-win
-                        (goto-char (point-max)))
-                      ;; Fix-me: put this on another key, emulation-mode-map-alist etc
-                      (global-set-key [(control ?c)(control ?c)] 'exit-recursive-edit)
-                      (global-set-key [(control ?c)(control ?n)] 'web-autoload-continue-no-stop)
-                      (let ((proceed nil))
-                        (while (not proceed)
-                          (condition-case err
-                              (catch 'top-level
-                                (recursive-edit)
-                                (setq proceed t))
-                            (error (message "%s" (error-message-string err))))))
-                      (display-buffer "*Messages*")
-                      ))))
-              (let* ((msg-win (get-buffer-window "*Messages*")))
-                (with-current-buffer "*Messages*"
-                  (set-window-point msg-win (point-max))))
-              (redisplay t)
-              ;; This is both for user and remote server load.  Do not remove this.
-              (sit-for (- 1.0 (float-time (time-subtract (current-time) time-after-url-copy))))
-              ;; (unless old-buf-open
-              ;;   (when old-buf
-              ;;     (kill-buffer old-buf)))
-              )))
-        (redisplay t)))
+    (web-vcs-download-files vcs-rec files dl-dir dl-root file-mask)
     ;; Download subdirs
     (when suburls
       (dolist (suburl (reverse suburls))
@@ -596,11 +484,133 @@ If TEST is non-nil then do not download, just list the files"
                                                      (1+ recursive)
                                                      this-page-revision
                                                      test)))
-              (setq moved (+ moved (nth 1 ret)))
-              )))))
-    (list this-page-revision moved)
-    ))
+              (setq moved (+ moved (nth 1 ret))))))))
+    (list this-page-revision moved)))
 
+(defun web-vcs-download-files (vcs-rec files dl-dir dl-root file-mask)
+  (dolist (file (reverse files))
+    (let* ((file-url      (nth 0 file))
+           (file-time-str (nth 1 file))
+           (file-time     (date-to-time file-time-str))
+           (file-name-regexp   (nth 4 vcs-rec))
+           (file-name (progn
+                        (when (string-match file-name-regexp file-url)
+                          (match-string 1 file-url))))
+           (lst-file-name (web-vcs-file-name-as-list file-name))
+           (file-dl-name (expand-file-name file-name dl-dir))
+           (file-rel-name (file-relative-name file-dl-name dl-root))
+           (temp-file      (expand-file-name "web-vcs-temp.tmp"      dl-dir))
+           (old-file-mod-time (nth 5 (file-attributes file-dl-name)))
+           temp-buf
+           http-sts)
+      ;;(message "web-vcs-get-revision-from-url-buf: %S %S" file-mask file-rel-name)
+      (when (and (or (not file-mask)
+                     (web-vcs-match-folderwise file-mask file-rel-name))
+                 (or old-file-mod-time
+                     file-time-str
+                     (time-less-p (time-subtract old-file-mod-time (seconds-to-time 10))
+                                  file-time)
+                     (progn
+                       (message "Local file %s is newer or same age" file-rel-name)
+                       nil)))
+        (if test
+            (progn
+              (message "TEST file-url=%S" file-url)
+              (message "TEST file-name=%S" file-name)
+              (message "TEST file-dl-name=%S" file-dl-name)
+              )
+          ;; Avoid trouble with temp file
+          (while (setq temp-buf (find-buffer-visiting temp-file))
+            (set-buffer-modified-p nil) (kill-buffer temp-buf))
+          (when (file-exists-p temp-file) (delete-file temp-file))
+          ;;(web-vcs-message-with-face 'font-lock-comment-face "Starting url-copy-file %S %S t t" file-url temp-file)
+          (web-vcs-url-copy-file-and-check file-url temp-file file-dl-name)
+          ;;(web-vcs-message-with-face 'font-lock-comment-face "Finished url-copy-file %S %S t t" file-url temp-file)
+          (let* ((time-after-url-copy (current-time))
+                 (old-buf-open (find-buffer-visiting file-dl-name)))
+            (when old-buf-open
+              (when (buffer-modified-p old-buf-open)
+                (save-excursion
+                  (switch-to-buffer old-buf-open)
+                  (when (y-or-n-p (format "Buffer %S is modified, save to make a backup? "
+                                          file-dl-name))
+                    (save-buffer)))))
+            (if (and old-file-mod-time
+                     (web-vcs-equal-files file-dl-name temp-file))
+                (web-vcs-message-with-face 'web-vcs-green "File %S was ok" file-dl-name)
+              (when old-file-mod-time
+                (let ((backup (concat file-dl-name ".moved")))
+                  (when (file-exists-p backup)
+                    (delete-file backup))
+                  (rename-file file-dl-name backup)))
+              ;;(web-vcs-message-with-face 'font-lock-comment-face "Doing rename-file %S %S" temp-file file-dl-name)
+              (rename-file temp-file file-dl-name)
+              (if old-file-mod-time
+                  (web-vcs-message-with-face 'hi-yellow "Updated %S" file-dl-name)
+                (web-vcs-message-with-face 'web-vcs-green "Downloaded %S" file-dl-name))
+              (when old-buf-open
+                (with-current-buffer old-buf-open
+                  (set-buffer-modified-p nil)
+                  (revert-buffer)))
+              ;; Be paranoid and let user check here. I actually
+              ;; believe that is a very good thing here.
+              (web-vcs-be-paranoid file-dl-name))
+            (let* ((msg-win (get-buffer-window "*Messages*")))
+              (with-current-buffer "*Messages*"
+                (set-window-point msg-win (point-max))))
+            (redisplay t)
+            ;; This is both for user and remote server load.  Do not remove this.
+            (sit-for (- 1.0 (float-time (time-subtract (current-time) time-after-url-copy))))
+            ;; (unless old-buf-open
+            ;;   (when old-buf
+            ;;     (kill-buffer old-buf)))
+            )))
+      (redisplay t))))
+
+(defun web-vcs-be-paranoid (file-dl-name)
+  "Be paranoid and check FILE-DL-NAME."
+  (when (and (boundp 'web-autoload-paranoid)
+             web-autoload-paranoid)
+    (save-window-excursion
+      (let* ((comp-buf (get-buffer "*Compilation*"))
+             (comp-win (and comp-buf
+                            (get-buffer-window comp-buf)))
+             (msg-win (get-buffer-window "*Messages*"))
+             )
+        (unless msg-win
+          (display-buffer "*Messages*")
+          (setq msg-win (get-buffer-window "*Messages*")))
+        (if comp-win
+            (progn
+              (select-window comp-win)
+              (find-file file-dl-name))
+          (select-window msg-win)
+          (find-file-other-window file-dl-name))
+        (message "-")
+        (message "")
+        (web-vcs-message-with-face
+         'secondary-selection
+         (concat "Please check the downloaded file and then continue by doing"
+                 "\n    C-c C-c (or M-x exit-recursive-edit)"
+                 "\n\nOr, for no more breaks to check files do"
+                 "\n    C-c C-n (or M-x web-autoload-continue-no-stop)"
+                 "\n\nTo see the log file you can do"
+                 "\n    M-x web-vcs-edit-log"
+                 "\n"))
+        (message "")
+        (with-selected-window msg-win
+          (goto-char (point-max)))
+        ;; Fix-me: put this on another key, emulation-mode-map-alist etc
+        (global-set-key [(control ?c)(control ?c)] 'exit-recursive-edit)
+        (global-set-key [(control ?c)(control ?n)] 'web-autoload-continue-no-stop)
+        (let ((proceed nil))
+          (while (not proceed)
+            (condition-case err
+                (catch 'top-level
+                  (recursive-edit)
+                  (setq proceed t))
+              (error (message "%s" (error-message-string err))))))
+        (display-buffer "*Messages*")))))
 
 (defun web-vcs-get-revision-on-page (vcs-rec url)
   "Get revision number using VCS-REC on page URL.
@@ -841,6 +851,9 @@ Also put FACE on the message in *Messages* buffer."
 (defun nxhtml-setup-install (way)
   "Setup and start nXhtml installation.
 
+This is for setup and install directly from the nXhtml
+development sources.
+
 There are two different ways to do it:
 
   (1) Download all at once: `nxhtml-setup-download-all'
@@ -856,7 +869,11 @@ If you want to test auto download \(but not use it further) there
 is a special function for that, you answer T here:
 
    (T) Test automatic download part by part: `nxhtml-setup-test-auto-download'
-"
+
+======
+*Note*
+If you want to download a zip file with latest released version instead then
+please see URL `http://ourcomments.org/Emacs/nXhtml/doc/nxhtml.html'."
   (interactive (let ((curr-cfg (current-window-configuration)))
                  (list
                   (let* ((key nil)
@@ -1387,6 +1404,22 @@ when you have tested enough."
   (let ((this-dir (file-name-directory web-vcs-el-this)))
     (nxhtml-setup-auto-download this-dir)))
 
+(defun web-vcs-check-if-modified ()
+  (let (
+        (t1 (format-time-string "%Y-%m-%dT%T%z" (date-to-time "2010-01-01 18:20")))
+        (t2 (format-time-string "%Y-%m-%dT%T%z" (date-to-time "Mon, 28 Dec 2009 08:57:44 GMT")))
+        (url-request-extra-headers
+         (list
+          (cons "If-Modified-Since"
+                (format-time-string
+                 ;;"%Y-%m-%dT%T%z"
+                 "%a, %e %b %Y %H:%M:%S GMT"
+                 (nth 5 (file-attributes "c:/test/temp.el" )))
+                )))
+        xb)
+    (setq xb (url-retrieve-synchronously "http://www.emacswiki.org/emacs/download/anything.el"))
+    (switch-to-buffer xb)
+    ))
 ;;;;;; Start Testing function
 ;; (emacs-Q-no-nxhtml "web-vcs.el" "-f" "eval-buffer" "-f" "nxhtml-temp-setup-auto-download")
 ;; (emacs-Q-no-nxhtml "-l" "c:/test/d27/web-vcs" "-f" "nxhtml-temp-setup-auto-download")

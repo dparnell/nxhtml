@@ -176,10 +176,16 @@ Update nXhtml autoload file with them."
             (insert ")"))))
       ;; Fix defcustom autoloads
       (goto-char (point-min))
-      (let ((cus-auto "(custom-autoload "))
-        (while (search-forward cus-auto nil t)
-          (backward-char (1- (length cus-auto)))
-          (insert "nxhtml-")))
+      (let ((cus-auto "(\\(custom-autoload\\) +'.* +\\(\".*?\"\\)"))
+        (while (re-search-forward cus-auto nil t)
+          ;;(backward-char (1- (length cus-auto)))
+          ;;(insert "nxhtml-")
+          (let ((lib (match-string 2)))
+            ;; Change to symbol to fix autoloading. This works because
+            ;; custom-load-symbol does require on symbols.
+            (setq lib (concat "'" (substring lib 1 -1)))
+            (replace-match "nxhtml-custom-autoload" t t nil 1)
+            (replace-match lib t t nil 2))))
       ;; Fix autoload calls
       (goto-char (point-min))
       (let ((auto "(autoload "))
