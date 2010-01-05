@@ -158,12 +158,13 @@ them."
   :group 'nxhtml
   :group 'flymake)
 
-(defcustom nxhtml-autoload-web nil
-  "If t download files from web if necessary.
+(define-minor-mode nxhtml-autoload-web
+  "If on download files from web if necessary.
 If t then during `require' nXhtml files can be downloaded from
 the nXhtml repository on the web.  This will currently download
 the development sources, latest version."
-  :type 'boolean
+  :global t
+  :lighter " nX"
   :group 'nxhtml)
 
 (defun nxhtml-autoload (fun src &optional docstring interactive type)
