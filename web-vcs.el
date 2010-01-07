@@ -242,7 +242,8 @@ Before downloading offer to visit the page from which the
 downloading will be made.
 "
   (let ((vcs-rec (or (assq web-vcs web-vcs-links-regexp)
-                     (error "Does not know web-cvs %S" web-vcs))))
+                     (error "Does not know web-cvs %S" web-vcs)))
+        (web-autoload-paranoid t))
     (web-vcs-get-files-on-page-1 vcs-rec url dl-dir "" file-mask 0 nil nil)))
 
 (defun web-vcs-get-files-on-page (web-vcs url recursive dl-dir test)
@@ -526,6 +527,7 @@ If TEST is non-nil then do not download, just list the files"
               (setq moved (+ moved (nth 1 ret))))))))
     (list this-page-revision moved)))
 
+(defvar web-autoload-temp-file-prefix "TEMPORARY-WEB-AUTO-LOAD-")
 (defvar web-autoload-active-file-sub-url) ;; Dyn var, active during file download check
 (defun web-vcs-download-files (vcs-rec files dl-dir dl-root file-mask)
   ;;(require 'hi-lock) (web-vcs-message-with-face 'hi-black-hb "%s %s" dl-dir file-mask)
@@ -541,9 +543,10 @@ If TEST is non-nil then do not download, just list the files"
            (dl-file-name (expand-file-name url-file-rel-name dl-dir))
            (dl-file-time (nth 5 (file-attributes dl-file-name)))
            (file-rel-name (file-relative-name dl-file-name dl-root))
-           (temp-file      (expand-file-name "web-vcs-temp.tmp"      dl-dir))
+           (file-name (file-name-nondirectory dl-file-name))
+           (temp-file (expand-file-name (concat web-autoload-temp-file-prefix file-name) dl-dir))
            temp-buf)
-      (setq temp-file (concat temp-file "." (file-name-extension dl-file-name)))
+      ;;(setq temp-file (concat temp-file "." (file-name-extension dl-file-name)))
       ;;(message "%s match=%s" file-rel-name (web-vcs-match-folderwise file-mask file-rel-name))
       (cond
        ((not (web-vcs-match-folderwise file-mask file-rel-name)))
@@ -561,9 +564,9 @@ If TEST is non-nil then do not download, just list the files"
         (while (setq temp-buf (find-buffer-visiting temp-file))
           (set-buffer-modified-p nil) (kill-buffer temp-buf))
         (when (file-exists-p temp-file) (delete-file temp-file))
-        ;;(web-vcs-message-with-face 'font-lock-comment-face "Starting url-copy-file %S %S t t" url-file temp-file)
+        (web-vcs-message-with-face 'font-lock-comment-face "Starting url-copy-file %S %S t t" url-file temp-file)
         (web-vcs-url-copy-file-and-check url-file temp-file dl-file-name)
-        ;;(web-vcs-message-with-face 'font-lock-comment-face "Finished url-copy-file %S %S t t" url-file temp-file)
+        (web-vcs-message-with-face 'font-lock-comment-face "Finished url-copy-file %S %S t t" url-file temp-file)
         (let* ((time-after-url-copy (current-time))
                (old-buf-open (find-buffer-visiting dl-file-name)))
           (when (and old-buf-open (buffer-modified-p old-buf-open))
@@ -606,6 +609,36 @@ If TEST is non-nil then do not download, just list the files"
           )))
       (redisplay t))))
 
+;; fix-me: To emulation-mode-map
+;; Fix-me: put this on better keys
+(defvar web-vcs-paranoid-state-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(control ?c)(control ?c)] 'exit-recursive-edit)
+    (define-key map [(control ?c)(control ?n)] 'web-autoload-continue-no-stop)
+    (define-key map [(control ?c)(control ?r)] 'web-vcs-investigate-elisp-file)
+    (define-key map [(control ?c)(control ?q)] 'web-vcs-quit-auto-download)
+    map))
+
+(defun web-vcs-quit-auto-download ()
+  "Quit download process.
+This stops the current web autoload processing."
+  (interactive)
+  ;; Fix-me.
+  (when (y-or-n-p "Stop web autload processing? You can resume it later. ")
+    (web-vcs-message-with-face 'web-vcs-red
+                               "Stopped autoloading in process. It will be resumed when necessary again.")
+    (throw 'top-level 'web-autoload-stop)))
+
+(define-minor-mode web-vcs-paranoid-state-mode
+  "Mode used temporarily during user check of downloaded file.
+Do not turn on this yourself."
+  :lighter (concat " " (propertize "Download file check" 'face 'font-lock-warning-face))
+  :global t
+  :group 'web-vcs ;; If keymap changing through custom will be supported in the future...
+  (or (not web-vcs-paranoid-state-mode)
+      web-autoload-active-file-sub-url
+      (error "This mode can't be used when not downloading")))
+
 (defun web-vcs-be-paranoid (temp-file file-dl-name file-sub-url)
   "Be paranoid and check FILE-DL-NAME."
   (when (and (boundp 'web-autoload-paranoid)
@@ -635,35 +668,39 @@ If TEST is non-nil then do not download, just list the files"
                  "\n    C-c C-c (or M-x exit-recursive-edit)"
                  "\n\nOr, for no more breaks to check files do"
                  "\n    C-c C-n (or M-x web-autoload-continue-no-stop)"
+                 "\n\nTo stop the web autloading process for now do"
+                 "\n    C-c C-q (or M-x web-autoload-quit-download)"
                  "\n\nTo see the log file you can do"
                  "\n    M-x web-vcs-edit-log"
                  "\n"))
         (message "")
         (with-selected-window msg-win
           (goto-char (point-max)))
-        ;; Fix-me: put this on another key, emulation-mode-map-alist etc
-        (global-set-key [(control ?c)(control ?c)] 'exit-recursive-edit)
-        (global-set-key [(control ?c)(control ?n)] 'web-autoload-continue-no-stop)
-        (global-set-key [(control ?c)(control ?r)] 'web-vcs-investigate-elisp-file)
         (let ((proceed nil)
               (web-autoload-active-file-sub-url file-sub-url)) ;; Dyn var, active during file download check
           (while (not proceed)
             (condition-case err
-                (catch 'top-level
-                  ;; Fix-me: review file before rename!
-                  (setq header-line-format
-                        (propertize
-                         (format "Review for downloading. Continue: C-c C-c%s. Destination: %S"
-                                 (if (string= "el" (file-name-extension file-dl-name))
-                                     ", Check: C-c C-r"
-                                   "")
-                                 file-dl-name)
-                         'face 'web-vcs-red))
-                  (recursive-edit)
-                  (with-current-buffer temp-buf
-                    (set-buffer-modified-p nil)
-                    (kill-buffer temp-buf))
-                  (setq proceed t))
+                (when (eq 'web-autoload-stop
+                          (catch 'top-level
+                            ;; Fix-me: review file before rename!
+                            (setq header-line-format
+                                  (propertize
+                                   (format "Review for downloading. Continue: C-c C-c%s. Destination: %S"
+                                           (if (string= "el" (file-name-extension file-dl-name))
+                                               ", Check: C-c C-r"
+                                             "")
+                                           file-dl-name)
+                                   'face 'web-vcs-red))
+                            (unwind-protect
+                                (progn
+                                  (web-vcs-paranoid-state-mode 1)
+                                  (recursive-edit))
+                              (web-vcs-paranoid-state-mode -1))
+                            (with-current-buffer temp-buf
+                              (set-buffer-modified-p nil)
+                              (kill-buffer temp-buf))
+                            (setq proceed t)))
+                  (throw 'top-level t))
               (error (message "%s" (error-message-string err))))))
         (display-buffer "*Messages*")
         (select-window (get-buffer-window "*Messages*"))
@@ -1790,13 +1827,25 @@ command `nxhtml-setup-install'."
           (message "Buffer %s is not in emacs-lisp-mode" (buffer-name elisp)))
       (switch-to-buffer-other-window out-buf)
       (let ((inhibit-read-only t))
-        (set-buffer-modified-p nil)
         (erase-buffer)
+        (setq buffer-read-only t)
         (web-vcs-button-mode 1)
-        (insert "A quick look for problems in "
-                (if elisp-file
-                    (format "file\n    %S\n" elisp-file)
-                  (format "buffer %s\n" (buffer-name elisp))))
+        (insert "A quick look for problems in ")
+        (if elisp-file
+            (progn
+              (insert "file\n    ")
+              (insert-text-button elisp-file
+                                  'action
+                                  `(lambda (button)
+                                     (interactive)
+                                     (find-file-other-window ,elisp-file))))
+          (insert "buffer ")
+          (insert-text-button (buffer-name elisp)
+                              'action
+                              `(lambda (button)
+                                 (interactive)
+                                 (switch-to-buffer-other-window ,elisp))))
+        (insert "\n")
         (let ((here (point)))
           (insert
            "\n"
@@ -1816,22 +1865,36 @@ command `nxhtml-setup-install'."
           'face font-lock-comment-face))
         (web-vcs-investigate-read elisp out-buf)
         (when elisp-file
-          (insert "\n\n")
+          (insert "\n\n\n")
           (let ((here (point)))
             (insert "If you want to see what will actually be added to `load-history'"
                     " and which functions will be defined you can\n")
-            (insert-text-button "click here to eval the file"
+            (insert-text-button "click here to try to eval the file"
                                 'action `(lambda (button) (interactive)
                                            (if (y-or-n-p "Load the file in a batch Emacs session? ")
                                                (web-vcs-investigate-eval ,elisp-file ,out-buf)
                                              (message "Aborted"))))
-            (insert ". This will load the file in a batch Emacs"
-                    " (your normal setup files will be run) and send back that information."
-                    " Your current Emacs will not be affected,"
-                    " but please be aware that this does not mean your computer can not be.")
+            (insert ".\n\nThis will load the file in a batch Emacs"
+                    " which runs the same init files as you have run now"
+                    (cond
+                     ((not init-file-user) " (with -Q, ie no init files will run)")
+                     ((not site-run-file) " (with -q, ie .emacs will not furn)")
+                     (t " (your normal setup files will be run)"
+                      ))
+                    " and send back that information."
+                    " The variable `load-path' is set to match the downloading"
+                    " to make the loading possible before your setup is ready."
+                    "\n\nYour current Emacs will not be affected by the loading,"
+                    " but please be aware that this does not mean your computer can not be."
+                    " So please look at the file first.")
             (fill-region here (point))
+            (setq web-vcs-eval-output-start (point))
             ))
+        (set-buffer-modified-p nil)
         (goto-char (point-min))))))
+
+(defvar web-vcs-eval-output-start nil)
+(make-variable-buffer-local 'web-vcs-eval-output-start)
 
 ;;(web-vcs-investigate-eval "c:/emacsw32/nxhtml/nxhtml/nxhtml-autoload.el" "*Messages*")
 ;;(web-vcs-investigate-eval "c:/emacsw32/nxhtml/autostart.el" "*Messages*")
@@ -1848,13 +1911,34 @@ resulting load-history entry."
                                          load-history))))
                      (prin1 "STARTHERE\n")
                      (prin1 lhe)))
+         (elisp-file-name (file-name-sans-extension (file-name-nondirectory elisp-file)))
          (elisp-el-file (file-truename (concat (file-name-sans-extension elisp-file) ".el")))
+         (temp-prefix web-autoload-temp-file-prefix)
+         (temp-prefix-len (length temp-prefix))
+         (is-downloading (and (boundp 'web-autoload-paranoid)
+                              web-autoload-paranoid))
+         (is-temp-file (and is-downloading
+                            (< (length temp-prefix) (length elisp-file-name))
+                            (string= temp-prefix
+                                     (substring elisp-file-name 0 temp-prefix-len))))
+         (elisp-feature-name (if is-temp-file
+                                 (substring elisp-file-name temp-prefix-len)
+                               elisp-file-name))
          (is-same-file (lambda (file)
                          (when file ;; self protecting
                            (setq file (concat (file-name-sans-extension file) ".el"))
                            (string= (file-truename file) elisp-el-file))))
          whole-result
+         batch-error
          result)
+    (with-current-buffer out-buf
+      (let ((here (point))
+            (inhibit-read-only t))
+        (save-restriction
+          (widen)
+          (goto-char (point-max))
+          (delete-region web-vcs-eval-output-start (point)))
+        (goto-char here)))
     ;; Fix-me: do not use temp buffer so we can check errors
     (with-temp-buffer
       (let ((old-loadpath (getenv "EMACSLOADPATH"))
@@ -1866,12 +1950,19 @@ resulting load-history entry."
               (call-process emacs-exe nil
                             (current-buffer)
                             t "--batch"
-                            ;; "-Q" - should be run in the users environment.
+                            ;; fix-me: "-Q" - should be run in the users current environment.
+                            ;; init-file-user nil => -Q
+                            ;; site-run-file nil => -q
+                            (cond
+                             ((not init-file-user) "-Q")
+                             ((not site-run-file) "-q")
+                             (t "--debug-init")) ;; have to have something here...
                             "-l" elisp-file
                             elisp-file
                             "-eval" (format "%S" get-lhe)))
         (message "Loading file in batch Emacs... done, returned %S" ret-val)
         (setenv old-loadpath))
+      ;; Fix-me: how do you check the exit status on different platforms?
       (setq whole-result (buffer-substring-no-properties (point-min) (point-max)))
       (condition-case err
           (progn
@@ -1880,14 +1971,28 @@ resulting load-history entry."
             (search-forward "(")
             (backward-char)
             (setq result (read (current-buffer))))
-        (error (message "%S" whole-result)
-               (message "Error reading, see message buffer: %s" err))))
+        (error (message "")
+               ;; Process should probably have failed if we are here,
+               ;; but anyway... ;-)
+               (setq batch-error
+                     (concat "Sorry, batch Emacs failed. It returned this message:\n\n"
+                             whole-result
+                             (if is-downloading
+                                 (concat
+                                  "\n--------\n"
+                                  "The error may depend on that not all needed files are yet downloaded.\n")
+                               "\n")))
+               )))
     (with-current-buffer out-buf
       (let ((here (point))
             (inhibit-read-only t))
         (save-restriction
           (widen)
           (goto-char (point-max))
+          (if batch-error
+              (progn
+                (insert "\n\n")
+                (insert (propertize batch-error 'face 'web-vcs-red)))
           (insert (propertize "\n\nThis file added the following to `load-history':\n\n"
                               'face '(:height 1.5)))
           (insert "   (\"" (car result) "\"\n")
@@ -1907,9 +2012,8 @@ resulting load-history entry."
                    ;; symbol-file will be where it is loaded so check load-path instead.
                    (insert (cond
                             ((not (featurep (cdr e)))
-                             (if (string= (file-name-nondirectory
-                                           (file-name-sans-extension elisp-file))
-                                          (symbol-name (cdr e)))
+                             (if (or (string= elisp-feature-name
+                                              (symbol-name (cdr e))))
                                  (propertize "Not loaded now, matches file name" 'face 'web-vcs-green)
                                (propertize "Does not match file name" 'face 'web-vcs-red)))
                             (t
@@ -1922,18 +2026,20 @@ resulting load-history entry."
                   ((eq (car e) 'require)
                    (if (featurep (cdr e))
                        (insert "  - " (propertize "Loaded now" 'face 'web-vcs-green))
-                     (insert "  - " (propertize "Not loaded in now" 'face 'web-vcs-yellow))))
+                     (insert "  - " (propertize "Not loaded now" 'face 'web-vcs-yellow))))
                   ((memq (car e) '( defun macro))
                    (insert "  - ")
                    (insert (if (functionp (cdr e))
                                (let ((e-file (symbol-file e)))
+                                 ;; Fix-me: check for temp download file.
                                  (if (funcall is-same-file e-file)
                                      (propertize "Same file now" 'face 'web-vcs-green)
                                    (propertize (format "Loaded from %S now" e-file))))
                              (propertize "New" 'face 'web-vcs-yellow)))))
             (insert "\n"))
           (insert "    )\n")
-          (goto-char here))))))
+          (goto-char here))))
+      (set-buffer-modified-p nil))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Start Testing function
