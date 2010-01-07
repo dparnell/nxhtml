@@ -244,7 +244,8 @@ downloading will be made.
   (let ((vcs-rec (or (assq web-vcs web-vcs-links-regexp)
                      (error "Does not know web-cvs %S" web-vcs)))
         (web-autoload-paranoid t))
-    (web-vcs-get-files-on-page-1 vcs-rec url dl-dir "" file-mask 0 nil nil)))
+    (web-vcs-get-files-on-page-1 vcs-rec url dl-dir "" file-mask 0 nil nil)
+    (web-vcs-log-save)))
 
 (defun web-vcs-get-files-on-page (web-vcs url recursive dl-dir test)
   "Download files listed by WEB-VCS on web page URL.
@@ -344,10 +345,22 @@ If TEST is non-nil then do not download, just list the files."
   :type 'file
   :group 'web-vcs)
 
-(defun web-vcs-edit-log ()
+(defun web-vcs-log-edit ()
   "Open log file."
   (interactive)
   (find-file web-vcs-log-file))
+
+(defun web-vcs-log-save ()
+  (let ((log-buf (find-buffer-visiting web-vcs-log-file)))
+    (when (and log-buf (buffer-modified-p log-buf))
+      (with-current-buffer log-buf
+          (basic-save-buffer)))
+    log-buf))
+
+(defun web-vcs-log-close ()
+  (let ((log-buf (web-vcs-log-save)))
+    (when log-buf
+      (kill-buffer log-buf))))
 
 ;; Fix-me: Add some package descriptor to log
 (defun web-vcs-log (url dl-file msg)
@@ -530,8 +543,6 @@ If TEST is non-nil then do not download, just list the files"
 (defvar web-autoload-temp-file-prefix "TEMPORARY-WEB-AUTO-LOAD-")
 (defvar web-autoload-active-file-sub-url) ;; Dyn var, active during file download check
 (defun web-vcs-download-files (vcs-rec files dl-dir dl-root file-mask)
-  ;;(require 'hi-lock) (web-vcs-message-with-face 'hi-black-hb "%s %s" dl-dir file-mask)
-  ;;(message "files=%S" files)
   (dolist (file (reverse files))
     (let* ((url-file          (nth 0 file))
            (url-file-time-str (nth 1 file))
@@ -546,17 +557,12 @@ If TEST is non-nil then do not download, just list the files"
            (file-name (file-name-nondirectory dl-file-name))
            (temp-file (expand-file-name (concat web-autoload-temp-file-prefix file-name) dl-dir))
            temp-buf)
-      ;;(setq temp-file (concat temp-file "." (file-name-extension dl-file-name)))
-      ;;(message "%s match=%s" file-rel-name (web-vcs-match-folderwise file-mask file-rel-name))
       (cond
        ((not (web-vcs-match-folderwise file-mask file-rel-name)))
-       ;;((progn (message "url=%s    dl=%s   %s  %s" (current-time-string url-file-time) (current-time-string dl-file-time) dl-dir file-rel-name) nil))
        ((and dl-file-time
              url-file-time
              (time-less-p url-file-time
                           (time-add dl-file-time (seconds-to-time 1))))
-        ;; (current-time-string (current-time))
-        ;; (current-time-string (time-subtract (current-time) (seconds-to-time 1000)))
         (web-vcs-message-with-face 'web-vcs-green "Local file %s is newer or same age" file-rel-name))
        (test (progn (message "TEST url-file=%S" url-file) (message "TEST url-file-rel-name=%S" url-file-rel-name) (message "TEST dl-file-name=%S" dl-file-name) ))
        (t
@@ -627,6 +633,8 @@ This stops the current web autoload processing."
   (when (y-or-n-p "Stop web autload processing? You can resume it later. ")
     (web-vcs-message-with-face 'web-vcs-red
                                "Stopped autoloading in process. It will be resumed when necessary again.")
+    (web-vcs-log nil nil "User stopped autoloading")
+    (web-vcs-log-save)
     (throw 'top-level 'web-autoload-stop)))
 
 (define-minor-mode web-vcs-paranoid-state-mode
@@ -641,6 +649,7 @@ Do not turn on this yourself."
 
 (defun web-vcs-be-paranoid (temp-file file-dl-name file-sub-url)
   "Be paranoid and check FILE-DL-NAME."
+  (web-vcs-log-save)
   (when (and (boundp 'web-autoload-paranoid)
              web-autoload-paranoid)
     (save-window-excursion
@@ -671,7 +680,7 @@ Do not turn on this yourself."
                  "\n\nTo stop the web autloading process for now do"
                  "\n    C-c C-q (or M-x web-autoload-quit-download)"
                  "\n\nTo see the log file you can do"
-                 "\n    M-x web-vcs-edit-log"
+                 "\n    M-x web-vcs-log-edit"
                  "\n"))
         (message "")
         (with-selected-window msg-win
@@ -1353,7 +1362,8 @@ Note: If your nXhtml is to old you can't use this function
             (unless (ad-is-active 'require) (ad-activate 'require))
             (display-buffer "*Messages*")
             (select-window (get-buffer-window "*Messages*"))
-            (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file t))))))))
+            (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file t)))))))
+  (web-vcs-log-save))
 
 ;;(call-interactively 'nxhtml-download)
 ;;;###autoload
@@ -1399,7 +1409,8 @@ For more information about auto download of nXhtml files see
           ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/322
           ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/"
           (nxhtml-download-1 dl-dir nil do-byte)
-          )))))
+          ))))
+  (web-vcs-log-save))
 
 
 (defun nxhtml-download-1 (dl-dir revision do-byte)
@@ -1461,7 +1472,8 @@ command `nxhtml-setup-install'."
     (setq dl-dir (file-name-as-directory dl-dir))
     (nxhtml-update-existing-files-1 vcs base-url dl-dir dl-dir)
     (web-vcs-clear-folder-cache))
-  (web-vcs-message-with-face 'web-vcs-yellow "\n\nFinished updating your nXhtml files.\n\n"))
+  (web-vcs-message-with-face 'web-vcs-yellow "\n\nFinished updating your nXhtml files.\n\n")
+  (web-vcs-log-save))
 
 (defun nxhtml-update-existing-files-1 (vcs base-url dl-dir this-dir)
   (let ((files-and-dirs (directory-files this-dir nil "\\(?:\\.elc\\|\\.moved\\|[^#~]\\)$"))
@@ -1518,7 +1530,7 @@ command `nxhtml-setup-install'."
   (let* ((all-rev-url "http://code.launchpad.net/%7Enxhtml/nxhtml/main")
          (url-buf (url-retrieve-synchronously all-rev-url))
          (vcs-rec (or (assq 'lp web-vcs-links-regexp)
-                      (error "Does not know web-cvs 'lp")))
+                      (error "Does not know web-vcs 'lp")))
          (rel-ver-regexp (nth 6 vcs-rec))
          )
     (message "%S" url-buf)
@@ -1928,6 +1940,7 @@ resulting load-history entry."
                          (when file ;; self protecting
                            (setq file (concat (file-name-sans-extension file) ".el"))
                            (string= (file-truename file) elisp-el-file))))
+         (active-sub-url (file-name-sans-extension web-autoload-active-file-sub-url))
          whole-result
          batch-error
          result)
@@ -1998,44 +2011,65 @@ resulting load-history entry."
           (insert "   (\"" (car result) "\"\n")
           (dolist (e (cdr result))
             (insert (format "    %S" e))
-            (cond ((stringp e))
+            (cond ((stringp e)) ;; Should not happen...
+                  ;; Variables
                   ((symbolp e)
                    (insert "  - ")
-                   (insert (if (boundp e)
-                               (let ((e-file (symbol-file e)))
-                                 (if (funcall is-same-file e-file)
-                                     (propertize "Same file now" 'face 'web-vcs-green)
-                                   (propertize (format "Loaded from %S now" e-file))))
-                             (propertize "New" 'face 'web-vcs-yellow))))
+                   (insert (if (not (boundp e))
+                               (propertize "New" 'face 'web-vcs-yellow)
+                             (let ((e-file (symbol-file e)))
+                               (if (funcall is-same-file e-file)
+                                   (propertize "Same file now" 'face 'web-vcs-green)
+                                 (let* ((fun-web-auto (get e 'web-autoload))
+                                        (fun-sub-url (nth 2 fun-web-auto)))
+                                   (if (and fun-sub-url
+                                            (string= fun-sub-url active-sub-url))
+                                       (propertize "Web download, matches current download"
+                                                   'face 'web-vcs-yellow)
+                                     (propertize (format "Loaded from %S now" e-file)
+                                                 'face 'web-vcs-red))))))))
+                  ;; provide
                   ((eq (car e) 'provide)
                    (insert "  - ")
-                   ;; symbol-file will be where it is loaded so check load-path instead.
-                   (insert (cond
-                            ((not (featurep (cdr e)))
-                             (if (or (string= elisp-feature-name
-                                              (symbol-name (cdr e))))
-                                 (propertize "Not loaded now, matches file name" 'face 'web-vcs-green)
-                               (propertize "Does not match file name" 'face 'web-vcs-red)))
-                            (t
-                             (let* ((str-feat (symbol-name (cdr e)))
-                                    (file (locate-library str-feat)))
-                               (if (funcall is-same-file file)
-                                   (propertize "Probably loaded from same file now" 'face 'web-vcs-green)
-                                 (propertize (format "Probably loaded from %S now" file)
-                                             'face 'web-vcs-yellow)))))))
+                   (let* ((feat (car e))
+                          (feat-name (symbol-name feat)))
+                     (insert (cond
+                              ((not (featurep feat))
+                               (if (or (string= elisp-feature-name
+                                                (symbol-name (cdr e))))
+                                   (propertize "Web download, matches file name" 'face 'web-vcs-yellow)
+                                 (propertize "Does not match file name" 'face 'web-vcs-red)))
+                              (t
+                               ;; symbol-file will be where it is loaded
+                               ;; so check load-path instead.
+                               (let ((file (locate-library feat-name)))
+                                 (if (funcall is-same-file file)
+                                     (propertize "Probably loaded from same file now" 'face 'web-vcs-green)
+                                   (propertize (format "Probably loaded from %S now" file)
+                                               'face 'web-vcs-yellow))))))))
+                  ;; require
                   ((eq (car e) 'require)
                    (if (featurep (cdr e))
                        (insert "  - " (propertize "Loaded now" 'face 'web-vcs-green))
                      (insert "  - " (propertize "Not loaded now" 'face 'web-vcs-yellow))))
+                  ;; Functions
                   ((memq (car e) '( defun macro))
                    (insert "  - ")
-                   (insert (if (functionp (cdr e))
-                               (let ((e-file (symbol-file e)))
-                                 ;; Fix-me: check for temp download file.
-                                 (if (funcall is-same-file e-file)
-                                     (propertize "Same file now" 'face 'web-vcs-green)
-                                   (propertize (format "Loaded from %S now" e-file))))
-                             (propertize "New" 'face 'web-vcs-yellow)))))
+                   (let ((fun (cdr e)))
+                     (insert (if (functionp fun)
+                                 (let ((e-file (symbol-file e)))
+                                   (if (funcall is-same-file e-file)
+                                       (propertize "Same file now" 'face 'web-vcs-green)
+                                     (let* ((fun-web-auto (get fun 'web-autoload))
+                                            (fun-sub-url (nth 2 fun-web-auto)))
+                                       ;; Fix-me: check for temp download file.
+                                       (if (string= fun-sub-url active-sub-url)
+                                           (propertize "Web download, matches current download"
+                                                       'face 'web-vcs-yellow)
+                                         (propertize (format "Loaded from %S now" e-file)
+                                                     'face web-vcs-yellow)))))
+                               ;; Note that web autoloaded functions are already defined.
+                               (propertize "New" 'face 'web-vcs-yellow))))))
             (insert "\n"))
           (insert "    )\n")
           (goto-char here))))
