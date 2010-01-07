@@ -1760,8 +1760,8 @@ See `pointback-mode' for more information on Pointback mode.
 
 ;;;***
 
-;;;### (autoloads (popcmp-completion-style popcmp) "popcmp" "util/popcmp.el"
-;;;;;;  (19262 50379))
+;;;### (autoloads (popcmp-completing-read popcmp-completion-style
+;;;;;;  popcmp) "popcmp" "util/popcmp.el" (19269 61161))
 ;;; Generated autoloads from util/popcmp.el
 (web-autoload-require 'popcmp 'lp (nxhtml-download-root-url nil) "util/popcmp" nxhtml-install-dir)
 
@@ -1792,6 +1792,30 @@ See also the options `popcmp-short-help-beside-alts' and
 completion is available.")
 
 (nxhtml-custom-autoload 'popcmp-completion-style 'popcmp nil)
+
+(nxhtml-autoload 'popcmp-completing-read `(lp ,(nxhtml-download-root-url nil) "util/popcmp" nxhtml-install-dir) "\
+Read a string in the minubuffer with completion, or popup a menu.
+This function can be used instead `completing-read'. The main
+purpose is to provide a popup style menu for completion when
+completion is tighed to text at point in a buffer. If a popup
+menu is used it will be shown at window point. Whether a popup
+menu or minibuffer completion is used is governed by
+`popcmp-completion-style'.
+
+The variables PROMPT, TABLE, PREDICATE, REQUIRE-MATCH,
+INITIAL-INPUT, POP-HIST, DEF and INHERIT-INPUT-METHOD all have the
+same meaning is for `completing-read'.
+
+ALT-HELP should be nil or a hash variable or an association list
+with the completion alternative as key and a short help text as
+value.  You do not need to supply help text for all alternatives.
+The use of ALT-HELP is set by `popcmp-short-help-beside-alts'.
+
+ALT-SETS should be nil or an association list that has as keys
+groups and as second element an alternative that should go into
+this group.
+
+\(fn PROMPT TABLE &optional PREDICATE REQUIRE-MATCH INITIAL-INPUT POP-HIST DEF INHERIT-INPUT-METHOD ALT-HELP ALT-SETS)" nil nil)
 
 ;;;***
 
@@ -3983,7 +4007,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;### (autoloads (web-vcs-investigate-elisp-file nxhtml-maybe-download-files
 ;;;;;;  nxhtml-setup-download-all nxhtml-setup-auto-download nxhtml-setup-install
 ;;;;;;  web-vcs-get-files-from-root) "web-vcs" "web-vcs.el" (19269
-;;;;;;  32821))
+;;;;;;  60749))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -4160,8 +4184,8 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19269 32866
-;;;;;;  281000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19269 61187
+;;;;;;  62000))
 
 ;;;***
 

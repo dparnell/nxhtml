@@ -286,7 +286,7 @@ This is used after inspecting downloaded elisp files."
          (load (cdr first-entry))
          (elc-file (byte-compile-dest-file el-file))
          (need-compile (or (not (file-exists-p elc-file))
-                           (file-newer-than-file-p file elc-file))))
+                           (file-newer-than-file-p el-file elc-file))))
     (if (not need-compile)
         nil ;;(when load (load elc-file))
       (web-autoload-do-eval-requires el-file)
@@ -388,29 +388,26 @@ This is used after inspecting downloaded elisp files."
             (if (not auto-rec)
                 ad-do-it
               (let* ((full-el      (concat (expand-file-name relative-url base-dir) ".el"))
-                     (full-elc     (byte-compile-dest-file full-el)))
-                (if (not auto-rec)
-                    (progn
-                      (message "Doing nearly original require %s, because no auto-rec" feature)
-                      ad-do-it)
-                  (web-vcs-message-with-face 'web-vcs-gold "Doing the really adviced require for %s" feature)
-                  ;; Check if already downloaded first
-                  (unless (file-exists-p full-el)
-                    ;; Download and try again
-                    (setq relative-url (concat relative-url ".el"))
-                    (web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s (%S %S => %S)" feature base-url relative-url base-dir)
-                    (catch 'web-autoload-comp-restart
-                      (web-vcs-get-missing-matching-files web-vcs base-url base-dir relative-url))
-                    ;;(web-vcs-message-with-face 'font-lock-comment-face "After downloaded feature %s (%S %S => %S)" feature base-url relative-url base-dir)
-                    )
-                  (when web-autoload-autocompile
-                    (unless (file-exists-p full-elc)
-                      ;; Byte compile the downloaded file
-                      (web-autoload-byte-compile-file full-el t)))
-                  ;;(web-autoload-do-require feature filename noerror)
-                  (web-vcs-message-with-face 'web-vcs-gold "Doing finally require for %s" feature)
-                  ad-do-it
-                  )))))))))
+                     (full-elc     (byte-compile-dest-file full-el))
+                     (our-buffer   (current-buffer)) ;; Need to come back here
+                     (our-wcfg     (current-window-configuration)))
+                (web-vcs-message-with-face 'web-vcs-gold "Doing the really adviced require for %s" feature)
+                ;; Check if already downloaded first
+                (unless (file-exists-p full-el)
+                  ;; Download and try again
+                  (setq relative-url (concat relative-url ".el"))
+                  (web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s (%S %S => %S)" feature base-url relative-url base-dir)
+                  (catch 'web-autoload-comp-restart
+                    (web-vcs-get-missing-matching-files web-vcs base-url base-dir relative-url)))
+                (set-buffer our-buffer) ;; Before we load..
+                (when web-autoload-autocompile
+                  (unless (file-exists-p full-elc)
+                    ;; Byte compile the downloaded file
+                    (web-autoload-byte-compile-file full-el t)))
+                (web-vcs-message-with-face 'web-vcs-gold "Doing finally require for %s" feature)
+                (set-buffer our-buffer) ;; ... and after we load
+                (set-window-configuration our-wcfg)
+                ad-do-it))))))))
 
 (defun big-trace ()
   (setq trace-buffer "*Messages*")
