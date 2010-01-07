@@ -1,4 +1,3 @@
-(setq debug-on-error t)
 ;;; web-vcs.el --- Download file trees from VCS web pages
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
@@ -20,7 +19,7 @@
 ;; Update file trees within Emacs from VCS systems using information
 ;; on their web pages.
 ;;
-;; See the command `nxhtml-download'.
+;; See the command `nxhtml-setup-install'.
 ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -180,7 +179,8 @@ The patterns are grouped by VCS web system type.
   "Try to find a suitable place.
 Considers site-start.el, site-
 "
-  (let ((site-run-dir (file-name-directory (locate-library site-run-file)))
+  (let ((site-run-dir (when site-run-file
+			(file-name-directory (locate-library site-run-file))))
         (site-lisp-dir (catch 'first-site-lisp
                          (dolist (d load-path)
                            (let ((dir (file-name-nondirectory (directory-file-name d))))
@@ -1305,8 +1305,9 @@ Note: If your nXhtml is to old you can't use this function
                  (delete-other-windows)
                  (nxhtml-check-convert-to-part-by-part)
                  (list
-                  (catch 'command-level
-                    (unless nxhtml-autoload-web
+                  (progn
+                    (when (and (boundp 'nxhtml-autoload-web)
+                               (not nxhtml-autoload-web))
                       (unless (yes-or-no-p "Convert to updating nXhtml part by part? ")
                         (throw 'command-level nil)))
                     (web-vcs-read-nxhtml-dl-dir "Download nXhtml part by part to directory")))))
@@ -2157,9 +2158,10 @@ when you have tested enough."
 ;; (emacs-Q-no-nxhtml "web-vcs.el" "-l" "c:/test/d27/web-autostart.el")
 ;; (emacs-Q-no-nxhtml "web-vcs.el" "-l" "c:/test/d27/autostart.el")
 (defun nxhtml-temp-setup-auto-download ()
-  (when (fboundp 'w32-send-sys-command) (w32-send-sys-command #xf030) (sit-for 2))
+  ;;(when (fboundp 'w32-send-sys-command) (w32-send-sys-command #xf030) (sit-for 2))
   (view-echo-area-messages)
-  (nxhtml-setup-auto-download "c:/test/d27"))
+  (when (y-or-n-p "Do nXhtml? ")
+    (nxhtml-setup-auto-download "c:/test/d27")))
 ;;;;;; End Testing function
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
