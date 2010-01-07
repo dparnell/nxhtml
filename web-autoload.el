@@ -78,6 +78,7 @@ directly, otherwise download it first."
         (setq type 'defmacro))
        (t
         (setq type 'defun)))
+      (put fun 'web-autoload src)
       (eval
        `(web-autoload-1 ,fun ,src ,docstring ,int ,type)))))
 
