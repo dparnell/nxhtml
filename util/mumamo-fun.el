@@ -1209,22 +1209,25 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 ;; gets confused by the %} ending and the } ending.  This can be
 ;; solved by running a separate phase to get the chunks first and
 ;; during that phase match start and end of the chunk.
+
+
+;; Note: You will currently get fontification errors if you use
+;; python chunks
+
+;;   {% python ... %}
+
+;; The reason is that the chunk routines currently do not know when
+;; to just look for the } or %} endings.  However this should not
+;; affect your editing normally.
+
 ;;;###autoload
 (define-mumamo-multi-major-mode genshi-html-mumamo-mode
   "Turn on multiple major modes for Genshi with main mode `html-mode'.
 This also covers inlined style and javascript.
-
-Note: You will currently get fontification errors if you use
-python chunks
-
-  {% python ... %}
-
-The reason is that the chunk routines currently do not know when
-to just look for the } or %} endings.  However this should not
-affect your editing normally."
+"
   ("Genshi HTML Family" html-mode
    (
-    mumamo-chunk-genshi%
+    ;;mumamo-chunk-genshi%
     mumamo-chunk-genshi$
     mumamo-chunk-py:=
     mumamo-chunk-py:match

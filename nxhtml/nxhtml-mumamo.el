@@ -180,12 +180,12 @@ You should not use this! This is just a part of
   "Turn on multiple major modes for Genshi with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
   ("Genshi HTML Family" nxhtml-genshi-mode
-   (mumamo-chunk-genshi%
+   (;;mumamo-chunk-genshi%
     mumamo-chunk-genshi$
     mumamo-chunk-py:=
     mumamo-chunk-py:match
     mumamo-chunk-xml-pi
-    mumamo-chunk-alt-php
+    ;;mumamo-chunk-alt-php
     mumamo-chunk-inlined-style
     mumamo-chunk-inlined-script
     mumamo-chunk-style=
