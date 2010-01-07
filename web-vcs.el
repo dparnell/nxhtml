@@ -209,7 +209,7 @@ Considers site-start.el, site-
   (while web-vcs-folder-cache
     (let ((ub (car web-vcs-folder-cache)))
       (setq web-vcs-folder-cache (cdr web-vcs-folder-cache))
-      (kill (nth 1 ub)))))
+      (kill-buffer (nth 1 ub)))))
 
 ;;;###autoload
 (defun web-vcs-get-files-from-root (web-vcs url dl-dir)
@@ -367,7 +367,7 @@ If TEST is non-nil then do not download, just list the files."
         (when url
           (insert "** Downloading file " now "\n"
                   (format "   file [[file:%s][%s]]\n   from %s\n" dl-file dl-file url)
-           ))
+                  ))
         (cond
          ((stringp msg)
           (goto-char (point-max))
@@ -526,6 +526,7 @@ If TEST is non-nil then do not download, just list the files"
               (setq moved (+ moved (nth 1 ret))))))))
     (list this-page-revision moved)))
 
+(defvar web-autoload-active-file-sub-url) ;; Dyn var, active during file download check
 (defun web-vcs-download-files (vcs-rec files dl-dir dl-root file-mask)
   ;;(require 'hi-lock) (web-vcs-message-with-face 'hi-black-hb "%s %s" dl-dir file-mask)
   ;;(message "files=%S" files)
@@ -542,6 +543,7 @@ If TEST is non-nil then do not download, just list the files"
            (file-rel-name (file-relative-name dl-file-name dl-root))
            (temp-file      (expand-file-name "web-vcs-temp.tmp"      dl-dir))
            temp-buf)
+      (setq temp-file (concat temp-file "." (file-name-extension dl-file-name)))
       ;;(message "%s match=%s" file-rel-name (web-vcs-match-folderwise file-mask file-rel-name))
       (cond
        ((not (web-vcs-match-folderwise file-mask file-rel-name)))
@@ -576,6 +578,9 @@ If TEST is non-nil then do not download, just list the files"
             (when dl-file-time
               (let ((backup (concat dl-file-name ".moved")))
                 (rename-file dl-file-name backup t)))
+            ;; Be paranoid and let user check here. I actually
+            ;; believe that is a very good thing here.
+            (web-vcs-be-paranoid temp-file dl-file-name file-rel-name)
             (rename-file temp-file dl-file-name)
             (when url-file-time (set-file-times dl-file-name url-file-time))
             (if dl-file-time
@@ -585,9 +590,11 @@ If TEST is non-nil then do not download, just list the files"
               (with-current-buffer old-buf-open
                 (set-buffer-modified-p nil)
                 (revert-buffer)))
-            ;; Be paranoid and let user check here. I actually
-            ;; believe that is a very good thing here.
-            (web-vcs-be-paranoid dl-file-name))
+            (with-current-buffer (find-file-noselect dl-file-name)
+              (setq header-line-format
+                    (propertize (format-time-string "This file was downloaded %Y-%m-%d %H:%M")
+                                'face 'web-vcs-green)))
+            )
           (let* ((msg-win (get-buffer-window "*Messages*")))
             (with-current-buffer "*Messages*"
               (set-window-point msg-win (point-max))))
@@ -599,7 +606,7 @@ If TEST is non-nil then do not download, just list the files"
           )))
       (redisplay t))))
 
-(defun web-vcs-be-paranoid (file-dl-name)
+(defun web-vcs-be-paranoid (temp-file file-dl-name file-sub-url)
   "Be paranoid and check FILE-DL-NAME."
   (when (and (boundp 'web-autoload-paranoid)
              web-autoload-paranoid)
@@ -608,6 +615,7 @@ If TEST is non-nil then do not download, just list the files"
              (comp-win (and comp-buf
                             (get-buffer-window comp-buf)))
              (msg-win (get-buffer-window "*Messages*"))
+             temp-buf
              )
         (unless msg-win
           (display-buffer "*Messages*")
@@ -617,7 +625,8 @@ If TEST is non-nil then do not download, just list the files"
               (select-window comp-win)
               (find-file file-dl-name))
           (select-window msg-win)
-          (find-file-other-window file-dl-name))
+          (find-file-other-window temp-file))
+        (setq temp-buf (current-buffer))
         (message "-")
         (message "")
         (web-vcs-message-with-face
@@ -635,11 +644,25 @@ If TEST is non-nil then do not download, just list the files"
         ;; Fix-me: put this on another key, emulation-mode-map-alist etc
         (global-set-key [(control ?c)(control ?c)] 'exit-recursive-edit)
         (global-set-key [(control ?c)(control ?n)] 'web-autoload-continue-no-stop)
-        (let ((proceed nil))
+        (global-set-key [(control ?c)(control ?r)] 'web-vcs-investigate-elisp-file)
+        (let ((proceed nil)
+              (web-autoload-active-file-sub-url file-sub-url)) ;; Dyn var, active during file download check
           (while (not proceed)
             (condition-case err
                 (catch 'top-level
+                  ;; Fix-me: review file before rename!
+                  (setq header-line-format
+                        (propertize
+                         (format "Review for downloading. Continue: C-c C-c%s. Destination: %S"
+                                 (if (string= "el" (file-name-extension file-dl-name))
+                                     ", Check: C-c C-r"
+                                   "")
+                                 file-dl-name)
+                         'face 'web-vcs-red))
                   (recursive-edit)
+                  (with-current-buffer temp-buf
+                    (set-buffer-modified-p nil)
+                    (kill-buffer temp-buf))
                   (setq proceed t))
               (error (message "%s" (error-message-string err))))))
         (display-buffer "*Messages*")
@@ -688,20 +711,20 @@ The buffer URL-BUF should contain the content on page URL."
   ;; therefore damages the reg exps.  Just use our knowledge of the
   ;; internal file name representation instead.
   (split-string filename "/"))
-  ;; (let ((lst-name nil)
-  ;;       (head filename)
-  ;;       (old-head ""))
-  ;;   (while (and (not (string= old-head head))
-  ;;               (> (length head) 0))
-  ;;     (let* ((file-head (directory-file-name head))
-  ;;            (tail (file-name-nondirectory (directory-file-name head))))
-  ;;       (setq old-head head)
-  ;;       (setq head (file-name-directory file-head))
-  ;;       ;; For an abs path the final tail is "", use root instead:
-  ;;       (when (= 0 (length tail))
-  ;;         (setq tail head))
-  ;;       (setq lst-name (cons tail lst-name))))
-  ;;   lst-name))
+;; (let ((lst-name nil)
+;;       (head filename)
+;;       (old-head ""))
+;;   (while (and (not (string= old-head head))
+;;               (> (length head) 0))
+;;     (let* ((file-head (directory-file-name head))
+;;            (tail (file-name-nondirectory (directory-file-name head))))
+;;       (setq old-head head)
+;;       (setq head (file-name-directory file-head))
+;;       ;; For an abs path the final tail is "", use root instead:
+;;       (when (= 0 (length tail))
+;;         (setq tail head))
+;;       (setq lst-name (cons tail lst-name))))
+;;   lst-name))
 
 ;;(web-vcs-match-folderwise ".*/util/mum.el" "top/util/mum.el")
 ;;(web-vcs-match-folderwise ".*/util/mu.el" "top/util/mum.el")
@@ -970,7 +993,7 @@ please see URL `http://ourcomments.org/Emacs/nXhtml/doc/nxhtml.html'."
 
 ;; Modified just to return http status
 (defun web-vcs-url-copy-file (url newname &optional ok-if-already-exists
-			  keep-time preserve-uid-gid)
+                                  keep-time preserve-uid-gid)
   "Copy URL to NEWNAME.  Both args must be strings.
 Signals a `file-already-exists' error if file NEWNAME already exists,
 unless a third argument OK-IF-ALREADY-EXISTS is supplied and non-nil.
@@ -1326,20 +1349,20 @@ For more information about auto download of nXhtml files see
   (if (not dl-dir)
       (unless (called-interactively-p)
         (error "dl-dir show be a directory"))
-  (let ((msg (concat "Downloading nXhtml through Launchpad web interface will take rather long\n"
-                     "time (5-15 minutes) so you may want to do it in a separate Emacs session.\n\n"
-                     "Do you want to download using this Emacs session? "
-                     )))
-    (if (not (y-or-n-p msg))
-        (message "Aborted")
-      (message "")
-      (web-vcs-log nil nil "* nXhtml: Download All\n")
-      (setq message-log-max t)
-      (let ((do-byte (y-or-n-p "Do you want to byte compile the files after downloading? ")))
-        ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/322
-        ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/"
-        (nxhtml-download-1 dl-dir nil do-byte)
-        )))))
+    (let ((msg (concat "Downloading nXhtml through Launchpad web interface will take rather long\n"
+                       "time (5-15 minutes) so you may want to do it in a separate Emacs session.\n\n"
+                       "Do you want to download using this Emacs session? "
+                       )))
+      (if (not (y-or-n-p msg))
+          (message "Aborted")
+        (message "")
+        (web-vcs-log nil nil "* nXhtml: Download All\n")
+        (setq message-log-max t)
+        (let ((do-byte (y-or-n-p "Do you want to byte compile the files after downloading? ")))
+          ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/322
+          ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/"
+          (nxhtml-download-1 dl-dir nil do-byte)
+          )))))
 
 
 (defun nxhtml-download-1 (dl-dir revision do-byte)
@@ -1466,6 +1489,454 @@ command `nxhtml-setup-install'."
       (when (re-search-forward rel-ver-regexp nil t)
         (match-string 1)))))
 
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Some small bits for security and just overview.
+
+(defun web-vcs-fontify-as-ps-print()
+  (save-restriction
+    (widen)
+    (let ((start (point-min))
+          (end   (point-max)))
+      (cond ((and (boundp 'jit-lock-mode) (symbol-value 'jit-lock-mode))
+             (jit-lock-fontify-now start end))
+            ((and (boundp 'lazy-lock-mode) (symbol-value 'lazy-lock-mode))
+             (lazy-lock-fontify-region start end))))))
+
+
+;;(web-vcs-get-fun-details 'describe-function)
+;;(web-vcs-get-fun-details 'require)
+;;(describe-function 'describe-function)
+(defun web-vcs-get-fun-details (function)
+  (unless (symbolp function) (error "Not a symbol: %s" function))
+  (unless (functionp function) (error "Not a function: %s" function))
+  ;; Do as in `describe-function':
+  (let* ((advised (and (symbolp function) (featurep 'advice)
+		       (ad-get-advice-info function)))
+	 ;; If the function is advised, use the symbol that has the
+	 ;; real definition, if that symbol is already set up.
+	 (real-function
+	  (or (and advised
+		   (let ((origname (cdr (assq 'origname advised))))
+		     (and (fboundp origname) origname)))
+	      function))
+	 ;; Get the real definition.
+	 (def (if (symbolp real-function)
+                      (symbol-function real-function)
+                    function))
+         errtype file-name (beg "") string)
+    ;; Just keep this as it is to more easily compare with `describe-function-1'.
+    (setq string
+	  (cond ((or (stringp def)
+		     (vectorp def))
+		 "a keyboard macro")
+		((subrp def)
+		 (if (eq 'unevalled (cdr (subr-arity def)))
+		     (concat beg "special form")
+		   (concat beg "built-in function")))
+		((byte-code-function-p def)
+		 (concat beg "compiled Lisp function"))
+		((symbolp def)
+		 (while (and (fboundp def)
+			     (symbolp (symbol-function def)))
+		   (setq def (symbol-function def)))
+		 ;; Handle (defalias 'foo 'bar), where bar is undefined.
+		 (or (fboundp def) (setq errtype 'alias))
+		 (format "an alias for `%s'" def))
+		((eq (car-safe def) 'lambda)
+		 (concat beg "Lisp function"))
+		((eq (car-safe def) 'macro)
+		 "a Lisp macro")
+		((eq (car-safe def) 'autoload)
+ 		 (setq file-name-auto (nth 1 def))
+ 		 ;;(setq file-name-auto (find-lisp-object-file-name function def))
+                 (setq file-auto-noext (file-name-sans-extension file-name-auto))
+		 (format "%s autoloaded %s"
+			 (if (commandp def) "an interactive" "an")
+			 (if (eq (nth 4 def) 'keymap) "keymap"
+			   (if (nth 4 def) "Lisp macro" "Lisp function"))))
+                ((keymapp def)
+                 (let ((is-full nil)
+                       (elts (cdr-safe def)))
+                   (while elts
+                     (if (char-table-p (car-safe elts))
+                         (setq is-full t
+                               elts nil))
+                     (setq elts (cdr-safe elts)))
+                   (if is-full
+                       "a full keymap"
+                     "a sparse keymap")))
+		(t "")))
+    (setq file-name (find-lisp-object-file-name function def))
+    (list errtype advised file-name string)
+    ))
+
+;;(web-vcs-investigate-read "c:/emacsw32/nxhtml/nxhtml/nxhtml-autoload.el" "*Messages*")
+(defun web-vcs-investigate-read (elisp out-buf)
+  "Check forms in buffer by reading it."
+  (let ((here (point))
+        unsafe-eval re-fun re-var
+        (is-same-file (lambda (file)
+                        (when file
+                          (setq file (concat (file-name-sans-extension file) ".el"))
+                          (string= (file-truename file) elisp-el-file))))
+        elisp-el-file)
+    (with-current-buffer elisp
+      (setq elisp-el-file (when (buffer-file-name)
+                            (file-truename (buffer-file-name))))
+      (save-restriction
+        (widen)
+        (web-vcs-fontify-as-ps-print)
+        (goto-char (point-min))
+        (while (progn
+                 (while (progn (skip-chars-forward " \t\n\^l")
+                               (looking-at ";"))
+                   (forward-line 1))
+                 (not (eobp)))
+          (let* ((pos (point))
+                 (form (read (current-buffer)))
+                 (def (nth 0 form))
+                 (sym (and (listp form)
+                           (symbolp (nth 1 form))
+                           (nth 1 form)))
+                 (form-fun (and sym
+                                (functionp sym)
+                                (symbol-function sym)))
+                 (form-var (boundp sym))
+                 (safe-forms '( defun defmacro
+                                define-minor-mode define-globalized-minor-mode
+                                defvar defconst
+                                defcustom
+                                defface defgroup
+                                make-local-variable make-variable-buffer-local
+                                provide
+                                require
+                                message))
+                 (safe-eval (or (memq def safe-forms)
+                                (and (memq def '( eval-when-compile eval-and-compile))
+                                     (or (not (consp (nth 1 form)))
+                                         (memq (car (nth 1 form)) safe-forms)))))
+                 )
+            (cond
+             ((not safe-eval)
+              (setq unsafe-eval
+                    (cons (list form (copy-marker pos) (buffer-substring pos (point)))
+                          unsafe-eval)))
+             ((and form-fun
+                   (memq def '( defun defmacro define-minor-mode define-globalized-minor-mode)))
+              (setq re-fun (cons (cons sym pos) re-fun)))
+             ((and form-var
+                   (memq def '( defvar defconst defcustom))
+                   (or (not (eq sym 'defvar))
+                       (< 2 (length form))))
+              (setq re-var (cons sym re-var)))))))
+      (goto-char here))
+    (with-current-buffer out-buf
+      (save-restriction
+        (widen)
+        (goto-char (point-max))
+        (unless (bobp) (insert "\n\n"))
+        (insert (propertize "Found these possible problems when reading the file:\n"
+                            'face '(:height 1.5)))
+        (or unsafe-eval
+            re-fun
+            (insert "\n"
+                    "Found no problems (but there may still be)"
+                    "\n"))
+
+        ;; Fix-me: Link
+        (when unsafe-eval
+          (insert (propertize
+                   (format "\n* Forms that are executed when loading the file (found %s):\n\n"
+                          (length unsafe-eval))
+                   'face '(:height 1.2)))
+          (dolist (u unsafe-eval)
+            (insert-text-button "Go to form below"
+                                'action
+                                `(lambda (button)
+                                   (let* ((marker ,(nth 1 u))
+                                          (buf (marker-buffer marker)))
+                                     (switch-to-buffer-other-window buf)
+                                     (unless (and (< marker (point-max))
+                                                  (> marker (point-min)))
+                                       (widen))
+                                     (goto-char marker))))
+            (insert "\n")
+            (insert (nth 2 u) "\n\n"))
+          (insert "\n"))
+        (when re-fun
+          (insert (propertize
+                   (format "\n* The file will possibly redefine these functions that are currently defined (%s):\n"
+                          (length re-fun))
+                   'face '(:height 1.2)))
+          (setq re-fun (sort re-fun (lambda (a b) (string< (symbol-name (car a)) (symbol-name (car b))))))
+          (let ((row 0)
+                (re-fun-with-info (mapcar (lambda (fun)
+                                            (cons fun (web-vcs-get-fun-details (car fun))))
+                                            re-fun))
+                re-fun-other-files
+                (n-same 0)
+                (n-web-auto 0))
+            ;; Check same file
+            (dolist (info re-fun-with-info)
+              (let* ((file-name (nth 3 info))
+                     (fun (car (nth 0 info)))
+                     (web-auto (get fun 'web-autoload)))
+                (cond ((funcall is-same-file file-name)
+                       (setq n-same (1+ n-same)))
+                      (web-auto
+                       (setq n-web-auto (1+ n-web-auto))
+                       (setq re-fun-other-files (cons info re-fun-other-files)))
+                      (t
+                       (setq re-fun-other-files (cons info re-fun-other-files))))))
+
+            (when (< 0 n-same)
+              (insert "\n  "
+                      (propertize (format "%s functions alreay defined by this file (which seems ok)" n-same)
+                                  'face 'web-vcs-green)
+                      "\n"))
+
+            (dolist (info re-fun-other-files)
+              (let* ((fun-rec   (nth 0 info))
+                     (errtype   (nth 1 info))
+                     (advised   (nth 2 info))
+                     (file-name (nth 3 info))
+                     (string    (nth 4 info))
+                     (fun     (car fun-rec))
+                     (fun-pos (cdr fun-rec))
+                     (fun-web-auto (get fun 'web-autoload))
+                     )
+                (when (= 0 (% row 5)) (insert "\n"))
+                (setq row (1+ row))
+                (insert "  `")
+                (insert-text-button (format "%s" fun)
+                                    'action
+                                    `(lambda (button)
+                                       (describe-function ',fun)))
+                (insert "'")
+                (insert " (" string)
+                (when fun-web-auto
+                  (insert " autoloaded from web, ")
+                  (insert-text-button "info"
+                                      'action
+                                      `(lambda (button)
+                                         ;; Fix-me: maybe a bit more informative ... ;-)
+                                         (message "%S" ',fun-web-auto))))
+                (insert ")")
+                (when advised (insert ", " (propertize "adviced" 'face 'font-lock-warning-face)))
+                (insert ", "
+                        (cond
+                         ((funcall is-same-file file-name)
+                          (propertize "defined in this file" 'face 'web-vcs-green)
+                          )
+                         (fun-web-auto
+                          (if (not (and (boundp 'web-autoload-active-file-sub-url) ;; active during download
+                                        web-autoload-active-file-sub-url))
+                              (propertize "web download not active" 'face 'web-vcs-yellow)
+                            ;; See if file matches
+                            (let ((active-sub-url web-autoload-active-file-sub-url)
+                                  (fun-sub-url (nth 2 fun-web-auto)))
+                              (setq active-sub-url (file-name-sans-extension active-sub-url))
+                              (if (string-match-p fun-sub-url active-sub-url)
+                                  (propertize "web download, matches" 'face 'web-vcs-yellow)
+                                (propertize "web download, doesn't matches" 'face 'web-vcs-red)
+                                ))))
+                         (t
+                          (propertize "defined in other file" 'face 'web-vcs-red))))
+                (unless (funcall is-same-file file-name)
+                  (insert " (")
+                  (insert-text-button "go to new definition"
+                                      'action
+                                      `(lambda (button)
+                                         (interactive)
+                                         (let ((m-pos ,(with-current-buffer elisp
+                                                         (copy-marker fun-pos))))
+                                           (switch-to-buffer-other-window (marker-buffer m-pos))
+                                           (goto-char m-pos))))
+                  (insert ")"))
+                (insert "\n")
+                ))))))))
+
+;; I am quite tired of doing this over and over again. Why is this not
+;; in Emacs?
+(defvar web-vcs-button-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [tab] 'forward-button)
+    (define-key map [(shift tab)] 'backward-button)
+    map))
+(define-minor-mode web-vcs-button-mode
+  "Just to bind `forward-button' etc"
+  :lighter nil)
+
+;;(web-vcs-investigate-file)
+;;;###autoload
+(defun web-vcs-investigate-elisp-file (file-or-buffer)
+  (interactive (list
+                (if (derived-mode-p 'emacs-lisp-mode)
+                    (current-buffer)
+                  (read-file-name "Elisp file to check: "))))
+  (let* ((elisp (if (bufferp file-or-buffer)
+                    file-or-buffer
+                  (find-file-noselect file-or-buffer)))
+         (elisp-file (with-current-buffer elisp (buffer-file-name)))
+         (out-buf (get-buffer-create "Web VCS Sec Inv")))
+    (if (not (with-current-buffer elisp (derived-mode-p 'emacs-lisp-mode)))
+        (progn
+          (unless (eq (current-buffer) elisp)
+            (display-buffer elisp))
+          (message "Buffer %s is not in emacs-lisp-mode" (buffer-name elisp)))
+      (switch-to-buffer-other-window out-buf)
+      (let ((inhibit-read-only t))
+        (set-buffer-modified-p nil)
+        (erase-buffer)
+        (web-vcs-button-mode 1)
+        (insert "A quick look for problems in "
+                (if elisp-file
+                    (format "file\n    %S\n" elisp-file)
+                  (format "buffer %s\n" (buffer-name elisp))))
+        (let ((here (point)))
+          (insert
+           "\n"
+           (propertize
+            (concat "Note that this is just a quick look at the file."
+                    " You have to investigate the file more carefully yourself"
+                    " (or be sure someone else has done it for you)."
+                    " The following are checked for here:"
+                    "\n")
+            'face font-lock-comment-face))
+          (fill-region here (point)))
+        (insert
+         (propertize
+          (concat
+           "- Top level forms that might be executed when loading the file.\n"
+           "- Redefinition of functions.\n")
+          'face font-lock-comment-face))
+        (web-vcs-investigate-read elisp out-buf)
+        (when elisp-file
+          (insert "\n\n")
+          (let ((here (point)))
+            (insert "If you want to see what will actually be added to `load-history'"
+                    " and which functions will be defined you can\n")
+            (insert-text-button "click here to eval the file"
+                                'action `(lambda (button) (interactive)
+                                           (if (y-or-n-p "Load the file in a batch Emacs session? ")
+                                               (web-vcs-investigate-eval ,elisp-file ,out-buf)
+                                             (message "Aborted"))))
+            (insert ". This will load the file in a batch Emacs"
+                    " (your normal setup files will be run) and send back that information."
+                    " Your current Emacs will not be affected,"
+                    " but please be aware that this does not mean your computer can not be.")
+            (fill-region here (point))
+            ))
+        (goto-char (point-min))))))
+
+;;(web-vcs-investigate-eval "c:/emacsw32/nxhtml/nxhtml/nxhtml-autoload.el" "*Messages*")
+;;(web-vcs-investigate-eval "c:/emacsw32/nxhtml/autostart.el" "*Messages*")
+(defun web-vcs-investigate-eval (elisp-file out-buf)
+  "Get compile loads when evaling buffer.
+For security reasons do this in a fresh Emacs and return the
+resulting load-history entry."
+  (let* ((emacs-exe (locate-file invocation-name
+                                 (list invocation-directory)
+                                 exec-suffixes))
+         ;; see custom-load-symbol
+         (get-lhe '(let ((lhe (or (assoc buffer-file-name load-history)
+                                  (assoc (concat (file-name-sans-extension buffer-file-name) ".elc")
+                                         load-history))))
+                     (prin1 "STARTHERE\n")
+                     (prin1 lhe)))
+         (elisp-el-file (file-truename (concat (file-name-sans-extension elisp-file) ".el")))
+         (is-same-file (lambda (file)
+                         (when file ;; self protecting
+                           (setq file (concat (file-name-sans-extension file) ".el"))
+                           (string= (file-truename file) elisp-el-file))))
+         whole-result
+         result)
+    ;; Fix-me: do not use temp buffer so we can check errors
+    (with-temp-buffer
+      (let ((old-loadpath (getenv "EMACSLOADPATH"))
+            (new-loadpath (mapconcat 'identity load-path ";"))
+            ret-val)
+        (setenv new-loadpath)
+        (message "Loading file in batch Emacs...")
+        (setq ret-val
+              (call-process emacs-exe nil
+                            (current-buffer)
+                            t "--batch"
+                            ;; "-Q" - should be run in the users environment.
+                            "-l" elisp-file
+                            elisp-file
+                            "-eval" (format "%S" get-lhe)))
+        (message "Loading file in batch Emacs... done, returned %S" ret-val)
+        (setenv old-loadpath))
+      (setq whole-result (buffer-substring-no-properties (point-min) (point-max)))
+      (condition-case err
+          (progn
+            (goto-char (point-min))
+            (search-forward "STARTHERE")
+            (search-forward "(")
+            (backward-char)
+            (setq result (read (current-buffer))))
+        (error (message "%S" whole-result)
+               (message "Error reading, see message buffer: %s" err))))
+    (with-current-buffer out-buf
+      (let ((here (point))
+            (inhibit-read-only t))
+        (save-restriction
+          (widen)
+          (goto-char (point-max))
+          (insert (propertize "\n\nThis file added the following to `load-history':\n\n"
+                              'face '(:height 1.5)))
+          (insert "   (\"" (car result) "\"\n")
+          (dolist (e (cdr result))
+            (insert (format "    %S" e))
+            (cond ((stringp e))
+                  ((symbolp e)
+                   (insert "  - ")
+                   (insert (if (boundp e)
+                               (let ((e-file (symbol-file e)))
+                                 (if (funcall is-same-file e-file)
+                                     (propertize "Same file now" 'face 'web-vcs-green)
+                                   (propertize (format "Loaded from %S now" e-file))))
+                             (propertize "New" 'face 'web-vcs-yellow))))
+                  ((eq (car e) 'provide)
+                   (insert "  - ")
+                   ;; symbol-file will be where it is loaded so check load-path instead.
+                   (insert (cond
+                            ((not (featurep (cdr e)))
+                             (if (string= (file-name-nondirectory
+                                           (file-name-sans-extension elisp-file))
+                                          (symbol-name (cdr e)))
+                                 (propertize "Not loaded now, matches file name" 'face 'web-vcs-green)
+                               (propertize "Does not match file name" 'face 'web-vcs-red)))
+                            (t
+                             (let* ((str-feat (symbol-name (cdr e)))
+                                    (file (locate-library str-feat)))
+                               (if (funcall is-same-file file)
+                                   (propertize "Probably loaded from same file now" 'face 'web-vcs-green)
+                                 (propertize (format "Probably loaded from %S now" file)
+                                             'face 'web-vcs-yellow)))))))
+                  ((eq (car e) 'require)
+                   (if (featurep (cdr e))
+                       (insert "  - " (propertize "Loaded now" 'face 'web-vcs-green))
+                     (insert "  - " (propertize "Not loaded in now" 'face 'web-vcs-yellow))))
+                  ((memq (car e) '( defun macro))
+                   (insert "  - ")
+                   (insert (if (functionp (cdr e))
+                               (let ((e-file (symbol-file e)))
+                                 (if (funcall is-same-file e-file)
+                                     (propertize "Same file now" 'face 'web-vcs-green)
+                                   (propertize (format "Loaded from %S now" e-file))))
+                             (propertize "New" 'face 'web-vcs-yellow)))))
+            (insert "\n"))
+          (insert "    )\n")
+          (goto-char here))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;; Start Testing function
 (defun emacs-Q-no-nxhtml (&rest args)
   (let* ((elp (getenv "EMACSLOADPATH"))
          (elp-list (split-string elp ";"))
@@ -1503,8 +1974,8 @@ when you have tested enough."
         (this-name (file-name-nondirectory web-vcs-el-this))
         that-file)
     (when (and (file-exists-p test-dir)
-             (not (y-or-n-p (format "Directory %S exists, really test there? " test-dir))))
-        (error "Aborted"))
+               (not (y-or-n-p (format "Directory %S exists, really test there? " test-dir))))
+      (error "Aborted"))
     (unless (file-exists-p test-dir) (make-directory test-dir))
     (setq that-file (expand-file-name this-name test-dir))
     (when (file-exists-p that-file) (delete-file that-file))
@@ -1532,7 +2003,6 @@ when you have tested enough."
     (setq xb (url-retrieve-synchronously "http://www.emacswiki.org/emacs/download/anything.el"))
     (switch-to-buffer xb)
     ))
-;;;;;; Start Testing function
 ;; (emacs-Q-no-nxhtml "web-vcs.el" "-f" "eval-buffer" "-f" "nxhtml-temp-setup-auto-download")
 ;; (emacs-Q-no-nxhtml "-l" "c:/test/d27/web-vcs" "-f" "nxhtml-temp-setup-auto-download")
 ;; (emacs-Q-no-nxhtml "web-vcs.el" "-l" "c:/test/d27/web-autostart.el")
@@ -1542,7 +2012,7 @@ when you have tested enough."
   (view-echo-area-messages)
   (nxhtml-setup-auto-download "c:/test/d27"))
 ;;;;;; End Testing function
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'web-vcs)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
