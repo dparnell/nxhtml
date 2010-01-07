@@ -339,6 +339,8 @@ This works in the same circumstances as
         completion))))
 
 (defvar popcmp-in-buffer-allowed nil)
+
+;;;###autoload
 (defun popcmp-completing-read (prompt
                               table
                               &optional predicate require-match

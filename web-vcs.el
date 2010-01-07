@@ -242,8 +242,7 @@ Before downloading offer to visit the page from which the
 downloading will be made.
 "
   (let ((vcs-rec (or (assq web-vcs web-vcs-links-regexp)
-                     (error "Does not know web-cvs %S" web-vcs)))
-        (web-autoload-paranoid t))
+                     (error "Does not know web-cvs %S" web-vcs))))
     (web-vcs-get-files-on-page-1 vcs-rec url dl-dir "" file-mask 0 nil nil)
     (web-vcs-log-save)))
 
@@ -652,8 +651,8 @@ Do not turn on this yourself."
 (defun web-vcs-be-paranoid (temp-file file-dl-name file-sub-url)
   "Be paranoid and check FILE-DL-NAME."
   (web-vcs-log-save)
-  (when (and (boundp 'web-autoload-paranoid)
-             web-autoload-paranoid)
+  (when (or (not (boundp 'web-autoload-paranoid))
+            web-autoload-paranoid)
     (save-window-excursion
       (let* ((comp-buf (get-buffer "*Compilation*"))
              (comp-win (and comp-buf
@@ -677,8 +676,12 @@ Do not turn on this yourself."
          'secondary-selection
          (concat "Please check the downloaded file and then continue by doing"
                  "\n    C-c C-c (or M-x exit-recursive-edit)"
-                 "\n\nOr, for no more breaks to check files do"
-                 "\n    C-c C-n (or M-x web-autoload-continue-no-stop)"
+                 ;; web-autoload.el might not be loaded yet
+                 (if (fboundp 'web-autoload-continue-no-stop)
+                     (concat
+                      "\n\nOr, for no more breaks to check files do"
+                      "\n    C-c C-n (or M-x web-autoload-continue-no-stop)")
+                   "")
                  "\n\nTo stop the web autloading process for now do"
                  "\n    C-c C-q (or M-x web-autoload-quit-download)"
                  "\n\nTo see the log file you can do"
@@ -1605,9 +1608,9 @@ command `nxhtml-setup-install'."
 		((eq (car-safe def) 'macro)
 		 "a Lisp macro")
 		((eq (car-safe def) 'autoload)
- 		 (setq file-name-auto (nth 1 def))
+ 		 ;;(setq file-name-auto (nth 1 def))
  		 ;;(setq file-name-auto (find-lisp-object-file-name function def))
-                 (setq file-auto-noext (file-name-sans-extension file-name-auto))
+                 ;;(setq file-auto-noext (file-name-sans-extension file-name-auto))
 		 (format "%s autoloaded %s"
 			 (if (commandp def) "an interactive" "an")
 			 (if (eq (nth 4 def) 'keymap) "keymap"
@@ -1631,13 +1634,13 @@ command `nxhtml-setup-install'."
 ;;(web-vcs-investigate-read "c:/emacsw32/nxhtml/nxhtml/nxhtml-autoload.el" "*Messages*")
 (defun web-vcs-investigate-read (elisp out-buf)
   "Check forms in buffer by reading it."
-  (let ((here (point))
+  (let* ((here (point))
         unsafe-eval re-fun re-var
+        elisp-el-file
         (is-same-file (lambda (file)
                         (when file
                           (setq file (concat (file-name-sans-extension file) ".el"))
-                          (string= (file-truename file) elisp-el-file))))
-        elisp-el-file)
+                          (string= (file-truename file) elisp-el-file)))))
     (with-current-buffer elisp
       (setq elisp-el-file (when (buffer-file-name)
                             (file-truename (buffer-file-name))))
@@ -1824,6 +1827,8 @@ command `nxhtml-setup-install'."
   "Just to bind `forward-button' etc"
   :lighter nil)
 
+(defvar web-vcs-eval-output-start nil)
+
 ;;(web-vcs-investigate-file)
 ;;;###autoload
 (defun web-vcs-investigate-elisp-file (file-or-buffer)
@@ -1909,7 +1914,6 @@ command `nxhtml-setup-install'."
         (set-buffer-modified-p nil)
         (goto-char (point-min))))))
 
-(defvar web-vcs-eval-output-start nil)
 (make-variable-buffer-local 'web-vcs-eval-output-start)
 
 ;;(web-vcs-investigate-eval "c:/emacsw32/nxhtml/nxhtml/nxhtml-autoload.el" "*Messages*")
@@ -2072,7 +2076,7 @@ resulting load-history entry."
                                            (propertize "Web download, matches current download"
                                                        'face 'web-vcs-yellow)
                                          (propertize (format "Loaded from %S now" e-file)
-                                                     'face web-vcs-yellow)))))
+                                                     'face 'web-vcs-yellow)))))
                                ;; Note that web autoloaded functions are already defined.
                                (propertize "New" 'face 'web-vcs-yellow))))))
             (insert "\n"))
