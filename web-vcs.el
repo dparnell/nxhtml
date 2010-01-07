@@ -393,7 +393,6 @@ If TEST is non-nil then do not download, just list the files."
 Log what happened. Use DEST-FILE in the log, not DL-FILE which is
 a temporary file."
   (let ((http-sts nil)
-        (file-created nil)
         (file-nonempty nil)
         (fail-reason nil))
     (when dest-file (web-vcs-log url dest-file nil))
@@ -402,10 +401,8 @@ a temporary file."
     ;;(message "before url-copy-file %S" dl-file)
     (setq http-sts (web-vcs-url-copy-file url dl-file nil t)) ;; don't overwrite, keep time
     ;;(message "after  url-copy-file %S" dl-file)
-    (setq file-created (file-exists-p dl-file))
-    (setq file-nonempty (< 0 (nth 7 (file-attributes dl-file)))) ;; file size 0
-    (if (and file-created
-             file-nonempty
+    (if (and (file-exists-p dl-file)
+             (setq file-nonempty (< 0 (nth 7 (file-attributes dl-file)))) ;; file size 0
              (memq http-sts '(200 201)))
         (when dest-file
           (web-vcs-log nil nil "   Done.\n"))
@@ -413,15 +410,16 @@ a temporary file."
             (cond
              (http-sts (format "HTTP %s" http-sts))
              (file-nonempty "File looks bad")
-             (t "No file created")))
+             (t "Server did not respond")))
       (unless dest-file (web-vcs-log url dl-file "TEMP FILE"))
       (web-vcs-log nil nil (format "   *Failed:* %s\n" fail-reason))
+      (web-vcs-log-save) ;; Needed?
       ;; Requires user attention and intervention
-      (web-vcs-message-with-face 'web-vcs-red "Failed url-copy-file %s, %S %S" fail-reason url dl-file)
+      (web-vcs-message-with-face 'web-vcs-red "Download failed: %s, %S" fail-reason url)
       (display-buffer "*Messages*")
       (select-window (get-buffer-window "*Messages*"))
       (message "\n")
-      (web-vcs-message-with-face 'web-vcs-yellow "\nPlease retry what you did before!\n\n")
+      (web-vcs-message-with-face 'web-vcs-yellow "Please retry what you did before!\n")
       (throw 'command-level nil))))
 
 (defun web-vcs-get-files-on-page-1 (vcs-rec url dl-root dl-relative file-mask recursive dl-revision test)
@@ -542,6 +540,10 @@ If TEST is non-nil then do not download, just list the files"
 
 (defvar web-autoload-temp-file-prefix "TEMPORARY-WEB-AUTO-LOAD-")
 (defvar web-autoload-active-file-sub-url) ;; Dyn var, active during file download check
+(defun web-autload-acvtive ()
+  (and (boundp 'web-autoload-active-file-sub-url)
+       web-autoload-active-file-sub-url))
+
 (defun web-vcs-download-files (vcs-rec files dl-dir dl-root file-mask)
   (dolist (file (reverse files))
     (let* ((url-file          (nth 0 file))
@@ -644,7 +646,7 @@ Do not turn on this yourself."
   :global t
   :group 'web-vcs ;; If keymap changing through custom will be supported in the future...
   (or (not web-vcs-paranoid-state-mode)
-      web-autoload-active-file-sub-url
+      (web-autload-acvtive)
       (error "This mode can't be used when not downloading")))
 
 (defun web-vcs-be-paranoid (temp-file file-dl-name file-sub-url)
@@ -1058,13 +1060,16 @@ A prefix arg makes KEEP-TIME non-nil."
     (if (not buffer)
 	(error "Retrieving url %s gave no buffer" url))
     (with-current-buffer buffer
-      (when (< 0 (buffer-size))
+      (if (= 0 (buffer-size))
+          (progn
+            (kill-buffer)
+            nil)
         (require 'url-http)
-        (setq ret (url-http-parse-response)))
-      (setq handle (mm-dissect-buffer t)))
-    (mm-save-part-to-file handle newname)
-    (kill-buffer buffer)
-    (mm-destroy-parts handle)
+        (setq ret (url-http-parse-response))
+        (setq handle (mm-dissect-buffer t))
+        (mm-save-part-to-file handle newname)
+        (kill-buffer buffer)
+        (mm-destroy-parts handle)))
     ret))
 
 (defun web-vcs-read-and-accept-key (prompt accepted &optional reject-message help-function)
@@ -1782,8 +1787,7 @@ command `nxhtml-setup-install'."
                           (propertize "defined in this file" 'face 'web-vcs-green)
                           )
                          (fun-web-auto
-                          (if (not (and (boundp 'web-autoload-active-file-sub-url) ;; active during download
-                                        web-autoload-active-file-sub-url))
+                          (if (not (web-autload-acvtive))
                               (propertize "web download not active" 'face 'web-vcs-yellow)
                             ;; See if file matches
                             (let ((active-sub-url web-autoload-active-file-sub-url)
@@ -1940,7 +1944,8 @@ resulting load-history entry."
                          (when file ;; self protecting
                            (setq file (concat (file-name-sans-extension file) ".el"))
                            (string= (file-truename file) elisp-el-file))))
-         (active-sub-url (file-name-sans-extension web-autoload-active-file-sub-url))
+         (active-sub-url (when (web-autload-acvtive)
+                           (file-name-sans-extension web-autoload-active-file-sub-url)))
          whole-result
          batch-error
          result)
@@ -2037,14 +2042,14 @@ resulting load-history entry."
                               ((not (featurep feat))
                                (if (or (string= elisp-feature-name
                                                 (symbol-name (cdr e))))
-                                   (propertize "Web download, matches file name" 'face 'web-vcs-yellow)
+                                   (propertize "Web download, matches file name" 'face 'web-vcs-green)
                                  (propertize "Does not match file name" 'face 'web-vcs-red)))
                               (t
                                ;; symbol-file will be where it is loaded
                                ;; so check load-path instead.
                                (let ((file (locate-library feat-name)))
                                  (if (funcall is-same-file file)
-                                     (propertize "Probably loaded from same file now" 'face 'web-vcs-green)
+                                     (propertize "Probably loaded from same file now" 'face 'web-vcs-yellow)
                                    (propertize (format "Probably loaded from %S now" file)
                                                'face 'web-vcs-yellow))))))))
                   ;; require
