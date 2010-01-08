@@ -196,20 +196,62 @@ Considers site-start.el, site-
     ))
 
 
-;; (web-vcs-get-files-on-page 'lp "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/" t "c:/test/temp13/" t)
-;; (web-vcs-get-files-on-page 'lp "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/util/" t "temp" t)
-;; (web-vcs-get-files-on-page 'lp "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/alts/" t "temp" t)
 
-(defvar web-vcs-folder-cache nil) ;; dyn var
-(defun web-vcs-add-folder-cache (url buf)
-  (add-to-list 'web-vcs-folder-cache (list url buf)))
-(defun web-vcs-ass-folder-cache (url)
-  (assoc url web-vcs-folder-cache))
-(defun web-vcs-clear-folder-cache ()
-  (while web-vcs-folder-cache
-    (let ((ub (car web-vcs-folder-cache)))
-      (setq web-vcs-folder-cache (cdr web-vcs-folder-cache))
-      (kill-buffer (nth 1 ub)))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Logging
+
+(defcustom web-vcs-log-file "~/.emacs.d/web-vcs-log.org"
+  "Log file for web-vcs."
+  :type 'file
+  :group 'web-vcs)
+
+(defun web-vcs-log-edit ()
+  "Open log file."
+  (interactive)
+  (find-file web-vcs-log-file))
+
+(defun web-vcs-log-save ()
+  (let ((log-buf (find-buffer-visiting web-vcs-log-file)))
+    (when (and log-buf (buffer-modified-p log-buf))
+      (with-current-buffer log-buf
+          (basic-save-buffer)))
+    log-buf))
+
+(defun web-vcs-log-close ()
+  (let ((log-buf (web-vcs-log-save)))
+    (when log-buf
+      (kill-buffer log-buf))))
+
+;; Fix-me: Add some package descriptor to log
+(defun web-vcs-log (url dl-file msg)
+  (unless (file-exists-p web-vcs-log-file)
+    (let ((dir (file-name-directory web-vcs-log-file)))
+      (unless (file-directory-p dir)
+        (make-directory dir))))
+  (with-current-buffer (find-file-noselect web-vcs-log-file)
+    (save-restriction
+      (widen)
+      (let ((today-entries (format-time-string "* %Y-%m-%d"))
+            (now (format-time-string "%H-%M-%S GMT" nil t)))
+        (goto-char (point-max))
+        (unless (re-search-backward (concat "^" today-entries) nil t)
+          (goto-char (point-max))
+          (insert "\n" today-entries "\n"))
+        (goto-char (point-max))
+        (when url
+          (insert "** Downloading file " now "\n"
+                  (format "   file [[file:%s][%s]]\n   from %s\n" dl-file dl-file url)
+                  ))
+        (cond
+         ((stringp msg)
+          (goto-char (point-max))
+          (insert msg "\n"))
+         (msg (basic-save-buffer)))))))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Finding and downloading files
 
 ;;;###autoload
 (defun web-vcs-get-files-from-root (web-vcs url dl-dir)
@@ -232,19 +274,6 @@ etc."
               nil))
       (message "")
       (web-vcs-get-files-on-page web-vcs url t (file-name-as-directory dl-dir) nil))))
-
-(defun web-vcs-get-missing-matching-files (web-vcs url dl-dir file-mask)
-  "Download missing files from VCS system using the web interface.
-Use WEB-VCS entry in variable `web-vcs-links-regexp' to download
-files via http from URL to directory DL-DIR.
-
-Before downloading offer to visit the page from which the
-downloading will be made.
-"
-  (let ((vcs-rec (or (assq web-vcs web-vcs-links-regexp)
-                     (error "Does not know web-cvs %S" web-vcs))))
-    (web-vcs-get-files-on-page-1 vcs-rec url dl-dir "" file-mask 0 nil nil)
-    (web-vcs-log-save)))
 
 (defun web-vcs-get-files-on-page (web-vcs url recursive dl-dir test)
   "Download files listed by WEB-VCS on web page URL.
@@ -338,88 +367,6 @@ If TEST is non-nil then do not download, just list the files."
           (web-vcs-message-with-face 'web-vcs-yellow
                                      "  %i files updated (old versions renamed to *.moved)"
                                      moved))))))
-
-(defcustom web-vcs-log-file "~/.emacs.d/web-vcs-log.org"
-  "Log file for web-vcs."
-  :type 'file
-  :group 'web-vcs)
-
-(defun web-vcs-log-edit ()
-  "Open log file."
-  (interactive)
-  (find-file web-vcs-log-file))
-
-(defun web-vcs-log-save ()
-  (let ((log-buf (find-buffer-visiting web-vcs-log-file)))
-    (when (and log-buf (buffer-modified-p log-buf))
-      (with-current-buffer log-buf
-          (basic-save-buffer)))
-    log-buf))
-
-(defun web-vcs-log-close ()
-  (let ((log-buf (web-vcs-log-save)))
-    (when log-buf
-      (kill-buffer log-buf))))
-
-;; Fix-me: Add some package descriptor to log
-(defun web-vcs-log (url dl-file msg)
-  (unless (file-exists-p web-vcs-log-file)
-    (let ((dir (file-name-directory web-vcs-log-file)))
-      (unless (file-directory-p dir)
-        (make-directory dir))))
-  (with-current-buffer (find-file-noselect web-vcs-log-file)
-    (save-restriction
-      (widen)
-      (let ((today-entries (format-time-string "* %Y-%m-%d"))
-            (now (format-time-string "%H-%M-%S GMT" nil t)))
-        (goto-char (point-max))
-        (unless (re-search-backward (concat "^" today-entries) nil t)
-          (goto-char (point-max))
-          (insert "\n" today-entries "\n"))
-        (goto-char (point-max))
-        (when url
-          (insert "** Downloading file " now "\n"
-                  (format "   file [[file:%s][%s]]\n   from %s\n" dl-file dl-file url)
-                  ))
-        (cond
-         ((stringp msg)
-          (goto-char (point-max))
-          (insert msg "\n"))
-         (msg (basic-save-buffer)))))))
-
-(defun web-vcs-url-copy-file-and-check (url dl-file dest-file)
-  "Copy URL to DL-FILE.
-Log what happened. Use DEST-FILE in the log, not DL-FILE which is
-a temporary file."
-  (let ((http-sts nil)
-        (file-nonempty nil)
-        (fail-reason nil))
-    (when dest-file (web-vcs-log url dest-file nil))
-    (display-buffer "*Messages*")
-    (select-window (get-buffer-window "*Messages*"))
-    ;;(message "before url-copy-file %S" dl-file)
-    (setq http-sts (web-vcs-url-copy-file url dl-file nil t)) ;; don't overwrite, keep time
-    ;;(message "after  url-copy-file %S" dl-file)
-    (if (and (file-exists-p dl-file)
-             (setq file-nonempty (< 0 (nth 7 (file-attributes dl-file)))) ;; file size 0
-             (memq http-sts '(200 201)))
-        (when dest-file
-          (web-vcs-log nil nil "   Done.\n"))
-      (setq fail-reason
-            (cond
-             (http-sts (format "HTTP %s" http-sts))
-             (file-nonempty "File looks bad")
-             (t "Server did not respond")))
-      (unless dest-file (web-vcs-log url dl-file "TEMP FILE"))
-      (web-vcs-log nil nil (format "   *Failed:* %s\n" fail-reason))
-      (web-vcs-log-save) ;; Needed?
-      ;; Requires user attention and intervention
-      (web-vcs-message-with-face 'web-vcs-red "Download failed: %s, %S" fail-reason url)
-      (display-buffer "*Messages*")
-      (select-window (get-buffer-window "*Messages*"))
-      (message "\n")
-      (web-vcs-message-with-face 'web-vcs-yellow "Please retry what you did before!\n")
-      (throw 'command-level nil))))
 
 (defun web-vcs-get-files-on-page-1 (vcs-rec url dl-root dl-relative file-mask recursive dl-revision test)
   "Download files listed by VCS-REC on web page URL.
@@ -536,6 +483,69 @@ If TEST is non-nil then do not download, just list the files"
                                                      test)))
               (setq moved (+ moved (nth 1 ret))))))))
     (list this-page-revision moved)))
+
+(defun web-vcs-get-missing-matching-files (web-vcs url dl-dir file-mask)
+  "Download missing files from VCS system using the web interface.
+Use WEB-VCS entry in variable `web-vcs-links-regexp' to download
+files via http from URL to directory DL-DIR.
+
+Before downloading offer to visit the page from which the
+downloading will be made.
+"
+  (let ((vcs-rec (or (assq web-vcs web-vcs-links-regexp)
+                     (error "Does not know web-cvs %S" web-vcs))))
+    (web-vcs-get-files-on-page-1 vcs-rec url dl-dir "" file-mask 0 nil nil)
+    (web-vcs-log-save)))
+
+
+;; (web-vcs-get-files-on-page 'lp "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/" t "c:/test/temp13/" t)
+;; (web-vcs-get-files-on-page 'lp "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/util/" t "temp" t)
+;; (web-vcs-get-files-on-page 'lp "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/alts/" t "temp" t)
+
+(defvar web-vcs-folder-cache nil) ;; dyn var
+(defun web-vcs-add-folder-cache (url buf)
+  (add-to-list 'web-vcs-folder-cache (list url buf)))
+(defun web-vcs-ass-folder-cache (url)
+  (assoc url web-vcs-folder-cache))
+(defun web-vcs-clear-folder-cache ()
+  (while web-vcs-folder-cache
+    (let ((ub (car web-vcs-folder-cache)))
+      (setq web-vcs-folder-cache (cdr web-vcs-folder-cache))
+      (kill-buffer (nth 1 ub)))))
+
+(defun web-vcs-url-copy-file-and-check (url dl-file dest-file)
+  "Copy URL to DL-FILE.
+Log what happened. Use DEST-FILE in the log, not DL-FILE which is
+a temporary file."
+  (let ((http-sts nil)
+        (file-nonempty nil)
+        (fail-reason nil))
+    (when dest-file (web-vcs-log url dest-file nil))
+    (display-buffer "*Messages*")
+    (select-window (get-buffer-window "*Messages*"))
+    ;;(message "before url-copy-file %S" dl-file)
+    (setq http-sts (web-vcs-url-copy-file url dl-file nil t)) ;; don't overwrite, keep time
+    ;;(message "after  url-copy-file %S" dl-file)
+    (if (and (file-exists-p dl-file)
+             (setq file-nonempty (< 0 (nth 7 (file-attributes dl-file)))) ;; file size 0
+             (memq http-sts '(200 201)))
+        (when dest-file
+          (web-vcs-log nil nil "   Done.\n"))
+      (setq fail-reason
+            (cond
+             (http-sts (format "HTTP %s" http-sts))
+             (file-nonempty "File looks bad")
+             (t "Server did not respond")))
+      (unless dest-file (web-vcs-log url dl-file "TEMP FILE"))
+      (web-vcs-log nil nil (format "   *Failed:* %s\n" fail-reason))
+      (web-vcs-log-save) ;; Needed?
+      ;; Requires user attention and intervention
+      (web-vcs-message-with-face 'web-vcs-red "Download failed: %s, %S" fail-reason url)
+      (display-buffer "*Messages*")
+      (select-window (get-buffer-window "*Messages*"))
+      (message "\n")
+      (web-vcs-message-with-face 'web-vcs-yellow "Please retry what you did before!\n")
+      (throw 'command-level nil))))
 
 (defvar web-autoload-temp-file-prefix "TEMPORARY-WEB-AUTO-LOAD-")
 (defvar web-autoload-active-file-sub-url) ;; Dyn var, active during file download check
@@ -1338,8 +1348,8 @@ Note: If your nXhtml is to old you can't use this function
               (make-directory dl-dir t)
             (error "Aborted by user")))
         (setq message-log-max t)
-        (delete-other-windows)
-        (switch-to-buffer "*Messages*")
+        ;;(delete-other-windows)
+        (view-echo-area-messages)
         (message "")
         (message "")
         (web-vcs-message-with-face 'web-vcs-green "==== Starting nXhtml part by part state ====")
@@ -2153,14 +2163,22 @@ when you have tested enough."
     (setq xb (url-retrieve-synchronously "http://www.emacswiki.org/emacs/download/anything.el"))
     (switch-to-buffer xb)
     ))
-;; (emacs-Q-no-nxhtml "web-vcs.el" "-f" "eval-buffer" "-f" "nxhtml-temp-setup-auto-download")
 ;; (emacs-Q-no-nxhtml "-l" "c:/test/d27/web-vcs" "-f" "nxhtml-temp-setup-auto-download")
 ;; (emacs-Q-no-nxhtml "web-vcs.el" "-l" "c:/test/d27/web-autostart.el")
 ;; (emacs-Q-no-nxhtml "web-vcs.el" "-l" "c:/test/d27/autostart.el")
+;; (emacs-Q-no-nxhtml "web-vcs.el" "-f" "eval-buffer" "-f" "nxhtml-temp-setup-auto-download")
 (defun nxhtml-temp-setup-auto-download ()
   ;;(when (fboundp 'w32-send-sys-command) (w32-send-sys-command #xf030) (sit-for 2))
-  (view-echo-area-messages)
+  (set-frame-size (selected-frame)
+                  (/ 1024 (frame-char-width))
+                  (/ 512 (frame-char-height))
+                  )
+  (tool-bar-mode -1)
+  (set-frame-position (selected-frame) 100 50)
   (when (y-or-n-p "Do nXhtml? ")
+    (view-echo-area-messages)
+    (setq truncate-lines t)
+    (split-window-horizontally)
     (nxhtml-setup-auto-download "c:/test/d27")))
 ;;;;;; End Testing function
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

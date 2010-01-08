@@ -2,8 +2,8 @@ default namespace = "http://www.w3.org/1999/xhtml"
 
 include "genshi.rnc"
 include "xhtml-loader.rnc" {
-   start = html | head | head.content | body | Block.class | Inline.class |
-      Table.class | Form.extra.class | genshi.class
+   start = html | head | head.content | body | frameset | frame | noframes |
+      Block.class | Inline.class | Table.class | Form.extra.class | genshi.class
    html = element html { html.attlist, (genshi.model | (head, (body | frameset | genshi.model))) }
    frameset =
       element frameset {
@@ -62,6 +62,5 @@ script.attlist &= genshi.attrib
 param.attlist &= genshi.attrib
 Edit.attrib &= genshi.attrib
 
-genshi.allowed.children |= html | head | head.content | body |
-   frameset | frame | noframes | Inline.class | Block.class |
-   Table.class | Form.extra.class
+genshi.allowed.children |= html | head | head.content | body | frameset | frame
+ | noframes | Inline.class | Block.class | Table.class | Form.extra.class
