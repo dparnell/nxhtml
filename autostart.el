@@ -75,6 +75,15 @@ Loading is done if recompiled and LOAD is t."
       (message "Byte compilation of this file is up to date."))))
 
 (defun nxhtml-byte-compile-file (file &optional load)
+  (let ((extra-load-path (when nxhtml-install-dir
+                           (mapcar (lambda (p)
+                                     (expand-file-name p nxhtml-install-dir))
+                                   '("tests" "related" "nxhtml" "util" ".")))))
+    (web-vcs-byte-compile-file file load extra-load-path)))
+
+(defvar web-vcs-comp-dir nil)
+
+(defun web-vcs-byte-compile-file (file &optional load extra-load-path comp-dir)
   "Byte compile FILE in a new Emacs sub process.
 nXhtml subdirectories are added to the front of `load-path'
 during compilation.
@@ -88,58 +97,49 @@ If LOAD"
       (error "Must be in emacs-lisp-mode")))
   (unless nxhtml-install-dir
     (error "nXhtml must be loaded"))
-  (let ((old-emacsloadpath (getenv "EMACSLOADPATH"))
-        (newlp (getenv "EMACSLOADPATH"))
-        ;; Fix-me: name of compile log buffer. When should it be
-        ;; deleted? How do I bind it to byte-compile-file? Or do I?
-        (out-buf (get-buffer-create "*Compile-Log*"))
-        (elc-file (byte-compile-dest-file file))
-        (this-emacs-exe (locate-file invocation-name
-                                     (list invocation-directory)
-                                     exec-suffixes))
-        start)
-    (dolist (p '("tests" "related" "nxhtml" "util" "."))
-      (let ((full-p (expand-file-name p nxhtml-install-dir)))
-        (setq newlp (concat full-p ";" newlp))))
-    (if nil
-        (progn
-          (setenv "EMACSLOADPATH" newlp)
-          (emacs-Q buffer-file-name "-f" "emacs-lisp-byte-compile")
-          (setenv "EMACSLOADPATH" old-emacsloadpath))
-      (display-buffer out-buf)
-      (with-selected-window (get-buffer-window out-buf)
-        (with-current-buffer out-buf
-          (setq default-directory nxhtml-install-dir)
-          (widen)
-          (goto-char (point-max))
-          (when (= 0 (buffer-size))
-            (insert (propertize "nXhtml compilation output" 'face 'font-lock-comment-face)))
-          (let ((inhibit-read-only t)
-                (rel-file (file-relative-name file)))
-            (insert "\n\n")
-            (insert "** Compile " rel-file "\n"))
-          (setq start (point))
-          (compilation-mode)
-          (when (file-exists-p elc-file) (delete-file elc-file))
-          (setenv "EMACSLOADPATH" newlp)
-          ;;(message "before call-process compile %S" file)
-          (apply 'call-process this-emacs-exe nil out-buf t
-                 "-Q" "--batch" file "-f" "emacs-lisp-byte-compile" nil)
-          ;;(message "after call-process compile %S" file)
-          (setenv "EMACSLOADPATH" old-emacsloadpath)
-          (goto-char start)
-          (while (re-search-forward "^\\([a-zA-Z0-9/\._-]+\\):[0-9]+:[0-9]+:" nil t)
-            (let ((rel-file (file-relative-name file))
-                  (inhibit-read-only t))
-              (replace-match rel-file nil nil nil 1)))
-          (goto-char (point-max))
-          ;;(font-lock-mode -1) (font-lock-mode 1)
-          )))
+  (let* ((old-emacsloadpath (getenv "EMACSLOADPATH"))
+         (newlp old-emacsloadpath)
+         ;; Fix-me: name of compile log buffer. When should it be
+         ;; deleted? How do I bind it to byte-compile-file? Or do I?
+         (out-buf (get-buffer-create "*Compile-Log*"))
+         (elc-file (byte-compile-dest-file file))
+         (this-emacs-exe (locate-file invocation-name
+                                      (list invocation-directory)
+                                      exec-suffixes))
+         (comp-dir default-directory)
+         start)
+    (dolist (p extra-load-path)
+      (setq newlp (concat full-p ";" newlp)))
+    (display-buffer out-buf)
+    (with-selected-window (get-buffer-window out-buf)
+      (with-current-buffer out-buf
+        (unless (local-variable-p 'web-vcs-comp-dir)
+          (set (make-local-variable 'web-vcs-comp-dir) (or comp-dir default-directory)))
+        (setq default-directory web-vcs-comp-dir)
+        (widen)
+        (goto-char (point-max))
+        (when (= 0 (buffer-size))
+          (insert (propertize "Web VCS compilation output" 'face 'font-lock-comment-face)))
+        (let ((inhibit-read-only t)
+              (rel-file (file-relative-name file)))
+          (insert "\n\n")
+          (insert "** Compile " rel-file "\n"))
+        (setq start (point))
+        (compilation-mode)
+        (when (file-exists-p elc-file) (delete-file elc-file))
+        (setenv "EMACSLOADPATH" newlp)
+        (apply 'call-process this-emacs-exe nil out-buf t
+               "-Q" "--batch" file "-f" "emacs-lisp-byte-compile" nil)
+        (setenv "EMACSLOADPATH" old-emacsloadpath)
+        (goto-char start)
+        (while (re-search-forward "^\\([a-zA-Z0-9/\._-]+\\):[0-9]+:[0-9]+:" nil t)
+          (let ((rel-file (file-relative-name file))
+                (inhibit-read-only t))
+            (replace-match rel-file nil nil nil 1)))
+        (goto-char (point-max))))
     (when (file-exists-p elc-file)
-      (message "nxhtml-byte-compile-file: Compiling ready %S load=%s" elc-file load)
       (when load (load elc-file))
-      t)
-    ))
+      t)))
 
 ;; (defun nxhtml-custom-load-and-get-value (symbol)
 ;;   (custom-load-symbol symbol)
