@@ -1983,6 +1983,113 @@ Return full path if found."
           (delete-overlay ovl)
           (goto-char here))))))
 
+;;;###autoload
+(defun ourcomments-org-paste-html-link (html-link)
+  "If there is an html link on clipboard paste it as an org link.
+If you have this on the clipboard
+
+   <a href=\"http://my.site.org/\">My Site</a>
+
+It will paste this
+
+   [[http://my.site.org/][My Site]]
+
+If the URL is to a local file it will create an org link to the file.
+
+Tip: You can use the Firefox plugin Copy as HTML Link, see URL
+     `https://addons.mozilla.org/en-US/firefox/addon/2617'.
+"
+  (interactive (list (current-kill 0)))
+  (let ((conv-link (ourcomments-org-convert-html-link html-link)))
+      (if (not conv-link)
+          (message (propertize "No html link on clipboard" 'face 'font-lock-warning-face))
+        (insert conv-link))))
+
+(defconst ourcomments-org-paste-html-link-regexp "\\(?:<a href=\"\\(.*?\\)\">\\([^<]*\\)</a>\\)")
+
+(defvar temp-n 0)
+(defun ourcomments-org-convert-html-link (html-link)
+  (let (converted url str)
+    (save-match-data
+      (while (string-match ourcomments-org-paste-html-link-regexp html-link)
+        (setq converted t)
+        (setq url (match-string 1 html-link))
+        (setq str (match-string 2 html-link))
+        ;;(setq str (concat str (format "%s" (setq temp-n (1+ temp-n)))))
+        (setq html-link (replace-match (concat "[[" url "][" str "]]") nil nil html-link 0))))
+    (when converted
+      html-link)))
+
+(defun ourcomments-org-convert-html-links-in-buffer (beg end)
+  (when (derived-mode-p 'org-mode)
+    (let ((here (copy-marker (point)))
+          converted)
+      (goto-char beg)
+      (while (re-search-forward ourcomments-org-paste-html-link-regexp end t)
+        (setq converted t)
+        (setq url (match-string 1))
+        (setq str (match-string 2))
+        ;;(setq str (concat str (format "%s" (setq temp-n (1+ temp-n)))))
+        (replace-match (concat "[[" url "][" str "]]") nil nil nil 0))
+      (goto-char here)
+      converted)))
+
+(defvar ourcomments-paste-hook nil)
+(add-hook 'ourcomments-paste-hook 'ourcomments-org-convert-html-links-in-buffer)
+
+(defvar ourcomments-paste-beg) ;; dyn var
+(defvar ourcomments-paste-end) ;; dyn var
+;; (ourcomments-grab-paste-bounds 1 2 3)
+(defun ourcomments-grab-paste-bounds (beg end len)
+  (setq ourcomments-paste-beg (min beg ourcomments-paste-beg))
+  (setq ourcomments-paste-end (max end ourcomments-paste-end)))
+
+(defmacro ourcomments-advice-paste-command (paste-command)
+  (let ((adv-name (make-symbol (concat "ourcomments-org-ad-"
+                                       (symbol-name paste-command)))))
+    `(defadvice ,paste-command (around
+                                ,adv-name)
+       (let ((ourcomments-paste-beg (point-max)) ;; dyn var
+             (ourcomments-paste-end (point-min))) ;; dyn var
+         (add-hook 'after-change-functions `ourcomments-grab-paste-bounds nil t)
+         ad-do-it ;;;;;;;;;;;;;;;;;;;;;;;;;;
+         (remove-hook 'after-change-functions `ourcomments-grab-paste-bounds t)
+         (run-hook-with-args-until-success 'ourcomments-paste-hook
+                                           ourcomments-paste-beg
+                                           ourcomments-paste-end)))))
+
+(defcustom ourcomments-paste-converted-commands '(yank cua-paste viper-put-back viper-Put-back)
+  "Commands for which past converting is done.
+See `ourcomments-paste-converting-mode' for more information."
+  :type '(repeat function)
+  :group 'ourcomments-util)
+
+(define-minor-mode ourcomments-paste-converting-mode
+  "Pasted text may be automatically converted in this mode.
+The functions in `ourcomments-paste-hook' are run after commands
+in `ourcomments-paste-converted-commands' if any of the functions
+returns non-nil that text is inserted instead of the original
+text.
+
+Note: This will defadvice the commands."
+  :global t
+  :group 'cua
+  :group 'viper
+  :group 'ourcomments-util
+  (if ourcomments-paste-converting-mode
+      (progn
+        (dolist (command ourcomments-paste-converted-commands)
+          (eval `(ourcomments-advice-paste-command ,command))
+          (ad-activate command)))
+    (dolist (command ourcomments-paste-converted-commands)
+      (ad-unadvise command))))
+
+;; (ourcomments-advice-paste-command cua-paste)
+;; (ad-activate 'cua-paste)
+;; (ad-deactivate 'cua-paste)
+;; (ad-update 'cua-paste)
+;; (ad-unadvise 'cua-paste)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Menu commands to M-x history
 
