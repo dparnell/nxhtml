@@ -66,7 +66,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (appmenu-mode appmenu-add appmenu) "appmenu" "util/appmenu.el"
-;;;;;;  (19266 61866))
+;;;;;;  (19273 27669))
 ;;; Generated autoloads from util/appmenu.el
 (web-autoload-require 'appmenu 'lp (nxhtml-download-root-url nil) "util/appmenu" nxhtml-install-dir)
 
@@ -1094,7 +1094,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode
 ;;;;;;  mumamo-define-html-file-wide-keys) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19264 23175))
+;;;;;;  (19270 1444))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp (nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir)
 
@@ -1129,15 +1129,7 @@ This also covers inlined style and javascript." t)
 (nxhtml-autoload 'genshi-html-mumamo-mode `(lp ,(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for Genshi with main mode `html-mode'.
 This also covers inlined style and javascript.
-
-Note: You will currently get fontification errors if you use
-python chunks
-
-  {% python ... %}
-
-The reason is that the chunk routines currently do not know when
-to just look for the } or %} endings.  However this should not
-affect your editing normally." t)
+" t)
 
 (nxhtml-autoload 'mjt-html-mumamo-mode `(lp ,(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for MJT with main mode `html-mode'.
@@ -1359,18 +1351,18 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;***
 
 ;;;### (autoloads (ourcomments-warning ourcomments-M-x-menu-mode
-;;;;;;  use-custom-style info-open-file grep-query-replace emacs-Q-nxhtml
-;;;;;;  emacs-Q emacs--no-desktop emacs--debug-init emacs-buffer-file
-;;;;;;  emacs emacs-restart ourcomments-ido-ctrl-tab ourcomments-ido-buffer-raise-frame
-;;;;;;  ourcomments-ido-buffer-other-frame ourcomments-ido-buffer-other-window
-;;;;;;  describe-symbol describe-defstruct describe-custom-group
-;;;;;;  narrow-to-comment buffer-narrowed-p describe-command ourcomments-ediff-files
-;;;;;;  find-emacs-other-file better-fringes-mode describe-key-and-map-briefly
-;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
-;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
-;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
-;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19267 49727))
+;;;;;;  ourcomments-paste-with-convert-mode use-custom-style info-open-file
+;;;;;;  grep-query-replace emacs-Q-nxhtml emacs-Q emacs--no-desktop
+;;;;;;  emacs--debug-init emacs-buffer-file emacs emacs-restart ourcomments-ido-ctrl-tab
+;;;;;;  ourcomments-ido-buffer-raise-frame ourcomments-ido-buffer-other-frame
+;;;;;;  ourcomments-ido-buffer-other-window describe-symbol describe-defstruct
+;;;;;;  describe-custom-group narrow-to-comment buffer-narrowed-p
+;;;;;;  describe-command ourcomments-ediff-files find-emacs-other-file
+;;;;;;  better-fringes-mode describe-key-and-map-briefly ourcomments-move-end-of-line
+;;;;;;  ourcomments-move-beginning-of-line ourcomments-mark-whole-buffer-or-field
+;;;;;;  fill-dwim unfill-individual-paragraphs unfill-region unfill-paragraph
+;;;;;;  define-toggle-old define-toggle popup-menu-at-point ourcomments-indirect-fun)
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19273 16522))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp (nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir)
 
@@ -1606,7 +1598,7 @@ Restart Emacs and start `server-mode' if on before.
 (nxhtml-autoload 'emacs `(lp ,(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Start a new Emacs.
 
-\(fn)" t nil)
+\(fn &rest ARGS)" t nil)
 
 (nxhtml-autoload 'emacs-buffer-file `(lp ,(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Start a new Emacs showing current buffer file.
@@ -1623,7 +1615,7 @@ Not documented
 (nxhtml-autoload 'emacs--no-desktop `(lp ,(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Not documented
 
-\(fn)" t nil)
+\(fn &rest ARGS)" t nil)
 
 (nxhtml-autoload 'emacs-Q `(lp ,(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Start new Emacs without any customization whatsoever.
@@ -1633,7 +1625,7 @@ Start new Emacs without any customization whatsoever.
 (nxhtml-autoload 'emacs-Q-nxhtml `(lp ,(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Start new Emacs with -Q and load nXhtml.
 
-\(fn)" t nil)
+\(fn &rest ARGS)" t nil)
 
 (nxhtml-autoload 'grep-query-replace `(lp ,(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Do `query-replace-regexp' of FROM with TO, on all files in *grep*.
@@ -1652,6 +1644,33 @@ Open an info file in `Info-mode'.
 Setup like in `Custom-mode', but without things specific to Custom.
 
 \(fn)" nil nil)
+
+(defvar ourcomments-paste-with-convert-mode nil "\
+Non-nil if Ourcomments-Paste-With-Convert mode is enabled.
+See the command `ourcomments-paste-with-convert-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `ourcomments-paste-with-convert-mode'.")
+
+(nxhtml-custom-autoload 'ourcomments-paste-with-convert-mode 'ourcomments-util nil)
+
+(nxhtml-autoload 'ourcomments-paste-with-convert-mode `(lp ,(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Pasted text may be automatically converted in this mode.
+The functions in `ourcomments-paste-with-convert-hook' are run
+after commands in `ourcomments-paste-with-convert-commands' if any
+of the functions returns non-nil that text is inserted instead of
+the original text.
+
+For exampel when this mode is on and you paste an html link in an
+`org-mode' buffer it will be directly converted to an org style
+link. (This is the default behaviour.)
+
+Tip: The Firefox plugin Copy as HTML Link is handy, see URL
+     `https://addons.mozilla.org/en-US/firefox/addon/2617'.
+
+Note: This minor mode will defadvice the paste commands.
+
+\(fn &optional ARG)" t nil)
 
 (defvar ourcomments-M-x-menu-mode nil "\
 Non-nil if Ourcomments-M-X-Menu mode is enabled.
@@ -2094,20 +2113,27 @@ see `udev-rinari-dir' and `udev-rinari-load-rinari'.
 ;;;***
 
 ;;;### (autoloads (viper-tutorial) "viper-tut" "util/viper-tut.el"
-;;;;;;  (19173 56142))
+;;;;;;  (19273 33877))
 ;;; Generated autoloads from util/viper-tut.el
 (web-autoload-require 'viper-tut 'lp (nxhtml-download-root-url nil) "util/viper-tut" nxhtml-install-dir)
 
 
 (nxhtml-autoload 'viper-tutorial `(lp ,(nxhtml-download-root-url nil) "util/viper-tut" nxhtml-install-dir) "\
 Run a tutorial for Viper.
-If any of the standard Viper key bindings that are used in the
-tutorial have been changed then an explanatory note about this is
-shown in the beginning of the tutorial buffer.
 
-When the tutorial buffer is killed the content and point position
-in the buffer is saved so that the tutorial may be resumed
-later.
+A simple classic tutorial in 5 parts that have been used by many
+people starting to learn vi keys.  You may learn enough to start
+using `viper-mode' in Emacs.
+
+Some people find that vi keys helps against repetetive strain
+injury, see URL
+
+  `http://www.emacswiki.org/emacs/RepeatedStrainInjury'.
+
+Note: There might be a few clashes between vi key binding and
+Emacs standard key bindings.  You will be notified about those in
+the tutorial.  Even more, if your own key bindings comes in
+between you will be notified about that too.
 
 \(fn PART &optional DONT-ASK-FOR-REVERT)" t nil)
 
@@ -3598,7 +3624,7 @@ Check if external modules used by nXhtml are found.
 ;;;;;;  smarty-nxhtml-mumamo-mode mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode
 ;;;;;;  mason-nxhtml-mumamo-mode django-nxhtml-mumamo-mode embperl-nxhtml-mumamo-mode
 ;;;;;;  nxhtml-mumamo-mode) "nxhtml-mumamo" "nxhtml/nxhtml-mumamo.el"
-;;;;;;  (19264 31083))
+;;;;;;  (19270 1429))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 (web-autoload-require 'nxhtml-mumamo 'lp (nxhtml-download-root-url nil) "nxhtml/nxhtml-mumamo" nxhtml-install-dir)
 
@@ -3791,7 +3817,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19267 50122))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19273 29922))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp (nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir)
 
@@ -4006,8 +4032,8 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;### (autoloads (web-vcs-investigate-elisp-file nxhtml-maybe-download-files
 ;;;;;;  nxhtml-setup-download-all nxhtml-setup-auto-download nxhtml-setup-install
-;;;;;;  web-vcs-get-files-from-root) "web-vcs" "web-vcs.el" (19269
-;;;;;;  60749))
+;;;;;;  web-vcs-get-files-from-root) "web-vcs" "web-vcs.el" (19270
+;;;;;;  57028))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -4184,8 +4210,8 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19269 61187
-;;;;;;  62000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19274 6033
+;;;;;;  125000))
 
 ;;;***
 

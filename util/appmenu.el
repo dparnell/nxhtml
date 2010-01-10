@@ -216,10 +216,21 @@ point."
           (setq appmenu-level (1- appmenu-level)))
       (when (and (symbolp def)
                  (fboundp def))
-        (let ((mouse-only (assq def appmenu-mouse-only)))
-          (when mouse-only
-            (setq def (cadr mouse-only))))
-        (add-to-list 'appmenu-funs (list appmenu-level (cons ev appmenu-events) def)))))
+        (let* ((mouse-only (assq def appmenu-mouse-only))
+               (fun (if mouse-only (cadr mouse-only) def))
+               (doc (when fun
+                      (if (not (eq fun 'push-button))
+                          (documentation fun)
+                        (concat
+                         "Button: "
+                         (with-current-buffer (marker-buffer this-point)
+                           (or (get-char-property this-point 'help-echo)
+                               (let ((action-fun (get-char-property this-point 'action)))
+                                 (if action-fun
+                                     (documentation action-fun)
+                                   "No action, ignored"))
+                               "No documentation available")))))))
+          (add-to-list 'appmenu-funs (list appmenu-level (cons ev appmenu-events) def doc))))))
 
 ;;(appmenu-as-help (point))
 (defun appmenu-as-help (this-point)
@@ -233,6 +244,7 @@ Tip: This may be helpful if you are using `css-color-mode'."
          (with-current-buffer (or (and (markerp this-point)
                                        (marker-buffer this-point))
                                   (current-buffer))
+           (unless (markerp this-point) (setq (copy-marker this-point)))
            (get-char-property this-point 'keymap))))
     ;;(describe-variable 'menu-here)
     (appmenu-as-help-1 menu-here this-point)))
@@ -244,6 +256,7 @@ Tip: This may be helpful if you are using `css-color-mode'."
     (when menu-here
       (map-keymap 'appmenu-keymap-map-fun menu-here))
     ;;(describe-variable 'appmenu-funs)
+    ;; Fix-me: collect info first in case we are in help-buffer!
     (with-output-to-temp-buffer (help-buffer)
       (help-setup-xref (list #'appmenu-as-help this-point) (interactive-p))
       (with-current-buffer (help-buffer)
@@ -260,19 +273,19 @@ Tip: This may be helpful if you are using `css-color-mode'."
             (insert (propertize (format fmt "" "Key" "Function") 'face 'font-lock-function-name-face))
             (insert (propertize (format fmt "" "---" "--------") 'face 'font-lock-function-name-face))
             (dolist (rec appmenu-funs)
-            (let* ((lev (nth 0 rec))
-                   (ev  (nth 1 rec))
-                   (fun (nth 2 rec))
-                   (doc (when fun (documentation fun)))
-                   (d1  (when doc (car (split-string doc "[\n]")))))
-              (if fun
-                  (insert (format fmt
-                                  "" ;;(concat "*" (make-string (* 4 lev) ?\ ))
-                                  (key-description (reverse ev))
-                                  d1)
-                          (if nil (format "(%s)" fun) ""))
-                ;;(insert (format "something else=%S\n" rec))
-                )))))))))
+              (let* ((lev (nth 0 rec))
+                     (ev  (nth 1 rec))
+                     (fun (nth 2 rec))
+                     (doc (nth 3 rec))
+                     (d1  (when doc (car (split-string doc "[\n]")))))
+                (if fun
+                    (insert (format fmt
+                                    "" ;;(concat "*" (make-string (* 4 lev) ?\ ))
+                                    (key-description (reverse ev))
+                                    d1)
+                            (if nil (format "(%s)" fun) ""))
+                  ;;(insert (format "something else=%S\n" rec))
+                  )))))))))
 
 
 (defun appmenu-map ()

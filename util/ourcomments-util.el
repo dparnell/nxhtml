@@ -1618,12 +1618,14 @@ of those in for example common web browsers."
   (save-buffers-kill-emacs))
 
 ;;;###autoload
-(defun emacs()
+(defun emacs (&rest args)
   "Start a new Emacs."
   (interactive)
   (recentf-save-list)
-  (call-process (ourcomments-find-emacs) nil 0 nil)
-  (message "Started 'emacs' - it will be ready soon ..."))
+  (let ((ret (apply 'call-process (ourcomments-find-emacs) nil 0 nil
+                    args)))
+    (message "Started 'emacs' - it will be ready soon ...")
+    ret))
 
 ;;;###autoload
 (defun emacs-buffer-file()
@@ -1651,10 +1653,12 @@ If there is no buffer file then instead start with `dired'."
   (message "Started 'emacs --debug-init' - it will be ready soon ..."))
 
 ;;;###autoload
-(defun emacs--no-desktop()
+(defun emacs--no-desktop (&rest args)
   (interactive)
-  (call-process (ourcomments-find-emacs) nil 0 nil "--no-desktop")
-  (message "Started 'emacs --no-desktop' - it will be ready soon ..."))
+  (let ((ret (apply 'call-process (ourcomments-find-emacs) nil 0 nil "--no-desktop"
+                    args)))
+    (message "Started 'emacs --no-desktop' - it will be ready soon ...")
+    ret))
 
 ;;;###autoload
 (defun emacs-Q (&rest args)
@@ -1666,19 +1670,17 @@ If there is no buffer file then instead start with `dired'."
     ret))
 
 ;;;###autoload
-(defun emacs-Q-nxhtml()
+(defun emacs-Q-nxhtml(&rest args)
   "Start new Emacs with -Q and load nXhtml."
   (interactive)
-  (let ((autostart (if (boundp 'nxhtml-install-dir)
-                       (expand-file-name "autostart.el" nxhtml-install-dir)
-                     (expand-file-name "../../EmacsW32/nxhtml/autostart.el"
-                                       exec-directory))))
-    (call-process (ourcomments-find-emacs) nil 0 nil "-Q"
-                  "--debug-init"
-                  "--load" autostart
-                  )
+  (let* ((autostart (if (boundp 'nxhtml-install-dir)
+                        (expand-file-name "autostart.el" nxhtml-install-dir)
+                      (expand-file-name "../../EmacsW32/nxhtml/autostart.el"
+                                        exec-directory)))
+         (ret (apply 'emacs-Q "--debug-init" "--load" autostart args)))
     (message "Started 'emacs -Q --load \"%s\"' - it will be ready soon ..."
-             autostart)))
+             autostart)
+    ret))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1983,63 +1985,93 @@ Return full path if found."
           (delete-overlay ovl)
           (goto-char here))))))
 
-;;;###autoload
-(defun ourcomments-org-paste-html-link (html-link)
-  "If there is an html link on clipboard paste it as an org link.
-If you have this on the clipboard
+;; (defun ourcomments-org-paste-html-link (html-link)
+;;   "If there is an html link on clipboard paste it as an org link.
+;; If you have this on the clipboard
+;;    <a href=\"http://my.site.org/\">My Site</a>
+;; It will paste this
+;;    [[http://my.site.org/][My Site]]
+;; If the URL is to a local file it will create an org link to the
+;; file.
+;; Tip: You can use the Firefox plugin Copy as HTML Link, see URL
+;;      `https://addons.mozilla.org/en-US/firefox/addon/2617'.
+;; "
+;;   (interactive (list (current-kill 0)))
+;;   (let ((conv-link (ourcomments-org-convert-html-link html-link)))
+;;       (if (not conv-link)
+;;           (message (propertize "No html link on clipboard" 'face 'font-lock-warning-face))
+;;         (insert conv-link))))
+
+;; (defun ourcomments-org-convert-html-link (html-link)
+;;   (let (converted url str)
+;;     (save-match-data
+;;       (while (string-match ourcomments-org-paste-html-link-regexp html-link)
+;;         (setq converted t)
+;;         (setq url (match-string 1 html-link))
+;;         (setq str (match-string 2 html-link))
+;;         ;;(setq str (concat str (format "%s" (setq temp-n (1+ temp-n)))))
+;;         (setq html-link (replace-match (concat "[[" url "][" str "]]") nil nil html-link 0))))
+;;     (when converted
+;;       html-link)))
+
+(defconst ourcomments-org-paste-html-link-regexp
+  "\\(?:<a [^>]*?href=\"\\(.*?\\)\"[^>]*?>\\([^<]*\\)</a>\\)")
+
+;;(defvar temp-n 0)
+(defun ourcomments-org-convert-html-links-in-buffer (beg end)
+  "Convert html links between BEG and END to org mode links.
+If this html link is in the buffer
 
    <a href=\"http://my.site.org/\">My Site</a>
 
-It will paste this
+then convert it to this
 
    [[http://my.site.org/][My Site]]
 
-If the URL is to a local file it will create an org link to the file.
-
-Tip: You can use the Firefox plugin Copy as HTML Link, see URL
-     `https://addons.mozilla.org/en-US/firefox/addon/2617'.
-"
-  (interactive (list (current-kill 0)))
-  (let ((conv-link (ourcomments-org-convert-html-link html-link)))
-      (if (not conv-link)
-          (message (propertize "No html link on clipboard" 'face 'font-lock-warning-face))
-        (insert conv-link))))
-
-(defconst ourcomments-org-paste-html-link-regexp "\\(?:<a href=\"\\(.*?\\)\">\\([^<]*\\)</a>\\)")
-
-(defvar temp-n 0)
-(defun ourcomments-org-convert-html-link (html-link)
-  (let (converted url str)
-    (save-match-data
-      (while (string-match ourcomments-org-paste-html-link-regexp html-link)
-        (setq converted t)
-        (setq url (match-string 1 html-link))
-        (setq str (match-string 2 html-link))
-        ;;(setq str (concat str (format "%s" (setq temp-n (1+ temp-n)))))
-        (setq html-link (replace-match (concat "[[" url "][" str "]]") nil nil html-link 0))))
-    (when converted
-      html-link)))
-
-(defun ourcomments-org-convert-html-links-in-buffer (beg end)
+If the URL is to a local file and the buffer is visiting a file
+make the link relative."
   (when (derived-mode-p 'org-mode)
     (let ((here (copy-marker (point)))
-          converted)
+          url str converted)
       (goto-char beg)
-      (while (re-search-forward ourcomments-org-paste-html-link-regexp end t)
+      (while (and (< (point) end)
+                  (re-search-forward ourcomments-org-paste-html-link-regexp end t))
         (setq converted t)
-        (setq url (match-string 1))
-        (setq str (match-string 2))
+        (setq url (match-string-no-properties 1))
+        (setq str (match-string-no-properties 2))
+        ;; Check if the URL is to a local file and absolute. And we
+        ;; have a buffer.
+        (when (and (buffer-file-name)
+                   (> (length url) 5)
+                   (string= (substring url 0 6) "file:/"))
+          (let ((abs-file-url
+                 (if (not (memq system-type '(windows-nt ms-dos)))
+                     (substring url 8)
+                   (if (string= (substring url 0 8) "file:///")
+                       (substring url 8)
+                     ;; file://c:/some/where.txt
+                     (substring url 7)))))
+            (setq url (concat "file:"
+                              (file-relative-name abs-file-url
+                                                  (file-name-directory
+                                                   (buffer-file-name)))))))
         ;;(setq str (concat str (format "%s" (setq temp-n (1+ temp-n)))))
         (replace-match (concat "[[" url "][" str "]]") nil nil nil 0))
       (goto-char here)
-      converted)))
+      nil)))
 
-(defvar ourcomments-paste-hook nil)
-(add-hook 'ourcomments-paste-hook 'ourcomments-org-convert-html-links-in-buffer)
+(defvar ourcomments-paste-with-convert-hook nil
+  "Normal hook run after certain paste commands.
+These paste commands are in the list
+`ourcomments-paste-with-convert-commands'.
+
+Each function in this hook is called with two parameters, the
+start and end of the pasted text, until a function returns
+non-nil.")
+(add-hook 'ourcomments-paste-with-convert-hook 'ourcomments-org-convert-html-links-in-buffer)
 
 (defvar ourcomments-paste-beg) ;; dyn var
 (defvar ourcomments-paste-end) ;; dyn var
-;; (ourcomments-grab-paste-bounds 1 2 3)
 (defun ourcomments-grab-paste-bounds (beg end len)
   (setq ourcomments-paste-beg (min beg ourcomments-paste-beg))
   (setq ourcomments-paste-end (max end ourcomments-paste-end)))
@@ -2054,34 +2086,42 @@ Tip: You can use the Firefox plugin Copy as HTML Link, see URL
          (add-hook 'after-change-functions `ourcomments-grab-paste-bounds nil t)
          ad-do-it ;;;;;;;;;;;;;;;;;;;;;;;;;;
          (remove-hook 'after-change-functions `ourcomments-grab-paste-bounds t)
-         (run-hook-with-args-until-success 'ourcomments-paste-hook
+         (run-hook-with-args-until-success 'ourcomments-paste-with-convert-hook
                                            ourcomments-paste-beg
                                            ourcomments-paste-end)))))
 
-(defcustom ourcomments-paste-converted-commands '(yank cua-paste viper-put-back viper-Put-back)
+(defcustom ourcomments-paste-with-convert-commands '(yank cua-paste viper-put-back viper-Put-back)
   "Commands for which past converting is done.
-See `ourcomments-paste-converting-mode' for more information."
+See `ourcomments-paste-with-convert-mode' for more information."
   :type '(repeat function)
   :group 'ourcomments-util)
 
-(define-minor-mode ourcomments-paste-converting-mode
+;;;###autoload
+(define-minor-mode ourcomments-paste-with-convert-mode
   "Pasted text may be automatically converted in this mode.
-The functions in `ourcomments-paste-hook' are run after commands
-in `ourcomments-paste-converted-commands' if any of the functions
-returns non-nil that text is inserted instead of the original
-text.
+The functions in `ourcomments-paste-with-convert-hook' are run
+after commands in `ourcomments-paste-with-convert-commands' if any
+of the functions returns non-nil that text is inserted instead of
+the original text.
 
-Note: This will defadvice the commands."
+For exampel when this mode is on and you paste an html link in an
+`org-mode' buffer it will be directly converted to an org style
+link. \(This is the default behaviour.)
+
+Tip: The Firefox plugin Copy as HTML Link is handy, see URL
+     `https://addons.mozilla.org/en-US/firefox/addon/2617'.
+
+Note: This minor mode will defadvice the paste commands."
   :global t
   :group 'cua
   :group 'viper
   :group 'ourcomments-util
-  (if ourcomments-paste-converting-mode
+  (if ourcomments-paste-with-convert-mode
       (progn
-        (dolist (command ourcomments-paste-converted-commands)
+        (dolist (command ourcomments-paste-with-convert-commands)
           (eval `(ourcomments-advice-paste-command ,command))
           (ad-activate command)))
-    (dolist (command ourcomments-paste-converted-commands)
+    (dolist (command ourcomments-paste-with-convert-commands)
       (ad-unadvise command))))
 
 ;; (ourcomments-advice-paste-command cua-paste)
@@ -2089,6 +2129,8 @@ Note: This will defadvice the commands."
 ;; (ad-deactivate 'cua-paste)
 ;; (ad-update 'cua-paste)
 ;; (ad-unadvise 'cua-paste)
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Menu commands to M-x history

@@ -306,8 +306,10 @@
       (define-key tools-map [nxhtml-viper-tut]
         (list 'menu-item "Viper Try-Out Tutorial"
               'viper-tutorial))
+      (define-key tools-map [nxhtml-viper-separator]
+        (list 'menu-item "--" nil))
       (define-key tools-map [rebind-keys]
-        (list 'menu-item "Rebind Some Keys" 'rebind-keys-mode
+        (list 'menu-item "Rebind My Choosen Keys" 'rebind-keys-mode
               :button '(:toggle . (and (boundp 'rebind-keys-mode)
                                        rebind-keys-mode))))
       (define-key tools-map [nxhtml-appmenu]
@@ -320,6 +322,11 @@
               'ourcomments-M-x-menu-mode
               :button '(:toggle . (and (boundp 'ourcomments-M-x-menu-mode)
                                        ourcomments-M-x-menu-mode))))
+      (define-key tools-map [nxhtml-patch-converting]
+        (list 'menu-item "Paste with Convert"
+              'ourcomments-paste-with-convert-mode
+              :button '(:toggle . (and (boundp 'ourcomments-paste-with-convert-mode)
+                                       ourcomments-paste-with-convert-mode))))
       (define-key tools-map [nxhtml-ctrl-tab]
         (list 'menu-item "Ctrl-TAB Buffer Switching"
               'ourcomments-ido-ctrl-tab
