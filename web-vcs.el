@@ -1101,14 +1101,18 @@ A prefix arg makes KEEP-TIME non-nil."
           (setq key (web-vcs-read-key prompt)))))
     key))
 
+(defconst web-vcs-read-key-empty-map (make-sparse-keymap))
+
+(defvar web-vcs-read-key-delay 0.01) ;Fast enough for 100Hz repeat rate, hopefully.
+
 (defun web-vcs-read-key (&optional prompt)
   "Read a key from the keyboard.
 Contrary to `read-event' this will not return a raw event but instead will
 obey the input decoding and translations usually done by `read-key-sequence'.
 So escape sequences and keyboard encoding are taken into account.
 When there's an ambiguity because the key looks like the prefix of
-some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
-  (let ((overriding-terminal-local-map read-key-empty-map)
+some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-delay'."
+  (let ((overriding-terminal-local-map web-vcs-read-key-empty-map)
 	(overriding-local-map nil)
 	(old-global-map (current-global-map))
         (timer (run-with-idle-timer
@@ -1122,7 +1126,7 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
                 ;; key-translate-table and the C-x @ map in function-key-map)
                 ;; or ESC (because of terminal escape sequences in
                 ;; input-decode-map).
-                read-key-delay t
+                web-vcs-read-key-delay t
                 (lambda ()
                   (let ((keys (this-command-keys-vector)))
                     (unless (zerop (length keys))
@@ -1134,7 +1138,7 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
                       (throw 'read-key keys)))))))
     (unwind-protect
         (progn
-	  (use-global-map read-key-empty-map)
+	  (use-global-map web-vcs-read-key-empty-map)
           (message (concat (apply 'propertize prompt (member 'face minibuffer-prompt-properties))
                            (propertize " " 'face 'cursor)))
 	  (aref	(catch 'read-key (read-key-sequence-vector nil nil t)) 0))
@@ -1425,12 +1429,9 @@ For more information about auto download of nXhtml files see
         (web-vcs-log nil nil "* nXhtml: Download All\n")
         (setq message-log-max t)
         (let ((do-byte (y-or-n-p "Do you want to byte compile the files after downloading? "))
-              (web-autoload-paranoid nil) ;; Don't stop for each file
-              )
-          ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/322
-          ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/"
-          (nxhtml-download-1 dl-dir nil do-byte)
-          ))))
+              ;; Don't stop for each file:
+              (web-autoload-paranoid nil))
+          (nxhtml-download-1 dl-dir nil do-byte)))))
   (web-vcs-log-save))
 
 
