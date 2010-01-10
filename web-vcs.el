@@ -569,7 +569,7 @@ a temporary file."
            (temp-file (expand-file-name (concat web-autoload-temp-file-prefix file-name) dl-dir))
            temp-buf)
       (cond
-       ((not (web-vcs-match-folderwise file-mask file-rel-name)))
+       ((and file-mask (not (web-vcs-match-folderwise file-mask file-rel-name))))
        ((and dl-file-time
              url-file-time
              (time-less-p url-file-time
@@ -1320,7 +1320,7 @@ Note: If your nXhtml is to old you can't use this function
                                (not nxhtml-autoload-web))
                       (unless (yes-or-no-p "Convert to updating nXhtml part by part? ")
                         (throw 'command-level nil)))
-                    (web-vcs-read-nxhtml-dl-dir "Download nXhtml part by part to directory")))))
+                    (web-vcs-read-nxhtml-dl-dir "Download nXhtml part by part to directory: ")))))
   (catch 'command-level
     (if (not dl-dir)
         (unless (called-interactively-p)
@@ -1410,7 +1410,7 @@ For more information about auto download of nXhtml files see
                   (catch 'command-level
                     (unless (yes-or-no-p "Download all of nXhtml? ")
                       (throw 'command-level nil))
-                    (web-vcs-read-nxhtml-dl-dir "Download nXhtml to directory")))))
+                    (web-vcs-read-nxhtml-dl-dir "Download nXhtml to directory: ")))))
 
   (if (not dl-dir)
       (unless (called-interactively-p)
@@ -1424,7 +1424,9 @@ For more information about auto download of nXhtml files see
         (message "")
         (web-vcs-log nil nil "* nXhtml: Download All\n")
         (setq message-log-max t)
-        (let ((do-byte (y-or-n-p "Do you want to byte compile the files after downloading? ")))
+        (let ((do-byte (y-or-n-p "Do you want to byte compile the files after downloading? "))
+              (web-autoload-paranoid nil) ;; Don't stop for each file
+              )
           ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/322
           ;; http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/"
           (nxhtml-download-1 dl-dir nil do-byte)
