@@ -63,7 +63,7 @@
   :type 'integer
   :group 'pause)
 
-(defcustom pause-text-color "DarkGoldenrod1"
+(defcustom pause-text-color "sienna"
   "Color of text in pause window."
   :type 'color
   :group 'pause)
@@ -81,6 +81,28 @@
 (defcustom pause-message-color "yellow"
   "Background color of pause messages."
   :type 'color
+  :group 'pause)
+
+(defcustom pause-break-text
+  (concat "\n\tHi there,"
+          "\n\tYou are worth a PAUSE!"
+          "\n\nTry some mindfulness:"
+          "\n\t- Look around and observe."
+          "\n\t- Listen."
+          "\n\t- Feel your body.")
+  "Text to show during pause."
+  :type 'integer
+  :group 'pause)
+
+(defvar pause-default-img-dir
+  (let* ((this-file (or load-file-name
+                       buffer-file-name))
+         (this-dir (file-name-directory this-file)))
+    (expand-file-name "../etc/img/pause/" this-dir)))
+
+(defcustom pause-img-dir pause-default-img-dir
+  "Image directory for pause."
+  :type 'directory
   :group 'pause)
 
 (defvar pause-timer nil)
@@ -147,75 +169,144 @@
      (lwarn 'pause-pre-break
             :error "%s" (error-message-string err)))))
 
-(defvar pause-break-frmcfg nil)
-;;(make-variable-frame-local 'pause-break-frmcfg)
+(defvar pause-saved-frame-config nil)
+;;(make-variable-frame-local 'pause-saved-frame-config)
 
 (defvar pause-break-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [(control meta shift ?p)] 'pause-break-mode-exit)
+    (define-key map [(control meta shift ?p)] 'pause-break-exit)
     map))
 
-(defvar pause-break-buffer nil)
+(defvar pause-buffer nil)
 
 (define-derived-mode pause-break-mode nil "Pause"
   "Mode used during pause.
 
-\\[pause-break-mode-exit]"
+\\[pause-break-exit]"
   (set (make-local-variable 'buffer-read-only) t)
   ;;(set (make-local-variable 'cursor-type) nil)
   ;; Fix-me: workaround for emacs bug
-  (run-with-idle-timer 0 nil 'pause-hide-cursor)
-  )
+  (run-with-idle-timer 0 nil 'pause-hide-cursor))
 
-(defun pause-kill-buffer ()
-  ;; runs in timer, save-match-data
-  (when (buffer-live-p pause-break-buffer) (kill-buffer pause-break-buffer)))
+;; (defun pause-kill-buffer ()
+;;   ;; runs in timer, save-match-data
+;;   (when (buffer-live-p pause-buffer) (kill-buffer pause-buffer)))
 
-(defvar pause-break-was-in-minibuffer nil)
-(defun pause-break-mode-exit-2 ()
-  ;;(message "pause-break-mode-exit-2, active-minibuffer-window=%s" (active-minibuffer-window))
-  (if (active-minibuffer-window)
-      (setq pause-break-was-in-minibuffer t)
-    (unless pause-break-was-in-minibuffer
-      ;;(message "pause-break-mode-exit-2 exit state")
-      (dolist (win (get-buffer-window-list pause-break-buffer nil t))
-        (set-window-margins win 0 0))
-      (remove-hook 'window-configuration-change-hook 'pause-break-mode-exit-2)
-      ;;(when (buffer-live-p pause-break-buffer) (kill-buffer pause-break-buffer))
-      ;; Fix-me: This is a work around for an emacs crash
-      (run-with-idle-timer 0 nil 'pause-kill-buffer)
-      (pause-save-me))
-    (setq pause-break-was-in-minibuffer nil)
-    ))
+(defvar pause-break-exit-active nil)
 
-(defun pause-break-mode-exit ()
+(defun pause-break ()
+  (pause-cancel-timer)
+  (let ((wcfg (current-frame-configuration))
+        (old-mode-line-bg (face-attribute 'mode-line :background))
+        old-frame-bg-color
+        old-frame-left-fringe
+        old-frame-right-fringe
+        old-frame-tool-bar-lines
+        old-frame-menu-bar-lines
+        old-frame-vertical-scroll-bars)
+    (set-face-attribute 'mode-line nil :background "sienna")
+    (dolist (f (frame-list))
+      (add-to-list 'old-frame-bg-color (cons f (frame-parameter f 'background-color)))
+      (add-to-list 'old-frame-left-fringe (cons f (frame-parameter f 'left-fringe)))
+      (add-to-list 'old-frame-right-fringe (cons f (frame-parameter f 'right-fringe)))
+      (add-to-list 'old-frame-tool-bar-lines (cons f (frame-parameter f 'tool-bar-lines)))
+      (add-to-list 'old-frame-menu-bar-lines (cons f (frame-parameter f 'menu-bar-lines)))
+      (add-to-list 'old-frame-vertical-scroll-bars (cons f (frame-parameter f 'vertical-scroll-bars))))
+
+    (run-with-idle-timer 0 nil 'pause-break-show)
+    (setq pause-break-exit-active nil)
+    (while (not pause-break-exit-active)
+      (recursive-edit)
+      (unless pause-break-exit-active
+        (add-hook 'window-configuration-change-hook 'pause-break-exit)))
+
+    ;;(set-frame-parameter nil 'background-color "white")
+    (kill-buffer pause-buffer)
+    (set-face-attribute 'mode-line nil :background old-mode-line-bg)
+    (dolist (f (frame-list))
+      (set-frame-parameter f 'background-color
+                           (cdr (assq f old-frame-bg-color)))
+      (set-frame-parameter f 'left-fringe
+                           (cdr (assq f old-frame-left-fringe)))
+      (set-frame-parameter f 'right-fringe
+                           (cdr (assq f old-frame-right-fringe)))
+      (set-frame-parameter f 'tool-bar-lines
+                           (cdr (assq f old-frame-tool-bar-lines)))
+      (set-frame-parameter f 'menu-bar-lines
+                           (cdr (assq f old-frame-menu-bar-lines)))
+      (set-frame-parameter f 'vertical-scroll-bars
+                           (cdr (assq f old-frame-vertical-scroll-bars)))
+      )
+    (set-frame-configuration wcfg)))
+
+
+(defun pause-break-show ()
+  (with-current-buffer (setq pause-buffer
+                             (get-buffer-create "* P A U S E *"))
+    (when (= 0 (buffer-size))
+      (pause-break-mode)
+      (setq left-margin-width 25)
+      (let ((inhibit-read-only t))
+        (pause-insert-img)
+        (insert (propertize pause-break-text
+                            'face (list 'bold
+                                        :height 1.5
+                                        :foreground pause-text-color)))
+        (insert (propertize "\n\nTo exit switch buffer\n"
+                            'face (list :foreground "yellow")))
+        (add-text-properties (point-min) (point-max) (list 'keymap (make-sparse-keymap)))
+        (dolist (m '(hl-needed-mode))
+          (when (and (boundp m) (symbol-value m))
+            (funcall m -1))))))
+    (dolist (f (frame-list))
+      (let* ((avail-width (- (display-pixel-width)
+                             (* 2 (frame-parameter f 'border-width))
+                             (* 2 (frame-parameter f 'internal-border-width))))
+             (avail-height (- (display-pixel-height)
+                              (* 2 (frame-parameter f 'border-width))
+                              (* 2 (frame-parameter f 'internal-border-width))))
+             (cols (/ avail-width (frame-char-width)))
+             (rows (- (/ avail-height (frame-char-height)) 2)))
+        ;;(set-frame-parameter (selected-frame) 'fullscreen 'fullboth)
+        ;;(set-frame-parameter (selected-frame) 'fullscreen 'maximized)
+        (with-selected-frame f
+          (delete-other-windows)
+          (with-selected-window (frame-first-window)
+            (switch-to-buffer pause-buffer)
+            (goto-char 1)))
+        (modify-frame-parameters f
+                                 (list '(background-color . "orange")
+                                       '(left-fringe . 0)
+                                       '(right-fringe . 0)
+                                       '(tool-bar-lines . 0)
+                                       '(menu-bar-lines . 0)
+                                       '(vertical-scroll-bars . nil)
+                                       '(left . 0)
+                                       '(top . 0)
+                                       (cons 'width cols)
+                                       (cons 'height rows)
+                                       ))))
+  (run-with-idle-timer 0 nil 'pause-break-message)
+  (setq pause-break-exit-active nil)
+  (add-hook 'window-configuration-change-hook 'pause-break-exit)
+  (run-with-idle-timer 2 nil 'pause-break-exit-activate))
+
+
+(defun pause-break-message ()
+  (message "%s" (propertize "Please take a pause!" 'face 'mode-line-inactive)))
+
+(defun pause-break-exit-activate ()
+  (setq pause-break-exit-active t)
+  (message nil)
+  (with-current-buffer pause-buffer
+    (let ((inhibit-read-only t))
+      (add-text-properties (point-min) (point-max) (list 'keymap nil)))))
+
+(defun pause-break-exit ()
   (interactive)
-  (when (buffer-live-p pause-break-buffer)
-    (kill-buffer pause-break-buffer))
-  (set-frame-configuration pause-break-frmcfg)
-  (pause-save-me))
-
-(defcustom pause-break-text
-  (concat "\n\tHi there,"
-          "\n\tYou are worth a PAUSE!"
-          "\n\nTry some mindfulness:"
-          "\n\t- Look around and observe."
-          "\n\t- Listen."
-          "\n\t- Feel your body.")
-  "Text to show during pause."
-  :type 'integer
-  :group 'pause)
-
-(defvar pause-default-img-dir
-  (let* ((this-file (or load-file-name
-                       buffer-file-name))
-         (this-dir (file-name-directory this-file)))
-    (expand-file-name "../etc/img/pause/" this-dir)))
-
-(defcustom pause-img-dir pause-default-img-dir
-  "Image directory for pause."
-  :type 'directory
-  :group 'pause)
+  (when t ;pause-break-exit-active
+    (remove-hook 'window-configuration-change-hook 'pause-break-exit)
+    (exit-recursive-edit)))
 
 (defun pause-insert-img ()
   (let* ((inhibit-read-only t)
@@ -252,43 +343,8 @@
 
 (defun pause-hide-cursor ()
   ;; runs in timer, save-match-data
-  (with-current-buffer pause-break-buffer
+  (with-current-buffer pause-buffer
     (set (make-local-variable 'cursor-type) nil)))
-
-(defun pause-add-to-conf-hook ()
-  ;; runs in timer, save-match-data
-  (add-hook 'window-configuration-change-hook 'pause-break-mode-exit-2))
-
-(defun pause-break ()
-  ;;(message "pause-break")
-  (pause-cancel-timer)
-  (setq pause-break-frmcfg (current-frame-configuration))
-  (dolist (frm (frame-list))
-    (with-selected-frame frm
-      (delete-other-windows)
-      (setq pause-break-buffer
-            (switch-to-buffer (get-buffer-create "* P A U S E *")))
-      (set-window-margins (selected-window) 25 0)
-      (when (= 0 (buffer-size))
-        (pause-break-mode)
-        (pause-insert-img)
-        ;;(insert (propertize "\n\tHi there,\n\n\tYou are worth a PAUSE!\n"
-        (let ((inhibit-read-only t))
-          (insert (propertize pause-break-text
-                              'face (list 'bold
-                                          :height 1.5
-                                          :foreground pause-text-color)))
-          (insert (propertize "\n\nTo exit switch buffer\n"
-                              'face (list :foreground "lawn green")))
-          ;;(where-is 'pause-break-mode-exit t)
-          )
-        (goto-char 1)
-        )))
-  (run-with-idle-timer 0 nil 'pause-add-to-conf-hook)
-  (setq pause-break-was-in-minibuffer (active-minibuffer-window))
-  ;;(message "pause-break-was-in-minibuffer before top-level=%s" pause-break-was-in-minibuffer)
-  (top-level)
-  )
 
 (defun pause-cancel-timer ()
   (when (timerp pause-idle-timer) (cancel-timer pause-idle-timer))

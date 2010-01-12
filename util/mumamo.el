@@ -5060,7 +5060,7 @@ mumamo chunk then set major mode to that for the chunk."
                                    (setq this-command last-command)))))))
     (error
      (mumamo-display-error 'mumamo-set-major-pre-command
-                           "%s" (error-message-string err)))))
+                           "cb:%s, %s" (current-buffer) (error-message-string err)))))
 
 (defun mumamo-idle-set-major-mode (buffer window)
   "Set major mode from mumamo chunk when Emacs is idle.
@@ -6256,9 +6256,20 @@ Buffer must be narrowed to chunk when this function is called."
                  (min (car minmax))
                  (max (cdr minmax))
                  (here (point))
-                 (font-lock-fontify-buffer-function 'mumamo-font-lock-fontify-chunk))
+                 ;; Fix-me: For some reason let binding did not help. Is this a bug or?
+                 ;;
+                 ;;(font-lock-fontify-buffer-function 'mumamo-font-lock-fontify-chunk)
+                 (old-bf (buffer-local-value 'font-lock-fontify-buffer-function (current-buffer)))
+                 )
             (narrow-to-region min max)
+            (set (make-local-variable 'font-lock-fontify-buffer-function) 'mumamo-font-lock-fontify-chunk)
+            ;;(message "funcall major=%s, %s" major font-lock-fontify-buffer-function)
+            ;;(message "before funcall: function=%s" font-lock-fontify-buffer-function)
+            (put 'font-lock-fontify-buffer-function 'permanent-local t)
             (funcall major) ;; <-----------------------------------------------
+            (put 'font-lock-fontify-buffer-function 'permanent-local nil)
+            (when old-bf
+              (set (make-local-variable 'font-lock-fontify-buffer-function) old-bf))
             ))
         (goto-char here))
       ;;(msgtrc "set-major B: buffer-invisibility-spec=%S" buffer-invisibility-spec)

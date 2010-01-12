@@ -570,7 +570,7 @@ Turn on `outline-minor-mode' and call `hide-body'.
 ;;;***
 
 ;;;### (autoloads (foldit-global-mode foldit-mode foldit) "foldit"
-;;;;;;  "util/foldit.el" (19265 59154))
+;;;;;;  "util/foldit.el" (19275 61586))
 ;;; Generated autoloads from util/foldit.el
 (web-autoload-require 'foldit 'lp (nxhtml-download-root-url nil) "util/foldit" nxhtml-install-dir)
 
@@ -1094,7 +1094,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode
 ;;;;;;  mumamo-define-html-file-wide-keys) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19270 1444))
+;;;;;;  (19275 61837))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp (nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir)
 
@@ -1363,7 +1363,7 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
 ;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19275 53366))
+;;;;;;  "util/ourcomments-util.el" (19276 25990))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp (nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir)
 
@@ -1724,8 +1724,8 @@ Return t if VALUE is a major mode function.
 
 ;;;***
 
-;;;### (autoloads (pause-mode pause) "pause" "util/pause.el" (19218
-;;;;;;  42182))
+;;;### (autoloads (pause-mode pause) "pause" "util/pause.el" (19276
+;;;;;;  22984))
 ;;; Generated autoloads from util/pause.el
 (web-autoload-require 'pause 'lp (nxhtml-download-root-url nil) "util/pause" nxhtml-install-dir)
 
@@ -1943,7 +1943,7 @@ handled is governed by `sex-keep-dummy-buffer'.
 ;;;***
 
 ;;;### (autoloads (tabkey2-emma-without-tabkey2 tabkey2-mode tabkey2)
-;;;;;;  "tabkey2" "util/tabkey2.el" (19275 53134))
+;;;;;;  "tabkey2" "util/tabkey2.el" (19275 62180))
 ;;; Generated autoloads from util/tabkey2.el
 (web-autoload-require 'tabkey2 'lp (nxhtml-download-root-url nil) "util/tabkey2" nxhtml-install-dir)
 
@@ -2139,7 +2139,7 @@ Display vertical line mode as globally.
 
 ;;;***
 
-;;;### (autoloads (whelp) "whelp" "util/whelp.el" (19218 42182))
+;;;### (autoloads (whelp) "whelp" "util/whelp.el" (19275 62739))
 ;;; Generated autoloads from util/whelp.el
 (web-autoload-require 'whelp 'lp (nxhtml-download-root-url nil) "util/whelp" nxhtml-install-dir)
 
@@ -3018,7 +3018,7 @@ Key bindings:
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
 ;;;;;;  winsav winsav-rotate winsav-put-window-tree) "winsav" "util/winsav.el"
-;;;;;;  (19275 54671))
+;;;;;;  (19275 62281))
 ;;; Generated autoloads from util/winsav.el
 (web-autoload-require 'winsav 'lp (nxhtml-download-root-url nil) "util/winsav" nxhtml-install-dir)
 
@@ -3814,7 +3814,7 @@ FILENAME could be either the remote or the local file.
 
 ;;;### (autoloads (html-site-query-replace html-site-rgrep html-site-find-file
 ;;;;;;  html-site-dired-current html-site-set-site html-site-buffer-or-dired-file-name
-;;;;;;  html-site) "html-site" "nxhtml/html-site.el" (19275 58924))
+;;;;;;  html-site) "html-site" "nxhtml/html-site.el" (19275 60821))
 ;;; Generated autoloads from nxhtml/html-site.el
 (web-autoload-require 'html-site 'lp (nxhtml-download-root-url nil) "nxhtml/html-site" nxhtml-install-dir)
 
@@ -3892,8 +3892,8 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;### (autoloads (web-vcs-investigate-elisp-file nxhtml-maybe-download-files
 ;;;;;;  nxhtml-setup-download-all nxhtml-setup-auto-download nxhtml-setup-install
-;;;;;;  web-vcs-get-files-from-root) "web-vcs" "web-vcs.el" (19274
-;;;;;;  16021))
+;;;;;;  web-vcs-get-files-from-root) "web-vcs" "web-vcs.el" (19275
+;;;;;;  60359))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -4068,7 +4068,7 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19275 59449 171000))
+;;;;;;  "web-autoload.el") (19276 26270 281000))
 
 ;;;***
 

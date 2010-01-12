@@ -2016,50 +2016,67 @@ Return full path if found."
 ;;       html-link)))
 
 (defconst ourcomments-org-paste-html-link-regexp
-  "^\\(?:<a [^>]*?href=\"\\(.*?\\)\"[^>]*?>\\([^<]*\\)</a>\\)$")
+  "\\`\\(?:<a [^>]*?href=\"\\(.*?\\)\"[^>]*?>\\([^<]*\\)</a>\\)\\'")
+
+;;(string-match-p ourcomments-org-paste-html-link-regexp "<a href=\"link\">text</a>")
 
 ;;(defvar temp-n 0)
 (defun ourcomments-org-convert-html-links-in-buffer (beg end)
-  "Convert html links between BEG and END to org mode links.
-If this html link is in the buffer
+  "Convert html link between BEG and END to org mode links.
+If there is an html link in the buffer
 
    <a href=\"http://my.site.org/\">My Site</a>
 
-then convert it to this
+that starts at BEG and ends at END then convert it to this
 
    [[http://my.site.org/][My Site]]
 
 If the URL is to a local file and the buffer is visiting a file
-make the link relative."
+make the link relative.
+
+However, if the html link is inside an #+BEGIN - #+END block or a
+variant of such blocks then leave the link as it is."
   (when (derived-mode-p 'org-mode)
-    (let ((here (copy-marker (point)))
-          url str converted)
-      (goto-char beg)
-      (while (and (< (point) end)
-                  (re-search-forward ourcomments-org-paste-html-link-regexp end t))
-        (setq converted t)
-        (setq url (match-string-no-properties 1))
-        (setq str (match-string-no-properties 2))
-        ;; Check if the URL is to a local file and absolute. And we
-        ;; have a buffer.
-        (when (and (buffer-file-name)
-                   (> (length url) 5)
-                   (string= (substring url 0 6) "file:/"))
-          (let ((abs-file-url
-                 (if (not (memq system-type '(windows-nt ms-dos)))
-                     (substring url 8)
-                   (if (string= (substring url 0 8) "file:///")
-                       (substring url 8)
-                     ;; file://c:/some/where.txt
-                     (substring url 7)))))
-            (setq url (concat "file:"
-                              (file-relative-name abs-file-url
-                                                  (file-name-directory
-                                                   (buffer-file-name)))))))
-        ;;(setq str (concat str (format "%s" (setq temp-n (1+ temp-n)))))
-        (replace-match (concat "[[" url "][" str "]]") nil nil nil 0))
-      (goto-char here)
-      nil)))
+    (save-match-data
+      (let ((here (copy-marker (point)))
+            url str converted
+            lit-beg)
+        (goto-char beg)
+        (save-restriction
+          (widen)
+          (setq lit-beg (search-backward "#+BEGIN" nil t))
+          (when lit-beg
+            (goto-char lit-beg)
+            (setq lit-end (or (search-forward "#+END" nil t)
+                              (point-max)))))
+        (when (or (not lit-beg)
+                  (> beg lit-end))
+          (goto-char beg)
+          (when (save-restriction
+                  (narrow-to-region beg end)
+                  (looking-at ourcomments-org-paste-html-link-regexp))
+            (setq converted t)
+            (setq url (match-string-no-properties 1))
+            (setq str (match-string-no-properties 2))
+            ;; Check if the URL is to a local file and absolute. And we
+            ;; have a buffer.
+            (when (and (buffer-file-name)
+                       (> (length url) 5)
+                       (string= (substring url 0 6) "file:/"))
+              (let ((abs-file-url
+                     (if (not (memq system-type '(windows-nt ms-dos)))
+                         (substring url 8)
+                       (if (string= (substring url 0 8) "file:///")
+                           (substring url 8)
+                         ;; file://c:/some/where.txt
+                         (substring url 7)))))
+                (setq url (concat "file:"
+                                  (file-relative-name abs-file-url
+                                                      (file-name-directory
+                                                       (buffer-file-name)))))))
+            (replace-match (concat "[[" url "][" str "]]") nil nil nil 0)))
+        (goto-char here)
+        nil))))
 
 (defvar ourcomments-paste-with-convert-hook nil
   "Normal hook run after certain paste commands.
