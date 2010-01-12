@@ -492,7 +492,7 @@ r      Show entries matching a regular expression"
     (add-hook 'pre-command-hook 'orgpan-mode-pre-command nil t)
     (add-hook 'post-command-hook 'orgpan-mode-post-command t))
   (set (make-local-variable 'cursor-type) nil)
-  (setq yas/dont-activate t)
+  (when (boundp 'yas/dont-activate) (setq yas/dont-activate t))
   ;; Avoid emulation modes here (cua, viper):
   (set (make-local-variable 'emulation-mode-map-alists) nil))
 

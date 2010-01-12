@@ -108,7 +108,7 @@ If LOAD"
                                       exec-suffixes))
          (comp-dir default-directory)
          start)
-    (dolist (p extra-load-path)
+    (dolist (full-p extra-load-path)
       (setq newlp (concat full-p ";" newlp)))
     (display-buffer out-buf)
     (with-selected-window (get-buffer-window out-buf)

@@ -1520,6 +1520,7 @@ somewhat visible."
 (defcustom mumamo-major-modes
   '(
     (asp-js-mode
+     js-mode ;; Not autoloaded in the pretest
      javascript-mode
      espresso-mode
      ecmascript-mode)
@@ -1527,6 +1528,7 @@ somewhat visible."
      visual-basic-mode)
     ;;(css-mode fundamental-mode)
     (javascript-mode
+     js-mode ;; Not autoloaded in the pretest
      javascript-mode
      espresso-mode
      ;;js2-fl-mode
@@ -6096,6 +6098,39 @@ default values."
 (make-variable-buffer-local 'mumamo-org-startup-done)
 (put 'mumamo-org-startup-done 'permanent-local t)
 
+
+(defun mumamo-font-lock-fontify-chunk ()
+  "Like `font-lock-default-fontify-buffer' for .
+Buffer must be narrowed to chunk when this function is called."
+  (let ((verbose (if (numberp font-lock-verbose)
+		     (> (- (point-max) (point-min)) font-lock-verbose)
+		   font-lock-verbose))
+        font-lock-extend-region-functions) ;; accept narrowing
+    (with-temp-message
+	(when verbose
+	  (format "Fontifying %s part..." (buffer-name)))
+      ;; Make sure we fontify etc. in the whole buffer.
+      (save-restriction
+	;;(widen)
+	(condition-case nil
+	    (save-excursion
+	      (save-match-data
+		(font-lock-fontify-region (point-min) (point-max) verbose)
+		(font-lock-after-fontify-buffer)
+		(setq font-lock-fontified t)))
+	  ;; We don't restore the old fontification, so it's best to unfontify.
+	  (quit (mumamo-font-lock-unfontify-chunk)))))))
+
+
+(defun mumamo-font-lock-unfontify-chunk ()
+  "Like `font-lock-default-unfontify-buffer' for .
+Buffer must be narrowed to chunk when this function is called."
+  ;; Make sure we unfontify etc. in the whole buffer.
+  (save-restriction
+    ;;(widen)
+    (font-lock-unfontify-region (point-min) (point-max))
+    (font-lock-after-unfontify-buffer)
+    (setq font-lock-fontified nil)))
 (defun mumamo-set-major (major chunk)
   "Set major mode to MAJOR for mumamo."
   (mumamo-msgfntfy "mumamo-set-major %s, %s" major (current-buffer))
@@ -6220,7 +6255,8 @@ default values."
           (let* ((minmax (mumamo-chunk-syntax-min-max chunk t))
                  (min (car minmax))
                  (max (cdr minmax))
-                 (here (point)))
+                 (here (point))
+                 (font-lock-fontify-buffer-function 'mumamo-font-lock-fontify-chunk))
             (narrow-to-region min max)
             (funcall major) ;; <-----------------------------------------------
             ))
@@ -6482,16 +6518,22 @@ mode in the chunk family is nil."
       (setq flyspell-generic-check-word-predicate 'mumamo-flyspell-verify))
     (run-hooks 'mumamo-turn-on-hook)
     ;;(mumamo-get-chunk-save-buffer-state (point))
-    (dolist (win (get-buffer-window-list (current-buffer)))
-      (let ((wp (or (window-end win)
-                    (window-point win)
-                    (window-start win))))
-        (mumamo-get-chunk-save-buffer-state wp)
-        (when (eq win (selected-window))
-          (let* ((ovl (mumamo-find-chunks wp "mumamo-turn-on-actions"))
+    (let ((buffer-windows (get-buffer-window-list (current-buffer))))
+      (if (not buffer-windows)
+          (let* ((ovl (mumamo-find-chunks (point) "mumamo-turn-on-actions"))
                  (major (when ovl (mumamo-chunk-major-mode ovl))))
             (when major
-              (mumamo-set-major major ovl))))))
+              (mumamo-set-major major ovl)))
+        (dolist (win (get-buffer-window-list (current-buffer) nil t))
+          (let ((wp (or (window-end win)
+                        (window-point win)
+                        (window-start win))))
+            (mumamo-get-chunk-save-buffer-state wp)
+            (when (eq win (selected-window))
+              (let* ((ovl (mumamo-find-chunks wp "mumamo-turn-on-actions"))
+                     (major (when ovl (mumamo-chunk-major-mode ovl))))
+                (when major
+                  (mumamo-set-major major ovl))))))))
     ;;(msgtrc "mumamo-turn-on-action exit: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
     ;; This did not help for Emacs bug 3467:
     ;;(set-default 'font-lock-keywords-only nil)
@@ -6769,6 +6811,7 @@ is returned."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Template indentation
+;;; Contact Marc Bowes when I've finished this.
 
 (defvar  mumamo-template-indent-buffer nil)
 (make-variable-buffer-local 'mumamo-template-indent-buffer)

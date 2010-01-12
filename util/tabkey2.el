@@ -263,6 +263,7 @@
 
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'appmenu nil t))
+(eval-when-compile (require 'mumamo nil t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Custom
@@ -348,7 +349,8 @@ If value is a number then delay message that number of seconds."
 
 (defun yas/expandable-at-point ()
   "Return non-nil if a snippet can be expanded here."
-  (when (fboundp 'yas/template-condition-predicate)
+  (when (and (fboundp 'yas/template-condition-predicate)
+             (boundp 'yas/buffer-local-condition))
     (yas/template-condition-predicate
      yas/buffer-local-condition)))
 
@@ -507,6 +509,58 @@ This key is always bound to `tabkey2-cycle-completion-functions'."
   :group 'tabkey2)
 
 (tabkey2-bind-keys tabkey2-first-key tabkey2-alternate-key)
+
+;;;###autoload
+(define-minor-mode tabkey2-mode
+  "More fun with Tab key number two (completion etc).
+This global minor mode by default binds Tab in a way that let you
+do completion with Tab in all buffers \(where it is possible).
+
+The Tab key is easy to type on your keyboard.  Then why not use
+it for completion, something that is very useful?  Shells usually
+use Tab for completion so many are used to it.  This was the idea
+of Smart Tabs and this is a generalization of that idea.
+
+However in Emacs the Tab key is usually used for indentation.
+The idea here is that if Tab has been pressed once for
+indentation, then as long as point stays further Tab keys might
+as well do completion.
+
+So you kind of do Tab-Tab for first completion \(and then just
+Tab for further completions as long as point is not moved).
+
+And there is even kind of Tab-Tab-Tab completion: If completion
+fails the next completion function will be the one you try with
+next Tab. \(You get some notification of this, of course.)
+
+See `tabkey2-first' for more information about usage.
+
+Note: If you do not want the Tab-Tab behaviour above, but still
+want an easy way to reach the available completion functions,
+then you can instead of turning on tabkey2-mode enter this in
+your .emacs:
+
+ \(global-set-key [f8] 'tabkey2-cycle-completion-functions)
+
+After hitting f8 you will then be in the same state as after the
+first in tabkey2-mode."
+  :keymap nil
+  :global t
+  :group 'tabkey2
+  (if tabkey2-mode
+      (progn
+        (add-hook 'minibuffer-setup-hook 'tabkey2-minibuffer-setup)
+        (add-hook 'post-command-hook 'tabkey2-post-command)
+        ;; Update emul here if keymap have changed
+        (setq tabkey2--emul-keymap-alist
+              (list (cons 'tabkey2-mode
+                          tabkey2-mode-emul-map)))
+        (add-to-list 'emulation-mode-map-alists 'tabkey2--emul-keymap-alist))
+    (tabkey2-completion-state-mode -1)
+    (remove-hook 'post-command-hook 'tabkey2-post-command)
+    (remove-hook 'minibuffer-setup-hook 'tabkey2-minibuffer-setup)
+    (setq emulation-mode-map-alists (delq 'tabkey2--emul-keymap-alist
+                                          emulation-mode-map-alists))))
 
 (defcustom tabkey2-modes-that-use-more-tabs
   '(python-mode
@@ -1298,58 +1352,6 @@ If used with a PREFIX argument then just show what Tab will do."
           (if tabkey2-current-tab-function
               (tabkey2-show-current-message)
             (message "No more active completion functions in this buffer")))))))
-
-;;;###autoload
-(define-minor-mode tabkey2-mode
-  "More fun with Tab key number two (completion etc).
-This global minor mode by default binds Tab in a way that let you
-do completion with Tab in all buffers \(where it is possible).
-
-The Tab key is easy to type on your keyboard.  Then why not use
-it for completion, something that is very useful?  Shells usually
-use Tab for completion so many are used to it.  This was the idea
-of Smart Tabs and this is a generalization of that idea.
-
-However in Emacs the Tab key is usually used for indentation.
-The idea here is that if Tab has been pressed once for
-indentation, then as long as point stays further Tab keys might
-as well do completion.
-
-So you kind of do Tab-Tab for first completion \(and then just
-Tab for further completions as long as point is not moved).
-
-And there is even kind of Tab-Tab-Tab completion: If completion
-fails the next completion function will be the one you try with
-next Tab. \(You get some notification of this, of course.)
-
-See `tabkey2-first' for more information about usage.
-
-Note: If you do not want the Tab-Tab behaviour above, but still
-want an easy way to reach the available completion functions,
-then you can instead of turning on tabkey2-mode enter this in
-your .emacs:
-
- \(global-set-key [f8] 'tabkey2-cycle-completion-functions)
-
-After hitting f8 you will then be in the same state as after the
-first in tabkey2-mode."
-  :keymap nil
-  :global t
-  :group 'tabkey2
-  (if tabkey2-mode
-      (progn
-        (add-hook 'minibuffer-setup-hook 'tabkey2-minibuffer-setup)
-        (add-hook 'post-command-hook 'tabkey2-post-command)
-        ;; Update emul here if keymap have changed
-        (setq tabkey2--emul-keymap-alist
-              (list (cons 'tabkey2-mode
-                          tabkey2-mode-emul-map)))
-        (add-to-list 'emulation-mode-map-alists 'tabkey2--emul-keymap-alist))
-    (tabkey2-completion-state-mode -1)
-    (remove-hook 'post-command-hook 'tabkey2-post-command)
-    (remove-hook 'minibuffer-setup-hook 'tabkey2-minibuffer-setup)
-    (setq emulation-mode-map-alists (delq 'tabkey2--emul-keymap-alist
-                                          emulation-mode-map-alists))))
 
 ;; Fix-me: I am not sure that it really is useful with a globalized
 ;; minor mode here because there are so many other ways to control

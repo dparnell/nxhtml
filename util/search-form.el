@@ -51,7 +51,9 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'ourcomments-util))
 (require 'cus-edit)
+(require 'grep)
 
 (defvar search-form-sfield nil)
 (make-variable-buffer-local 'search-form-sfield)

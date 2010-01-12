@@ -1797,6 +1797,7 @@ information."
 ;; Mostly copied from `grep-read-files'. Could possible be merged with
 ;; that.
 (defvar replace-read-files-history nil)
+;;;###autoload
 (defun replace-read-files (regexp &optional replace)
   "Read files arg for replace."
   (let* ((bn (or (buffer-file-name) (buffer-name)))
@@ -2015,7 +2016,7 @@ Return full path if found."
 ;;       html-link)))
 
 (defconst ourcomments-org-paste-html-link-regexp
-  "\\(?:<a [^>]*?href=\"\\(.*?\\)\"[^>]*?>\\([^<]*\\)</a>\\)")
+  "^\\(?:<a [^>]*?href=\"\\(.*?\\)\"[^>]*?>\\([^<]*\\)</a>\\)$")
 
 ;;(defvar temp-n 0)
 (defun ourcomments-org-convert-html-links-in-buffer (beg end)

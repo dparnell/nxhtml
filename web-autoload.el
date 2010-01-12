@@ -229,6 +229,9 @@ directly, otherwise download it first."
       (byte-compile-file web-autoload-cleanup-dummy-el nil))))
 
 (defvar web-autoload-compile-queue nil)
+
+(defvar web-autoload-byte-compile-queue-active nil) ;; Dyn var
+
 (defun web-autoload-byte-compile-file (file load)
   (if nil ;;(file-exists-p file)
       (byte-compile-file file load)
@@ -243,7 +246,6 @@ directly, otherwise download it first."
             (throw 'web-autoload-comp-restart t)
           (web-autoload-byte-compile-queue))))))
 
-(defvar web-autoload-byte-compile-queue-active nil) ;; Dyn var
 ;;(web-autoload-byte-compile-queue)
 (defun web-autoload-byte-compile-queue ()
   (let ((top-entry)

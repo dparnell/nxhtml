@@ -57,7 +57,8 @@
 
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'hideshow))
-(eval-when-compile (require 'mumamo))
+(eval-when-compile (require 'mumamo nil t))
+(eval-when-compile (require 'outline))
 
 (defsubst foldit-overlay-priority ()
   (1+ (or (and (boundp 'mlinks-link-overlay-priority)

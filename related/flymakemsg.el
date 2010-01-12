@@ -55,6 +55,8 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'flymake))
+
 (defun flymakemsg-show-err-at-point ()
   "If point is on a flymake error, show it in echo area.
 Protected to run in timers and hooks."

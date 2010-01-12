@@ -59,31 +59,6 @@
 ;; (rebind-toggle-first-modifier (key-description-to-vector "C-c a") 'shift)
 ;; (rebind-toggle-first-modifier (key-description-to-vector "C-S-c a") 'shift)
 
-(defvar rebind-keys-mode-map nil)
-
-;;(rebind-update-keymap)
-(defun rebind-update-keymap ()
-  (let ((m (make-sparse-keymap)))
-    (dolist (group rebind-keys)
-      (when (nth 1 group)
-        (dolist (v (nth 2 group))
-          (let* ((orig-key   (nth 0 v))
-                 (comment    (nth 1 v))
-                 (enabled    (nth 2 v))
-                 (new-choice (nth 3 v))
-                 (new-fun    (nth 4 v))
-                 (orig-fun (lookup-key global-map orig-key))
-                 new-key)
-            (when enabled
-              (when new-choice
-                (if (memq new-choice '(meta control shift))
-                    (setq new-key (rebind-toggle-first-modifier orig-key new-choice))
-                  (setq new-key new-choice))
-                (define-key m new-key orig-fun))
-              (define-key m orig-key new-fun))))
-        (setq rebind-keys-mode-map m))))
-  (setq rebind--emul-keymap-alist (list (cons 'rebind-keys-mode rebind-keys-mode-map))))
-
 (defvar widget-commandp-prompt-value-history nil)
 
 ;;;###autoload
@@ -194,19 +169,36 @@ on.
             )))
   :set (lambda (sym val)
 	 (set-default sym val)
-	 (rebind-update-keymap))
+	 (when (featurep 'rebind)
+	   (rebind-update-keymap)))
   :group 'rebind)
+
+(defvar rebind-keys-mode-map nil)
 
 (defvar rebind--emul-keymap-alist nil)
 
-(defun rebind-keys-post-command ()
-  "Make sure we are first in the list when turned on.
-This is reasonable since we are using this mode to really get the
-key bindings we want!"
-  (unless (eq 'rebind--emul-keymap-alist (car emulation-mode-map-alists))
-    (setq emulation-mode-map-alists (delq 'rebind--emul-keymap-alist emulation-mode-map-alists))
-    (when rebind-keys-mode
-      (add-to-list 'emulation-mode-map-alists 'rebind--emul-keymap-alist))))
+;;(rebind-update-keymap)
+(defun rebind-update-keymap ()
+  (let ((m (make-sparse-keymap)))
+    (dolist (group rebind-keys)
+      (when (nth 1 group)
+        (dolist (v (nth 2 group))
+          (let* ((orig-key   (nth 0 v))
+                 (comment    (nth 1 v))
+                 (enabled    (nth 2 v))
+                 (new-choice (nth 3 v))
+                 (new-fun    (nth 4 v))
+                 (orig-fun (lookup-key global-map orig-key))
+                 new-key)
+            (when enabled
+              (when new-choice
+                (if (memq new-choice '(meta control shift))
+                    (setq new-key (rebind-toggle-first-modifier orig-key new-choice))
+                  (setq new-key new-choice))
+                (define-key m new-key orig-fun))
+              (define-key m orig-key new-fun))))
+        (setq rebind-keys-mode-map m))))
+  (setq rebind--emul-keymap-alist (list (cons 'rebind-keys-mode rebind-keys-mode-map))))
 
 ;;;###autoload
 (define-minor-mode rebind-keys-mode
@@ -227,6 +219,15 @@ field). There are some predifined keybindings for this."
         (add-hook 'post-command-hook 'rebind-keys-post-command t))
     (remove-hook 'post-command-hook 'rebind-keys-post-command)
     (setq emulation-mode-map-alists (delq 'rebind--emul-keymap-alist emulation-mode-map-alists))))
+
+(defun rebind-keys-post-command ()
+  "Make sure we are first in the list when turned on.
+This is reasonable since we are using this mode to really get the
+key bindings we want!"
+  (unless (eq 'rebind--emul-keymap-alist (car emulation-mode-map-alists))
+    (setq emulation-mode-map-alists (delq 'rebind--emul-keymap-alist emulation-mode-map-alists))
+    (when rebind-keys-mode
+      (add-to-list 'emulation-mode-map-alists 'rebind--emul-keymap-alist))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
