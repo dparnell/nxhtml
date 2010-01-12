@@ -65,6 +65,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'windmove))
+(eval-when-compile (require 'view))
 (eval-when-compile (require 'winsav nil t))
 (eval-when-compile (require 'ourcomments-widgets))
 (eval-when-compile (require 'ring))

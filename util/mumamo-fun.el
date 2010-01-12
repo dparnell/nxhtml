@@ -730,8 +730,9 @@ just `php-mode' if there is no html code in the file."
           (error "Mumamo multi major must have chunk function mumamo-chunk-alt-php"))
 
         ;; Be paranoid about the file/content write hooks
-        (when local-write-file-hooks ;; obsolete, but check!
-          (error "Will not do this because local-write-file-hooks is non-nil"))
+        (when (<= emacs-major-version 22)
+          (when local-write-file-hooks ;; obsolete, but check!
+            (error "Will not do this because local-write-file-hooks is non-nil")))
         (remove-hook 'write-contents-functions 'mumamo-alt-php-write-contents t)
         (when write-contents-functions
           (error "Will not do this because write-contents-functions is non-nil"))

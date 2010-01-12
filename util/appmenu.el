@@ -202,6 +202,7 @@ point."
 (defvar appmenu-level) ;; dyn var
 (defvar appmenu-funs) ;; dyn var
 (defvar appmenu-events) ;; dyn var
+(defvar appmenu-this-point) ;; dyn var
 
 (defun appmenu-keymap-map-fun (ev def)
   (if (keymapp def)
@@ -223,9 +224,9 @@ point."
                           (documentation fun)
                         (concat
                          "Button: "
-                         (with-current-buffer (marker-buffer this-point)
-                           (or (get-char-property this-point 'help-echo)
-                               (let ((action-fun (get-char-property this-point 'action)))
+                         (with-current-buffer (marker-buffer appmenu-this-point)
+                           (or (get-char-property appmenu-this-point 'help-echo)
+                               (let ((action-fun (get-char-property appmenu-this-point 'action)))
                                  (if action-fun
                                      (documentation action-fun)
                                    "No action, ignored"))
@@ -244,7 +245,7 @@ Tip: This may be helpful if you are using `css-color-mode'."
          (with-current-buffer (or (and (markerp this-point)
                                        (marker-buffer this-point))
                                   (current-buffer))
-           (unless (markerp this-point) (setq (copy-marker this-point)))
+           (unless (markerp this-point) (setq this-point (copy-marker this-point)))
            (get-char-property this-point 'keymap))))
     ;;(describe-variable 'menu-here)
     (appmenu-as-help-1 menu-here this-point)))
@@ -252,7 +253,8 @@ Tip: This may be helpful if you are using `css-color-mode'."
 (defun appmenu-as-help-1 (menu-here this-point)
   (let ((appmenu-level 0)
         (appmenu-funs nil)
-        (appmenu-events nil))
+        (appmenu-events nil)
+        (appmenu-this-point this-point))
     (when menu-here
       (map-keymap 'appmenu-keymap-map-fun menu-here))
     ;;(describe-variable 'appmenu-funs)

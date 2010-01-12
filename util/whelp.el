@@ -177,7 +177,8 @@ The third argument DOC is a documentation string for the widget."
       (help-setup-xref (list #'describe-button pos) (interactive-p))
       (with-current-buffer (help-buffer)
         (let ((inhibit-read-only t)
-              (button-marker (gensym)))
+              ;;(button-marker (gensym))
+              )
           (describe-insert-header pos)
           (insert-text-button "This field"
                               'action (lambda (button)
@@ -192,10 +193,11 @@ The third argument DOC is a documentation string for the widget."
                               'action (lambda (button)
                                         (info "(elisp) Buttons")))
           (princ ". You can ")
-          (set button-marker pos)
+          ;;(set button-marker pos)
           (insert-text-button "browse the button's properties"
                               'action `(lambda (button)
-                                         (button-browse-at (symbol-value ',button-marker)))))
+                                         ;;(button-browse-at (symbol-value ',button-marker)))))
+                                         (button-browse-at ,pos))))
         (princ " to find out more about it.")
         (fill-region (point-min) (point-max))
         )

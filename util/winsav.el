@@ -153,7 +153,7 @@
 
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'desktop))
+(eval-and-compile (require 'desktop))
 
 ;; (defun winsav-upper-left-window(&optional frame w)
 ;;   (let* ((tree (if w w (car (window-tree frame))))
@@ -226,7 +226,8 @@ run."
                 (window-hscroll tree)
                 ;; misc
                 (window-dedicated-p tree)
-                (window-redisplay-end-trigger tree)
+                (when (fboundp 'window-redisplay-end-trigger)
+                  (window-redisplay-end-trigger tree))
                 (window-start tree)
                 tree))
       (let* ((dir (nth 0 tree))

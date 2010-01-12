@@ -145,6 +145,63 @@ otherwise."
   :type 'function
   :group 'hl-needed)
 
+(defvar hl-needed-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(control ?c) ?+] 'hl-needed-show)
+    map))
+
+;;;###autoload
+(define-minor-mode hl-needed-mode
+  "Try to highlight current line and column when needed.
+This is a global minor mode.  It can operate in some different
+ways:
+
+- Highlighting can be on always, see `hl-needed-always'.
+
+Or, it can be turned on depending on some conditions.  In this
+case highlighting is turned off after each command and turned on
+again in the current window when either:
+
+- A new window was selected, see `hl-needed-on-new-window'.
+- A new buffer was selected, see `hl-needed-on-new-buffer'.
+- Window configuration was changed, see `hl-needed-on-config-change'.
+- Buffer was scrolled see `hl-needed-on-scrolling'.
+- A window was clicked with the mouse, see `hl-needed-on-mouse'.
+
+After this highlighting may be turned off again, normally after a
+short delay, see `hl-needed-flash'.
+
+If either highlighting was not turned on or was turned off again
+it will be turned on when
+
+- Emacs has been idle for `hl-needed-idle-time' seconds.
+
+See also `hl-needed-not-in-modes' and `hl-needed-currently-fun'.
+
+Note 1: For columns to be highlighted vline.el must be available.
+
+Note 2: This mode depends on `hl-line-mode' and `vline-mode' and
+tries to cooperate with them. If you turn on either of these that
+overrides the variables for turning on the respective
+highlighting here."
+  :global t
+  :group 'hl-needed
+  :keymap hl-needed-mode-map
+  (if hl-needed-mode
+      (progn
+        ;;(unless (memq major-mode hl-needed-not-in-modes) (setq hl-needed-window t))
+        (when (featurep 'hl-needed) (hl-needed-show))
+        (add-hook 'post-command-hook 'hl-needed-post-command)
+        (add-hook 'pre-command-hook 'hl-needed-pre-command)
+        (add-hook 'window-configuration-change-hook 'hl-needed-config-change)
+        )
+    (remove-hook 'post-command-hook 'hl-needed-post-command)
+    (remove-hook 'pre-command-hook 'hl-needed-pre-command)
+    (remove-hook 'window-configuration-change-hook 'hl-needed-config-change)
+    (hl-needed-cancel-timer)
+    (hl-needed-cancel-flash-timer)
+    (hl-needed-hide)))
+
 (defvar hl-needed-timer nil)
 (defvar hl-needed-flash-timer nil)
 (defvar hl-needed-window nil)
@@ -316,63 +373,6 @@ Erros may go unnoticed in timers.  This should prevent it."
         (setq hl-needed-minibuffer-active nil))
     (error
      (message "hl-needed-config-change error: %s" err))))
-
-(defvar hl-needed-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(control ?c) ?+] 'hl-needed-show)
-    map))
-
-;;;###autoload
-(define-minor-mode hl-needed-mode
-  "Try to highlight current line and column when needed.
-This is a global minor mode.  It can operate in some different
-ways:
-
-- Highlighting can be on always, see `hl-needed-always'.
-
-Or, it can be turned on depending on some conditions.  In this
-case highlighting is turned off after each command and turned on
-again in the current window when either:
-
-- A new window was selected, see `hl-needed-on-new-window'.
-- A new buffer was selected, see `hl-needed-on-new-buffer'.
-- Window configuration was changed, see `hl-needed-on-config-change'.
-- Buffer was scrolled see `hl-needed-on-scrolling'.
-- A window was clicked with the mouse, see `hl-needed-on-mouse'.
-
-After this highlighting may be turned off again, normally after a
-short delay, see `hl-needed-flash'.
-
-If either highlighting was not turned on or was turned off again
-it will be turned on when
-
-- Emacs has been idle for `hl-needed-idle-time' seconds.
-
-See also `hl-needed-not-in-modes' and `hl-needed-currently-fun'.
-
-Note 1: For columns to be highlighted vline.el must be available.
-
-Note 2: This mode depends on `hl-line-mode' and `vline-mode' and
-tries to cooperate with them. If you turn on either of these that
-overrides the variables for turning on the respective
-highlighting here."
-  :global t
-  :group 'hl-needed
-  :keymap hl-needed-mode-map
-  (if hl-needed-mode
-      (progn
-        ;;(unless (memq major-mode hl-needed-not-in-modes) (setq hl-needed-window t))
-        (add-hook 'post-command-hook 'hl-needed-post-command)
-        (add-hook 'pre-command-hook 'hl-needed-pre-command)
-        (add-hook 'window-configuration-change-hook 'hl-needed-config-change)
-        (hl-needed-show)
-        )
-    (remove-hook 'post-command-hook 'hl-needed-post-command)
-    (remove-hook 'pre-command-hook 'hl-needed-pre-command)
-    (remove-hook 'window-configuration-change-hook 'hl-needed-config-change)
-    (hl-needed-cancel-timer)
-    (hl-needed-cancel-flash-timer)
-    (hl-needed-hide)))
 
 (provide 'hl-needed)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

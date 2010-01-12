@@ -44,6 +44,8 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'mumamo))
+(eval-when-compile (require 'ourcomments-util))
 (require 'tutorial)
 (require 'cus-edit)
 
@@ -643,15 +645,13 @@ CHANGED-KEYS should be a list in the format returned by
 (defun viper-tut--at-change-state()
   (condition-case err
       (progn
-        (save-excursion
-          (let ((inhibit-read-only t)
-                (here (point)))
-            ;; Delete the remarks:
-            (tutorial--remove-remarks)
-            ;; Add them again
-            (viper-tut--add-remarks)
-            (goto-char here)
-            )
+        (let ((inhibit-read-only t)
+              (here (point)))
+          ;; Delete the remarks:
+          ;;(tutorial--remove-remarks)
+          ;; Add them again
+          ;;(viper-tut--add-remarks)
+          (goto-char here)
           )
         )
     (error (message "error in viper-tut--at-change-state: %s" (error-message-string err)))))
@@ -812,6 +812,8 @@ between you will be notified about that too."
               (setq old-point 1))
             (goto-char old-point)))
 
+        (viper-tut-fix-header-and-footer)
+
         ;; Clear message:
         (message "") (sit-for 0)
 
@@ -819,6 +821,7 @@ between you will be notified about that too."
         (set-buffer-modified-p nil))
       (setq buffer-read-only (= 0 part)))))
 
+;;(tutorial--find-changed-keys '((scroll-up [?\C-v])))
 (defun viper-tut--add-remarks()
   ;; Check if there are key bindings that may disturb the
   ;; tutorial.  If so tell the user.
@@ -837,11 +840,12 @@ between you will be notified about that too."
         (add-hook 'viper-emacs-state-hook 'viper-tut--at-change-state nil t)
         )
     (remove-hook 'viper-vi-state-hook 'viper-tut--at-change-state t)
-    (remove-hook 'viper-insert-state-hook 'viper-tut--at-change-state t)
+    (remove-hook 'viper-insert-statehook 'viper-tut--at-change-state t)
     (remove-hook 'viper-replace-state-hook 'viper-tut--at-change-state t)
     (remove-hook 'viper-emacs-state-hook 'viper-tut--at-change-state t)
-    )
+    ))
 
+(defun viper-tut-fix-header-and-footer ()
   (save-excursion
     (goto-char (point-min))
     (add-text-properties (point) (1+ (line-end-position))
@@ -849,8 +853,7 @@ between you will be notified about that too."
     (goto-char (point-min))
     (viper-tut--insert-goto-row nil)
     (goto-char (point-max))
-    (viper-tut--insert-goto-row t))
-  )
+    (viper-tut--insert-goto-row t)))
 
 (defun viper-tut--insert-goto-row(last)
   (let ((start (point))

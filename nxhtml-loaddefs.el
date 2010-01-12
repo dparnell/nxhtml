@@ -66,7 +66,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (appmenu-mode appmenu-add appmenu) "appmenu" "util/appmenu.el"
-;;;;;;  (19273 27669))
+;;;;;;  (19275 56928))
 ;;; Generated autoloads from util/appmenu.el
 (web-autoload-require 'appmenu 'lp (nxhtml-download-root-url nil) "util/appmenu" nxhtml-install-dir)
 
@@ -120,7 +120,7 @@ much about computation time as for entries in the menu bar.
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-mail-mode
 ;;;;;;  as-external-for-xhtml as-external) "as-external" "util/as-external.el"
-;;;;;;  (19256 5058))
+;;;;;;  (19275 56636))
 ;;; Generated autoloads from util/as-external.el
 (web-autoload-require 'as-external 'lp (nxhtml-download-root-url nil) "util/as-external" nxhtml-install-dir)
 
@@ -606,7 +606,7 @@ See `foldit-mode' for more information on Foldit mode.
 ;;;***
 
 ;;;### (autoloads (gimpedit-can-edit gimpedit-edit-buffer gimpedit-edit-file
-;;;;;;  gimpedit) "gimpedit" "util/gimpedit.el" (19218 42180))
+;;;;;;  gimpedit) "gimpedit" "util/gimpedit.el" (19275 56106))
 ;;; Generated autoloads from util/gimpedit.el
 (web-autoload-require 'gimpedit 'lp (nxhtml-download-root-url nil) "util/gimpedit" nxhtml-install-dir)
 
@@ -702,7 +702,7 @@ With command prefix also show html source in other window.
 ;;;***
 
 ;;;### (autoloads (hl-needed-mode hl-needed) "hl-needed" "util/hl-needed.el"
-;;;;;;  (19234 49132))
+;;;;;;  (19275 58257))
 ;;; Generated autoloads from util/hl-needed.el
 (web-autoload-require 'hl-needed 'lp (nxhtml-download-root-url nil) "util/hl-needed" nxhtml-install-dir)
 
@@ -757,7 +757,7 @@ highlighting here.
 ;;;***
 
 ;;;### (autoloads (html-write-mode html-write) "html-write" "util/html-write.el"
-;;;;;;  (19262 53037))
+;;;;;;  (19275 55886))
 ;;; Generated autoloads from util/html-write.el
 (web-autoload-require 'html-write 'lp (nxhtml-download-root-url nil) "util/html-write" nxhtml-install-dir)
 
@@ -853,8 +853,8 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
-;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19262
-;;;;;;  60885))
+;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19275
+;;;;;;  55468))
 ;;; Generated autoloads from util/majmodpri.el
 (web-autoload-require 'majmodpri 'lp (nxhtml-download-root-url nil) "util/majmodpri" nxhtml-install-dir)
 
@@ -951,7 +951,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19266 53060))
+;;;;;;  (19275 46338))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp (nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir)
 
@@ -1213,7 +1213,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (mumamo-add-region-from-string mumamo-add-region)
-;;;;;;  "mumamo-regions" "util/mumamo-regions.el" (19234 48036))
+;;;;;;  "mumamo-regions" "util/mumamo-regions.el" (19275 53763))
 ;;; Generated autoloads from util/mumamo-regions.el
 (web-autoload-require 'mumamo-regions 'lp (nxhtml-download-root-url nil) "util/mumamo-regions" nxhtml-install-dir)
 
@@ -1352,17 +1352,18 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 
 ;;;### (autoloads (ourcomments-warning ourcomments-M-x-menu-mode
 ;;;;;;  ourcomments-paste-with-convert-mode use-custom-style info-open-file
-;;;;;;  grep-query-replace emacs-Q-nxhtml emacs-Q emacs--no-desktop
-;;;;;;  emacs--debug-init emacs-buffer-file emacs emacs-restart ourcomments-ido-ctrl-tab
-;;;;;;  ourcomments-ido-buffer-raise-frame ourcomments-ido-buffer-other-frame
-;;;;;;  ourcomments-ido-buffer-other-window describe-symbol describe-defstruct
-;;;;;;  describe-custom-group narrow-to-comment buffer-narrowed-p
-;;;;;;  describe-command ourcomments-ediff-files find-emacs-other-file
-;;;;;;  better-fringes-mode describe-key-and-map-briefly ourcomments-move-end-of-line
-;;;;;;  ourcomments-move-beginning-of-line ourcomments-mark-whole-buffer-or-field
-;;;;;;  fill-dwim unfill-individual-paragraphs unfill-region unfill-paragraph
-;;;;;;  define-toggle-old define-toggle popup-menu-at-point ourcomments-indirect-fun)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19273 16522))
+;;;;;;  replace-read-files grep-query-replace emacs-Q-nxhtml emacs-Q
+;;;;;;  emacs--no-desktop emacs--debug-init emacs-buffer-file emacs
+;;;;;;  emacs-restart ourcomments-ido-ctrl-tab ourcomments-ido-buffer-raise-frame
+;;;;;;  ourcomments-ido-buffer-other-frame ourcomments-ido-buffer-other-window
+;;;;;;  describe-symbol describe-defstruct describe-custom-group
+;;;;;;  narrow-to-comment buffer-narrowed-p describe-command ourcomments-ediff-files
+;;;;;;  find-emacs-other-file better-fringes-mode describe-key-and-map-briefly
+;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
+;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
+;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
+;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
+;;;;;;  "util/ourcomments-util.el" (19275 53366))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp (nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir)
 
@@ -1635,6 +1636,11 @@ with the command \\[tags-loop-continue].
 
 \(fn FROM TO &optional DELIMITED)" t nil)
 
+(nxhtml-autoload 'replace-read-files `(lp ,(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Read files arg for replace.
+
+\(fn REGEXP &optional REPLACE)" nil nil)
+
 (nxhtml-autoload 'info-open-file `(lp ,(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Open an info file in `Info-mode'.
 
@@ -1699,7 +1705,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (major-modep major-or-multi-majorp) "ourcomments-widgets"
-;;;;;;  "util/ourcomments-widgets.el" (19211 16870))
+;;;;;;  "util/ourcomments-widgets.el" (19275 53735))
 ;;; Generated autoloads from util/ourcomments-widgets.el
 (web-autoload-require 'ourcomments-widgets 'lp (nxhtml-download-root-url nil) "util/ourcomments-widgets" nxhtml-install-dir)
 
@@ -1839,7 +1845,7 @@ this group.
 ;;;***
 
 ;;;### (autoloads (rebind-keys-mode rebind) "rebind" "util/rebind.el"
-;;;;;;  (19263 7912))
+;;;;;;  (19275 57843))
 ;;; Generated autoloads from util/rebind.el
 (web-autoload-require 'rebind 'lp (nxhtml-download-root-url nil) "util/rebind" nxhtml-install-dir)
 
@@ -1883,7 +1889,7 @@ Major mode for editing RELAX NG Compact Syntax schemas.
 ;;;***
 
 ;;;### (autoloads (search-form) "search-form" "util/search-form.el"
-;;;;;;  (19235 974))
+;;;;;;  (19275 53500))
 ;;; Generated autoloads from util/search-form.el
 (web-autoload-require 'search-form 'lp (nxhtml-download-root-url nil) "util/search-form" nxhtml-install-dir)
 
@@ -1936,18 +1942,13 @@ handled is governed by `sex-keep-dummy-buffer'.
 
 ;;;***
 
-;;;### (autoloads (tabkey2-mode tabkey2-emma-without-tabkey2 tabkey2)
-;;;;;;  "tabkey2" "util/tabkey2.el" (19265 26702))
+;;;### (autoloads (tabkey2-emma-without-tabkey2 tabkey2-mode tabkey2)
+;;;;;;  "tabkey2" "util/tabkey2.el" (19275 53134))
 ;;; Generated autoloads from util/tabkey2.el
 (web-autoload-require 'tabkey2 'lp (nxhtml-download-root-url nil) "util/tabkey2" nxhtml-install-dir)
 
 
 (let ((loads (get 'tabkey2 'custom-loads))) (if (member '"tabkey2" loads) nil (put 'tabkey2 'custom-loads (cons '"tabkey2" loads))))
-
-(nxhtml-autoload 'tabkey2-emma-without-tabkey2 `(lp ,(nxhtml-download-root-url nil) "util/tabkey2" nxhtml-install-dir) "\
-Not documented
-
-\(fn)" nil nil)
 
 (defvar tabkey2-mode nil "\
 Non-nil if Tabkey2 mode is enabled.
@@ -1994,20 +1995,35 @@ first in tabkey2-mode.
 
 \(fn &optional ARG)" t nil)
 
+(nxhtml-autoload 'tabkey2-emma-without-tabkey2 `(lp ,(nxhtml-download-root-url nil) "util/tabkey2" nxhtml-install-dir) "\
+Not documented
+
+\(fn)" nil nil)
+
 ;;;***
 
-;;;### (autoloads (tyda-lookup-word) "tyda" "util/tyda.el" (18659
-;;;;;;  17016))
+;;;### (autoloads (tyda-mode) "tyda" "util/tyda.el" (19275 52912))
 ;;; Generated autoloads from util/tyda.el
 (web-autoload-require 'tyda 'lp (nxhtml-download-root-url nil) "util/tyda" nxhtml-install-dir)
 
 
-(nxhtml-autoload 'tyda-lookup-word `(lp ,(nxhtml-download-root-url nil) "util/tyda" nxhtml-install-dir) "\
-Look up word WORD at URL `http://tyda.se/'.
-This site translates between English and Swedish.  The site will
-be opened in your webbrowser with WORD looked up.
+(defvar tyda-mode nil "\
+Non-nil if Tyda mode is enabled.
+See the command `tyda-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `tyda-mode'.")
 
-\(fn WORD)" t nil)
+(nxhtml-custom-autoload 'tyda-mode 'tyda nil)
+
+(nxhtml-autoload 'tyda-mode `(lp ,(nxhtml-download-root-url nil) "util/tyda" nxhtml-install-dir) "\
+Minor mode for key bindings for `tyda-lookup-word'.
+It binds Alt-Mouse-1 just as the Tyda add-on does in Firefox.
+Here are all key bindings
+
+\\{tyda-mode-map}
+
+\(fn &optional ARG)" t nil)
 
 ;;;***
 
@@ -2034,35 +2050,6 @@ after last step with LOG-BUFFER as parameter.
 
 ;;;***
 
-;;;### (autoloads (udev-cedet-utest udev-cedet-customize-startup
-;;;;;;  udev-cedet-update) "udev-cedet" "util/udev-cedet.el" (19256
-;;;;;;  5171))
-;;; Generated autoloads from util/udev-cedet.el
-(web-autoload-require 'udev-cedet 'lp (nxhtml-download-root-url nil) "util/udev-cedet" nxhtml-install-dir)
-
-
-(nxhtml-autoload 'udev-cedet-update `(lp ,(nxhtml-download-root-url nil) "util/udev-cedet" nxhtml-install-dir) "\
-Fetch and install CEDET from the development sources.
-To determine where to store the sources see `udev-cedet-dir'.
-For how to start CEDET see `udev-cedet-load-cedet'.
-
-Note that if you install CEDET yourself you should not use this function.
-
-\(fn)" t nil)
-
-(nxhtml-autoload 'udev-cedet-customize-startup `(lp ,(nxhtml-download-root-url nil) "util/udev-cedet" nxhtml-install-dir) "\
-Customize CEDET dev nXhtml startup group.
-
-\(fn)" t nil)
-
-(nxhtml-autoload 'udev-cedet-utest `(lp ,(nxhtml-download-root-url nil) "util/udev-cedet" nxhtml-install-dir) "\
-Start CEDET unit tests.
-These runs in a fresh Emacs.
-
-\(fn)" t nil)
-
-;;;***
-
 ;;;### (autoloads (udev-ecb-customize-startup udev-ecb-update) "udev-ecb"
 ;;;;;;  "util/udev-ecb.el" (19256 5199))
 ;;; Generated autoloads from util/udev-ecb.el
@@ -2078,20 +2065,6 @@ For how to start ECB see `udev-ecb-load-ecb'.
 
 (nxhtml-autoload 'udev-ecb-customize-startup `(lp ,(nxhtml-download-root-url nil) "util/udev-ecb" nxhtml-install-dir) "\
 Customize ECB dev nXhtml startup group.
-
-\(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads (udev-fmcss-update) "udev-flymake-css" "util/udev-flymake-css.el"
-;;;;;;  (19173 56142))
-;;; Generated autoloads from util/udev-flymake-css.el
-(web-autoload-require 'udev-flymake-css 'lp (nxhtml-download-root-url nil) "util/udev-flymake-css" nxhtml-install-dir)
-
-
-(nxhtml-autoload 'udev-fmcss-update `(lp ,(nxhtml-download-root-url nil) "util/udev-flymake-css" nxhtml-install-dir) "\
-Fetch and install flymake css from sources.
-To determine where to store the sources see `udev-fmcss-dir'.
 
 \(fn)" t nil)
 
@@ -2113,7 +2086,7 @@ see `udev-rinari-dir' and `udev-rinari-load-rinari'.
 ;;;***
 
 ;;;### (autoloads (viper-tutorial) "viper-tut" "util/viper-tut.el"
-;;;;;;  (19273 33877))
+;;;;;;  (19275 51347))
 ;;; Generated autoloads from util/viper-tut.el
 (web-autoload-require 'viper-tut 'lp (nxhtml-download-root-url nil) "util/viper-tut" nxhtml-install-dir)
 
@@ -3043,121 +3016,9 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads (nxhtml-setup-download-all nxhtml-setup-auto-download
-;;;;;;  nxhtml-setup-install web-vcs-get-files-from-root) "web-vcs"
-;;;;;;  "nxhtml/doc/img/web-vcs.el" (19264 42575))
-;;; Generated autoloads from nxhtml/doc/img/web-vcs.el
-(web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "nxhtml/doc/img/web-vcs" nxhtml-install-dir)
-
-
-(nxhtml-autoload 'web-vcs-get-files-from-root `(lp ,(nxhtml-download-root-url nil) "nxhtml/doc/img/web-vcs" nxhtml-install-dir) "\
-Download a file tree from VCS system using the web interface.
-Use WEB-VCS entry in variable `web-vcs-links-regexp' to download
-files via http from URL to directory DL-DIR.
-
-Show URL first and offer to visit the page.  That page will give
-you information about version control system (VCS) system used
-etc.
-
-\(fn WEB-VCS URL DL-DIR)" nil nil)
-
-(nxhtml-autoload 'nxhtml-setup-install `(lp ,(nxhtml-download-root-url nil) "nxhtml/doc/img/web-vcs" nxhtml-install-dir) "\
-Setup and start nXhtml installation.
-
-There are two different ways to do it:
-
-  (1) Download all at once: `nxhtml-setup-download-all'
-  (2) Automatically download part by part: `nxhtml-setup-auto-download'
-
-You can convert between those ways by calling this function again.
-You can also do this by setting the option `nxhtml-autoload-web' yourself.
-
-To learn more about nXhtml visit its home page at URL
-`http://www.emacswiki.com/NxhtmlMode/'.
-
-If you want to test auto download (but not use it further) there
-is a special function for that, you answer T here:
-
-   (T) Test automatic download part by part: `nxhtml-setup-test-auto-download'
-
-\(fn WAY)" t nil)
-
-(nxhtml-autoload 'nxhtml-setup-auto-download `(lp ,(nxhtml-download-root-url nil) "nxhtml/doc/img/web-vcs" nxhtml-install-dir) "\
-Set up to autoload nXhtml files from the web.
-
-This function will download some initial files and then setup to
-download the rest when you need them.
-
-Files will be downloaded under the directory root you specify in
-DL-DIR.
-
-If you already have nXhtml installed and loaded this function
-will only let you download to that directory.  In that case you
-can use this function to upgrade individual files.  Just delete
-them and they will be downloaded as you need them.  (But beware
-that sometimes there might be problem because the files gets out
-of phase.  A future version will try to take care of this.)
-
-You may switch by this mode of downloading or downloading the
-whole of nXhtml by once.  To switch just call the command
-`nxhtml-setup-install'.
-
-See also the command `nxhtml-setup-download-all'.
-
-Note: If your nXhtml is to old you can't use this function
-      directly.  You have to upgrade first, se the function
-      above.
-
-\(fn DL-DIR)" t nil)
-
-(nxhtml-autoload 'nxhtml-setup-download-all `(lp ,(nxhtml-download-root-url nil) "nxhtml/doc/img/web-vcs" nxhtml-install-dir) "\
-Download or update all of nXhtml.
-
-If you already have nXhtml installed you can update it with this
-command. If you want to update only certain files you can do so
-by switching (maybe temporary) to automatic downloading with the
-command `nxhtml-setup-install'.
-
-For more information about auto download of nXhtml files see
-`nxhtml-setup-auto-download'.
-
-\(fn DL-DIR)" t nil)
-
-;;;***
-
-;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "nxhtmlmaint" "nxhtml/doc/img/nxhtmlmaint.el" (19264 42569))
-;;; Generated autoloads from nxhtml/doc/img/nxhtmlmaint.el
-(web-autoload-require 'nxhtmlmaint 'lp (nxhtml-download-root-url nil) "nxhtml/doc/img/nxhtmlmaint" nxhtml-install-dir)
-
-
-(nxhtml-autoload 'nxhtmlmaint-start-byte-compilation `(lp ,(nxhtml-download-root-url nil) "nxhtml/doc/img/nxhtmlmaint" nxhtml-install-dir) "\
-Start byte compilation of nXhtml in new Emacs instance.
-Byte compiling in general makes elisp code run 5-10 times faster
-which is quite noticeable when you use nXhtml.
-
-This will also update the file nxhtml-loaddefs.el.
-
-You must restart Emacs to use the byte compiled files.
-
-If for some reason the byte compiled files does not work you can
-remove then with `nxhtmlmaint-byte-uncompile-all'.
-
-\(fn)" t nil)
-
-(nxhtml-autoload 'nxhtmlmaint-byte-uncompile-all `(lp ,(nxhtml-download-root-url nil) "nxhtml/doc/img/nxhtmlmaint" nxhtml-install-dir) "\
-Delete byte compiled files in nXhtml.
-This will also update the file nxhtml-loaddefs.el.
-
-See `nxhtmlmaint-start-byte-compilation' for byte compiling.
-
-\(fn)" t nil)
-
-;;;***
-
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
 ;;;;;;  winsav winsav-rotate winsav-put-window-tree) "winsav" "util/winsav.el"
-;;;;;;  (19267 20473))
+;;;;;;  (19275 54671))
 ;;; Generated autoloads from util/winsav.el
 (web-autoload-require 'winsav 'lp (nxhtml-download-root-url nil) "util/winsav" nxhtml-install-dir)
 
@@ -3262,7 +3123,7 @@ See also option `winsav-save-mode' and command
 
 ;;;### (autoloads (winsize-set-mode-line-colors winsize-save-window-configuration
 ;;;;;;  winsize-balance-siblings resize-windows) "winsize" "util/winsize.el"
-;;;;;;  (19267 19589))
+;;;;;;  (19275 51243))
 ;;; Generated autoloads from util/winsize.el
 (web-autoload-require 'winsize 'lp (nxhtml-download-root-url nil) "util/winsize" nxhtml-install-dir)
 
@@ -3568,7 +3429,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (nxml-where-global-mode nxml-where-mode nxml-where)
-;;;;;;  "nxml-where" "nxhtml/nxml-where.el" (19256 4963))
+;;;;;;  "nxml-where" "nxhtml/nxml-where.el" (19275 59061))
 ;;; Generated autoloads from nxhtml/nxml-where.el
 (web-autoload-require 'nxml-where 'lp (nxhtml-download-root-url nil) "nxhtml/nxml-where" nxhtml-install-dir)
 
@@ -3624,7 +3485,7 @@ Check if external modules used by nXhtml are found.
 ;;;;;;  smarty-nxhtml-mumamo-mode mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode
 ;;;;;;  mason-nxhtml-mumamo-mode django-nxhtml-mumamo-mode embperl-nxhtml-mumamo-mode
 ;;;;;;  nxhtml-mumamo-mode) "nxhtml-mumamo" "nxhtml/nxhtml-mumamo.el"
-;;;;;;  (19270 1429))
+;;;;;;  (19275 46196))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 (web-autoload-require 'nxhtml-mumamo 'lp (nxhtml-download-root-url nil) "nxhtml/nxhtml-mumamo" nxhtml-install-dir)
 
@@ -3880,8 +3741,8 @@ Report a bug in nXhtml.
 
 ;;;***
 
-;;;### (autoloads (html-wtoc) "html-wtoc" "nxhtml/html-wtoc.el" (19256
-;;;;;;  4721))
+;;;### (autoloads (html-wtoc) "html-wtoc" "nxhtml/html-wtoc.el" (19275
+;;;;;;  58973))
 ;;; Generated autoloads from nxhtml/html-wtoc.el
 (web-autoload-require 'html-wtoc 'lp (nxhtml-download-root-url nil) "nxhtml/html-wtoc" nxhtml-install-dir)
 
@@ -3951,13 +3812,14 @@ FILENAME could be either the remote or the local file.
 
 ;;;***
 
-;;;### (autoloads (html-site html-site-query-replace html-site-rgrep
-;;;;;;  html-site-find-file html-site-dired-current html-site-set-site
-;;;;;;  html-site-buffer-or-dired-file-name) "html-site" "nxhtml/html-site.el"
-;;;;;;  (19264 26797))
+;;;### (autoloads (html-site-query-replace html-site-rgrep html-site-find-file
+;;;;;;  html-site-dired-current html-site-set-site html-site-buffer-or-dired-file-name
+;;;;;;  html-site) "html-site" "nxhtml/html-site.el" (19275 58924))
 ;;; Generated autoloads from nxhtml/html-site.el
 (web-autoload-require 'html-site 'lp (nxhtml-download-root-url nil) "nxhtml/html-site" nxhtml-install-dir)
 
+
+(let ((loads (get 'html-site 'custom-loads))) (if (member '"html-site" loads) nil (put 'html-site 'custom-loads (cons '"html-site" loads))))
 
 (nxhtml-autoload 'html-site-buffer-or-dired-file-name `(lp ,(nxhtml-download-root-url nil) "nxhtml/html-site" nxhtml-install-dir) "\
 Return buffer file name or file pointed to in dired.
@@ -3989,8 +3851,6 @@ See `rgrep' for the arguments REGEXP and FILES.
 Query replace in current site's files.
 
 \(fn FROM TO FILE-REGEXP DELIMITED)" t nil)
-
-(let ((loads (get 'html-site 'custom-loads))) (if (member '"html-site" loads) nil (put 'html-site 'custom-loads (cons '"html-site" loads))))
 
 ;;;***
 
@@ -4032,8 +3892,8 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;### (autoloads (web-vcs-investigate-elisp-file nxhtml-maybe-download-files
 ;;;;;;  nxhtml-setup-download-all nxhtml-setup-auto-download nxhtml-setup-install
-;;;;;;  web-vcs-get-files-from-root) "web-vcs" "web-vcs.el" (19270
-;;;;;;  57028))
+;;;;;;  web-vcs-get-files-from-root) "web-vcs" "web-vcs.el" (19274
+;;;;;;  16021))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -4140,7 +4000,7 @@ Not documented
 
 ;;;### (autoloads (zencoding-preview zencoding-expand-yas zencoding-mode
 ;;;;;;  zencoding-expand-line zencoding) "zencoding-mode" "util/zencoding-mode.el"
-;;;;;;  (19218 42182))
+;;;;;;  (19275 51190))
 ;;; Generated autoloads from util/zencoding-mode.el
 (web-autoload-require 'zencoding-mode 'lp (nxhtml-download-root-url nil) "util/zencoding-mode" nxhtml-install-dir)
 
@@ -4196,8 +4056,6 @@ accept it or skip it.
 ;;;***
 
 ;;;### (autoloads nil nil ("autostart.el" "autostart22.el" "etc/schema/schema-path-patch.el"
-;;;;;;  "nxhtml/doc/img/autostart.el" "nxhtml/doc/img/autostart22.el"
-;;;;;;  "nxhtml/doc/img/nxhtml-loaddefs.el" "nxhtml/doc/img/web-autoload.el"
 ;;;;;;  "nxhtml/html-imenu.el" "nxhtml/html-move.el" "nxhtml/html-quote.el"
 ;;;;;;  "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el" "nxhtml/nxhtmljs.el"
 ;;;;;;  "nxhtml/outline-magic.el" "nxhtml/wtest.el" "related/flymake-helpers.el"
@@ -4209,9 +4067,8 @@ accept it or skip it.
 ;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/hfy-cmap.el"
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
-;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/udev-nxhtml.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19274 6033
-;;;;;;  125000))
+;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/useful-commands.el"
+;;;;;;  "web-autoload.el") (19275 59449 171000))
 
 ;;;***
 

@@ -1682,6 +1682,11 @@ command `nxhtml-setup-install'."
                                 defvar defconst
                                 defcustom
                                 defface defgroup
+                                ;; fix-me: check if these do re-fun too:
+                                define-derived-mode
+                                define-global-minor-mode
+                                define-globalized-minor-mode
+
                                 make-local-variable make-variable-buffer-local
                                 provide
                                 require
