@@ -54,6 +54,7 @@
 (eval-when-compile (require 'flymake))
 ;;(eval-when-compile (require 'flymake-php))
 (eval-when-compile (require 'flymake-js nil t))
+(eval-when-compile (require 'mumamo nil t))
 (eval-when-compile (require 'nxhtml-base))
 (eval-when-compile (require 'udev-ecb nil t))
 ;;(eval-when-compile (require 'udev-cedet))
@@ -604,9 +605,9 @@
       (let ((img-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-img-map]
           (list 'menu-item "Images" img-map))
-        (define-key img-map [nxhtml-chart]
-          (list 'menu-item "Make Chart" 'chart-make-chart))
-        (define-key img-map [nxhtml-chart-separator] (list 'menu-item "--"))
+        (define-key img-map [nxhtml-chartg]
+          (list 'menu-item "Make Chart" 'chartg-make-chart))
+        (define-key img-map [nxhtml-chartg-separator] (list 'menu-item "--"))
         (define-key img-map [nxhtml-gimp-edit]
           (list 'menu-item "Edit with GIMP" 'nxhtml-edit-with-gimp
                 :enable '(nxhtml-gimp-can-edit)))

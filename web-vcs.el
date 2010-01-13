@@ -20,7 +20,8 @@
 ;; on their web pages.
 ;;
 ;; Available download commands are currently:
-;;    `web-vcs-nxthml'
+;;
+;;    `web-vcs-nxhtml'
 ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -51,6 +52,7 @@
 
 (eval-when-compile (require 'cl))
 (eval-and-compile (require 'cus-edit))
+(eval-and-compile (require 'lazy-lock))
 (require 'advice)
 (require 'web-autoload nil t)
 
@@ -60,6 +62,8 @@
 (eval-when-compile (require 'url-http))
 ;; (require 'url-util)
 (eval-when-compile (require 'mm-decode))
+
+(defvar web-vcs-comp-dir nil)
 
 (defgroup web-vcs nil
   "Customization group for web-vcs."
@@ -570,7 +574,7 @@ a temporary file."
              (time-less-p url-file-time
                           (time-add dl-file-time (seconds-to-time 1))))
         (web-vcs-message-with-face 'web-vcs-green "Local file %s is newer or same age" file-rel-name))
-       (test (progn (message "TEST url-file=%S" url-file) (message "TEST url-file-rel-name=%S" url-file-rel-name) (message "TEST dl-file-name=%S" dl-file-name) ))
+       ;;(test (progn (message "TEST url-file=%S" url-file) (message "TEST url-file-rel-name=%S" url-file-rel-name) (message "TEST dl-file-name=%S" dl-file-name) ))
        (t
         ;; Avoid trouble with temp file
         (while (setq temp-buf (find-buffer-visiting temp-file))
@@ -738,33 +742,26 @@ This is used after inspecting downloaded elisp files."
         (setq temp-buf (current-buffer))
         (message "-")
         (message "")
-        (web-vcs-message-with-face
-         'secondary-selection
-         (concat "Please check the downloaded file and then continue by doing"
-                 ;;"\n    C-c C-c (or M-x exit-recursive-edit)"
-                 (funcall kf-desc 'exit-recursive-edit)
-                 ;;(key-description (where-is-internal 'where-is nil t))
-                 ;;(key-description [(control ?c) ?x])
-                 ;; web-autoload.el might not be loaded yet
-                 (if (fboundp 'web-autoload-continue-no-stop)
-                     (concat
-                      "\n\nOr, for no more breaks to check files do"
-                      ;;"\n    C-c C-n (or M-x web-autoload-continue-no-stop)"
-                      (funcall kf-desc 'web-autoload-continue-no-stop)
-                      )
-                   "")
-                 "\n\nTo stop the web autloading process for now do"
-                 ;;"\n    C-c C-q (or M-x web-autoload-quit-download)"
-                 (funcall kf-desc 'web-autoload-quit-download)
-                 "\n\nTo see the log file you can do"
-                 ;;"\n    M-x web-vcs-log-edit"
-                 (funcall kf-desc 'web-vcs-log-edit)
-                 "\n"))
-        (message "")
         (with-selected-window msg-win
           (goto-char (point-max)))
         (let ((proceed nil)
               (web-autoload-active-file-sub-url file-sub-url)) ;; Dyn var, active during file download check
+          (web-vcs-paranoid-state-mode 1)
+          (web-vcs-message-with-face
+           'secondary-selection
+           (concat "Please check the downloaded file and then continue by doing"
+                   (funcall kf-desc 'exit-recursive-edit)
+                   (if (fboundp 'web-autoload-continue-no-stop)
+                       (concat
+                        "\n\nOr, for no more breaks to check files do"
+                        (funcall kf-desc 'web-autoload-continue-no-stop))
+                     "")
+                   "\n\nTo stop the web autloading process for now do"
+                   (funcall kf-desc 'web-autoload-quit-download)
+                   "\n\nTo see the log file you can do"
+                   (funcall kf-desc 'web-vcs-log-edit)
+                   "\n"))
+          (message "")
           (while (not proceed)
             (condition-case err
                 (when (eq 'web-autoload-stop
@@ -780,7 +777,6 @@ This is used after inspecting downloaded elisp files."
                                    'face 'web-vcs-red))
                             (unwind-protect
                                 (progn
-                                  (web-vcs-paranoid-state-mode 1)
                                   (recursive-edit))
                               (web-vcs-paranoid-state-mode -1))
                             (with-current-buffer temp-buf
@@ -956,6 +952,7 @@ entry says so."
                 (web-vcs-message-with-face 'web-vcs-gold "Doing the really adviced require for %s" feature)
                 ;; Check if already downloaded first
                 (unless (file-exists-p full-el)
+                  (setq base-url (eval base-url))
                   ;; Download and try again
                   (setq relative-url (concat relative-url ".el"))
                   ;;(web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s (%S %S => %S)" feature base-url relative-url base-dir)
@@ -1347,37 +1344,6 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
       (web-vcs-update-existing-files vcs base-url dl-dir
                                        (file-name-as-directory
                                         (expand-file-name d this-dir))))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Specific for nXhtml
-
-(defvar nxhtml-web-vcs-base-url "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/")
-
-;; Fix-me: make gen for 'lp etc
-(defun nxhtml-download-root-url (revision)
-  (let* ((base-url nxhtml-web-vcs-base-url)
-         (files-url (concat base-url "files/"))
-         (rev-part (if revision (number-to-string revision) "head%3A/")))
-    (concat files-url rev-part)))
-
-(defun web-vcs-nxhtml ()
-  "Install nXhtml."
-  (interactive)
-  (setq debug-on-error t)
-  ;;(require 'nxhtml-web-vcs)
-  (let* ((this-dir (file-name-directory web-vcs-el-this))
-         (root-url (nxhtml-download-root-url nil))
-         (files '("nxhtml-web-vcs.el" "nxhtml-base.el"))
-         (files2 (mapcar (lambda (file)
-                           (cons file (expand-file-name file this-dir)))
-                         files)))
-    (dolist (file files2)
-      (unless (file-exists-p (cdr file))
-        (web-vcs-get-missing-matching-files 'lp root-url this-dir (car file))))
-    (load (cdr (car files2))))
-  (call-interactively 'nxhtml-setup-install))
-
-
 
 
 
@@ -1921,6 +1887,51 @@ resulting load-history entry."
           (insert "    )\n")
           (goto-char here))))
       (set-buffer-modified-p nil))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Specific for nXhtml
+
+(defvar nxhtml-web-vcs-base-url "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/")
+
+;; Fix-me: make gen for 'lp etc
+(defun nxhtml-download-root-url (revision)
+  (let* ((base-url nxhtml-web-vcs-base-url)
+         (files-url (concat base-url "files/"))
+         (rev-part (if revision (number-to-string revision) "head%3A/")))
+    (concat files-url rev-part)))
+
+(defun web-vcs-nxhtml ()
+  "Install nXhtml.
+Download and install nXhtml."
+  (interactive)
+  (catch 'command-level
+    (setq debug-on-error t)
+    (let* ((this-dir (file-name-directory web-vcs-el-this))
+           (root-url (nxhtml-download-root-url nil))
+           (files '("nxhtml-web-vcs.el" "nxhtml-base.el"))
+           (files2 (mapcar (lambda (file)
+                             (cons file (expand-file-name file this-dir)))
+                           files))
+           need-dl)
+      (dolist (file files2)
+        (unless (file-exists-p (cdr file))
+          (setq need-dl t)))
+      (when need-dl
+        (let ((prompt
+               (concat "Welcome to install nXhtml."
+                       "\nMust start by downloading some files."
+                       "\nYou will get a chance to review them before they are used."
+                       "\n\nDo you want to continue? ")))
+          (unless (y-or-n-p prompt)
+            (message "Aborted")
+            (throw 'command-level nil))))
+      (dolist (file files2)
+        (unless (file-exists-p (cdr file))
+          (web-vcs-get-missing-matching-files 'lp root-url this-dir (car file))))
+      (load (cdr (car files2))))
+    (call-interactively 'nxhtml-setup-install)))
+
 
 (provide 'web-vcs)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

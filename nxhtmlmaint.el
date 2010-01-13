@@ -50,8 +50,10 @@
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'ourcomments-util))
 (eval-when-compile (require 'advice))
+(eval-when-compile (require 'nxhtml-base))
+(eval-when-compile (require 'web-vcs nil t))
+(eval-when-compile (require 'ourcomments-util))
 
 (defvar nxhtmlmaint-dir
   (file-name-directory (if load-file-name load-file-name buffer-file-name))
@@ -80,7 +82,9 @@
       (insert ";; Autoloads for nXthml
 ;;
 ;; This file should be updated by `nxhtmlmaint-get-file-autoloads',
-;; `nxhtmlmaint-get-dir-autoloads' or `nxhtmlmaint-get-all-autoloads'.")
+;; `nxhtmlmaint-get-dir-autoloads' or `nxhtmlmaint-get-all-autoloads'.
+\(eval-when-compile (require 'nxhtml-base))
+\(eval-when-compile (require 'web-vcs))")
     (basic-save-buffer))))
 
 (defun nxmtmlmaint-advice-autoload (on)
@@ -214,7 +218,7 @@ Update nXhtml autoload file with them."
                        "(web-autoload-require '"
                        (symbol-name feature)
                        " 'lp"
-                       " (nxhtml-download-root-url nil)"
+                       " '(nxhtml-download-root-url nil)"
                        " \"" curr-src "\""
                        " nxhtml-install-dir"
                        " 'nxhtml-byte-compile-file"
@@ -229,7 +233,7 @@ Update nXhtml autoload file with them."
                  )
              (let* ((subexp (if (match-string 2) 2 3))
                     (file (match-string-no-properties subexp)))
-               (replace-match (concat "`(lp ,(nxhtml-download-root-url nil)"
+               (replace-match (concat "`(lp '(nxhtml-download-root-url nil)"
                                       " \"" curr-src "\""
                                       " nxhtml-install-dir)")
                               nil ;; fixedcase
@@ -406,6 +410,25 @@ then instead delete the compiled files."
       (let ((name (file-name-nondirectory f)))
         (unless (member name nxhtmlmaint-nonbyte-compile-dirs)
           (nxhtmlmaint-byte-compile-dir f force del-elc))))))
+
+;; fix-me: change web-vcs-byte-compile-file instead
+(defun nxhtml-byte-recompile-file (file &optional load)
+  "Byte recompile FILE file if necessary.
+For more information see `nxhtml-byte-compile-file'.
+Loading is done if recompiled and LOAD is t."
+  (interactive (list (buffer-file-name)
+                     t))
+  (let ((elc-file (byte-compile-dest-file file)))
+    (if (file-newer-than-file-p file elc-file)
+        (nxhtml-byte-compile-file file load)
+      (message "Byte compilation of this file is up to date."))))
+
+(defun nxhtml-byte-compile-file (file &optional load)
+  (let ((extra-load-path (when nxhtml-install-dir
+                           (mapcar (lambda (p)
+                                     (expand-file-name p nxhtml-install-dir))
+                                   '("tests" "related" "nxhtml" "util" ".")))))
+    (web-vcs-byte-compile-file file load extra-load-path)))
 
 (provide 'nxhtmlmaint)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
