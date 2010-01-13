@@ -92,7 +92,7 @@ FILE is set to `buffer-file-name' when called interactively.
 If LOAD"
   (interactive (list (buffer-file-name)
                      t))
-  (when (called-interactively-p)
+  (when (with-no-warnings (called-interactively-p))
     (unless (eq major-mode 'emacs-lisp-mode)
       (error "Must be in emacs-lisp-mode")))
   (unless nxhtml-install-dir

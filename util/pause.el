@@ -215,10 +215,12 @@
 
     (run-with-idle-timer 0 nil 'pause-break-show)
     (setq pause-break-exit-active nil)
-    (while (not pause-break-exit-active)
-      (recursive-edit)
-      (unless pause-break-exit-active
-        (add-hook 'window-configuration-change-hook 'pause-break-exit)))
+    (let ((n 0))
+      (while (or (not pause-break-exit-active)
+                 (< 2 (setq n (1+ n))))
+        (recursive-edit)
+        (unless pause-break-exit-active
+          (add-hook 'window-configuration-change-hook 'pause-break-exit))))
 
     ;;(set-frame-parameter nil 'background-color "white")
     (kill-buffer pause-buffer)
@@ -241,23 +243,34 @@
 
 
 (defun pause-break-show ()
+  ;; In timer
+  (save-match-data
+    (condition-case err
+        (pause-break-show-1)
+      (error
+       (message "pause-break-show error: %s" (error-message-string err))))))
+
+(defun pause-break-show-1 ()
+  ;; Do these first if something goes wrong.
+  (run-with-idle-timer 0 nil 'pause-break-message)
+  (run-with-idle-timer 2 nil 'pause-break-exit-activate)
   (with-current-buffer (setq pause-buffer
                              (get-buffer-create "* P A U S E *"))
-    (when (= 0 (buffer-size))
+    (let ((inhibit-read-only t))
+      (erase-buffer)
       (pause-break-mode)
       (setq left-margin-width 25)
-      (let ((inhibit-read-only t))
-        (pause-insert-img)
-        (insert (propertize pause-break-text
-                            'face (list 'bold
-                                        :height 1.5
-                                        :foreground pause-text-color)))
-        (insert (propertize "\n\nTo exit switch buffer\n"
-                            'face (list :foreground "yellow")))
-        (add-text-properties (point-min) (point-max) (list 'keymap (make-sparse-keymap)))
-        (dolist (m '(hl-needed-mode))
-          (when (and (boundp m) (symbol-value m))
-            (funcall m -1))))))
+      (pause-insert-img)
+      (insert (propertize pause-break-text
+                          'face (list 'bold
+                                      :height 1.5
+                                      :foreground pause-text-color)))
+      (insert (propertize "\n\nTo exit switch buffer\n"
+                          'face (list :foreground "yellow")))
+      (add-text-properties (point-min) (point-max) (list 'keymap (make-sparse-keymap)))
+      (dolist (m '(hl-needed-mode))
+        (when (and (boundp m) (symbol-value m))
+          (funcall m -1)))))
     (dolist (f (frame-list))
       (let* ((avail-width (- (display-pixel-width)
                              (* 2 (frame-parameter f 'border-width))
@@ -270,7 +283,7 @@
         ;;(set-frame-parameter (selected-frame) 'fullscreen 'fullboth)
         ;;(set-frame-parameter (selected-frame) 'fullscreen 'maximized)
         (with-selected-frame f
-          (delete-other-windows)
+          (delete-other-windows (frame-first-window f))
           (with-selected-window (frame-first-window)
             (switch-to-buffer pause-buffer)
             (goto-char 1)))
@@ -286,10 +299,8 @@
                                        (cons 'width cols)
                                        (cons 'height rows)
                                        ))))
-  (run-with-idle-timer 0 nil 'pause-break-message)
-  (setq pause-break-exit-active nil)
-  (add-hook 'window-configuration-change-hook 'pause-break-exit)
-  (run-with-idle-timer 2 nil 'pause-break-exit-activate))
+    ;; This must be done last.
+    (add-hook 'window-configuration-change-hook 'pause-break-exit))
 
 
 (defun pause-break-message ()
@@ -320,7 +331,6 @@
                        (mapcar (lambda (d)
                                  (unless (file-directory-p d) d))
                                imgs)))
-    ;;(message "imgs=%s" imgs)
     (setq skip (random (length imgs)))
     (while (> skip 0)
       (setq skip (1- skip))
@@ -338,7 +348,6 @@
         (insert img)
       (insert-image img nil 'left-margin slice)
       )
-    ;;(message "After insert img=%s" img)
     ))
 
 (defun pause-hide-cursor ()

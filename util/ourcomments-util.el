@@ -1873,7 +1873,8 @@ Return full path if found."
   (interactive "sProgram: ")
   ;;(let ((path (locate-file prog exec-path exec-suffixes 'executable)))
   (let ((path (executable-find prog)))
-    (when (called-interactively-p) (message "%s found in %s" prog path))
+    (when (with-no-warnings (called-interactively-p))
+      (message "%s found in %s" prog path))
     path))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

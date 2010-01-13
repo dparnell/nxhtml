@@ -277,7 +277,7 @@ before applying."
   (message "majmodpri-apply-priorities running...")
   (majmodpri-sort-lists)
   (when (or change-modes
-            (called-interactively-p))
+            (with-no-warnings (called-interactively-p)))
     (let (file-buffers)
       (dolist (buffer (buffer-list))
         (with-current-buffer buffer
@@ -289,7 +289,7 @@ before applying."
       (if (not file-buffers)
           (when change-modes
             (message "majmodpri-apply-priorities: No file buffers to change modes in"))
-        (when (called-interactively-p)
+        (when (with-no-warnings (called-interactively-p))
           (setq change-modes
                 (y-or-n-p "Check major mode in all file visiting buffers? ")))
         (when change-modes
