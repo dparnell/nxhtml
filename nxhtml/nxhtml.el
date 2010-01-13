@@ -46,6 +46,8 @@
 
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'loadhist))
+(eval-when-compile (require 'nxhtml-base))
+(eval-and-compile (require 'nxhtml-menu nil t))
 
 ;;;###autoload
 (defgroup nxhtml nil

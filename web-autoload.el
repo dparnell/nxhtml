@@ -44,8 +44,8 @@
 ;;
 ;;; Code:
 
-;;(eval-when-compile (require 'web-vcs))
-
+;;(eval-when-compile (require 'web-vcs)) ;; Gives recursion
+(eval-when-compile (require 'nxhtml-base))
 
 (defun web-autoload (fun src docstring interactive type)
   "Set up FUN to be autoloaded from SRC.
@@ -104,14 +104,17 @@ directly, otherwise download it first."
                 (format "%S"
                         src))
        ,interactive
+       ;; (find-lisp-object-file-name 'chart-complete 'defun)
        (let* ((lib-web (or (find-lisp-object-file-name ',fun 'defun)
-                           (web-autoload-default-filename-element)))
+                           ;;(web-autoload-default-filename-element)
+                           ))
               (old-hist-elt (load-history-filename-element lib-web))
               (auto-fun (symbol-function ',fun))
               err)
          ;; Fix-me: Can't do this because we may have to go back here again...
          ;;(fset ',fun nil)
-         (if (not (listp ',src))
+         (setq src (eval ,src))
+         (if (not (listp ,src))
              ;; Just a local file, for testing of logics.
              (let ((lib-file (locate-library ',src)))
                (load ',src)
@@ -249,8 +252,7 @@ directly, otherwise download it first."
 (defun web-autoload-require (feature web-vcs base-url relative-url base-dir compile-fun)
   "Prepare to download file if necessary when `require' is called.
 WEB-VCS BASE-URL RELATIVE-URL"
-  (add-to-list 'web-autoload-require-list `(,feature ,web-vcs ,base-url ,relative-url ,base-dir ,compile-fun))
-  )
+  (add-to-list 'web-autoload-require-list `(,feature ,web-vcs ,base-url ,relative-url ,base-dir ,compile-fun)))
 
 ;;(big-trace)
 

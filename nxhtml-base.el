@@ -16,7 +16,8 @@
 ;;
 ;;; Commentary:
 ;;
-;;
+;; Things that always must be loaded and that are often necessary when
+;; byte compiling.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -44,6 +45,7 @@
 ;;
 ;;; Code:
 
+;;(eval-when-compile (require 'web-vcs nil t))
 
 (defconst nxhtml-menu:version "beta 2.07")
 (setq message-log-max t)
@@ -62,6 +64,65 @@
                              ;;"web-autostart.el"
                              "etc/schema/schema-path-patch.el"
                              "nxhtml/nxhtml-autoload.el"))
+
+(define-minor-mode nxhtml-autoload-web
+  "If on download files from web if necessary.
+If t then during `require' nXhtml files can be downloaded from
+the nXhtml repository on the web.  This will currently download
+the development sources, latest version."
+  :global t
+  ;;:lighter (propertize " nX" 'face 'font-lock-comment-face)
+  :lighter " nX"
+  :group 'nxhtml)
+
+(defun nxhtml-autoload (fun src &optional docstring interactive type)
+  "Generalized `autoload'. May setup autoload from the web.
+If `nxhtml-autoload-web' is t then setup autoloading from the web.
+Otherwise setup for normal local autoloading."
+  (if nxhtml-autoload-web
+      (progn
+        ;; Do not require this until we really need it.
+        (require 'web-autoload)
+        (web-autoload fun src docstring interactive type))
+    (let ((file src))
+      (when (listp file)
+        (setq file (file-name-nondirectory (nth 2 file))))
+      (autoload fun file docstring interactive type))))
+
+;; Fix-me: web autoload defcustoms.
+;;
+;; I have no good idea how to fix this. It looks like I have to
+;; defadvice `custom-load-symbol'. I thought that should not be
+;; necessary since it does (require load) on line 605 but the web
+;; autoload does not start. Why? Hm, you never know since it is inside
+;; a (condition-case nil ...).
+;;
+;; Ah, found it. The require is only done if custom loads contains a
+;; symbol, not a string. So I changed this to a symbol instead in
+;; nxhtml-loaddefs.el. Maybe `load' instead of `require' should be
+;; advised?
+
+;; What a hell is this below? Have things been rewritten in custom or
+;; did I mix somethintg?
+(defun nxhtml-custom-autoload (symbol load &optional noset)
+  "Like `custom-autoload', but also run :set for defcustoms etc."
+  ;; Fix-me: is-boundp is currently always t because of the order in
+  ;; loaddefs. Hm, so this worked just by chance...
+  (let* ((is-boundp (prog1 (boundp symbol)
+                      (custom-autoload symbol load noset)))
+         (standard (get symbol 'standard-value))
+         (saved (get symbol 'saved-value))
+         ;; Fix-me: property custom-set etc are not available
+         (custom-set (get symbol 'custom-set))
+         (custom-initialize (get symbol 'custom-initialize))
+         (set (or custom-set 'custom-set-default))) ;; Fix-me: initialize
+    (setq custom-set t) ;; Not available here
+    (when (or custom-initialize
+              (and saved
+                   (not (equal (car saved) (symbol-value symbol)))
+                   custom-set))
+      (funcall set symbol (car saved))
+      (custom-load-symbol symbol))))
 
 
 (provide 'nxhtml-base)

@@ -1,4 +1,4 @@
-;;; chart.el --- Google charts (and maybe other)
+;;; chartg.el --- Google charts (and maybe other)
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-04-06 Sun
@@ -46,15 +46,15 @@
 
 (eval-when-compile (require 'cl))
 
-(defconst chart-types
-  '((line-chart-x  lc)
-    (line-chart-xy lxy)
+(defconst chartg-types
+  '((line-chartg-x  lc)
+    (line-chartg-xy lxy)
     (line-chart    ls)
 
-    (bar-chart-horizontal         bhs)
-    (bar-chart-vertical           bvs)
-    (bar-chart-horizontal-grouped bhg)
-    (bar-chart-vertical-grouped   bvg)
+    (bar-chartg-horizontal         bhs)
+    (bar-chartg-vertical           bvs)
+    (bar-chartg-horizontal-grouped bhg)
+    (bar-chartg-vertical-grouped   bvg)
 
     (pie-2-dimensional p)
     (pie-3-dimensional p3)
@@ -63,52 +63,52 @@
     (scatter-plot s)
 
     (radar-chart           r)
-    (radar-chart-w-splines rs)
+    (radar-chartg-w-splines rs)
 
     (geographical-map t)
     (meter gom)))
 
-(defconst chart-types-keywords
+(defconst chartg-types-keywords
   (mapcar (lambda (rec)
             (symbol-name (car rec)))
-          chart-types))
+          chartg-types))
 
-(defvar chart-mode-keywords-and-states
+(defvar chartg-mode-keywords-and-states
   '(("Output-file:" (accept file-name))
     ("Size:" (accept number))
     ("Data:" (accept number))
-    ("Type:" (accept chart-type))
+    ("Type:" (accept chartg-type))
     ))
 
-(defvar chart-mode-keywords
+(defvar chartg-mode-keywords
   (mapcar (lambda (rec)
             (car rec))
-          chart-mode-keywords-and-states))
+          chartg-mode-keywords-and-states))
 
 ;; Fix-me: I started to implement a parser, but I think I will drop it
 ;; and wait for Semantic to be easily available instead. Or just use
 ;; Calc/Org Tables.
 
-(defvar chart-intermediate-states
+(defvar chartg-intermediate-states
   '((end-or-label (or end-of-file label))
     ))
 
-(defvar chart-extra-keywords-and-states
+(defvar chartg-extra-keywords-and-states
   '(
     ;;("Provider:")
     ("Colors:")
     ("Solid-fill:")
     ("Linear-gradient:")
     ("Linear-stripes:")
-    ("Chart-title:" (and string end-or-label))
+    ("Chartg-title:" (and string end-or-label))
     ("Legends:" (accept string))
     ("Axis-types:")
     ("Axis-labels:")
     ("Axis-ranges:")
     ("Axis-styles:")
     ("Bar-thickness:")
-    ("Bar-chart-zero-line:")
-    ("Bar-chart-zero-line-2:")
+    ("Bar-chartg-zero-line:")
+    ("Bar-chartg-zero-line-2:")
     ("Line-styles-1:")
     ("Line-styles-2:")
     ("Grid-lines:")
@@ -116,43 +116,43 @@
     ("Range-markers:")
     ))
 
-(defvar chart-extra-keywords
+(defvar chartg-extra-keywords
   (mapcar (lambda (rec)
             (car rec))
-          chart-extra-keywords-and-states))
+          chartg-extra-keywords-and-states))
 
-(defvar chart-raw-keywords-and-states
+(defvar chartg-raw-keywords-and-states
   '(
-    ("Google-chart-raw:" (accept string))
+    ("Google-chartg-raw:" (accept string))
     ))
 
-(defvar chart-raw-keywords
+(defvar chartg-raw-keywords
   (mapcar (lambda (rec)
             (car rec))
-          chart-raw-keywords-and-states))
+          chartg-raw-keywords-and-states))
 
-(defvar chart-mode-keywords-re (regexp-opt chart-mode-keywords))
-(defvar chart-extra-keywords-re (regexp-opt chart-extra-keywords))
-(defvar chart-types-keywords-re (regexp-opt chart-types-keywords))
-(defvar chart-raw-keywords-re (regexp-opt chart-raw-keywords))
+(defvar chartg-mode-keywords-re (regexp-opt chartg-mode-keywords))
+(defvar chartg-extra-keywords-re (regexp-opt chartg-extra-keywords))
+(defvar chartg-types-keywords-re (regexp-opt chartg-types-keywords))
+(defvar chartg-raw-keywords-re (regexp-opt chartg-raw-keywords))
 
-(defvar chart-font-lock-keywords
-  `((,chart-mode-keywords-re . font-lock-keyword-face)
-    (,chart-extra-keywords-re . font-lock-variable-name-face)
-    (,chart-types-keywords-re . font-lock-function-name-face)
-    (,chart-raw-keywords-re . font-lock-preprocessor-face)
+(defvar chartg-font-lock-keywords
+  `((,chartg-mode-keywords-re . font-lock-keyword-face)
+    (,chartg-extra-keywords-re . font-lock-variable-name-face)
+    (,chartg-types-keywords-re . font-lock-function-name-face)
+    (,chartg-raw-keywords-re . font-lock-preprocessor-face)
     ))
 
-(defvar chart-font-lock-defaults
-  '(chart-font-lock-keywords nil t))
+(defvar chartg-font-lock-defaults
+  '(chartg-font-lock-keywords nil t))
 
-(defvar chart-mode-syntax-table
+(defvar chartg-mode-syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?\n ">   " table)
     (modify-syntax-entry ?\; "<   " table)
     table))
 
-(defun chart-create (provider out-file size data type
+(defun chartg-create (provider out-file size data type
                               title legends &optional extras)
   "Create a chart image.
 PROVIDER is what to use for creating the chart. Currently only
@@ -260,15 +260,15 @@ be a list
   (list COLOR START-INDEX END-INDEX)
 
 "
-  (message "(chart-create %s %s %s %s %s %s %s" provider out-file size data type
+  (message "(chartg-create %s %s %s %s %s %s %s" provider out-file size data type
                               title legends)
   (unless (symbolp type)
     (error "Argument TYPE should be a symbol"))
-  (unless (assoc type chart-types)
+  (unless (assoc type chartg-types)
     (error "Unknown chart type: %s" type))
   (cond
    ((eq provider 'google)
-    (let* ((g-type (nth 1 (assoc type chart-types)))
+    (let* ((g-type (nth 1 (assoc type chartg-types)))
            (width  (car size))
            (height (cdr size))
            ;;(size-par (format "&chs=%sx%s" width height))
@@ -363,15 +363,15 @@ be a list
             (insert content))
           (if (not is-html)
               (view-file-other-window fname)
-            (chart-show-last-error-file fname))
+            (chartg-show-last-error-file fname))
           (select-window this-window)))))
    (t (error "Unknown provider: %s" provider)))
   )
 
-(defun chart-show-last-error-file (fname)
+(defun chartg-show-last-error-file (fname)
   (interactive)
   (with-output-to-temp-buffer (help-buffer)
-    (help-setup-xref (list #'chart-show-last-error-file fname) (interactive-p))
+    (help-setup-xref (list #'chartg-show-last-error-file fname) (interactive-p))
     (with-current-buffer (help-buffer)
       (insert "Error, see ")
       (insert-text-button "result error page"
@@ -379,26 +379,26 @@ be a list
                           `(lambda (btn)
                              (browse-url ,fname))))))
 
-(defvar chart-mode-map
+(defvar chartg-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [(meta tab)] 'chart-complete)
-    (define-key map [(control ?c) (control ?c)] 'chart-make-chart)
+    (define-key map [(meta tab)] 'chartg-complete)
+    (define-key map [(control ?c) (control ?c)] 'chartg-make-chart)
     map))
 
-(defun chart-missing-keywords ()
-  (let ((collection (copy-sequence chart-mode-keywords)))
+(defun chartg-missing-keywords ()
+  (let ((collection (copy-sequence chartg-mode-keywords)))
     (save-excursion
       (save-restriction
         (widen)
         (goto-char (point-min))
-        (while (re-search-forward chart-mode-keywords-re nil t)
+        (while (re-search-forward chartg-mode-keywords-re nil t)
           (setq collection
                 (delete (match-string-no-properties 0)
                         collection)))))
     collection))
 
 ;;;###autoload
-(defun chart-complete ()
+(defun chartg-complete ()
   (interactive)
   (let* ((here (point))
          (partial (when (looking-back (rx word-start
@@ -409,7 +409,7 @@ be a list
                        (match-beginning 0)
                      (setq partial "")
                      (point)))
-         (state (catch 'pos-state (chart-get-state (point))))
+         (state (catch 'pos-state (chartg-get-state (point))))
          (msg "No completions")
          collection
          all
@@ -419,17 +419,17 @@ be a list
       (cond
        ((or (= (current-column) 0)
             (equal state 'need-label))
-        (setq collection (append (chart-missing-keywords)
-                                 chart-extra-keywords
-                                 chart-raw-keywords
+        (setq collection (append (chartg-missing-keywords)
+                                 chartg-extra-keywords
+                                 chartg-raw-keywords
                                  nil))
         (setq prompt "Label: "))
        ((equal state '(accept number))
         (setq res nil)
         (setq msg (propertize "Needs a number here!"
                               'face 'secondary-selection)))
-       ((equal state '(accept chart-type))
-        (setq collection chart-types-keywords)
+       ((equal state '(accept chartg-type))
+        (setq collection chartg-types-keywords)
         (setq prompt "Chart type: "))
        ((equal state '(accept file-name))
         (setq res
@@ -451,7 +451,7 @@ be a list
       (insert (substring res (length partial))))))
 
 
-(defun chart-get-state (want-pos-state)
+(defun chartg-get-state (want-pos-state)
   (let* (par-output-file
          par-provider
          par-size
@@ -470,7 +470,7 @@ be a list
             (save-restriction
               ;;(widen)
               (if want-pos-state
-                  (unless (re-search-backward chart-mode-keywords-re nil t)
+                  (unless (re-search-backward chartg-mode-keywords-re nil t)
                     (goto-char (point-min)))
                 (goto-char (point-min)))
               (let (this-keyword
@@ -516,9 +516,9 @@ be a list
                     (unless (symbolp token)
                       (throw 'problems (format "Expected label, got %s" token)))
                     (unless (member (symbol-name token)
-                                    (append chart-mode-keywords
-                                            chart-extra-keywords
-                                            chart-raw-keywords
+                                    (append chartg-mode-keywords
+                                            chartg-extra-keywords
+                                            chartg-raw-keywords
                                             nil))
                       (throw 'problems (format "Unknown label %s" token)))
                     (when (member (symbol-name token) found-labels)
@@ -535,12 +535,12 @@ be a list
                       ('Data:
                        (setq state '(accept number)))
                       ('Type:
-                       (setq state '(accept chart-type)))
-                      ('Chart-title:
+                       (setq state '(accept chartg-type)))
+                      ('Chartg-title:
                        (setq state '(accept string)))
                       ('Legends:
                        (setq state '(accept string)))
-                      ('Google-chart-raw:
+                      ('Google-chartg-raw:
                        (setq state '(accept string)))
                       ))
                     ;;;; Values
@@ -562,7 +562,7 @@ be a list
                     (unless (stringp token)
                       (throw 'problems "Expected string"))
                     (case current-label
-                      ('Chart-title:
+                      ('Chartg-title:
                        (setq par-title token)
                        (setq token nil)
                        (setq state 'need-label))
@@ -570,7 +570,7 @@ be a list
                        (setq par-legends (cons token par-legends))
                        (setq token nil)
                        (setq state '(accept '| symbol)))
-                      ('Google-chart-raw:
+                      ('Google-chartg-raw:
                        (setq par-google-raw token)
                        (setq token nil)
                        (setq state 'need-label))
@@ -648,9 +648,9 @@ be a list
                         (setq token nil)
                         (setq state 'need-label))))
                    ;; Chart type
-                   ((equal state '(accept chart-type))
+                   ((equal state '(accept chartg-type))
                     (setq par-type token)
-                    (unless (assoc par-type chart-types)
+                    (unless (assoc par-type chartg-types)
                       (throw 'problems (format "Unknown chart type: %s" par-type)))
                     (setq token nil)
                     (setq state 'need-label))
@@ -662,7 +662,7 @@ be a list
       (goto-char here)
       (throw 'pos-state state))
     (unless problems
-      (let ((missing-lab (chart-missing-keywords)))
+      (let ((missing-lab (chartg-missing-keywords)))
         (when missing-lab
           (setq problems (format "Missing required labels: %s" missing-lab)))))
     (if problems
@@ -676,25 +676,25 @@ be a list
           (skip-chars-forward " \t")
           (error msg))
       (goto-char here)
-      ;;(defun chart-create (out-file provider size data type &rest extras)
+      ;;(defun chartg-create (out-file provider size data type &rest extras)
       (setq par-provider 'google)
       (setq par-legends (nreverse par-legends))
       (let ((extras nil))
         (when par-google-raw
           (setq extras (cons (cons 'GOOGLE-RAW par-google-raw) extras)))
-        (chart-create par-provider par-output-file par-size
+        (chartg-create par-provider par-output-file par-size
                       par-data par-type par-title par-legends extras))
       nil)))
 
 ;;;###autoload
-(defun chart-make-chart ()
+(defun chartg-make-chart ()
   "Try to make a new chart.
 If region is active then make a new chart from data in the
 selected region.
 
-Else if current buffer is in `chart-mode' then do it from the
+Else if current buffer is in `chartg-mode' then do it from the
 chart specifications in this buffer.  Otherwise create a new
-buffer and initialize it with `chart-mode'.
+buffer and initialize it with `chartg-mode'.
 
 If the chart specifications are complete enough to make a chart
 then do it and show the resulting chart image.  If not then tell
@@ -704,14 +704,14 @@ NOTE: This is beta, no alpha code. It is not ready.
 
 Below are some examples.  To test them mark an example and do
 
-  M-x chart-make-chart
+  M-x chartg-make-chart
 
 * Example, simple x-y chart:
 
   Output-file: \"~/temp-chart.png\"
   Size: 200 200
   Data: 3 8 5 | 10 20 30
-  Type: line-chart-xy
+  Type: line-chartg-xy
 
 * Example, pie:
 
@@ -727,7 +727,7 @@ Below are some examples.  To test them mark an example and do
   8,180,000
   419,000
   Type: pie-3-dimensional
-  Chart-title: \"Depression hits on Google\"
+  Chartg-title: \"Depression hits on Google\"
   Legends:
   \"SSRI\"
   | \"Psychotherapy\"
@@ -753,7 +753,7 @@ Below are some examples.  To test them mark an example and do
   2,500,000
   9,310,000
   Type: pie-3-dimensional
-  Chart-title: \"Depression hits on Google\"
+  Chartg-title: \"Depression hits on Google\"
   Legends:
   \"SSRI\"
   | \"Psychotherapy\"
@@ -767,12 +767,12 @@ Below are some examples.  To test them mark an example and do
 
 * Example using raw:
 
-  Output-file: \"~/temp-chart-slipsen-kostar.png\"
+  Output-file: \"~/temp-chartg-slipsen-kostar.png\"
   Size: 400 130
   Data: 300 1000 30000
-  Type: bar-chart-horizontal
-  Chart-title: \"Vad killen i slips tjänar jämfört med dig och mig\"
-  Google-chart-raw: \"&chds=0,30000&chco=00cd00|ff4500|483d8b&chxt=y,x&chxl=0:|Killen+i+slips|Partiledarna|Du+och+jag&chf=bg,s,ffd700\"
+  Type: bar-chartg-horizontal
+  Chartg-title: \"Vad killen i slips tjänar jämfört med dig och mig\"
+  Google-chartg-raw: \"&chds=0,30000&chco=00cd00|ff4500|483d8b&chxt=y,x&chxl=0:|Killen+i+slips|Partiledarna|Du+och+jag&chf=bg,s,ffd700\"
 
 
 "
@@ -784,15 +784,15 @@ Below are some examples.  To test them mark an example and do
              (buf (generate-new-buffer "*Chart from region*")))
         (switch-to-buffer buf)
         (insert data)
-        (chart-mode))
-    (unless (eq major-mode 'chart-mode)
+        (chartg-mode))
+    (unless (eq major-mode 'chartg-mode)
       (switch-to-buffer (generate-new-buffer "*Chart*"))
-      (chart-mode)))
-  (chart-get-state nil))
+      (chartg-mode)))
+  (chartg-get-state nil))
 
-;; (defun chart-from-region (min max)
+;; (defun chartg-from-region (min max)
 ;;   "Try to make a new chart from data in selected region.
-;; See `chart-mode' for examples you can test with this function."
+;; See `chartg-mode' for examples you can test with this function."
 ;;   (interactive "r")
 ;;   (unless mark-active (error "No region selected"))
 ;;   (let* ((rb (region-beginning))
@@ -801,17 +801,17 @@ Below are some examples.  To test them mark an example and do
 ;;          (buf (generate-new-buffer "*Chart from region*")))
 ;;     (switch-to-buffer buf)
 ;;     (insert data)
-;;     (chart-mode)
-;;     (chart-get-state nil)))
+;;     (chartg-mode)
+;;     (chartg-get-state nil)))
 
-(define-derived-mode chart-mode fundamental-mode "Chart"
+(define-derived-mode chartg-mode fundamental-mode "Chart"
   "Mode for specifying charts.
-\\{chart-mode-map}
+\\{chartg-mode-map}
 
-To make a chart see `chart-make-chart'.
+To make a chart see `chartg-make-chart'.
 
 "
-  (set (make-local-variable 'font-lock-defaults) chart-font-lock-defaults)
+  (set (make-local-variable 'font-lock-defaults) chartg-font-lock-defaults)
   (set (make-local-variable 'comment-start) ";")
   ;; Look within the line for a ; following an even number of backslashes
   ;; after either a non-backslash or the line beginning.
@@ -823,10 +823,10 @@ To make a chart see `chart-make-chart'.
   (set (make-local-variable 'comment-column) 40)
   ;; Don't get confused by `;' in doc strings when paragraph-filling.
   (set (make-local-variable 'comment-use-global-state) t)
-  (set-syntax-table chart-mode-syntax-table)
+  (set-syntax-table chartg-mode-syntax-table)
   (when (looking-at (rx buffer-start (0+ whitespace) buffer-end))
     (insert ";; Type C-c C-c to make a chart, M-Tab to complete\n"))
-  (let ((missing (chart-missing-keywords)))
+  (let ((missing (chartg-missing-keywords)))
     (when missing
       (save-excursion
         (goto-char (point-max))
@@ -834,11 +834,11 @@ To make a chart see `chart-make-chart'.
           (insert "\n" miss " "))))))
 
 ;; Tests
-;;(chart-create 'google "temp.png" '(200 . 150) '(((90 70) . nil)) 'pie-3-dimensional "test title" nil '((colors "FFFFFF" "00FF00")))
+;;(chartg-create 'google "temp.png" '(200 . 150) '(((90 70) . nil)) 'pie-3-dimensional "test title" nil '((colors "FFFFFF" "00FF00")))
 
 ;; Fix-me
-(add-to-list 'auto-mode-alist '("\\.mx-chart\\'" . chart-mode))
+(add-to-list 'auto-mode-alist '("\\.mx-chart\\'" . chartg-mode))
 
-(provide 'chart)
+(provide 'chartg)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; chart.el ends here
+;;; chartg.el ends here

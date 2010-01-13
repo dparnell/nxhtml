@@ -49,9 +49,9 @@
 
 ;; (setq n-back-trials 2)
 (eval-when-compile (require 'cl))
-
+(eval-when-compile (require 'nxhtml-base nil t))
+(eval-when-compile (require 'nxhtml-web-vcs nil t))
 (require 'winsize nil t) ;; Ehum...
-;;(require 'new-key-seq-widget)
 
 (defvar n-back-game-window nil)
 (defvar n-back-game-buffer nil)
