@@ -1784,6 +1784,8 @@ command `nxhtml-setup-install'."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Some small bits for security and just overview.
 
+(declare-function 'lazy-lock-fontify-region "lazy-lock" nil t)
+
 (defun web-vcs-fontify-as-ps-print()
   (save-restriction
     (widen)

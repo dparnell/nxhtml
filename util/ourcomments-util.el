@@ -2041,7 +2041,7 @@ variant of such blocks then leave the link as it is."
     (save-match-data
       (let ((here (copy-marker (point)))
             url str converted
-            lit-beg)
+            lit-beg lit-end)
         (goto-char beg)
         (save-restriction
           (widen)

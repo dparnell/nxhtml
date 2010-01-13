@@ -50,11 +50,12 @@
 
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'mumamo nil t))
-(eval-when-compile
-  (unless (featurep 'nxhtml-autostart)
-    (let ((efn (expand-file-name "../autostart.el")))
-      (load efn))
-    (require 'nxml-mode)))
+(eval-when-compile (require 'nxml-mode nil t))
+;; (eval-when-compile
+;;   (unless (featurep 'nxhtml-autostart)
+;;     (let ((efn (expand-file-name "../autostart.el")))
+;;       (load efn))
+;;     (require 'nxml-mode)))
 
 (defun nxml-where-error-message (format-string &rest args)
   (with-current-buffer (get-buffer-create "*Messages*")

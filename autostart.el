@@ -106,11 +106,14 @@ If LOAD"
          (this-emacs-exe (locate-file invocation-name
                                       (list invocation-directory)
                                       exec-suffixes))
-         (comp-dir default-directory)
+         (default-directory (or comp-dir default-directory))
          start)
     (dolist (full-p extra-load-path)
       (setq newlp (concat full-p ";" newlp)))
-    (display-buffer out-buf)
+    (if (string= file (buffer-file-name))
+        (display-buffer out-buf)
+      (unless (eq (current-buffer) out-buf)
+        (switch-to-buffer out-buf)))
     (with-selected-window (get-buffer-window out-buf)
       (with-current-buffer out-buf
         (unless (local-variable-p 'web-vcs-comp-dir)
@@ -119,17 +122,23 @@ If LOAD"
         (widen)
         (goto-char (point-max))
         (when (= 0 (buffer-size))
-          (insert (propertize "Web VCS compilation output" 'face 'font-lock-comment-face)))
+          (insert (propertize "Web VCS compilation output" 'face 'font-lock-comment-face))
+          (compilation-mode)
+          (font-lock-add-keywords nil
+                                  '(("\\<Compile\\>" . 'compilation-info))))
         (let ((inhibit-read-only t)
               (rel-file (file-relative-name file)))
           (insert "\n\n")
           (insert "** Compile " rel-file "\n"))
         (setq start (point))
-        (compilation-mode)
         (when (file-exists-p elc-file) (delete-file elc-file))
         (setenv "EMACSLOADPATH" newlp)
         (apply 'call-process this-emacs-exe nil out-buf t
-               "-Q" "--batch" file "-f" "emacs-lisp-byte-compile" nil)
+               "-Q" "--batch"
+               "--eval" "(remove-hook 'find-file-hook 'vc-find-file-hook)"
+               "--file" file
+               "-f" "emacs-lisp-byte-compile"
+               nil)
         (setenv "EMACSLOADPATH" old-emacsloadpath)
         (goto-char start)
         (while (re-search-forward "^\\([a-zA-Z0-9/\._-]+\\):[0-9]+:[0-9]+:" nil t)
