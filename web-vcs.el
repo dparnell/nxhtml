@@ -19,7 +19,8 @@
 ;; Update file trees within Emacs from VCS systems using information
 ;; on their web pages.
 ;;
-;; See the command `nxhtml-setup-install'.
+;; Available download commands are currently:
+;;    `web-vcs-nxthml'
 ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1365,14 +1366,15 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
   (setq debug-on-error t)
   ;;(require 'nxhtml-web-vcs)
   (let* ((this-dir (file-name-directory web-vcs-el-this))
-         (name "nxhtml-web-vcs.el")
-         (nxhtml-web-vcs (expand-file-name name this-dir))
          (root-url (nxhtml-download-root-url nil))
-         (file-mask name)
-         )
-    (unless (file-exists-p nxhtml-web-vcs)
-      (web-vcs-get-missing-matching-files 'lp root-url this-dir file-mask))
-    (load nxhtml-web-vcs))
+         (files '("nxhtml-web-vcs.el" "nxhtml-base.el"))
+         (files2 (mapcar (lambda (file)
+                           (cons file (expand-file-name file this-dir)))
+                         files)))
+    (dolist (file files2)
+      (unless (file-exists-p (cdr file))
+        (web-vcs-get-missing-matching-files 'lp root-url this-dir (car file))))
+    (load (cdr (car files2))))
   (call-interactively 'nxhtml-setup-install))
 
 
