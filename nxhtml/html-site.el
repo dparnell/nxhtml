@@ -53,6 +53,7 @@
 ;; TODO: maybe use browse-url-filename-alist
 
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'compile))
 (eval-when-compile (require 'dired))
 (eval-when-compile (require 'ffip nil t))
 (eval-when-compile (require 'grep))

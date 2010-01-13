@@ -1,8 +1,7 @@
 ;; Autoloads for nXthml
 ;;
 ;; This file should be updated by `nxhtmlmaint-get-file-autoloads',
-;; `nxhtmlmaint-get-dir-autoloads' or `nxhtmlmaint-get-all-autoloads'.
-
+;; `nxhtmlmaint-get-dir-autoloads' or `nxhtmlmaint-get-all-autoloads'.
 ;;;### (autoloads (cancel-secondary-selection set-secondary-selection
 ;;;;;;  anchored-transpose) "anchored-transpose" "util/anchored-transpose.el"
 ;;;;;;  (19213 56956))
@@ -702,7 +701,7 @@ With command prefix also show html source in other window.
 ;;;***
 
 ;;;### (autoloads (hl-needed-mode hl-needed) "hl-needed" "util/hl-needed.el"
-;;;;;;  (19275 58257))
+;;;;;;  (19276 39549))
 ;;; Generated autoloads from util/hl-needed.el
 (web-autoload-require 'hl-needed 'lp (nxhtml-download-root-url nil) "util/hl-needed" nxhtml-install-dir)
 
@@ -853,8 +852,8 @@ See also the command `inlimg-mode'.
 ;;;***
 
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
-;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19275
-;;;;;;  55468))
+;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19276
+;;;;;;  39692))
 ;;; Generated autoloads from util/majmodpri.el
 (web-autoload-require 'majmodpri 'lp (nxhtml-download-root-url nil) "util/majmodpri" nxhtml-install-dir)
 
@@ -910,7 +909,7 @@ The hyperlinks can be hilighted when point is over them.  Use
 `mlinks-toggle-hilight' to toggle this feature for the current
 buffer.
 
-All keybindings in this mode are by default done under the prefiÂ§x
+All keybindings in this mode are by default done under the prefi§x
 key
 
   C-c RET
@@ -951,7 +950,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19276 30652))
+;;;;;;  (19277 40113))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp (nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir)
 
@@ -1363,7 +1362,7 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
 ;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19276 25990))
+;;;;;;  "util/ourcomments-util.el" (19276 39742))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp (nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir)
 
@@ -1724,8 +1723,8 @@ Return t if VALUE is a major mode function.
 
 ;;;***
 
-;;;### (autoloads (pause-mode pause) "pause" "util/pause.el" (19276
-;;;;;;  22984))
+;;;### (autoloads (pause-mode pause) "pause" "util/pause.el" (19277
+;;;;;;  27253))
 ;;; Generated autoloads from util/pause.el
 (web-autoload-require 'pause 'lp (nxhtml-download-root-url nil) "util/pause" nxhtml-install-dir)
 
@@ -3429,7 +3428,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (nxml-where-global-mode nxml-where-mode nxml-where)
-;;;;;;  "nxml-where" "nxhtml/nxml-where.el" (19275 59061))
+;;;;;;  "nxml-where" "nxhtml/nxml-where.el" (19277 42363))
 ;;; Generated autoloads from nxhtml/nxml-where.el
 (web-autoload-require 'nxml-where 'lp (nxhtml-download-root-url nil) "nxhtml/nxml-where" nxhtml-install-dir)
 
@@ -3814,7 +3813,7 @@ FILENAME could be either the remote or the local file.
 
 ;;;### (autoloads (html-site-query-replace html-site-rgrep html-site-find-file
 ;;;;;;  html-site-dired-current html-site-set-site html-site-buffer-or-dired-file-name
-;;;;;;  html-site) "html-site" "nxhtml/html-site.el" (19275 60821))
+;;;;;;  html-site) "html-site" "nxhtml/html-site.el" (19277 42659))
 ;;; Generated autoloads from nxhtml/html-site.el
 (web-autoload-require 'html-site 'lp (nxhtml-download-root-url nil) "nxhtml/html-site" nxhtml-install-dir)
 
@@ -3892,8 +3891,8 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;### (autoloads (web-vcs-investigate-elisp-file nxhtml-maybe-download-files
 ;;;;;;  nxhtml-setup-download-all nxhtml-setup-auto-download nxhtml-setup-install
-;;;;;;  web-vcs-get-files-from-root) "web-vcs" "web-vcs.el" (19275
-;;;;;;  60359))
+;;;;;;  web-vcs-get-files-from-root) "web-vcs" "web-vcs.el" (19277
+;;;;;;  42604))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp (nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir)
 
@@ -4068,7 +4067,7 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19276 38944 187000))
+;;;;;;  "web-autoload.el") (19277 43719 859000))
 
 ;;;***
 
