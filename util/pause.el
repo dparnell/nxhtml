@@ -331,19 +331,21 @@
                        (mapcar (lambda (d)
                                  (unless (file-directory-p d) d))
                                imgs)))
-    (setq skip (random (length imgs)))
-    (while (> skip 0)
-      (setq skip (1- skip))
-      (setq imgs (cdr imgs)))
-    (setq src (expand-file-name (car imgs) pause-img-dir))
-    (if (file-exists-p src)
-        (condition-case err
-            (setq img (create-image src nil nil
-                                    :relief 1
-                                    ;;:margin inlimg-margins
-                                    ))
-          (error (setq img (error-message-string err))))
-      (setq img (concat "Image not found: " src)))
+    (if (not imgs)
+        (setq img "No images found")
+      (setq skip (random (length imgs)))
+      (while (> skip 0)
+        (setq skip (1- skip))
+        (setq imgs (cdr imgs)))
+      (setq src (expand-file-name (car imgs) pause-img-dir))
+      (if (file-exists-p src)
+          (condition-case err
+              (setq img (create-image src nil nil
+                                      :relief 1
+                                      ;;:margin inlimg-margins
+                                      ))
+            (error (setq img (error-message-string err))))
+        (setq img (concat "Image not found: " src))))
     (if (stringp img)
         (insert img)
       (insert-image img nil 'left-margin slice)
