@@ -113,6 +113,8 @@
 (defvar pause-timer nil)
 (defvar pause-idle-timer nil)
 
+(defvar pause-break-exit-calls nil)
+
 (defun pause-dont-save-me ()
   (when (timerp pause-timer) (cancel-timer pause-timer)))
 
@@ -228,9 +230,10 @@
                 (recursive-edit)
               (error (message "%s" (error-message-string err))))
             (unless pause-break-exit-active
-              (message "Too early to pause (%s < 2)" n)
+              (when (> 2 n) (message "Too early to pause (%s < 2)" n))
               (add-hook 'window-configuration-change-hook 'pause-break-exit))))
 
+      (remove-hook 'window-configuration-change-hook 'pause-break-exit)
       ;;(set-frame-parameter nil 'background-color "white")
       (kill-buffer pause-buffer)
       (set-face-attribute 'mode-line nil :background old-mode-line-bg)
@@ -309,11 +312,12 @@
                                        (cons 'height rows)
                                        ))))
     (when pause-want-yoga (pause-start-get-yoga-poses))
-    ;; This must be done last.
+    (setq pause-break-exit-calls 0)
     (add-hook 'window-configuration-change-hook 'pause-break-exit))
 
 (defun pause-break-message ()
-  (message "%s" (propertize "Please take a pause!" 'face 'mode-line-inactive)))
+  (when (/= 0 (recursion-depth))
+    (message "%s" (propertize "Please take a pause!" 'face 'mode-line-inactive))))
 
 (defun pause-break-exit-activate ()
   (setq pause-break-exit-active t)
@@ -324,8 +328,10 @@
 
 (defun pause-break-exit ()
   (interactive)
-  (when t ;pause-break-exit-active
-    (remove-hook 'window-configuration-change-hook 'pause-break-exit)
+  (when (< 1 (setq pause-break-exit-calls (1+ pause-break-exit-calls)))
+    ;;(message "pause-break-exit:\n%s" (with-output-to-string (backtrace)))
+    (when pause-break-exit-active
+      (remove-hook 'window-configuration-change-hook 'pause-break-exit))
     (when (/= 0 (recursion-depth))
       (exit-recursive-edit))))
 
@@ -436,7 +442,6 @@ To customize it see:
 
 (defun pause-callback-get-yoga-poses (status)
   (let ((pose (pause-random-yoga-pose (pause-get-yoga-poses-1 (current-buffer)))))
-    ;;(message "callback pose=%S" pose)
     (message nil)
     (when (and pose (buffer-live-p pause-buffer))
       (pause-insert-yoga-link pose))))
