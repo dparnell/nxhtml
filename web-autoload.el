@@ -108,13 +108,12 @@ directly, otherwise download it first."
        (let* ((lib-web (or (find-lisp-object-file-name ',fun 'defun)
                            ;;(web-autoload-default-filename-element)
                            ))
-              (old-hist-elt (load-history-filename-element lib-web))
+              (old-hist-elt (when lib-web (load-history-filename-element lib-web)))
               (auto-fun (symbol-function ',fun))
               err)
          ;; Fix-me: Can't do this because we may have to go back here again...
          ;;(fset ',fun nil)
-         (setq src (eval ,src))
-         (if (not (listp ,src))
+         (if (not (listp ',src))
              ;; Just a local file, for testing of logics.
              (let ((lib-file (locate-library ',src)))
                (load ',src)

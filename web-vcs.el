@@ -52,7 +52,6 @@
 
 (eval-when-compile (require 'cl))
 (eval-and-compile (require 'cus-edit))
-(eval-and-compile (require 'lazy-lock))
 (require 'advice)
 (require 'web-autoload nil t)
 
@@ -1349,8 +1348,6 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Some small bits for security and just overview.
-
-(declare-function 'lazy-lock-fontify-region "lazy-lock" nil t)
 
 (defun web-vcs-fontify-as-ps-print()
   (save-restriction
