@@ -94,6 +94,11 @@
   :type 'integer
   :group 'pause)
 
+(defcustom pause-want-yoga t
+  "Display a link to a random yoga posture on pause."
+  :type 'boolean
+  :group 'pause)
+
 (defvar pause-default-img-dir
   (let* ((this-file (or load-file-name
                        buffer-file-name))
@@ -215,31 +220,35 @@
 
     (run-with-idle-timer 0 nil 'pause-break-show)
     (setq pause-break-exit-active nil)
-    (let ((n 0))
-      (while (or (not pause-break-exit-active)
-                 (< 2 (setq n (1+ n))))
-        (recursive-edit)
-        (unless pause-break-exit-active
-          (add-hook 'window-configuration-change-hook 'pause-break-exit))))
+    (unwind-protect
+        (let ((n 0))
+          (while (and (> 3 (setq n (1+ n)))
+                      (not pause-break-exit-active))
+            (condition-case err
+                (recursive-edit)
+              (error (message "%s" (error-message-string err))))
+            (unless pause-break-exit-active
+              (message "Too early to pause (%s < 2)" n)
+              (add-hook 'window-configuration-change-hook 'pause-break-exit))))
 
-    ;;(set-frame-parameter nil 'background-color "white")
-    (kill-buffer pause-buffer)
-    (set-face-attribute 'mode-line nil :background old-mode-line-bg)
-    (dolist (f (frame-list))
-      (set-frame-parameter f 'background-color
-                           (cdr (assq f old-frame-bg-color)))
-      (set-frame-parameter f 'left-fringe
-                           (cdr (assq f old-frame-left-fringe)))
-      (set-frame-parameter f 'right-fringe
-                           (cdr (assq f old-frame-right-fringe)))
-      (set-frame-parameter f 'tool-bar-lines
-                           (cdr (assq f old-frame-tool-bar-lines)))
-      (set-frame-parameter f 'menu-bar-lines
-                           (cdr (assq f old-frame-menu-bar-lines)))
-      (set-frame-parameter f 'vertical-scroll-bars
-                           (cdr (assq f old-frame-vertical-scroll-bars)))
-      )
-    (set-frame-configuration wcfg)))
+      ;;(set-frame-parameter nil 'background-color "white")
+      (kill-buffer pause-buffer)
+      (set-face-attribute 'mode-line nil :background old-mode-line-bg)
+      (dolist (f (frame-list))
+        (set-frame-parameter f 'background-color
+                             (cdr (assq f old-frame-bg-color)))
+        (set-frame-parameter f 'left-fringe
+                             (cdr (assq f old-frame-left-fringe)))
+        (set-frame-parameter f 'right-fringe
+                             (cdr (assq f old-frame-right-fringe)))
+        (set-frame-parameter f 'tool-bar-lines
+                             (cdr (assq f old-frame-tool-bar-lines)))
+        (set-frame-parameter f 'menu-bar-lines
+                             (cdr (assq f old-frame-menu-bar-lines)))
+        (set-frame-parameter f 'vertical-scroll-bars
+                             (cdr (assq f old-frame-vertical-scroll-bars)))
+        )
+      (set-frame-configuration wcfg))))
 
 
 (defun pause-break-show ()
@@ -252,8 +261,8 @@
 
 (defun pause-break-show-1 ()
   ;; Do these first if something goes wrong.
-  (run-with-idle-timer 0 nil 'pause-break-message)
-  (run-with-idle-timer 2 nil 'pause-break-exit-activate)
+  (run-with-idle-timer 5  nil 'pause-break-message)
+  (run-with-idle-timer 10 nil 'pause-break-exit-activate)
   (with-current-buffer (setq pause-buffer
                              (get-buffer-create "* P A U S E *"))
     (let ((inhibit-read-only t))
@@ -299,9 +308,9 @@
                                        (cons 'width cols)
                                        (cons 'height rows)
                                        ))))
+    (when pause-want-yoga (pause-start-get-yoga-poses))
     ;; This must be done last.
     (add-hook 'window-configuration-change-hook 'pause-break-exit))
-
 
 (defun pause-break-message ()
   (message "%s" (propertize "Please take a pause!" 'face 'mode-line-inactive)))
@@ -317,7 +326,8 @@
   (interactive)
   (when t ;pause-break-exit-active
     (remove-hook 'window-configuration-change-hook 'pause-break-exit)
-    (exit-recursive-edit)))
+    (when (/= 0 (recursion-depth))
+      (exit-recursive-edit))))
 
 (defun pause-insert-img ()
   (let* ((inhibit-read-only t)
@@ -402,6 +412,98 @@ To customize it see:
   (if pause-mode
       (pause-save-me)
     (pause-dont-save-me)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Link to yoga poses
+
+;; (defun w3-download-callback (fname)
+;;   (let ((coding-system-for-write 'binary))
+;;     (goto-char (point-min))
+;;     (search-forward "\n\n" nil t)
+;;     (write-region (point) (point-max) fname))
+;;   (url-mark-buffer-as-dead (current-buffer))
+;;   (message "Download of %s complete." (url-view-url t))
+;;   (sit-for 3))
+
+;;(run-with-idle-timer 0 nil 'pause-get-yoga-poses)
+(defvar pause-yoga-poses-host-url "http://www.abc-of-yoga.com/")
+(defvar pause-yoga-poses-url (concat pause-yoga-poses-host-url "yogapractice/mountain.asp"))
+
+;;(pause-start-get-yoga-poses)
+(defun pause-start-get-yoga-poses ()
+  (url-retrieve pause-yoga-poses-url 'pause-callback-get-yoga-poses))
+
+(defun pause-callback-get-yoga-poses (status)
+  (let ((pose (pause-random-yoga-pose (pause-get-yoga-poses-1 (current-buffer)))))
+    ;;(message "callback pose=%S" pose)
+    (message nil)
+    (when (and pose (buffer-live-p pause-buffer))
+      (pause-insert-yoga-link pose))))
+
+(defun pause-insert-yoga-link (pose)
+  (with-current-buffer pause-buffer
+    (let ((here (point))
+          (inhibit-read-only t)
+          (pose-url (concat pause-yoga-poses-host-url (car pose))))
+      (goto-char (point-max))
+      (insert "\n\nLink to yoga posture for you: ")
+      (insert-text-button (cdr pose)
+                          'action `(lambda (button)
+                                     (condition-case err
+                                         (browse-url ,pose-url)
+                                       (error (message "%s" (error-message-string err)))
+                                       ))))))
+
+(defun pause-get-yoga-poses ()
+  (let ((buf (url-retrieve-synchronously "http://www.abc-of-yoga.com/yogapractice/mountain.asp")))
+    (pause-get-yoga-poses-1 buf)))
+
+(defun pause-get-yoga-poses-1 (buf)
+  (require 'url)
+  (setq url-debug t)
+  ;; url-insert-file-contents
+  (let* ((first-marker "<p>These are all the Yoga Poses covered in this section:</p>")
+         (table-patt "<table\\(?:.\\|\n\\)*?</table>")
+         table-beg
+         table-end
+         (pose-patt "<A HREF=\"\\([^\"]*?\\)\" class=\"LinkBold\">\\([^<]*?\\)</A>")
+         poses
+         (trouble-msg
+          (catch 'trouble
+            ;;(switch-to-buffer-other-window buf)
+            (with-current-buffer buf
+              (goto-char 1)
+              (rename-buffer "YOGA" t)
+              (unless (search-forward first-marker nil t)
+                (throw 'trouble "Can't find marker for the poses on the page"))
+              (backward-char 10)
+              (unless (re-search-forward table-patt nil t)
+                (throw 'trouble "Can't find table with poses on the page"))
+              (setq table-beg (match-beginning 0))
+              (setq table-end (match-end 0))
+              (goto-char table-beg)
+              (while (re-search-forward pose-patt table-end t)
+                (setq poses (cons (cons (match-string 1) (match-string 2))
+                                  poses)))
+              (unless poses
+                (throw 'trouble "Can't find poses in table on the page"))
+              nil))))
+    (if trouble-msg
+        (progn
+          (message "%s" trouble-msg)
+          nil)
+      poses)))
+
+(defun pause-random-yoga-pose (poses)
+  (when poses
+    (random t)
+    (let* ((n-poses (length poses))
+           (pose-num (random (1- n-poses)))
+           (the-pose (nth pose-num poses)))
+      the-pose)))
+
+;;(pause-random-yoga-pose (pause-get-yoga-poses))
 
 (provide 'pause)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
