@@ -626,6 +626,36 @@ a temporary file."
           )))
       (redisplay t))))
 
+(defun web-vcs-get-revision-on-page (vcs-rec url)
+  "Get revision number using VCS-REC on page URL.
+VCS-REC should be an entry like the entries in the list
+`web-vcs-links-regexp'."
+  ;; url-insert-file-contents
+  (let ((url-buf (url-retrieve-synchronously url)))
+    (web-vcs-get-revision-from-url-buf vcs-rec url-buf url)))
+
+(defun web-vcs-get-revision-from-url-buf (vcs-rec url-buf url)
+  "Get revision number using VCS-REC.
+VCS-REC should be an entry in the list `web-vcs-links-regexp'.
+The buffer URL-BUF should contain the content on page URL."
+  (let ((revision-regexp    (nth 5 vcs-rec)))
+    ;; Get revision number
+    (with-current-buffer url-buf
+      (goto-char (point-min))
+      (if (not (re-search-forward revision-regexp nil t))
+          (progn
+            (display-buffer "*Messages*")
+            (select-window (get-buffer-window "*Messages*"))
+            (web-vcs-message-with-face 'web-vcs-red "Can't find revision number on %S" url)
+            (throw 'command-level nil))
+        (match-string 1)))))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Auto Download
+
+
 ;; fix-me: To emulation-mode-map
 ;; Fix-me: put this on better keys
 (defvar web-vcs-paranoid-state-mode-map
@@ -658,6 +688,28 @@ Do not turn on this yourself."
       (web-autload-acvtive)
       (error "This mode can't be used when not downloading")))
 
+(defcustom web-autoload-paranoid t
+  "Be paranoid and break to check each file after download."
+  :type 'boolean
+  :group 'web-autoload)
+
+(defun web-autoload-continue-no-stop ()
+  "Continue web auto download.
+This is used after inspecting downloaded elisp files.  Set
+`web-autoload-paranoid' to nil before contiuning to avoid further
+breaks to check downloaded files."
+  (interactive)
+  (setq web-autoload-paranoid nil)
+  (web-autoload-continue))
+
+(defun web-autoload-continue ()
+  "Continue web auto download.
+This is used after inspecting downloaded elisp files."
+  (interactive)
+  (if (< 0 (recursion-depth))
+      (exit-recursive-edit)
+    (web-autoload-byte-compile-queue)))
+
 (defun web-vcs-be-paranoid (temp-file file-dl-name file-sub-url)
   "Be paranoid and check FILE-DL-NAME."
   (web-vcs-log-save)
@@ -669,6 +721,15 @@ Do not turn on this yourself."
                             (get-buffer-window comp-buf)))
              (msg-win (get-buffer-window "*Messages*"))
              temp-buf
+             (kf-desc (lambda (fun)
+                        (let* ((key (where-is-internal fun nil t))
+                               (k-desc (when key (key-description key)))
+                               (fmt-kf "\n    %s (or %s)")
+                               (fmt-f  "\n    %s"))
+                          (if key
+                              (format fmt-kf k-desc fun)
+                            (format fmt-f fun)
+                            ))))
              )
         (unless msg-win
           (display-buffer "*Messages*")
@@ -685,17 +746,24 @@ Do not turn on this yourself."
         (web-vcs-message-with-face
          'secondary-selection
          (concat "Please check the downloaded file and then continue by doing"
-                 "\n    C-c C-c (or M-x exit-recursive-edit)"
+                 ;;"\n    C-c C-c (or M-x exit-recursive-edit)"
+                 (funcall kf-desc 'exit-recursive-edit)
+                 ;;(key-description (where-is-internal 'where-is nil t))
+                 ;;(key-description [(control ?c) ?x])
                  ;; web-autoload.el might not be loaded yet
                  (if (fboundp 'web-autoload-continue-no-stop)
                      (concat
                       "\n\nOr, for no more breaks to check files do"
-                      "\n    C-c C-n (or M-x web-autoload-continue-no-stop)")
+                      ;;"\n    C-c C-n (or M-x web-autoload-continue-no-stop)"
+                      (funcall kf-desc 'web-autoload-continue-no-stop)
+                      )
                    "")
                  "\n\nTo stop the web autloading process for now do"
-                 "\n    C-c C-q (or M-x web-autoload-quit-download)"
+                 ;;"\n    C-c C-q (or M-x web-autoload-quit-download)"
+                 (funcall kf-desc 'web-autoload-quit-download)
                  "\n\nTo see the log file you can do"
-                 "\n    M-x web-vcs-log-edit"
+                 ;;"\n    M-x web-vcs-log-edit"
+                 (funcall kf-desc 'web-vcs-log-edit)
                  "\n"))
         (message "")
         (with-selected-window msg-win
@@ -730,33 +798,182 @@ Do not turn on this yourself."
         (select-window (get-buffer-window "*Messages*"))
         ))))
 
-(defun web-vcs-get-revision-on-page (vcs-rec url)
-  "Get revision number using VCS-REC on page URL.
-VCS-REC should be an entry like the entries in the list
-`web-vcs-links-regexp'."
-  ;; url-insert-file-contents
-  (let ((url-buf (url-retrieve-synchronously url)))
-    (web-vcs-get-revision-from-url-buf vcs-rec url-buf url)))
 
-(defun web-vcs-get-revision-from-url-buf (vcs-rec url-buf url)
-  "Get revision number using VCS-REC.
-VCS-REC should be an entry in the list `web-vcs-links-regexp'.
-The buffer URL-BUF should contain the content on page URL."
-  (let ((revision-regexp    (nth 5 vcs-rec)))
-    ;; Get revision number
-    (with-current-buffer url-buf
-      (goto-char (point-min))
-      (if (not (re-search-forward revision-regexp nil t))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Auto Download Compile Queue
+;;
+;; Downloaded elisp files are placed in a compile queue. They are not
+;; compiled until all required elisp files are downloaded (and
+;; optionally compiled).
+;;
+;; This mechanism works through
+;; - reading (eval-when-compile ...) etc in the files
+;; - a defadviced require that is the driver of the process
+
+(defvar web-autoload-compile-queue nil)
+
+(defvar web-autoload-byte-compile-queue-active nil) ;; Dyn var
+
+(defun web-autoload-byte-compile-file (file load)
+  (if nil ;;(file-exists-p file)
+      (byte-compile-file file load)
+    (let ((added-entry (cons file load)))
+      (if (member added-entry web-autoload-compile-queue)
+          (setq added-entry nil)
+        (web-vcs-message-with-face 'web-vcs-gold "Add to compile queue (%S %s)" file load)
+        (setq web-autoload-compile-queue (cons added-entry
+                                               web-autoload-compile-queue)))
+      (when added-entry
+        (if web-autoload-byte-compile-queue-active
+            (throw 'web-autoload-comp-restart t)
+          (web-autoload-byte-compile-queue))))))
+
+;;(web-autoload-byte-compile-queue)
+(defun web-autoload-byte-compile-queue ()
+  (let ((top-entry)
+        (web-autoload-byte-compile-queue-active t))
+    (while (and web-autoload-compile-queue
+                (not (equal top-entry
+                            (car web-autoload-compile-queue))))
+      (setq top-entry (car web-autoload-compile-queue))
+      (catch 'web-autoload-comp-restart
+        (web-autoload-byte-compile-file-1)
+        (setq web-autoload-compile-queue (cdr web-autoload-compile-queue))))))
+
+(defun web-autoload-byte-compile-file-1 ()
+  "Compile and load FILE. Or just load."
+  (let* ((compiled-it nil)
+         (first-entry (car web-autoload-compile-queue))
+         (el-file (car first-entry))
+         (load (cdr first-entry))
+         (elc-file (byte-compile-dest-file el-file))
+         (need-compile (or (not (file-exists-p elc-file))
+                           (file-newer-than-file-p el-file elc-file))))
+    (if (not need-compile)
+        nil ;;(when load (load elc-file))
+      (web-autoload-do-eval-requires el-file)
+      (when (catch 'web-autoload-comp-restart
+              (condition-case err
+                  (progn
+                    (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" el-file)
+                    (web-vcs-message-with-face 'web-vcs-pink "Compiling QUEUE: %S" web-autoload-compile-queue)
+                    ;;(when (ad-is-advised 'require) (ad-disable-advice 'require 'around 'web-autoload-ad-require))
+                    ;; Fix-me: different byte-compile commands for different packages:
+                    (let ((web-autoload-skip-require-advice t)) (nxhtml-byte-compile-file el-file load))
+                    ;;(when (ad-is-advised 'require) (ad-enable-advice 'require 'around 'web-autoload-ad-require))
+                    (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" el-file)
+                    ;; Return nil to tell there are no known problems
+                    (if (file-exists-p elc-file)
+                        nil
+                      (display-buffer "*Messages*")
+                      (web-vcs-message-with-face
+                       'web-vcs-red "Error: byte compiling did not produce %S" elc-file)
+                      ;; Clean up before restart
+                      (web-autoload-try-cleanup-after-failed-compile first-entry)
+                      t))
+                (error
+                 (display-buffer "*Messages*")
+                 (web-vcs-message-with-face
+                  'web-vcs-red "Error in byte compiling %S: %s" el-file (error-message-string err))
+                 ;; Clean up before restart
+                 (web-autoload-try-cleanup-after-failed-compile first-entry)
+                 t ;; error
+                 )))
+        (throw 'web-autoload-comp-restart t)
+        ))))
+
+(defun web-autoload-do-eval-requires (el-file)
+  "Do eval-when-compile and eval-and-compile."
+  ;;(message "web-autoload-do-eval-requires %S" el-file)
+  (let ((old-buf (find-buffer-visiting el-file)))
+    (with-current-buffer (or old-buf (find-file-noselect el-file))
+      (let ((here (point))
+            (web-autoload-require-skip-noerror-entries t))
+        (save-restriction
+          (widen)
+          (goto-char (point-min))
+          ;;(message "web-autoload-do-eval-requires cb=%s" (current-buffer))
+          (while (progn
+                   (while (progn (skip-chars-forward " \t\n\^l")
+                                 (looking-at ";"))
+                     (forward-line 1))
+                   (not (eobp)))
+            (let ((form (read (current-buffer))))
+              (when (memq (car form) '(eval-when-compile eval-and-compile))
+                (web-vcs-message-with-face 'web-vcs-gold "eval %S" form)
+                (eval form))
+              )))
+        (if old-buf (kill-buffer) (goto-char here))))))
+
+
+;; Fix-me: protect against deep nesting
+(defun web-autoload-do-require (feature filename noerror)
+  (let* ((feat-name (symbol-name feature))
+         (lib (or filename feat-name)))
+    (if (load lib noerror t)
+        (progn
+          (unless (featurep feature)
+            (error "web-autoload: Required feature `%s' was not provided" feature))
+          feature)
+      nil
+      )))
+
+(defvar web-autoload-require-skip-noerror-entries nil)
+
+(defadvice require (around
+                    web-autoload-ad-require)
+  (let ((feature  (ad-get-arg 0))
+        (filename (ad-get-arg 1))
+        (noerror  (ad-get-arg 2)))
+    (if (featurep feature)
+        feature
+      (if (or filename
+              (and noerror
+                   (or (not (boundp 'web-autoload-skip-require-advice))
+                       web-autoload-skip-require-advice)))
           (progn
-            (display-buffer "*Messages*")
-            (select-window (get-buffer-window "*Messages*"))
-            (web-vcs-message-with-face 'web-vcs-red "Can't find revision number on %S" url)
-            (throw 'command-level nil))
-        (match-string 1)))))
+            (message "Doing nearly original require %s, because skipping" (ad-get-arg 0))
+            ;; Can't ad-do-it because defadviced functions in load
+            ;;(web-autoload-do-require feature filename noerror)
+            ;;
+            ;; Fix-me: Implement lazy loading here? Could it be done with while-no-input?
+            ;;
+            ;;(when (assq feature web-autoload-require-list) )
+            ad-do-it)
+        (unless (and noerror
+                     web-autoload-require-skip-noerror-entries)
+          (let* ((auto-rec (assq feature web-autoload-require-list))
+                 (web-vcs      (nth 1 auto-rec))
+                 (base-url     (nth 2 auto-rec))
+                 (relative-url (nth 3 auto-rec))
+                 (base-dir     (nth 4 auto-rec)))
+            (if (not auto-rec)
+                ad-do-it
+              (let* ((full-el      (concat (expand-file-name relative-url base-dir) ".el"))
+                     (full-elc     (byte-compile-dest-file full-el))
+                     (our-buffer   (current-buffer)) ;; Need to come back here
+                     (our-wcfg     (current-window-configuration)))
+                (web-vcs-message-with-face 'web-vcs-gold "Doing the really adviced require for %s" feature)
+                ;; Check if already downloaded first
+                (unless (file-exists-p full-el)
+                  ;; Download and try again
+                  (setq relative-url (concat relative-url ".el"))
+                  ;;(web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s (%S %S => %S)" feature base-url relative-url base-dir)
+                  (web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s" feature)
+                  (catch 'web-autoload-comp-restart
+                    (web-vcs-get-missing-matching-files web-vcs base-url base-dir relative-url)))
+                (set-buffer our-buffer) ;; Before we load..
+                (when web-autoload-autocompile
+                  (unless (file-exists-p full-elc)
+                    ;; Byte compile the downloaded file
+                    (web-autoload-byte-compile-file full-el t)))
+                (web-vcs-message-with-face 'web-vcs-gold "Doing finally require for %s" feature)
+                (set-buffer our-buffer) ;; ... and after we load
+                (set-window-configuration our-wcfg)
+                ad-do-it))))))))
 
-
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Web Autload Define
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Helpers
@@ -1327,7 +1544,7 @@ Note: If your nXhtml is to old you can't use this function
                     (web-vcs-read-nxhtml-dl-dir "Download nXhtml part by part to directory: ")))))
   (catch 'command-level
     (if (not dl-dir)
-        (unless (called-interactively-p)
+        (unless (with-no-warnings (called-interactively-p))
           (error "dl-dir should be a directory"))
       (nxhtml-check-convert-to-part-by-part)
       (when (and (boundp 'nxhtml-install-dir)
@@ -1417,7 +1634,7 @@ For more information about auto download of nXhtml files see
                     (web-vcs-read-nxhtml-dl-dir "Download nXhtml to directory: ")))))
 
   (if (not dl-dir)
-      (unless (called-interactively-p)
+      (unless (with-no-warnings (called-interactively-p))
         (error "dl-dir show be a directory"))
     (let ((msg (concat "Downloading nXhtml through Launchpad web interface will take rather long\n"
                        "time (5-15 minutes) so you may want to do it in a separate Emacs session.\n\n"

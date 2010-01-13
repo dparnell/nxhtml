@@ -213,7 +213,7 @@ highlighting here."
 (defun hl-needed-show ()
   "Highlight current line and/or column now."
   (interactive)
-  (when (called-interactively-p)
+  (when (with-no-warnings (called-interactively-p))
     (setq hl-needed-flash-this nil)
     (unless hl-needed-mode
       (message "Use hl-needed-hide to remove highlighting")))
