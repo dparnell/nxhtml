@@ -159,92 +159,94 @@ Update nXhtml autoload file with them."
   "Get all autoloads for nXhtml.
 Update nXhtml autoload file with them."
   ;;(interactive)
-  (let ((auto-buf (find-file-noselect (nxhtmlmaint-autoloads-file))))
-    (with-current-buffer auto-buf
-      (erase-buffer)
-      (basic-save-buffer))
-    (nxhtmlmaint-get-tree-autoloads nxhtmlmaint-dir)
-    ;; `nxhtml-mode' and `nxhtml-validation-header-mode' should only be
-    ;; autoloaded if nxml-mode if available.
-    (with-current-buffer auto-buf
-      (message "Fixing nxml autoloads")
-      (let ((frmt (if (= emacs-major-version 22)
-                      "^(autoload (quote %s) "
+  (if nxhtml-autoload-web
+      (message "Skipping rebuilding autloads, not possible when autoloading from web")
+    (let ((auto-buf (find-file-noselect (nxhtmlmaint-autoloads-file))))
+      (with-current-buffer auto-buf
+        (erase-buffer)
+        (basic-save-buffer))
+      (nxhtmlmaint-get-tree-autoloads nxhtmlmaint-dir)
+      ;; `nxhtml-mode' and `nxhtml-validation-header-mode' should only be
+      ;; autoloaded if nxml-mode if available.
+      (with-current-buffer auto-buf
+        (message "Fixing nxml autoloads")
+        (let ((frmt (if (= emacs-major-version 22)
+                        "^(autoload (quote %s) "
                       "^(autoload '%s ")))
-        (dolist (nxmode '(nxhtml-mode nxhtml-validation-header-mode))
-          (goto-char (point-min))
-          (when (re-search-forward (format frmt nxmode) nil t)
-            (forward-line 0)
-            (insert "(when (fboundp 'nxml-mode)\n")
-            (forward-sexp)
-            (insert ")"))))
-      ;; Fix defcustom autoloads
-      (goto-char (point-min))
-      (let ((cus-auto "(\\(custom-autoload\\) +'.* +\\(\".*?\"\\)"))
-        (while (re-search-forward cus-auto nil t)
-          ;;(backward-char (1- (length cus-auto)))
-          ;;(insert "nxhtml-")
-          (let ((lib (match-string 2)))
-            ;; Change to symbol to fix autoloading. This works because
-            ;; custom-load-symbol does require on symbols.
-            (setq lib (concat "'" (substring lib 1 -1)))
-            (replace-match "nxhtml-custom-autoload" t t nil 1)
-            (replace-match lib t t nil 2))))
-      ;; Fix autoload calls
-      (goto-char (point-min))
-      (let ((auto "(autoload "))
-        (while (search-forward auto nil t)
-          (backward-char (1- (length auto)))
-          (insert "nxhtml-")))
-      ;; Fix autoload source
-      (goto-char (point-min))
-      (let* ((patt-src "^;;; Generated autoloads from \\(.*\\)$")
-             (patt-auto "^(nxhtml-autoload '[^ ]+ \\(\"[^\"]+\"\\)")
-             (patt-cust "^(nxhtml-custom-autoload '[^ ]+ \\(\"[^\"]+\"\\)")
-             (patt (concat "\\(?:" patt-src "\\)\\|\\(?:" patt-auto "\\)\\|\\(?:" patt-cust "\\)"))
-             curr-src)
-        (while (re-search-forward patt nil t)
-          (cond
-           ( (match-string 1)
-             (setq curr-src (match-string-no-properties 1))
-             ;; Remove .el
-             (setq curr-src (substring curr-src 0 -3))
-             ;; Setup up for web autoload
-             (let* ((src-name (file-name-nondirectory curr-src))
-                    (feature (make-symbol src-name))
-                    )
-               (end-of-line)
-               (insert "\n"
-                       "(web-autoload-require '"
-                       (symbol-name feature)
-                       " 'lp"
-                       " '(nxhtml-download-root-url nil)"
-                       " \"" curr-src "\""
-                       " nxhtml-install-dir"
-                       " 'nxhtml-byte-compile-file"
-                       ")\n"))
-             )
-           ( (match-string 3)
-             ;; (custom-autoload 'sym "lib" nil) is will give a
-             ;; (require 'lib) so everything is ok here.
-             nil)
-           ( (or (match-string 2)
-                 (match-string 3)
-                 )
-             (let* ((subexp (if (match-string 2) 2 3))
-                    (file (match-string-no-properties subexp)))
-               (replace-match (concat "`(lp '(nxhtml-download-root-url nil)"
-                                      " \"" curr-src "\""
-                                      " nxhtml-install-dir)")
-                              nil ;; fixedcase
-                              nil ;; literal
-                              nil ;; string
-                              subexp   ;; subexp
-                              ))
-             )
-           (t (error "No match???")))))
-      ;; Save
-      (basic-save-buffer))))
+          (dolist (nxmode '(nxhtml-mode nxhtml-validation-header-mode))
+            (goto-char (point-min))
+            (when (re-search-forward (format frmt nxmode) nil t)
+              (forward-line 0)
+              (insert "(when (fboundp 'nxml-mode)\n")
+              (forward-sexp)
+              (insert ")"))))
+        ;; Fix defcustom autoloads
+        (goto-char (point-min))
+        (let ((cus-auto "(\\(custom-autoload\\) +'.* +\\(\".*?\"\\)"))
+          (while (re-search-forward cus-auto nil t)
+            ;;(backward-char (1- (length cus-auto)))
+            ;;(insert "nxhtml-")
+            (let ((lib (match-string 2)))
+              ;; Change to symbol to fix autoloading. This works because
+              ;; custom-load-symbol does require on symbols.
+              (setq lib (concat "'" (substring lib 1 -1)))
+              (replace-match "nxhtml-custom-autoload" t t nil 1)
+              (replace-match lib t t nil 2))))
+        ;; Fix autoload calls
+        (goto-char (point-min))
+        (let ((auto "(autoload "))
+          (while (search-forward auto nil t)
+            (backward-char (1- (length auto)))
+            (insert "nxhtml-")))
+        ;; Fix autoload source
+        (goto-char (point-min))
+        (let* ((patt-src "^;;; Generated autoloads from \\(.*\\)$")
+               (patt-auto "^(nxhtml-autoload '[^ ]+ \\(\"[^\"]+\"\\)")
+               (patt-cust "^(nxhtml-custom-autoload '[^ ]+ \\(\"[^\"]+\"\\)")
+               (patt (concat "\\(?:" patt-src "\\)\\|\\(?:" patt-auto "\\)\\|\\(?:" patt-cust "\\)"))
+               curr-src)
+          (while (re-search-forward patt nil t)
+            (cond
+             ( (match-string 1)
+               (setq curr-src (match-string-no-properties 1))
+               ;; Remove .el
+               (setq curr-src (substring curr-src 0 -3))
+               ;; Setup up for web autoload
+               (let* ((src-name (file-name-nondirectory curr-src))
+                      (feature (make-symbol src-name))
+                      )
+                 (end-of-line)
+                 (insert "\n"
+                         "(web-autoload-require '"
+                         (symbol-name feature)
+                         " 'lp"
+                         " '(nxhtml-download-root-url nil)"
+                         " \"" curr-src "\""
+                         " nxhtml-install-dir"
+                         " 'nxhtml-byte-compile-file"
+                         ")\n"))
+               )
+             ( (match-string 3)
+               ;; (custom-autoload 'sym "lib" nil) is will give a
+               ;; (require 'lib) so everything is ok here.
+               nil)
+             ( (or (match-string 2)
+                   (match-string 3)
+                   )
+               (let* ((subexp (if (match-string 2) 2 3))
+                      (file (match-string-no-properties subexp)))
+                 (replace-match (concat "`(lp '(nxhtml-download-root-url nil)"
+                                        " \"" curr-src "\""
+                                        " nxhtml-install-dir)")
+                                nil ;; fixedcase
+                                nil ;; literal
+                                nil ;; string
+                                subexp   ;; subexp
+                                ))
+               )
+             (t (error "No match???")))))
+        ;; Save
+        (basic-save-buffer)))))
 
 
 (defun nxhtmlmaint-autoload-file-load-name (file)
