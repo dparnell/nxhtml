@@ -312,8 +312,9 @@ You must restart Emacs to use the byte compiled files.
 If for some reason the byte compiled files does not work you can
 remove then with `nxhtmlmaint-byte-uncompile-all'."
   (interactive)
-  (let* ((this-file (expand-file-name "nxhtmlmaint.el" nxhtmlmaint-dir))
-         (auto-file (expand-file-name "autostart.el" nxhtmlmaint-dir))
+  (let* ((this-file    (expand-file-name "nxhtmlmaint.el" nxhtmlmaint-dir))
+         (auto-file    (expand-file-name "autostart.el" nxhtmlmaint-dir))
+         (web-vcs-file (expand-file-name "nxhtml-web-vcs.el" nxhtmlmaint-dir))
          (this-emacs (locate-file invocation-name
                                   (list invocation-directory)
                                   exec-suffixes))
@@ -324,6 +325,7 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
       ;;(when noninteractive (setq process-args (append process-args '("-batch"))))
       (setq process-args (append process-args
                                  (list "-l" auto-file
+                                       "-l" web-vcs-file
                                        "-l" this-file
                                        "-f" "nxhtmlmaint-byte-compile-all")))
       (message "process-args=%S" process-args)
