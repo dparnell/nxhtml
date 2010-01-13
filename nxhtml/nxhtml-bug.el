@@ -155,7 +155,7 @@
         (fill-region here (point))
         (setq here (point))
         )
-      (print-help-return-message))))
+      (with-no-warnings (print-help-return-message)))))
 
 (defun nxhtml-report-bug-by-mail (topic)
   "Report a bug by mail.

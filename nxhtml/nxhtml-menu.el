@@ -54,6 +54,7 @@
 (eval-when-compile (require 'flymake))
 ;;(eval-when-compile (require 'flymake-php))
 (eval-when-compile (require 'flymake-js nil t))
+(eval-when-compile (require 'nxhtml-base))
 (eval-when-compile (require 'udev-ecb nil t))
 ;;(eval-when-compile (require 'udev-cedet))
 (eval-when-compile (require 'udev-rinari nil t))

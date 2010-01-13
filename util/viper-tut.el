@@ -416,7 +416,7 @@ correspond to what the tutorial says.
                          (message "Type C-x 0 to close the new window"))
                        'follow-link t)
         (insert ".)\n\n")
-        (print-help-return-message)))))
+        (with-no-warnings (print-help-return-message))))))
 
 
 (defvar viper-tut--part nil

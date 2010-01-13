@@ -945,8 +945,7 @@ MAX-STRLEN.  Display item with background color COLOR."
          'n-back-display-in-timer)))
 
 (defun n-back-maybe-download-files (dir file-name-list)
-  (when (fboundp 'nxhtml-maybe-download-files)
-    (nxhtml-maybe-download-files dir file-name-list)))
+  (nxhtml-get-missing-files (file-relative-name dir nxhtml-install-dir) file-name-list))
 
 (defun n-back-finish-game ()
   "Finish the game."

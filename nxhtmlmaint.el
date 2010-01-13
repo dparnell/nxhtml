@@ -216,7 +216,9 @@ Update nXhtml autoload file with them."
                        " 'lp"
                        " (nxhtml-download-root-url nil)"
                        " \"" curr-src "\""
-                       " nxhtml-install-dir)\n"))
+                       " nxhtml-install-dir"
+                       " 'nxhtml-byte-compile-file"
+                       ")\n"))
              )
            ( (match-string 3)
              ;; (custom-autoload 'sym "lib" nil) is will give a

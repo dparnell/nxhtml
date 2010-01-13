@@ -246,10 +246,10 @@ directly, otherwise download it first."
 
 (defvar web-autoload-require-list nil)
 
-(defun web-autoload-require (feature web-vcs base-url relative-url base-dir)
+(defun web-autoload-require (feature web-vcs base-url relative-url base-dir compile-fun)
   "Prepare to download file if necessary when `require' is called.
 WEB-VCS BASE-URL RELATIVE-URL"
-  (add-to-list 'web-autoload-require-list `(,feature ,web-vcs ,base-url ,relative-url ,base-dir))
+  (add-to-list 'web-autoload-require-list `(,feature ,web-vcs ,base-url ,relative-url ,base-dir ,compile-fun))
   )
 
 ;;(big-trace)

@@ -46,9 +46,10 @@
 
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'nxhtml nil t))
-(eval-when-compile (require 'rng-valid nil t))
+(eval-when-compile (require 'nxhtml-base))
 (eval-when-compile (require 'mumamo))
-(eval-and-compile (require 'mumamo-fun))
+(eval-and-compile  (require 'mumamo-fun))
+(eval-when-compile (require 'rng-valid nil t))
 ;;(mumamo-fun-require)
 
 ;; (defgroup nxhtml-auto-val-head nil

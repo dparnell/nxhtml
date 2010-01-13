@@ -44,25 +44,17 @@
 
 (message "Nxml/Nxhtml Autostart.el loading ...")
 
-(defconst nxhtml-menu:version "beta 2.07")
-(setq message-log-max t)
-(setq debug-on-error t)
-
 (defconst nxhtml-load-time-start (float-time))
 
-(defconst nxhtml-install-dir
-  (file-name-directory (or load-file-name
-                           (when (boundp 'bytecomp-filename) bytecomp-filename)
-                           buffer-file-name))
-  "Installation directory for nXhtml.")
-;; (setq nxhtml-install-dir (file-name-directory
-;;                           (or load-file-name
-;;                               (when (boundp 'bytecomp-filename) bytecomp-filename)
-;;                               buffer-file-name)))
+;; Add this dir to load-path
+(add-to-list 'load-path
+             (file-name-directory (or load-file-name
+                                      (when (boundp 'bytecomp-filename) bytecomp-filename)
+                                      buffer-file-name)))
 
-;; emacs-uq-byte-compile-buffer
-;;(nxhtml-byte-compile-file)
-;; byte-compile-file
+(require 'nxhtml-base)
+
+;; fix-me: change web-vcs-byte-compile-file instead
 (defun nxhtml-byte-recompile-file (file &optional load)
   "Byte recompile FILE file if necessary.
 For more information see `nxhtml-byte-compile-file'.
@@ -82,73 +74,6 @@ Loading is done if recompiled and LOAD is t."
     (web-vcs-byte-compile-file file load extra-load-path)))
 
 (defvar web-vcs-comp-dir nil)
-
-(defun web-vcs-byte-compile-file (file &optional load extra-load-path comp-dir)
-  "Byte compile FILE in a new Emacs sub process.
-nXhtml subdirectories are added to the front of `load-path'
-during compilation.
-
-FILE is set to `buffer-file-name' when called interactively.
-If LOAD"
-  (interactive (list (buffer-file-name)
-                     t))
-  (when (with-no-warnings (called-interactively-p))
-    (unless (eq major-mode 'emacs-lisp-mode)
-      (error "Must be in emacs-lisp-mode")))
-  (unless nxhtml-install-dir
-    (error "nXhtml must be loaded"))
-  (let* ((old-emacsloadpath (getenv "EMACSLOADPATH"))
-         (newlp old-emacsloadpath)
-         ;; Fix-me: name of compile log buffer. When should it be
-         ;; deleted? How do I bind it to byte-compile-file? Or do I?
-         (out-buf (get-buffer-create "*Compile-Log*"))
-         (elc-file (byte-compile-dest-file file))
-         (this-emacs-exe (locate-file invocation-name
-                                      (list invocation-directory)
-                                      exec-suffixes))
-         (default-directory (or comp-dir default-directory))
-         start)
-    (dolist (full-p extra-load-path)
-      (setq newlp (concat full-p ";" newlp)))
-    (if (string= file (buffer-file-name))
-        (display-buffer out-buf)
-      (unless (eq (current-buffer) out-buf)
-        (switch-to-buffer out-buf)))
-    (with-selected-window (get-buffer-window out-buf)
-      (with-current-buffer out-buf
-        (unless (local-variable-p 'web-vcs-comp-dir)
-          (set (make-local-variable 'web-vcs-comp-dir) (or comp-dir default-directory)))
-        (setq default-directory web-vcs-comp-dir)
-        (widen)
-        (goto-char (point-max))
-        (when (= 0 (buffer-size))
-          (insert (propertize "Web VCS compilation output" 'face 'font-lock-comment-face))
-          (compilation-mode)
-          (font-lock-add-keywords nil
-                                  '(("\\<Compile\\>" . 'compilation-info))))
-        (let ((inhibit-read-only t)
-              (rel-file (file-relative-name file)))
-          (insert "\n\n")
-          (insert "** Compile " rel-file "\n"))
-        (setq start (point))
-        (when (file-exists-p elc-file) (delete-file elc-file))
-        (setenv "EMACSLOADPATH" newlp)
-        (apply 'call-process this-emacs-exe nil out-buf t
-               "-Q" "--batch"
-               "--eval" "(remove-hook 'find-file-hook 'vc-find-file-hook)"
-               "--file" file
-               "-f" "emacs-lisp-byte-compile"
-               nil)
-        (setenv "EMACSLOADPATH" old-emacsloadpath)
-        (goto-char start)
-        (while (re-search-forward "^\\([a-zA-Z0-9/\._-]+\\):[0-9]+:[0-9]+:" nil t)
-          (let ((rel-file (file-relative-name file))
-                (inhibit-read-only t))
-            (replace-match rel-file nil nil nil 1)))
-        (goto-char (point-max))))
-    (when (file-exists-p elc-file)
-      (when load (load elc-file))
-      t)))
 
 ;; (defun nxhtml-custom-load-and-get-value (symbol)
 ;;   (custom-load-symbol symbol)
