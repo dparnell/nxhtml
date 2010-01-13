@@ -423,13 +423,6 @@ Loading is done if recompiled and LOAD is t."
         (nxhtml-byte-compile-file file load)
       (message "Byte compilation of this file is up to date."))))
 
-(defun nxhtml-byte-compile-file (file &optional load)
-  (let ((extra-load-path (when nxhtml-install-dir
-                           (mapcar (lambda (p)
-                                     (expand-file-name p nxhtml-install-dir))
-                                   '("tests" "related" "nxhtml" "util" ".")))))
-    (web-vcs-byte-compile-file file load extra-load-path)))
-
 (provide 'nxhtmlmaint)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; nxhtmlmaint.el ends here
