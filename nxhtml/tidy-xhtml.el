@@ -1258,7 +1258,7 @@ This option specifies if Tidy should line wrap text contained within
                                  'face '(:foreground "red"))
                                show)
             (insert (format "%25s => %s\n" opt show))))))
-    (print-help-return-message)))
+    (with-no-warnings (print-help-return-message))))
 
 (defun tidy-set-xhtml-options (&optional only-current-buffer)
   "Set option necessary to convert to XHTML.
@@ -1989,7 +1989,7 @@ Used to set up a Tidy menu in your favourite mode."
           (if value (insert value) (insert "set to the default value"))
           (insert "\n\n" (documentation-property variable 'variable-documentation))
           (local-set-key [(q)] 'tidy-quit-describe-options)
-          (print-help-return-message))))))
+          (with-no-warnings (print-help-return-message)))))))
 
 (defun tidy-quit-describe-options ()
   "Rid thyself of any display associated with Tidy's options."

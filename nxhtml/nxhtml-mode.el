@@ -67,6 +67,8 @@
 (eval-when-compile (require 'html-toc nil t))
 (eval-when-compile (require 'mumamo nil t))
 (eval-when-compile (require 'mlinks nil t))
+(eval-when-compile (require 'nxhtml-base))
+;;(eval-when-compile (require 'nxhtml-menu)) ;; recursive load
 (eval-when-compile (require 'ourcomments-util nil t))
 (eval-and-compile (require 'typesetter nil t))
 (eval-when-compile (require 'xhtml-help nil t))
@@ -86,11 +88,11 @@
 ;;     (require 'rng-valid)
 ;;     (require 'rng-nxml)))
 
-(require 'rng-valid nil t)
-(require 'rng-nxml nil t)
 (require 'button)
 (require 'loadhist)
-(require 'nxml-mode)
+(require 'nxml-mode nil t)
+(require 'rng-nxml nil t)
+(require 'rng-valid nil t)
 
 ;; Require nxml things conditionally to silence byte compiler under
 ;; Emacs 22.
@@ -336,9 +338,9 @@ You can add additional elisp code for completing to
 ;;                    'xhtml-help-show-css-ref))))
 
 ;; This should be run in `change-major-mode-hook'."
-(defun nxhtml-change-mode ()
-  (when (fboundp 'mlinks-mode)
-    (mlinks-mode 0)))
+;; (defun nxhtml-change-mode ()
+;;   (when (fboundp 'mlinks-mode)
+;;     (mlinks-mode 0)))
 
 (when (< emacs-major-version 23)
   (defun nxml-change-mode ()
@@ -468,15 +470,15 @@ point in the mumamo chunk you want to know the key bindings in.
        nxhtml-heading-element-name-regexp)
   (when (fboundp 'nxml-change-mode)
     (add-hook 'change-major-mode-hook 'nxml-change-mode nil t))
-  (add-hook 'change-major-mode-hook 'nxhtml-change-mode nil t)
+  ;;(add-hook 'change-major-mode-hook 'nxhtml-change-mode nil t)
   (when (featurep 'rngalt)
     (add-hook 'nxml-completion-hook 'rngalt-complete nil t))
   ;;(define-key nxhtml-mode-map [(meta tab)] 'nxml-complete)
-  (nxhtml-minor-mode 1)
+  ;;(nxhtml-minor-mode 1)
   (when (and nxhtml-use-imenu
              (featurep 'html-imenu))
     (add-hook 'nxhtml-mode-hook 'html-imenu-setup nil t))
-  (mlinks-mode 1)
+  ;;(mlinks-mode 1)
   (nxhtml-setup-for-fold-dwim)
   (when (featurep 'rngalt)
     (set (make-local-variable 'rngalt-completing-read-tag) 'nxhtml-completing-read-tag)

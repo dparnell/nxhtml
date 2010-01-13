@@ -464,6 +464,17 @@ To customize it see:
   (let ((buf (url-retrieve-synchronously "http://www.abc-of-yoga.com/yogapractice/mountain.asp")))
     (pause-get-yoga-poses-1 buf)))
 
+;; (setq x (url-retrieve-synchronously "http://www.abc-of-yoga.com/yogapractice/mountain.asp"))
+;; (setq x (url-retrieve-synchronously "http://www.emacswiki.org/emacs/EmacsFromBazaar"))
+
+;; (defun temp-y ()
+;;   (message "before y")
+;;   ;;(setq y (url-retrieve-synchronously "http://www.emacswiki.org/emacs/EmacsFromBazaar"))
+;;   (setq x (url-retrieve-synchronously "http://www.abc-of-yoga.com/yogapractice/mountain.asp"))
+;;   (message "after x")
+;;   )
+;; (run-with-idle-timer 0 nil 'temp-y)
+
 (defun pause-get-yoga-poses-1 (buf)
   (require 'url)
   (setq url-debug t)

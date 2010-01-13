@@ -169,7 +169,7 @@ The third argument DOC is a documentation string for the widget."
       (princ " to find out more about it.")
       (fill-region (point-min) (point-max))
       )
-    (print-help-return-message)))
+    (with-no-warnings (print-help-return-message))))
 
 (defun describe-button (pos)
   (let ((button (button-at pos)))
@@ -201,7 +201,7 @@ The third argument DOC is a documentation string for the widget."
         (princ " to find out more about it.")
         (fill-region (point-min) (point-max))
         )
-      (print-help-return-message))))
+      (with-no-warnings (print-help-return-message)))))
 
 ;; Obsolete
 ;; (defun whelp-describe-symbol (sym)
@@ -334,7 +334,7 @@ The third argument DOC is a documentation string for the widget."
 ;;                     ))
 ;;                 (princ "\n")
 ;;                 )))
-;;         (print-help-return-message)))))
+;;         (with-no-warnings (print-help-return-message))))))
 
 
 
@@ -983,6 +983,6 @@ The :value of the widget shuld be the button to be browsed."
            (princ (format "No explanation found for %s" property))
            )
          )
-        (print-help-return-message)))))
+        (with-no-warnings (print-help-return-message))))))
 
 (provide 'whelp)

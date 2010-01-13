@@ -1587,7 +1587,7 @@ BUF: buffer"
                                       (customize-option
                                        'tabkey2-completion-functions)))
         (insert ".\nSee function `tabkey2-mode' for more information.")
-        (print-help-return-message)))))
+        (with-no-warnings (print-help-return-message))))))
 
 (defvar tabkey2-completing-read 'completing-read)
 
