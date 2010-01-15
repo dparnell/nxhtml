@@ -136,7 +136,8 @@ order."
   (add-to-list 'auto-mode-alist '("\\.rnc\\'"      . rnc-mode))
 
   (majmodpri-sort-lists)
-  (message "nxhtml-autoload finished"))
+  ;;(message "nxhtml-autoload finished")
+  )
 
 ;;(defvar nxhtml-src-dir (file-name-directory (if load-file-name load-file-name buffer-file-name)))
 

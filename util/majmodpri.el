@@ -211,7 +211,7 @@ The lists can be sorted when loading elisp libraries, see
 
 See also `majmodpri-apply-priorities'."
   (interactive)
-  (message "majmodpri-sort-lists running ...")
+  ;;(message "majmodpri-sort-lists running ...")
   (majmodpri-cancel-idle-sort)
   (when (memq 'magic-mode-alist majmodpri-lists-to-sort)
     (majmodpri-sort-magic-list 'magic-mode-alist))
@@ -219,7 +219,8 @@ See also `majmodpri-apply-priorities'."
     (majmodpri-sort-auto-mode-alist))
   (when (memq 'magic-fallback-mode-alist majmodpri-lists-to-sort)
     (majmodpri-sort-magic-list 'magic-fallback-mode-alist))
-  (message "majmodpri-sort-lists running ... (done)"))
+  ;;(message "majmodpri-sort-lists running ... (done)")
+  )
 
 
 ;;;###autoload
@@ -274,7 +275,7 @@ First run `majmodpri-sort-lists' and then if CHANGE-MODES is
 non-nil apply to existing file buffers.  If interactive ask
 before applying."
   (interactive '(nil))
-  (message "majmodpri-apply-priorities running...")
+  (message "majmodpri-apply-priorities running ...")
   (majmodpri-sort-lists)
   (when (or change-modes
             (with-no-warnings (called-interactively-p)))
@@ -288,7 +289,8 @@ before applying."
                 (setq file-buffers (cons buffer file-buffers))))))
       (if (not file-buffers)
           (when change-modes
-            (message "majmodpri-apply-priorities: No file buffers to change modes in"))
+            ;;(message "majmodpri-apply-priorities: No file buffers to change modes in")
+            )
         (when (with-no-warnings (called-interactively-p))
           (setq change-modes
                 (y-or-n-p "Check major mode in all file visiting buffers? ")))

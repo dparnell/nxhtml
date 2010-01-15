@@ -256,13 +256,15 @@
           (list 'menu-item "Download nXhtml Updates" download-map))
         (define-key download-map [nxhtml-web-download-log]
           (list 'menu-item "View Download Log" 'web-vcs-edit-log))
+        (define-key download-map [nxhtml-view-dl-log-separator]
+          (list 'menu-item "--" nil))
         (define-key download-map [nxhtml-web-auto-download]
-          (list 'menu-item "Autoload from Devel Sources"
+          (list 'menu-item "Auto download from Devel Sources"
                 'nxhtml-autoload-web
                 :button '(:toggle . (and (boundp 'nxhtml-autoload-web)
                                          nxhtml-autoload-web))))
         (define-key download-map [nxhtml-web-download]
-          (list 'menu-item "Update nXhtml (from devel sources)" 'nxhtml-setup-install))
+          (list 'menu-item "Update nXhtml (from devel sources)" 'nxhtml-update-existing-files))
         )
       (define-key help-map [nxhtml-features-check]
         (list 'menu-item "Check Optional Features" 'nxhtml-features-check))
@@ -636,14 +638,16 @@
         (define-key cssclr-map [nxhtml-css-color-mode]
           (list 'menu-item "Css Color Mode" 'css-color-mode
 		:enable '(and font-lock-mode
-                              (or (not (boundp 'mumamo-multi-major-mode))
-                                  (not mumamo-multi-major-mode))
-                              (featurep 'css-color))
+                              ;; (or (not (boundp 'mumamo-multi-major-mode))
+                              ;;     (not mumamo-multi-major-mode))
+                              ;; (featurep 'css-color)
+                              )
                 :button '(:toggle . (and (boundp 'css-color-mode)
                                          css-color-mode))))
         (define-key cssclr-map [nxhtml-css-color-test]
           (list 'menu-item "Color Test" 'css-color-test
-                :enable '(featurep 'css-color))))
+                ;; :enable '(featurep 'css-color)
+                )))
 
       (let ((where-map (make-sparse-keymap)))
         (define-key tools-map [nxml-where]

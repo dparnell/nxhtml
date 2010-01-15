@@ -372,6 +372,7 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
 
 ;;(directory-files default-directory nil "\\el$")
 ;;(directory-files default-directory nil "[^#~]$")
+;;;###autoload
 (defun nxhtml-update-existing-files ()
   "Update existing nXhtml files from the development sources.
 Only files you already have will be updated.
@@ -382,19 +383,20 @@ nXhtml at once.
 
 For more information about installing and updating nXhtml see the
 command `nxhtml-setup-install'."
+  ;; Fix-me: download new files too if you are not auto downloading.
   (interactive)
-  ;; Fix-me: (not here). Cache the dir pages dynamically.
-  (message "")
-  (web-vcs-message-with-face 'web-vcs-yellow "\n\nStarting updating your nXhtml files.\n\n")
-  (let ((vcs 'lp)
-        (base-url (nxhtml-download-root-url nil))
-        (dl-dir nxhtml-install-dir)
-        web-vcs-folder-cache)
-    (setq dl-dir (file-name-as-directory dl-dir))
-    (web-vcs-update-existing-files vcs base-url dl-dir dl-dir)
-    (web-vcs-clear-folder-cache))
-  (web-vcs-message-with-face 'web-vcs-yellow "\n\nFinished updating your nXhtml files.\n\n")
-  (web-vcs-log-save))
+  (when (y-or-n-p "Do you want to update your nXhtml files?")
+    (message "")
+    (web-vcs-message-with-face 'web-vcs-yellow "\n\nStarting updating your nXhtml files.\n\n")
+    (let ((vcs 'lp)
+          (base-url (nxhtml-download-root-url nil))
+          (dl-dir nxhtml-install-dir)
+          web-vcs-folder-cache)
+      (setq dl-dir (file-name-as-directory dl-dir))
+      (web-vcs-update-existing-files vcs base-url dl-dir dl-dir)
+      (web-vcs-clear-folder-cache))
+    (web-vcs-message-with-face 'web-vcs-yellow "\n\nFinished updating your nXhtml files.\n\n")
+    (web-vcs-log-save)))
 
 
 ;;(nxhtml-maybe-download-files (expand-file-name "nxhtml/doc/img/" nxhtml-install-dir) nil)
@@ -445,6 +447,19 @@ command `nxhtml-setup-install'."
                                      (expand-file-name p nxhtml-install-dir))
                                    '("tests" "related" "nxhtml" "util" ".")))))
     (web-vcs-byte-compile-file file load extra-load-path)))
+
+;; fix-me: change web-vcs-byte-compile-file instead
+;;;###autoload
+(defun nxhtml-byte-recompile-file (file &optional load)
+  "Byte recompile FILE file if necessary.
+For more information see `nxhtml-byte-compile-file'.
+Loading is done if recompiled and LOAD is t."
+  (interactive (list (buffer-file-name)
+                     t))
+  (let ((elc-file (byte-compile-dest-file file)))
+    (if (file-newer-than-file-p file elc-file)
+        (nxhtml-byte-compile-file file load)
+      (message "Byte compilation of this file is up to date."))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Add to custom file

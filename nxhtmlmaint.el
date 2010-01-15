@@ -415,18 +415,6 @@ then instead delete the compiled files."
         (unless (member name nxhtmlmaint-nonbyte-compile-dirs)
           (nxhtmlmaint-byte-compile-dir f force del-elc))))))
 
-;; fix-me: change web-vcs-byte-compile-file instead
-(defun nxhtml-byte-recompile-file (file &optional load)
-  "Byte recompile FILE file if necessary.
-For more information see `nxhtml-byte-compile-file'.
-Loading is done if recompiled and LOAD is t."
-  (interactive (list (buffer-file-name)
-                     t))
-  (let ((elc-file (byte-compile-dest-file file)))
-    (if (file-newer-than-file-p file elc-file)
-        (nxhtml-byte-compile-file file load)
-      (message "Byte compilation of this file is up to date."))))
-
 (provide 'nxhtmlmaint)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; nxhtmlmaint.el ends here

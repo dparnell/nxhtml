@@ -1515,7 +1515,7 @@ function."
 (setq ourcomments-ido-adviced t)
 )
 
-(message "after advising ido")
+;;(message "after advising ido")
 ;;(ad-deactivate 'ido-visit-buffer)
 ;;(ad-activate 'ido-visit-buffer)
 
