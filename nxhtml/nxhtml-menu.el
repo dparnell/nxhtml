@@ -125,10 +125,20 @@
          (member (downcase (file-name-extension file))
                  '("html" "htm" "gif" "png" "pl" "php")))))
 
+;; (nxhtml-insert-menu-dynamically 'temp)
 (defun nxhtml-insert-menu-dynamically (real-binding)
-  (when (and (symbolp real-binding)
-             (boundp real-binding))
-    (symbol-value real-binding)))
+  (or (and (symbolp real-binding)
+           (boundp real-binding)
+           (symbol-value real-binding))
+      (let ((map (make-sparse-keymap "Not loaded yet")))
+        (define-key map [dummy]
+          (list 'menu-item "Not loaded yet" 'ignore))
+        map)
+      ;; (easy-menu-filter-return
+      ;;  (easy-menu-create-menu
+      ;;   "Not ready"
+      ;;   '(["Not Loaded Yet" ignore t])))
+      ))
 
 (defun nxhtml-menu-image-file ()
   (or (get-char-property (point) 'image-file)
@@ -612,11 +622,17 @@
                                          html-write-mode))))
       (define-key tools-map [nxhtml-tidy-map]
         (list 'menu-item "Tidy XHTML" 'tidy-menu-symbol
+              ;; Seems like :visible is called before :filter so we
+              ;; can compute things in :visible.
               :filter 'nxhtml-insert-menu-dynamically
-              :visible '(and (fboundp 'tidy-build-menu) (tidy-build-menu))
-              :enable '(and (fboundp 'tidy-build-menu) (tidy-build-menu)
-                            (or (derived-mode-p 'html-mode)
-                                (nxhtml-nxhtml-in-buffer)))))
+              :visible '(or (and (or (derived-mode-p 'html-mode)
+                                     (nxhtml-nxhtml-in-buffer))
+                                 (fboundp 'tidy-build-menu) (tidy-build-menu))
+                            t)
+              :enable '(and (or (derived-mode-p 'html-mode)
+                                (nxhtml-nxhtml-in-buffer))
+                            (fboundp 'tidy-build-menu) (tidy-build-menu))
+              ))
       (define-key tools-map [zencoding]
         (list 'menu-item "Zen coding for HTML/CSS" 'zencoding-mode
               :button '(:toggle . (and (boundp 'zencoding-mode)
@@ -817,6 +833,15 @@
         (list 'menu-item "Save Changed Options" 'customize-save-customizedA))
 
       (define-key options-map [nxhtml-save-sep] (list 'menu-item "--"))
+
+      (define-key options-map [nxhtml-load-flymake]
+        (list 'menu-item "Use nXhtml CSS/JS Flymake"
+              'nxhtml-flymake-setup
+              :button '(:toggle . (and (boundp 'nxhtml-flymake-setup)
+                                       nxhtml-flymake-setup))))
+
+      (define-key options-map [nxhtml-save-sep] (list 'menu-item "--"))
+
       (define-key options-map [nxhtml-winsav-mode]
         (list 'menu-item "Save/restore Frames and Windows"
               'winsav-save-mode
@@ -824,7 +849,7 @@
                                        winsav-save-mode))))
       (define-key options-map [nxhtml-win-sep] (list 'menu-item "--"))
       (define-key options-map [nxhtml-images-global]
-        (list 'menu-item "Display Images" 'inlimg-global-mode
+        (list 'menu-item "Display Images Inline" 'inlimg-global-mode
               :button '(:toggle . (and (boundp 'inlimg-global-mode)
                                        inlimg-global-mode))))
       (define-key options-map [nxhtml-opt-sep] (list 'menu-item "--"))

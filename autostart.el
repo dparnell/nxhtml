@@ -66,19 +66,6 @@
 ;;   (custom-load-symbol symbol)
 ;;   (symbol-value symbol))
 
-(defun flymake-init-load-flymakemsg ()
-  (require 'flymakemsg))
-
-(defcustom nxhtml-flymake-setup t
-  "Let nXhtml add some addtions to flymake.
-This adds support for CSSS and JavaScript files.
-
-It also adds showing of errors in minibuffer when point is on
-them."
-  :type 'boolean
-  :group 'nxhtml
-  :group 'flymake)
-
 (defun nxhtml-list-loaded-features (use-message)
   (interactive (list t))
   (let ((buf (when use-message ;(called-interactively-p)
@@ -192,12 +179,6 @@ them."
     (load (expand-file-name "nxhtml/nxhtml-autoload" nxhtml-install-dir))))
 (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
-;; Flymake, this may break some users setup initially, but I see no better way...
-(when nxhtml-flymake-setup
-  (flymake-js-load)
-  (flymake-css-load)
-  (flymake-java-1-load)
-  (add-hook 'flymake-mode-hook 'flymake-init-load-flymakemsg))
 
 (unless (featurep 'nxhtml-autostart)
   ;; Provide the feature here to avoid loading looping on error.
