@@ -51,16 +51,15 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(eval-and-compile (require 'cus-edit))
+(eval-and-compile  (require 'cus-edit))
+(eval-and-compile  (require 'mm-decode))
+(eval-when-compile (require 'url-http))
+
 (require 'advice)
 (require 'web-autoload nil t)
-
-
+;; (require 'url-util)
 ;; (require 'url)
 ;;(require 'url-parse)
-(eval-when-compile (require 'url-http))
-;; (require 'url-util)
-(eval-when-compile (require 'mm-decode))
 
 (defvar web-vcs-comp-dir nil)
 
@@ -137,6 +136,16 @@ The patterns are grouped by VCS web system type.
            (regexp :tag "Page revision regexp")
            (regexp :tag "Release revision regexp")
            ))
+  :group 'web-vcs)
+
+(defface web-vcs-mode-line
+  '((t (:foreground "black" :background "OrangeRed")))
+  "Mode line face during download."
+  :group 'web-vcs)
+
+(defface web-vcs-mode-line-inactive
+  '((t (:foreground "black" :background "Orange")))
+  "Mode line face during download."
   :group 'web-vcs)
 
 (defface web-vcs-gold
@@ -947,26 +956,71 @@ entry says so."
               (let* ((full-el      (concat (expand-file-name relative-url base-dir) ".el"))
                      (full-elc     (byte-compile-dest-file full-el))
                      (our-buffer   (current-buffer)) ;; Need to come back here
-                     (our-wcfg     (current-window-configuration)))
-                (web-vcs-message-with-face 'web-vcs-gold "Doing the really adviced require for %s" feature)
-                ;; Check if already downloaded first
-                (unless (file-exists-p full-el)
-                  (setq base-url (eval base-url))
-                  ;; Download and try again
-                  (setq relative-url (concat relative-url ".el"))
-                  ;;(web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s (%S %S => %S)" feature base-url relative-url base-dir)
-                  (web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s" feature)
-                  (catch 'web-autoload-comp-restart
-                    (web-vcs-get-missing-matching-files web-vcs base-url base-dir relative-url)))
-                (set-buffer our-buffer) ;; Before we load..
-                (when web-autoload-autocompile
-                  (unless (file-exists-p full-elc)
-                    ;; Byte compile the downloaded file
-                    (web-autoload-byte-compile-file full-el t comp-fun)))
-                (web-vcs-message-with-face 'web-vcs-gold "Doing finally require for %s" feature)
-                (set-buffer our-buffer) ;; ... and after we load
-                (set-window-configuration our-wcfg)
-                ad-do-it))))))))
+                     (our-wcfg     (current-window-configuration))
+                     (mode-line-old          (web-vcs-redefine-face 'mode-line 'web-vcs-mode-line))
+                     (mode-line-inactive-old (web-vcs-redefine-face 'mode-line-inactive 'web-vcs-mode-line-inactive))
+                     (header-line-format-old (with-current-buffer "*Messages*"
+                                               (prog1
+                                                   header-line-format
+                                                 (setq header-line-format
+                                                       (propertize "Downloading needed files..."
+                                                                   'face 'web-vcs-mode-line
+                                                                   ;;'face '(:height 1.5) ;; does not work
+                                                                   ))))))
+                ;; Fix-me: can't update while accessing the menus
+                ;;(message "trying (redisplay t) ;; mode line")
+                ;;(sit-for 1) (redisplay t) ;; mode line
+                (unwind-protect
+                    (progn
+                      (web-vcs-message-with-face 'web-vcs-gold "Doing the really adviced require for %s" feature)
+                      ;; Check if already downloaded first
+                      (unless (file-exists-p full-el)
+                        (setq base-url (eval base-url))
+                        ;; Download and try again
+                        (setq relative-url (concat relative-url ".el"))
+                        ;;(web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s (%S %S => %S)" feature base-url relative-url base-dir)
+                        (web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s" feature)
+                        (catch 'web-autoload-comp-restart
+                          (web-vcs-get-missing-matching-files web-vcs base-url base-dir relative-url)))
+                      (set-buffer our-buffer) ;; Before we load..
+                      (when web-autoload-autocompile
+                        (unless (file-exists-p full-elc)
+                          ;; Byte compile the downloaded file
+                          (web-autoload-byte-compile-file full-el t comp-fun)))
+                      (web-vcs-message-with-face 'web-vcs-gold "Doing finally require for %s" feature)
+                      (set-buffer our-buffer) ;; ... and after we load
+                      (set-window-configuration our-wcfg))
+                  (with-current-buffer "*Messages*" (setq header-line-format header-line-format-old))
+                  (web-vcs-redefine-face 'mode-line mode-line-old)
+                  (web-vcs-redefine-face 'mode-line-inactive mode-line-inactive-old)))
+              ad-do-it)))))))
+
+;; (setq x (web-vcs-redefine-face 'mode-line (setq z (face-all-attributes 'web-vcs-mode-line (selected-frame)))))
+;; (setq x (web-vcs-redefine-face 'mode-line 'web-vcs-mode-line))
+;; (setq y (web-vcs-redefine-face 'mode-line x))
+;; (describe-face 'web-vcs-mode-line)
+(defun web-vcs-redefine-face (face as-new)
+  "Redefine FACE to use the attributes in AS-NEW.
+AS-NEW may be either a face or a list returned by `face-all-attributes'.
+Return an alist with old attributes."
+  (let ((ret (face-all-attributes face (selected-frame)))
+        (new-face-att (if (facep as-new)
+                          (face-all-attributes as-new (selected-frame))
+                        as-new))
+        new-at-prop-list
+        )
+    (dolist (at new-face-att)
+      (let ((sym (car at))
+            (val (cdr at)))
+        (unless (eq val 'unspecified)
+          (setq new-at-prop-list (cons sym
+                                       (cons val
+                                             new-at-prop-list)))
+          ;;(message "new=%S" new-at-prop-list)
+          )))
+    (apply 'set-face-attribute face (selected-frame) new-at-prop-list)
+    ret
+    ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Web Autload Define
@@ -1173,10 +1227,11 @@ If LOAD"
          start)
     (dolist (full-p extra-load-path)
       (setq newlp (concat full-p ";" newlp)))
-    (if (string= file (buffer-file-name))
-        (display-buffer out-buf)
-      (unless (eq (current-buffer) out-buf)
-        (switch-to-buffer out-buf)))
+    (unless (get-buffer-window out-buf (selected-frame))
+      (if (string= file (buffer-file-name))
+          (display-buffer out-buf)
+        (unless (eq (current-buffer) out-buf)
+          (switch-to-buffer out-buf))))
     (with-selected-window (get-buffer-window out-buf)
       (with-current-buffer out-buf
         (unless (local-variable-p 'web-vcs-comp-dir)
@@ -1917,7 +1972,7 @@ Download and install nXhtml."
       (when need-dl
         (let ((prompt
                (concat "Welcome to install nXhtml."
-                       "\nMust start by downloading some files."
+                       "\nBefore the real installation can start some files must be downloaded."
                        "\nYou will get a chance to review them before they are used."
                        "\n\nDo you want to continue? ")))
           (unless (y-or-n-p prompt)

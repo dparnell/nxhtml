@@ -66,10 +66,15 @@
                              "nxhtml/nxhtml-autoload.el"))
 
 (define-minor-mode nxhtml-autoload-web
-  "If on download files from web if necessary.
-If t then during `require' nXhtml files can be downloaded from
-the nXhtml repository on the web.  This will currently download
-the development sources, latest version."
+  "If on download elisp files from web when they are needed.
+If t then during `require' nXhtml elisp files can be downloaded
+from the nXhtml repository on the web.  This will currently
+download the development sources, latest version.
+
+Other files that are used by a command may also be downloaded.
+
+Note that files are not updated automatically.  You have to use
+`nxhtml-update-existing-files' for that."
   :global t
   ;;:lighter (propertize " nX" 'face 'font-lock-comment-face)
   :lighter " nX"

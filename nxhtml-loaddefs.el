@@ -1726,8 +1726,8 @@ Return t if VALUE is a major mode function.
 
 ;;;***
 
-;;;### (autoloads (pause-mode pause) "pause" "util/pause.el" (19277
-;;;;;;  64418))
+;;;### (autoloads (pause-mode pause) "pause" "util/pause.el" (19278
+;;;;;;  27707))
 ;;; Generated autoloads from util/pause.el
 (web-autoload-require 'pause 'lp '(nxhtml-download-root-url nil) "util/pause" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3680,7 +3680,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19278 12444))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19278 29417))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3894,7 +3894,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;### (autoloads (web-vcs-investigate-elisp-file web-vcs-byte-compile-file
 ;;;;;;  web-vcs-get-files-from-root web-vcs-default-download-directory)
-;;;;;;  "web-vcs" "web-vcs.el" (19278 18827))
+;;;;;;  "web-vcs" "web-vcs.el" (19278 23234))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3934,7 +3934,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19278 21738))
+;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19278 29220))
 ;;; Generated autoloads from nxhtmlmaint.el
 (web-autoload-require 'nxhtmlmaint 'lp '(nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4033,13 +4033,14 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19278 21761 843000))
+;;;;;;  "web-autoload.el") (19278 29615 500000))
 
 ;;;***
 
-;;;### (autoloads (nxhtml-get-missing-files nxhtml-setup-download-all
-;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install) "nxhtml-web-vcs"
-;;;;;;  "nxhtml-web-vcs.el" (19278 18614))
+;;;### (autoloads (nxhtml-byte-recompile-file nxhtml-get-missing-files
+;;;;;;  nxhtml-update-existing-files nxhtml-setup-download-all nxhtml-setup-auto-download
+;;;;;;  nxhtml-setup-install) "nxhtml-web-vcs" "nxhtml-web-vcs.el"
+;;;;;;  (19278 29582))
 ;;; Generated autoloads from nxhtml-web-vcs.el
 (web-autoload-require 'nxhtml-web-vcs 'lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4121,9 +4122,29 @@ For more information about auto download of nXhtml files see
 
 \(fn DL-DIR)" t nil)
 
+(nxhtml-autoload 'nxhtml-update-existing-files `(lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir) "\
+Update existing nXhtml files from the development sources.
+Only files you already have will be updated.
+
+Note that this works both if you have setup nXhtml to auto
+download files as you need them or if you have downloaded all of
+nXhtml at once.
+
+For more information about installing and updating nXhtml see the
+command `nxhtml-setup-install'.
+
+\(fn)" t nil)
+
 (nxhtml-autoload 'nxhtml-get-missing-files `(lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir) "\
 Not documented
 
 \(fn SUB-DIR FILE-NAME-LIST)" nil nil)
+
+(nxhtml-autoload 'nxhtml-byte-recompile-file `(lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir) "\
+Byte recompile FILE file if necessary.
+For more information see `nxhtml-byte-compile-file'.
+Loading is done if recompiled and LOAD is t.
+
+\(fn FILE &optional LOAD)" t nil)
 
 ;;;***

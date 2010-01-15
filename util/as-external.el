@@ -158,7 +158,7 @@ emacsw32-eol."
   (if (not (fboundp 'nxhtml-mode))
       (as-external-fall-back "Can't find nXhtml")
     (nxhtml-mode)
-    ;;(nxhtml-validation-header-mode 1)
+    (nxhtml-validation-header-mode 1)
     (set (make-local-variable 'wrap-to-fill-left-marg-modes)
          '(nxhtml-mode fundamental-mode))
     (wrap-to-fill-column-mode 1)

@@ -47,6 +47,11 @@
 
 (message "Nxml/Nxhtml Autostart.el loading ...")
 
+(defconst nxhtml-autostart-trace nil)
+(defsubst nxhtml-autostart-trace (format-string &rest args)
+  (when nxhtml-autostart-trace
+    (apply 'message format-string args)))
+
 (defconst nxhtml-load-time-start (float-time))
 
 ;; Add this dir to load-path
@@ -143,7 +148,7 @@ them."
   (add-to-list 'load-path company-dir)
   (add-to-list 'load-path tests-dir)
 
-  (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
+  (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
   ;; Autoloading etc
   ;; (unless (featurep 'web-vcs)
@@ -168,24 +173,24 @@ them."
 
   (unless (featurep 'nxhtml-loaddefs)
     (load (expand-file-name "nxhtml-loaddefs" nxhtml-install-dir) nxhtml-autoload-web))
-  (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
+  (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
   ;; Turn on `nxhtml-global-minor-mode' unconditionally
-  (message "Turn on `nxhtml-global-minor-mode' unconditionally")
+  (nxhtml-autostart-trace "Turn on `nxhtml-global-minor-mode' unconditionally")
   (nxhtml-global-minor-mode 1)
-  (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
+  (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
   ;; Patch the rnc include paths
   (when (fboundp 'nxml-mode)
     (load (expand-file-name "etc/schema/schema-path-patch"
                             nxhtml-install-dir))
     (rncpp-patch-xhtml-loader))
-  (message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
+  (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
   ;; Load nXhtml
   (unless (featurep 'nxhtml-autoload)
     (load (expand-file-name "nxhtml/nxhtml-autoload" nxhtml-install-dir))))
-(message "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
+(nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
 ;; Flymake, this may break some users setup initially, but I see no better way...
 (when nxhtml-flymake-setup
@@ -199,11 +204,10 @@ them."
   (provide 'nxhtml-autostart)
 
   ;; Tell what have been loaded of nXhtml:
-  (nxhtml-list-loaded-features nil)
+  (when nxhtml-autostart-trace (nxhtml-list-loaded-features nil))
 
   ;; How long time did it all take?
-  (message "Nxml/Nxhtml Autostart.el loaded in %.1f seconds" (- (float-time) nxhtml-load-time-start))
-  )
+  (message "Nxml/Nxhtml Autostart.el loaded in %.1f seconds" (- (float-time) nxhtml-load-time-start)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; autostart.el ends here

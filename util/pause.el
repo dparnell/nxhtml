@@ -193,7 +193,8 @@
   (set (make-local-variable 'buffer-read-only) t)
   ;;(set (make-local-variable 'cursor-type) nil)
   ;; Fix-me: workaround for emacs bug
-  (run-with-idle-timer 0 nil 'pause-hide-cursor))
+  ;;(run-with-idle-timer 0 nil 'pause-hide-cursor)
+  )
 
 ;; (defun pause-kill-buffer ()
 ;;   ;; runs in timer, save-match-data
@@ -298,7 +299,7 @@
           (delete-other-windows (frame-first-window f))
           (with-selected-window (frame-first-window)
             (switch-to-buffer pause-buffer)
-            (goto-char 1)))
+            (goto-char (point-max))))
         (modify-frame-parameters f
                                  (list '(background-color . "orange")
                                        '(left-fringe . 0)
