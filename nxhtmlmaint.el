@@ -344,9 +344,9 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
          (util-dir (file-name-as-directory
                     (expand-file-name "util"
                                       nxhtmlmaint-dir)))
-         (nxhtml-company-dir (file-name-as-directory
-                              (expand-file-name "nxhtml-company-mode"
-                                                util-dir)))
+         ;; (nxhtml-company-dir (file-name-as-directory
+         ;;                      (expand-file-name "nxhtml-company-mode"
+         ;;                                        util-dir)))
          (related-dir (file-name-as-directory
                        (expand-file-name "related"
                                          nxhtmlmaint-dir)))
@@ -359,7 +359,7 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
          )
     (add-to-list 'load-path nxhtml-dir)
     (add-to-list 'load-path util-dir)
-    (add-to-list 'load-path nxhtml-company-dir)
+    ;;(add-to-list 'load-path nxhtml-company-dir)
     (add-to-list 'load-path related-dir)
     (add-to-list 'load-path tests-dir)
     (when (file-directory-p emacsw32-dir)
