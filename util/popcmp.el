@@ -82,7 +82,6 @@
 
 
 
-;;(popcmp-set-completion-style 'company-mode)
 (defun popcmp-set-completion-style (val)
   "Internal use, set `popcmp-completion-style' to VAL."
   (assert (memq val '(popcmp-popup emacs-default company-mode anything)) t)

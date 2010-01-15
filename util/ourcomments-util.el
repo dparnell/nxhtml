@@ -1743,24 +1743,26 @@ with the command \\[tags-loop-continue]."
   (tags-query-replace from to delimited
 		      '(grep-get-buffer-files)))
 
+;;;###autoload
 (defun ldir-query-replace (from to files dir &optional delimited)
   "Replace FROM with TO in FILES in directory DIR.
-This runs `query-replace-regexp' in selected files.
+This runs `query-replace-regexp' in files matching FILES in
+directory DIR.
 
-See `dired-do-query-replace-regexp' for DELIMETED and more
-information."
+See `tags-query-replace' for DELIMETED and more information."
   (interactive (dir-replace-read-parameters nil nil))
   (message "%s" (list from to files dir delimited))
   ;;(let ((files (directory-files root nil file-regexp))) (message "files=%s" files))
   (tags-query-replace from to delimited
                       `(directory-files ,dir t ,files)))
 
+;;;###autoload
 (defun rdir-query-replace (from to file-regexp root &optional delimited)
   "Replace FROM with TO in FILES in directory tree ROOT.
-This runs `query-replace-regexp' in selected files.
+This runs `query-replace-regexp' in files matching FILES in
+directory tree ROOT.
 
-See `dired-do-query-replace-regexp' for DELIMETED and more
-information."
+See `tags-query-replace' for DELIMETED and more information."
   (interactive (dir-replace-read-parameters nil t))
   (message "%s" (list from to file-regexp root delimited))
   ;;(let ((files (directory-files root nil file-regexp))) (message "files=%s" files))
