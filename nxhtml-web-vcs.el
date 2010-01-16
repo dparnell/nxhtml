@@ -252,6 +252,8 @@ Note: If your nXhtml is to old you can't use this function
         (web-vcs-message-with-face 'web-vcs-green "==== Starting nXhtml part by part state ====")
         ;; Fix-me: This can't be done here now. nxhtml-base must be
         ;; downloaded and then nxhtml-install-dir must be set first:
+        (web-vcs-get-missing-matching-files vcs base-url dl-dir "nxhtml-base.el")
+        (load (expand-file-name "nxhtml-base.el" dl-dir))
         (nxhtml-require-base)
         (unless (file-exists-p web-vcs-el)
           (copy-file web-vcs-el-src web-vcs-el))
