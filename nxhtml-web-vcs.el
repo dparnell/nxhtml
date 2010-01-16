@@ -74,7 +74,7 @@
                         nxhtml-install-dir)
                    nxhtml-install-dir
                  (file-name-as-directory
-                  (expand-file-name "nxhtml"
+                  (expand-file-name ""
                                     (web-vcs-default-download-directory)))))
          (full-len (length full)))
     (if (and (> full-len ur-len)
@@ -658,7 +658,9 @@ when you have tested enough."
     (split-window-horizontally)
     (let ((load-path (cons default-directory load-path)))
       (require 'web-vcs))
-    (nxhtml-setup-auto-download "c:/test/d27")))
+    ;(nxhtml-setup-auto-download "c:/test/d27")
+    (call-interactively 'nxhtml-setup-auto-download)
+    ))
 ;;;;;; End Testing function
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
