@@ -222,11 +222,12 @@ Note: If your nXhtml is to old you can't use this function
         (unless (with-no-warnings (called-interactively-p))
           (error "dl-dir should be a directory"))
       (nxhtml-check-convert-to-part-by-part)
-      (when (and (boundp 'nxhtml-install-dir)
-                 nxhtml-install-dir)
-        (unless (string= (file-truename dl-dir)
-                         (file-truename nxhtml-install-dir))
-          (error "Download dir must be same as nxhtml-install-dir=%S" nxhtml-install-dir)))
+      (if (and (boundp 'nxhtml-install-dir)
+               nxhtml-install-dir)
+          (unless (string= (file-truename dl-dir)
+                           (file-truename nxhtml-install-dir))
+            (error "Download dir must be same as nxhtml-install-dir=%S" nxhtml-install-dir))
+        (setq nxhtml-install-dir dl-dir))
       (let* (;; Need some files:
              (web-vcs-el-src (concat (file-name-sans-extension web-vcs-el-this) ".el"))
              (web-vcs-el (expand-file-name (file-name-nondirectory web-vcs-el-src)
@@ -249,6 +250,8 @@ Note: If your nXhtml is to old you can't use this function
         (message "")
         (message "")
         (web-vcs-message-with-face 'web-vcs-green "==== Starting nXhtml part by part state ====")
+        ;; Fix-me: This can't be done here now. nxhtml-base must be
+        ;; downloaded and then nxhtml-install-dir must be set first:
         (nxhtml-require-base)
         (unless (file-exists-p web-vcs-el)
           (copy-file web-vcs-el-src web-vcs-el))
