@@ -406,6 +406,7 @@ command `nxhtml-setup-install'."
       (setq dl-dir (file-name-as-directory dl-dir))
       (web-vcs-update-existing-files vcs base-url dl-dir dl-dir)
       (web-vcs-clear-folder-cache))
+    (nxhtmlmaint-byte-recompile)
     (web-vcs-message-with-face 'web-vcs-yellow "\nFinished updating your nXhtml files.\n")))
 
 
