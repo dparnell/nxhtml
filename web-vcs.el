@@ -1285,9 +1285,10 @@ If LOAD"
 ;; (setq x (web-vcs-url-retrieve-synch "http://emacswiki.org/"))
 (defun web-vcs-url-retrieve-synch (url)
   "Retrieve URL, return cons with buffer and http status."
-  (let ((buffer (url-retrieve-synchronously url))
-	(handle nil)
-        (http-status nil))
+  (let* ((url-show-status nil) ;; just annoying showing status here
+         (buffer (url-retrieve-synchronously url))
+         (handle nil)
+         (http-status nil))
     (if (not buffer)
 	(error "Retrieving url %s gave no buffer" url))
     (with-current-buffer buffer
@@ -2017,6 +2018,9 @@ Download and install nXhtml."
             (message "Aborted")
             (throw 'command-level nil))))
       (message nil)
+      (unless (get-buffer-window "*Messages*")
+        (web-vcs-display-messages t)
+        (delete-other-windows))
       (dolist (file files2)
         (unless (file-exists-p (cdr file))
           (web-vcs-get-missing-matching-files 'lp root-url this-dir (car file))))
