@@ -183,6 +183,7 @@ please see URL `http://ourcomments.org/Emacs/nXhtml/doc/nxhtml.html'."
 
 (defvar nxhtml-basic-files '("web-autoload.el"
                              ;;"nxhtml-auto-helpers.el"
+                             "nxhtml-base.el"
                              "nxhtml-loaddefs.el"
                              "autostart.el"
                              ;;"web-autostart.el"
@@ -348,7 +349,7 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
          (rev-part (if revision (number-to-string revision) "head%3A/"))
          (full-root-url (concat files-url rev-part))
          (web-vcs-folder-cache nil))
-    (nxhtml-require-base)
+    ;;(nxhtml-require-base)
     (when (web-vcs-get-files-from-root 'lp full-root-url dl-dir)
       (web-vcs-set&save-option 'nxhtml-autoload-web nil)
       (when do-byte
