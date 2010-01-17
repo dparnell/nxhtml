@@ -141,13 +141,13 @@
   ;; (unless (featurep 'web-vcs)
   ;;   (load (expand-file-name "web-vcs" nxhtml-install-dir) (not nxhtml-autoload-web)))
 
-  (when (catch 'miss
-          (dolist (file nxhtml-basic-files)
-            (let ((dl-file (expand-file-name file nxhtml-install-dir)))
-              (unless (file-exists-p dl-file)
-                (throw 'miss t))))
-          nil)
-    (nxhtml-setup-auto-download nxhtml-install-dir))
+  ;; (when (catch 'miss
+  ;;         (dolist (file nxhtml-basic-files)
+  ;;           (let ((dl-file (expand-file-name file nxhtml-install-dir)))
+  ;;             (unless (file-exists-p dl-file)
+  ;;               (throw 'miss t))))
+  ;;         nil)
+  ;;   (nxhtml-setup-auto-download nxhtml-install-dir))
 
   (unless (featurep 'web-autoload)
     (load (expand-file-name "web-autoload" nxhtml-install-dir) (not nxhtml-autoload-web)))

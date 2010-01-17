@@ -160,7 +160,7 @@ Update nXhtml autoload file with them."
 Update nXhtml autoload file with them."
   ;;(interactive)
   (if nxhtml-autoload-web
-      (message "Skipping rebuilding autloads, not possible when autoloading from web")
+      (message "Skipping rebuilding autoloads, not possible when autoloading from web")
     (let ((auto-buf (find-file-noselect (nxhtmlmaint-autoloads-file))))
       (with-current-buffer auto-buf
         (erase-buffer)
@@ -366,8 +366,15 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
       (add-to-list 'load-path emacsw32-dir))
     (require 'cl) ;; This is run in a new Emacs
     (let ((dummy-debug-on-error t))
-      (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir nil nil))
-    (message "Byte compiling is ready, restart Emacs to use the compiled files")))
+      (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir nil nil nil))
+    (message "Byte compiling nXhtml is ready, restart Emacs to use the compiled files")))
+
+;;;###autoload
+(defun nxhtmlmaint-byte-recompile ()
+  "Recompile or compile all files in current Emacs."
+  (interactive)
+  (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir nil nil t)
+  (message "Byte recompiling nXhtml ready"))
 
 ;;;###autoload
 (defun nxhtmlmaint-byte-uncompile-all ()
@@ -385,7 +392,7 @@ See `nxhtmlmaint-start-byte-compilation' for byte compiling."
   '("." ".." "alts" "nxml-mode-20041004" "old" "tests" "nxhtml-company-mode"))
 
 ;; Fix-me: simplify this now that nxml is not included
-(defun nxhtmlmaint-byte-compile-dir (dir force del-elc)
+(defun nxhtmlmaint-byte-compile-dir (dir force del-elc load)
   "Byte compile or uncompile directory tree DIR.
 If FORCE is non-nil byte recompile the elisp file even if the
 compiled file is newer.
@@ -404,7 +411,7 @@ then instead delete the compiled files."
           ;;(message "fn=%s" (file-name-nondirectory el-src))
           (when t ;;(string= "nxhtml-menu.el" (file-name-nondirectory el-src))
             (message "(nxhtml-byte-compile-file %s)" el-src)
-            (unless (nxhtml-byte-compile-file el-src)
+            (unless (nxhtml-byte-compile-file el-src load)
               (message "Couldn't compile %s" el-src))
             )
           ))))
@@ -413,7 +420,7 @@ then instead delete the compiled files."
       ;; Fix-me: Avoid some dirs
       (let ((name (file-name-nondirectory f)))
         (unless (member name nxhtmlmaint-nonbyte-compile-dirs)
-          (nxhtmlmaint-byte-compile-dir f force del-elc))))))
+          (nxhtmlmaint-byte-compile-dir f force del-elc load))))))
 
 (provide 'nxhtmlmaint)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

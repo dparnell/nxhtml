@@ -65,8 +65,7 @@
 
 (defgroup web-vcs nil
   "Customization group for web-vcs."
-  :group 'programming
-  :group 'development)
+  :group 'nxhtml)
 
 (defcustom web-vcs-links-regexp
   `(
@@ -219,6 +218,12 @@ Considers site-start.el, site-
   (interactive)
   (find-file web-vcs-log-file))
 
+(defvar web-vcs-log-save-timer nil)
+
+(defun web-vcs-log-save-when-idle ()
+  (when (timerp web-vcs-log-save-timer) (cancel-timer web-vcs-log-save-timer))
+  (run-with-idle-timer 0 nil 'web-vcs-log-save))
+
 (defun web-vcs-log-save ()
   (let ((log-buf (find-buffer-visiting web-vcs-log-file)))
     (when (and log-buf (buffer-modified-p log-buf))
@@ -238,6 +243,8 @@ Considers site-start.el, site-
       (unless (file-directory-p dir)
         (make-directory dir))))
   (with-current-buffer (find-file-noselect web-vcs-log-file)
+    (setq buffer-save-without-query t)
+    (web-vcs-log-save-when-idle)
     (save-restriction
       (widen)
       (let ((today-entries (format-time-string "* %Y-%m-%d"))
@@ -503,8 +510,7 @@ downloading will be made.
 "
   (let ((vcs-rec (or (assq web-vcs web-vcs-links-regexp)
                      (error "Does not know web-cvs %S" web-vcs))))
-    (web-vcs-get-files-on-page-1 vcs-rec url dl-dir "" file-mask 0 nil nil)
-    (web-vcs-log-save)))
+    (web-vcs-get-files-on-page-1 vcs-rec url dl-dir "" file-mask 0 nil nil)))
 
 
 ;; (web-vcs-get-files-on-page 'lp "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/" t "c:/test/temp13/" t)
@@ -545,7 +551,6 @@ a temporary file."
              (t "Server did not respond")))
       (unless dest-file (web-vcs-log url dl-file "TEMP FILE"))
       (web-vcs-log nil nil (format "   *Failed:* %s\n" fail-reason))
-      (web-vcs-log-save) ;; Needed?
       ;; Requires user attention and intervention
       (web-vcs-message-with-face 'web-vcs-red "Download failed: %s, %S" fail-reason url)
       (display-buffer "*Messages*")
@@ -556,7 +561,7 @@ a temporary file."
 
 (defvar web-autoload-temp-file-prefix "TEMPORARY-WEB-AUTO-LOAD-")
 (defvar web-autoload-active-file-sub-url) ;; Dyn var, active during file download check
-(defun web-autload-acvtive ()
+(defun web-autoload-acvtive ()
   (and (boundp 'web-autoload-active-file-sub-url)
        web-autoload-active-file-sub-url))
 
@@ -678,11 +683,10 @@ The buffer URL-BUF should contain the content on page URL."
 This stops the current web autoload processing."
   (interactive)
   ;; Fix-me.
-  (when (y-or-n-p "Stop web autload processing? You can resume it later. ")
+  (when (y-or-n-p "Stop web autoload processing? You can resume it later. ")
     (web-vcs-message-with-face 'web-vcs-red
                                "Stopped autoloading in process. It will be resumed when necessary again.")
     (web-vcs-log nil nil "User stopped autoloading")
-    (web-vcs-log-save)
     (throw 'top-level 'web-autoload-stop)))
 
 (define-minor-mode web-vcs-paranoid-state-mode
@@ -690,15 +694,15 @@ This stops the current web autoload processing."
 Do not turn on this yourself."
   :lighter (concat " " (propertize "Download file check" 'face 'font-lock-warning-face))
   :global t
-  :group 'web-vcs ;; If keymap changing through custom will be supported in the future...
+  :group 'web-vcs
   (or (not web-vcs-paranoid-state-mode)
-      (web-autload-acvtive)
+      (web-autoload-acvtive)
       (error "This mode can't be used when not downloading")))
 
 (defcustom web-autoload-paranoid t
   "Be paranoid and break to check each file after download."
   :type 'boolean
-  :group 'web-autoload)
+  :group 'web-vcs)
 
 (defun web-autoload-continue-no-stop ()
   "Continue web auto download.
@@ -719,7 +723,6 @@ This is used after inspecting downloaded elisp files."
 
 (defun web-vcs-be-paranoid (temp-file file-dl-name file-sub-url)
   "Be paranoid and check FILE-DL-NAME."
-  (web-vcs-log-save)
   (when (or (not (boundp 'web-autoload-paranoid))
             web-autoload-paranoid)
     (save-window-excursion
@@ -764,7 +767,7 @@ This is used after inspecting downloaded elisp files."
                         "\n\nOr, for no more breaks to check files do"
                         (funcall kf-desc 'web-autoload-continue-no-stop))
                      "")
-                   "\n\nTo stop the web autloading process for now do"
+                   "\n\nTo stop the web autoloading process for now do"
                    (funcall kf-desc 'web-autoload-quit-download)
                    "\n\nTo see the log file you can do"
                    (funcall kf-desc 'web-vcs-log-edit)
@@ -1026,7 +1029,7 @@ Return an alist with old attributes."
     ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Web Autload Define
+;;; Web Autoload Define
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Helpers
@@ -1649,7 +1652,7 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
                           (propertize "defined in this file" 'face 'web-vcs-green)
                           )
                          (fun-web-auto
-                          (if (not (web-autload-acvtive))
+                          (if (not (web-autoload-acvtive))
                               (propertize "web download not active" 'face 'web-vcs-yellow)
                             ;; See if file matches
                             (let ((active-sub-url web-autoload-active-file-sub-url)
@@ -1807,7 +1810,7 @@ resulting load-history entry."
                          (when file ;; self protecting
                            (setq file (concat (file-name-sans-extension file) ".el"))
                            (string= (file-truename file) elisp-el-file))))
-         (active-sub-url (when (web-autload-acvtive)
+         (active-sub-url (when (web-autoload-acvtive)
                            (file-name-sans-extension web-autoload-active-file-sub-url)))
          whole-result
          batch-error
