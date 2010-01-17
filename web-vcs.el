@@ -575,6 +575,8 @@ a temporary file."
   (dolist (file (reverse files))
     (let* ((url-file          (nth 0 file))
            (url-file-time-str (nth 1 file))
+           ;; (current-time-string (date-to-time "2010-01-17 21:39:58"))
+           ;; (current-time-string (date-to-time "Sun Jan 17 22:39:58 2010"))
            (url-file-time     (when url-file-time-str (date-to-time url-file-time-str)))
            (url-file-name-regexp  (nth 4 vcs-rec))
            (url-file-rel-name (progn
@@ -587,13 +589,20 @@ a temporary file."
            (file-name (file-name-nondirectory dl-file-name))
            (temp-file (expand-file-name (concat web-autoload-temp-file-prefix file-name) dl-dir))
            temp-buf)
-      ;; Convert dl-file-time to GMT
-      (setq dl-file-time (time-subtract dl-file-time
-                                        (seconds-to-time (car (current-time-zone)))))
+      ;; Convert dl-file-time to GMT (but avoid current bug)
+      (when (string= "Sun Jan 17 22:39:58 2010"
+                     (current-time-string (date-to-time "Sun Jan 17 22:39:58 2010")))
+        (setq dl-file-time (time-subtract dl-file-time
+                                          (seconds-to-time (car (current-time-zone))))))
       (cond
        ((and file-mask (not (web-vcs-match-folderwise file-mask file-rel-name))))
        ((and dl-file-time
              url-file-time
+             (progn
+               (message "dl-file-time =%s" (when dl-file-time (current-time-string dl-file-time)))
+               (message "url-file-time=%s" (when url-file-time (current-time-string url-file-time)))
+               (message "url-file-tstr=%s" (when url-file-time url-file-time-str))
+               t)
              (time-less-p url-file-time
                           (time-add dl-file-time (seconds-to-time 1))))
         (web-vcs-message-with-face 'web-vcs-green "Local file %s is newer or same age" file-rel-name))
