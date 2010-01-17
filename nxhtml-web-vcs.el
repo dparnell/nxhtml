@@ -396,9 +396,10 @@ For more information about installing and updating nXhtml see the
 command `nxhtml-setup-install'."
   ;; Fix-me: download new files too if you are not auto downloading.
   (interactive)
-  (when (y-or-n-p "Do you want to update your nXhtml files?")
+  (when (y-or-n-p "Do you want to update your nXhtml files? ")
     (message "")
     (web-vcs-message-with-face 'web-vcs-yellow "*\nStarting updating your nXhtml files.\n*\n")
+    (web-vcs-clear-folder-cache)
     (let ((vcs 'lp)
           (base-url (nxhtml-download-root-url nil))
           (dl-dir nxhtml-install-dir)
