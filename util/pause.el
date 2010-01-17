@@ -238,7 +238,6 @@
       (remove-hook 'window-configuration-change-hook 'pause-break-exit)
       ;;(set-frame-parameter nil 'background-color "white")
       (kill-buffer pause-buffer)
-      (set-face-attribute 'mode-line nil :background old-mode-line-bg)
       (dolist (f (frame-list))
         (set-frame-parameter f 'background-color
                              (cdr (assq f old-frame-bg-color)))
@@ -253,7 +252,10 @@
         (set-frame-parameter f 'vertical-scroll-bars
                              (cdr (assq f old-frame-vertical-scroll-bars)))
         )
-      (set-frame-configuration wcfg))))
+      ;; Fix-me: The frame grows unless we do redisplay here:
+      (redisplay t)
+      (set-frame-configuration wcfg)
+      (set-face-attribute 'mode-line nil :background old-mode-line-bg))))
 
 
 (defun pause-break-show ()

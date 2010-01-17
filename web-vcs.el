@@ -862,11 +862,7 @@ entry says so."
                   (progn
                     (web-vcs-message-with-face 'font-lock-comment-face "Start byte compiling %S" el-file)
                     (web-vcs-message-with-face 'web-vcs-pink "Compiling QUEUE: %S" web-autoload-compile-queue)
-                    ;;(when (ad-is-advised 'require) (ad-disable-advice 'require 'around 'web-autoload-ad-require))
-                    ;; Fix-me: different byte-compile commands for different packages:
-                    ;;(let ((web-autoload-skip-require-advice t)) (nxhtml-byte-compile-file el-file load))
                     (let ((web-autoload-skip-require-advice t)) (funcall comp-fun el-file load))
-                    ;;(when (ad-is-advised 'require) (ad-enable-advice 'require 'around 'web-autoload-ad-require))
                     (web-vcs-message-with-face 'font-lock-comment-face "Ready byte compiling %S" el-file)
                     ;; Return nil to tell there are no known problems
                     (if (file-exists-p elc-file)
