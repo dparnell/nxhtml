@@ -285,8 +285,9 @@ Note: If your nXhtml is to old you can't use this function
             (web-vcs-log nil nil "* nXhtml: Download Part by Part as Needed\n")
             (load autostart-file)
             (unless (ad-is-active 'require) (ad-activate 'require))
-            (select-window (get-buffer-window "*Messages*"))
+            (web-vcs-log-save)
             (web-vcs-message-with-face 'web-vcs-green "==== Basic files for nXhtml part by part are now installed ====")
+            (web-vcs-display-messages t)
             (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file t))))))))
 
 ;;(call-interactively 'nxhtml-download)
@@ -506,8 +507,6 @@ Loading is done if recompiled and LOAD is t."
   (require 'cus-edit)
   (if (not (condition-case nil (custom-file) (error nil)))
       (progn
-        (display-buffer "*Messages*")
-        (select-window (get-buffer-window "*Messages*"))
         (message "\n\n")
         (web-vcs-message-with-face
          'web-vcs-red
@@ -523,7 +522,8 @@ Loading is done if recompiled and LOAD is t."
                    )
                  "\n")
          file-to-load)
-        (message ""))
+        (message "")
+        (web-vcs-display-messages t))
     (let ((prompt (concat "Basic setup of nXhtml is done, but it must be loaded from (custom-file)."
                           "\nShould I add loading of nXhtml to (custom-file) for you? ")))
       (if (yes-or-no-p prompt)
@@ -568,9 +568,8 @@ Loading is done if recompiled and LOAD is t."
                           (delete-region start (point))
                           (insert (format "%S" full-to-load))
                           (basic-save-buffer))
-                      (display-buffer "*Messages*")
-                      (select-window (get-buffer-window "*Messages*"))
                       (web-vcs-message-with-face 'web-vcs-red "Can't continue then")
+                      (web-vcs-display-messages t)
                       (throw 'command-level nil)))))))
           ;; At end of file
           (insert (format "\n(load  %S)\n" file-to-load))
