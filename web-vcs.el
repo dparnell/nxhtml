@@ -634,6 +634,10 @@ a temporary file."
             ;; believe that is a very good thing here.
             (web-vcs-be-paranoid temp-file dl-file-name file-rel-name)
             (rename-file temp-file dl-file-name)
+            (let ((buf (find-buffer-visiting dl-file-name)))
+              (when buf
+                (with-current-buffer buf
+                  (revert-buffer nil t t))))
             (when url-file-time (set-file-times dl-file-name url-file-time))
             (if dl-file-time
                 (web-vcs-message-with-face 'web-vcs-yellow "Updated %S" dl-file-name)
