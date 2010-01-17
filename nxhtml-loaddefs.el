@@ -1354,18 +1354,18 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 
 ;;;### (autoloads (ourcomments-warning ourcomments-M-x-menu-mode
 ;;;;;;  ourcomments-paste-with-convert-mode use-custom-style info-open-file
-;;;;;;  replace-read-files grep-query-replace emacs-Q-nxhtml emacs-Q
-;;;;;;  emacs--no-desktop emacs--debug-init emacs-buffer-file emacs
-;;;;;;  emacs-restart ourcomments-ido-ctrl-tab ourcomments-ido-buffer-raise-frame
-;;;;;;  ourcomments-ido-buffer-other-frame ourcomments-ido-buffer-other-window
-;;;;;;  describe-symbol describe-defstruct describe-custom-group
-;;;;;;  narrow-to-comment buffer-narrowed-p describe-command ourcomments-ediff-files
-;;;;;;  find-emacs-other-file better-fringes-mode describe-key-and-map-briefly
-;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
-;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
-;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
-;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19280 32971))
+;;;;;;  replace-read-files rdir-query-replace ldir-query-replace
+;;;;;;  grep-query-replace emacs-Q-nxhtml emacs-Q emacs--no-desktop
+;;;;;;  emacs--debug-init emacs-buffer-file emacs emacs-restart ourcomments-ido-ctrl-tab
+;;;;;;  ourcomments-ido-buffer-raise-frame ourcomments-ido-buffer-other-frame
+;;;;;;  ourcomments-ido-buffer-other-window describe-symbol describe-defstruct
+;;;;;;  describe-custom-group narrow-to-comment buffer-narrowed-p
+;;;;;;  describe-command ourcomments-ediff-files find-emacs-other-file
+;;;;;;  better-fringes-mode describe-key-and-map-briefly ourcomments-move-end-of-line
+;;;;;;  ourcomments-move-beginning-of-line ourcomments-mark-whole-buffer-or-field
+;;;;;;  fill-dwim unfill-individual-paragraphs unfill-region unfill-paragraph
+;;;;;;  define-toggle-old define-toggle popup-menu-at-point ourcomments-indirect-fun)
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19282 22905))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1431,8 +1431,9 @@ Unfill individual paragraphs in the current region.
 
 (nxhtml-autoload 'fill-dwim `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Fill or unfill paragraph or region.
+With prefix ARG fill only current line.
 
-\(fn)" t nil)
+\(fn ARG)" t nil)
 
 (nxhtml-autoload 'ourcomments-mark-whole-buffer-or-field `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Mark whole buffer or editable field at point.
@@ -1637,6 +1638,24 @@ If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue].
 
 \(fn FROM TO &optional DELIMITED)" t nil)
+
+(nxhtml-autoload 'ldir-query-replace `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Replace FROM with TO in FILES in directory DIR.
+This runs `query-replace-regexp' in files matching FILES in
+directory DIR.
+
+See `tags-query-replace' for DELIMETED and more information.
+
+\(fn FROM TO FILES DIR &optional DELIMITED)" t nil)
+
+(nxhtml-autoload 'rdir-query-replace `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Replace FROM with TO in FILES in directory tree ROOT.
+This runs `query-replace-regexp' in files matching FILES in
+directory tree ROOT.
+
+See `tags-query-replace' for DELIMETED and more information.
+
+\(fn FROM TO FILE-REGEXP ROOT &optional DELIMITED)" t nil)
 
 (nxhtml-autoload 'replace-read-files `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Read files arg for replace.
@@ -3431,7 +3450,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (nxml-where-global-mode nxml-where-mode nxml-where)
-;;;;;;  "nxml-where" "nxhtml/nxml-where.el" (19277 42363))
+;;;;;;  "nxml-where" "nxhtml/nxml-where.el" (19282 28872))
 ;;; Generated autoloads from nxhtml/nxml-where.el
 (web-autoload-require 'nxml-where 'lp '(nxhtml-download-root-url nil) "nxhtml/nxml-where" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3680,7 +3699,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19280 22182))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19280 60049))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3894,7 +3913,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;### (autoloads (web-vcs-investigate-elisp-file web-vcs-byte-compile-file
 ;;;;;;  web-vcs-get-files-from-root web-vcs-default-download-directory)
-;;;;;;  "web-vcs" "web-vcs.el" (19280 32499))
+;;;;;;  "web-vcs" "web-vcs.el" (19282 36555))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3933,8 +3952,9 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-start-byte-compilation)
-;;;;;;  "nxhtmlmaint" "nxhtmlmaint.el" (19280 36788))
+;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-byte-recompile
+;;;;;;  nxhtmlmaint-start-byte-compilation) "nxhtmlmaint" "nxhtmlmaint.el"
+;;;;;;  (19282 35294))
 ;;; Generated autoloads from nxhtmlmaint.el
 (web-autoload-require 'nxhtmlmaint 'lp '(nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3950,6 +3970,11 @@ You must restart Emacs to use the byte compiled files.
 
 If for some reason the byte compiled files does not work you can
 remove then with `nxhtmlmaint-byte-uncompile-all'.
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'nxhtmlmaint-byte-recompile `(lp '(nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir) "\
+Recompile or compile all files in current Emacs.
 
 \(fn)" t nil)
 
@@ -4033,14 +4058,14 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19280 36802 250000))
+;;;;;;  "web-autoload.el") (19282 64123 875000))
 
 ;;;***
 
-;;;### (autoloads (nxhtml-byte-recompile-file nxhtml-get-missing-files
-;;;;;;  nxhtml-update-existing-files nxhtml-setup-download-all nxhtml-setup-auto-download
-;;;;;;  nxhtml-setup-install) "nxhtml-web-vcs" "nxhtml-web-vcs.el"
-;;;;;;  (19278 29949))
+;;;### (autoloads (nxhtml-byte-recompile-file nxhtml-byte-compile-file
+;;;;;;  nxhtml-get-missing-files nxhtml-update-existing-files nxhtml-setup-download-all
+;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install) "nxhtml-web-vcs"
+;;;;;;  "nxhtml-web-vcs.el" (19282 64108))
 ;;; Generated autoloads from nxhtml-web-vcs.el
 (web-autoload-require 'nxhtml-web-vcs 'lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4139,6 +4164,11 @@ command `nxhtml-setup-install'.
 Not documented
 
 \(fn SUB-DIR FILE-NAME-LIST)" nil nil)
+
+(nxhtml-autoload 'nxhtml-byte-compile-file `(lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir) "\
+Not documented
+
+\(fn FILE &optional LOAD)" nil nil)
 
 (nxhtml-autoload 'nxhtml-byte-recompile-file `(lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir) "\
 Byte recompile FILE file if necessary.

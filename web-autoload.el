@@ -47,6 +47,11 @@
 ;;(eval-when-compile (require 'web-vcs)) ;; Gives recursion
 (eval-when-compile (require 'nxhtml-base))
 
+(defcustom web-autoload-autocompile t
+  "Byt compile downloaded files if t."
+  :type 'boolean
+  :group 'web-vcs)
+
 (defun web-autoload (fun src docstring interactive type)
   "Set up FUN to be autoloaded from SRC.
 This works similar to `autoload' and the arguments DOCSTRING,
@@ -85,11 +90,6 @@ directly, otherwise download it first."
 (defun web-autoload-default-filename-element ()
   ;; Fix-me: el or elc?
   (expand-file-name "nxhtml-loaddefs.elc" nxhtml-install-dir))
-
-(defcustom web-autoload-autocompile t
-  "Byt compile downloaded files if t."
-  :type 'boolean
-  :group 'web-autoload)
 
 ;; Fix-me: change name
 (defvar web-autoload-skip-require-advice nil)

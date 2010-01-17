@@ -181,14 +181,14 @@ please see URL `http://ourcomments.org/Emacs/nXhtml/doc/nxhtml.html'."
     ((eq nil way) nil)
     (t (error "Unknown way = %S" way))))
 
-(defvar nxhtml-basic-files '("web-autoload.el"
-                             ;;"nxhtml-auto-helpers.el"
+(defvar nxhtml-basic-files '(
                              "nxhtml-base.el"
                              "nxhtml-loaddefs.el"
-                             "autostart.el"
-                             ;;"web-autostart.el"
+                             "web-autoload.el"
                              "etc/schema/schema-path-patch.el"
-                             "nxhtml/nxhtml-autoload.el"))
+                             "nxhtml/nxhtml-autoload.el"
+                             "autostart.el"
+                             ))
 
 ;;;###autoload
 (defun nxhtml-setup-auto-download (dl-dir)
@@ -287,8 +287,7 @@ Note: If your nXhtml is to old you can't use this function
             (unless (ad-is-active 'require) (ad-activate 'require))
             (select-window (get-buffer-window "*Messages*"))
             (web-vcs-message-with-face 'web-vcs-green "==== Basic files for nXhtml part by part are now installed ====")
-            (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file t)))))))
-  (web-vcs-log-save))
+            (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file t))))))))
 
 ;;(call-interactively 'nxhtml-download)
 ;;;###autoload
@@ -333,8 +332,7 @@ For more information about auto download of nXhtml files see
         (let ((do-byte (y-or-n-p "Do you want to byte compile the files after downloading? "))
               ;; Don't stop for each file:
               (web-autoload-paranoid nil))
-          (nxhtml-download-1 dl-dir nil do-byte)))))
-  (web-vcs-log-save))
+          (nxhtml-download-1 dl-dir nil do-byte))))))
 
 
 (defun nxhtml-download-1 (dl-dir revision do-byte)
@@ -404,8 +402,7 @@ command `nxhtml-setup-install'."
       (setq dl-dir (file-name-as-directory dl-dir))
       (web-vcs-update-existing-files vcs base-url dl-dir dl-dir)
       (web-vcs-clear-folder-cache))
-    (web-vcs-message-with-face 'web-vcs-yellow "\n\nFinished updating your nXhtml files.\n\n")
-    (web-vcs-log-save)))
+    (web-vcs-message-with-face 'web-vcs-yellow "\n\nFinished updating your nXhtml files.\n\n")))
 
 
 ;;(nxhtml-maybe-download-files (expand-file-name "nxhtml/doc/img/" nxhtml-install-dir) nil)
@@ -450,6 +447,7 @@ command `nxhtml-setup-install'."
       (when (re-search-forward rel-ver-regexp nil t)
         (match-string 1)))))
 
+;;;###autoload
 (defun nxhtml-byte-compile-file (file &optional load)
   (let ((extra-load-path (when nxhtml-install-dir
                            (mapcar (lambda (p)
