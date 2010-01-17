@@ -581,11 +581,15 @@ a temporary file."
                                 (when (string-match url-file-name-regexp url-file)
                                   (match-string 1 url-file))))
            (dl-file-name (expand-file-name url-file-rel-name dl-dir))
+           ;; (nth 5 (file-attributes "c:/test/d27/nxhtml/web-vcs.el"))
            (dl-file-time (nth 5 (file-attributes dl-file-name)))
            (file-rel-name (file-relative-name dl-file-name dl-root))
            (file-name (file-name-nondirectory dl-file-name))
            (temp-file (expand-file-name (concat web-autoload-temp-file-prefix file-name) dl-dir))
            temp-buf)
+      ;; Convert dl-file-time to GMT
+      (setq dl-file-time (time-subtract dl-file-time
+                                        (seconds-to-time (car (current-time-zone)))))
       (cond
        ((and file-mask (not (web-vcs-match-folderwise file-mask file-rel-name))))
        ((and dl-file-time
