@@ -598,11 +598,11 @@ a temporary file."
        ((and file-mask (not (web-vcs-match-folderwise file-mask file-rel-name))))
        ((and dl-file-time
              url-file-time
-             (progn
-               (message "dl-file-time =%s" (when dl-file-time (current-time-string dl-file-time)))
-               (message "url-file-time=%s" (when url-file-time (current-time-string url-file-time)))
-               (message "url-file-tstr=%s" (when url-file-time url-file-time-str))
-               t)
+             ;; (progn
+             ;;   (message "dl-file-time =%s" (when dl-file-time (current-time-string dl-file-time)))
+             ;;   (message "url-file-time=%s" (when url-file-time (current-time-string url-file-time)))
+             ;;   (message "url-file-tstr=%s" (when url-file-time url-file-time-str))
+             ;;   t)
              (time-less-p url-file-time
                           (time-add dl-file-time (seconds-to-time 1))))
         (web-vcs-message-with-face 'web-vcs-green "Local file %s is newer or same age" file-rel-name))
