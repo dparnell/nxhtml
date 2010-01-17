@@ -511,7 +511,7 @@ Loading is done if recompiled and LOAD is t."
         (web-vcs-message-with-face
          'web-vcs-red
          (concat "Since you have started this Emacs session without running your init files"
-                 "\nthe installation can not do the part that does the init file setup."
+                 "\nthey are unknown and the installation can not add the statement below."
                  "\nTo finish the setup of nXhtml you must add"
                  "\n\n  (load %S)"
                  "\n\nto your custom-file if you have not done it yet."

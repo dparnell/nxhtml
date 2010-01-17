@@ -428,6 +428,7 @@ If TEST is non-nil then do not download, just list the files"
          (temp-file-base (expand-file-name "web-vcs-temp-list.tmp" dl-dir))
          temp-list-file
          temp-list-buf
+         folder-res
          http-sts)
     ;; Fix-me: It looks like there is maybe a bug in url-copy-file so
     ;; that it runs synchronously. Try to workaround the problem by
@@ -438,12 +439,18 @@ If TEST is non-nil then do not download, just list the files"
     (setq temp-list-file (make-temp-name temp-file-base))
     (setq temp-list-buf (web-vcs-ass-folder-cache url))
     (unless temp-list-buf
-      (setq temp-list-buf (generate-new-buffer "web-wcs-folder"))
-      (web-vcs-url-copy-file-and-check url temp-list-file nil)
-      (with-current-buffer temp-list-buf
-        (insert-file-contents temp-list-file)))
-    (with-current-buffer temp-list-buf
-      (delete-file temp-list-file)
+      ;;(setq temp-list-buf (generate-new-buffer "web-wcs-folder"))
+      ;;(web-vcs-url-copy-file-and-check url temp-list-file nil)
+      (setq folder-res (web-vcs-url-retrieve-synch url))
+      ;; (with-current-buffer temp-list-buf
+      ;;   (insert-file-contents temp-list-file))
+      (unless (memq (cdr folder-res) '(200 201))
+        (web-vcs-message-with-face 'web-vcs-red "Could not get %S" url)
+          (web-vcs-display-messages t)
+        (throw 'command-level nil)))
+    ;;(with-current-buffer temp-list-buf
+    (with-current-buffer (car folder-res)
+      ;;(delete-file temp-list-file)
       ;;(find-file-noselect temp-list-file)
       (when dl-revision
         (setq this-page-revision (web-vcs-get-revision-from-url-buf vcs-rec (current-buffer) url)))
@@ -1274,6 +1281,33 @@ If LOAD"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Temporary helpers, possibly included in Emacs
+
+;; (setq x (web-vcs-url-retrieve-synch "http://emacswiki.org/"))
+(defun web-vcs-url-retrieve-synch (url)
+  "Retrieve URL, return cons with buffer and http status."
+  (let ((buffer (url-retrieve-synchronously url))
+	(handle nil)
+        (http-status nil))
+    (if (not buffer)
+	(error "Retrieving url %s gave no buffer" url))
+    (with-current-buffer buffer
+      (if (= 0 (buffer-size))
+          (progn
+            (kill-buffer)
+            nil)
+        (require 'url-http)
+        (setq http-status (url-http-parse-response))
+        (if (memq http-status '(200 201))
+            (progn
+              (goto-char (point-min))
+              (unless (search-forward "\n\n" nil t)
+                (error "Could not find header end in buffer for %s" url))
+              (delete-region (point-min) (point))
+              (set-buffer-modified-p nil)
+              (goto-char (point-min)))
+          (kill-buffer buffer)
+          (setq buffer nil))))
+    (cons buffer http-status)))
 
 ;; Modified just to return http status
 (defun web-vcs-url-copy-file (url newname &optional ok-if-already-exists
