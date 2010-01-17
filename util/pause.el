@@ -221,7 +221,8 @@
       (add-to-list 'old-frame-menu-bar-lines (cons f (frame-parameter f 'menu-bar-lines)))
       (add-to-list 'old-frame-vertical-scroll-bars (cons f (frame-parameter f 'vertical-scroll-bars))))
 
-    (run-with-idle-timer 0 nil 'pause-break-show)
+    ;; Fix-me: Something goes wrong witht the window configuration, try a short pause
+    (run-with-idle-timer 0.2 nil 'pause-break-show)
     (setq pause-break-exit-active nil)
     (unwind-protect
         (let ((n 0))

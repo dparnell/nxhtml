@@ -981,8 +981,7 @@ entry says so."
                         (setq base-url (eval base-url))
                         ;; Download and try again
                         (setq relative-url (concat relative-url ".el"))
-                        ;;(web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s (%S %S => %S)" feature base-url relative-url base-dir)
-                        (web-vcs-message-with-face 'web-vcs-green "Need to download feature %s" feature)
+                        (web-vcs-message-with-face 'web-vcs-green "Need to download feature '%s" feature)
                         (catch 'web-autoload-comp-restart
                           (web-vcs-get-missing-matching-files web-vcs base-url base-dir relative-url)))
                       (set-buffer our-buffer) ;; Before we load..
