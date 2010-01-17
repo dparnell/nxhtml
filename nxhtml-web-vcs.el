@@ -398,7 +398,7 @@ command `nxhtml-setup-install'."
   (interactive)
   (when (y-or-n-p "Do you want to update your nXhtml files?")
     (message "")
-    (web-vcs-message-with-face 'web-vcs-yellow "\n\nStarting updating your nXhtml files.\n\n")
+    (web-vcs-message-with-face 'web-vcs-yellow "\nStarting updating your nXhtml files.\n")
     (let ((vcs 'lp)
           (base-url (nxhtml-download-root-url nil))
           (dl-dir nxhtml-install-dir)
@@ -406,7 +406,7 @@ command `nxhtml-setup-install'."
       (setq dl-dir (file-name-as-directory dl-dir))
       (web-vcs-update-existing-files vcs base-url dl-dir dl-dir)
       (web-vcs-clear-folder-cache))
-    (web-vcs-message-with-face 'web-vcs-yellow "\n\nFinished updating your nXhtml files.\n\n")))
+    (web-vcs-message-with-face 'web-vcs-yellow "\nFinished updating your nXhtml files.\n")))
 
 
 ;;(nxhtml-maybe-download-files (expand-file-name "nxhtml/doc/img/" nxhtml-install-dir) nil)

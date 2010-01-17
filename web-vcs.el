@@ -624,6 +624,7 @@ a temporary file."
                 (save-buffer))))
           (if (and dl-file-time (web-vcs-equal-files dl-file-name temp-file))
               (progn
+                (delete-file temp-file)
                 (when url-file-time (set-file-times dl-file-name url-file-time))
                 (web-vcs-message-with-face 'web-vcs-green "File %S was ok" dl-file-name))
             (when dl-file-time
