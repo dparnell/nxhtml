@@ -49,18 +49,18 @@
 (eval-when-compile (require 'nxhtmlmaint nil t))
 (eval-when-compile (require 'web-vcs nil t))
 
-(defvar nxhtml-web-vcs-dir
-  (let ((this-file (or load-file-name
-                       (when (boundp 'bytecomp-filename) bytecomp-filename)
-                       buffer-file-name)))
-    (file-name-directory this-file)))
+(defvar nxhtml-web-vcs-file (or load-file-name
+                                (when (boundp 'bytecomp-filename) bytecomp-filename)
+                                buffer-file-name)
+  "This file.")
 
 (defun nxhtml-require-base ()
   (require 'nxhtml-base nil t)
   (unless (featurep 'nxhtml-base)
     ;; At startup, need to load it by hand.
-    (add-to-list 'load-path nxhtml-web-vcs-dir)
-    (require 'nxhtml-base)))
+    (let ((load-path load-path))
+      (add-to-list 'load-path (file-name-directory nxhtml-web-vcs-file))
+      (require 'nxhtml-base))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Repository URL
@@ -181,6 +181,14 @@ please see URL `http://ourcomments.org/Emacs/nXhtml/doc/nxhtml.html'."
     ((eq nil way) nil)
     (t (error "Unknown way = %S" way))))
 
+(defvar nxhtml-basic-files '("web-autoload.el"
+                             ;;"nxhtml-auto-helpers.el"
+                             "nxhtml-loaddefs.el"
+                             "autostart.el"
+                             ;;"web-autostart.el"
+                             "etc/schema/schema-path-patch.el"
+                             "nxhtml/nxhtml-autoload.el"))
+
 ;;;###autoload
 (defun nxhtml-setup-auto-download (dl-dir)
   "Set up to autoload nXhtml files from the web.
@@ -250,30 +258,22 @@ Note: If your nXhtml is to old you can't use this function
         (message "")
         (message "")
         (web-vcs-message-with-face 'web-vcs-green "==== Starting nXhtml part by part state ====")
-        ;; Fix-me: This can't be done here now. nxhtml-base must be
-        ;; downloaded and then nxhtml-install-dir must be set first:
-        (web-vcs-get-missing-matching-files vcs base-url dl-dir "nxhtml-base.el")
-        (load (expand-file-name "nxhtml-base.el" dl-dir))
-        (nxhtml-require-base)
-        (unless (file-exists-p web-vcs-el)
-          (copy-file web-vcs-el-src web-vcs-el))
-        (when byte-comp
-          ;; Fix-me: check age
-          (web-vcs-byte-compile-newer-file web-vcs-el t))
+        ;; Fix-me: First copy this file and web-vcs.el to its destination:
+        (unless (string= (file-truename dl-dir)
+                         (file-truename (file-name-directory nxhtml-web-vcs-file)))
+          (dolist (f (list web-vcs-el-src nxhtml-web-vcs-file))
+            (copy-file f (expand-file-name (file-name-nondirectory f) dl-dir)
+                       'ok-overwrite)))
+        (when byte-comp (web-vcs-byte-compile-newer-file web-vcs-el t))
+        ;; Get basic file list:
         (catch 'web-autoload-comp-restart
-          (dolist (file nxhtml-basic-files)
-            (let ((dl-file (expand-file-name file dl-dir)))
-              (unless (file-exists-p dl-file)
-                (web-vcs-get-missing-matching-files vcs base-url dl-dir file))))
-          ;; Autostart.el has not run yet, add current dir to load-path.
+          (let ((file-mask (regexp-opt nxhtml-basic-files)))
+            (web-vcs-get-missing-matching-files vcs base-url dl-dir file-mask))
+          ;; Autostart.el has not run yet, add download dir to load-path.
           (let ((load-path (cons (file-name-directory web-vcs-el) load-path)))
             (when byte-comp
               (dolist (file nxhtml-basic-files)
                 (let ((el-file (expand-file-name file dl-dir)))
-                  ;; Fix-me: check age
-                  ;;(message "maybe bytecomp %S" el-file)
-                  (when (boundp 'majmodpri-sort-after-load)
-                    (message "majmodpri-sort-after-load =%S" majmodpri-sort-after-load))
                   (web-vcs-byte-compile-newer-file el-file nil)))))
           (let ((autostart-file (expand-file-name "autostart" dl-dir)))
             ;;(ad-deactivate 'require)
@@ -281,7 +281,6 @@ Note: If your nXhtml is to old you can't use this function
             (web-vcs-log nil nil "* nXhtml: Download Part by Part as Needed\n")
             (load autostart-file)
             (unless (ad-is-active 'require) (ad-activate 'require))
-            (display-buffer "*Messages*")
             (select-window (get-buffer-window "*Messages*"))
             (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file t)))))))
   (web-vcs-log-save))
