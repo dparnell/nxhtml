@@ -57,14 +57,6 @@
                            buffer-file-name))
   "Installation directory for nXhtml.")
 
-(defvar nxhtml-basic-files '("web-autoload.el"
-                             ;;"nxhtml-auto-helpers.el"
-                             "nxhtml-loaddefs.el"
-                             "autostart.el"
-                             ;;"web-autostart.el"
-                             "etc/schema/schema-path-patch.el"
-                             "nxhtml/nxhtml-autoload.el"))
-
 (define-minor-mode nxhtml-autoload-web
   "If on download elisp files from web when they are needed.
 If t then during `require' nXhtml elisp files can be downloaded

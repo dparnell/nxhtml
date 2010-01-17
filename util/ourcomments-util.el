@@ -404,10 +404,12 @@ To create a menu item something similar to this can be used:
 (defvar fill-dwim-mark nil)
 
 ;;;###autoload
-(defun fill-dwim ()
-  "Fill or unfill paragraph or region."
-  (interactive)
-  (or (not fill-dwim-mark)
+(defun fill-dwim (arg)
+  "Fill or unfill paragraph or region.
+With prefix ARG fill only current line."
+  (interactive "P")
+  (or arg
+      (not fill-dwim-mark)
       (equal (point-marker) fill-dwim-mark)
       (setq fill-dwim-state nil))
   (if mark-active
@@ -417,11 +419,14 @@ To create a menu item something similar to this can be used:
             (call-interactively 'unfill-region)
           (call-interactively 'fill-region))
         (setq deactivate-mark nil))
-    (if fill-dwim-state
-        (call-interactively 'unfill-paragraph)
-      (call-interactively 'fill-paragraph)))
+    (if arg
+        (fill-region (line-beginning-position) (line-end-position))
+      (if fill-dwim-state
+          (call-interactively 'unfill-paragraph)
+        (call-interactively 'fill-paragraph))))
   (setq fill-dwim-mark (copy-marker (point)))
-  (setq fill-dwim-state (not fill-dwim-state)))
+  (unless arg
+    (setq fill-dwim-state (not fill-dwim-state))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Widgets
