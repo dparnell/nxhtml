@@ -320,16 +320,18 @@ If TEST is non-nil then do not download, just list the files."
             (mkdir dl-dir t)
           (message "Can't download then")
           (throw 'command-level nil)))
-      (let ((old-win (selected-window)))
-        (unless (eq (get-buffer "*Messages*") (window-buffer old-win))
-          (switch-to-buffer-other-window "*Messages*"))
-        (goto-char (point-max))
-        (insert "\n")
-        (insert (propertize (format "\n\nWeb-Vcs Download: %S\n" url) 'face 'web-vcs-gold))
-        (insert "\n")
-        (redisplay t)
-        (set-window-point (selected-window) (point-max))
-        (select-window old-win))
+      ;; (let ((old-win (selected-window)))
+      ;;   (unless (eq (get-buffer "*Messages*") (window-buffer old-win))
+      ;;     (switch-to-buffer-other-window "*Messages*"))
+      ;;   (goto-char (point-max))
+      ;;   (insert "\n")
+      ;;   (insert (propertize (format "\n\nWeb-Vcs Download: %S\n" url) 'face 'web-vcs-gold))
+      ;;   (insert "\n")
+      ;;   (redisplay t)
+      ;;   (set-window-point (selected-window) (point-max))
+      ;;   (select-window old-win))
+      (web-vcs-message-with-face 'web-vcs-gold (format "\n\nWeb-Vcs Download: %S\n" url))
+      (web-vcs-display-messages nil)
       (let* ((rev-file (expand-file-name "web-vcs-revision.txt" dl-dir))
              (rev-buf (find-file-noselect rev-file))
              ;; Fix-me: Per web vcs speficier.
@@ -430,8 +432,7 @@ If TEST is non-nil then do not download, just list the files"
     ;; Fix-me: It looks like there is maybe a bug in url-copy-file so
     ;; that it runs synchronously. Try to workaround the problem by
     ;; making a new file temp file name.
-    (display-buffer "*Messages*")
-    (select-window (get-buffer-window "*Messages*"))
+    (web-vcs-display-messages nil)
     (unless (file-directory-p dl-dir) (make-directory dl-dir t))
     ;;(message "TRACE: dl-dir=%S" dl-dir)
     (setq temp-list-file (make-temp-name temp-file-base))
@@ -448,10 +449,9 @@ If TEST is non-nil then do not download, just list the files"
         (setq this-page-revision (web-vcs-get-revision-from-url-buf vcs-rec (current-buffer) url)))
       (when dl-revision
         (unless (string= dl-revision this-page-revision)
-          (display-buffer "*Messages*")
-          (select-window (get-buffer-window "*Messages*"))
           (web-vcs-message-with-face 'web-vcs-red "Revision on %S is %S, but should be %S"
                                      url this-page-revision dl-revision)
+          (web-vcs-display-messages t)
           (throw 'command-level nil)))
       ;; Find files
       (goto-char (point-min))
@@ -534,8 +534,7 @@ a temporary file."
         (file-nonempty nil)
         (fail-reason nil))
     (when dest-file (web-vcs-log url dest-file nil))
-    (display-buffer "*Messages*")
-    (select-window (get-buffer-window "*Messages*"))
+    (web-vcs-display-messages nil)
     ;;(message "before url-copy-file %S" dl-file)
     (setq http-sts (web-vcs-url-copy-file url dl-file nil t)) ;; don't overwrite, keep time
     ;;(message "after  url-copy-file %S" dl-file)
@@ -553,8 +552,7 @@ a temporary file."
       (web-vcs-log nil nil (format "   *Failed:* %s\n" fail-reason))
       ;; Requires user attention and intervention
       (web-vcs-message-with-face 'web-vcs-red "Download failed: %s, %S" fail-reason url)
-      (display-buffer "*Messages*")
-      (select-window (get-buffer-window "*Messages*"))
+      (web-vcs-display-messages t)
       (message "\n")
       (web-vcs-message-with-face 'web-vcs-yellow "Please retry what you did before!\n")
       (throw 'command-level nil))))
@@ -593,9 +591,9 @@ a temporary file."
         (while (setq temp-buf (find-buffer-visiting temp-file))
           (set-buffer-modified-p nil) (kill-buffer temp-buf))
         (when (file-exists-p temp-file) (delete-file temp-file))
-        (web-vcs-message-with-face 'font-lock-comment-face "Starting url-copy-file %S %S t t" url-file temp-file)
+        ;;(web-vcs-message-with-face 'font-lock-comment-face "Starting url-copy-file %S %S t t" url-file temp-file)
         (web-vcs-url-copy-file-and-check url-file temp-file dl-file-name)
-        (web-vcs-message-with-face 'font-lock-comment-face "Finished url-copy-file %S %S t t" url-file temp-file)
+        ;;(web-vcs-message-with-face 'font-lock-comment-face "Finished url-copy-file %S %S t t" url-file temp-file)
         (let* ((time-after-url-copy (current-time))
                (old-buf-open (find-buffer-visiting dl-file-name)))
           (when (and old-buf-open (buffer-modified-p old-buf-open))
@@ -625,11 +623,8 @@ a temporary file."
             (with-current-buffer (find-file-noselect dl-file-name)
               (setq header-line-format
                     (propertize (format-time-string "This file was downloaded %Y-%m-%d %H:%M")
-                                'face 'web-vcs-green)))
-            )
-          (let* ((msg-win (get-buffer-window "*Messages*")))
-            (with-current-buffer "*Messages*"
-              (set-window-point msg-win (point-max))))
+                                'face 'web-vcs-green))))
+          (web-vcs-display-messages nil)
           ;; This is both for user and remote server load.  Do not remove this.
           (redisplay t) (sit-for (- 1.0 (float-time (time-subtract (current-time) time-after-url-copy))))
           ;; (unless old-buf-open
@@ -656,9 +651,8 @@ The buffer URL-BUF should contain the content on page URL."
       (goto-char (point-min))
       (if (not (re-search-forward revision-regexp nil t))
           (progn
-            (display-buffer "*Messages*")
-            (select-window (get-buffer-window "*Messages*"))
             (web-vcs-message-with-face 'web-vcs-red "Can't find revision number on %S" url)
+            (web-vcs-display-messages t)
             (throw 'command-level nil))
         (match-string 1)))))
 
@@ -729,7 +723,7 @@ This is used after inspecting downloaded elisp files."
       (let* ((comp-buf (get-buffer "*Compilation*"))
              (comp-win (and comp-buf
                             (get-buffer-window comp-buf)))
-             (msg-win (get-buffer-window "*Messages*"))
+             (msg-win (web-vcs-display-messages nil))
              temp-buf
              (kf-desc (lambda (fun)
                         (let* ((key (where-is-internal fun nil t))
@@ -739,11 +733,7 @@ This is used after inspecting downloaded elisp files."
                           (if key
                               (format fmt-kf k-desc fun)
                             (format fmt-f fun)
-                            ))))
-             )
-        (unless msg-win
-          (display-buffer "*Messages*")
-          (setq msg-win (get-buffer-window "*Messages*")))
+                            )))))
         (if comp-win
             (progn
               (select-window comp-win)
@@ -796,8 +786,7 @@ This is used after inspecting downloaded elisp files."
                             (setq proceed t)))
                   (throw 'top-level t))
               (error (message "%s" (error-message-string err))))))
-        (display-buffer "*Messages*")
-        (select-window (get-buffer-window "*Messages*"))
+        (web-vcs-display-messages t)
         ))))
 
 
@@ -874,16 +863,16 @@ entry says so."
                     ;; Return nil to tell there are no known problems
                     (if (file-exists-p elc-file)
                         nil
-                      (display-buffer "*Messages*")
                       (web-vcs-message-with-face
                        'web-vcs-red "Error: byte compiling did not produce %S" elc-file)
+                      (web-vcs-display-messages nil)
                       ;; Clean up before restart
                       (web-autoload-try-cleanup-after-failed-compile first-entry)
                       t))
                 (error
-                 (display-buffer "*Messages*")
                  (web-vcs-message-with-face
                   'web-vcs-red "Error in byte compiling %S: %s" el-file (error-message-string err))
+                 (web-vcs-display-messages nil)
                  ;; Clean up before restart
                  (web-autoload-try-cleanup-after-failed-compile first-entry)
                  t ;; error
@@ -1120,6 +1109,12 @@ Those times should have the same format as time returned by
       t)
      (t
       (error "%S returned %d" cmd ret)))))
+
+(defun web-vcs-display-messages (select)
+  (let ((msg-win (display-buffer "*Messages*")))
+    (with-selected-window msg-win (goto-char (point-max)))
+    (when select (select-window msg-win))
+    msg-win))
 
 ;; (web-vcs-message-with-face 'secondary-selection "I am saying: %s and %s" "Hi" "Farwell!")
 (defun web-vcs-message-with-face (face format-string &rest args)
