@@ -259,6 +259,7 @@ Note: If your nXhtml is to old you can't use this function
         (message "")
         (message "")
         (web-vcs-message-with-face 'web-vcs-green "==== Starting nXhtml part by part state ====")
+        (message "has-nxhtml=%s" has-nxhtml)
         ;; Fix-me: First copy this file and web-vcs.el to its destination:
         (unless (string= (file-truename dl-dir)
                          (file-truename (file-name-directory nxhtml-web-vcs-file)))
@@ -285,6 +286,7 @@ Note: If your nXhtml is to old you can't use this function
             (load autostart-file)
             (unless (ad-is-active 'require) (ad-activate 'require))
             (select-window (get-buffer-window "*Messages*"))
+            (web-vcs-message-with-face 'web-vcs-green "==== Basic files for nXhtml part by part are now installed ====")
             (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file t)))))))
   (web-vcs-log-save))
 
