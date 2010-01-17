@@ -830,7 +830,7 @@
         (list 'menu-item "Options" options-map))
 
       (define-key options-map [nxhtml-save-opt]
-        (list 'menu-item "Save Changed Options" 'customize-save-customizedA))
+        (list 'menu-item "Save Changed Options" 'customize-save-customized))
 
       (define-key options-map [nxhtml-save-sep] (list 'menu-item "--"))
 
