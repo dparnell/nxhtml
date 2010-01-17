@@ -51,6 +51,7 @@
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'mumamo nil t))
 (eval-when-compile (require 'nxml-mode nil t))
+(eval-when-compile (require 'ourcomments-util nil t))
 ;; (eval-when-compile
 ;;   (unless (featurep 'nxhtml-autostart)
 ;;     (let ((efn (expand-file-name "../autostart.el")))

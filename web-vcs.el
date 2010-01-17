@@ -816,7 +816,7 @@ This is used after inspecting downloaded elisp files."
 (defun web-autoload-byte-compile-file (file load comp-fun)
   (if nil ;;(file-exists-p file)
       (byte-compile-file file load)
-    (let ((added-entry (list file load comp-fun)))
+    (let ((added-entry (list file load comp-fun nil)))
       (if (member added-entry web-autoload-compile-queue)
           (setq added-entry nil)
         (web-vcs-message-with-face 'web-vcs-gold "Add to compile queue (%S %s)" file load)
@@ -848,12 +848,15 @@ entry says so."
          (el-file  (nth 0 first-entry))
          (load     (nth 1 first-entry))
          (comp-fun (nth 2 first-entry))
+         (req-done (nth 3 first-entry))
          (elc-file (byte-compile-dest-file el-file))
          (need-compile (or (not (file-exists-p elc-file))
                            (file-newer-than-file-p el-file elc-file))))
     (if (not need-compile)
         nil ;;(when load (load elc-file))
-      (web-autoload-do-eval-requires el-file)
+      (unless req-done
+        (web-autoload-do-eval-requires el-file)
+        (setcar (nthcdr 3 first-entry) t))
       (when (catch 'web-autoload-comp-restart
               (condition-case err
                   (progn
