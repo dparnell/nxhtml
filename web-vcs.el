@@ -213,6 +213,7 @@ Considers site-start.el, site-
   :type 'file
   :group 'web-vcs)
 
+;;;###autoload
 (defun web-vcs-log-edit ()
   "Open log file."
   (interactive)
