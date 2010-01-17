@@ -741,6 +741,7 @@ This is used after inspecting downloaded elisp files."
           (select-window msg-win)
           (find-file-other-window temp-file))
         (setq temp-buf (current-buffer))
+        (web-vcs-log-save)
         (message "-")
         (message "")
         (with-selected-window msg-win
@@ -1243,6 +1244,7 @@ If LOAD"
         (when (= 0 (buffer-size))
           (insert (propertize "Web VCS compilation output" 'face 'font-lock-comment-face))
           (compilation-mode)
+          (setq font-lock-verbose nil)
           (font-lock-add-keywords nil
                                   '(("\\<Compile\\>" . 'compilation-info))))
         (let ((inhibit-read-only t)
@@ -1974,8 +1976,8 @@ Download and install nXhtml."
       (when need-dl
         (let ((prompt
                (concat "Welcome to install nXhtml."
-                       "\nBefore the real installation can start some files must be downloaded."
-                       "\nYou will get a chance to review them before they are used."
+                       "\nFirst the nXhtml specific web install file must be downloaded."
+                       "\nYou will get a chance to review it before it is used."
                        "\n\nDo you want to continue? ")))
           (unless (y-or-n-p prompt)
             (message "Aborted")
