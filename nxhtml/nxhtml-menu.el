@@ -265,7 +265,7 @@
         (define-key help-map [nxhtml-downloading]
           (list 'menu-item "Download nXhtml Updates" download-map))
         (define-key download-map [nxhtml-web-download-log]
-          (list 'menu-item "View Download Log" 'web-vcs-edit-log))
+          (list 'menu-item "View Download Log" 'web-vcs-log-edit))
         (define-key download-map [nxhtml-view-dl-log-separator]
           (list 'menu-item "--" nil))
         (define-key download-map [nxhtml-web-auto-download]
