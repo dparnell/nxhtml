@@ -1982,6 +1982,7 @@ Download and install nXhtml."
           (unless (y-or-n-p prompt)
             (message "Aborted")
             (throw 'command-level nil))))
+      (message nil)
       (dolist (file files2)
         (unless (file-exists-p (cdr file))
           (web-vcs-get-missing-matching-files 'lp root-url this-dir (car file))))
