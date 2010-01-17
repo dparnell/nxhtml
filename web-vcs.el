@@ -249,7 +249,7 @@ Considers site-start.el, site-
     (save-restriction
       (widen)
       (let ((today-entries (format-time-string "* %Y-%m-%d"))
-            (now (format-time-string "%H-%M-%S GMT" nil t)))
+            (now (format-time-string "%H:%M:%S GMT" nil t)))
         (goto-char (point-max))
         (unless (re-search-backward (concat "^" today-entries) nil t)
           (goto-char (point-max))
