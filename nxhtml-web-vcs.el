@@ -130,6 +130,9 @@ is a special function for that, you answer T here:
 If you want to download a zip file with latest released version instead then
 please see URL `http://ourcomments.org/Emacs/nXhtml/doc/nxhtml.html'."
   (interactive (let ((curr-cfg (current-window-configuration)))
+                 (describe-function 'nxhtml-setup-install)
+                 (select-window (get-buffer-window (help-buffer)))
+                 (delete-other-windows)
                  (list
                   (let* ((key nil)
                          (has-nxhtml (and (boundp 'nxhtml-install-dir) nxhtml-install-dir))

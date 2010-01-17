@@ -906,7 +906,7 @@ entry says so."
                    (not (eobp)))
             (let ((form (read (current-buffer))))
               (when (memq (car form) '(eval-when-compile eval-and-compile))
-                (web-vcs-message-with-face 'web-vcs-gold "eval %S" form)
+                (web-vcs-message-with-face 'web-vcs-gold "  eval %S" form)
                 (eval form))
               )))
         (if old-buf (kill-buffer) (goto-char here))))))
@@ -982,7 +982,7 @@ entry says so."
                         ;; Download and try again
                         (setq relative-url (concat relative-url ".el"))
                         ;;(web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s (%S %S => %S)" feature base-url relative-url base-dir)
-                        (web-vcs-message-with-face 'font-lock-comment-face "Need to download feature %s" feature)
+                        (web-vcs-message-with-face 'web-vcs-green "Need to download feature %s" feature)
                         (catch 'web-autoload-comp-restart
                           (web-vcs-get-missing-matching-files web-vcs base-url base-dir relative-url)))
                       (set-buffer our-buffer) ;; Before we load..

@@ -147,6 +147,7 @@ directly, otherwise download it first."
              (when (equal (symbol-function ',fun) auto-fun)
                (error "Couldn't web autoload function %s" ',fun))
              (web-vcs-message-with-face 'web-vcs-gold "web-autoload-1: END fun=%s" ',fun)
+             (web-vcs-log-save)
              ))
          ;; Fix-me: Wrong place to do the cleanup! It must be done
          ;; after loading a file. All autoload in that file must be
