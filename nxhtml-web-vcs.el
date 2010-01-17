@@ -267,8 +267,10 @@ Note: If your nXhtml is to old you can't use this function
         (when byte-comp (web-vcs-byte-compile-newer-file web-vcs-el t))
         ;; Get basic file list:
         (catch 'web-autoload-comp-restart
-          (let ((file-mask (regexp-opt nxhtml-basic-files)))
-            (web-vcs-get-missing-matching-files vcs base-url dl-dir file-mask))
+          ;;(let ((file-mask (regexp-opt nxhtml-basic-files)))
+          ;;  (web-vcs-get-missing-matching-files vcs base-url dl-dir file-mask))
+          (dolist (f nxhtml-basic-files)
+            (web-vcs-get-missing-matching-files vcs base-url dl-dir f))
           ;; Autostart.el has not run yet, add download dir to load-path.
           (let ((load-path (cons (file-name-directory web-vcs-el) load-path)))
             (when byte-comp
