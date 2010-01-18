@@ -1755,7 +1755,7 @@ the some meaning as there."
   (when (fboundp 'mumamo-get-region-from-1)
     (mumamo-get-region-from-1 point)))
 
-(defun mumamo-clear-chunk-cache (chunk)
+(defun mumamo-clear-chunk-ppss-cache (chunk)
   (overlay-put chunk 'mumamo-ppss-cache nil)
   (overlay-put chunk 'mumamo-ppss-last nil)
   (overlay-put chunk 'mumamo-ppss-stats nil))
@@ -1784,19 +1784,77 @@ ends before END then create chunks upto END."
       ;;(msgtrc "find-chunks ret chunk=%s" chunk)
       chunk)))
 
+(defun mumamo-move-to-old-tail (first-check-from)
+  "Divide the chunk list.
+Make it two parts. The first, before FIRST-CHECK-FROM is still
+correct but we want to check those after.  Put thosie in
+`mumamo-old-tail'."
+  (let ((while-n0 0))
+    (while (and (mumamo-while 500 'while-n0 "mumamo-last-chunk first-check-from")
+                mumamo-last-chunk
+                first-check-from
+                (< first-check-from (overlay-end mumamo-last-chunk)))
+      (overlay-put mumamo-last-chunk 'mumamo-next-chunk mumamo-old-tail)
+      (setq mumamo-old-tail mumamo-last-chunk)
+      (overlay-put mumamo-old-tail 'mumamo-is-new nil)
+      (when nil ;; For debugging
+        (overlay-put mumamo-old-tail
+                     'face
+                     (list :background
+                           (format "red%d" (overlay-get mumamo-old-tail 'mumamo-depth)))))
+      (setq mumamo-last-chunk
+            (overlay-get mumamo-last-chunk 'mumamo-prev-chunk)))))
+
+(defun mumamo-delete-empty-chunks-at-end ()
+  ;; fix-me: later? Delete empty chunks at end, will be recreated if really needed
+  (let ((while-n1 0))
+    (while (and (mumamo-while 500 'while-n1 "mumamo-last-chunk del empty chunks")
+                mumamo-last-chunk
+                ;;(= (point-max) (overlay-end mumamo-last-chunk))
+                (= (overlay-end mumamo-last-chunk) (overlay-start mumamo-last-chunk)))
+      ;;(msgtrc "delete-overlay at end")
+      (delete-overlay mumamo-last-chunk)
+      (setq mumamo-last-chunk (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))
+      (when mumamo-last-chunk (overlay-put mumamo-last-chunk 'mumamo-next-chunk nil)))))
+
+
+(defun mumamo-delete-chunks-upto (ok-pos)
+  "Delete old chunks upto OK-POS."
+  (or (not mumamo-old-tail)
+      (overlay-buffer mumamo-old-tail)
+      (setq mumamo-old-tail nil))
+  (let ((while-n2 0))
+    (while (and (mumamo-while 500 'while-n2 "mumamo-old-tail")
+                (and mumamo-old-tail (< (overlay-start mumamo-old-tail) ok-pos)))
+      (mumamo-mark-for-refontification (overlay-start mumamo-old-tail) (overlay-end mumamo-old-tail))
+      ;;(msgtrc "find-chunks:not eq delete %s" mumamo-old-tail)
+      (delete-overlay mumamo-old-tail)
+      (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))
+      (or (not mumamo-old-tail)
+          (overlay-buffer mumamo-old-tail)
+          (setq mumamo-old-tail nil)))))
+
+(defun mumamo-reuse-old-tail-head ()
+  (setq mumamo-last-chunk mumamo-old-tail)
+  (overlay-put mumamo-last-chunk 'mumamo-is-new t)
+  (mumamo-clear-chunk-ppss-cache mumamo-last-chunk)
+  (overlay-put mumamo-last-chunk 'face (mumamo-background-color (overlay-get mumamo-last-chunk 'mumamo-depth)))
+  (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk)))
+
+(defun mumamo-old-tail-fits (this-new-values)
+  (and mumamo-old-tail
+       (overlay-buffer mumamo-old-tail)
+       (mumamo-new-chunk-equal-chunk-values mumamo-old-tail this-new-values)))
+
 (defun mumamo-find-chunks-1 (end tracer) ;; min max)
   ;; Note: This code must probably be reentrant.  The globals changed
   ;; here are `mumamo-last-chunk' and `mumamo-old-tail'.  They must be
   ;; handled as a pair.
-
   (mumamo-msgfntfy "")
-  ;;(msgtrc "!!!!!!!!!!!!!!!!!!!find-chunks end=%s from %s, level=%s" end tracer mumamo-find-chunks-level)
   (setq mumamo-find-chunks-level (1+ mumamo-find-chunks-level))
   (unless (and (overlayp mumamo-last-chunk) (overlay-buffer mumamo-last-chunk)) (setq mumamo-last-chunk nil))
   (save-restriction
     (widen)
-    ;;(msgtrc "find-chunks: tracer=%S mumamo-last-change-pos=%s" tracer mumamo-last-change-pos)
-    ;;(message "find-chunks: tracer=%S mumamo-last-change-pos=%s" tracer mumamo-last-change-pos)
     (let* ((mumamo-find-chunks-1-active t)
            (here (point))
            ;; Any changes?
@@ -1811,7 +1869,6 @@ ends before END then create chunks upto END."
               (mumamo-chunk-syntax-min-max chunk-at-change-min nil)))
            (this-syntax-min (car this-syntax-min-max))
            (in-min-border (when this-syntax-min (>= this-syntax-min change-min)))
-           ;; Fix-me: Use this:
            (first-check-from (if chunk-at-change-min
                                  (if (or in-min-border
                                          ;; Fix-me: 20?
@@ -1821,62 +1878,19 @@ ends before END then create chunks upto END."
                                    chunk-at-change-min-start)
                                (when change-min
                                  (goto-char change-min)
-                                 ;;(move-beginning-of-line nil)
                                  (skip-chars-backward "^\n")
                                  (unless (bobp) (backward-char))
-                                 ;;(msgtrc "find-chunks:change-min=%s, point=%s" change-min (point))
-                                 (prog1
-                                     (point)
-                                   (goto-char here)))))
-           (while-n0 0)
-           (while-n1 0)
-           )
+                                 (prog1 (point) (goto-char here))))))
       (when (and chunk-at-change-min (= 0 (- (overlay-end chunk-at-change-min)
                                              (overlay-start chunk-at-change-min))))
         (assert in-min-border)) ;; 0 len must be in border
-      ;;(msgtrc "find-chunks:first-check-from=%s, chunk-at-change-min=%s/%s" first-check-from chunk-at-change-min (mumamo-chunk-major-mode chunk-at-change-min))
-      (when mumamo-last-change-pos
-        ;;(message "mumamo-last-change-pos=%S, chunk-at-change-min=%s" mumamo-last-change-pos chunk-at-change-min)
-        ;; Fix-me:
-        ;;(when chunk-at-change-min (mumamo-clear-chunk-cache chunk-at-change-min))
-        (when chunk-at-change-min
-          ;; Fix-me: clearing of cache must be done later.
-          ;;(mumamo-clear-chunk-cache chunk-at-change-min)
-          ;; Divide the chunk list in a part we know are correct and a tail we want to check.
-          ;;(while (and (> 500 (setq while-n0 (1+ while-n0)))
-          (while (and (mumamo-while 500 'while-n0 "mumamo-last-chunk first-check-from")
-                      mumamo-last-chunk
-                      first-check-from
-                      (< first-check-from (overlay-end mumamo-last-chunk)))
-            ;; fix-me: looks wrong
-            ;; (let ((old mumamo-old-tail))
-            ;;   (while old
-            ;;     (delete-overlay old)
-            ;;     (setq old (overlay-get old 'mumamo-chunk-next))))
-            (overlay-put mumamo-last-chunk 'mumamo-next-chunk mumamo-old-tail)
-            (setq mumamo-old-tail mumamo-last-chunk)
-            (overlay-put mumamo-old-tail 'mumamo-is-new nil)
-            ;;(msgtrc "old-tail at nil: %s" mumamo-old-tail)
-            (when nil ;; For debugging
-              (overlay-put mumamo-old-tail
-                           'face
-                           (list :background
-                                 (format "red%d" (overlay-get mumamo-old-tail 'mumamo-depth)))))
-            (setq mumamo-last-chunk
-                  (overlay-get mumamo-last-chunk 'mumamo-prev-chunk)))
-          ;; fix-me: later? Delete empty chunks at end, will be recreated if really needed
-          ;;(while (and (> 500 (setq while-n1 (1+ while-n1)))
-          (while (and (mumamo-while 500 'while-n1 "mumamo-last-chunk del empty chunks")
-                      mumamo-last-chunk
-                      ;;(= (point-max) (overlay-end mumamo-last-chunk))
-                      (= (overlay-end mumamo-last-chunk) (overlay-start mumamo-last-chunk)))
-            ;;(msgtrc "delete-overlay at end")
-            (delete-overlay mumamo-last-chunk)
-            (setq mumamo-last-chunk (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))
-            (when mumamo-last-chunk (overlay-put mumamo-last-chunk 'mumamo-next-chunk nil)))
-          )
-        (setq mumamo-last-change-pos nil))
-      ;;(msgtrc "find-chunks:at start mumamo-old-tail=%s/%s, mumamo-last-chunk=%s/%s" mumamo-old-tail (mumamo-chunk-major-mode mumamo-old-tail) mumamo-last-chunk (mumamo-chunk-major-mode mumamo-last-chunk))
+      (setq mumamo-last-change-pos nil)
+      (when chunk-at-change-min
+        (mumamo-move-to-old-tail first-check-from)
+        (mumamo-delete-empty-chunks-at-end))
+      ;; Now mumamo-last-chunk is the last in the top chain and
+      ;; mumamo-old-tail the first in the bottom chain.
+
       (let* ((last-chunk-is-closed (when mumamo-last-chunk (overlay-get mumamo-last-chunk 'mumamo-is-closed)))
              (ok-pos (or (and mumamo-last-chunk
                               (- (overlay-end mumamo-last-chunk)
@@ -1885,41 +1899,28 @@ ends before END then create chunks upto END."
                          0))
              (end-param end)
              (end (or end (point-max)))
-             narpos
              this-new-values
              this-new-chunk
              prev-chunk
              first-change-pos
              interrupted
-             (point-max (1+ (buffer-size)))
-             (while-n2 0)
-             (while-n3 0)
-             old-are-deleted
-             )
+             (while-n3 0))
         (when (>= ok-pos end)
           (setq this-new-chunk (mumamo-get-existing-new-chunk-at end))
-          ;;(msgtrc "find-chunks:using old at end=%s, ok-pos=%s, this-new-chunk=%s" end ok-pos this-new-chunk)
           (unless this-new-chunk
-            (error "Could not find new chunk though ok-pos-new=%s > end=%s (ovls at end=%s), last-change-pos=%S, level=%d, old-tail=%s, %S"
+            (error "Could not find new chunk ok-pos-new=%s > end=%s (ovls at end=%s), level=%d, old-tail=%s, %S"
                    ok-pos end (overlays-in end end)
-                   mumamo-last-change-pos
-                   mumamo-find-chunks-level
-                   mumamo-old-tail
-                   tracer
-                   )))
+                   mumamo-find-chunks-level mumamo-old-tail tracer)))
         (unless this-new-chunk
           (save-match-data
             (unless  mumamo-find-chunk-is-active
               ;;(setq  mumamo-find-chunk-is-active t)
               (mumamo-stop-find-chunks-timer)
               (mumamo-save-buffer-state nil
-                (unless this-new-chunk
-                  ;; So now mumamo-last-chunk is the last in the top
-                  ;; chain and mumamo-old-tail the first in the bottom chain.
+                (progn
 
                   ;; Loop forward until end or buffer end ...
-                  ;;(while (and (> 500 (setq while-n3 (1+ while-n3))) ;; fix-me
-                  (while (and (mumamo-while 500 'while-n3 "until end")
+                  (while (and (mumamo-while 1500 'while-n3 "until end")
                               (or (not end)
                                   (<= ok-pos end))
                               (< ok-pos (point-max))
@@ -1928,8 +1929,9 @@ ends before END then create chunks upto END."
                     ;; Narrow to speed up. However the chunk divider may be
                     ;; before ok-pos here. Assume that the marker is not
                     ;; longer than 200 chars. fix-me.
-                    (setq narpos (max (- ok-pos 200) 1))
-                    (narrow-to-region narpos point-max)
+                    (narrow-to-region (max (- ok-pos 200) 1)
+                                      (1+ (buffer-size)))
+                    ;; If this was after a change within one chunk then tell that:
                     (let ((use-change-max (when (and change-max
                                                      chunk-at-change-min
                                                      (overlay-buffer chunk-at-change-min)
@@ -1949,9 +1951,6 @@ ends before END then create chunks upto END."
                       (setq this-new-values (mumamo-find-next-chunk-values
                                              mumamo-last-chunk
                                              first-check-from
-                                             ;; If this was after a change
-                                             ;; within one chunk then tell
-                                             ;; that:
                                              use-change-max
                                              use-chunk-at-change-min)))
                     (if (not this-new-values)
@@ -1960,48 +1959,14 @@ ends before END then create chunks upto END."
                       (setq ok-pos (or (mumamo-new-chunk-value-max this-new-values) ;;(overlay-end this-chunk)
                                        (point-max)))
                       ;; With the new organization all chunks are created here.
-                      ;;(msgtrc "find-chunks:mumamo-old-tail=%s/%s, mumamo-last-chunk=%s/%s" mumamo-old-tail (when mumamo-old-tail (mumamo-chunk-major-mode mumamo-old-tail)) mumamo-last-chunk (mumamo-chunk-major-mode mumamo-last-chunk ))
-                      ;;(msgtrc "find-chunks:this-new-values=%s" this-new-values)
-                      (if (and mumamo-old-tail
-                               (overlay-buffer mumamo-old-tail)
-                               (mumamo-new-chunk-equal-chunk-values mumamo-old-tail this-new-values))
-                          (progn
-                            ;;(msgtrc "find-chunks:eq")
-                            (setq mumamo-last-chunk mumamo-old-tail)
-                            (overlay-put mumamo-last-chunk 'mumamo-is-new t)
-                            (mumamo-clear-chunk-cache mumamo-last-chunk)
-                            (overlay-put mumamo-last-chunk 'face (mumamo-background-color (overlay-get mumamo-last-chunk 'mumamo-depth)))
-                            (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk)))
-                        (or (not mumamo-old-tail)
-                            (overlay-buffer mumamo-old-tail)
-                            (setq mumamo-old-tail nil))
-                        ;; Loop for fit
-                        ;;(msgtrc "for fit:old-tail=%s, this-new=%s" mumamo-old-tail this-new-values)
-                        (setq while-n2 1)
-                        ;;(while (and (> 500 (setq while-n2 (1+ while-n2)))
-                        (while (and (mumamo-while 500 'while-n2 "mumamo-old-tail")
-                                    (and mumamo-old-tail (< (overlay-start mumamo-old-tail) ok-pos)))
-                          (mumamo-mark-for-refontification (overlay-start mumamo-old-tail) (overlay-end mumamo-old-tail))
-                          ;;(msgtrc "find-chunks:not eq delete %s" mumamo-old-tail)
-                          (delete-overlay mumamo-old-tail)
-                          (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))
-                          (or (not mumamo-old-tail)
-                              (overlay-buffer mumamo-old-tail)
-                              (setq mumamo-old-tail nil)))
+                      (if (mumamo-old-tail-fits this-new-values)
+                          (mumamo-reuse-old-tail-head)
+                        (mumamo-delete-chunks-upto ok-pos)
                         ;; Create chunk and chunk links
-                        ;;(msgtrc "last-chunk before=%s" mumamo-last-chunk)
                         (setq mumamo-last-chunk (mumamo-new-create-chunk this-new-values))
-                        ;;(msgtrc "last-chunk created=%s" mumamo-last-chunk)
                         (setq last-chunk-is-closed (overlay-get mumamo-last-chunk 'mumamo-is-closed))
                         (unless first-change-pos
-                          (setq first-change-pos (mumamo-new-chunk-value-min this-new-values)))
-                        )
-                      ;;(msgtrc "find-chunks:while end start mumamo-old-tail=%s, mumamo-last-chunk=%s" mumamo-old-tail mumamo-last-chunk)
-                      )
-                    ;; Cache ppss syntax
-                    ;;(setq mumamo-end-last-chunk-pos ok-pos)
-                    ;;(syntax-ppss (1+ (mumamo-chunk-syntax-min this-new-chunk)))
-                    )
+                          (setq first-change-pos (mumamo-new-chunk-value-min this-new-values))))))
                   (setq this-new-chunk mumamo-last-chunk)))
               (widen)
               (when (or interrupted
@@ -2019,13 +1984,13 @@ ends before END then create chunks upto END."
                         first-change-pos))))
             (goto-char here)
             (setq  mumamo-find-chunk-is-active nil)))
+
         ;; fix-me: continue here
-        (when chunk-at-change-min (mumamo-clear-chunk-cache chunk-at-change-min))
+        (when chunk-at-change-min (mumamo-clear-chunk-ppss-cache chunk-at-change-min))
         (setq mumamo-find-chunks-level (1- mumamo-find-chunks-level))
         ;; Avoid empty overlays at the end of the buffer. Those can
         ;; come from for example deleting to the end of the buffer.
         (when this-new-chunk
-          ;;(msgtrc "mumamo-find-chunks-1:this-new-chunk, mumamo-old-tail=%s, mumamo-last-chunk=%s" mumamo-old-tail mumamo-last-chunk)
           ;; Fix-me: can this happen now?
           (setq prev-chunk (overlay-get this-new-chunk 'mumamo-prev-chunk))
           (when (and prev-chunk
@@ -2041,20 +2006,13 @@ ends before END then create chunks upto END."
           (while (and mumamo-old-tail
                       (overlay-buffer mumamo-old-tail)
                       (= (overlay-start mumamo-old-tail) (overlay-end mumamo-old-tail)))
-            ;;(msgtrc "mumamo-find-chunks-1:deleting mumamo-old-tail=%s, next=%s" mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))
             (assert (not (eq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))) t)
-            ;;(msgtrc "here a, mumamo-old-tail=%s" mumamo-old-tail)
             (setq prev-chunk mumamo-old-tail)
-            ;;(msgtrc "here b, mumamo-old-tail=%s" mumamo-old-tail)
             (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))
-            ;;(msgtrc "here c, mumamo-old-tail=%s" mumamo-old-tail)
             (msgtrc "mumamo-find-chunks-1:after mumamo-old-tail=%s" mumamo-old-tail)
             (delete-overlay prev-chunk)
-            ;;(msgtrc "mumamo-find-chunks-1:after (delete-overlay prev-chunk), mumamo-old-tail=%s" mumamo-old-tail)
             )
-          ;;(msgtrc "mumamo-find-chunks-1:after while, mumamo-old-tail=%s" mumamo-old-tail)
           )
-        ;;(when mumamo-old-tail (message "end=%s old-tail=%s" end mumamo-old-tail))
         (unless (overlay-get mumamo-last-chunk 'mumamo-is-closed)
           ;; Check that there are no left-over old chunks
           (save-restriction
@@ -3383,18 +3341,17 @@ See `mumamo-major-modes' for an explanation."
         (if chunk-ovl
             (when (or (> (overlay-end o) (overlay-start o))
                       (overlay-get o 'mumamo-prev-chunk))
-              (setq chunk-ovl o)
-              )
-          (setq chunk-ovl o)
-          )))
+              (setq chunk-ovl o))
+          (setq chunk-ovl o))))
     chunk-ovl))
 
 (defun mumamo-get-chunk-save-buffer-state (pos)
   "Return chunk overlay at POS.  Preserve state."
   (let (chunk)
-    (mumamo-save-buffer-state nil
+    ;;(mumamo-save-buffer-state nil
       ;;(setq chunk (mumamo-get-chunk-at pos)))
-      (setq chunk (mumamo-find-chunks pos "mumamo-get-chunk-save-buffer-state")))
+      (setq chunk (mumamo-find-chunks pos "mumamo-get-chunk-save-buffer-state"))
+      ;;)
     chunk))
 
 
@@ -3979,6 +3936,7 @@ after this in the properties below of the now created chunk:
                              (if after-chunk ;; not first
                                  (assert (not (eq (mumamo-main-major-mode) maj)) t)
                                (assert (eq (mumamo-main-major-mode) maj) t))))
+                         (message "Create chunk %s - %s" beg use-end)
                          (make-overlay beg use-end nil nil (not is-closed))))
            ;; Fix-me: move to mumamo-find-next-chunk-values
            (this-border-fun (when (and this-chunk after-chunk)
@@ -4108,7 +4066,7 @@ after this in the properties below of the now created chunk:
       (widen)
       (let ((chunk (mumamo-find-chunks 1 "margin-disp"))
             (while-n0 0))
-        (while (and (mumamo-while 500 'while-n0 "chunk")
+        (while (and (mumamo-while 1500 'while-n0 "chunk")
                     chunk)
           (mumamo-update-chunk-margin-display chunk)
           (setq chunk (overlay-get chunk 'mumamo-next-chunk)))))))
@@ -8137,6 +8095,7 @@ chunks.  Doing more seems like a very big job - unless Emacs gets
 a narrow-to-multiple-regions function!"
   (if (not mumamo-multi-major-mode)
       ad-do-it
+    ;;(error "xmltok-add-error: %S" (with-output-to-string (backtrace)))
     (when (let* ((start (or start xmltok-start))
                  (end (or end (point)))
                  (chunk (mumamo-find-chunks (if start start end) "xmltok-add-error"))
