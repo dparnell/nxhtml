@@ -636,7 +636,10 @@ a temporary file."
             (let ((buf (find-buffer-visiting dl-file-name)))
               (when buf
                 (with-current-buffer buf
-                  (revert-buffer nil t t))))
+                  (message "before revert")
+                  (revert-buffer nil t t)
+                  (message "after revert")
+                  )))
             (when url-file-time (set-file-times dl-file-name url-file-time))
             (if dl-file-time
                 (web-vcs-message-with-face 'web-vcs-yellow "Updated %S" dl-file-name)
