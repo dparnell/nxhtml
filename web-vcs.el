@@ -598,8 +598,8 @@ a temporary file."
        ((and dl-file-time
              url-file-time
              (progn
-               (message "dl-file-time =%s" (when dl-file-time (current-time-string dl-file-time)))
-               (message "url-file-time=%s" (when url-file-time (current-time-string url-file-time)))
+               ;;(message "dl-file-time =%s" (when dl-file-time (current-time-string dl-file-time)))
+               ;;(message "url-file-time=%s" (when url-file-time (current-time-string url-file-time)))
                ;;(message "url-file-tstr=%s" (when url-file-time url-file-time-str))
                t)
              (time-less-p url-file-time
