@@ -2,8 +2,8 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-01-19 Sat
-(defconst pause:version "0.64");; Version:
-;; Last-Updated: 2009-08-04 Tue
+(defconst pause:version "0.70");; Version:
+;; Last-Updated: 2010-01-18 Mon
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
@@ -60,26 +60,22 @@
 
 (defcustom pause-after-minutes 15
   "Pause after this number of minutes."
-  :type 'integer
+  :type 'number
   :group 'pause)
 
-(defcustom pause-text-color "sienna"
-  "Color of text in pause window."
-  :type 'color
+(defcustom pause-idle-delay 5
+  "Seconds to wait for user to be idle before pause."
+  :type 'number
   :group 'pause)
 
-(defcustom pause-prompt1-color "DarkOrange1"
-  "Background color of first pause prompt."
-  :type 'color
+(defface pause-text-face
+  '((t (:foreground "sienna" :height 1.5 :bold t)))
+  "Face main text in pause buffer."
   :group 'pause)
 
-(defcustom pause-prompt2-color "GreenYellow"
-  "Background color of second pause prompt."
-  :type 'color
-  :group 'pause)
-
-(defcustom pause-message-color "yellow"
+(defcustom pause-message-face
   "Background color of pause messages."
+  '((t (:inherit secondary-selection)))
   :type 'color
   :group 'pause)
 
@@ -110,74 +106,39 @@
   :type 'directory
   :group 'pause)
 
+
+
 (defvar pause-timer nil)
-(defvar pause-idle-timer nil)
 
 (defvar pause-break-exit-calls nil)
 
 (defun pause-dont-save-me ()
-  (when (timerp pause-timer) (cancel-timer pause-timer)))
+  (pause-cancel-timer))
 
 (defun pause-start-timer (sec)
-  (when (timerp pause-idle-timer) (cancel-timer pause-idle-timer))
-  (setq pause-idle-timer nil)
-  (when (timerp pause-timer) (cancel-timer pause-timer))
+  (pause-cancel-timer)
   (setq pause-timer (run-with-timer sec nil 'pause-pre-break)))
 
 (defun pause-one-minute ()
   "Give you another minute ..."
   (pause-start-timer 60)
   (message (propertize " OK, I will come back in a minute! -- greatings from pause"
-                       'face (list :background pause-message-color))))
+                       'face 'pause-message-face)))
 
 (defun pause-save-me ()
   (pause-start-timer (* 60 pause-after-minutes))
   (message (propertize " OK, I will save you again in %d minutes! -- greatings from pause "
-                       'face (list :background pause-message-color))
+                       'face 'pause-message-face)
            pause-after-minutes))
 
-(defun pause-ask-user ()
-  (if (or isearch-mode
-          (active-minibuffer-window))
-      (pause-start-timer 10)
-    (let* ((map (copy-keymap minibuffer-local-map))
-           (minibuffer-local-map map)
-           (use-dialog-box nil)
-           (minibuffer-prompt-properties
-            (copy-sequence minibuffer-prompt-properties))
-           (msg1
-            (concat
-             " :-) Sorry to disturb you!\n\n"
-             " Do you want me to take a break now? ... "))
-           (msg2
-            (concat
-             " :-) Take a break now, then come back later and answer!\n\n"
-             " Do you want me to save you again? That is my job ... ")))
-      ;;(define-key map [(control ?g)] 'ignore)
-      (plist-put minibuffer-prompt-properties 'face
-                 (list :background pause-prompt1-color))
-      (if (yes-or-no-p msg1)
-          (progn
-            (plist-put minibuffer-prompt-properties 'face
-                       (list :background pause-prompt2-color))
-            (y-or-n-p msg2))
-        'one-minute))))
-
-(defvar pause-idle-delay 15)
-
 (defun pause-pre-break ()
-  (setq pause-timer nil)
   (condition-case err
       (save-match-data ;; runs in timer
-        (if pause-idle-delay
-            (setq pause-idle-timer (run-with-idle-timer pause-idle-delay nil 'pause-break-in-timer))
-          (setq pause-idle-timer (run-with-idle-timer 5 nil 'pause-break-in-timer))))
+        (pause-cancel-timer)
+        (setq pause-timer (run-with-idle-timer pause-idle-delay nil 'pause-break-in-timer)))
     (error
      (lwarn 'pause-pre-break
             :error "%s" (error-message-string err)))))
-
-(defvar pause-saved-frame-config nil)
-;;(make-variable-frame-local 'pause-saved-frame-config)
 
 (defvar pause-break-mode-map
   (let ((map (make-sparse-keymap)))
@@ -187,20 +148,20 @@
 (defvar pause-buffer nil)
 
 (define-derived-mode pause-break-mode nil "Pause"
-  "Mode used during pause.
+  "Mode used during pause in pause buffer.
 
-\\[pause-break-exit]"
+It defines the following key bindings:
+
+\\{pause-break-mode-map}"
   (set (make-local-variable 'buffer-read-only) t)
   ;;(set (make-local-variable 'cursor-type) nil)
   ;; Fix-me: workaround for emacs bug
   ;;(run-with-idle-timer 0 nil 'pause-hide-cursor)
   )
 
-;; (defun pause-kill-buffer ()
-;;   ;; runs in timer, save-match-data
-;;   (when (buffer-live-p pause-buffer) (kill-buffer pause-buffer)))
-
+;; Fix-me: make one state var
 (defvar pause-break-exit-active nil)
+(defvar pause-break-1-minute-state nil)
 
 (defun pause-break ()
   (pause-cancel-timer)
@@ -212,7 +173,7 @@
         old-frame-tool-bar-lines
         old-frame-menu-bar-lines
         old-frame-vertical-scroll-bars)
-    (set-face-attribute 'mode-line nil :background "sienna")
+    (set-face-attribute 'mode-line nil :background "yellow")
     (dolist (f (frame-list))
       (add-to-list 'old-frame-bg-color (cons f (frame-parameter f 'background-color)))
       (add-to-list 'old-frame-left-fringe (cons f (frame-parameter f 'left-fringe)))
@@ -224,14 +185,17 @@
     ;; Fix-me: Something goes wrong witht the window configuration, try a short pause
     (run-with-idle-timer 0.2 nil 'pause-break-show)
     (setq pause-break-exit-active nil)
+    (setq pause-break-1-minute-state nil) ;; set in `pause-break-show'
     (unwind-protect
         (let ((n 0))
           (while (and (> 3 (setq n (1+ n)))
-                      (not pause-break-exit-active))
+                      (not pause-break-exit-active)
+                      (not pause-break-1-minute-state))
             (condition-case err
                 (recursive-edit)
               (error (message "%s" (error-message-string err))))
-            (unless pause-break-exit-active
+            (unless (or pause-break-exit-active
+                        pause-break-1-minute-state)
               (when (> 2 n) (message "Too early to pause (%s < 2)" n))
               (add-hook 'window-configuration-change-hook 'pause-break-exit))))
 
@@ -255,7 +219,11 @@
       ;; Fix-me: The frame grows unless we do redisplay here:
       (redisplay t)
       (set-frame-configuration wcfg)
-      (set-face-attribute 'mode-line nil :background old-mode-line-bg))))
+      (set-face-attribute 'mode-line nil :background old-mode-line-bg)
+      (run-with-idle-timer 0 nil
+                           (if pause-break-1-minute-state
+                               'pause-one-minute
+                             'pause-save-me)))))
 
 
 (defun pause-break-show ()
@@ -269,7 +237,8 @@
 (defun pause-break-show-1 ()
   ;; Do these first if something goes wrong.
   (run-with-idle-timer 5  nil 'pause-break-message)
-  (run-with-idle-timer 10 nil 'pause-break-exit-activate)
+  (run-with-idle-timer 15 nil 'pause-break-exit-activate)
+  (setq pause-break-1-minute-state t)
   (with-current-buffer (setq pause-buffer
                              (get-buffer-create "* P A U S E *"))
     (let ((inhibit-read-only t))
@@ -277,10 +246,7 @@
       (pause-break-mode)
       (setq left-margin-width 25)
       (pause-insert-img)
-      (insert (propertize pause-break-text
-                          'face (list 'bold
-                                      :height 1.5
-                                      :foreground pause-text-color)))
+      (insert (propertize pause-break-text 'face 'pause-text-face))
       (insert (propertize "\n\nTo exit switch buffer\n"
                           'face (list :foreground "yellow")))
       (add-text-properties (point-min) (point-max) (list 'keymap (make-sparse-keymap)))
@@ -321,10 +287,13 @@
 
 (defun pause-break-message ()
   (when (/= 0 (recursion-depth))
-    (message "%s" (propertize "Please take a pause!" 'face 'mode-line-inactive))))
+    (message "%s" (propertize "Please take a pause! (Or exit now to take it in 1 minute.)"
+                              'face 'mode-line-inactive))))
 
 (defun pause-break-exit-activate ()
   (setq pause-break-exit-active t)
+  (setq pause-break-1-minute-state nil)
+  (set-face-attribute 'mode-line nil :background "sienna")
   (message nil)
   (with-current-buffer pause-buffer
     (let ((inhibit-read-only t))
@@ -378,8 +347,8 @@
     (set (make-local-variable 'cursor-type) nil)))
 
 (defun pause-cancel-timer ()
-  (when (timerp pause-idle-timer) (cancel-timer pause-idle-timer))
-  (setq pause-idle-timer nil))
+  (when (timerp pause-timer) (cancel-timer pause-timer))
+  (setq pause-timer nil))
 
 (defun pause-break-in-timer ()
   (save-match-data ;; runs in timer
@@ -408,15 +377,16 @@
 
 ;;;###autoload
 (define-minor-mode pause-mode
-  "This minor mode tries to make you take a break!
-To customize it see:
+  "This minor mode tries to make you take a break!  It will jump
+up and temporary stop your work in Emacs.  It will however try to
+be gentle and wait until you have been idle with the keyboard for
+a short while.
 
- `pause-after-minutes'
- `pause-text-color'
- `pause-prompt1-color'
- `pause-prompt2-color'
- `pause-message-color'
-"
+Then it will show you a special screen with a link to a yoga
+exercise you can do when you pause.
+
+After the pause you continue your work where you were
+interrupted."
   :global t
   :group 'pause
   (if pause-mode

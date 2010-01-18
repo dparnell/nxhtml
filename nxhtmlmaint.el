@@ -2,15 +2,15 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-09-27T15:29:35+0200 Sat
-;; Version: 0.5
-;; Last-Updated: 2009-12-30 Tue
+;; Version: 0.6
+;; Last-Updated: 2010-01-18 Mon
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   Cannot open load file: nxhtmlmaint.
+;;   None
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -385,7 +385,7 @@ See `nxhtmlmaint-start-byte-compilation' for byte compiling."
   (interactive)
   (nxhtmlmaint-get-all-autoloads)
   (let ((dummy-debug-on-error t))
-    (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir t t))
+    (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir t t nil))
   (message "Byte uncompiling is ready, restart Emacs to use the elisp files"))
 
 (defconst nxhtmlmaint-nonbyte-compile-dirs
@@ -410,11 +410,9 @@ then instead delete the compiled files."
         (when (or force (file-newer-than-file-p el-src elc-dst))
           ;;(message "fn=%s" (file-name-nondirectory el-src))
           (when t ;;(string= "nxhtml-menu.el" (file-name-nondirectory el-src))
-            (message "(nxhtml-byte-compile-file %s)" el-src)
+            ;;(message "(nxhtml-byte-compile-file %s)" el-src)
             (unless (nxhtml-byte-compile-file el-src load)
-              (message "Couldn't compile %s" el-src))
-            )
-          ))))
+              (message "Couldn't compile %s" el-src)))))))
   (dolist (f (directory-files dir t))
     (when (file-directory-p f)
       ;; Fix-me: Avoid some dirs
