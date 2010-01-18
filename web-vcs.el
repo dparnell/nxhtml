@@ -636,9 +636,9 @@ a temporary file."
             (let ((buf (find-buffer-visiting dl-file-name)))
               (when buf
                 (with-current-buffer buf
-                  (message "before revert")
+                  (message "before revert-buffer")
                   (revert-buffer nil t t)
-                  (message "after revert")
+                  (message "after revert-buffer")
                   )))
             (when url-file-time (set-file-times dl-file-name url-file-time))
             (if dl-file-time
