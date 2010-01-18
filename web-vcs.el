@@ -290,7 +290,8 @@ etc."
               (message "Aborted")
               nil))
       (message "")
-      (web-vcs-get-files-on-page web-vcs url t (file-name-as-directory dl-dir) nil))))
+      (web-vcs-get-files-on-page web-vcs url t (file-name-as-directory dl-dir) nil)
+      t)))
 
 (defun web-vcs-get-files-on-page (web-vcs url recursive dl-dir test)
   "Download files listed by WEB-VCS on web page URL.
@@ -331,7 +332,7 @@ If TEST is non-nil then do not download, just list the files."
       ;;   (redisplay t)
       ;;   (set-window-point (selected-window) (point-max))
       ;;   (select-window old-win))
-      (web-vcs-message-with-face 'web-vcs-gold (format "\n\nWeb-Vcs Download: %S\n" url))
+      (web-vcs-message-with-face 'web-vcs-gold "\n\nWeb-Vcs Download: %S\n" url)
       (web-vcs-display-messages nil)
       (let* ((rev-file (expand-file-name "web-vcs-revision.txt" dl-dir))
              (rev-buf (find-file-noselect rev-file))

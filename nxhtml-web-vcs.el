@@ -321,6 +321,11 @@ For more information about auto download of nXhtml files see
                       (throw 'command-level nil))
                     (nxhtml-web-vcs-read-dl-dir "Download nXhtml to directory: ")))))
 
+  (let ((root (file-name-directory dl-dir)))
+    (unless (file-exists-p root)
+      (unless (yes-or-no-p (format "Directory %S does not exist, create it? " root))
+        (error "Aborted by user"))))
+  (make-directory dl-dir t)
   (if (not dl-dir)
       (unless (with-no-warnings (called-interactively-p))
         (error "dl-dir show be a directory"))
@@ -356,13 +361,18 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
     ;;(nxhtml-require-base)
     (when (web-vcs-get-files-from-root 'lp full-root-url dl-dir)
       (web-vcs-set&save-option 'nxhtml-autoload-web nil)
-      (when do-byte
-        (sit-for 10)
-        (web-vcs-message-with-face 'web-vcs-yellow
-                                   "Will start byte compilation of nXhtml in new Emacs in 10 seconds")
-        (sit-for 10)
-        (nxhtmlmaint-start-byte-compilation))
+      (web-vcs-log nil nil "* nXhtml: Download all\n")
       (let ((autostart-file (expand-file-name "autostart" dl-dir)))
+        (load autostart-file)
+        (web-vcs-log-save)
+        (web-vcs-message-with-face 'web-vcs-green "==== All files for nXhtml are now installed ====")
+        (web-vcs-display-messages t)
+        (when do-byte
+          (sit-for 10)
+          (web-vcs-message-with-face 'web-vcs-yellow
+                                     "Will start byte compilation of nXhtml in new Emacs in 10 seconds")
+          (sit-for 10)
+          (nxhtmlmaint-start-byte-compilation))
         (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file nil))))))
 
 (defun nxhtml-check-convert-to-part-by-part ()
