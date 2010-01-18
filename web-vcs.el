@@ -575,24 +575,18 @@ a temporary file."
   (dolist (file (reverse files))
     (let* ((url-file          (nth 0 file))
            (url-file-time-str (nth 1 file))
-           ;; (current-time-string (date-to-time "2010-01-17 21:39:58"))
-           ;; (current-time-string (date-to-time "Sun Jan 17 22:39:58 2010"))
-           ;; date-to-time assumes GMT
+           ;; date-to-time assumes GMT so this is ok:
            (url-file-time     (when url-file-time-str (date-to-time url-file-time-str)))
            (url-file-name-regexp  (nth 4 vcs-rec))
            (url-file-rel-name (progn
                                 (when (string-match url-file-name-regexp url-file)
                                   (match-string 1 url-file))))
            (dl-file-name (expand-file-name url-file-rel-name dl-dir))
-           ;; (nth 5 (file-attributes "c:/test/d27/nxhtml/web-vcs.el"))
            (dl-file-time (nth 5 (file-attributes dl-file-name)))
            (file-rel-name (file-relative-name dl-file-name dl-root))
            (file-name (file-name-nondirectory dl-file-name))
            (temp-file (expand-file-name (concat web-autoload-temp-file-prefix file-name) dl-dir))
            temp-buf)
-      ;; Convert dl-file-time to GMT (but avoid current bug)
-      ;; (setq dl-file-time (time-subtract dl-file-time
-      ;;                                   (seconds-to-time (car (current-time-zone))))))
       (cond
        ((and file-mask (not (web-vcs-match-folderwise file-mask file-rel-name))))
        ((and dl-file-time
@@ -1135,6 +1129,7 @@ Those times should have the same format as time returned by
       (error "%S returned %d" cmd ret)))))
 
 (defun web-vcs-display-messages (select)
+  "Display *Messages* buffer. Select its window if SELECT."
   (let ((msg-win (display-buffer "*Messages*")))
     (with-selected-window msg-win (goto-char (point-max)))
     (when select (select-window msg-win))
