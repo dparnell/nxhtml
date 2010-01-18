@@ -399,6 +399,7 @@ command `nxhtml-setup-install'."
   (when (y-or-n-p "Do you want to update your nXhtml files? ")
     (message "")
     (web-vcs-message-with-face 'web-vcs-yellow "*\nStarting updating your nXhtml files.\n*\n")
+    (message nil)
     (web-vcs-clear-folder-cache)
     (let ((vcs 'lp)
           (base-url (nxhtml-download-root-url nil))
