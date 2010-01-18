@@ -316,32 +316,22 @@ For more information about auto download of nXhtml files see
                  (delete-other-windows)
                  ;;(nxhtml-check-convert-to-part-by-part)
                  (list
-                  (catch 'command-level
-                    (unless (yes-or-no-p "Download all of nXhtml? ")
-                      (throw 'command-level nil))
-                    (nxhtml-web-vcs-read-dl-dir "Download nXhtml to directory: ")))))
+                  (nxhtml-web-vcs-read-dl-dir "Download whole nXhtml to directory: "))))
 
   (let ((root (file-name-directory dl-dir)))
     (unless (file-exists-p root)
       (unless (yes-or-no-p (format "Directory %S does not exist, create it? " root))
         (error "Aborted by user"))))
   (make-directory dl-dir t)
-  (if (not dl-dir)
-      (unless (with-no-warnings (called-interactively-p))
-        (error "dl-dir show be a directory"))
-    (let ((msg (concat "Downloading nXhtml through Launchpad web interface will take rather long\n"
-                       "time (5-15 minutes) so you may want to do it in a separate Emacs session.\n\n"
-                       "Do you want to download using this Emacs session? "
-                       )))
-      (if (not (y-or-n-p msg))
-          (message "Aborted")
-        (message "")
-        (web-vcs-log nil nil "* nXhtml: Download All\n")
-        (setq message-log-max t)
-        (let ((do-byte (y-or-n-p "Do you want to byte compile the files after downloading? "))
-              ;; Don't stop for each file:
-              (web-autoload-paranoid nil))
-          (nxhtml-download-1 dl-dir nil do-byte))))))
+  (let ((msg (concat "Downloading nXhtml through Launchpad web interface will take rather long\n"
+                     "time (5-15 minutes) so you may want to do it in a separate Emacs session.\n\n"
+                     "Do you want to download using this Emacs session? "
+                     )))
+    (if (not (y-or-n-p msg))
+        (message "Aborted")
+      (setq message-log-max t)
+      (let ((do-byte (y-or-n-p "Do you want to byte compile the files after downloading? ")))
+        (nxhtml-download-1 dl-dir nil do-byte)))))
 
 
 (defun nxhtml-download-1 (dl-dir revision do-byte)
@@ -357,22 +347,26 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
          ;;(revs-url  (concat base-url "changes/"))
          (rev-part (if revision (number-to-string revision) "head%3A/"))
          (full-root-url (concat files-url rev-part))
-         (web-vcs-folder-cache nil))
+         (web-vcs-folder-cache nil)
+         (web-autoload-paranoid nil))
     ;;(nxhtml-require-base)
     (when (web-vcs-get-files-from-root 'lp full-root-url dl-dir)
+      (web-vcs-display-messages t)
+      (web-vcs-log nil nil "* nXhtml: Download All\n")
       (web-vcs-set&save-option 'nxhtml-autoload-web nil)
-      (web-vcs-log nil nil "* nXhtml: Download all\n")
+      (message "")
+      (web-vcs-message-with-face 'web-vcs-green "==== Starting downloading whole nXhtml ====")
       (let ((autostart-file (expand-file-name "autostart" dl-dir)))
         (load autostart-file)
         (web-vcs-log-save)
         (web-vcs-message-with-face 'web-vcs-green "==== All files for nXhtml are now installed ====")
-        (web-vcs-display-messages t)
-        (when do-byte
-          (sit-for 10)
-          (web-vcs-message-with-face 'web-vcs-yellow
-                                     "Will start byte compilation of nXhtml in new Emacs in 10 seconds")
-          (sit-for 10)
-          (nxhtmlmaint-start-byte-compilation))
+        ;; (when do-byte
+        ;;   (sit-for 10)
+        ;;   (web-vcs-message-with-face 'web-vcs-yellow
+        ;;                              "Will start byte compilation of nXhtml in new Emacs in 10 seconds")
+        ;;   (sit-for 10)
+        ;;   (nxhtmlmaint-start-byte-compilation))
+        (nxhtmlmaint-byte-recompile)
         (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file nil))))))
 
 (defun nxhtml-check-convert-to-part-by-part ()

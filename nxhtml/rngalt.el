@@ -698,23 +698,26 @@ nxhtml.el.
 ;; For as-external.el
 ;;;###autoload
 (defun rngalt-set-validation-header (start-of-doc)
-  (rng-validate-mode -1)
-  (if start-of-doc
-      (progn
-        (add-hook 'after-change-major-mode-hook 'rngalt-after-change-major nil t)
-        (setq rngalt-validation-header (rngalt-get-state-after start-of-doc))
-        (rng-set-schema-file-1 (cadr rngalt-validation-header))
-        (setq rngalt-current-schema-file-name rng-current-schema-file-name)
-        (setq rng-compile-table nil)
-        (setq rng-ipattern-table nil)
+  (let ((old-rvm rng-validate-mode))
+    (when old-rvm (rng-validate-mode -1))
+    (if start-of-doc
+        (progn
+          (add-hook 'after-change-major-mode-hook 'rngalt-after-change-major nil t)
+          (setq rngalt-validation-header (rngalt-get-state-after start-of-doc))
+          (rng-set-schema-file-1 (cadr rngalt-validation-header))
+          (setq rngalt-current-schema-file-name rng-current-schema-file-name)
+          (setq rng-compile-table nil)
+          (setq rng-ipattern-table nil)
         (setq rng-last-ipattern-index nil))
-    (remove-hook 'after-change-major-mode-hook 'rngalt-after-change-major t)
-    (setq rngalt-validation-header nil)
-    (rng-set-vacuous-schema)
-    (rng-auto-set-schema))
-  (rng-validate-mode 1)
-  (rngalt-update-validation-header-overlay)
-  (rngalt-update-validation-header-buffer))
+      (remove-hook 'after-change-major-mode-hook 'rngalt-after-change-major t)
+      (setq rngalt-validation-header nil)
+      (when old-rvm
+        (rng-set-vacuous-schema)
+        (rng-auto-set-schema)))
+    (when old-rvm
+      (rng-validate-mode 1)
+      (rngalt-update-validation-header-overlay)
+      (rngalt-update-validation-header-buffer))))
 
 (defun rngalt-reapply-validation-header ()
   (when rngalt-validation-header

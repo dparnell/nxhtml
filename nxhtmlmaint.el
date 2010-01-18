@@ -367,14 +367,14 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
     (require 'cl) ;; This is run in a new Emacs
     (let ((dummy-debug-on-error t))
       (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir nil nil nil))
-    (message "Byte compiling nXhtml is ready, restart Emacs to use the compiled files")))
+    (web-vcs-message-with-face 'web-vcs-gold "Byte compiling nXhtml is ready, restart Emacs to use the compiled files")))
 
 ;;;###autoload
 (defun nxhtmlmaint-byte-recompile ()
   "Recompile or compile all files in current Emacs."
   (interactive)
   (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir nil nil t)
-  (message "Byte recompiling nXhtml ready"))
+  (web-vcs-message-with-face 'web-vcs-gold "Byte recompiling nXhtml ready"))
 
 ;;;###autoload
 (defun nxhtmlmaint-byte-uncompile-all ()
