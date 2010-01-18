@@ -577,6 +577,7 @@ a temporary file."
            (url-file-time-str (nth 1 file))
            ;; (current-time-string (date-to-time "2010-01-17 21:39:58"))
            ;; (current-time-string (date-to-time "Sun Jan 17 22:39:58 2010"))
+           ;; date-to-time assumes GMT
            (url-file-time     (when url-file-time-str (date-to-time url-file-time-str)))
            (url-file-name-regexp  (nth 4 vcs-rec))
            (url-file-rel-name (progn
@@ -590,10 +591,8 @@ a temporary file."
            (temp-file (expand-file-name (concat web-autoload-temp-file-prefix file-name) dl-dir))
            temp-buf)
       ;; Convert dl-file-time to GMT (but avoid current bug)
-      (when (string= "Sun Jan 17 22:39:58 2010"
-                     (current-time-string (date-to-time "Sun Jan 17 22:39:58 2010")))
-        (setq dl-file-time (time-subtract dl-file-time
-                                          (seconds-to-time (car (current-time-zone))))))
+      ;; (setq dl-file-time (time-subtract dl-file-time
+      ;;                                   (seconds-to-time (car (current-time-zone))))))
       (cond
        ((and file-mask (not (web-vcs-match-folderwise file-mask file-rel-name))))
        ((and dl-file-time
