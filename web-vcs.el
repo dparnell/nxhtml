@@ -600,7 +600,7 @@ a temporary file."
              (progn
                (message "dl-file-time =%s" (when dl-file-time (current-time-string dl-file-time)))
                (message "url-file-time=%s" (when url-file-time (current-time-string url-file-time)))
-               (message "url-file-tstr=%s" (when url-file-time url-file-time-str))
+               ;;(message "url-file-tstr=%s" (when url-file-time url-file-time-str))
                t)
              (time-less-p url-file-time
                           (time-add dl-file-time (seconds-to-time 1))))
