@@ -73,9 +73,16 @@
   :type 'number
   :group 'pause)
 
-(defcustom pause-want-yoga t
-  "Display a link to a random yoga posture on pause."
-  :type 'boolean
+(defcustom pause-extra-fun 'pause-start-get-yoga-poses
+  "Function to call for extra fun when pausing.
+Default is to show a link to a yoga exercise (recommended!).
+
+Set this variable to nil if you do not want any extra fun.
+
+If this variable's value is a function it will be called when the
+pause frame has just been shown."
+  :type '(choice (function :tag "Extra function")
+                 (const :tag "No extra function" nil))
   :group 'pause)
 
 (defcustom pause-background-color "orange"
@@ -267,7 +274,7 @@ It defines the following key bindings:
 
 (defun pause-break-show-1 ()
   ;; Do these first if something goes wrong.
-  (unless pause-want-yoga (run-with-idle-timer 5  nil 'pause-break-message))
+  (unless pause-extra-fun (run-with-idle-timer 5  nil 'pause-break-message))
   (run-with-idle-timer 15 nil 'pause-break-exit-activate)
   (setq pause-break-1-minute-state t)
   (set-face-attribute 'mode-line nil :background pause-1-minute-mode-line-color)
@@ -313,7 +320,7 @@ It defines the following key bindings:
                                    (height . ,rows)
                                    ))))
     (raise-frame)
-    (when pause-want-yoga (pause-start-get-yoga-poses))
+    (when pause-extra-fun (funcall pause-extra-fun))
     (setq pause-break-exit-calls 0)
     (add-hook 'window-configuration-change-hook 'pause-break-exit))
 
@@ -446,8 +453,9 @@ interrupted."
 
 ;;(pause-start-get-yoga-poses)
 (defun pause-start-get-yoga-poses ()
-  (url-retrieve (concat pause-yoga-poses-host-url "yogapractice/mountain.asp")
-                'pause-callback-get-yoga-poses))
+  (let ((url-show-status nil)) ;; do not show download messages
+    (url-retrieve (concat pause-yoga-poses-host-url "yogapractice/mountain.asp")
+                  'pause-callback-get-yoga-poses)))
 
 (defun pause-callback-get-yoga-poses (status)
   (let ((pose (pause-random-yoga-pose (pause-get-yoga-poses-1 (current-buffer)))))
@@ -470,7 +478,8 @@ interrupted."
       (pause-break-message))))
 
 (defun pause-get-yoga-poses ()
-  (let ((buf (url-retrieve-synchronously "http://www.abc-of-yoga.com/yogapractice/mountain.asp")))
+  (let* ((url-show-status nil) ;; do not show download messages
+         (buf (url-retrieve-synchronously "http://www.abc-of-yoga.com/yogapractice/mountain.asp")))
     (pause-get-yoga-poses-1 buf)))
 
 ;; (setq x (url-retrieve-synchronously "http://www.abc-of-yoga.com/yogapractice/mountain.asp"))
