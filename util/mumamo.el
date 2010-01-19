@@ -3936,7 +3936,7 @@ after this in the properties below of the now created chunk:
                              (if after-chunk ;; not first
                                  (assert (not (eq (mumamo-main-major-mode) maj)) t)
                                (assert (eq (mumamo-main-major-mode) maj) t))))
-                         (message "Create chunk %s - %s" beg use-end)
+                         ;;(message "Create chunk %s - %s" beg use-end)
                          (make-overlay beg use-end nil nil (not is-closed))))
            ;; Fix-me: move to mumamo-find-next-chunk-values
            (this-border-fun (when (and this-chunk after-chunk)
