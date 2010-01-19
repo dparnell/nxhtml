@@ -971,6 +971,20 @@ what they will do ;-)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Misc.
 
+(defcustom ourcomments-insert-date-and-time "%Y-%m-%d %R"
+  "Time format for command `ourcomments-insert-date-and-time'.
+See `format-time-string'."
+  :type 'string
+  :group 'ourcomments-util)
+
+;;;###autoload
+(defun ourcomments-insert-date-and-time ()
+  "Insert date and time.
+See option `ourcomments-insert-date-and-time' for how to
+customize it."
+  (interactive)
+  (insert (format-time-string ourcomments-insert-date-and-time)))
+
 ;;;###autoload
 (defun find-emacs-other-file (display-file)
   "Find corresponding file to source or installed elisp file.

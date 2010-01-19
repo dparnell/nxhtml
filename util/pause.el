@@ -63,9 +63,34 @@
   :type 'number
   :group 'pause)
 
+(defcustom pause-1-minute-delay 60
+  "Number of seconds to wait in 1 minutes delay."
+  :type 'number
+  :group 'pause)
+
 (defcustom pause-idle-delay 5
   "Seconds to wait for user to be idle before pause."
   :type 'number
+  :group 'pause)
+
+(defcustom pause-want-yoga t
+  "Display a link to a random yoga posture on pause."
+  :type 'boolean
+  :group 'pause)
+
+(defcustom pause-background-color "orange"
+  "Background color during pause."
+  :type 'color
+  :group 'pause)
+
+(defcustom pause-mode-line-color "sienna"
+  "Mode line color during pause."
+  :type 'color
+  :group 'pause)
+
+(defcustom pause-1-minute-mode-line-color "yellow"
+  "Mode line color during 1 minute phase of pause."
+  :type 'color
   :group 'pause)
 
 (defface pause-text-face
@@ -73,10 +98,19 @@
   "Face main text in pause buffer."
   :group 'pause)
 
-(defcustom pause-message-face
-  "Background color of pause messages."
+(defface pause-info-text-face
+  '((t (:foreground "yellow")))
+  "Face info text in pause buffer."
+  :group 'pause)
+
+(defface pause-message-face
   '((t (:inherit secondary-selection)))
-  :type 'color
+  "Face for pause messages."
+  :group 'pause)
+
+(defface pause-1-minute-message-face
+  '((t (:inherit mode-line-inactive)))
+  "Face for pause messages."
   :group 'pause)
 
 (defcustom pause-break-text
@@ -90,11 +124,6 @@
   :type 'integer
   :group 'pause)
 
-(defcustom pause-want-yoga t
-  "Display a link to a random yoga posture on pause."
-  :type 'boolean
-  :group 'pause)
-
 (defvar pause-default-img-dir
   (let* ((this-file (or load-file-name
                        buffer-file-name))
@@ -102,7 +131,8 @@
     (expand-file-name "../etc/img/pause/" this-dir)))
 
 (defcustom pause-img-dir pause-default-img-dir
-  "Image directory for pause."
+  "Image directory for pause.
+A random image is choosen from this directory for pauses."
   :type 'directory
   :group 'pause)
 
@@ -121,7 +151,7 @@
 
 (defun pause-one-minute ()
   "Give you another minute ..."
-  (pause-start-timer 60)
+  (pause-start-timer pause-1-minute-delay)
   (message (propertize " OK, I will come back in a minute! -- greatings from pause"
                        'face 'pause-message-face)))
 
@@ -173,7 +203,6 @@ It defines the following key bindings:
         old-frame-tool-bar-lines
         old-frame-menu-bar-lines
         old-frame-vertical-scroll-bars)
-    (set-face-attribute 'mode-line nil :background "yellow")
     (dolist (f (frame-list))
       (add-to-list 'old-frame-bg-color (cons f (frame-parameter f 'background-color)))
       (add-to-list 'old-frame-left-fringe (cons f (frame-parameter f 'left-fringe)))
@@ -182,7 +211,8 @@ It defines the following key bindings:
       (add-to-list 'old-frame-menu-bar-lines (cons f (frame-parameter f 'menu-bar-lines)))
       (add-to-list 'old-frame-vertical-scroll-bars (cons f (frame-parameter f 'vertical-scroll-bars))))
 
-    ;; Fix-me: Something goes wrong witht the window configuration, try a short pause
+    ;; Fix-me: Something goes wrong with the window configuration, try a short pause
+    (remove-hook 'window-configuration-change-hook 'pause-break-exit)
     (run-with-idle-timer 0.2 nil 'pause-break-show)
     (setq pause-break-exit-active nil)
     (setq pause-break-1-minute-state nil) ;; set in `pause-break-show'
@@ -232,13 +262,15 @@ It defines the following key bindings:
     (condition-case err
         (pause-break-show-1)
       (error
+       (remove-hook 'window-configuration-change-hook 'pause-break-exit)
        (message "pause-break-show error: %s" (error-message-string err))))))
 
 (defun pause-break-show-1 ()
   ;; Do these first if something goes wrong.
-  (run-with-idle-timer 5  nil 'pause-break-message)
+  (unless pause-want-yoga (run-with-idle-timer 5  nil 'pause-break-message))
   (run-with-idle-timer 15 nil 'pause-break-exit-activate)
   (setq pause-break-1-minute-state t)
+  (set-face-attribute 'mode-line nil :background pause-1-minute-mode-line-color)
   (with-current-buffer (setq pause-buffer
                              (get-buffer-create "* P A U S E *"))
     (let ((inhibit-read-only t))
@@ -247,8 +279,7 @@ It defines the following key bindings:
       (setq left-margin-width 25)
       (pause-insert-img)
       (insert (propertize pause-break-text 'face 'pause-text-face))
-      (insert (propertize "\n\nTo exit switch buffer\n"
-                          'face (list :foreground "yellow")))
+      (insert (propertize "\n\nTo exit switch buffer\n" 'face 'pause-info-text-face))
       (add-text-properties (point-min) (point-max) (list 'keymap (make-sparse-keymap)))
       (dolist (m '(hl-needed-mode))
         (when (and (boundp m) (symbol-value m))
@@ -270,17 +301,17 @@ It defines the following key bindings:
             (switch-to-buffer pause-buffer)
             (goto-char (point-max))))
         (modify-frame-parameters f
-                                 (list '(background-color . "orange")
-                                       '(left-fringe . 0)
-                                       '(right-fringe . 0)
-                                       '(tool-bar-lines . 0)
-                                       '(menu-bar-lines . 0)
-                                       '(vertical-scroll-bars . nil)
-                                       '(left . 0)
-                                       '(top . 0)
-                                       (cons 'width cols)
-                                       (cons 'height rows)
-                                       ))))
+                                 `((background-color . ,pause-background-color)
+                                   (left-fringe . 0)
+                                   (right-fringe . 0)
+                                   (tool-bar-lines . 0)
+                                   (menu-bar-lines . 0)
+                                   (vertical-scroll-bars . nil)
+                                   (left . 0)
+                                   (top . 0)
+                                   (width  . ,cols)
+                                   (height . ,rows)
+                                   ))))
     (when pause-want-yoga (pause-start-get-yoga-poses))
     (setq pause-break-exit-calls 0)
     (add-hook 'window-configuration-change-hook 'pause-break-exit))
@@ -288,16 +319,17 @@ It defines the following key bindings:
 (defun pause-break-message ()
   (when (/= 0 (recursion-depth))
     (message "%s" (propertize "Please take a pause! (Or exit now to take it in 1 minute.)"
-                              'face 'mode-line-inactive))))
+                              'face 'pause-1-minute-message-face))))
 
 (defun pause-break-exit-activate ()
-  (setq pause-break-exit-active t)
-  (setq pause-break-1-minute-state nil)
-  (set-face-attribute 'mode-line nil :background "sienna")
-  (message nil)
-  (with-current-buffer pause-buffer
-    (let ((inhibit-read-only t))
-      (add-text-properties (point-min) (point-max) (list 'keymap nil)))))
+  (when (/= 0 (recursion-depth))
+    (setq pause-break-exit-active t)
+    (setq pause-break-1-minute-state nil)
+    (set-face-attribute 'mode-line nil :background pause-mode-line-color)
+    (message nil)
+    (with-current-buffer pause-buffer
+      (let ((inhibit-read-only t))
+        (add-text-properties (point-min) (point-max) (list 'keymap nil))))))
 
 (defun pause-break-exit ()
   (interactive)
@@ -408,11 +440,11 @@ interrupted."
 
 ;;(run-with-idle-timer 0 nil 'pause-get-yoga-poses)
 (defvar pause-yoga-poses-host-url "http://www.abc-of-yoga.com/")
-(defvar pause-yoga-poses-url (concat pause-yoga-poses-host-url "yogapractice/mountain.asp"))
 
 ;;(pause-start-get-yoga-poses)
 (defun pause-start-get-yoga-poses ()
-  (url-retrieve pause-yoga-poses-url 'pause-callback-get-yoga-poses))
+  (url-retrieve (concat pause-yoga-poses-host-url "yogapractice/mountain.asp")
+                'pause-callback-get-yoga-poses))
 
 (defun pause-callback-get-yoga-poses (status)
   (let ((pose (pause-random-yoga-pose (pause-get-yoga-poses-1 (current-buffer)))))
@@ -431,8 +463,8 @@ interrupted."
                           'action `(lambda (button)
                                      (condition-case err
                                          (browse-url ,pose-url)
-                                       (error (message "%s" (error-message-string err)))
-                                       ))))))
+                                       (error (message "%s" (error-message-string err))))))
+      (pause-break-message))))
 
 (defun pause-get-yoga-poses ()
   (let ((buf (url-retrieve-synchronously "http://www.abc-of-yoga.com/yogapractice/mountain.asp")))
