@@ -2811,18 +2811,20 @@ This also covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; XSL
 
+;;;###autoload
 (define-mumamo-multi-major-mode xsl-nxml-mumamo-mode
   "Turn on multi major mode for XSL with main mode `nxml-mode'.
-This also covers inlined style and javascript."
-  ("XSL HTML Family" nxml-mode
+This covers inlined style and javascript."
+  ("XSL nXtml Family" nxml-mode
    (
     mumamo-chunk-inlined-style
     mumamo-chunk-inlined-script
     )))
 
+;;;###autoload
 (define-mumamo-multi-major-mode xsl-sgml-mumamo-mode
   "Turn on multi major mode for XSL with main mode `sgml-mode'.
-This also covers inlined style and javascript."
+This covers inlined style and javascript."
   ("XSL SGML Family" sgml-mode
    (
     mumamo-chunk-inlined-style
