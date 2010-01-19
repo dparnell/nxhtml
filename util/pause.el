@@ -257,11 +257,16 @@ It defines the following key bindings:
       (redisplay t)
       (set-frame-configuration wcfg)
       (set-face-attribute 'mode-line nil :background old-mode-line-bg)
+      (run-with-idle-timer 1 nil 'run-hooks 'pause-break-exit-hook)
       (run-with-idle-timer 0 nil
                            (if pause-break-1-minute-state
                                'pause-one-minute
                              'pause-save-me)))))
 
+(defvar pause-break-exit-hook nil
+  "Hook run after break exit.
+Frame configuration has been restored when this is run.
+Please note that it is run in a timer.")
 
 (defun pause-break-show ()
   ;; In timer
@@ -274,8 +279,9 @@ It defines the following key bindings:
 
 (defun pause-break-show-1 ()
   ;; Do these first if something goes wrong.
-  (unless pause-extra-fun (run-with-idle-timer 5  nil 'pause-break-message))
-  (run-with-idle-timer 15 nil 'pause-break-exit-activate)
+  (run-with-idle-timer 1 nil 'add-hook 'window-configuration-change-hook 'pause-break-exit)
+  (unless pause-extra-fun (run-with-idle-timer 1  nil 'pause-break-message))
+  (run-with-idle-timer 10 nil 'pause-break-exit-activate)
   (setq pause-break-1-minute-state t)
   (set-face-attribute 'mode-line nil :background pause-1-minute-mode-line-color)
   (with-current-buffer (setq pause-buffer
@@ -321,8 +327,7 @@ It defines the following key bindings:
                                    ))))
     (raise-frame)
     (when pause-extra-fun (funcall pause-extra-fun))
-    (setq pause-break-exit-calls 0)
-    (add-hook 'window-configuration-change-hook 'pause-break-exit))
+    (setq pause-break-exit-calls 0))
 
 (defun pause-break-message ()
   (when (/= 0 (recursion-depth))
@@ -334,6 +339,7 @@ It defines the following key bindings:
     (setq pause-break-exit-active t)
     (setq pause-break-1-minute-state nil)
     (set-face-attribute 'mode-line nil :background pause-mode-line-color)
+    (message "pbea")
     (message nil)
     (with-current-buffer pause-buffer
       (let ((inhibit-read-only t))

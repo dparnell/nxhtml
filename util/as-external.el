@@ -67,9 +67,10 @@
 (eval-when-compile (require 'mumamo nil t))
 (eval-when-compile (require 'nxhtml-mode nil t))
 (eval-when-compile (require 'ourcomments-util nil t))
+(eval-when-compile (require 'pause nil t))
+(eval-when-compile (require 'server))
 (eval-when-compile (require 'wikipedia-mode nil t))
 (eval-and-compile  (require 'wrap-to-fill nil t))
-(eval-when-compile (require 'server))
 
 ;;;###autoload
 (defgroup as-external nil
@@ -262,9 +263,26 @@ This is done by checking `as-external-alist'."
         (when (symbolp file-regexp)
           (setq file-regexp (symbol-value file-regexp)))
         (when (string-match file-regexp (buffer-file-name))
+          ;; Check if pause is active
+          (when (and (featurep 'pause)
+                     pause-break-exit-active)
+            ;; A bit troublesome. Pause break will exit from recursive
+            ;; editing and restore frame config. We have to wait until
+            ;; this is done. Fortunately there is a hook:
+            (setq as-external-last-buffer (current-buffer))
+            (add-hook 'pause-break-exit-hook 'as-external-retry-after-pause-exit))
           (funcall setup-fun)
           (throw 'done t))))))
 
+(defvar as-external-last-buffer nil)
+
+(defun as-external-retry-after-pause-exit ()
+  (condition-case err
+      (progn
+        (remove-hook 'pause-break-exit-hook 'as-external-retry-after-pause-exit)
+        (server-switch-buffer as-external-last-buffer)
+        (run-hooks 'server-switch-hook))
+    (error (message "as-external-after-pause: %s" (error-message-string err)))))
 
 (provide 'as-external)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
