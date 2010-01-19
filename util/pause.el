@@ -312,6 +312,7 @@ It defines the following key bindings:
                                    (width  . ,cols)
                                    (height . ,rows)
                                    ))))
+    (raise-frame)
     (when pause-want-yoga (pause-start-get-yoga-poses))
     (setq pause-break-exit-calls 0)
     (add-hook 'window-configuration-change-hook 'pause-break-exit))
@@ -409,10 +410,12 @@ It defines the following key bindings:
 
 ;;;###autoload
 (define-minor-mode pause-mode
-  "This minor mode tries to make you take a break!  It will jump
-up and temporary stop your work in Emacs.  It will however try to
-be gentle and wait until you have been idle with the keyboard for
-a short while.
+  "This minor mode tries to make you take a break.
+It will jump up and temporary stop your work - even if you are
+not in Emacs.  If you are in Emacs it will however try to be
+gentle and wait until you have been idle with the keyboard for a
+short while. \(If you are not in Emacs it can't be gentle. How
+could it?)
 
 Then it will show you a special screen with a link to a yoga
 exercise you can do when you pause.
@@ -510,6 +513,7 @@ interrupted."
                                   poses)))
               (unless poses
                 (throw 'trouble "Can't find poses in table on the page"))
+              (kill-buffer)
               nil))))
     (if trouble-msg
         (progn
