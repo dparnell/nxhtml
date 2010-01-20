@@ -466,7 +466,8 @@ command `nxhtml-setup-install'."
 (defun nxhtml-byte-compile-file (file &optional load)
   (let ((extra-load-path (when nxhtml-install-dir
                            (mapcar (lambda (p)
-                                     (expand-file-name p nxhtml-install-dir))
+                                     (file-name-as-directory
+                                      (expand-file-name p nxhtml-install-dir)))
                                    '("tests" "related" "nxhtml" "util" ".")))))
     (web-vcs-byte-compile-file file load extra-load-path)))
 
