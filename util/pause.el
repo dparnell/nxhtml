@@ -73,6 +73,11 @@
   :type 'number
   :group 'pause)
 
+(defcustom pause-even-if-not-in-emacs t
+  "Jump up pause even if not in Emacs."
+  :type 'boolean
+  :group 'pause)
+
 (defcustom pause-extra-fun 'pause-start-get-yoga-poses
   "Function to call for extra fun when pausing.
 Default is to show a link to a yoga exercise (recommended!).
@@ -147,23 +152,23 @@ A random image is choosen from this directory for pauses."
 
 (defvar pause-timer nil)
 
-(defvar pause-break-exit-calls nil)
+;;(defvar pause-break-exit-calls nil)
 
-(defun pause-dont-save-me ()
-  (pause-cancel-timer))
+(defun pause-start-timer ()
+  (pause-start-timer-1 (* 60 pause-after-minutes)))
 
-(defun pause-start-timer (sec)
+(defun pause-start-timer-1 (sec)
   (pause-cancel-timer)
   (setq pause-timer (run-with-timer sec nil 'pause-pre-break)))
 
 (defun pause-one-minute ()
   "Give you another minute ..."
-  (pause-start-timer pause-1-minute-delay)
+  (pause-start-timer-1 pause-1-minute-delay)
   (message (propertize " OK, I will come back in a minute! -- greatings from pause"
                        'face 'pause-message-face)))
 
 (defun pause-save-me ()
-  (pause-start-timer (* 60 pause-after-minutes))
+  (pause-start-timer)
   (message (propertize " OK, I will save you again in %d minutes! -- greatings from pause "
                        'face 'pause-message-face)
            pause-after-minutes))
@@ -199,6 +204,7 @@ It defines the following key bindings:
 ;; Fix-me: make one state var
 (defvar pause-break-exit-active nil)
 (defvar pause-break-1-minute-state nil)
+
 
 (defun pause-break ()
   (pause-cancel-timer)
@@ -238,7 +244,6 @@ It defines the following key bindings:
 
       (remove-hook 'window-configuration-change-hook 'pause-break-exit)
       ;;(set-frame-parameter nil 'background-color "white")
-      (kill-buffer pause-buffer)
       (dolist (f (frame-list))
         (set-frame-parameter f 'background-color
                              (cdr (assq f old-frame-bg-color)))
@@ -255,9 +260,10 @@ It defines the following key bindings:
         )
       ;; Fix-me: The frame grows unless we do redisplay here:
       (redisplay t)
-      (set-frame-configuration wcfg)
+      (set-frame-configuration wcfg t)
       (set-face-attribute 'mode-line nil :background old-mode-line-bg)
-      (run-with-idle-timer 1 nil 'run-hooks 'pause-break-exit-hook)
+      (run-with-idle-timer 2.0 nil 'run-hooks 'pause-break-exit-hook)
+      (kill-buffer pause-buffer)
       (run-with-idle-timer 0 nil
                            (if pause-break-1-minute-state
                                'pause-one-minute
@@ -277,9 +283,13 @@ Please note that it is run in a timer.")
        (remove-hook 'window-configuration-change-hook 'pause-break-exit)
        (message "pause-break-show error: %s" (error-message-string err))))))
 
+(defvar pause-break-last-wcfg-change (float-time))
+
 (defun pause-break-show-1 ()
   ;; Do these first if something goes wrong.
-  (run-with-idle-timer 1 nil 'add-hook 'window-configuration-change-hook 'pause-break-exit)
+  (setq pause-break-last-wcfg-change (float-time))
+  ;;(run-with-idle-timer (* 1.5 (length (frame-list))) nil 'add-hook 'window-configuration-change-hook 'pause-break-exit)
+  (add-hook 'window-configuration-change-hook 'pause-break-exit)
   (unless pause-extra-fun (run-with-idle-timer 1  nil 'pause-break-message))
   (run-with-idle-timer 10 nil 'pause-break-exit-activate)
   (setq pause-break-1-minute-state t)
@@ -325,9 +335,10 @@ Please note that it is run in a timer.")
                                    (width  . ,cols)
                                    (height . ,rows)
                                    ))))
-    (raise-frame)
+    (when pause-even-if-not-in-emacs (raise-frame))
     (when pause-extra-fun (funcall pause-extra-fun))
-    (setq pause-break-exit-calls 0))
+    ;;(setq pause-break-exit-calls 0)
+    )
 
 (defun pause-break-message ()
   (when (/= 0 (recursion-depth))
@@ -339,7 +350,6 @@ Please note that it is run in a timer.")
     (setq pause-break-exit-active t)
     (setq pause-break-1-minute-state nil)
     (set-face-attribute 'mode-line nil :background pause-mode-line-color)
-    (message "pbea")
     (message nil)
     (with-current-buffer pause-buffer
       (let ((inhibit-read-only t))
@@ -347,12 +357,13 @@ Please note that it is run in a timer.")
 
 (defun pause-break-exit ()
   (interactive)
-  (when (< 1 (setq pause-break-exit-calls (1+ pause-break-exit-calls)))
-    ;;(message "pause-break-exit:\n%s" (with-output-to-string (backtrace)))
-    (when pause-break-exit-active
-      (remove-hook 'window-configuration-change-hook 'pause-break-exit))
-    (when (/= 0 (recursion-depth))
-      (exit-recursive-edit))))
+  (let ((elapsed (- (float-time) pause-break-last-wcfg-change)))
+    (setq pause-break-last-wcfg-change (float-time))
+    (when (> elapsed 1.0)
+      (setq pause-break-exit-active t)
+      (remove-hook 'window-configuration-change-hook 'pause-break-exit)
+      (when (/= 0 (recursion-depth))
+        (exit-recursive-edit)))))
 
 (defun pause-insert-img ()
   (let* ((inhibit-read-only t)
@@ -405,11 +416,9 @@ Please note that it is run in a timer.")
         (let ((pause-idle-delay 5))
           (pause-pre-break))
       (let ((there-was-an-error nil))
-        ;;(message "calling break in timer")
         (condition-case err
             (pause-break)
           (error
-           (message "pause-break-in-timer: %s" (error-message-string err))
            (setq there-was-an-error t)))
         (when there-was-an-error
           (condition-case err
@@ -438,8 +447,8 @@ interrupted."
   :global t
   :group 'pause
   (if pause-mode
-      (pause-save-me)
-    (pause-dont-save-me)))
+      (pause-start-timer)
+    (pause-cancel-timer)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -45,15 +45,15 @@
 ;;; Code:
 
 (eval-when-compile (require 'apropos))
+(eval-when-compile (require 'bookmark))
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'grep))
 (eval-when-compile (require 'ido))
-;;(eval-when-compile (require 'mumamo))
+(eval-when-compile (require 'org))
 (eval-when-compile (require 'recentf))
-(eval-when-compile (require 'bookmark))
 (eval-when-compile (require 'uniquify))
+
 (require 'cus-edit)
-(require 'org)
 
 ;; (ourcomments-indirect-fun 'html-mumamo)
 ;; (ourcomments-indirect-fun 'html-mumamo-mode)
@@ -971,6 +971,42 @@ what they will do ;-)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Misc.
 
+;;(ourcomments-show-timers)
+(defun ourcomments-show-timers ()
+  "Show timers with readable time format."
+  (interactive)
+  (with-output-to-temp-buffer (help-buffer)
+    (help-setup-xref (list #'ourcommenst-show-timers (interactive-p))
+    (with-current-buffer (help-buffer)
+      (insert "Timers:\n\n")
+      (dolist (tmr timer-list)
+        (let* ((hi-sec (timer--high-seconds tmr))
+               (lo-sec (timer--low-seconds tmr))
+               (mi-sec (timer--usecs tmr))
+               (fun    (timer--function tmr))
+               (args   (timer--args tmr))
+               (idle-d (timer--idle-delay tmr))
+               (rpt-d  (timer--repeat-delay tmr))
+               (time   (concat (format-time-string "  %Y-%m-%d %H:%M:%S" (list hi-sec lo-sec 0))
+                               (format "%.1f" (/ mi-sec 1000000.0))))
+               )
+          (assert (not idle-d) t)
+          (insert (format "%s %4s (`%s' %S)\n" time rpt-d fun args))))
+      (insert "\nIdle timers:\n\n")
+      (dolist (tmr timer-idle-list)
+        (let* ((hi-sec (timer--high-seconds tmr))
+               (lo-sec (timer--low-seconds tmr))
+               (mi-sec (timer--usecs tmr))
+               (fun    (timer--function tmr))
+               (args   (timer--args tmr))
+               (idle-d (timer--idle-delay tmr))
+               (rpt-d  (timer--repeat-delay tmr))
+               (time   (+ (* hi-sec 256 256) lo-sec (/ mi-sec 1000000.0)))
+               )
+          (assert (not (not idle-d)) t)
+          (insert (format "  %.2f sec %3s (`%s' %S)\n" time rpt-d fun args))))
+      ))))
+
 (defcustom ourcomments-insert-date-and-time "%Y-%m-%d %R"
   "Time format for command `ourcomments-insert-date-and-time'.
 See `format-time-string'."
@@ -1440,7 +1476,6 @@ function."
     (ido-switch-buffer)))
 
 (defun ourcomments-ido-mode-advice()
-  (message "ourcomments-ido-mode-advice running")
   (when (memq ido-mode '(both buffer))
     (let ((the-ido-minor-map (cdr ido-minor-mode-map-entry)))
       ;;(define-key the-ido-minor-map [(control tab)] 'ido-switch-buffer))
@@ -1541,7 +1576,7 @@ function."
 (defvar ourcomments-ido-old-state ido-mode)
 
 (defun ourcomments-ido-ctrl-tab-activate ()
-  (message "ourcomments-ido-ctrl-tab-activate running")
+  ;;(message "ourcomments-ido-ctrl-tab-activate running")
   ;;(ad-update 'ido-visit-buffer)
   ;;(unless (ad-get-advice-info 'ido-visit-buffer)
   ;; Fix-me: The advice must be enabled before activation. Send bug report.
@@ -1967,6 +2002,7 @@ Return full path if found."
 (defun ourcomments-org-complete-and-replace-file-link ()
   "If on a org file link complete file name and replace it."
   (interactive)
+  (require 'org)
   (let* ((here (point-marker))
          (on-link (eq 'org-link (get-text-property (point) 'face)))
          (link-beg (when on-link

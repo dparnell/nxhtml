@@ -122,7 +122,7 @@ much about computation time as for entries in the menu bar.
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-mail-mode
 ;;;;;;  as-external-for-xhtml as-external) "as-external" "util/as-external.el"
-;;;;;;  (19280 20259))
+;;;;;;  (19287 11748))
 ;;; Generated autoloads from util/as-external.el
 (web-autoload-require 'as-external 'lp '(nxhtml-download-root-url nil) "util/as-external" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -953,7 +953,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19280 33365))
+;;;;;;  (19285 1113))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1086,17 +1086,17 @@ Return t if VALUE is a multi major mode function.
 
 ;;;***
 
-;;;### (autoloads (mako-html-mumamo-mode org-mumamo-mode asp-html-mumamo-mode
-;;;;;;  noweb2-mumamo-mode mumamo-noweb2 csound-sgml-mumamo-mode
-;;;;;;  laszlo-nxml-mumamo-mode metapost-mumamo-mode ruby-heredoc-mumamo-mode
-;;;;;;  python-heredoc-mumamo-mode cperl-heredoc-mumamo-mode perl-heredoc-mumamo-mode
-;;;;;;  php-heredoc-mumamo-mode sh-heredoc-mumamo-mode eruby-html-mumamo-mode
-;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode gsp-html-mumamo-mode
-;;;;;;  ssjs-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
-;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
-;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode
-;;;;;;  mumamo-define-html-file-wide-keys) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19275 61837))
+;;;### (autoloads (xsl-sgml-mumamo-mode xsl-nxml-mumamo-mode mako-html-mumamo-mode
+;;;;;;  org-mumamo-mode asp-html-mumamo-mode noweb2-mumamo-mode mumamo-noweb2
+;;;;;;  csound-sgml-mumamo-mode laszlo-nxml-mumamo-mode metapost-mumamo-mode
+;;;;;;  ruby-heredoc-mumamo-mode python-heredoc-mumamo-mode cperl-heredoc-mumamo-mode
+;;;;;;  perl-heredoc-mumamo-mode php-heredoc-mumamo-mode sh-heredoc-mumamo-mode
+;;;;;;  eruby-html-mumamo-mode eruby-mumamo-mode jsp-html-mumamo-mode
+;;;;;;  gsp-html-mumamo-mode ssjs-html-mumamo-mode smarty-html-mumamo-mode
+;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
+;;;;;;  embperl-html-mumamo-mode mason-html-mumamo-mode nxml-mumamo-mode
+;;;;;;  html-mumamo-mode mumamo-define-html-file-wide-keys) "mumamo-fun"
+;;;;;;  "util/mumamo-fun.el" (19285 56344))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1211,6 +1211,14 @@ sub chunks." t)
 (nxhtml-autoload 'mako-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for Mako with main mode `html-mode'.
 This also covers inlined style and javascript." t)
+
+(nxhtml-autoload 'xsl-nxml-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
+Turn on multi major mode for XSL with main mode `nxml-mode'.
+This covers inlined style and javascript." t)
+
+(nxhtml-autoload 'xsl-sgml-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
+Turn on multi major mode for XSL with main mode `sgml-mode'.
+This covers inlined style and javascript." t)
 
 ;;;***
 
@@ -1361,11 +1369,12 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;;;;  ourcomments-ido-buffer-other-window describe-symbol describe-defstruct
 ;;;;;;  describe-custom-group narrow-to-comment buffer-narrowed-p
 ;;;;;;  describe-command ourcomments-ediff-files find-emacs-other-file
-;;;;;;  better-fringes-mode describe-key-and-map-briefly ourcomments-move-end-of-line
-;;;;;;  ourcomments-move-beginning-of-line ourcomments-mark-whole-buffer-or-field
-;;;;;;  fill-dwim unfill-individual-paragraphs unfill-region unfill-paragraph
-;;;;;;  define-toggle-old define-toggle popup-menu-at-point ourcomments-indirect-fun)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19282 22905))
+;;;;;;  ourcomments-insert-date-and-time better-fringes-mode describe-key-and-map-briefly
+;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
+;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
+;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
+;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
+;;;;;;  "util/ourcomments-util.el" (19287 13874))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1487,6 +1496,13 @@ or call the function `better-fringes-mode'.")
 Choose another fringe bitmap color and bottom angle.
 
 \(fn &optional ARG)" t nil)
+
+(nxhtml-autoload 'ourcomments-insert-date-and-time `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Insert date and time.
+See option `ourcomments-insert-date-and-time' for how to
+customize it.
+
+\(fn)" t nil)
 
 (nxhtml-autoload 'find-emacs-other-file `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Find corresponding file to source or installed elisp file.
@@ -1745,8 +1761,8 @@ Return t if VALUE is a major mode function.
 
 ;;;***
 
-;;;### (autoloads (pause-mode pause) "pause" "util/pause.el" (19283
-;;;;;;  18534))
+;;;### (autoloads (pause-mode pause) "pause" "util/pause.el" (19287
+;;;;;;  13654))
 ;;; Generated autoloads from util/pause.el
 (web-autoload-require 'pause 'lp '(nxhtml-download-root-url nil) "util/pause" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1763,14 +1779,18 @@ or call the function `pause-mode'.")
 (nxhtml-custom-autoload 'pause-mode 'pause nil)
 
 (nxhtml-autoload 'pause-mode `(lp '(nxhtml-download-root-url nil) "util/pause" nxhtml-install-dir) "\
-This minor mode tries to make you take a break!
-To customize it see:
+This minor mode tries to make you take a break.
+It will jump up and temporary stop your work - even if you are
+not in Emacs.  If you are in Emacs it will however try to be
+gentle and wait until you have been idle with the keyboard for a
+short while. (If you are not in Emacs it can't be gentle. How
+could it?)
 
- `pause-after-minutes'
- `pause-text-color'
- `pause-prompt1-color'
- `pause-prompt2-color'
- `pause-message-color'
+Then it will show you a special screen with a link to a yoga
+exercise you can do when you pause.
+
+After the pause you continue your work where you were
+interrupted.
 
 \(fn &optional ARG)" t nil)
 
@@ -1922,8 +1942,8 @@ Display a form for search and replace.
 
 ;;;***
 
-;;;### (autoloads (sex-mode sex) "sex-mode" "util/sex-mode.el" (19218
-;;;;;;  42182))
+;;;### (autoloads (sex-mode sex) "sex-mode" "util/sex-mode.el" (19287
+;;;;;;  13510))
 ;;; Generated autoloads from util/sex-mode.el
 (web-autoload-require 'sex-mode 'lp '(nxhtml-download-root-url nil) "util/sex-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3437,7 +3457,7 @@ Used to set up a Tidy menu in your favourite mode.
 ;;;***
 
 ;;;### (autoloads (rngalt-set-validation-header) "rngalt" "nxhtml/rngalt.el"
-;;;;;;  (19264 23277))
+;;;;;;  (19283 61279))
 ;;; Generated autoloads from nxhtml/rngalt.el
 (web-autoload-require 'rngalt 'lp '(nxhtml-download-root-url nil) "nxhtml/rngalt" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3913,7 +3933,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 
 ;;;### (autoloads (web-vcs-investigate-elisp-file web-vcs-byte-compile-file
 ;;;;;;  web-vcs-get-files-from-root web-vcs-log-edit web-vcs-default-download-directory)
-;;;;;;  "web-vcs" "web-vcs.el" (19283 33577))
+;;;;;;  "web-vcs" "web-vcs.el" (19283 48042))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3959,7 +3979,7 @@ Not documented
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-byte-recompile
 ;;;;;;  nxhtmlmaint-start-byte-compilation) "nxhtmlmaint" "nxhtmlmaint.el"
-;;;;;;  (19282 35294))
+;;;;;;  (19284 46407))
 ;;; Generated autoloads from nxhtmlmaint.el
 (web-autoload-require 'nxhtmlmaint 'lp '(nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4063,14 +4083,14 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/ocr-user.el" "util/org-panel.el" "util/rxi.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19283 33655 78000))
+;;;;;;  "web-autoload.el") (19287 14020 468000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtml-byte-recompile-file nxhtml-byte-compile-file
 ;;;;;;  nxhtml-get-missing-files nxhtml-update-existing-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install) "nxhtml-web-vcs"
-;;;;;;  "nxhtml-web-vcs.el" (19283 11532))
+;;;;;;  "nxhtml-web-vcs.el" (19286 32276))
 ;;; Generated autoloads from nxhtml-web-vcs.el
 (web-autoload-require 'nxhtml-web-vcs 'lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
