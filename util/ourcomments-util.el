@@ -971,14 +971,15 @@ what they will do ;-)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Misc.
 
-;;(ourcomments-show-timers)
-(defun ourcomments-show-timers ()
+;;(describe-timers)
+;;;###autoload
+(defun describe-timers ()
   "Show timers with readable time format."
   (interactive)
   (with-output-to-temp-buffer (help-buffer)
     (help-setup-xref (list #'ourcommenst-show-timers (interactive-p))
     (with-current-buffer (help-buffer)
-      (insert "Timers:\n\n")
+      (insert (format-time-string "Timers at %Y-%m-%d %H:%M:%S\n\n" (current-time)))
       (dolist (tmr timer-list)
         (let* ((hi-sec (timer--high-seconds tmr))
                (lo-sec (timer--low-seconds tmr))
