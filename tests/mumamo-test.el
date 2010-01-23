@@ -135,7 +135,7 @@ When this mode is on the following keys are defined:
       ;;(setq this-ovl (mumamo-test-create-chunk-at-point))
       (setq this-ovl (mumamo-find-chunks (point) "test loop"))
       ;;(message "this-ovl=%s" this-ovl)
-      (sit-for 0.01)
+      (sit-for 0.005)
       ;;(sit-for 0)
       (when last-ovl
         (if (= (point) (overlay-end last-ovl))

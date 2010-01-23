@@ -281,7 +281,8 @@ Please note that it is run in a timer.")
     (condition-case err
         (pause-break-show-1)
       (error
-       (remove-hook 'window-configuration-change-hook 'pause-break-exit)
+       ;;(remove-hook 'window-configuration-change-hook 'pause-break-exit)
+       (pause-break-exit)
        (message "pause-break-show error: %s" (error-message-string err))))))
 
 (defvar pause-break-last-wcfg-change (float-time))
