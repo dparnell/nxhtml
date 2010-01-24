@@ -472,45 +472,6 @@ debugging by tells how far down we are in the call chain."
                           (overlay-put newovl key val))))))))))))))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Window rotating and mirroring
-
-;;;###autoload
-(defun winsav-rotate (mirror transpose)
-  "Rotate window configuration on selected frame.
-MIRROR should be either 'mirror-left-right, 'mirror-top-bottom or
-nil.  In the first case the window configuration is mirrored
-vertically and in the second case horizontally.  If MIRROR is nil
-the configuration is not mirrored.
-
-If TRANSPOSE is non-nil then the window structure is transposed
-along the diagonal from top left to bottom right (in analogy with
-matrix transosition).
-
-If called interactively MIRROR will is 'mirror-left-right by
-default, but 'mirror-top-bottom if called with prefix.  TRANSPOSE
-is t. This mean that the window configuration will be turned one
-quarter clockwise (or counter clockwise with prefix)."
-  (interactive (list
-                (if current-prefix-arg
-                    'mirror-left-right
-                  'mirror-top-bottom)
-                t))
-  (let* ((wintree (winsav-get-window-tree))
-         (tree (cadr wintree))
-         (win-config (current-window-configuration)))
-    ;;(winsav-log "old-wintree" wintree)
-    (winsav-transform-1 tree mirror transpose)
-    ;;(winsav-log "new-wintree" wintree)
-    ;;
-    ;; Fix-me: Stay in corresponding window. How?
-    (delete-other-windows)
-    (condition-case err
-        (winsav-put-window-tree wintree (selected-window))
-      (error
-       (set-window-configuration win-config)
-       (message "Can't rotate: %s" (error-message-string err))))
-    ))
 
 (defun winsav-transform-edges (edges)
   "Just rotate the arguments in EDGES to make them fit next function."
@@ -662,20 +623,24 @@ The actual file name will have a system identifier added too."
   (or winsav-dirname "~/"))
 
 ;;(find-file (winsav-full-file-name))
+(defun winsav-default-file-name ()
+  "Default winsav save file name.
+The file name consist of `winsav-base-file-name' with a system
+identifier added.  This will be '-nw' for a terminal and '-' +
+the value of `window-system' otherwise."
+  (let ((sys-id (if (not window-system)
+                     "nw"
+                   (format "%s" window-system))))
+    (concat winsav-base-file-name "-" sys-id)))
+
 (defun winsav-full-file-name (&optional dirname)
   "Return the full name of the winsav session file in DIRNAME.
 DIRNAME omitted or nil means use `~'.
 
-The file name consist of `winsav-base-file-name' with a system
-identifier added.  This will be '-nw' for a terminal and '-' +
-the value of `window-system' otherwise."
+The file name part is given by `winsav-default-file-name'."
   ;; Fix-me: Different frames in different files? Can multi-tty be handled??
-  (let* ((sys-id (if (not window-system)
-                     "nw"
-                   (format "%s" window-system)))
-         (base-file (concat winsav-base-file-name "-" sys-id)))
-    (expand-file-name base-file (or dirname
-                                    (winsav-current-default-dir)))))
+    (expand-file-name (winsav-default-file-name) (or dirname
+                                    (winsav-current-default-dir))))
 
 
 
@@ -788,7 +753,7 @@ frame have this minibuffer frame."
     (setq winsav-loaded-frames (cons this-frame winsav-loaded-frames))
     ))
 
-(defvar winsav-frame-parameters-to-save
+(defcustom winsav-frame-parameters-to-save
   '(
     ;;explicit-name
     ;;name
@@ -830,7 +795,10 @@ frame have this minibuffer frame."
     vertical-scroll-bars
     visibility
     )
-  "Parameters saved for frames by `winsav-save-configuration'.")
+  "Parameters saved for frames by `winsav-save-configuration'.
+Parameters are those returned by `frame-parameters'."
+  :type '(repeat (symbol :tag "Frame parameter"))
+  :group 'winsav)
 
 ;;(winsav-set-restore-size nil)
 (defun winsav-set-restore-size (frame)
@@ -939,12 +907,14 @@ backward compatibility.")
 
 
 ;; fix-me: This should be in desktop.el
+;; Fix-me: incomplete, not ready.
 (defun winsav-restore-indirect-file-buffer (file name)
   "Make indirect buffer from file buffer visiting file FILE.
 Give it the name NAME."
   (let* ((fbuf (find-file-noselect file)))
     (when fbuf
       (make-indirect-buffer fbuf name))))
+
 (defun winsav-save-indirect-buffers ()
   "Save information about indirect buffers.
 Only file visiting buffers currently.  Clone the base buffers."
@@ -1078,14 +1048,16 @@ See also the hook variables
 `winsav-after-save-configuration-hook'.
 
 Fix-me: RELEASE is not implemented."
-  (let ((file (winsav-full-file-name dirname))
-        start
+  (winsav-save-configuration-file (winsav-full-file-name dirname)))
+
+(defun winsav-save-configuration-file (conf-file)
+  "Write elisp code to recreate all frames to CONF-FILE."
+  (let (start
         end
         (sorted-frames (sort (frame-list) 'winsav-frame-sort-predicate))
         (frm-nr 0)
         frame-ecb
-        layout-ecb
-        )
+        layout-ecb)
     ;; Recreating invisible frames hits Emacs bug 3859
     (setq sorted-frames
           (delq nil
@@ -1149,7 +1121,12 @@ Fix-me: RELEASE is not implemented."
       (insert ";; ---- after winsav-after-save-configuration-hook   ------------------------\n")
       (insert "\n)\n")
       (message "winsav-save-config:here d")
-      (emacs-lisp-mode)
+      ;; For pp-buffer:
+      (let (emacs-lisp-mode-hook
+            after-change-major-mode-hook
+            change-major-mode-hook)
+        (font-lock-mode -1)
+        (emacs-lisp-mode))
       (message "winsav-save-config:here e")
       (pp-buffer)
       (message "winsav-save-config:here f")
@@ -1160,9 +1137,9 @@ Fix-me: RELEASE is not implemented."
 
       ;;(with-current-buffer (find-file-noselect file)
       (let ((coding-system-for-write 'utf-8))
-        (write-region (point-min) (point-max) file nil 'nomessage))
-      (setq winsav-file-modtime (nth 5 (file-attributes file)))
-      (setq winsav-dirname (file-name-as-directory (file-name-directory file)))
+        (write-region (point-min) (point-max) conf-file nil 'nomessage))
+      (setq winsav-file-modtime (nth 5 (file-attributes conf-file)))
+      (setq winsav-dirname (file-name-as-directory (file-name-directory conf-file)))
       (message "winsav-save-config:here h")
       )))
 
@@ -1173,14 +1150,29 @@ Fix-me: RELEASE is not implemented."
 ;; (defun winsav-restore-winsav-configuration ()
 ;;   )
 
+(defcustom winsav-after-restore-hook nil
+  "Normal hook run after a successful `winsav-restore-configuration'."
+  :type 'hook
+  :group 'winsav)
+
 ;; Like desktop-read, fix-me
 (defun winsav-restore-configuration (&optional dirname)
-  "Restore frames from file in directory DIRNAME.
+  "Restore frames from default file in directory DIRNAME.
+The default file is given by `winsav-default-file-name'.
+
 The file was probably written by `winsav-save-configuration'.
 Delete the frames that were used before."
   ;;(message "winsav-restore-configuration %s" dirname)
+  (winsav-restore-configuration-file (winsav-full-file-name dirname)))
+
+(defun winsav-restore-configuration-file (conf-file)
+  "Restore frames from configuration file CONF-FILE.
+The file was probably written by `winsav-save-configuration'.
+Delete the frames that were used before."
   (let ((old-frames (sort (frame-list) 'winsav-frame-sort-predicate))
-        (conf-file (winsav-full-file-name dirname)))
+        (num-old-deleted 0)
+        ;; Avoid winsav saving during restore.
+        (winsav-save nil))
     ;;(message "winsav:conf-file=%s" conf-file)
     (if (or (not conf-file)
             (not (file-exists-p conf-file)))
@@ -1197,9 +1189,11 @@ Delete the frames that were used before."
             (when (< 0 (length winsav-loaded-frames))
               (dolist (old (reverse old-frames))
                 (unless (eq 'only (frame-parameter old 'minibuffer))
+                  (setq num-old-deleted (1+ num-old-deleted))
                   (delete-frame old)))
               ;;(winsav-maximize-all-nearly-max-frames)
               )
+            (run-hooks 'winsav-after-restore-hook)
             (message "Winsav: %s frame(s) restored" (length winsav-loaded-frames))
             t)
         ;; No winsav file found
@@ -1407,7 +1401,7 @@ See also `winsav-switch-config'."
     (error "Directory ame must be absolute: %s" dirname))
   (let* ((conf-dir (or dirname "~"))
          (old-conf-dir winsav-dirname))
-    (mkdir conf-dir t)
+    (make-directory conf-dir t)
     (winsav-save-configuration conf-dir)
     (when (and winsav-handle-also-desktop desktop-save-mode)
       (desktop-release-lock)
@@ -1444,7 +1438,7 @@ See also option `winsav-save-mode' and command
     (let ((default-directory (or winsav-dirname default-directory))
           (base-dir (concat (winsav-full-file-name) ".d"))
           new-dir)
-      (mkdir base-dir t)
+      (make-directory base-dir t)
       (setq new-dir
             (read-directory-name "Winsav: Switch config directory: "))
       (when (string= "" new-dir) (setq new-dir nil))

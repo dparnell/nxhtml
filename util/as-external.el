@@ -290,7 +290,7 @@ This is done by checking `as-external-alist'."
 
 (defun as-external-setup-1 ()
   ;; Fix-me: How does one know if the file names are case sensitive?
-  (unless nowait ;; dynamically bound in `server-visit-files'
+  (unless (when (boundp 'nowait) nowait) ;; dynamically bound in `server-visit-files'
     (unless server-window
       ;; `server-goto-toplevel' has been done here.
       ;; Setup to use a new frame

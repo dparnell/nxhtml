@@ -319,7 +319,7 @@ If TEST is non-nil then do not download, just list the files."
         (if (yes-or-no-p (format "Directory %S does not exist, create it? "
                                  (file-name-as-directory
                                   (expand-file-name dl-dir))))
-            (mkdir dl-dir t)
+            (make-directory dl-dir t)
           (message "Can't download then")
           (throw 'command-level nil)))
       ;; (let ((old-win (selected-window)))
