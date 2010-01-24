@@ -974,76 +974,114 @@ what they will do ;-)."
 
 ;; After an idea from andrea on help-gnu-emacs
 
-(defvar ourcomments-paste-point nil)
+(defvar ourcomments-copy+paste-point nil)
 
-(defvar ourcomments-copy-and-paste-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; Using C-c is not a good idea here since the region will be
-    ;; selected when the user does this and the user might use
-    ;; `cua-mode'.  Instead use C-S-v which reminds of cua-paste
-    ;; binding and is hopefully not bound.
-    (define-key map [(control shift ?v)] 'ourcomments-copy-and-paste)
-    map))
-
-(define-minor-mode ourcomments-copy-and-paste-mode
-  "Temporary mode for `ourcomments-set-paste-point'.
-When this mode is active there is a key binding for
-`ourcomments-copy-and-paste':
-\\<ourcomments-copy-and-paste-mode-map>
-\\[ourcomments-copy-and-paste]
-
-You should not turn on this minor mode yourself.
-It is turned on by `ourcomments-set-paste-point'."
-  nil
-  ;;(propertize " copy+paste" 'face 'secondary-selection)
-  " COPY+PASTE"
-  ;;:lighter (propertize " copy+paste" 'face 'secondary-selection)
-  :global t
-  :group 'ourcomments-util
-  (when ourcomments-copy-and-paste-mode
-    (unless ourcomments-paste-point
-      (message "Do not call this minor mode, use `ourcomments-set-paste-point'.")
-      (setq ourcomments-copy-and-paste-mode nil))))
-
-;;(global-set-key [(control ?c) ?y] 'ourcomments-set-paste-point)
+;;(global-set-key [(control ?c) ?y] 'ourcomments-copy+paste-set-point)
 ;;;###autoload
-(defun ourcomments-set-paste-point ()
+(defun ourcomments-copy+paste-set-point ()
+  "Set point for copy+paste here.
+Enable temporary minor mode `ourcomments-copy+paste-mode'.
+However if point for copy+paste already is set then cancel it and
+disable the minor mode.
+
+The purpose of this command is to make it easy to grab a piece of
+text and paste it at current position.  After this command you
+should select a piece of text to copy and then call the command
+`ourcomments-copy+paste'."
   (interactive)
-  (if ourcomments-paste-point
-      (progn
-        (setq ourcomments-paste-point nil)
-        (ourcomments-copy-and-paste-mode -1)
-        (message "Canceled paste point"))
-    (setq ourcomments-paste-point (copy-marker (point)))
-    (ourcomments-copy-and-paste-mode 1)
-    (let ((key (where-is-internal 'ourcomments-copy-and-paste))
+  (if ourcomments-copy+paste-point
+      (ourcomments-copy+paste-mode -1)
+    (setq ourcomments-copy+paste-point (list (copy-marker (point))
+                                             (selected-window)
+                                             (current-frame-configuration)
+                                             ))
+    (ourcomments-copy+paste-mode 1)
+    (let ((key (where-is-internal 'ourcomments-copy+paste))
           (ckeys (key-description (this-command-keys))))
       (setq key (if key (key-description (car key))
-                  "M-x ourcomments-copy-and-go-back-and-paste"))
+                  "M-x ourcomments-copy+paste"))
       (message "Paste point set; select region and do %s to copy+paste (or cancel with %s)" key ckeys))))
 
-(defun ourcomments-copy-and-paste ()
-  (interactive)
+(defvar ourcomments-copy+paste-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Bind the copy+paste command to C-S-v which reminds of cua-paste
+    ;; binding and is hopefully not bound.
+    (define-key map [(control shift ?v)] 'ourcomments-copy+paste)
+    map))
+
+(define-minor-mode ourcomments-copy+paste-mode
+  "Temporary mode for copy+paste.
+This minor mode is enabled by `ourcomments-copy+paste-set-point'.
+
+When this mode is active there is a key binding for
+`ourcomments-copy+paste':
+\\<ourcomments-copy+paste-mode-map>
+\\[ourcomments-copy+paste]
+
+You should not turn on this minor mode yourself.  It is turned on
+by `ourcomments-copy+paste-set-point'.  For more information see
+that command."
+  :lighter " COPY+PASTE"
+  :global t
+  :group 'ourcomments-util
+  (if ourcomments-copy+paste-mode
+      (unless ourcomments-copy+paste-point
+        (message "Do not call this minor mode, use `ourcomments-copy+paste-set-point'.")
+        (setq ourcomments-copy+paste-mode nil))
+    (when ourcomments-copy+paste-point
+      (setq ourcomments-copy+paste-point nil)
+      (message "Canceled copy+paste mode"))))
+
+(defvar ourcomments-copy+paste-ovl nil)
+
+(defun ourcomments-copy+paste-cancel-highlight ()
+  (when (overlayp ourcomments-copy+paste-ovl)
+    (delete-overlay ourcomments-copy+paste-ovl))
+  (setq ourcomments-copy+paste-ovl nil))
+
+(defun ourcomments-copy+paste (restore-frames)
+  "Copy region to copy+paste point set by `ourcomments-copy+paste-set-point'.
+Also if prefix argument is given then restore frame configuration
+at the time that command was called.
+
+Otherwise look for the buffer for copy+paste point in current
+frame.  If found select that window. If not then use
+`switch-to-buffer-other-window' to display it."
+  (interactive "P")
   (cond
-   ((not ourcomments-paste-point)
-    (let ((key (where-is-internal 'ourcomments-set-paste-point)))
+   ((not ourcomments-copy+paste-point)
+    (let ((key (where-is-internal 'ourcomments-copy+paste-set-point)))
       (setq key (if key (key-description (car key))
-                  "M-x ourcomments-set-paste-point"))
-    (message "Please select where to paste with %s first" key)))
+                  "M-x ourcomments-copy+paste-set-point"))
+    (message "Please select destination of copy+paste first with %s" key)))
    ((not mark-active)
-    (message "Please select a region to copy and paste first"))
+    (message "Please select a region to copy+paste first"))
    (t
-    (ourcomments-copy-and-paste-mode -1)
-    (copy-region-as-kill (region-beginning) (region-end))
-    (let* ((buf (marker-buffer ourcomments-paste-point))
-           (win (get-buffer-window buf)))
+    ;;(copy-region-as-kill (region-beginning) (region-end))
+    (clipboard-kill-ring-save (region-beginning) (region-end))
+    (let* ((marker         (nth 0 ourcomments-copy+paste-point))
+           (orig-win       (nth 1 ourcomments-copy+paste-point))
+           (orig-fcfg      (nth 2 ourcomments-copy+paste-point))
+           (buf (marker-buffer marker))
+           (win (or (when (window-live-p orig-win) orig-win)
+                    (get-buffer-window buf))))
       (message "win=%s, buf=%s" win buf)
-      (if win
-          (select-window win)
-        (switch-to-buffer-other-window buf)))
-    (goto-char ourcomments-paste-point)
-    (yank)
-    (setq ourcomments-paste-point nil))))
+      (cond (restore-frames
+             (set-frame-configuration orig-fcfg))
+            ((and win (eq (window-buffer win) buf))
+             (select-window win))
+            (t
+             (switch-to-buffer-other-window buf)))
+      (goto-char marker))
+    (let ((here (point))
+          ovl)
+      (yank)
+      (setq ovl (make-overlay here (point)))
+      (overlay-put ovl 'face 'highlight)
+      (run-with-idle-timer 2 nil 'ourcomments-copy+paste-cancel-highlight)
+      (setq ourcomments-copy+paste-ovl ovl))
+    (setq ourcomments-copy+paste-point nil)
+    (ourcomments-copy+paste-mode -1))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
