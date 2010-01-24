@@ -1007,6 +1007,9 @@
         (list 'menu-item "Occur in File Buffers" 'multi-occur-in-matching-buffers))
       (define-key edit-map [nxhtml-occur]
         (list 'menu-item "Occur" 'occur))
+      (define-key edit-map [nxhtml-edit-sep3] (list 'menu-item "--"))
+      (define-key edit-map [nxhtml-copy+paste]
+        (list 'menu-item "Start copy+paste" 'ourcomments-copy+paste-set-point))
       )
 
     (define-key map [nxhtml-help-tools-separator]

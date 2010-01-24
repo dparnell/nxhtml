@@ -1000,6 +1000,8 @@ should select a piece of text to copy and then call the command
           (ckeys (key-description (this-command-keys))))
       (setq key (if key (key-description (car key))
                   "M-x ourcomments-copy+paste"))
+      (when (> (length ckeys) 12)
+        (setq ckeys "this command"))
       (message "Paste point set; select region and do %s to copy+paste (or cancel with %s)" key ckeys))))
 
 (defvar ourcomments-copy+paste-mode-map
@@ -1042,11 +1044,10 @@ that command."
 (defun ourcomments-copy+paste (restore-frames)
   "Copy region to copy+paste point set by `ourcomments-copy+paste-set-point'.
 Also if prefix argument is given then restore frame configuration
-at the time that command was called.
-
-Otherwise look for the buffer for copy+paste point in current
-frame.  If found select that window. If not then use
-`switch-to-buffer-other-window' to display it."
+at the time that command was called.  Otherwise look for the
+buffer for copy+paste point in current frame.  If found select
+that window. If not then use `switch-to-buffer-other-window' to
+display it."
   (interactive "P")
   (cond
    ((not ourcomments-copy+paste-point)
