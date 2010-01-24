@@ -122,7 +122,7 @@ much about computation time as for entries in the menu bar.
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-mail-mode
 ;;;;;;  as-external-for-xhtml as-external) "as-external" "util/as-external.el"
-;;;;;;  (19291 19101))
+;;;;;;  (19292 22717))
 ;;; Generated autoloads from util/as-external.el
 (web-autoload-require 'as-external 'lp '(nxhtml-download-root-url nil) "util/as-external" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1392,12 +1392,12 @@ Color up digits three by three.
 ;;;;;;  ourcomments-ido-buffer-other-window describe-symbol describe-defstruct
 ;;;;;;  describe-custom-group narrow-to-comment buffer-narrowed-p
 ;;;;;;  describe-command ourcomments-ediff-files find-emacs-other-file
-;;;;;;  ourcomments-insert-date-and-time describe-timers ourcomments-set-paste-point
+;;;;;;  ourcomments-insert-date-and-time describe-timers ourcomments-copy+paste-set-point
 ;;;;;;  better-fringes-mode describe-key-and-map-briefly ourcomments-move-end-of-line
 ;;;;;;  ourcomments-move-beginning-of-line ourcomments-mark-whole-buffer-or-field
 ;;;;;;  fill-dwim unfill-individual-paragraphs unfill-region unfill-paragraph
 ;;;;;;  define-toggle-old define-toggle popup-menu-at-point ourcomments-indirect-fun)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19292 6239))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19292 21323))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1520,8 +1520,16 @@ Choose another fringe bitmap color and bottom angle.
 
 \(fn &optional ARG)" t nil)
 
-(nxhtml-autoload 'ourcomments-set-paste-point `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
-Not documented
+(nxhtml-autoload 'ourcomments-copy+paste-set-point `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Set point for copy+paste here.
+Enable temporary minor mode `ourcomments-copy+paste-mode'.
+However if point for copy+paste already is set then cancel it and
+disable the minor mode.
+
+The purpose of this command is to make it easy to grab a piece of
+text and paste it at current position.  After this command you
+should select a piece of text to copy and then call the command
+`ourcomments-copy+paste'.
 
 \(fn)" t nil)
 
@@ -3049,7 +3057,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (flymake-css-load) "flymake-css" "related/flymake-css.el"
-;;;;;;  (19290 62488))
+;;;;;;  (19292 6986))
 ;;; Generated autoloads from related/flymake-css.el
 (web-autoload-require 'flymake-css 'lp '(nxhtml-download-root-url nil) "related/flymake-css" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3097,8 +3105,8 @@ Key bindings:
 ;;;***
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
-;;;;;;  winsav winsav-rotate winsav-put-window-tree) "winsav" "util/winsav.el"
-;;;;;;  (19275 63380))
+;;;;;;  winsav winsav-put-window-tree) "winsav" "util/winsav.el"
+;;;;;;  (19292 48362))
 ;;; Generated autoloads from util/winsav.el
 (web-autoload-require 'winsav 'lp '(nxhtml-download-root-url nil) "util/winsav" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3120,24 +3128,6 @@ At the very end of this function the hook `winsav-after-put' is
 run.
 
 \(fn SAVED-TREE WINDOW &optional COPY-WIN-OVL WIN-OVL-ALL-BUFS)" nil nil)
-
-(nxhtml-autoload 'winsav-rotate `(lp '(nxhtml-download-root-url nil) "util/winsav" nxhtml-install-dir) "\
-Rotate window configuration on selected frame.
-MIRROR should be either 'mirror-left-right, 'mirror-top-bottom or
-nil.  In the first case the window configuration is mirrored
-vertically and in the second case horizontally.  If MIRROR is nil
-the configuration is not mirrored.
-
-If TRANSPOSE is non-nil then the window structure is transposed
-along the diagonal from top left to bottom right (in analogy with
-matrix transosition).
-
-If called interactively MIRROR will is 'mirror-left-right by
-default, but 'mirror-top-bottom if called with prefix.  TRANSPOSE
-is t. This mean that the window configuration will be turned one
-quarter clockwise (or counter clockwise with prefix).
-
-\(fn MIRROR TRANSPOSE)" t nil)
 
 (let ((loads (get 'winsav 'custom-loads))) (if (member '"winsav" loads) nil (put 'winsav 'custom-loads (cons '"winsav" loads))))
 
@@ -3201,9 +3191,9 @@ See also option `winsav-save-mode' and command
 
 ;;;***
 
-;;;### (autoloads (winsize-set-mode-line-colors winsize-save-window-configuration
+;;;### (autoloads (winsav-rotate winsize-set-mode-line-colors winsize-save-window-configuration
 ;;;;;;  winsize-balance-siblings resize-windows) "winsize" "util/winsize.el"
-;;;;;;  (19275 63380))
+;;;;;;  (19292 48392))
 ;;; Generated autoloads from util/winsize.el
 (web-autoload-require 'winsize 'lp '(nxhtml-download-root-url nil) "util/winsize" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3408,6 +3398,24 @@ Not documented
 Turn mode line colors on if ON is non-nil, otherwise off.
 
 \(fn ON)" nil nil)
+
+(nxhtml-autoload 'winsav-rotate `(lp '(nxhtml-download-root-url nil) "util/winsize" nxhtml-install-dir) "\
+Rotate window configuration on selected frame.
+MIRROR should be either 'mirror-left-right, 'mirror-top-bottom or
+nil.  In the first case the window configuration is mirrored
+vertically and in the second case horizontally.  If MIRROR is nil
+the configuration is not mirrored.
+
+If TRANSPOSE is non-nil then the window structure is transposed
+along the diagonal from top left to bottom right (in analogy with
+matrix transosition).
+
+If called interactively MIRROR will is 'mirror-left-right by
+default, but 'mirror-top-bottom if called with prefix.  TRANSPOSE
+is t. This mean that the window configuration will be turned one
+quarter clockwise (or counter clockwise with prefix).
+
+\(fn MIRROR TRANSPOSE)" t nil)
 
 ;;;***
 
@@ -3760,7 +3768,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19283 33732))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19292 20700))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3977,7 +3985,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;### (autoloads (web-vcs-investigate-elisp-file web-vcs-byte-compile-file
 ;;;;;;  web-vcs-message-with-face web-vcs-get-files-from-root web-vcs-log-edit
 ;;;;;;  web-vcs-default-download-directory) "web-vcs" "web-vcs.el"
-;;;;;;  (19291 17284))
+;;;;;;  (19292 43175))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4135,15 +4143,15 @@ accept it or skip it.
 ;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/key-cat.el"
 ;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/nxml-mode-os-additions.el" "util/org-panel.el" "util/rxi.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19292 6349
-;;;;;;  328000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19292 49507
+;;;;;;  843000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtml-byte-recompile-file nxhtml-byte-compile-file
 ;;;;;;  nxhtml-get-missing-files nxhtml-update-existing-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install) "nxhtml-web-vcs"
-;;;;;;  "nxhtml-web-vcs.el" (19287 14086))
+;;;;;;  "nxhtml-web-vcs.el" (19292 8321))
 ;;; Generated autoloads from nxhtml-web-vcs.el
 (web-autoload-require 'nxhtml-web-vcs 'lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
