@@ -338,7 +338,7 @@ Please note that it is run in a timer.")
                                    (width  . ,cols)
                                    (height . ,rows)
                                    ))))
-    (when pause-even-if-not-in-emacs (raise-frame))
+    (when (and window-system pause-even-if-not-in-emacs) (raise-frame))
     (when pause-extra-fun (funcall pause-extra-fun))
     ;;(setq pause-break-exit-calls 0)
     (setq pause-break-last-wcfg-change (float-time))
@@ -456,6 +456,28 @@ interrupted."
     (pause-cancel-timer)))
 
 
+(defun pause-start (after-minutes)
+  (interactive "nPause after how many minutes: ")
+  (pause-cancel-timer)
+  (setq pause-after-minutes after-minutes)
+  (pause-mode 1))
+
+;;Fix-me: finish
+(defun pause-owner (&optional dirname)
+  "Return the PID of the Emacs process that owns the pause file in DIRNAME.
+Return nil if no pause file found or no Emacs process is using it.
+DIRNAME omitted or nil means use `desktop-dirname'."
+  (let (owner)
+    (and (file-exists-p (desktop-full-lock-name dirname))
+	 (condition-case nil
+	     (with-temp-buffer
+	       (insert-file-contents-literally (desktop-full-lock-name dirname))
+	       (goto-char (point-min))
+	       (setq owner (read (current-buffer)))
+	       (integerp owner))
+	   (error nil))
+	 owner)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Link to yoga poses
 
@@ -474,6 +496,7 @@ interrupted."
 ;;(pause-start-get-yoga-poses)
 (defun pause-start-get-yoga-poses ()
   (let ((url-show-status nil)) ;; do not show download messages
+    (require 'url-vars)
     (url-retrieve (concat pause-yoga-poses-host-url "yogapractice/mountain.asp")
                   'pause-callback-get-yoga-poses)))
 

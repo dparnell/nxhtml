@@ -61,6 +61,9 @@
                                       buffer-file-name)))
 
 (require 'nxhtml-base)
+(eval-and-compile (when (fboundp 'nxml-mode)
+                     (load (expand-file-name "etc/schema/schema-path-patch"
+                                             nxhtml-install-dir))))
 
 ;; (defun nxhtml-custom-load-and-get-value (symbol)
 ;;   (custom-load-symbol symbol)
@@ -168,10 +171,7 @@
   (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
   ;; Patch the rnc include paths
-  (when (fboundp 'nxml-mode)
-    (load (expand-file-name "etc/schema/schema-path-patch"
-                            nxhtml-install-dir))
-    (rncpp-patch-xhtml-loader))
+  (when (fboundp 'rncpp-patch-xhtml-loader) (rncpp-patch-xhtml-loader))
   (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
   ;; Load nXhtml

@@ -1137,6 +1137,7 @@ Those times should have the same format as time returned by
     msg-win))
 
 ;; (web-vcs-message-with-face 'secondary-selection "I am saying: %s and %s" "Hi" "Farwell!")
+;;;###autoload
 (defun web-vcs-message-with-face (face format-string &rest args)
   "Display a colored message at the bottom of the string.
 FACE is the face to use for the message.

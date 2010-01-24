@@ -968,6 +968,84 @@ what they will do ;-)."
     (better-fringes-faces nil nil)
     (better-fringes-bottom-angles nil)))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Copy+paste
+
+;; After an idea from andrea on help-gnu-emacs
+
+(defvar ourcomments-paste-point nil)
+
+(defvar ourcomments-copy-and-paste-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Using C-c is not a good idea here since the region will be
+    ;; selected when the user does this and the user might use
+    ;; `cua-mode'.  Instead use C-S-v which reminds of cua-paste
+    ;; binding and is hopefully not bound.
+    (define-key map [(control shift ?v)] 'ourcomments-copy-and-paste)
+    map))
+
+(define-minor-mode ourcomments-copy-and-paste-mode
+  "Temporary mode for `ourcomments-set-paste-point'.
+When this mode is active there is a key binding for
+`ourcomments-copy-and-paste':
+\\<ourcomments-copy-and-paste-mode-map>
+\\[ourcomments-copy-and-paste]
+
+You should not turn on this minor mode yourself.
+It is turned on by `ourcomments-set-paste-point'."
+  nil
+  ;;(propertize " copy+paste" 'face 'secondary-selection)
+  " COPY+PASTE"
+  ;;:lighter (propertize " copy+paste" 'face 'secondary-selection)
+  :global t
+  :group 'ourcomments-util
+  (when ourcomments-copy-and-paste-mode
+    (unless ourcomments-paste-point
+      (message "Do not call this minor mode, use `ourcomments-set-paste-point'.")
+      (setq ourcomments-copy-and-paste-mode nil))))
+
+;;(global-set-key [(control ?c) ?y] 'ourcomments-set-paste-point)
+;;;###autoload
+(defun ourcomments-set-paste-point ()
+  (interactive)
+  (if ourcomments-paste-point
+      (progn
+        (setq ourcomments-paste-point nil)
+        (ourcomments-copy-and-paste-mode -1)
+        (message "Canceled paste point"))
+    (setq ourcomments-paste-point (copy-marker (point)))
+    (ourcomments-copy-and-paste-mode 1)
+    (let ((key (where-is-internal 'ourcomments-copy-and-paste))
+          (ckeys (key-description (this-command-keys))))
+      (setq key (if key (key-description (car key))
+                  "M-x ourcomments-copy-and-go-back-and-paste"))
+      (message "Paste point set; select region and do %s to copy+paste (or cancel with %s)" key ckeys))))
+
+(defun ourcomments-copy-and-paste ()
+  (interactive)
+  (cond
+   ((not ourcomments-paste-point)
+    (let ((key (where-is-internal 'ourcomments-set-paste-point)))
+      (setq key (if key (key-description (car key))
+                  "M-x ourcomments-set-paste-point"))
+    (message "Please select where to paste with %s first" key)))
+   ((not mark-active)
+    (message "Please select a region to copy and paste first"))
+   (t
+    (ourcomments-copy-and-paste-mode -1)
+    (copy-region-as-kill (region-beginning) (region-end))
+    (let* ((buf (marker-buffer ourcomments-paste-point))
+           (win (get-buffer-window buf)))
+      (message "win=%s, buf=%s" win buf)
+      (if win
+          (select-window win)
+        (switch-to-buffer-other-window buf)))
+    (goto-char ourcomments-paste-point)
+    (yank)
+    (setq ourcomments-paste-point nil))))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Misc.
 

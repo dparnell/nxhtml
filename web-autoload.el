@@ -45,7 +45,7 @@
 ;;; Code:
 
 ;;(eval-when-compile (require 'web-vcs)) ;; Gives recursion
-(eval-when-compile (require 'nxhtml-base))
+;;(eval-when-compile (require 'nxhtml-base))
 
 (defcustom web-autoload-autocompile t
   "Byt compile downloaded files if t."
@@ -87,9 +87,10 @@ directly, otherwise download it first."
       (eval
        `(web-autoload-1 ,fun ,src ,docstring ,int ,type)))))
 
-(defun web-autoload-default-filename-element ()
-  ;; Fix-me: el or elc?
-  (expand-file-name "nxhtml-loaddefs.elc" nxhtml-install-dir))
+;; (defun web-autoload-default-filename-element ()
+;;   ;; Fix-me: el or elc?
+;;   ;; Fix-me: remove nxhtml binding
+;;   (expand-file-name "nxhtml-loaddefs.elc" nxhtml-install-dir))
 
 ;; Fix-me: change name
 (defvar web-autoload-skip-require-advice nil)

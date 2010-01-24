@@ -46,6 +46,9 @@
 ;;; Code:
 
 ;;(eval-when-compile (require 'web-vcs nil t))
+(eval-when-compile (require 'flymake-js nil t))
+(eval-when-compile (require 'flymake-css nil t))
+(eval-when-compile (require 'flymake-java-1 nil t))
 
 (defconst nxhtml-menu:version "beta 2.07")
 (setq message-log-max t)
