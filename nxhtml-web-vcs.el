@@ -46,7 +46,7 @@
 
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'nxhtml-base nil t))
-(eval-when-compile (require 'nxhtmlmaint nil t))
+;;(eval-when-compile (require 'nxhtmlmaint nil t))
 (eval-when-compile (require 'web-vcs nil t))
 
 (defvar nxhtml-web-vcs-file (or load-file-name
@@ -360,12 +360,6 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
         (load autostart-file)
         (web-vcs-log-save)
         (web-vcs-message-with-face 'web-vcs-green "==== All files for nXhtml are now installed ====")
-        ;; (when do-byte
-        ;;   (sit-for 10)
-        ;;   (web-vcs-message-with-face 'web-vcs-yellow
-        ;;                              "Will start byte compilation of nXhtml in new Emacs in 10 seconds")
-        ;;   (sit-for 10)
-        ;;   (nxhtmlmaint-start-byte-compilation))
         (nxhtmlmaint-byte-recompile)
         (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file nil))))))
 

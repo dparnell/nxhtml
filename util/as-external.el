@@ -257,7 +257,7 @@ This is done by checking `as-external-alist'."
 (defvar as-external-my-frame nil)
 (make-variable-buffer-local 'as-external-my-frame)
 
-(defun as-external-last-buffer nil)
+(defvar as-external-last-buffer nil)
 
 (defun as-external-server-window-fix-frames ()
   (condition-case err

@@ -200,15 +200,6 @@ on.
         (setq rebind-keys-mode-map m))))
   (setq rebind--emul-keymap-alist (list (cons 'rebind-keys-mode rebind-keys-mode-map))))
 
-(defun rebind-keys-post-command ()
-  "Make sure we are first in the list when turned on.
-This is reasonable since we are using this mode to really get the
-key bindings we want!"
-  (unless (eq 'rebind--emul-keymap-alist (car emulation-mode-map-alists))
-    (setq emulation-mode-map-alists (delq 'rebind--emul-keymap-alist emulation-mode-map-alists))
-    (when rebind-keys-mode
-      (add-to-list 'emulation-mode-map-alists 'rebind--emul-keymap-alist))))
-
 ;;;###autoload
 (define-minor-mode rebind-keys-mode
   "Rebind keys as defined in `rebind-keys'.
@@ -224,10 +215,19 @@ field). There are some predifined keybindings for this."
   (if rebind-keys-mode
       (progn
         (rebind-update-keymap)
-        (rebind-keys-post-command)
+        ;;(rebind-keys-post-command)
         (add-hook 'post-command-hook 'rebind-keys-post-command t))
     (remove-hook 'post-command-hook 'rebind-keys-post-command)
     (setq emulation-mode-map-alists (delq 'rebind--emul-keymap-alist emulation-mode-map-alists))))
+
+(defun rebind-keys-post-command ()
+  "Make sure we are first in the list when turned on.
+This is reasonable since we are using this mode to really get the
+key bindings we want!"
+  (unless (eq 'rebind--emul-keymap-alist (car emulation-mode-map-alists))
+    (setq emulation-mode-map-alists (delq 'rebind--emul-keymap-alist emulation-mode-map-alists))
+    (when rebind-keys-mode
+      (add-to-list 'emulation-mode-map-alists 'rebind--emul-keymap-alist))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

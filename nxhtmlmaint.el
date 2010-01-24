@@ -52,6 +52,7 @@
 
 (eval-when-compile (require 'advice))
 (eval-when-compile (require 'nxhtml-base))
+;;(eval-when-compile (require 'nxhtml-web-vcs nil t))
 (eval-when-compile (require 'web-vcs nil t))
 (eval-when-compile (require 'ourcomments-util))
 
