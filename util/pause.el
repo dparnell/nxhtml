@@ -435,6 +435,12 @@ Please note that it is run in a timer.")
              (lwarn 'pause-break-in-timer2 :error "%s" (error-message-string err))
              )))))))
 
+(defcustom pause-only-when-server-mode t
+  "Allow `pause-mode' inly in the Emacs that has server-mode enabled.
+This is to prevent multiple Emacs with `pause-mode'."
+  :type 'boolean
+  :group 'pause)
+
 ;;;###autoload
 (define-minor-mode pause-mode
   "This minor mode tries to make you take a break.
@@ -451,32 +457,31 @@ After the pause you continue your work where you were
 interrupted."
   :global t
   :group 'pause
+  :set-after '(server-mode)
   (if pause-mode
-      (pause-start-timer)
+      (if (and pause-only-when-server-mode
+               (not server-mode)
+               (not (with-no-warnings (called-interactively-p))))
+          (progn
+            (setq pause-mode nil)
+            (message "Pause mode canceled because not server-mode"))
+        (pause-start-timer))
     (pause-cancel-timer)))
 
 
 (defun pause-start (after-minutes)
+  "Start `pause-mode' with interval AFTER-MINUTES.
+This bypasses `pause-only-when-server-mode'."
   (interactive "nPause after how many minutes: ")
   (pause-cancel-timer)
   (setq pause-after-minutes after-minutes)
-  (pause-mode 1))
+  (let ((pause-only-when-server-mode nil))
+    (pause-mode 1))
+  (switch-to-buffer (get-buffer-create "Pause information"))
+  (insert (propertize (format "Pause mode is on and will\ncome back every %d minute." after-minutes)
+                      'face '(:inherit font-lock-comment-face :height 1.5)))
+  (setq buffer-read-only t))
 
-;;Fix-me: finish
-(defun pause-owner (&optional dirname)
-  "Return the PID of the Emacs process that owns the pause file in DIRNAME.
-Return nil if no pause file found or no Emacs process is using it.
-DIRNAME omitted or nil means use `desktop-dirname'."
-  (let (owner)
-    (and (file-exists-p (desktop-full-lock-name dirname))
-	 (condition-case nil
-	     (with-temp-buffer
-	       (insert-file-contents-literally (desktop-full-lock-name dirname))
-	       (goto-char (point-min))
-	       (setq owner (read (current-buffer)))
-	       (integerp owner))
-	   (error nil))
-	 owner)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Link to yoga poses
@@ -495,8 +500,8 @@ DIRNAME omitted or nil means use `desktop-dirname'."
 
 ;;(pause-start-get-yoga-poses)
 (defun pause-start-get-yoga-poses ()
+  (require 'url-vars)
   (let ((url-show-status nil)) ;; do not show download messages
-    (require 'url-vars)
     (url-retrieve (concat pause-yoga-poses-host-url "yogapractice/mountain.asp")
                   'pause-callback-get-yoga-poses)))
 
@@ -516,7 +521,9 @@ DIRNAME omitted or nil means use `desktop-dirname'."
       (insert-text-button (cdr pose)
                           'action `(lambda (button)
                                      (condition-case err
-                                         (browse-url ,pose-url)
+                                         (progn
+                                           (browse-url ,pose-url)
+                                           (run-with-idle-timer 1 nil 'pause-break-exit))
                                        (error (message "%s" (error-message-string err))))))
       (pause-break-message))))
 
