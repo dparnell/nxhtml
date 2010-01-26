@@ -90,6 +90,14 @@ pause frame has just been shown."
                  (const :tag "No extra function" nil))
   :group 'pause)
 
+(defcustom pause-start-when-working t
+  "Delay starting pause timer until we start working again.
+Used if button labels are used to exit pause break."
+  :type 'boolean
+  :group 'pause)
+
+(defvar pause-exited-from-button nil)
+
 (defcustom pause-background-color "orange"
   "Background color during pause."
   :type 'color
@@ -185,6 +193,10 @@ A random image is choosen from this directory for pauses."
 (defvar pause-break-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [(control meta shift ?p)] 'pause-break-exit)
+    (define-key map [tab]         'forward-button)
+    (define-key map [(meta tab)]  'backward-button)
+    (define-key map [(shift tab)] 'backward-button)
+    (define-key map [backtab]     'backward-button)
     map))
 
 (defvar pause-buffer nil)
@@ -196,6 +208,7 @@ It defines the following key bindings:
 
 \\{pause-break-mode-map}"
   (set (make-local-variable 'buffer-read-only) t)
+  (setq show-trailing-whitespace nil)
   ;;(set (make-local-variable 'cursor-type) nil)
   ;; Fix-me: workaround for emacs bug
   ;;(run-with-idle-timer 0 nil 'pause-hide-cursor)
@@ -229,6 +242,7 @@ It defines the following key bindings:
     (run-with-idle-timer 0.2 nil 'pause-break-show)
     (setq pause-break-exit-active nil)
     (setq pause-break-1-minute-state nil) ;; set in `pause-break-show'
+    (setq pause-exited-from-button nil)
     (unwind-protect
         (let ((n 0)
               (debug-on-error nil))
@@ -265,10 +279,17 @@ It defines the following key bindings:
       (set-face-attribute 'mode-line nil :background old-mode-line-bg)
       (run-with-idle-timer 2.0 nil 'run-hooks 'pause-break-exit-hook)
       (kill-buffer pause-buffer)
-      (run-with-idle-timer 0 nil
-                           (if pause-break-1-minute-state
-                               'pause-one-minute
-                             'pause-save-me)))))
+      (if pause-exited-from-button
+          ;; Do not start timer until we start working again.
+          (run-with-idle-timer 1 nil 'add-hook 'post-command-hook 'pause-save-me-post-command)
+        (run-with-idle-timer 0 nil
+                             (if pause-break-1-minute-state
+                                 'pause-one-minute
+                               'pause-save-me))))))
+
+(defun pause-save-me-post-command ()
+  (remove-hook 'post-command-hook 'pause-save-me-post-command)
+  (pause-save-me))
 
 (defvar pause-break-exit-hook nil
   "Hook run after break exit.
@@ -291,7 +312,9 @@ Please note that it is run in a timer.")
   ;; Do these first if something goes wrong.
   (setq pause-break-last-wcfg-change (float-time))
   ;;(run-with-idle-timer (* 1.5 (length (frame-list))) nil 'add-hook 'window-configuration-change-hook 'pause-break-exit)
-  (add-hook 'window-configuration-change-hook 'pause-break-exit)
+
+  ;; fix-me: temporary:
+  ;;(add-hook 'window-configuration-change-hook 'pause-break-exit)
   (unless pause-extra-fun (run-with-idle-timer 1  nil 'pause-break-message))
   (run-with-idle-timer 10 nil 'pause-break-exit-activate)
   (setq pause-break-1-minute-state t)
@@ -304,8 +327,14 @@ Please note that it is run in a timer.")
       (setq left-margin-width 25)
       (pause-insert-img)
       (insert (propertize pause-break-text 'face 'pause-text-face))
-      (insert (propertize "\n\nTo exit switch buffer\n" 'face 'pause-info-text-face))
-      (add-text-properties (point-min) (point-max) (list 'keymap (make-sparse-keymap)))
+      (insert (propertize "\n\nClick on a link below to exit pause\n" 'face 'pause-info-text-face))
+      ;;(add-text-properties (point-min) (point-max) (list 'keymap (make-sparse-keymap)))
+      (insert-text-button "Exit pause"
+                          'action `(lambda (button)
+                                     (condition-case err
+                                         (pause-break-exit-from-button)
+                                       (error (message "%s" (error-message-string err))))))
+      (insert "\n")
       (dolist (m '(hl-needed-mode))
         (when (and (boundp m) (symbol-value m))
           (funcall m -1)))))
@@ -369,6 +398,11 @@ Please note that it is run in a timer.")
       (remove-hook 'window-configuration-change-hook 'pause-break-exit)
       (when (/= 0 (recursion-depth))
         (exit-recursive-edit)))))
+
+(defun pause-break-exit-from-button ()
+  (setq pause-break-1-minute-state nil)
+  (setq pause-exited-from-button t)
+  (pause-break-exit))
 
 (defun pause-insert-img ()
   (let* ((inhibit-read-only t)
@@ -471,10 +505,18 @@ interrupted."
 
 (defun pause-start (after-minutes)
   "Start `pause-mode' with interval AFTER-MINUTES.
-This bypasses `pause-only-when-server-mode'."
+This bypasses `pause-only-when-server-mode'.
+
+You can use this funciton to start a separate Emacs process that
+handles pause, for example like this:
+
+  emacs -Q -l pause --eval \"(pause-start 15)\"
+
+"
   (interactive "nPause after how many minutes: ")
   (pause-cancel-timer)
   (setq pause-after-minutes after-minutes)
+  (setq pause-start-when-working nil)
   (let ((pause-only-when-server-mode nil))
     (pause-mode 1))
   (switch-to-buffer (get-buffer-create "Pause information"))
@@ -517,14 +559,15 @@ This bypasses `pause-only-when-server-mode'."
           (inhibit-read-only t)
           (pose-url (concat pause-yoga-poses-host-url (car pose))))
       (goto-char (point-max))
-      (insert "\n\nLink to yoga posture for you: ")
+      (insert "Link to yoga posture for you: ")
       (insert-text-button (cdr pose)
                           'action `(lambda (button)
                                      (condition-case err
                                          (progn
                                            (browse-url ,pose-url)
-                                           (run-with-idle-timer 1 nil 'pause-break-exit))
+                                           (run-with-idle-timer 1 nil 'pause-break-exit-from-button))
                                        (error (message "%s" (error-message-string err))))))
+      (insert "\n")
       (pause-break-message))))
 
 (defun pause-get-yoga-poses ()
@@ -578,6 +621,7 @@ This bypasses `pause-only-when-server-mode'."
         (progn
           (message "%s" trouble-msg)
           nil)
+      (message "Number of yoga poses found=%s" (length poses))
       poses)))
 
 (defun pause-random-yoga-pose (poses)
