@@ -54,6 +54,7 @@
 (eval-when-compile (require 'cl))
 (eval-when-compile (add-to-list 'load-path default-directory))
 (eval-when-compile (require 'mumamo))
+(eval-when-compile (require 'sgml-mode))
 ;;(mumamo-require)
 
 ;;;#autoload
@@ -731,8 +732,9 @@ just `php-mode' if there is no html code in the file."
 
         ;; Be paranoid about the file/content write hooks
         (when (<= emacs-major-version 22)
-          (when local-write-file-hooks ;; obsolete, but check!
-            (error "Will not do this because local-write-file-hooks is non-nil")))
+          (with-no-warnings
+            (when local-write-file-hooks ;; obsolete, but check!
+              (error "Will not do this because local-write-file-hooks is non-nil"))))
         (remove-hook 'write-contents-functions 'mumamo-alt-php-write-contents t)
         (when write-contents-functions
           (error "Will not do this because write-contents-functions is non-nil"))
@@ -2461,7 +2463,7 @@ This also covers inlined style and javascript."
     (R R-mode)
     (ditaa picture-mode)
     )
-  "Alist for conversion of #+BEGIN_SRC specifier to major mode.
+  "Alist for conversion of org #+BEGIN_SRC specifier to major mode.
 Works kind of like `mumamo-major-modes'.
 
 This may be used for example for org-babel \(see URL
