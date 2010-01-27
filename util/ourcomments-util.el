@@ -1111,8 +1111,9 @@ display it."
                  (idle-d (timer--idle-delay tmr))
                  (rpt-d  (timer--repeat-delay tmr))
                  (time   (concat (format-time-string "  %Y-%m-%d %H:%M:%S" (list hi-sec lo-sec 0))
-                                 (format "%.1f" (/ mi-sec 1000000.0))))
-                 )
+                                 (substring
+                                  (format "%.1f" (/ mi-sec 1000000.0))
+                                  1))))
             (assert (not idle-d) t)
             (insert (format "%s %4s  (`%-3s' %S)\n" time rpt-d fun args)))))
       (insert "\nIdle timers:\n\n")
