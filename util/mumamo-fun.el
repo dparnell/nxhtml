@@ -2452,15 +2452,34 @@ This also covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Org-mode
 
-;; Fix-me: this opens and close org trees in a quite unfriendly
-;; way. Some buffer local variables in org-mode have to be preserved
-;; to prevent that.
+(defcustom mumamo-org-submodes
+  '(
+    (ruby ruby-mode)
+    )
+  "Alist for conversion of #+BEGIN_SRC specifier to major mode.
+Works kind of like `mumamo-major-modes'.
+
+This may be used for example for org-babel \(see URL
+`http://orgmode.org/worg/org-contrib/babel/')."
+  :type '(alist
+          :key-type (symbol :tag "Symbol in #BEGIN_SRC specifier")
+          :value-type (repeat (choice
+                               (command :tag "Major mode")
+                               (symbol :tag "Major mode (not yet loaded)")))
+          )
+  :group 'mumamo-modes)
+
+(defun mumamo-org-mode-from-spec (major-spec)
+  "Translate MAJOR-SPEC to a major mode.
+Translate MAJOR-SPEC used in #BEGIN_SRC to a major mode.
+
+See `mumamo-org-submodes' for an explanation."
+  (mumamo-major-mode-from-spec major-spec mumamo-org-submodes))
 
 (defun mumamo-chunk-org-html (pos min max)
   "Find #+BEGIN_HTML ... #+END_HTML, return range and `html-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (mumamo-quick-static-chunk pos min max "#+BEGIN_HTML" "#+END_HTML" nil 'html-mode nil))
-
 
 (defun mumamo-search-bw-org-src-start (pos min)
   "Helper for `mumamo-chunk-org-src'.
@@ -2472,6 +2491,7 @@ POS is where to start search and MIN is where to stop."
                        (prog1
                            (read (current-buffer))
                          (goto-char here))))))
+    (setq exc-mode (mumamo-org-mode-from-spec exc-mode))
     ;;(setq exc-mode (eval exc-mode))
     ;;(setq exc-mode 'text-mode)
     ;;(when exc-mode (setq exc-mode (quote exc-mode)))
@@ -2511,6 +2531,7 @@ mode."
 ;;;###autoload
 (define-mumamo-multi-major-mode org-mumamo-mode
   "Turn on multiple major modes for `org-mode' files with main mode `org-mode'.
+** Note about HTML subchunks:
 Unfortunately this only allows `html-mode' (not `nxhtml-mode') in
 sub chunks."
     ("Org Mode + Html" org-mode

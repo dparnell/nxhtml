@@ -78,6 +78,17 @@
   :type 'boolean
   :group 'pause)
 
+(defcustom pause-restart-anyway-after 2
+  "If user does not use Emacs restart timer after this minutes.
+This is used when a user has clicked a link."
+  :type 'number
+  :group 'pause)
+
+(defcustom pause-tell-again-after 2
+  "If user does not exit pause tell again after this minutes."
+  :type 'number
+  :group 'pause)
+
 (defcustom pause-extra-fun 'pause-start-get-yoga-poses
   "Function to call for extra fun when pausing.
 Default is to show a link to a yoga exercise (recommended!).
@@ -88,12 +99,6 @@ If this variable's value is a function it will be called when the
 pause frame has just been shown."
   :type '(choice (function :tag "Extra function")
                  (const :tag "No extra function" nil))
-  :group 'pause)
-
-(defcustom pause-start-when-working t
-  "Delay starting pause timer until we start working again.
-Used if button labels are used to exit pause break."
-  :type 'boolean
   :group 'pause)
 
 (defvar pause-exited-from-button nil)
@@ -260,36 +265,30 @@ It defines the following key bindings:
       (remove-hook 'window-configuration-change-hook 'pause-break-exit)
       ;;(set-frame-parameter nil 'background-color "white")
       (dolist (f (frame-list))
-        (set-frame-parameter f 'background-color
-                             (cdr (assq f old-frame-bg-color)))
-        (set-frame-parameter f 'left-fringe
-                             (cdr (assq f old-frame-left-fringe)))
-        (set-frame-parameter f 'right-fringe
-                             (cdr (assq f old-frame-right-fringe)))
-        (set-frame-parameter f 'tool-bar-lines
-                             (cdr (assq f old-frame-tool-bar-lines)))
-        (set-frame-parameter f 'menu-bar-lines
-                             (cdr (assq f old-frame-menu-bar-lines)))
-        (set-frame-parameter f 'vertical-scroll-bars
-                             (cdr (assq f old-frame-vertical-scroll-bars)))
-        )
+        (set-frame-parameter f 'background-color     (cdr (assq f old-frame-bg-color)))
+        (set-frame-parameter f 'left-fringe          (cdr (assq f old-frame-left-fringe)))
+        (set-frame-parameter f 'right-fringe         (cdr (assq f old-frame-right-fringe)))
+        (set-frame-parameter f 'tool-bar-lines       (cdr (assq f old-frame-tool-bar-lines)))
+        (set-frame-parameter f 'menu-bar-lines       (cdr (assq f old-frame-menu-bar-lines)))
+        (set-frame-parameter f 'vertical-scroll-bars (cdr (assq f old-frame-vertical-scroll-bars))))
       ;; Fix-me: The frame grows unless we do redisplay here:
       (redisplay t)
       (set-frame-configuration wcfg t)
       (set-face-attribute 'mode-line nil :background old-mode-line-bg)
       (run-with-idle-timer 2.0 nil 'run-hooks 'pause-break-exit-hook)
       (kill-buffer pause-buffer)
-      (if pause-exited-from-button
-          ;; Do not start timer until we start working again.
-          (run-with-idle-timer 1 nil 'add-hook 'post-command-hook 'pause-save-me-post-command)
-        (run-with-idle-timer 0 nil
-                             (if pause-break-1-minute-state
-                                 'pause-one-minute
-                               'pause-save-me))))))
+      (cond (pause-exited-from-button
+             ;; Do not start timer until we start working again.
+             (run-with-idle-timer 1 nil 'add-hook 'post-command-hook 'pause-save-me-post-command)
+             ;; But if we do not do that within some minutes then start timer anyway.
+             (run-with-idle-timer (* 60 pause-restart-anyway-after) nil 'pause-save-me))
+            (pause-break-1-minute-state
+             (run-with-idle-timer 0 nil 'pause-one-minute))
+            (t
+             (run-with-idle-timer 0 nil 'pause-save-me))))))
 
 (defun pause-save-me-post-command ()
-  (remove-hook 'post-command-hook 'pause-save-me-post-command)
-  (pause-save-me))
+  (pause-start-timer))
 
 (defvar pause-break-exit-hook nil
   "Hook run after break exit.
@@ -371,7 +370,22 @@ Please note that it is run in a timer.")
     (when pause-extra-fun (funcall pause-extra-fun))
     ;;(setq pause-break-exit-calls 0)
     (setq pause-break-last-wcfg-change (float-time))
-    )
+    (pause-tell-again-start-timer))
+
+(defvar pause-tell-again-timer nil)
+
+(defun pause-tell-again-start-timer ()
+  (pause-tell-again-cancel-timer)
+  (run-with-idle-timer (* 60 pause-tell-again-after) t 'pause-tell-again))
+
+(defun pause-tell-again-cancel-timer ()
+  (when (timerp pause-tell-again-timer)
+    (cancel-timer pause-tell-again-timer))
+  (setq pause-tell-again-timer nil))
+
+(defun pause-tell-again ()
+  (raise-frame))
+
 
 (defun pause-break-message ()
   (when (/= 0 (recursion-depth))
@@ -386,7 +400,9 @@ Please note that it is run in a timer.")
     (message nil)
     (with-current-buffer pause-buffer
       (let ((inhibit-read-only t))
-        (add-text-properties (point-min) (point-max) (list 'keymap nil))))))
+        ;; Fix-me: This interfere with text buttons.
+        ;;(add-text-properties (point-min) (point-max) (list 'keymap nil))
+        ))))
 
 (defun pause-break-exit ()
   (interactive)
@@ -396,6 +412,7 @@ Please note that it is run in a timer.")
     (when (> elapsed 1.0)
       (setq pause-break-exit-active t)
       (remove-hook 'window-configuration-change-hook 'pause-break-exit)
+      (pause-tell-again-cancel-timer)
       (when (/= 0 (recursion-depth))
         (exit-recursive-edit)))))
 
@@ -443,6 +460,7 @@ Please note that it is run in a timer.")
     (set (make-local-variable 'cursor-type) nil)))
 
 (defun pause-cancel-timer ()
+  (remove-hook 'post-command-hook 'pause-save-me-post-command)
   (when (timerp pause-timer) (cancel-timer pause-timer))
   (setq pause-timer nil))
 
@@ -502,7 +520,21 @@ interrupted."
         (pause-start-timer))
     (pause-cancel-timer)))
 
+;; (emacs-Q "-l" buffer-file-name "--eval" "(pause-temp-err)")
+;; (emacs-Q "-l" buffer-file-name "--eval" "(run-with-timer 1 nil 'pause-temp-err)")
+;; (pause-temp-err)
+(defun pause-temp-err ()
+  (switch-to-buffer (get-buffer-create "pause-temp-err buffer"))
+  (setq buffer-read-only t)
+  (let ((inhibit-read-only t))
+    (add-text-properties (point-min) (point-max) (list 'keymap nil))
+    (insert-text-button "click to test"
+                        'action (lambda (btn)
+                                  (message "Click worked")))
+    ;;(add-text-properties (point-min) (point-max) (list 'keymap nil))
+    ))
 
+;; (emacs-Q "-l" buffer-file-name "--eval" "(pause-start 0.1)")
 (defun pause-start (after-minutes)
   "Start `pause-mode' with interval AFTER-MINUTES.
 This bypasses `pause-only-when-server-mode'.
@@ -516,7 +548,6 @@ handles pause, for example like this:
   (interactive "nPause after how many minutes: ")
   (pause-cancel-timer)
   (setq pause-after-minutes after-minutes)
-  (setq pause-start-when-working nil)
   (let ((pause-only-when-server-mode nil))
     (pause-mode 1))
   (switch-to-buffer (get-buffer-create "Pause information"))

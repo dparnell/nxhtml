@@ -3294,9 +3294,12 @@ Translate MAJOR-SPEC used in chunk definitions of multi major
 modes to a major mode.
 
 See `mumamo-major-modes' for an explanation."
+  (mumamo-major-mode-from-spec major-spec mumamo-major-modes))
+
+(defun mumamo-major-mode-from-spec (major-spec table)
   (unless major-spec
     (mumamo-backtrace "mode-from-modespec, major-spec is nil"))
-  (let ((modes (cdr (assq major-spec mumamo-major-modes)))
+  (let ((modes (cdr (assq major-spec table)))
         (mode 'mumamo-bad-mode))
     (setq mode
           (catch 'mode
