@@ -2454,7 +2454,12 @@ This also covers inlined style and javascript."
 
 (defcustom mumamo-org-submodes
   '(
+    (emacs-lisp emacs-lisp-mode)
     (ruby ruby-mode)
+    (python python-mode)
+    (sh sh-mode)
+    (R R-mode)
+    (ditaa picture-mode)
     )
   "Alist for conversion of #+BEGIN_SRC specifier to major mode.
 Works kind of like `mumamo-major-modes'.
