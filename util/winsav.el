@@ -343,7 +343,9 @@ debugging by tells how far down we are in the call chain."
           (apply 'set-window-fringes (append (list window) fringe))
           (set-window-margins window (car margs) (cdr margs))
           (set-window-hscroll window hscroll)
-          (set-window-redisplay-end-trigger window trigger))
+          (unless (>= emacs-major-version 23)
+            (with-no-warnings
+              (set-window-redisplay-end-trigger window trigger))))
         (let* ((nsiz (window-edges window))
                (nh (- (nth 3 nsiz) (nth 1 nsiz)))
                (nw (- (nth 2 nsiz) (nth 0 nsiz)))
@@ -694,13 +696,17 @@ This is a normal hook.  For more information see
 (defun winsav-restore-frame (frame-params
                              window-tree-params
                              use-minibuffer-frame
-                             was-max)
+                             window-state
+                             window-visible)
   "Restore a frame with specified values.
 If this is a minibuffer only frame then just apply the frame
 parameters FRAME-PARAMS.  Otherwise create a new frame using
 FRAME-PARAMS and set up windows and buffers according to
 WINDOW-TREE-PARAMS.  Also, if USE-MINIBUFFER-FRAME let the new
-frame have this minibuffer frame."
+frame have this minibuffer frame.
+
+WINDOW-STATE is 1 for minimized, 2 for normal and 3 for
+maximized."
   (let* ((default-minibuffer-frame use-minibuffer-frame)
          (frame-name (cdr (assoc 'name frame-params)))
          (minibuffer-val (cdr (assoc 'minibuffer frame-params)))
@@ -742,10 +748,16 @@ frame have this minibuffer frame."
                        this-mini-frame))
          (win (frame-first-window this-frame)))
     ;;(message "create-new=%s, frame-with-that-name=%s" create-new frame-with-that-name)
-    (when was-max
-      (winsav-set-maximized-size this-frame)
-      ;; Wait for maximize to occur so horizontal scrolling gets ok.
-      (sit-for 1.5))
+    ;; (when was-max
+    ;;   (winsav-set-maximized-size this-frame)
+    ;;   ;; Wait for maximize to occur so horizontal scrolling gets ok.
+    ;;   (sit-for 1.5)
+    ;;   )
+    (case window-state
+      (1 (winsav-set-minimized-state this-frame))
+      (3 (winsav-set-maximized-state this-frame)))
+    (unless window-visible
+      (make-frame-invisible this-frame))
     (if create-new
         (winsav-put-window-tree window-tree-params win)
       (modify-frame-parameters this-frame frame-params))
@@ -800,23 +812,51 @@ Parameters are those returned by `frame-parameters'."
   :type '(repeat (symbol :tag "Frame parameter"))
   :group 'winsav)
 
-;;(winsav-set-restore-size nil)
-(defun winsav-set-restore-size (frame)
-  (when (fboundp 'w32-send-sys-command)
-    (let ((cur-frm (selected-frame)))
-      (select-frame-set-input-focus frame)
-      (w32-send-sys-command #xf120)
-      ;; Note: sit-for must be used, not sleep-for. Using the latter
-      ;; prevents the fetching of the new size (for some reason I do not
-      ;; understand).
-      (sit-for 1.5)
-      (select-frame-set-input-focus cur-frm))
-    t))
+(defun frame-visible-really-p (frame)
+  "Return t if FRAME is visible.
+This tries to be more corrent on w32 than `frame-visible-p'."
+  (cond ((fboundp 'w32-frame-placement)
+         (< 0 (nth 4 (w32-frame-placement frame))))
+        (t
+         (frame-visible-p frame))))
 
-(defun winsav-set-maximized-size (frame)
+(defun frame-maximized-p (frame)
+  "Return t if it is known that frame is maximized."
+  (cond ((fboundp 'w32-frame-placement)
+         (= 3 (abs (nth 4 (w32-frame-placement frame)))))
+        (t nil)))
+
+(defun frame-minimized-p (frame)
+  "Return t if it is known that frame is minimized."
+  (cond ((fboundp 'w32-frame-placement)
+         (= 3 (abs (nth 4 (w32-frame-placement frame)))))
+        (t nil)))
+
+;;(winsav-set-restore-size nil)
+;; (defun winsav-set-restore-size (frame)
+;;   (when (fboundp 'w32-send-sys-command)
+;;     (let ((cur-frm (selected-frame)))
+;;       (select-frame-set-input-focus frame)
+;;       (w32-send-sys-command #xf120)
+;;       ;; Note: sit-for must be used, not sleep-for. Using the latter
+;;       ;; prevents the fetching of the new size (for some reason I do not
+;;       ;; understand).
+;;       (sit-for 1.5)
+;;       (select-frame-set-input-focus cur-frm))
+;;     t))
+
+(defun winsav-set-maximized-state (frame)
   (when (fboundp 'w32-send-sys-command)
     (select-frame-set-input-focus frame)
     (w32-send-sys-command #xf030)
+    (sit-for 1.0)
+    t))
+
+(defun winsav-set-minimized-state (frame)
+  (when (fboundp 'w32-send-sys-command)
+    (select-frame-set-input-focus frame)
+    (w32-send-sys-command #xf020)
+    (sit-for 1.0)
     t))
 
 (defun winsav-save-frame (frame mb-frm-nr buffer)
@@ -832,11 +872,15 @@ whose minibuffer should be used."
          (frm-size-now (cons (frame-pixel-height frame)
                              (frame-pixel-width frame)))
          (dummy (message "winsav-save-frame buffer 4=%s" (current-buffer)))
-         (frm-size-rst (when (winsav-set-restore-size frame)
-                           (cons (frame-pixel-height frame)
-                                 (frame-pixel-width frame))))
-         (was-max (and frm-size-rst
-                       (not (equal frm-size-now frm-size-rst))))
+         (placement (when (fboundp 'w32-frame-placement) (w32-frame-placement frame)))
+         ;; (was-max (and frm-size-rst
+         ;;               (not (equal frm-size-now frm-size-rst))))
+         (window-state (abs (nth 4 placement)))
+         ;; (frm-size-rst (when (winsav-set-restore-size frame)
+         ;;                   (cons (frame-pixel-height frame)
+         ;;                         (frame-pixel-width frame))))
+         ;;(frm-size-rst (when was-max))
+         ;;(frm-size-rst (when (= 3 (abs (nth 4 placement)))))
          (dummy (message "winsav-save-frame buffer 5=%s" (current-buffer)))
          (frm-par (frame-parameters frame))
          (dummy (message "winsav-save-frame buffer 6=%s" (current-buffer)))
@@ -871,24 +915,37 @@ whose minibuffer should be used."
       (setq end (copy-marker (point) t))
       (message "winsav-save-frame b.0.3")
       (message "winsav-save-frame b.1")
-      (replace-regexp (rx "#<buffer "
-                          (1+ (not (any ">")))
-                          (1+ ">")) ;; 1+ for indirect buffers ...
-                      "buffer"
-                      nil start end)
+      ;; (replace-regexp (rx "#<buffer "
+      ;;                     (1+ (not (any ">")))
+      ;;                     (1+ ">")) ;; 1+ for indirect buffers ...
+      ;;                 "buffer"
+      ;;                 nil start end)
+      (goto-char start)
+      (while (re-search-forward (rx "#<buffer "
+                                    (1+ (not (any ">")))
+                                    (1+ ">")) ;; 1+ for indirect buffers ...
+                                end t)
+        (replace-match "buffer" nil t))
       (message "winsav-save-frame b.2")
-      (replace-regexp (rx "#<window "
-                          (1+ (not (any ">")))
-                          (1+ ">"))
-                      "nil"
-                      nil start end)
+      ;; (replace-regexp (rx "#<window "
+      ;;                     (1+ (not (any ">")))
+      ;;                     (1+ ">"))
+      ;;                 "nil"
+      ;;                 nil start end)
+      (goto-char start)
+      (while (re-search-forward (rx "#<window "
+                                    (1+ (not (any ">")))
+                                    (1+ ">")) ;; 1+ for indirect buffers ...
+                                end t)
+        (replace-match "nil" nil t))
       (message "winsav-save-frame c")
       (goto-char end)
       ;;use-minibuffer-frame
       (insert (if mb-frm-nr
                   (format "(nth %s (reverse winsav-loaded-frames))" mb-frm-nr)
                 "nil")
-              (if was-max " t " " nil ")
+              (format " %s" window-state)
+              (if (frame-visible-really-p frame) " t " " nil ")
               ")\n\n")
 
       (insert "    ;; ---- before after-save-frame-hook ----\n")
@@ -1010,16 +1067,24 @@ Write this in current buffer."
 ;; (sort (frame-list) 'winsav-frame-sort-predicate)
 (defun winsav-frame-sort-predicate (a b)
   "Compare frame A and B for sorting.
-Sort in the order frames can be created.  Frames without
-minibuffers will come later."
+Sort in the order frames can be created.
+
+- Frames without minibuffers will come later since the need to
+  refer to the minibuffer frame when they are created.
+
+- Invisible frames comes last since there must be at least one
+  visible frame from the beginning."
   (let* ((a-mbw (minibuffer-window a))
          (a-mbw-frm (window-frame a-mbw))
          (b-mbw (minibuffer-window b))
          (b-mbw-frm (window-frame b-mbw))
+         (a-visible (frame-visible-really-p a))
+         (b-visible (frame-visible-really-p b))
          )
     ;;(message "a-mbw-frm=%s, b=%s" a-mbw-frm b)
     ;;(message "b-mbw-frm=%s, a=%s" a-mbw-frm b)
-    (when (or (eq a-mbw-frm b)
+    (when (or (not b-visible)
+              (eq a-mbw-frm b)
               (not (eq b-mbw-frm b)))
       ;;(message "a > b")
       t
@@ -1193,8 +1258,8 @@ Delete the frames that were used before."
                 (unless (eq 'only (frame-parameter old 'minibuffer))
                   (setq num-old-deleted (1+ num-old-deleted))
                   (delete-frame old)))
-              ;;(winsav-maximize-all-nearly-max-frames)
               )
+            (message "winsav-after-restore-hook =%S" winsav-after-restore-hook)
             (run-hooks 'winsav-after-restore-hook)
             (message "Winsav: %s frame(s) restored" (length winsav-loaded-frames))
             t)
@@ -1261,44 +1326,7 @@ DIRNAME has the same meaning."
   "Start an idle timer to call `winsav-tell-configuration'."
   (run-with-idle-timer 1 nil 'winsav-tell-configuration))
 
-;; (defun winsav-nearly-maximized (frame)
-;;   "Return non-nil if size of frame FRAME is nearly full screen."
-;;   (let* ((top (frame-parameter frame 'top))
-;;          (left (frame-parameter frame 'left))
-;;          (width (frame-pixel-width frame))
-;;          (height (frame-pixel-height frame))
-;;          (display-width (display-pixel-width))
-;;          (display-height (display-pixel-height))
-;;          (char-height (frame-char-height frame))
-;;          (height-diff (- display-height height))
-;;          (terminal-type (framep frame)))
-;;     ;;(message "w=%s/%s, h=%s/%s, ch=%s, hd=%s" width display-width height display-height char-height height-diff)
-;;     (cond
-;;      ((eq 'w32 terminal-type)
-;;       (and (equal top '(+ -4))
-;;            (equal left '(+ -4))
-;;            (= width display-width)
-;;            (< height-diff (* 4 char-height))
-;;            )))))
 
-;; (defun winsav-maximize-nearly-maximized (frame)
-;;   "Maximize frame FRAME if size is nearly full screen."
-;;   (when (winsav-nearly-maximized frame)
-;;     (let ((terminal-type (framep frame)))
-;;       (cond
-;;        ((eq 'w32 terminal-type)
-;;         ;;(message "max %s" frame)
-;;         ;;(select-frame-set-input-focus frame)
-;;         (select-frame frame)
-;;         (w32-send-sys-command 61488))))))
-
-;;(winsav-maximize-all-nearly-max-frames)
-;; (defun winsav-maximize-all-nearly-max-frames ()
-;;   "Maximizes all frames whose size is nearly full screen."
-;;   (let ((sel-frm (selected-frame)))
-;;     (dolist (frame (frame-list))
-;;       (winsav-maximize-nearly-maximized frame))
-;;     (run-with-idle-timer 0 nil 'select-frame-set-input-focus sel-frm)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Startup and shut down
