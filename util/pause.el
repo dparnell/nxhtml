@@ -205,6 +205,7 @@ A random image is choosen from this directory for pauses."
     map))
 
 (defvar pause-buffer nil)
+(defvar pause-frame nil)
 
 (define-derived-mode pause-break-mode nil "Pause"
   "Mode used during pause in pause buffer.
@@ -263,6 +264,7 @@ It defines the following key bindings:
               (add-hook 'window-configuration-change-hook 'pause-break-exit))))
 
       (remove-hook 'window-configuration-change-hook 'pause-break-exit)
+      (pause-tell-again-cancel-timer)
       ;;(set-frame-parameter nil 'background-color "white")
       (dolist (f (frame-list))
         (set-frame-parameter f 'background-color     (cdr (assq f old-frame-bg-color)))
@@ -274,6 +276,7 @@ It defines the following key bindings:
       ;; Fix-me: The frame grows unless we do redisplay here:
       (redisplay t)
       (set-frame-configuration wcfg t)
+      (when pause-frame(lower-frame pause-frame))
       (set-face-attribute 'mode-line nil :background old-mode-line-bg)
       (run-with-idle-timer 2.0 nil 'run-hooks 'pause-break-exit-hook)
       (kill-buffer pause-buffer)
@@ -366,7 +369,7 @@ Please note that it is run in a timer.")
                                    (width  . ,cols)
                                    (height . ,rows)
                                    ))))
-    (when (and window-system pause-even-if-not-in-emacs) (raise-frame))
+    (when (and window-system pause-even-if-not-in-emacs) (raise-frame pause-frame))
     (when pause-extra-fun (funcall pause-extra-fun))
     ;;(setq pause-break-exit-calls 0)
     (setq pause-break-last-wcfg-change (float-time))
@@ -376,7 +379,8 @@ Please note that it is run in a timer.")
 
 (defun pause-tell-again-start-timer ()
   (pause-tell-again-cancel-timer)
-  (run-with-idle-timer (* 60 pause-tell-again-after) t 'pause-tell-again))
+  (setq pause-tell-again-timer
+        (run-with-idle-timer (* 60 pause-tell-again-after) t 'pause-tell-again)))
 
 (defun pause-tell-again-cancel-timer ()
   (when (timerp pause-tell-again-timer)
@@ -540,21 +544,54 @@ interrupted."
 This bypasses `pause-only-when-server-mode'.
 
 You can use this funciton to start a separate Emacs process that
-handles pause, for example like this:
+handles pause, for example like this if you want a pause every 15
+minutes:
 
-  emacs -Q -l pause --eval \"(pause-start 15)\"
+  emacs -Q -l pause --eval \"(pause-start 15 t)\"
 
-"
+Or you can from within this Emacs do
+
+  \(`pause-start-in-new-emacs' 15 t)"
   (interactive "nPause after how many minutes: ")
   (pause-cancel-timer)
   (setq pause-after-minutes after-minutes)
   (let ((pause-only-when-server-mode nil))
     (pause-mode 1))
   (switch-to-buffer (get-buffer-create "Pause information"))
-  (insert (propertize (format "Pause mode is on and will\ncome back every %d minute." after-minutes)
-                      'face '(:inherit font-lock-comment-face :height 1.5)))
-  (setq buffer-read-only t))
+  (insert (propertize "Emacs pause\n"
+                      'face '(:inherit variable-pitch :height 1.5)))
+  (insert (format "Pausing every %d minute." after-minutes))
+  (setq buffer-read-only t)
+  (delete-other-windows)
+  (setq mode-line-format nil)
+  (setq pause-frame (selected-frame))
+  (message nil)
+  (set-frame-parameter nil 'background-color pause-background-color)
+  )
 
+;; (pause-start-in-new-emacs 0.3 t)
+(defun pause-start-in-new-emacs (after-minutes -Q)
+  "Start pause with interval AFTER-MINUTES in a new Emacs instance.
+If -Q then do not run init files.
+
+One way of using this may be to put in your .emacs something like
+
+  ;; for just one Emacs running pause
+  (when server-mode (pause-start-in-new-emacs 15 t))
+
+See `pause-start' for more info.
+
+"
+  (let* ((this-emacs (locate-file invocation-name
+                                  (list invocation-directory)
+                                  exec-suffixes))
+         (args `("-l" ,buffer-file-name
+                 "--geometry=40x3"
+                 "-D"
+                 "--eval" ,(format "(pause-start %s)" after-minutes))))
+    (when -Q (setq args (cons "-Q" args)))
+
+    (apply 'call-process this-emacs nil 0 nil args)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Link to yoga poses
