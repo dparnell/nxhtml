@@ -122,7 +122,7 @@ much about computation time as for entries in the menu bar.
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-mail-mode
 ;;;;;;  as-external-for-xhtml as-external) "as-external" "util/as-external.el"
-;;;;;;  (19292 22717))
+;;;;;;  (19292 49706))
 ;;; Generated autoloads from util/as-external.el
 (web-autoload-require 'as-external 'lp '(nxhtml-download-root-url nil) "util/as-external" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -963,7 +963,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19285 31124))
+;;;;;;  (19296 6931))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1106,7 +1106,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
 ;;;;;;  embperl-html-mumamo-mode mason-html-mumamo-mode nxml-mumamo-mode
 ;;;;;;  html-mumamo-mode mumamo-define-html-file-wide-keys) "mumamo-fun"
-;;;;;;  "util/mumamo-fun.el" (19285 59522))
+;;;;;;  "util/mumamo-fun.el" (19296 8451))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1215,6 +1215,7 @@ This also covers inlined style and javascript." t)
 
 (nxhtml-autoload 'org-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for `org-mode' files with main mode `org-mode'.
+** Note about HTML subchunks:
 Unfortunately this only allows `html-mode' (not `nxhtml-mode') in
 sub chunks." t)
 
@@ -1371,7 +1372,7 @@ Run the tests specified by SELECTOR and display the results in a buffer.
 ;;;***
 
 ;;;### (autoloads (ocr-user-mode) "ocr-user" "util/ocr-user.el" (19290
-;;;;;;  21554))
+;;;;;;  21626))
 ;;; Generated autoloads from util/ocr-user.el
 (web-autoload-require 'ocr-user 'lp '(nxhtml-download-root-url nil) "util/ocr-user" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1397,7 +1398,7 @@ Color up digits three by three.
 ;;;;;;  ourcomments-move-beginning-of-line ourcomments-mark-whole-buffer-or-field
 ;;;;;;  fill-dwim unfill-individual-paragraphs unfill-region unfill-paragraph
 ;;;;;;  define-toggle-old define-toggle popup-menu-at-point ourcomments-indirect-fun)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19292 21323))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19296 2082))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1802,8 +1803,8 @@ Return t if VALUE is a major mode function.
 
 ;;;***
 
-;;;### (autoloads (pause-mode pause) "pause" "util/pause.el" (19291
-;;;;;;  30535))
+;;;### (autoloads (pause-mode pause) "pause" "util/pause.el" (19300
+;;;;;;  46815))
 ;;; Generated autoloads from util/pause.el
 (web-autoload-require 'pause 'lp '(nxhtml-download-root-url nil) "util/pause" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1929,7 +1930,7 @@ this group.
 ;;;***
 
 ;;;### (autoloads (rebind-keys-mode rebind) "rebind" "util/rebind.el"
-;;;;;;  (19291 19609))
+;;;;;;  (19292 11678))
 ;;; Generated autoloads from util/rebind.el
 (web-autoload-require 'rebind 'lp '(nxhtml-download-root-url nil) "util/rebind" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3003,7 +3004,7 @@ Major mode for interacting with Firefox via MozRepl.
 ;;;***
 
 ;;;### (autoloads (iss-mumamo-mode) "iss-mumamo" "related/iss-mumamo.el"
-;;;;;;  (19235 1650))
+;;;;;;  (19294 15044))
 ;;; Generated autoloads from related/iss-mumamo.el
 (web-autoload-require 'iss-mumamo 'lp '(nxhtml-download-root-url nil) "related/iss-mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3015,8 +3016,8 @@ The [code] section, if any, will be in `pascal-mode'." t)
 
 ;;;***
 
-;;;### (autoloads (iss-mode) "iss-mode" "related/iss-mode.el" (19235
-;;;;;;  1650))
+;;;### (autoloads (iss-mode) "iss-mode" "related/iss-mode.el" (19294
+;;;;;;  14924))
 ;;; Generated autoloads from related/iss-mode.el
 (web-autoload-require 'iss-mode 'lp '(nxhtml-download-root-url nil) "related/iss-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3057,7 +3058,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (flymake-css-load) "flymake-css" "related/flymake-css.el"
-;;;;;;  (19292 6986))
+;;;;;;  (19292 11678))
 ;;; Generated autoloads from related/flymake-css.el
 (web-autoload-require 'flymake-css 'lp '(nxhtml-download-root-url nil) "related/flymake-css" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3106,7 +3107,7 @@ Key bindings:
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
 ;;;;;;  winsav winsav-put-window-tree) "winsav" "util/winsav.el"
-;;;;;;  (19292 48362))
+;;;;;;  (19295 36777))
 ;;; Generated autoloads from util/winsav.el
 (web-autoload-require 'winsav 'lp '(nxhtml-download-root-url nil) "util/winsav" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3193,7 +3194,7 @@ See also option `winsav-save-mode' and command
 
 ;;;### (autoloads (winsav-rotate winsize-set-mode-line-colors winsize-save-window-configuration
 ;;;;;;  winsize-balance-siblings resize-windows) "winsize" "util/winsize.el"
-;;;;;;  (19292 48392))
+;;;;;;  (19292 49706))
 ;;; Generated autoloads from util/winsize.el
 (web-autoload-require 'winsize 'lp '(nxhtml-download-root-url nil) "util/winsize" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3488,7 +3489,7 @@ Show xhtml reference for tag name at or before point.
 ;;;***
 
 ;;;### (autoloads (tidy-build-menu tidy) "tidy-xhtml" "nxhtml/tidy-xhtml.el"
-;;;;;;  (19291 18907))
+;;;;;;  (19292 11678))
 ;;; Generated autoloads from nxhtml/tidy-xhtml.el
 (web-autoload-require 'tidy-xhtml 'lp '(nxhtml-download-root-url nil) "nxhtml/tidy-xhtml" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3575,7 +3576,7 @@ Check if external modules used by nXhtml are found.
 ;;;;;;  smarty-nxhtml-mumamo-mode mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode
 ;;;;;;  mason-nxhtml-mumamo-mode django-nxhtml-mumamo-mode embperl-nxhtml-mumamo-mode
 ;;;;;;  nxhtml-mumamo-mode) "nxhtml-mumamo" "nxhtml/nxhtml-mumamo.el"
-;;;;;;  (19291 18775))
+;;;;;;  (19292 11678))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 (web-autoload-require 'nxhtml-mumamo 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3768,7 +3769,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19292 20700))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19292 21390))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3985,7 +3986,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;### (autoloads (web-vcs-investigate-elisp-file web-vcs-byte-compile-file
 ;;;;;;  web-vcs-message-with-face web-vcs-get-files-from-root web-vcs-log-edit
 ;;;;;;  web-vcs-default-download-directory) "web-vcs" "web-vcs.el"
-;;;;;;  (19292 43175))
+;;;;;;  (19292 49706))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4040,7 +4041,7 @@ Not documented
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-byte-recompile
 ;;;;;;  nxhtmlmaint-start-byte-compilation) "nxhtmlmaint" "nxhtmlmaint.el"
-;;;;;;  (19292 6336))
+;;;;;;  (19292 11678))
 ;;; Generated autoloads from nxhtmlmaint.el
 (web-autoload-require 'nxhtmlmaint 'lp '(nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4143,15 +4144,15 @@ accept it or skip it.
 ;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/key-cat.el"
 ;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/nxml-mode-os-additions.el" "util/org-panel.el" "util/rxi.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19292 49507
-;;;;;;  843000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19300 47643
+;;;;;;  984000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtml-byte-recompile-file nxhtml-byte-compile-file
 ;;;;;;  nxhtml-get-missing-files nxhtml-update-existing-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install) "nxhtml-web-vcs"
-;;;;;;  "nxhtml-web-vcs.el" (19292 8321))
+;;;;;;  "nxhtml-web-vcs.el" (19292 11678))
 ;;; Generated autoloads from nxhtml-web-vcs.el
 (web-autoload-require 'nxhtml-web-vcs 'lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 

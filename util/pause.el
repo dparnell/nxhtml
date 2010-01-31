@@ -538,6 +538,47 @@ interrupted."
     ;;(add-text-properties (point-min) (point-max) (list 'keymap nil))
     ))
 
+;; (pause-get-group-saved-customizations 'pause custom-file)
+;; (pause-get-group-saved-customizations 'w32shell custom-file
+(defun pause-get-group-saved-customizations (group cus-file)
+  "Return customizations saved for GROUP in CUS-FILE."
+  (let* ((cus-buf (find-buffer-visiting cus-file))
+         (cus-old cus-buf)
+         (cus-point (when cus-old (with-current-buffer cus-old (point))))
+         (cusg-all (get group 'custom-group))
+         (cusg-vars (delq nil (mapcar (lambda (elt)
+                                        (when (eq (nth 1 elt) 'custom-variable)
+                                          (car elt)))
+                                      cusg-all)))
+         cus-vars-form
+         cus-face-form
+         cus-saved-vars
+         cus-saved-face)
+    (unless cus-buf (setq cus-buf (find-file-noselect cus-file)))
+    (with-current-buffer cus-buf
+      (save-restriction
+        (widen)
+        (goto-char (point-min))
+        (while (progn
+                 (while (progn (skip-chars-forward " \t\n\^l")
+                               (looking-at ";"))
+                   (forward-line 1))
+                 (not (eobp)))
+          (let ((form (read (current-buffer))))
+            (cond
+             ((eq (car form) 'custom-set-variables)
+              (setq cus-vars-form form))
+             ((eq (car form) 'custom-set-faces)
+              (setq cus-face-form form))
+            )))))
+    (dolist (vl (cdr cus-vars-form))
+      (when (memq (car (cadr vl)) cusg-vars)
+        (setq cus-saved-vars (cons vl cus-saved-vars)))
+      )
+    cus-saved-vars
+    ;;(funcall 'custom-set-variables cus-saved-vars)
+    ))
+
 ;; (emacs-Q "-l" buffer-file-name "--eval" "(pause-start 0.1)")
 (defun pause-start (after-minutes)
   "Start `pause-mode' with interval AFTER-MINUTES.
@@ -547,12 +588,16 @@ You can use this funciton to start a separate Emacs process that
 handles pause, for example like this if you want a pause every 15
 minutes:
 
-  emacs -Q -l pause --eval \"(pause-start 15 t)\"
+  emacs -Q -l pause --eval \"(pause-start 15)\"
 
 Or you can from within this Emacs do
 
-  \(`pause-start-in-new-emacs' 15 t)"
+  \(`pause-start-in-new-emacs' 15)"
   (interactive "nPause after how many minutes: ")
+  (let ((cus-file (if custom-file custom-file "~/.emacs")))
+    (pause-start-1 after-minutes cus-file)))
+
+(defun pause-start-1 (after-minutes cus-file)
   (pause-cancel-timer)
   (setq pause-after-minutes after-minutes)
   (let ((pause-only-when-server-mode nil))
@@ -569,12 +614,15 @@ Or you can from within this Emacs do
   (set-frame-parameter nil 'background-color pause-background-color)
   )
 
-;; (pause-start-in-new-emacs 0.3 t)
-(defun pause-start-in-new-emacs (after-minutes -Q)
+;; (pause-start-in-new-emacs 0.3)
+(defun pause-start-in-new-emacs (after-minutes)
   "Start pause with interval AFTER-MINUTES in a new Emacs instance.
-If -Q then do not run init files.
+The new Emacs instance will be started with -Q.  However if
+`custom-file' is non-nil it will be loaded so you can still
+customize pause.
 
-One way of using this may be to put in your .emacs something like
+One way of using this function may be to put in your .emacs
+something like
 
   ;; for just one Emacs running pause
   (when server-mode (pause-start-in-new-emacs 15 t))
@@ -589,7 +637,8 @@ See `pause-start' for more info.
                  "--geometry=40x3"
                  "-D"
                  "--eval" ,(format "(pause-start %s)" after-minutes))))
-    (when -Q (setq args (cons "-Q" args)))
+    (when custom-file (setq args (cons "-l" (cons custom-file args))))
+    (setq args (cons "-Q" args))
 
     (apply 'call-process this-emacs nil 0 nil args)))
 

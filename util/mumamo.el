@@ -5002,8 +5002,10 @@ mumamo chunk then set major mode to that for the chunk."
       ;; First see if we can avoid changing major mode
       (if (memq this-command mumamo-safe-commands-in-wrong-major)
           (mumamo-request-idle-set-major-mode)
+        ;;(message "pre point=%s" (point))
         (let* ((ovl (mumamo-find-chunks (point) "mumamo-set-major-pre-command"))
                (major (mumamo-chunk-major-mode ovl)))
+          ;;(message "pre point=%s" (point))
           (if (not major)
               (lwarn '(mumamo-set-major-pre-command) :error "major=%s" major)
             (when (or (not (eq major-mode major))
@@ -5038,9 +5040,11 @@ explanation."
         (when (eq buffer (current-buffer))
           (mumamo-condition-case err
               ;;(let* ((ovl (mumamo-get-chunk-at (point)))
+              ;;(message "idle point=%s" (point))
               (let* ((ovl (mumamo-find-chunks (point) "mumamo-idle-set-major-mode"))
                      (major (mumamo-chunk-major-mode ovl))
                      (modified (buffer-modified-p)))
+                ;;(message "idle point=%s" (point))
                 (unless (eq major major-mode)
                   ;;(message "mumamo-set-major at A")
                   (mumamo-set-major major ovl)
@@ -6212,27 +6216,28 @@ Buffer must be narrowed to chunk when this function is called."
       ;;(msgtrc "set-major A: word-wrap=%S, cb=%s" word-wrap (current-buffer))
       ;;(mumamo-backtrace "set-major")
       (let ((here (point)))
-        (save-restriction
-          (let* ((minmax (mumamo-chunk-syntax-min-max chunk t))
-                 (min (car minmax))
-                 (max (cdr minmax))
-                 (here (point))
-                 ;; Fix-me: For some reason let binding did not help. Is this a bug or?
-                 ;;
-                 ;;(font-lock-fontify-buffer-function 'mumamo-font-lock-fontify-chunk)
-                 (old-bf (buffer-local-value 'font-lock-fontify-buffer-function (current-buffer)))
-                 )
-            (narrow-to-region min max)
-            (set (make-local-variable 'font-lock-fontify-buffer-function) 'mumamo-font-lock-fontify-chunk)
-            ;;(message "funcall major=%s, %s" major font-lock-fontify-buffer-function)
-            ;;(message "before funcall: function=%s" font-lock-fontify-buffer-function)
-            (put 'font-lock-fontify-buffer-function 'permanent-local t)
-            (funcall major) ;; <-----------------------------------------------
-            (put 'font-lock-fontify-buffer-function 'permanent-local nil)
-            (when old-bf
-              (set (make-local-variable 'font-lock-fontify-buffer-function) old-bf))
-            ))
-        (goto-char here))
+        (unwind-protect
+            (save-restriction
+              (let* ((minmax (mumamo-chunk-syntax-min-max chunk t))
+                     (min (car minmax))
+                     (max (cdr minmax))
+                     (here (point))
+                     ;; Fix-me: For some reason let binding did not help. Is this a bug or?
+                     ;;
+                     ;;(font-lock-fontify-buffer-function 'mumamo-font-lock-fontify-chunk)
+                     (old-bf (buffer-local-value 'font-lock-fontify-buffer-function (current-buffer)))
+                     )
+                (narrow-to-region min max)
+                (set (make-local-variable 'font-lock-fontify-buffer-function) 'mumamo-font-lock-fontify-chunk)
+                ;;(message "funcall major=%s, %s" major font-lock-fontify-buffer-function)
+                ;;(message "before funcall: function=%s" font-lock-fontify-buffer-function)
+                (put 'font-lock-fontify-buffer-function 'permanent-local t)
+                (funcall major) ;; <-----------------------------------------------
+                (put 'font-lock-fontify-buffer-function 'permanent-local nil)
+                (when old-bf
+                  (set (make-local-variable 'font-lock-fontify-buffer-function) old-bf))
+                ))
+          (goto-char here)))
       ;;(msgtrc "set-major B: buffer-invisibility-spec=%S" buffer-invisibility-spec)
       ;;(msgtrc "set-major B: word-wrap=%S, cb=%s" word-wrap (current-buffer))
 
@@ -8476,6 +8481,19 @@ LCON is the lexical context, if any."
                                   activate
                                   compile)
   (setq ad-return-value (mumamo-sgml-calculate-indent (ad-get-arg 0))))
+
+(defadvice python-eldoc-function (around
+                                  mumamo-ad-python-eldoc-function
+                                  activate
+                                  compile)
+  (if (not mumamo-multi-major-mode)
+      ad-do-it
+    (let ((here (point)))
+      (unwind-protect
+          (save-restriction
+            (mumamo-narrow-to-chunk-inner)
+            ad-do-it)
+        (goto-char here)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; The END
