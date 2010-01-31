@@ -740,9 +740,9 @@ nxhtml.el.
 ;; FIX-ME: Add edit header?
 
 (defun rngalt-get-validation-header-buffer ()
-  (let ((b (get-buffer "*XML Validation Header*")))
+  (let ((b (get-buffer " *XML Validation Header*")))
     (unless b
-      (setq b (get-buffer-create "*XML Validation Header*"))
+      (setq b (get-buffer-create " *XML Validation Header*"))
       (with-current-buffer b
         ;;(fundamental-mode)
         (nxml-mode)))
