@@ -1671,8 +1671,8 @@ the some meaning as there."
 (put 'mumamo-find-chunks-timer 'permanent-local t)
 
 (defvar mumamo-find-chunk-delay idle-update-delay)
-(make-variable-buffer-local 'mumamo-find-chunks-timer)
-(put 'mumamo-find-chunks-timer 'permanent-local t)
+(make-variable-buffer-local 'mumamo-find-chunk-delay)
+(put 'mumamo-find-chunk-delay 'permanent-local t)
 
 (defun mumamo-stop-find-chunks-timer ()
   "Stop timer that find chunks."
