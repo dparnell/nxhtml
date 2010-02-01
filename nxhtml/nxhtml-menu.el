@@ -1008,6 +1008,9 @@
       (define-key edit-map [nxhtml-occur]
         (list 'menu-item "Occur" 'occur))
       (define-key edit-map [nxhtml-edit-sep3] (list 'menu-item "--"))
+      (define-key edit-map [nxhtml-re-builder]
+        (list 'menu-item "Re-Builder" 're-builder))
+      (define-key edit-map [nxhtml-edit-sep4] (list 'menu-item "--"))
       (define-key edit-map [nxhtml-copy+paste]
         (list 'menu-item "Start copy+paste" 'ourcomments-copy+paste-set-point))
       )
