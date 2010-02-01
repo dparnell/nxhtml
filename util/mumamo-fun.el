@@ -2772,6 +2772,7 @@ This also covers inlined style and javascript."
     mumamo-chunk-style=
     mumamo-chunk-onjs=
     )))
+(mumamo-inherit-sub-chunk-family-locally 'mako-html-mumamo-mode 'mako-html-mumamo-mode)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
