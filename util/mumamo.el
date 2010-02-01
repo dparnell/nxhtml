@@ -6226,6 +6226,7 @@ Buffer must be narrowed to chunk when this function is called."
                      ;;
                      ;;(font-lock-fontify-buffer-function 'mumamo-font-lock-fontify-chunk)
                      (old-bf (buffer-local-value 'font-lock-fontify-buffer-function (current-buffer)))
+                     (inhibit-redisplay t) ;; Fix-me: said to be for internal purposes only
                      )
                 (narrow-to-region min max)
                 (set (make-local-variable 'font-lock-fontify-buffer-function) 'mumamo-font-lock-fontify-chunk)
