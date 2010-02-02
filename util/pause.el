@@ -17,7 +17,14 @@
 ;;; Commentary:
 ;;
 ;; If you are using Emacs then don't you need a little reminder to
-;; take a pause? Add to your .emacs
+;; take a pause?  This library makes Emacs remind you of that.  And
+;; gives you a link to a yoga exercise to try in the pause.
+;;
+;; There are essentially two different ways to use this library.
+;; Either you run a separate Emacs process that just reminds you of
+;; pauses.  To use it that way see `pause-start-in-new-emacs'.
+;;
+;; Or run it in the current Emacs.  To do that add to your .emacs
 ;;
 ;;   (require 'pause)
 ;;
@@ -26,6 +33,12 @@
 ;;   M-x customize-group RET pause RET
 ;;
 ;; and set `pause-mode' to t.
+;;
+;;
+;; Note: I am unsure if it works on all systems to use a separate
+;;       Emacs process.  It does work on w32 though.  Please tell me
+;;       about other systems.
+;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -149,10 +162,12 @@ pause frame has just been shown."
   :type 'integer
   :group 'pause)
 
+(defvar pause-el-file (or load-file-name
+                          (when (boundp 'bytecomp-filename) bytecomp-filename)
+                          buffer-file-name))
+
 (defvar pause-default-img-dir
-  (let* ((this-file (or load-file-name
-                       buffer-file-name))
-         (this-dir (file-name-directory this-file)))
+  (let ((this-dir (file-name-directory pause-el-file)))
     (expand-file-name "../etc/img/pause/" this-dir)))
 
 (defcustom pause-img-dir pause-default-img-dir
@@ -538,8 +553,9 @@ interrupted."
     ;;(add-text-properties (point-min) (point-max) (list 'keymap nil))
     ))
 
-;; (pause-get-group-saved-customizations 'pause custom-file)
-;; (pause-get-group-saved-customizations 'w32shell custom-file
+;; (customize-group-other-window 'pause)
+;; (apply 'custom-set-variables (pause-get-group-saved-customizations 'pause custom-file))
+;; (pause-get-group-saved-customizations 'w32shell custom-file)
 (defun pause-get-group-saved-customizations (group cus-file)
   "Return customizations saved for GROUP in CUS-FILE."
   (let* ((cus-buf (find-buffer-visiting cus-file))
@@ -573,14 +589,11 @@ interrupted."
             )))))
     (dolist (vl (cdr cus-vars-form))
       (when (memq (car (cadr vl)) cusg-vars)
-        (setq cus-saved-vars (cons vl cus-saved-vars)))
-      )
-    cus-saved-vars
-    ;;(funcall 'custom-set-variables cus-saved-vars)
-    ))
+        (setq cus-saved-vars (cons (cadr vl) cus-saved-vars))))
+    cus-saved-vars))
 
-;; (emacs-Q "-l" buffer-file-name "--eval" "(pause-start 0.1)")
-(defun pause-start (after-minutes)
+;; (emacs-Q "-l" buffer-file-name "--eval" "(pause-start 0.1 nil)")
+(defun pause-start (after-minutes cus-file)
   "Start `pause-mode' with interval AFTER-MINUTES.
 This bypasses `pause-only-when-server-mode'.
 
@@ -588,17 +601,21 @@ You can use this funciton to start a separate Emacs process that
 handles pause, for example like this if you want a pause every 15
 minutes:
 
-  emacs -Q -l pause --eval \"(pause-start 15)\"
+  emacs -Q -l pause --eval \"(pause-start 15 nil)\"
 
-Or you can from within this Emacs do
-
-  \(`pause-start-in-new-emacs' 15)"
+Note: Another easier alternative might be to use
+      `pause-start-in-new-emacs'."
   (interactive "nPause after how many minutes: ")
-  (let ((cus-file (if custom-file custom-file "~/.emacs")))
-    (pause-start-1 after-minutes cus-file)))
+  (pause-start-1 after-minutes cus-file))
 
 (defun pause-start-1 (after-minutes cus-file)
+  (setq debug-on-error t)
   (pause-cancel-timer)
+  (when (and cus-file (file-exists-p cus-file))
+    (let ((args (pause-get-group-saved-customizations 'pause cus-file)))
+      ;;(message "cus-file=%S" cus-file)
+      ;;(message "args=%S" args)
+      (apply 'custom-set-variables args)))
   (setq pause-after-minutes after-minutes)
   (let ((pause-only-when-server-mode nil))
     (pause-mode 1))
@@ -611,10 +628,10 @@ Or you can from within this Emacs do
   (setq mode-line-format nil)
   (setq pause-frame (selected-frame))
   (message nil)
-  (set-frame-parameter nil 'background-color pause-background-color)
-  )
+  (set-frame-parameter nil 'background-color pause-background-color))
 
 ;; (pause-start-in-new-emacs 0.3)
+;;;###autoload
 (defun pause-start-in-new-emacs (after-minutes)
   "Start pause with interval AFTER-MINUTES in a new Emacs instance.
 The new Emacs instance will be started with -Q.  However if
@@ -625,7 +642,7 @@ One way of using this function may be to put in your .emacs
 something like
 
   ;; for just one Emacs running pause
-  (when server-mode (pause-start-in-new-emacs 15 t))
+  (when server-mode (pause-start-in-new-emacs 15))
 
 See `pause-start' for more info.
 
@@ -633,14 +650,17 @@ See `pause-start' for more info.
   (let* ((this-emacs (locate-file invocation-name
                                   (list invocation-directory)
                                   exec-suffixes))
-         (args `("-l" ,buffer-file-name
+         (cus-file (if custom-file custom-file "~/.emacs"))
+         (args `("-l" ,pause-el-file
                  "--geometry=40x3"
                  "-D"
-                 "--eval" ,(format "(pause-start %s)" after-minutes))))
-    (when custom-file (setq args (cons "-l" (cons custom-file args))))
+                 "--eval" ,(format "(pause-start %s %S)" after-minutes cus-file))))
+    ;;(when custom-file (setq args (cons "-l" (cons custom-file args))))
     (setq args (cons "-Q" args))
+    (message "args=%S" args)
 
-    (apply 'call-process this-emacs nil 0 nil args)))
+    (apply 'call-process this-emacs nil 0 nil args)
+    ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Link to yoga poses
