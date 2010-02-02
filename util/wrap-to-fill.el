@@ -65,9 +65,9 @@ the left margin."
   :group 'wrap-to-fill)
 (make-variable-buffer-local 'wrap-to-fill-left-marg)
 
-(defvar wrap-to-fill-old-margins 0)
-(make-variable-buffer-local 'wrap-to-fill-old-margins)
-(put 'wrap-to-fill-old-margins 'permanent-local t)
+(defvar wrap-to-fill--saved-state nil)
+;;(make-variable-buffer-local 'wrap-to-fill--saved-state)
+(put 'wrap-to-fill--saved-state 'permanent-local t)
 
 ;;;###autoload
 (defcustom wrap-to-fill-left-marg-modes
@@ -126,27 +126,38 @@ Key bindings added by this minor mode:
   ;;          major-mode mumamo-multi-major-mode)
   (if wrap-to-fill-column-mode
       (progn
+        ;; Old values (idea from visual-line-mode)
+	(set (make-local-variable 'wrap-to-fill--saved-state) nil)
+	(dolist (var '(visual-line-mode
+                       left-margin-width
+                       right-margin-width))
+          (push (list var (symbol-value var) (local-variable-p var))
+                wrap-to-fill--saved-state))
         ;; Hooks
         (add-hook 'window-configuration-change-hook 'wrap-to-fill-set-values nil t)
         ;; Wrapping
-        (if (fboundp 'visual-line-mode)
-            (visual-line-mode 1)
-          (longlines-mode 1))
+        (visual-line-mode 1)
         ;;(message "wrap-to-fill-column-mode word-wrap=%s" word-wrap)
         ;;(mumamo-backtrace "wrap-to-fill")
         ;; Margins
-        (setq wrap-to-fill-old-margins (cons left-margin-width right-margin-width))
+        ;;(setq wrap-to-fill-old-margins (cons left-margin-width right-margin-width))
         (wrap-to-fill-set-values-in-buffer-windows))
     ;; Hooks
     (remove-hook 'window-configuration-change-hook 'wrap-to-fill-set-values t)
-    ;; Wrapping
-    (if (fboundp 'visual-line-mode)
-        (visual-line-mode -1)
-      (longlines-mode -1))
+    ;; Old values
+    (dolist (saved wrap-to-fill--saved-state)
+      (let ((var (nth 0 saved))
+            (val (nth 1 saved))
+            (loc (nth 2 saved)))
+        (cond
+         ((eq var 'visual-line-mode)
+          (unless val (visual-line-mode -1)))
+         (t
+          (if loc
+              (set (make-local-variable var) val)
+            (kill-local-variable var))))))
+    (kill-local-variable 'wrap-to-fill--saved-state)
     ;; Margins
-    (setq left-margin-width (car wrap-to-fill-old-margins))
-    (setq right-margin-width (cdr wrap-to-fill-old-margins))
-    (setq wrap-to-fill-old-margins nil)
     (dolist (win (get-buffer-window-list (current-buffer)))
       (set-window-margins win left-margin-width right-margin-width))
     ;; Indentation
@@ -206,7 +217,7 @@ Key bindings added by this minor mode:
   (when (timerp wrap-to-fill-timer)
     (cancel-timer wrap-to-fill-timer))
   (setq wrap-to-fill-timer
-        (run-with-idle-timer 0 nil 'wrap-to-fill-set-values-in-timer
+        (run-with-idle-timer 1 nil 'wrap-to-fill-set-values-in-timer
                              (selected-window) (current-buffer))))
 (put 'wrap-to-fill-set-values 'permanent-local-hook t)
 
