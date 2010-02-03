@@ -344,6 +344,13 @@ Please note that it is run in a timer.")
       (setq left-margin-width 25)
       (pause-insert-img)
       (insert (propertize pause-break-text 'face 'pause-text-face))
+      (goto-char (point-min))
+      (when (search-forward "mindfulness" nil t)
+        (make-text-button (- (point) 11) (point)
+                          'face '(:inherit pause-text-face :underline t)
+                          'action (lambda (btn)
+                                    (browse-url "http://www.jimhopper.com/mindfulness/"))))
+      (goto-char (point-max))
       (insert (propertize "\n\nClick on a link below to exit pause\n" 'face 'pause-info-text-face))
       ;;(add-text-properties (point-min) (point-max) (list 'keymap (make-sparse-keymap)))
       (insert-text-button "Exit pause"
@@ -622,8 +629,16 @@ Note: Another easier alternative might be to use
   (switch-to-buffer (get-buffer-create "Pause information"))
   (insert (propertize "Emacs pause\n"
                       'face '(:inherit variable-pitch :height 1.5)))
-  (insert (format "Pausing every %d minute." after-minutes))
-  (setq buffer-read-only t)
+  (insert (format "Pausing every %d minute.\n" after-minutes))
+  (insert "Or, ")
+  (insert-text-button "pause now"
+                      'action `(lambda (button)
+                                 (condition-case err
+                                     (pause-break)
+                                   (error (message "%s" (error-message-string err))))))
+  (insert "!\n")
+  ;;(setq buffer-read-only t)
+  (pause-break-mode)
   (delete-other-windows)
   (setq mode-line-format nil)
   (setq pause-frame (selected-frame))
@@ -655,12 +670,8 @@ See `pause-start' for more info.
                  "--geometry=40x3"
                  "-D"
                  "--eval" ,(format "(pause-start %s %S)" after-minutes cus-file))))
-    ;;(when custom-file (setq args (cons "-l" (cons custom-file args))))
     (setq args (cons "-Q" args))
-    (message "args=%S" args)
-
-    (apply 'call-process this-emacs nil 0 nil args)
-    ))
+    (apply 'call-process this-emacs nil 0 nil args)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Link to yoga poses
