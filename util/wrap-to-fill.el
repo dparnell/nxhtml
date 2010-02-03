@@ -129,18 +129,15 @@ Key bindings added by this minor mode:
         ;; Old values (idea from visual-line-mode)
 	(set (make-local-variable 'wrap-to-fill--saved-state) nil)
 	(dolist (var '(visual-line-mode
-                       left-margin-width
-                       right-margin-width))
+                       ;;left-margin-width
+                       ;;right-margin-width
+                       ))
           (push (list var (symbol-value var) (local-variable-p var))
                 wrap-to-fill--saved-state))
         ;; Hooks
         (add-hook 'window-configuration-change-hook 'wrap-to-fill-set-values nil t)
         ;; Wrapping
         (visual-line-mode 1)
-        ;;(message "wrap-to-fill-column-mode word-wrap=%s" word-wrap)
-        ;;(mumamo-backtrace "wrap-to-fill")
-        ;; Margins
-        ;;(setq wrap-to-fill-old-margins (cons left-margin-width right-margin-width))
         (wrap-to-fill-set-values-in-buffer-windows))
     ;; Hooks
     (remove-hook 'window-configuration-change-hook 'wrap-to-fill-set-values t)
@@ -270,18 +267,19 @@ Key bindings added by this minor mode:
         (unless (> left-marg 0) (setq left-marg 0))
         (unless (> right-marg 0) (setq right-marg 0))
         (unless nil;(= left-marg (or left-margin-width 0))
-          (setq left-margin-width left-marg)
+          ;;(setq left-margin-width left-marg)
           (setq need-update t))
         (unless nil;(= right-marg (or right-margin-width 0))
-          (setq right-margin-width right-marg)
+          ;;(setq right-margin-width right-marg)
           (setq need-update t))
         ;;(message "win-width a: %s => %s, win-full=%s, e=%s l/r=%s/%s %S %S %S" wrap-old-win-width win-width win-full extra-width left-margin-width right-margin-width (window-edges) (window-inside-edges) (window-margins))
         (when need-update
           ;;(set-window-buffer win (window-buffer win))
           ;;(run-with-idle-timer 0 nil 'set-window-buffer win (window-buffer win))
-          (dolist (win (get-buffer-window-list (current-buffer)))
+          ;;(dolist (win (get-buffer-window-list (current-buffer)))
             ;; Fix-me: check window width...
-            (set-window-margins win left-margin-width right-margin-width))
+          (set-window-margins win left-marg right-marg)
+          ;;)
           ;;(message "win-width b: %s => %s, win-full=%s, e=%s l/r=%s/%s %S %S %S" wrap-old-win-width win-width win-full extra-width left-marg right-marg (window-edges) (window-inside-edges) (window-margins))
           )
         ))))
