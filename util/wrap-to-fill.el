@@ -92,10 +92,18 @@ the left margin."
   (setq fill-column (- fill-column 10))
   (wrap-to-fill-set-values-in-buffer-windows))
 
+(defun wrap-to-fill-normal ()
+  "Reset `fill-column' to global value."
+  (interactive)
+  ;;(setq fill-column (default-value 'fill-column))
+  (kill-local-variable 'fill-column)
+  (wrap-to-fill-set-values-in-buffer-windows))
+
 (defvar wrap-to-fill-column-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [(control ?c) right] 'wrap-to-fill-wider)
-    (define-key map [(control ?c) left] 'wrap-to-fill-narrower)
+    (define-key map [(control ?c) ?+] 'wrap-to-fill-wider)
+    (define-key map [(control ?c) ?-] 'wrap-to-fill-narrower)
+    (define-key map [(control ?c) ?0] 'wrap-to-fill-normal)
     map))
 
 ;; Fix-me: Maybe make the `wrap-prefix' behavior an option or separate
@@ -214,11 +222,18 @@ Key bindings added by this minor mode:
   (when (timerp wrap-to-fill-timer)
     (cancel-timer wrap-to-fill-timer))
   (setq wrap-to-fill-timer
-        (run-with-idle-timer 1 nil 'wrap-to-fill-set-values-in-timer
+        (run-with-idle-timer 0 nil 'wrap-to-fill-set-values-in-timer
                              (selected-window) (current-buffer))))
 (put 'wrap-to-fill-set-values 'permanent-local-hook t)
 
 (defun wrap-to-fill-set-values-in-timer (win buf)
+  (condition-case err
+      (when (buffer-live-p buf)
+        (wrap-to-fill-set-values-in-buffer-windows buf))
+    (error (message "ERROR wrap-to-fill-set-values-in-timer: %s"
+                    (error-message-string err)))))
+
+(defun wrap-to-fill-set-values-in-timer-old (win buf)
   (when (and (window-live-p win) (buffer-live-p buf)
              (eq buf (window-buffer win)))
     (condition-case err
@@ -228,9 +243,12 @@ Key bindings added by this minor mode:
       (error (message "ERROR wrap-to-fill-set-values: %s"
                       (error-message-string err))))))
 
-(defun wrap-to-fill-set-values-in-buffer-windows ()
+(defun wrap-to-fill-set-values-in-buffer-windows (&optional buffer)
   "Use `fill-column' display columns in buffer windows."
-  (let ((buf-windows (get-buffer-window-list (current-buffer))))
+  (let ((buf-windows (get-buffer-window-list (or buffer
+                                                 (current-buffer))
+                                             nil
+                                             t)))
     (dolist (win buf-windows)
       (if wrap-to-fill-column-mode
           (wrap-to-fill-set-values-in-window win)
@@ -303,15 +321,27 @@ Key bindings added by this minor mode:
         (when this-bol
           (goto-char (+ this-bol 0))
           (let (ind-str
+                ind-str-fill
                 (beg-pos this-bol)
                 (end-pos (line-end-position)))
             (when (equal (get-text-property beg-pos 'wrap-prefix)
                          (get-text-property beg-pos 'wrap-to-fill-prefix))
+              ;; Find indentation
               (skip-chars-forward "[:blank:]")
               (setq ind-str (buffer-substring-no-properties beg-pos (point)))
+              ;; Any special markers like -, * etc
+              (if (and (< (1+ (point)) (point-max))
+                       (memq (char-after) '(?- ;; 45
+                                            ?– ;; 8211
+                                            ?*
+                                            ))
+                       (eq (char-after (1+ (point))) ?\ ))
+                  (setq ind-str-fill (concat "  " ind-str))
+                (setq ind-str-fill ind-str))
+              ;;(setq ind-str-fill (concat "  " ind-str))
               (mumamo-with-buffer-prepared-for-jit-lock
-               (put-text-property beg-pos end-pos 'wrap-prefix ind-str)
-               (put-text-property beg-pos end-pos 'wrap-to-fill-prefix ind-str))))))
+               (put-text-property beg-pos end-pos 'wrap-prefix ind-str-fill)
+               (put-text-property beg-pos end-pos 'wrap-to-fill-prefix ind-str-fill))))))
       (forward-line 1))
     ;; Note: doing it line by line and returning t gave problem in mumamo.
     (when nil ;this-bol

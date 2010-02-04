@@ -147,7 +147,7 @@ otherwise."
 
 (defvar hl-needed-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [(control ?c) ?+] 'hl-needed-show)
+    (define-key map [(control ?c) ??] 'hl-needed-show)
     map))
 
 ;;;###autoload
