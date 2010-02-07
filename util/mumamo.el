@@ -3592,6 +3592,83 @@ Otherwise return nil."
 
 ;;; The main generic chunk routine
 
+;; Fix-me: new routine that really search forward only. Rewrite
+;; `mumamo-quick-static-chunk' first with this.
+(defun mumamo-possible-chunk-forward (pos
+                                      max
+                                      chunk-start-fun
+                                      chunk-end-fun
+                                      &optional borders-fun)
+  "Search forward from POS to MAX for possible chunk.
+Return as a list with values
+
+  \(START END CHUNK-MAJOR BORDERS PARSEABLE-BY CHUNK-END-FUN BORDERS-FUN)
+
+START and END are start and end of the possible chunk.
+CHUNK-MAJOR is the major mode specifier for this chunk.  \(Note
+that this specifier is translated to a major mode through
+`mumamo-major-modes'.)
+
+START-BORDER and END-BORDER may be nil.  Otherwise they should be
+the position where the border ends respectively start at the
+corresponding end of the chunk.
+
+BORDERS is the return value of the optional BORDERS-FUN which
+takes three parameters, START, END and EXCEPTION-MODE in the
+return values above.  BORDERS may be nil and otherwise has this
+format:
+
+  \(START-BORDER END-BORDER CHUNK-MAJOR CHUNK-END-FUN)
+
+PARSEABLE-BY is a list of major modes with parsers that can parse
+the chunk.
+
+CHUNK-START-FUN and CHUNK-END-FUN should be functions that
+searches forward from point for start and end of chunk.  They
+both take one parameter, MAX above.  If no possible chunk is
+found both these functions should return nil, otherwise see
+below.
+
+CHUNK-START-FUN should return a list of the form below if a
+possible chunk is found:
+
+  (START CHUNK-MAJOR PARSEABLE-BY)
+
+CHUNK-END-FUN should return the end of the chunk.
+
+"
+  (let ((here (point))
+        start-rec
+        start
+        end
+        chunk-major
+        parseable-by
+        borders
+        ret
+        )
+    (goto-char pos)
+    ;; Fix-me: check valid
+    ;;(mumamo-end-in-code syntax-min syntax-max curr-major)
+    (setq start-rec (funcall chunk-start-fun max))
+    (when start-rec
+      (setq start        (nth 0 start-rec))
+      (setq chunk-major  (nth 1 start-rec))
+      (setq parseable-by (nth 2 start-rec))
+      (goto-char start)
+      ;; Fix-me: check valid
+      (setq end (funcall chunk-end-fun max))
+      (when borders-fun
+        (let ((start-border (when start (unless (and (= 1 start)
+                                                     (not chunk-major))
+                                          start)))
+              (end-border   (when end   (unless (and (= (point-max) end)
+                                                     (not chunk-major))
+                                          end))))
+          (setq borders (funcall borders-fun start-border end-border chunk-major))))
+      (setq ret (list start end chunk-major borders parseable-by chunk-end-fun borders-fun)))
+    (goto-char here)
+    ret))
+
 ;; Fix-me: This routine has some difficulties. One of the more
 ;; problematic things is that chunk borders may depend on the
 ;; surrounding chunks syntax. Patterns that possibly could be chunk
@@ -4465,6 +4542,11 @@ information.
                      (syntax-max (or (cadr syn2-min-max)
                                      curr-end-fun-end)))
                 ;;(mumamo-end-in-code syntax-min (- curr-end-fun-end 1) curr-major)
+                ;;
+                ;; fix-me: This should be really in the individual
+                ;; routines that finds possible chunks. Mabye this is
+                ;; possible to fix now when just looking forward for
+                ;; chunks?
                 (mumamo-end-in-code syntax-min syntax-max curr-major)
                 )
               (setq curr-end-fun-end nil))
@@ -4728,7 +4810,63 @@ the sexp syntax using major mode MAJOR."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Easy chunk defining
 
-(defun mumamo-quick-static-chunk (pos min max
+(defun mumamo-quick-chunk-forward (pos
+                                   min max
+                                   begin-mark end-mark inc mode
+                                   mark-is-border)
+  (let ((search-fw-exc-start
+         `(lambda (pos max)
+            (let ((exc-start
+                   (if ,inc
+                       (mumamo-chunk-start-fw-str-inc pos max ,begin-mark)
+                     (mumamo-chunk-start-fw-str pos max ,begin-mark))))
+              (when exc-start
+                (list exc-start mode nil)))))
+        (search-fw-exc-end
+         `(lambda (pos max)
+            (save-match-data
+              (if ,inc
+                  (mumamo-chunk-end-fw-str-inc pos max ,end-mark)
+                (mumamo-chunk-end-fw-str pos max ,end-mark)))))
+        (find-borders
+         (when mark-is-border
+           `(lambda (start end exc-mode)
+              (let ((start-border)
+                    (end-border))
+                (if (and ,inc exc-mode)
+                    (progn
+                      (when start
+                        (setq start-border
+                              (+ start (length ,begin-mark))))
+                      (when end
+                        (setq end-border
+                              (- end (length ,end-mark)))))
+                  (if (and (not ,inc) (not exc-mode))
+                      (progn
+                        (when start
+                          (setq start-border
+                                (+ start (length ,end-mark))))
+                        (when end
+                          (setq end-border
+                                (- end (length ,begin-mark)))))))
+                (when (or start-border end-border)
+                  (mumamo-msgfntfy "quick.start-border/end=%s/%s, start/end=%s/%s exc-mode=%s" start-border end-border start end exc-mode)
+                  (list start-border end-border)))))))
+    (mumamo-possible-chunk-forward pos max
+                                   search-fw-exc-start
+                                   search-fw-exc-end
+                                   find-borders)))
+
+(defun mumamo-quick-static-chunk (pos
+                                  min max
+                                  begin-mark end-mark inc mode
+                                  mark-is-border)
+  (if t
+      (mumamo-quick-static-chunk-old pos min max begin-mark end-mark inc mode mark-is-border)
+    (mumamo-quick-chunk-forward pos min max begin-mark end-mark inc mode mark-is-border)))
+
+(defun mumamo-quick-static-chunk-old (pos
+                                      min max
                                       begin-mark end-mark inc mode
                                       mark-is-border)
   "Quick way to make a chunk function with static dividers.
