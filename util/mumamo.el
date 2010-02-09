@@ -1161,7 +1161,7 @@ be colored, etc."
 (defface mumamo-background-chunk-major
   '((((class color) (min-colors 88) (background dark))
      ;;:background "blue3")
-     :background "midnight blue")
+     :background "MidnightBlue")
     (((class color) (min-colors 88) (background light))
      ;;:background "lightgoldenrod2")
      :background "cornsilk")
@@ -1182,16 +1182,18 @@ interfere with syntax highlighting."
 (defface mumamo-background-chunk-submode1
   '((((class color) (min-colors 88) (background dark))
      ;;:background "blue3")
-     :background "dark green")
+     :background "DarkGreen"
+     ;;:background "#081010"
+     )
     (((class color) (min-colors 88) (background light))
      ;;:background "lightgoldenrod2")
-     :background "azure")
+     :background "Azure")
     (((class color) (min-colors 16) (background dark))
      :background "blue3")
     (((class color) (min-colors 16) (background light))
      :background "azure")
     (((class color) (min-colors 8))
-     :background "blue")
+     :background "Blue")
     (((type tty) (class mono))
      :inverse-video t)
     (t :background "gray"))
@@ -1812,7 +1814,7 @@ correct but we want to check those after.  Put thosie in
                 mumamo-last-chunk
                 ;;(= (point-max) (overlay-end mumamo-last-chunk))
                 (= (overlay-end mumamo-last-chunk) (overlay-start mumamo-last-chunk)))
-      ;;(msgtrc "delete-overlay at end")
+      (msgtrc "delete-overlay at end")
       (delete-overlay mumamo-last-chunk)
       (setq mumamo-last-chunk (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))
       (when mumamo-last-chunk (overlay-put mumamo-last-chunk 'mumamo-next-chunk nil)))))
@@ -1827,7 +1829,7 @@ correct but we want to check those after.  Put thosie in
     (while (and (mumamo-while 500 'while-n2 "mumamo-old-tail")
                 (and mumamo-old-tail (< (overlay-start mumamo-old-tail) ok-pos)))
       (mumamo-mark-for-refontification (overlay-start mumamo-old-tail) (overlay-end mumamo-old-tail))
-      ;;(msgtrc "find-chunks:not eq delete %s" mumamo-old-tail)
+      (msgtrc "find-chunks:ok-pos=%s, not eq delete %s" ok-pos mumamo-old-tail)
       (delete-overlay mumamo-old-tail)
       (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))
       (or (not mumamo-old-tail)
@@ -2451,7 +2453,7 @@ This function is called when the minor mode function
                 (when major
                   (unless (eq major main-major)
                     (mumamo-unfontify-chunk o))
-                  ;;(msgtrc "delete-overlay 1")
+                  (msgtrc "delete-overlay 1")
                   (delete-overlay o)
                   ))))
           (mumamo-unfontify-region-with (point-min) (point-max)
@@ -3649,14 +3651,14 @@ CHUNK-END-FUN should return the end of the chunk.
     (goto-char pos)
     ;; Fix-me: check valid
     ;;(mumamo-end-in-code syntax-min syntax-max curr-major)
-    (setq start-rec (funcall chunk-start-fun max))
+    (setq start-rec (funcall chunk-start-fun (point) max))
     (when start-rec
       (setq start        (nth 0 start-rec))
       (setq chunk-major  (nth 1 start-rec))
       (setq parseable-by (nth 2 start-rec))
       (goto-char start)
       ;; Fix-me: check valid
-      (setq end (funcall chunk-end-fun max))
+      ;;(setq end (funcall chunk-end-fun (point) max))
       (when borders-fun
         (let ((start-border (when start (unless (and (= 1 start)
                                                      (not chunk-major))
@@ -3954,7 +3956,7 @@ See also `mumamo-quick-static-chunk'."
     (let ((ovls (overlays-in (point-min) (point-max))))
       (dolist (ovl ovls)
         (when (overlay-get ovl 'mumamo-is-new)
-          ;;(msgtrc "delete-overlay %s delete-new-chunks" ovl)
+          (msgtrc "delete-overlay %s delete-new-chunks" ovl)
           (delete-overlay ovl))))))
 
 (defun mumamo-new-create-chunk (new-chunk-values)
@@ -4861,9 +4863,10 @@ the sexp syntax using major mode MAJOR."
                                   min max
                                   begin-mark end-mark inc mode
                                   mark-is-border)
-  (if t
-      (mumamo-quick-static-chunk-old pos min max begin-mark end-mark inc mode mark-is-border)
-    (mumamo-quick-chunk-forward pos min max begin-mark end-mark inc mode mark-is-border)))
+  (let ((old (mumamo-quick-static-chunk-old pos min max begin-mark end-mark inc mode mark-is-border))
+        (new (mumamo-quick-chunk-forward pos min max begin-mark end-mark inc mode mark-is-border)))
+    (unless (equal old new) (msgtrc "equal=%s\n\told=%S\n\tnew=%S" (equal old new) old new))
+    (if nil old new)))
 
 (defun mumamo-quick-static-chunk-old (pos
                                       min max
@@ -6887,6 +6890,7 @@ is returned."
   ;;(message "mumamo-indent-current-line-chunks multi=%s" mumamo-multi-major-mode)
   ;;(message "mumamo-indent-current-line-chunks cb=%s" (current-buffer))
   ;;(message "mumamo-indent-current-line-chunks bt=%s" (mumamo-backtrace "here"))
+  (msgtrc "indent-current-line-chunks: last-chunk-prev-line=%S" last-chunk-prev-line)
   (save-restriction
     (widen)
     (let* ((lb-pos (line-beginning-position))
@@ -7094,14 +7098,7 @@ The following rules are used when indenting:
          (this-line-major3 (mumamo-chunk-major-mode (nth 3 this-line-chunks)))
          (this-depth3 (overlay-get this-line-chunk3 'mumamo-depth))
 
-         (template-indentor (when prev-line-chunk0
-                              (unless (eq this-line-chunk0 prev-line-chunk0)
-                                (let* ((prev (overlay-get this-line-chunk0 'mumamo-prev-chunk))
-                                       (prev-prev (overlay-get prev 'mumamo-prev-chunk)))
-                                  (when (and (eq prev-prev prev-line-chunk0)
-                                             (eq (overlay-get prev-prev 'mumamo-next-indent)
-                                                 'mumamo-template-indentor))
-                                    prev)))))
+         (dummy (msgtrc "a\t this=%S" this-line-chunks))
          this-line-indent-major
          major-indent-line-function
          (main-major (mumamo-main-major-mode))
@@ -7136,13 +7133,24 @@ The following rules are used when indenting:
          (while-n1 0)
          (while-n2 0)
          (while-n3 0)
+         (dummy (msgtrc "j\t this=%S" this-line-chunks))
+         (template-indentor (when prev-line-chunk0
+                              (unless (eq this-line-chunk0 prev-line-chunk0)
+                                (let* ((prev (overlay-get this-line-chunk0 'mumamo-prev-chunk))
+                                       (prev-prev (overlay-get prev 'mumamo-prev-chunk)))
+                                  (when (and (eq prev-prev prev-line-chunk0)
+                                             (eq (overlay-get prev-prev 'mumamo-next-indent)
+                                                 'mumamo-template-indentor))
+                                    prev)))))
          )
-    (mumamo-msgindent "mumamo-indent-line-function-1 L%s last=%s\n  this0=%s  %s  %s  %s\n  prev0=%s  %s  %s  %s"
-                      (line-number-at-pos)
-                      last-parent-major-indent
-                      this-line-major0 this-line-major1 this-line-major2 this-line-major3
-                      prev-line-major0 prev-line-major1 prev-line-major2 prev-line-major3
-                      )
+    (msgtrc "indent-line-function-1:template-indentor=%s" template-indentor)
+    (msgtrc "indent-line-function-1:\n\tprev=%S\n\tthis=%S" prev-line-chunks this-line-chunks)
+    ;; (mumamo-msgindent "mumamo-indent-line-function-1 L%s last=%s\n  this0=%s  %s  %s  %s\n  prev0=%s  %s  %s  %s"
+    ;;                   (line-number-at-pos)
+    ;;                   last-parent-major-indent
+    ;;                   this-line-major0 this-line-major1 this-line-major2 this-line-major3
+    ;;                   prev-line-major0 prev-line-major1 prev-line-major2 prev-line-major3
+    ;;                   )
     (when (and leaving-submode entering-submode)
       (error "Do not know how to indent here (both leaving and entering sub chunks)"))
     ;; Fix-me: indentation
