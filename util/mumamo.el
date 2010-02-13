@@ -7190,12 +7190,13 @@ The following rules are used when indenting:
      ( template-indentor
        (let ((here (point))
              (ind-shift (mumamo-template-indent-get-chunk-shift template-indentor)))
-         ;;(message "mumamo-template-indent-get-chunk-shift: shift=%d" ind-shift)
-         ;;(message "current-line: %s" (buffer-substring (point-at-bol) (point-at-eol)))
+         ;;(msgtrc "current-line: %s" (buffer-substring (point-at-bol) (point-at-eol)))
          (setq want-indent (+ ind-shift
                               (progn
-                                (goto-char (overlay-start prev-line-chunk0))
+                                ;;(goto-char (overlay-start prev-line-chunk0))
+                                (goto-char (overlay-start template-indentor))
                                 (current-indentation))))
+         ;;(msgtrc "mumamo-template-indent-get-chunk-shift: i-s=%d w-i=%s c-i=%s" ind-shift want-indent (current-indentation))
          (goto-char here))
        (when (> 0 want-indent)
          (setq want-indent 0))
