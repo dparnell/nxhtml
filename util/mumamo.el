@@ -7149,6 +7149,9 @@ The following rules are used when indenting:
                                              (eq (overlay-get prev-prev 'mumamo-next-indent)
                                                  'mumamo-template-indentor))
                                     prev)))))
+         (template-shift (when template-indentor
+                           (mumamo-template-indent-get-chunk-shift template-indentor)
+                           ))
          )
     ;;(msgtrc "indent-line-function-1:template-indentor=%s" template-indentor)
     ;;(msgtrc "indent-line-function-1:\n\tprev=%S\n\tthis=%S" prev-line-chunks this-line-chunks)
@@ -7188,7 +7191,8 @@ The following rules are used when indenting:
     ;; - next line after a template-indentor, what happens?
     ;;(setq template-indentor nil) ;; fix-me
     (cond
-     ( template-indentor
+     ( nil ;;template-indentor
+       ;; Fix-me: This is an extra indentation
        (let ((here (point))
              (ind-shift (mumamo-template-indent-get-chunk-shift template-indentor)))
          ;;(msgtrc "current-line: %s" (buffer-substring (point-at-bol) (point-at-eol)))
@@ -7340,6 +7344,9 @@ The following rules are used when indenting:
     (when want-indent
       ;;(msgtrc "indent-line-to %s at line-beginning=%s" want-indent (line-beginning-position))
       (indent-line-to want-indent))
+    (when (and template-shift (/= 0 template-shift))
+      (let ((ind (+ (current-indentation) template-shift)))
+        (indent-line-to ind)))
     (goto-char here-on-line)
     ;;(msgtrc "exit: %s" (list this-line-chunks last-parent-major-indent))
     (list this-line-chunks last-parent-major-indent next-entering-submode)))
