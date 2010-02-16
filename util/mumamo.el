@@ -6959,6 +6959,7 @@ This list consists of four chunks at these positions:
           (get-buffer-create (concat (buffer-name)
                                      "-template-indent-buffer")))
     (with-current-buffer mumamo-template-indent-buffer
+      (setq buffer-undo-list t)
       (let ((major (car (overlay-get template-chunk 'mumamo-major-mode))))
         (funcall major))))
   (let ((indentor (overlay-get template-chunk 'mumamo-indentor)))
