@@ -2577,6 +2577,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
                               'mumamo-mako-<%-fw-end
                               'mumamo-mako-<%-find-borders
                               ))
+
 (defun mumamo-mako-<%-find-borders (start end exc-mode)
   (when exc-mode
     (list
@@ -2857,6 +2858,24 @@ You need `markdown-mode' which you can download from URL
     )))
 
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Latex related
+
+(defun mumamo-latex-closure-chunk (pos min max)
+  (mumamo-quick-static-chunk pos min max "\\begin{clojure}" "\\end{clojure}" t 'clojure-mode t))
+
+(define-mumamo-multi-major-mode latex-clojure-mumamo-mode
+  "Turn on multi major mode latex+clojure.
+Main major mode will be `latex-mode'.
+Subchunks will be in `closure-mode'.
+
+You will need `clojure-mode' which you can download from URL
+`http://github.com/jochu/clojure-mode/tree'."
+  ("Latex+clojur Family" latex-mode
+   (
+    mumamo-latex-closure-chunk
+    )))
 
 (provide 'mumamo-fun)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

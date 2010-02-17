@@ -3627,9 +3627,9 @@ the chunk.
 
 CHUNK-START-FUN and CHUNK-END-FUN should be functions that
 searches forward from point for start and end of chunk.  They
-both take one parameter, MAX above.  If no possible chunk is
-found both these functions should return nil, otherwise see
-below.
+both take two parameters, POS and MAX above.  If no possible
+chunk is found both these functions should return nil, otherwise
+see below.
 
 CHUNK-START-FUN should return a list of the form below if a
 possible chunk is found:
@@ -3649,7 +3649,8 @@ CHUNK-END-FUN should return the end of the chunk.
         ret
         )
     (goto-char pos)
-    ;; Fix-me: check valid
+    ;; Fix-me: check valid. Should this perhaps be done in the
+    ;; function calling this instead?
     ;;(mumamo-end-in-code syntax-min syntax-max curr-major)
     (setq start-rec (funcall chunk-start-fun (point) max))
     (when start-rec
