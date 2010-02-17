@@ -469,6 +469,7 @@
               :button '(:toggle . (and (boundp 'flymake-mode)
                                        flymake-mode))
               :enable '(and buffer-file-name
+                            (require 'flymake)
                             (fboundp 'flymake-get-init-function)
                             (flymake-get-init-function buffer-file-name)
                             )))

@@ -87,6 +87,20 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define tests using ert.el
 
+(ert-deftest nxhtml-ert-indent-bug-johan-2010-02-12()
+  "Test of eRuby indentation.
+Got a bug report by mail on the emacs-on-rails list."
+  (ert-with-temp-buffer-include-file "bug-johan-2010-02-12.rhtml"
+    (add-hook 'ert-simulate-command-post-hook
+              'nxhtmltest-should-no-mumamo-errors
+              nil t)
+    (ert-simulate-command '(eruby-html-mumamo-mode) t)
+    (nxhtmltest-fontify-default-way 2 "trans")
+    (ert-simulate-command '(mark-whole-buffer) t)
+    (ert-simulate-command '(indent-for-tab-command) t)
+    (goto-line 12)  (ert-should (= 2 (current-indentation))))
+    )
+
 ;;(setq nxhtmltest-ert-default-selector "nxhtml-ert-indent-rr-min8")
 (ert-deftest nxhtml-ert-indent-rr-min8 ()
   "Test of indentation bug.
