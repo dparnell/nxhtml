@@ -2865,6 +2865,7 @@ You need `markdown-mode' which you can download from URL
 (defun mumamo-latex-closure-chunk (pos min max)
   (mumamo-quick-static-chunk pos min max "\\begin{clojure}" "\\end{clojure}" t 'clojure-mode t))
 
+;;;###autoload
 (define-mumamo-multi-major-mode latex-clojure-mumamo-mode
   "Turn on multi major mode latex+clojure.
 Main major mode will be `latex-mode'.
