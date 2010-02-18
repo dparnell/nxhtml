@@ -4802,7 +4802,15 @@ the sexp syntax using major mode MAJOR."
                (progn
                  ;;(msgtrc "invalid end, syntax-end =%s" syntax-end)
                  (setq doesnt-ret nil)
-                 )
+                 (if (nth 4 ppss) ;; in comment, check if single line comment
+                     (let ((here (point))
+                           eol-pos)
+                       (goto-char ,syntax-start)
+                       (setq eol-pos (line-end-position))
+                       (goto-char here)
+                       (setq ppss (parse-partial-sexp ,syntax-start (+ eol-pos 1)))
+                       (unless (nth 4 ppss)
+                         (setq doesnt-ret t)))))
              (setq doesnt-ret t)
              ;;(msgtrc "valid end, syntax-end =%s" syntax-end)
              ))))
