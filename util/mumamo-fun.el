@@ -2869,13 +2869,32 @@ You need `markdown-mode' which you can download from URL
 (define-mumamo-multi-major-mode latex-clojure-mumamo-mode
   "Turn on multi major mode latex+clojure.
 Main major mode will be `latex-mode'.
-Subchunks will be in `closure-mode'.
+Subchunks will be in `clojure-mode'.
 
 You will need `clojure-mode' which you can download from URL
 `http://github.com/jochu/clojure-mode/tree'."
   ("Latex+clojur Family" latex-mode
    (
     mumamo-latex-closure-chunk
+    )))
+
+(add-to-list 'auto-mode-alist '("\\.lclj\\'" . latex-clojure-mumamo-mode))
+
+
+(defun mumamo-latex-haskell-chunk (pos min max)
+  (mumamo-quick-static-chunk pos min max "\\begin{code}" "\\end{code}" t 'haskell-mode t))
+
+;;;###autoload
+(define-mumamo-multi-major-mode latex-haskell-mumamo-mode
+  "Turn on multi major mode latex+haskell.
+Main major mode will be `latex-mode'.
+Subchunks will be in `haskell-mode'.
+
+You will need `haskell-mode' which you can download from URL
+`http://projects.haskell.org/haskellmode-emacs/'."
+  ("Latex+haskell Family" latex-mode
+   (
+    mumamo-latex-haskell-chunk
     )))
 
 (provide 'mumamo-fun)
