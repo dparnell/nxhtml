@@ -1862,7 +1862,7 @@ correct but we want to check those after.  Put thosie in
            ;; Any changes?
            (change-min (car mumamo-last-change-pos))
            (change-max (cdr mumamo-last-change-pos))
-           (chunk-at-change-min (when change-min (mumamo-get-existing-new-chunk-at change-min)))
+           (chunk-at-change-min (when change-min (mumamo-get-existing-new-chunk-at change-min nil)))
            (chunk-at-change-min-start (when chunk-at-change-min (overlay-start chunk-at-change-min)))
            ;; Check if change is near border
            (this-syntax-min-max
@@ -1908,7 +1908,7 @@ correct but we want to check those after.  Put thosie in
              interrupted
              (while-n3 0))
         (when (>= ok-pos end)
-          (setq this-new-chunk (mumamo-get-existing-new-chunk-at end))
+          (setq this-new-chunk (mumamo-get-existing-new-chunk-at end nil))
           (unless this-new-chunk
             (error "Could not find new chunk ok-pos-new=%s > end=%s (ovls at end=%s), level=%d, old-tail=%s, %S"
                    ok-pos end (overlays-in end end)
@@ -2084,10 +2084,10 @@ fontified after a change) is added locally to the hook
     (mumamo-msgfntfy "mumamo-jit-lock-after-change ENTER %s %s %s" min max old-len)
     ;; Why is this nil?:
     (mumamo-msgfntfy "  mumamo-jit-lock-after-change: font-lock-extend-after-change-region-function=%s" font-lock-extend-after-change-region-function)
-    (let* ((ovl-min (mumamo-get-existing-new-chunk-at min))
+    (let* ((ovl-min (mumamo-get-existing-new-chunk-at min nil))
            (ovl-max (when (or (not ovl-min)
                               (< (overlay-end ovl-min) max))
-                      (mumamo-get-existing-new-chunk-at max)))
+                      (mumamo-get-existing-new-chunk-at max nil)))
            (major-min (when ovl-min (mumamo-chunk-major-mode ovl-min)))
            (major-max (when ovl-max (mumamo-chunk-major-mode ovl-max)))
            (r-min nil)
@@ -3332,8 +3332,9 @@ See `mumamo-major-modes' for an explanation."
     (mumamo-msgfntfy " mumamo-major-mode-from-modespec %s => %s" major-spec mode)
     mode))
 
-(defun mumamo-get-existing-new-chunk-at (pos)
-  "Return last existing chunk at POS if any."
+(defun mumamo-get-existing-new-chunk-at (pos &optional first)
+  "Return last existing chunk at POS if any.
+However if FIRST get first existing chunk at POS instead."
   ;;(msgtrc "(mumamo-get-existing-new-chunk-at %s)" pos)
   (let ((chunk-ovl)
         (orig-pos pos))
@@ -3342,10 +3343,15 @@ See `mumamo-major-modes' for an explanation."
     (when (= pos 0) (setq pos 1))
     (dolist (o (overlays-in pos (1+ pos)))
       (when (overlay-get o 'mumamo-is-new)
-        ;; There can be two, choose the last.
+        ;; There can be two, choose the last or first depending on
+        ;; FIRST.
         (if chunk-ovl
-            (when (or (> (overlay-end o) (overlay-start o))
-                      (overlay-get o 'mumamo-prev-chunk))
+            ;; (when (or (> (overlay-end o) (overlay-start o))
+            ;;           (overlay-get o 'mumamo-prev-chunk))
+            (when (if first
+                      (< (overlay-end o) (overlay-end chunk-ovl))
+                    (> (overlay-end o) (overlay-end chunk-ovl))
+                    )
               (setq chunk-ovl o))
           (setq chunk-ovl o))))
     chunk-ovl))
@@ -5103,7 +5109,7 @@ Return the fetched local map."
         mumamo-post-command-chunk
       ;;(msgtrc "--------------- new post-command-chunk")
       (setq mumamo-post-command-chunk
-            (or (unless have-regions (mumamo-get-existing-new-chunk-at (point)))
+            (or (unless have-regions (mumamo-get-existing-new-chunk-at (point) nil))
                 (mumamo-find-chunks (point) "post-command-get-chunk"))))))
 
 ;; (setq mumamo-set-major-mode-delay 10)
@@ -6915,22 +6921,27 @@ This list consists of four chunks at these positions:
            (pos4 (if (< le-pos (point-max))
                      (1+ le-pos)
                    (point-max)))
-           ;;(ovl1 (mumamo-get-chunk-save-buffer-state pos1))
-           (ovl1 (if (and last-chunk-prev-line
-                          (overlay-buffer last-chunk-prev-line)
-                          (<= (overlay-end last-chunk-prev-line) pos1))
-                     last-chunk-prev-line
-                   (mumamo-get-chunk-save-buffer-state pos1)))
-           (ovl2 (if (>= (overlay-end ovl1) pos2)
-                     ovl1
-                   (mumamo-get-chunk-save-buffer-state pos2)))
-           ;;(ovl3 (mumamo-get-chunk-save-buffer-state pos3))
-           (ovl3 (if (<= pos3 (overlay-end ovl2))
-                     ovl2
-                   (mumamo-get-chunk-save-buffer-state pos3)))
-           (ovl4 (if (<= pos4 (overlay-end ovl3))
+           ;; Create all chunks on this line first, then grab them
+           ;;(ovl4 (mumamo-get-chunk-save-buffer-state pos4))
+           (ovl4 (mumamo-find-chunks pos4 "mumamo-indent-current-line-chunks"))
+           (ovl3 (if (>= pos3 (overlay-start ovl4))
+                     ovl4
+                   ;;(mumamo-get-chunk-save-buffer-state pos3)
+                   (mumamo-get-existing-new-chunk-at pos3)
+                   ))
+           (ovl2 (if (>= pos2 (overlay-start ovl3))
                      ovl3
-                   (mumamo-get-chunk-save-buffer-state pos4)))
+                   ;;(mumamo-get-chunk-save-buffer-state pos2)
+                   (mumamo-get-existing-new-chunk-at pos2)
+                   ))
+           (ovl1 (if (> pos1 (overlay-start ovl2))
+                     ovl2
+                   ;;(mumamo-get-chunk-save-buffer-state pos2)
+                   (mumamo-get-existing-new-chunk-at pos1 t)
+                   ))
+           ;; (ovl1 (<= (overlay-end last-chunk-prev-line) pos1))
+           ;;           last-chunk-prev-line
+           ;;         (mumamo-get-chunk-save-buffer-state pos1)))
            )
       (list ovl1 ovl2 ovl3 ovl4))))
 
@@ -7094,16 +7105,19 @@ The following rules are used when indenting:
   (unless prev-line-chunks
     (save-excursion
       (goto-char (line-beginning-position 1))
-      (skip-chars-backward "\n\t ")
-      (goto-char (line-beginning-position 1))
-      (setq prev-line-chunks (mumamo-indent-current-line-chunks nil))))
+      (unless (= (point) 1)
+        (skip-chars-backward "\n\t ")
+        (goto-char (line-beginning-position 1))
+        (setq prev-line-chunks (mumamo-indent-current-line-chunks nil)))))
   (let* ((prev-line-chunk0 (nth 0 prev-line-chunks))
          (prev-line-chunk3 (nth 3 prev-line-chunks))
          (prev-line-major0 (mumamo-chunk-major-mode (nth 0 prev-line-chunks)))
          (prev-line-major1 (mumamo-chunk-major-mode (nth 1 prev-line-chunks)))
          (prev-line-major2 (mumamo-chunk-major-mode (nth 2 prev-line-chunks)))
          (prev-line-major3 (mumamo-chunk-major-mode (nth 3 prev-line-chunks)))
-         (prev-depth3 (overlay-get prev-line-chunk3 'mumamo-depth))
+         (prev-depth3 (if prev-line-chunk3
+                          (overlay-get prev-line-chunk3 'mumamo-depth)
+                        0))
 
          (this-line-chunks (mumamo-indent-current-line-chunks (nth 3 prev-line-chunks)))
          (this-line-chunk0 (nth 0 this-line-chunks))
@@ -7139,7 +7153,8 @@ The following rules are used when indenting:
                         (if (> this-depth3 0) 'yes 'no)
                         ))
                 ))
-            (eq 'yes entering-submode-arg))) ;; fix-me
+            ;;(eq 'yes entering-submode-arg)
+            )) ;; fix-me
 
          (leaving-submode (> prev-depth3 this-depth3))
          want-indent ;; The indentation we desire
