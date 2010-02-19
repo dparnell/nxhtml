@@ -462,6 +462,9 @@
                   (browse-url "http://hyperstruct.net/projects/mozlab"))))
         )
 
+      (define-key tools-map [nxhtml-investigate-elisp]
+        (list 'menu-item "Investigate Elisp File" 'web-vcs-investigate-elisp-file))
+
       (define-key tools-map [nxhtml-tidy-separator]
         (list 'menu-item "--" nil))
       (define-key tools-map [nxhtml-flymake]

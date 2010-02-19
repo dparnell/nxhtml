@@ -44,6 +44,8 @@
 
 ;;(eval-when-compile (require 'cl))
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'rng-valid))
+(eval-when-compile (require 'rngalt))
 (require 'mumamo)
 (require 'mumamo-fun)
 (require 'nxhtml)
@@ -87,6 +89,22 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define tests using ert.el
 
+(ert-deftest nxhtml-ert-indent-bug-johan-2010-02-17()
+  "Test of eRuby indentation.
+Got a bug report by mail on the emacs-on-rails list."
+  (ert-with-temp-buffer-include-file "bug-johan-2010-02-17.erb"
+    (add-hook 'ert-simulate-command-post-hook
+              'nxhtmltest-should-no-mumamo-errors
+              nil t)
+    (ert-simulate-command '(eruby-html-mumamo-mode) t)
+    (nxhtmltest-fontify-default-way 2 "trans")
+    (ert-simulate-command '(mark-whole-buffer) t)
+    (ert-simulate-command '(indent-for-tab-command) t)
+    (nxhtmltest-goto-line 1)  (ert-should (= 0 (current-indentation)))
+    (nxhtmltest-goto-line 2)  (ert-should (= 2 (current-indentation)))
+    (nxhtmltest-goto-line 3)  (ert-should (= 0 (current-indentation)))
+    ))
+
 (ert-deftest nxhtml-ert-indent-bug-johan-2010-02-12()
   "Test of eRuby indentation.
 Got a bug report by mail on the emacs-on-rails list."
@@ -98,8 +116,8 @@ Got a bug report by mail on the emacs-on-rails list."
     (nxhtmltest-fontify-default-way 2 "trans")
     (ert-simulate-command '(mark-whole-buffer) t)
     (ert-simulate-command '(indent-for-tab-command) t)
-    (goto-line 12)  (ert-should (= 2 (current-indentation))))
-    )
+    (nxhtmltest-goto-line 12)  (ert-should (= 2 (current-indentation)))
+    ))
 
 ;;(setq nxhtmltest-ert-default-selector "nxhtml-ert-indent-rr-min8")
 (ert-deftest nxhtml-ert-indent-rr-min8 ()
@@ -206,7 +224,7 @@ Note: This fails in Emacs 22, but should work in Emacs 23."
               nil t)
     (ert-simulate-command '(nxhtml-mumamo-mode) t)
     (font-lock-mode 1)
-    (goto-line 25)  (ert-should (/= 14 (current-indentation)))
+    (nxhtmltest-goto-line 25)  (ert-should (/= 14 (current-indentation)))
     (put 'mumamo-submode-indent-offset-0 'permanent-local t)
     (put 'mumamo-submode-indent-offset 'permanent-local t)
     ;;
@@ -216,13 +234,13 @@ Note: This fails in Emacs 22, but should work in Emacs 23."
     ;;(set (make-local-variable 'mumamo-submode-indent-offset) 2)
     (ert-simulate-command '(mark-whole-buffer) t)
     (ert-simulate-command '(indent-for-tab-command) t)
-    (goto-line 8)   (ert-should (= 8 (current-indentation)))
-    (goto-line 9)   (ert-should (= 0 (current-indentation)))
-    (goto-line 15)  (ert-should (= 8 (current-indentation)))
-    (goto-line 16)  (ert-should (= 8 (current-indentation)))
-    (goto-line 22)  (ert-should (= 6 (current-indentation)))
-    (goto-line 25)  (ert-should (= 4 (current-indentation)))
-    (goto-line 8) (indent-line-to 0)
+    (nxhtmltest-goto-line 8)   (ert-should (= 8 (current-indentation)))
+    (nxhtmltest-goto-line 9)   (ert-should (= 0 (current-indentation)))
+    (nxhtmltest-goto-line 15)  (ert-should (= 8 (current-indentation)))
+    (nxhtmltest-goto-line 16)  (ert-should (= 8 (current-indentation)))
+    (nxhtmltest-goto-line 22)  (ert-should (= 6 (current-indentation)))
+    (nxhtmltest-goto-line 25)  (ert-should (= 4 (current-indentation)))
+    (nxhtmltest-goto-line 8) (indent-line-to 0)
     ;;(message "before indent-for-tab-command")
     (ert-simulate-command '(indent-for-tab-command) t)
     ;;(message "after indent-for-tab-command")
@@ -232,12 +250,12 @@ Note: This fails in Emacs 22, but should work in Emacs 23."
     (set (make-local-variable 'mumamo-submode-indent-offset) 2)
     (ert-simulate-command '(mark-whole-buffer) t)
     (ert-simulate-command '(indent-for-tab-command) t)
-    (goto-line 8)   (ert-should (= 8 (current-indentation)))
-    (goto-line 9)   (ert-should (= 10 (current-indentation)))
-    (goto-line 15)  (ert-should (= 8 (current-indentation)))
-    (goto-line 16)  (ert-should (= 8 (current-indentation)))
-    (goto-line 22)  (ert-should (= 16 (current-indentation)))
-    (goto-line 25)  (ert-should (= 14 (current-indentation)))
+    (nxhtmltest-goto-line 8)   (ert-should (= 8 (current-indentation)))
+    (nxhtmltest-goto-line 9)   (ert-should (= 10 (current-indentation)))
+    (nxhtmltest-goto-line 15)  (ert-should (= 8 (current-indentation)))
+    (nxhtmltest-goto-line 16)  (ert-should (= 8 (current-indentation)))
+    (nxhtmltest-goto-line 22)  (ert-should (= 16 (current-indentation)))
+    (nxhtmltest-goto-line 25)  (ert-should (= 14 (current-indentation)))
     ))
 
 (ert-deftest nxhtml-ert-only-php-no-end ()
@@ -399,7 +417,7 @@ and the file is invalid then."
       (nxhtmltest-fontify-default-way 2 "ind")
       (mark-whole-buffer)
       (indent-for-tab-command)
-      (goto-line 3)
+      (nxhtmltest-goto-line 3)
       (nxhtmltest-should-no-mumamo-errors)
       (ert-should (= (current-indentation) 0)))))
 
@@ -421,7 +439,7 @@ here."
       (insert "  ")
       (mark-whole-buffer)
       (indent-for-tab-command)
-      (goto-line 3)
+      (nxhtmltest-goto-line 3)
       ;; Test
       (nxhtmltest-should-no-mumamo-errors)
       (ert-should-not (= (current-indentation) 2)))))
@@ -498,7 +516,7 @@ The indentation on line 7 should be 0."
   (ert-with-temp-buffer-include-file "only-php.php"
     (nxhtml-mumamo-mode)
     ;; No fontification needed for indentation.
-    (goto-line 7)
+    (nxhtmltest-goto-line 7)
     (indent-for-tab-command)
     (nxhtmltest-should-no-mumamo-errors)
     (ert-should
