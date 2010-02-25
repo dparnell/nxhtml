@@ -1015,8 +1015,22 @@
       (define-key edit-map [nxhtml-re-builder]
         (list 'menu-item "Re-Builder" 're-builder))
       (define-key edit-map [nxhtml-edit-sep4] (list 'menu-item "--"))
-      (define-key edit-map [nxhtml-copy+paste]
-        (list 'menu-item "Start copy+paste" 'ourcomments-copy+paste-set-point))
+      (let ((copy+paste-map (make-sparse-keymap "copy+paste")))
+        (define-key edit-map [nxhtml-copy+paste-map]
+          (list 'menu-item "Copy+Paste" copy+paste-map))
+        (define-key copy+paste-map [nxhtml-copy+paste-do]
+          (list 'menu-item "Do Copy+Paste" 'ourcomments-copy+paste
+                :enable '(and (boundp 'ourcomments-copy+paste-mode)
+                              ourcomments-copy+paste-mode)))
+        (define-key copy+paste-map [nxhtml-copy+paste-set]
+          (list 'menu-item "Start Copy+Paste" 'ourcomments-copy+paste-set-point
+                :button '(:toggle . (and (boundp 'ourcomments-copy+paste-mode)
+                                         ourcomments-copy+paste-mode))))
+        )
+      (define-key edit-map [nxhtml-anchored-transpose]
+        (list 'menu-item "Transpose Regions" 'anchored-transpose
+              :button '(:toggle . (and mouse-secondary-overlay
+                                       (overlay-buffer mouse-secondary-overlay)))))
       )
 
     (define-key map [nxhtml-help-tools-separator]
