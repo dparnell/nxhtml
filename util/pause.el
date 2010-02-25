@@ -443,7 +443,7 @@ Please note that it is run in a timer.")
     (when (> elapsed 1.0)
       (setq pause-break-exit-active t)
       (remove-hook 'window-configuration-change-hook 'pause-break-exit)
-      (pause-tell-again-cancel-timer)
+      ;;(pause-tell-again-cancel-timer)
       (when (/= 0 (recursion-depth))
         (exit-recursive-edit)))))
 
@@ -651,6 +651,7 @@ Note: Another easier alternative might be to use
   (set-frame-parameter nil 'background-color pause-background-color))
 
 ;; (pause-start-in-new-emacs 0.3)
+;; (pause-start-in-new-emacs 15)
 ;;;###autoload
 (defun pause-start-in-new-emacs (after-minutes)
   "Start pause with interval AFTER-MINUTES in a new Emacs instance.

@@ -6965,7 +6965,7 @@ This list consists of four chunks at these positions:
 (put 'mumamo-template-indent-hange-min 'permanent-local t)
 
 (defun mumamo-template-indent-after-change (beg end len)
-  (setq mumamo-template-indent-change-min 
+  (setq mumamo-template-indent-change-min
         (if mumamo-template-indent-change-min
             (min mumamo-template-indent-change-min beg)
           beg)))
@@ -7135,6 +7135,7 @@ The following rules are used when indenting:
          (old-indent (current-indentation))
          (next-entering-submode (if (< prev-depth3 this-depth3) 'yes 'no))
          (entering-submode
+          ;; Fix-me
           (progn
             (unless entering-submode-arg
               (let* ((prev-prev-line-chunks
@@ -7149,13 +7150,17 @@ The following rules are used when indenting:
                                          (overlay-get prev-prev-line-chunk3 'mumamo-depth))))
                 (setq entering-submode-arg
                       (if prev-prev-depth3
-                          (if (< prev-prev-depth3 prev-depth3) 'yes 'no)
+                          (if (and (eq prev-prev-line-chunk3
+                                       (overlay-get prev-line-chunk3 'mumamo-prev-chunk))
+                                   (< prev-prev-depth3 prev-depth3))
+                              'yes
+                            'no)
                         (if (> this-depth3 0) 'yes 'no)
                         ))
                 ))
-            ;;(eq 'yes entering-submode-arg)
+            (eq 'yes entering-submode-arg)
             )) ;; fix-me
-
+         ;; Fix-me
          (leaving-submode (> prev-depth3 this-depth3))
          want-indent ;; The indentation we desire
          got-indent
