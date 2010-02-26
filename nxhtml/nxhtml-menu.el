@@ -310,9 +310,7 @@
       (define-key tools-map [nxhtml-last-resort]
         (list 'menu-item "Last Resort" 'n-back-game))
       (define-key tools-map [nxhtml-pause]
-        (list 'menu-item "Life Reminder" 'pause-mode
-              :button '(:toggle . (and (boundp 'pause-mode)
-                                       pause-mode))))
+        (list 'menu-item "Life Reminder" 'pause-start-in-new-emacs))
       (define-key tools-map [nxhtml-last-resort-separator]
         (list 'menu-item "--" nil))
       (define-key tools-map [nxhtml-viper-tut]

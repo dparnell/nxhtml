@@ -668,6 +668,7 @@ something like
 See `pause-start' for more info.
 
 "
+  (interactive (list pause-after-minutes))
   (let* ((this-emacs (locate-file invocation-name
                                   (list invocation-directory)
                                   exec-suffixes))
