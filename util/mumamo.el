@@ -2187,6 +2187,12 @@ mode."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Font lock functions
 
+(defadvice hi-lock-set-pattern (around use-overlays activate)
+  (if mumamo-multi-major-mode
+      (let ((font-lock-fontified nil))
+        ad-do-it)
+    ad-do-it))
+
 ;;;###autoload
 (defun mumamo-mark-for-refontification (min max)
   "Mark region between MIN and MAX for refontification."
@@ -3443,7 +3449,10 @@ far to search (when searching backwards the argument is called
 'min' instead).  MARKER is a string or regular expression (see
 the name) to search for."
   (assert (stringp marker))
-  (goto-char (- pos (length marker)))
+  (let ((pm (point-min))
+        (cb (current-buffer)))
+    (message "cb=%s" cb)
+    (goto-char (max pm (- pos (length marker)))))
   (search-forward marker max t))
 
 (defun mumamo-chunk-start-fw-re (pos max marker)
@@ -4507,6 +4516,7 @@ information.
           (while (and possible-end-fun-end
                       (not curr-end-fun-end)
                       (< use-min use-max))
+            (msgtrc "find-next-chunk-values: curr-end-fun=%s use-min/max=%s/%s" curr-end-fun use-min use-max)
             (setq curr-end-fun-end (funcall curr-end-fun use-min use-max))
             (if (not curr-end-fun-end)
                 (setq possible-end-fun-end nil)
@@ -4798,7 +4808,7 @@ the sexp syntax using major mode MAJOR."
            ;; defadvice of this to make that possible.
            ;;(msgtrc "end-in-code:here b  after-chunk=%s" (when (boundp 'after-chunk) after-chunk))
            (setq ppss (parse-partial-sexp ,syntax-start (+ ,syntax-end 0)))
-           ;;(msgtrc "end-in-code %s %s %s:ppss=%S" ,syntax-start ,syntax-end ',major ppss)
+           (msgtrc "end-in-code %s %s %s:ppss=%S" ,syntax-start ,syntax-end ',major ppss)
            ;;(msgtrc "end-in-code:here c  after-chunk=%s" (when (boundp 'after-chunk) after-chunk))
            ;; If inside a string or comment then the end marker is
            ;; invalid:
@@ -4811,6 +4821,7 @@ the sexp syntax using major mode MAJOR."
                  (if (nth 4 ppss) ;; in comment, check if single line comment
                      (let ((here (point))
                            eol-pos)
+                       (msgtrc "end-in-code, was in comment")
                        (goto-char ,syntax-start)
                        (setq eol-pos (line-end-position))
                        (goto-char here)
@@ -4901,10 +4912,19 @@ function you define.
 
 BEGIN-MARK should be a string that begins the chunk.
 END-MARK should be a string that ends the chunk.
-If INC is non-nil then the dividers are included in the chunks.
+
+If INC is non-nil then the dividers are included in the chunk.
+Otherwise they are instead made parts of the surrounding chunks.
+
 MODE should be the major mode for the chunk.
 
-If MARK-IS-BORDER is non-nil then the marks are made borders."
+If MARK-IS-BORDER is non-nil then the marks are just borders and
+not supposed to have the same syntax as the inner part of the
+
+Fix-me: This can only be useful if the marks are included in the
+chunk, ie INC is non-nil.  Should not these two arguments be
+mixed then?
+"
   (mumamo-msgfntfy "quick.pos=%s min,max=%s,%s begin-mark/end=%s/%s mark-is-border=%s" pos min max begin-mark end-mark mark-is-border)
   (let ((search-bw-exc-start
          `(lambda (pos min)
