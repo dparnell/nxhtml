@@ -7,7 +7,7 @@
 
 ;;;### (autoloads (cancel-secondary-selection set-secondary-selection
 ;;;;;;  anchored-transpose) "anchored-transpose" "util/anchored-transpose.el"
-;;;;;;  (19213 56956))
+;;;;;;  (19333 52531))
 ;;; Generated autoloads from util/anchored-transpose.el
 (web-autoload-require 'anchored-transpose 'lp '(nxhtml-download-root-url nil) "util/anchored-transpose" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -55,7 +55,6 @@ prior selection, ie secondary selection.
 
 (nxhtml-autoload 'set-secondary-selection `(lp '(nxhtml-download-root-url nil) "util/anchored-transpose" nxhtml-install-dir) "\
 Set the secondary selection to the current region.
-mouse-set-secondary
 This must be bound to a mouse drag event.
 
 \(fn BEG END)" t nil)
@@ -963,7 +962,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19322 31679))
+;;;;;;  (19337 51497))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1096,9 +1095,10 @@ Return t if VALUE is a multi major mode function.
 
 ;;;***
 
-;;;### (autoloads (latex-clojure-mumamo-mode xsl-sgml-mumamo-mode
-;;;;;;  xsl-nxml-mumamo-mode mako-html-mumamo-mode org-mumamo-mode
-;;;;;;  asp-html-mumamo-mode noweb2-mumamo-mode mumamo-noweb2 csound-sgml-mumamo-mode
+;;;### (autoloads (python-rst-mumamo-mode latex-haskell-mumamo-mode
+;;;;;;  latex-clojure-mumamo-mode xsl-sgml-mumamo-mode xsl-nxml-mumamo-mode
+;;;;;;  mako-html-mumamo-mode org-mumamo-mode asp-html-mumamo-mode
+;;;;;;  noweb2-mumamo-mode mumamo-noweb2 csound-sgml-mumamo-mode
 ;;;;;;  laszlo-nxml-mumamo-mode metapost-mumamo-mode ruby-heredoc-mumamo-mode
 ;;;;;;  python-heredoc-mumamo-mode cperl-heredoc-mumamo-mode perl-heredoc-mumamo-mode
 ;;;;;;  php-heredoc-mumamo-mode sh-heredoc-mumamo-mode eruby-html-mumamo-mode
@@ -1107,7 +1107,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode
 ;;;;;;  mumamo-define-html-file-wide-keys) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19324 3577))
+;;;;;;  (19337 43605))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1235,10 +1235,21 @@ This covers inlined style and javascript." t)
 (nxhtml-autoload 'latex-clojure-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multi major mode latex+clojure.
 Main major mode will be `latex-mode'.
-Subchunks will be in `closure-mode'.
+Subchunks will be in `clojure-mode'.
 
 You will need `clojure-mode' which you can download from URL
 `http://github.com/jochu/clojure-mode/tree'." t)
+
+(nxhtml-autoload 'latex-haskell-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
+Turn on multi major mode latex+haskell.
+Main major mode will be `latex-mode'.
+Subchunks will be in `haskell-mode'.
+
+You will need `haskell-mode' which you can download from URL
+`http://projects.haskell.org/haskellmode-emacs/'." t)
+
+(nxhtml-autoload 'python-rst-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
+Turn on multiple major modes for Python with RestructuredText docstrings." t)
 
 ;;;***
 
@@ -1324,7 +1335,7 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (19321 64829))
+;;;;;;  "tests/nxhtmltest-suites.el" (19325 55060))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 (web-autoload-require 'nxhtmltest-suites 'lp '(nxhtml-download-root-url nil) "tests/nxhtmltest-suites" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1813,7 +1824,7 @@ Return t if VALUE is a major mode function.
 ;;;***
 
 ;;;### (autoloads (pause-start-in-new-emacs pause-mode pause) "pause"
-;;;;;;  "util/pause.el" (19321 41635))
+;;;;;;  "util/pause.el" (19335 58765))
 ;;; Generated autoloads from util/pause.el
 (web-autoload-require 'pause 'lp '(nxhtml-download-root-url nil) "util/pause" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1859,7 +1870,7 @@ something like
 
 See `pause-start' for more info.
 
-\(fn AFTER-MINUTES)" nil nil)
+\(fn AFTER-MINUTES)" t nil)
 
 ;;;***
 
@@ -3794,7 +3805,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19323 58322))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19335 58524))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4100,80 +4111,6 @@ See `nxhtmlmaint-start-byte-compilation' for byte compiling.
 
 ;;;***
 
-;;;### (autoloads (zencoding-preview zencoding-expand-yas zencoding-mode
-;;;;;;  zencoding-expand-line zencoding) "zencoding-mode" "util/zencoding-mode.el"
-;;;;;;  (19275 63380))
-;;; Generated autoloads from util/zencoding-mode.el
-(web-autoload-require 'zencoding-mode 'lp '(nxhtml-download-root-url nil) "util/zencoding-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
-
-
-(let ((loads (get 'zencoding 'custom-loads))) (if (member '"zencoding-mode" loads) nil (put 'zencoding 'custom-loads (cons '"zencoding-mode" loads))))
-
-(nxhtml-autoload 'zencoding-expand-line `(lp '(nxhtml-download-root-url nil) "util/zencoding-mode" nxhtml-install-dir) "\
-Replace the current line's zencode expression with the corresponding expansion.
-If prefix ARG is given or region is visible call `zencoding-preview' to start an
-interactive preview.
-
-Otherwise expand line directly.
-
-For more information see `zencoding-mode'.
-
-\(fn ARG)" t nil)
-
-(nxhtml-autoload 'zencoding-mode `(lp '(nxhtml-download-root-url nil) "util/zencoding-mode" nxhtml-install-dir) "\
-Minor mode for writing HTML and CSS markup.
-With zen coding for HTML and CSS you can write a line like
-
-  ul#name>li.item*2
-
-and have it expanded to
-
-  <ul id=\"name\">
-    <li class=\"item\"></li>
-    <li class=\"item\"></li>
-  </ul>
-
-This minor mode defines keys for quick access:
-
-\\{zencoding-mode-keymap}
-
-Home page URL `http://www.emacswiki.org/emacs/ZenCoding'.
-
-See also `zencoding-expand-line'.
-
-\(fn &optional ARG)" t nil)
-
-(nxhtml-autoload 'zencoding-expand-yas `(lp '(nxhtml-download-root-url nil) "util/zencoding-mode" nxhtml-install-dir) "\
-Not documented
-
-\(fn)" t nil)
-
-(nxhtml-autoload 'zencoding-preview `(lp '(nxhtml-download-root-url nil) "util/zencoding-mode" nxhtml-install-dir) "\
-Expand zencode between BEG and END interactively.
-This will show a preview of the expanded zen code and you can
-accept it or skip it.
-
-\(fn BEG END)" t nil)
-
-;;;***
-
-;;;### (autoloads nil nil ("autostart.el" "autostart22.el" "etc/schema/schema-path-patch.el"
-;;;;;;  "nxhtml-base.el" "nxhtml/html-imenu.el" "nxhtml/html-move.el"
-;;;;;;  "nxhtml/html-quote.el" "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el"
-;;;;;;  "nxhtml/nxhtmljs.el" "nxhtml/outline-magic.el" "nxhtml/wtest.el"
-;;;;;;  "related/flymake-helpers.el" "related/flymakemsg.el" "related/flymu.el"
-;;;;;;  "related/php-imenu.el" "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
-;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
-;;;;;;  "util/appmenu-fold.el" "util/css-simple-completion.el" "util/custsets.el"
-;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/key-cat.el"
-;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
-;;;;;;  "util/nxml-mode-os-additions.el" "util/org-panel.el" "util/rxi.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19324 3595
-;;;;;;  484000))
-
-;;;***
-
 ;;;### (autoloads (nxhtml-byte-recompile-file nxhtml-byte-compile-file
 ;;;;;;  nxhtml-get-missing-files nxhtml-update-existing-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install) "nxhtml-web-vcs"
@@ -4288,5 +4225,233 @@ For more information see `nxhtml-byte-compile-file'.
 Loading is done if recompiled and LOAD is t.
 
 \(fn FILE &optional LOAD)" t nil)
+
+;;;***
+
+;;;### (autoloads (zencoding-preview zencoding-expand-yas zencoding-mode
+;;;;;;  zencoding-expand-line zencoding) "zencoding-mode" "util/zencoding-mode.el"
+;;;;;;  (19275 63380))
+;;; Generated autoloads from util/zencoding-mode.el
+(web-autoload-require 'zencoding-mode 'lp '(nxhtml-download-root-url nil) "util/zencoding-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(let ((loads (get 'zencoding 'custom-loads))) (if (member '"zencoding-mode" loads) nil (put 'zencoding 'custom-loads (cons '"zencoding-mode" loads))))
+
+(nxhtml-autoload 'zencoding-expand-line `(lp '(nxhtml-download-root-url nil) "util/zencoding-mode" nxhtml-install-dir) "\
+Replace the current line's zencode expression with the corresponding expansion.
+If prefix ARG is given or region is visible call `zencoding-preview' to start an
+interactive preview.
+
+Otherwise expand line directly.
+
+For more information see `zencoding-mode'.
+
+\(fn ARG)" t nil)
+
+(nxhtml-autoload 'zencoding-mode `(lp '(nxhtml-download-root-url nil) "util/zencoding-mode" nxhtml-install-dir) "\
+Minor mode for writing HTML and CSS markup.
+With zen coding for HTML and CSS you can write a line like
+
+  ul#name>li.item*2
+
+and have it expanded to
+
+  <ul id=\"name\">
+    <li class=\"item\"></li>
+    <li class=\"item\"></li>
+  </ul>
+
+This minor mode defines keys for quick access:
+
+\\{zencoding-mode-keymap}
+
+Home page URL `http://www.emacswiki.org/emacs/ZenCoding'.
+
+See also `zencoding-expand-line'.
+
+\(fn &optional ARG)" t nil)
+
+(nxhtml-autoload 'zencoding-expand-yas `(lp '(nxhtml-download-root-url nil) "util/zencoding-mode" nxhtml-install-dir) "\
+Not documented
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'zencoding-preview `(lp '(nxhtml-download-root-url nil) "util/zencoding-mode" nxhtml-install-dir) "\
+Expand zencode between BEG and END interactively.
+This will show a preview of the expanded zen code and you can
+accept it or skip it.
+
+\(fn BEG END)" t nil)
+
+;;;***
+
+;;;### (autoloads nil nil ("autostart.el" "autostart22.el" "etc/schema/schema-path-patch.el"
+;;;;;;  "nxhtml-base.el" "nxhtml/html-imenu.el" "nxhtml/html-move.el"
+;;;;;;  "nxhtml/html-quote.el" "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el"
+;;;;;;  "nxhtml/nxhtmljs.el" "nxhtml/outline-magic.el" "nxhtml/wtest.el"
+;;;;;;  "related/flymake-helpers.el" "related/flymakemsg.el" "related/flymu.el"
+;;;;;;  "related/php-imenu.el" "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
+;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
+;;;;;;  "util/appmenu-fold.el" "util/css-simple-completion.el" "util/custsets.el"
+;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/key-cat.el"
+;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
+;;;;;;  "util/nxml-mode-os-additions.el" "util/org-panel.el" "util/rxi.el"
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19337 52213
+;;;;;;  562000))
+
+;;;***
+
+;;;### (autoloads (latex-haskell-mumamo-mode latex-clojure-mumamo-mode
+;;;;;;  xsl-sgml-mumamo-mode xsl-nxml-mumamo-mode mako-html-mumamo-mode
+;;;;;;  org-mumamo-mode asp-html-mumamo-mode noweb2-mumamo-mode mumamo-noweb2
+;;;;;;  csound-sgml-mumamo-mode laszlo-nxml-mumamo-mode metapost-mumamo-mode
+;;;;;;  ruby-heredoc-mumamo-mode python-heredoc-mumamo-mode cperl-heredoc-mumamo-mode
+;;;;;;  perl-heredoc-mumamo-mode php-heredoc-mumamo-mode sh-heredoc-mumamo-mode
+;;;;;;  eruby-html-mumamo-mode eruby-mumamo-mode jsp-html-mumamo-mode
+;;;;;;  gsp-html-mumamo-mode ssjs-html-mumamo-mode smarty-html-mumamo-mode
+;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
+;;;;;;  embperl-html-mumamo-mode mason-html-mumamo-mode nxml-mumamo-mode
+;;;;;;  html-mumamo-mode mumamo-define-html-file-wide-keys) "mumamo-fun-p"
+;;;;;;  "mumamo-fun-p.el" (19324 14708))
+;;; Generated autoloads from mumamo-fun-p.el
+(web-autoload-require 'mumamo-fun-p 'lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'mumamo-define-html-file-wide-keys `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Define keys in multi major mode keymap for html files.
+
+\(fn)" nil nil)
+
+(nxhtml-autoload 'html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for (X)HTML with main mode `html-mode'.
+This covers inlined style and javascript and PHP." t)
+
+(nxhtml-autoload 'nxml-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for (X)HTML with main mode `nxml-mode'.
+This covers inlined style and javascript and PHP.
+
+See also `mumamo-alt-php-tags-mode'." t)
+
+(nxhtml-autoload 'mason-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for Mason using main mode `html-mode'.
+This covers inlined style and javascript." t)
+
+(nxhtml-autoload 'embperl-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for Embperl files with main mode `html-mode'.
+This also covers inlined style and javascript." t)
+
+(nxhtml-autoload 'django-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for Django with main mode `html-mode'.
+This also covers inlined style and javascript." t)
+
+(nxhtml-autoload 'genshi-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for Genshi with main mode `html-mode'.
+This also covers inlined style and javascript.
+" t)
+
+(nxhtml-autoload 'mjt-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for MJT with main mode `html-mode'.
+This also covers inlined style and javascript." t)
+
+(nxhtml-autoload 'smarty-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for Smarty with main mode `html-mode'.
+This also covers inlined style and javascript." t)
+
+(nxhtml-autoload 'ssjs-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for SSJS with main mode `html-mode'.
+This covers inlined style and javascript." t)
+
+(nxhtml-autoload 'gsp-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for GSP with main mode `html-mode'.
+This also covers inlined style and javascript." t)
+
+(nxhtml-autoload 'jsp-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for JSP with main mode `html-mode'.
+This also covers inlined style and javascript." t)
+
+(nxhtml-autoload 'eruby-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major mode for eRuby with unspecified main mode.
+Current major-mode will be used as the main major mode." t)
+
+(nxhtml-autoload 'eruby-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for eRuby with main mode `html-mode'.
+This also covers inlined style and javascript." t)
+
+(nxhtml-autoload 'sh-heredoc-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for sh heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
+
+(nxhtml-autoload 'php-heredoc-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for PHP heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
+
+(nxhtml-autoload 'perl-heredoc-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for Perl heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
+
+(nxhtml-autoload 'cperl-heredoc-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for Perl heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
+
+(nxhtml-autoload 'python-heredoc-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for Perl heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
+
+(nxhtml-autoload 'ruby-heredoc-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for Ruby heredoc document.
+See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
+
+(nxhtml-autoload 'metapost-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for MetaPost." t)
+
+(nxhtml-autoload 'laszlo-nxml-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for OpenLaszlo." t)
+
+(nxhtml-autoload 'csound-sgml-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on mutiple major modes for CSound orc/sco Modes." t)
+
+(let ((loads (get 'mumamo-noweb2 'custom-loads))) (if (member '"mumamo-fun-p" loads) nil (put 'mumamo-noweb2 'custom-loads (cons '"mumamo-fun-p" loads))))
+
+(nxhtml-autoload 'noweb2-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Multi major mode for noweb files." t)
+
+(nxhtml-autoload 'asp-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for ASP with main mode `html-mode'.
+This also covers inlined style and javascript." t)
+
+(nxhtml-autoload 'org-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for `org-mode' files with main mode `org-mode'.
+** Note about HTML subchunks:
+Unfortunately this only allows `html-mode' (not `nxhtml-mode') in
+sub chunks." t)
+
+(nxhtml-autoload 'mako-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multiple major modes for Mako with main mode `html-mode'.
+This also covers inlined style and javascript." t)
+
+(nxhtml-autoload 'xsl-nxml-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multi major mode for XSL with main mode `nxml-mode'.
+This covers inlined style and javascript." t)
+
+(nxhtml-autoload 'xsl-sgml-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multi major mode for XSL with main mode `sgml-mode'.
+This covers inlined style and javascript." t)
+
+(nxhtml-autoload 'latex-clojure-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multi major mode latex+clojure.
+Main major mode will be `latex-mode'.
+Subchunks will be in `closure-mode'.
+
+You will need `clojure-mode' which you can download from URL
+`http://github.com/jochu/clojure-mode/tree'." t)
+
+(nxhtml-autoload 'latex-haskell-mumamo-mode `(lp '(nxhtml-download-root-url nil) "mumamo-fun-p" nxhtml-install-dir) "\
+Turn on multi major mode latex+haskell.
+Main major mode will be `latex-mode'.
+Subchunks will be in `haskell-mode'.
+
+You will need `haskell-mode' which you can download from URL
+`http://projects.haskell.org/haskellmode-emacs/'." t)
 
 ;;;***

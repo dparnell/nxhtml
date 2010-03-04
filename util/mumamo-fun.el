@@ -294,6 +294,26 @@ Actual use is in `mumamo-search-bw-exc-start-xml-pi'."
 POS is where to start search and MIN is where to stop."
   (mumamo-search-bw-exc-start-xml-pi-1 pos min "<?"))
 
+(defun mumamo-search-fw-exc-start-xml-pi-new (pos min)
+  (let ((here (point))
+        start
+        spec
+        ret)
+    (setq start (search-forward "<?" max t))
+    (when (and start
+               (looking-at (rx (0+ (any "a-z")))))
+      (setq spec (match-string-no-properties 0))
+      (unless (string= spec "xml")
+        (when (= 0 (length spec))
+          (setq spec "php"))
+        (setq exc-mode (assoc spec mumamo-xml-pi-mode-alist))
+        (if exc-mode
+            (setq exc-mode (cdr exc-mode))
+          (setq exc-mode 'mumamo-bad-mode))
+        (setq ret (list (- start 2) (point) exc-mode nil))))
+    (goto-char here)
+    ret))
+
 (defun mumamo-xml-pi-end-is-xml-end (pos)
   "Return t if the ?> at pos is end of <?xml."
   (when (> 1000 pos)
@@ -444,29 +464,67 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
       ;;(optional (0+ space) "<![CDATA[")
       ))
 
-(defun mumamo-search-bw-exc-start-inlined-style (pos min)
-  "Helper for `mumamo-chunk-inlined-style'.
-POS is where to start search and MIN is where to stop."
-  (goto-char (+ pos 6))
-  (let ((marker-start (search-backward "<style" min t))
-        exc-mode
-        exc-start)
-    (when marker-start
-      (when (looking-at mumamo-style-tag-start-regex)
-        (setq exc-start (match-end 0))
-        (goto-char exc-start)
-        (when (<= exc-start pos)
-          ;;(cons (point) 'css-mode)
-          ;;(list (point) 'css-mode '(nxml-mode))
-          ;; Fix-me: Kubica looping problem
-          (list (point) 'css-mode)
-          )
-        ))))
+;; (defun mumamo-search-bw-exc-start-inlined-style (pos min)
+;;   "Helper for `mumamo-chunk-inlined-style'.
+;; POS is where to start search and MIN is where to stop."
+;;   (goto-char (+ pos 6))
+;;   (let ((marker-start (search-backward "<style" min t))
+;;         exc-mode
+;;         exc-start)
+;;     (when marker-start
+;;       (when (looking-at mumamo-style-tag-start-regex)
+;;         (setq exc-start (match-end 0))
+;;         (goto-char exc-start)
+;;         (when (<= exc-start pos)
+;;           ;;(cons (point) 'css-mode)
+;;           ;;(list (point) 'css-mode '(nxml-mode))
+;;           ;; Fix-me: Kubica looping problem
+;;           (list (point) 'css-mode)
+;;           )
+;;         ))))
 
-(defun mumamo-search-bw-exc-end-inlined-style (pos min)
+;; (defun mumamo-search-bw-exc-end-inlined-style (pos min)
+;;   "Helper for `mumamo-chunk-inlined-style'.
+;; POS is where to start search and MIN is where to stop."
+;;   (mumamo-chunk-end-bw-str pos min "</style>"))
+
+;; (defun mumamo-search-fw-exc-start-inlined-style-old (pos max)
+;;   "Helper for `mumamo-chunk-inlined-style'.
+;; POS is where to start search and MAX is where to stop."
+;;   (goto-char (1+ pos))
+;;   (skip-chars-backward "^<")
+;;   ;; Handle <![CDATA[
+;;   (when (and
+;;          (eq ?< (char-before))
+;;          (eq ?! (char-after))
+;;          (not (bobp)))
+;;     (backward-char)
+;;     (skip-chars-backward "^<"))
+;;   (unless (bobp)
+;;     (backward-char 1))
+;;   (let ((exc-start (search-forward "<style" max t))
+;;         exc-mode)
+;;     (when exc-start
+;;       (goto-char (- exc-start 6))
+;;       (when (looking-at mumamo-style-tag-start-regex)
+;;         (goto-char (match-end 0))
+;;         (point)
+;;         ))))
+
+(defun mumamo-search-fw-exc-end-inlined-style (pos max)
   "Helper for `mumamo-chunk-inlined-style'.
-POS is where to start search and MIN is where to stop."
-  (mumamo-chunk-end-bw-str pos min "</style>"))
+POS is where to start search and MAX is where to stop."
+  (save-match-data
+    (mumamo-chunk-end-fw-str pos max "</style>")))
+
+;; (defun mumamo-chunk-inlined-style-old (pos min max)
+;;   "Find <style>...</style>.  Return range and 'css-mode.
+;; See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+;;   (mumamo-find-possible-chunk pos min max
+;;                               'mumamo-search-bw-exc-start-inlined-style
+;;                               'mumamo-search-bw-exc-end-inlined-style
+;;                               'mumamo-search-fw-exc-start-inlined-style-old
+;;                               'mumamo-search-fw-exc-end-inlined-style))
 
 (defun mumamo-search-fw-exc-start-inlined-style (pos max)
   "Helper for `mumamo-chunk-inlined-style'.
@@ -488,23 +546,15 @@ POS is where to start search and MAX is where to stop."
       (goto-char (- exc-start 6))
       (when (looking-at mumamo-style-tag-start-regex)
         (goto-char (match-end 0))
-        (point)
+        (list (point) 'css-mode nil)
         ))))
-
-(defun mumamo-search-fw-exc-end-inlined-style (pos max)
-  "Helper for `mumamo-chunk-inlined-style'.
-POS is where to start search and MAX is where to stop."
-  (save-match-data
-    (mumamo-chunk-end-fw-str pos max "</style>")))
 
 (defun mumamo-chunk-inlined-style (pos min max)
   "Find <style>...</style>.  Return range and 'css-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-exc-start-inlined-style
-                              'mumamo-search-bw-exc-end-inlined-style
-                              'mumamo-search-fw-exc-start-inlined-style
-                              'mumamo-search-fw-exc-end-inlined-style))
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-exc-start-inlined-style
+                                 'mumamo-search-fw-exc-end-inlined-style))
 
 ;;;; <script ...>
 
@@ -529,27 +579,65 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
       ;;(optional (0+ space) "<![CDATA[" )
       ))
 
-(defun mumamo-search-bw-exc-start-inlined-script (pos min)
-  "Helper for `mumamo-chunk-inlined-script'.
-POS is where to start search and MIN is where to stop."
-  (goto-char (+ pos 7))
-  (let ((marker-start (when (< min (point)) (search-backward "<script" min t)))
-        exc-mode
-        exc-start)
-    (when marker-start
-      (when (looking-at mumamo-script-tag-start-regex)
-        (setq exc-start (match-end 0))
-        (goto-char exc-start)
-        (when (<= exc-start pos)
-          ;;(cons (point) 'javascript-mode)
-          (list (point) 'javascript-mode '(nxml-mode))
-          )
-        ))))
+;; (defun mumamo-search-bw-exc-start-inlined-script (pos min)
+;;   "Helper for `mumamo-chunk-inlined-script'.
+;; POS is where to start search and MIN is where to stop."
+;;   (goto-char (+ pos 7))
+;;   (let ((marker-start (when (< min (point)) (search-backward "<script" min t)))
+;;         exc-mode
+;;         exc-start)
+;;     (when marker-start
+;;       (when (looking-at mumamo-script-tag-start-regex)
+;;         (setq exc-start (match-end 0))
+;;         (goto-char exc-start)
+;;         (when (<= exc-start pos)
+;;           ;;(cons (point) 'javascript-mode)
+;;           (list (point) 'javascript-mode '(nxml-mode))
+;;           )
+;;         ))))
 
-(defun mumamo-search-bw-exc-end-inlined-script (pos min)
+;; (defun mumamo-search-bw-exc-end-inlined-script (pos min)
+;;   "Helper for `mumamo-chunk-inlined-script'.
+;; POS is where to start search and MIN is where to stop."
+;;   (mumamo-chunk-end-bw-str pos min "</script>"))
+
+;; (defun mumamo-search-fw-exc-start-inlined-script-old (pos max)
+;;   "Helper for `mumamo-chunk-inlined-script'.
+;; POS is where to start search and MAX is where to stop."
+;;   (goto-char (1+ pos))
+;;   (skip-chars-backward "^<")
+;;   ;; Handle <![CDATA[
+;;   (when (and
+;;          (eq ?< (char-before))
+;;          (eq ?! (char-after))
+;;          (not (bobp)))
+;;     (backward-char)
+;;     (skip-chars-backward "^<"))
+;;   (unless (bobp)
+;;     (backward-char 1))
+;;   (let ((exc-start (search-forward "<script" max t))
+;;         exc-mode)
+;;     (when exc-start
+;;       (goto-char (- exc-start 7))
+;;       (when (looking-at mumamo-script-tag-start-regex)
+;;         (goto-char (match-end 0))
+;;         (point)
+;;         ))))
+
+(defun mumamo-search-fw-exc-end-inlined-script (pos max)
   "Helper for `mumamo-chunk-inlined-script'.
-POS is where to start search and MIN is where to stop."
-  (mumamo-chunk-end-bw-str pos min "</script>"))
+POS is where to start search and MAX is where to stop."
+  (save-match-data
+    (mumamo-chunk-end-fw-str pos max "</script>")))
+
+;; (defun mumamo-chunk-inlined-script-old (pos min max)
+;;   "Find <script>...</script>.  Return range and 'javascript-mode.
+;; See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+;;   (mumamo-find-possible-chunk pos min max
+;;                               'mumamo-search-bw-exc-start-inlined-script
+;;                               'mumamo-search-bw-exc-end-inlined-script
+;;                               'mumamo-search-fw-exc-start-inlined-script-old
+;;                               'mumamo-search-fw-exc-end-inlined-script))
 
 (defun mumamo-search-fw-exc-start-inlined-script (pos max)
   "Helper for `mumamo-chunk-inlined-script'.
@@ -571,23 +659,15 @@ POS is where to start search and MAX is where to stop."
       (goto-char (- exc-start 7))
       (when (looking-at mumamo-script-tag-start-regex)
         (goto-char (match-end 0))
-        (point)
+        (list (point) 'javascript-mode '(nxml-mode))
         ))))
-
-(defun mumamo-search-fw-exc-end-inlined-script (pos max)
-  "Helper for `mumamo-chunk-inlined-script'.
-POS is where to start search and MAX is where to stop."
-  (save-match-data
-    (mumamo-chunk-end-fw-str pos max "</script>")))
 
 (defun mumamo-chunk-inlined-script (pos min max)
   "Find <script>...</script>.  Return range and 'javascript-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-exc-start-inlined-script
-                              'mumamo-search-bw-exc-end-inlined-script
-                              'mumamo-search-fw-exc-start-inlined-script
-                              'mumamo-search-fw-exc-end-inlined-script))
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-exc-start-inlined-script
+                                 'mumamo-search-fw-exc-end-inlined-script))
 
 ;;;; on[a-z]+=\"javascript:"
 
@@ -896,15 +976,18 @@ See also `mumamo-alt-php-tags-mode'."
 
 ;; component calls with content
 
-(defun mumamo-chunk-mason-compcont-bw-exc-start-fun (pos min)
-  (let ((exc-start (mumamo-chunk-start-bw-str-inc pos min "<&| ")))
-    (and exc-start
-         (<= exc-start pos)
-         (cons exc-start 'html-mode))))
-(defun mumamo-chunk-mason-compcont-fw-exc-start-fun (pos max)
-  (mumamo-chunk-start-fw-str-inc pos max "<&| "))
+;; (defun mumamo-chunk-mason-compcont-bw-exc-start-fun (pos min)
+;;   (let ((exc-start (mumamo-chunk-start-bw-str-inc pos min "<&| ")))
+;;     (and exc-start
+;;          (<= exc-start pos)
+;;          (cons exc-start 'html-mode))))
+
+;; (defun mumamo-chunk-mason-compcont-fw-exc-start-fun-old (pos max)
+;;   (mumamo-chunk-start-fw-str-inc pos max "<&| "))
+
 (defun mumamo-chunk-mason-compcont-fw-exc-end-fun (pos max)
   (mumamo-chunk-end-fw-str-inc pos max "</&>"))
+
 (defun mumamo-chunk-mason-compcont-find-borders-fun (start end dummy)
   (when dummy
     (list
@@ -921,13 +1004,24 @@ See also `mumamo-alt-php-tags-mode'."
      (when end (- end 4))
      dummy)))
 
+;; (defun mumamo-chunk-mason-compcont-old (pos min max)
+;;   (mumamo-find-possible-chunk-new pos
+;;                                   max
+;;                                   'mumamo-chunk-mason-compcont-bw-exc-start-fun
+;;                                   'mumamo-chunk-mason-compcont-fw-exc-start-fun-old
+;;                                   'mumamo-chunk-mason-compcont-fw-exc-end-fun
+;;                                   'mumamo-chunk-mason-compcont-find-borders-fun))
+
+(defun mumamo-chunk-mason-compcont-fw-exc-start-fun (pos max)
+  (let ((where (mumamo-chunk-start-fw-str-inc pos max "<&| ")))
+    (when where
+      (list where 'html-mode nil))))
+
 (defun mumamo-chunk-mason-compcont (pos min max)
-  (mumamo-find-possible-chunk-new pos
-                                  max
-                                  'mumamo-chunk-mason-compcont-bw-exc-start-fun
-                                  'mumamo-chunk-mason-compcont-fw-exc-start-fun
-                                  'mumamo-chunk-mason-compcont-fw-exc-end-fun
-                                  'mumamo-chunk-mason-compcont-find-borders-fun))
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-chunk-mason-compcont-fw-exc-start-fun
+                                 'mumamo-chunk-mason-compcont-fw-exc-end-fun
+                                 'mumamo-chunk-mason-compcont-find-borders-fun))
 
 ;;;###autoload
 (define-mumamo-multi-major-mode mason-html-mumamo-mode
@@ -983,25 +1077,40 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
                        10 ;line feed
                        9  ;tab
                        ))
-         (search-bw-exc-start (lambda (pos min)
-                                (let ((not-found t)
-                                      (next-char nil)
-                                      (exc-start (mumamo-chunk-start-bw-str
-                                                  pos min begin-mark))
-                                      (here (point)))
-                                  (while (and not-found
-                                              exc-start)
-                                    (setq next-char (char-after (+ (point) 2)))
-                                    (if (memq next-char good-chars)
-                                        (setq not-found nil)
-                                      (setq exc-start
-                                            (search-backward begin-mark
-                                                             min t))))
-                                  (when (and exc-start
-                                             (<= exc-start pos))
-                                    (cons exc-start 'perl-mode)))))
-         (search-bw-exc-end (lambda (pos min)
-                              (mumamo-chunk-end-bw-str pos min end-mark)))
+         ;; (search-bw-exc-start (lambda (pos min)
+         ;;                        (let ((not-found t)
+         ;;                              (next-char nil)
+         ;;                              (exc-start (mumamo-chunk-start-bw-str
+         ;;                                          pos min begin-mark))
+         ;;                              (here (point)))
+         ;;                          (while (and not-found
+         ;;                                      exc-start)
+         ;;                            (setq next-char (char-after (+ (point) 2)))
+         ;;                            (if (memq next-char good-chars)
+         ;;                                (setq not-found nil)
+         ;;                              (setq exc-start
+         ;;                                    (search-backward begin-mark
+         ;;                                                     min t))))
+         ;;                          (when (and exc-start
+         ;;                                     (<= exc-start pos))
+         ;;                            (cons exc-start 'perl-mode)))))
+         ;; (search-bw-exc-end (lambda (pos min)
+         ;;                      (mumamo-chunk-end-bw-str pos min end-mark)))
+         ;; (search-fw-exc-start-old (lambda (pos max)
+         ;;                            (let ((not-found t)
+         ;;                                  (next-char nil)
+         ;;                                  (exc-start (mumamo-chunk-start-fw-str
+         ;;                                              pos max begin-mark))
+         ;;                                  (here (point)))
+         ;;                              (while (and not-found
+         ;;                                          exc-start)
+         ;;                                (setq next-char (char-after))
+         ;;                                (if (memq next-char good-chars)
+         ;;                                    (setq not-found nil)
+         ;;                                  (setq exc-start
+         ;;                                    (search-forward begin-mark
+         ;;                                                    max t))))
+         ;;                              exc-start)))
          (search-fw-exc-start (lambda (pos max)
                                 (let ((not-found t)
                                       (next-char nil)
@@ -1016,16 +1125,20 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
                                       (setq exc-start
                                             (search-forward begin-mark
                                                             max t))))
-                                  exc-start)))
+                                  (list exc-start 'perl-mode))))
          (search-fw-exc-end (lambda (pos max)
                               (save-match-data
                                 (mumamo-chunk-end-fw-str pos max end-mark))))
          )
-    (mumamo-find-possible-chunk pos min max
-                                search-bw-exc-start
-                                search-bw-exc-end
+    ;; (mumamo-find-possible-chunk pos min max
+    ;;                             search-bw-exc-start
+    ;;                             search-bw-exc-end
+    ;;                             search-fw-exc-start-old
+    ;;                             search-fw-exc-end)
+    (mumamo-possible-chunk-forward pos max
                                 search-fw-exc-start
-                                search-fw-exc-end)))
+                                search-fw-exc-end)
+    ))
 
 ;;;###autoload
 (define-mumamo-multi-major-mode embperl-html-mumamo-mode
@@ -1340,22 +1453,45 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
       ;;(optional (0+ space) "<![CDATA[" )
       ))
 
-(defun mumamo-search-bw-exc-start-inlined-ssjs (pos min)
-  "Helper for `mumamo-chunk-inlined-ssjs'.
-POS is where to start search and MIN is where to stop."
-  (goto-char (+ pos 7))
-  (let ((marker-start (when (< min (point)) (search-backward "<script" min t)))
-        exc-mode
-        exc-start)
-    (when marker-start
-      (when (looking-at mumamo-ssjs-tag-start-regex)
-        (setq exc-start (match-end 0))
-        (goto-char exc-start)
-        (when (<= exc-start pos)
-          ;;(cons (point) 'javascript-mode)
-          (list (point) 'javascript-mode '(nxml-mode))
-          )
-        ))))
+;; (defun mumamo-search-bw-exc-start-inlined-ssjs (pos min)
+;;   "Helper for `mumamo-chunk-inlined-ssjs'.
+;; POS is where to start search and MIN is where to stop."
+;;   (goto-char (+ pos 7))
+;;   (let ((marker-start (when (< min (point)) (search-backward "<script" min t)))
+;;         exc-mode
+;;         exc-start)
+;;     (when marker-start
+;;       (when (looking-at mumamo-ssjs-tag-start-regex)
+;;         (setq exc-start (match-end 0))
+;;         (goto-char exc-start)
+;;         (when (<= exc-start pos)
+;;           ;;(cons (point) 'javascript-mode)
+;;           (list (point) 'javascript-mode '(nxml-mode))
+;;           )
+;;         ))))
+
+;; (defun mumamo-search-fw-exc-start-inlined-ssjs-old (pos max)
+;;   "Helper for `mumamo-chunk-inlined-ssjs'.
+;; POS is where to start search and MAX is where to stop."
+;;   (goto-char (1+ pos))
+;;   (skip-chars-backward "^<")
+;;   ;; Handle <![CDATA[
+;;   (when (and
+;;          (eq ?< (char-before))
+;;          (eq ?! (char-after))
+;;          (not (bobp)))
+;;     (backward-char)
+;;     (skip-chars-backward "^<"))
+;;   (unless (bobp)
+;;     (backward-char 1))
+;;   (let ((exc-start (search-forward "<script" max t))
+;;         exc-mode)
+;;     (when exc-start
+;;       (goto-char (- exc-start 7))
+;;       (when (looking-at mumamo-ssjs-tag-start-regex)
+;;         (goto-char (match-end 0))
+;;         (point)
+;;         ))))
 
 (defun mumamo-search-fw-exc-start-inlined-ssjs (pos max)
   "Helper for `mumamo-chunk-inlined-ssjs'.
@@ -1377,17 +1513,20 @@ POS is where to start search and MAX is where to stop."
       (goto-char (- exc-start 7))
       (when (looking-at mumamo-ssjs-tag-start-regex)
         (goto-char (match-end 0))
-        (point)
+        (list (point) 'javascript-mode)
         ))))
 
 (defun mumamo-chunk-inlined-ssjs (pos min max)
   "Find <script runat=...>...</script>.  Return range and 'javascript-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-exc-start-inlined-ssjs
-                              'mumamo-search-bw-exc-end-inlined-script
-                              'mumamo-search-fw-exc-start-inlined-ssjs
-                              'mumamo-search-fw-exc-end-inlined-script))
+  ;; (mumamo-find-possible-chunk pos min max
+  ;;                             'mumamo-search-bw-exc-start-inlined-ssjs
+  ;;                             'mumamo-search-bw-exc-end-inlined-script
+  ;;                             'mumamo-search-fw-exc-start-inlined-ssjs-old
+  ;;                             'mumamo-search-fw-exc-end-inlined-script)
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-exc-start-inlined-ssjs
+                                 'mumamo-search-fw-exc-end-inlined-script))
 
 ;;;###autoload
 (define-mumamo-multi-major-mode ssjs-html-mumamo-mode
@@ -1814,14 +1953,14 @@ See `mumamo-heredoc-modes' for how to specify heredoc major modes."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Tex meta
 
-(defun mumamo-search-bw-textext-start (pos min)
-  "Helper for `mumamo-chunk-textext'.
-POS is where to start search and MIN is where to stop."
-  (let ((exc-start (mumamo-chunk-start-bw-str pos min "textext(\""))
-        (exc-mode 'plain-tex-mode))
-    (when exc-start
-      (when (<= exc-start pos)
-        (cons exc-start exc-mode)))))
+;; (defun mumamo-search-bw-textext-start (pos min)
+;;   "Helper for `mumamo-chunk-textext'.
+;; POS is where to start search and MIN is where to stop."
+;;   (let ((exc-start (mumamo-chunk-start-bw-str pos min "textext(\""))
+;;         (exc-mode 'plain-tex-mode))
+;;     (when exc-start
+;;       (when (<= exc-start pos)
+;;         (cons exc-start exc-mode)))))
 
 (defconst mumamo-textext-end-regex
   (rx "textext("
@@ -1846,20 +1985,27 @@ Return POS if POS is at the end of textext chunk."
       (goto-char here)
       (when hit pos))))
 
-(defun mumamo-search-bw-textext-end (pos min)
-  "Helper for `mumamo-chunk-textext'.
-POS is where to start search and MIN is where to stop."
-  (let ((end (mumamo-chunk-end-bw-str pos min "\")"))
-        res)
-    (while (and end
-                (not (setq res (mumamo-textext-test-is-end end))))
-      (setq end (mumamo-chunk-end-bw-str (1- end) min "\")")))
-    res))
+;; (defun mumamo-search-bw-textext-end (pos min)
+;;   "Helper for `mumamo-chunk-textext'.
+;; POS is where to start search and MIN is where to stop."
+;;   (let ((end (mumamo-chunk-end-bw-str pos min "\")"))
+;;         res)
+;;     (while (and end
+;;                 (not (setq res (mumamo-textext-test-is-end end))))
+;;       (setq end (mumamo-chunk-end-bw-str (1- end) min "\")")))
+;;     res))
+
+;; (defun mumamo-search-fw-textext-start-old (pos max)
+;;   "Helper for `mumamo-chunk-textext'.
+;; POS is where to start search and MAX is where to stop."
+;;   (mumamo-chunk-start-fw-str pos max "textext(\""))
 
 (defun mumamo-search-fw-textext-start (pos max)
   "Helper for `mumamo-chunk-textext'.
 POS is where to start search and MAX is where to stop."
-  (mumamo-chunk-start-fw-str pos max "textext(\""))
+  (let ((where (mumamo-chunk-start-fw-str pos max "textext(\"")))
+    (when where
+      (list where 'plain-tex-mode))))
 
 (defun mumamo-search-fw-textext-end (pos max)
   "Helper for `mumamo-chunk-textext'.
@@ -1871,30 +2017,40 @@ POS is where to start search and MAX is where to stop."
 (defun mumamo-chunk-textext (pos min max)
   "Find textext or TEX chunks.  Return range and 'plain-tex-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-textext-start
-                              'mumamo-search-bw-textext-end
-                              'mumamo-search-fw-textext-start
-                              'mumamo-search-fw-textext-end))
+  ;; (mumamo-find-possible-chunk pos min max
+  ;;                             'mumamo-search-bw-textext-start
+  ;;                             'mumamo-search-bw-textext-end
+  ;;                             'mumamo-search-fw-textext-start-old
+  ;;                             'mumamo-search-fw-textext-end)
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-textext-start
+                                 'mumamo-search-fw-textext-end))
 
-(defun mumamo-search-bw-verbatimtex-start (pos min)
-  "Helper for `mumamo-chunk-verbatimtextext'.
-POS is where to start search and MIN is where to stop."
-  (let ((exc-start (mumamo-chunk-start-bw-str pos min "\nverbatimtex"))
-        (exc-mode 'plain-tex-mode))
-    (when exc-start
-      (when (<= exc-start pos)
-        (cons exc-start exc-mode)))))
+;; (defun mumamo-search-bw-verbatimtex-start (pos min)
+;;   "Helper for `mumamo-chunk-verbatimtextext'.
+;; POS is where to start search and MIN is where to stop."
+;;   (let ((exc-start (mumamo-chunk-start-bw-str pos min "\nverbatimtex"))
+;;         (exc-mode 'plain-tex-mode))
+;;     (when exc-start
+;;       (when (<= exc-start pos)
+;;         (cons exc-start exc-mode)))))
 
-(defun mumamo-search-bw-verbatimtex-end (pos min)
-  "Helper for `mumamo-chunk-verbatimtextext'.
-POS is where to start search and MIN is where to stop."
-  (mumamo-chunk-end-bw-str pos min "\netex"))
+;; (defun mumamo-search-bw-verbatimtex-end (pos min)
+;;   "Helper for `mumamo-chunk-verbatimtextext'.
+;; POS is where to start search and MIN is where to stop."
+;;   (mumamo-chunk-end-bw-str pos min "\netex"))
+
+;; (defun mumamo-search-fw-verbatimtex-start-old (pos max)
+;;   "Helper for `mumamo-chunk-verbatimtextext'.
+;; POS is where to start search and MAX is where to stop."
+;;   (mumamo-chunk-start-fw-str pos max "\nverbatimtex"))
 
 (defun mumamo-search-fw-verbatimtex-start (pos max)
   "Helper for `mumamo-chunk-verbatimtextext'.
 POS is where to start search and MAX is where to stop."
-  (mumamo-chunk-start-fw-str pos max "\nverbatimtex"))
+  (let ((where (mumamo-chunk-start-fw-str pos max "\nverbatimtex")))
+    (when where
+      (list where 'plain-tex-mode))))
 
 (defun mumamo-search-fw-verbatimtex-end (pos max)
   "Helper for `mumamo-chunk-verbatimtextext'.
@@ -1905,30 +2061,40 @@ POS is where to start search and MAX is where to stop."
 (defun mumamo-chunk-verbatimtex (pos min max)
   "Find verbatimtex - etex chunks.  Return range and 'plain-tex-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-verbatimtex-start
-                              'mumamo-search-bw-verbatimtex-end
-                              'mumamo-search-fw-verbatimtex-start
-                              'mumamo-search-fw-verbatimtex-end))
+  ;; (mumamo-find-possible-chunk pos min max
+  ;;                             'mumamo-search-bw-verbatimtex-start
+  ;;                             'mumamo-search-bw-verbatimtex-end
+  ;;                             'mumamo-search-fw-verbatimtex-start-old
+  ;;                             'mumamo-search-fw-verbatimtex-end)
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-verbatimtex-start
+                                 'mumamo-search-fw-verbatimtex-end))
 
-(defun mumamo-search-bw-btex-start (pos min)
-  "Helper for `mumamo-chunk-btex'.
-POS is where to start search and MIN is where to stop."
-  (let ((exc-start (mumamo-chunk-start-bw-str pos min "\nverbatimtex"))
-        (exc-mode 'plain-tex-mode))
-    (when exc-start
-      (when (<= exc-start pos)
-        (cons exc-start exc-mode)))))
+;; (defun mumamo-search-bw-btex-start (pos min)
+;;   "Helper for `mumamo-chunk-btex'.
+;; POS is where to start search and MIN is where to stop."
+;;   (let ((exc-start (mumamo-chunk-start-bw-str pos min "\nverbatimtex"))
+;;         (exc-mode 'plain-tex-mode))
+;;     (when exc-start
+;;       (when (<= exc-start pos)
+;;         (cons exc-start exc-mode)))))
 
-(defun mumamo-search-bw-btex-end (pos min)
-  "Helper for `mumamo-chunk-btex'.
-POS is where to start search and MIN is where to stop."
-  (mumamo-chunk-end-bw-str pos min "\netex"))
+;; (defun mumamo-search-bw-btex-end (pos min)
+;;   "Helper for `mumamo-chunk-btex'.
+;; POS is where to start search and MIN is where to stop."
+;;   (mumamo-chunk-end-bw-str pos min "\netex"))
+
+;; (defun mumamo-search-fw-btex-start-old (pos max)
+;;   "Helper for `mumamo-chunk-btex'.
+;; POS is where to start search and MAX is where to stop."
+;;   (mumamo-chunk-start-fw-str pos max "\nverbatimtex"))
 
 (defun mumamo-search-fw-btex-start (pos max)
   "Helper for `mumamo-chunk-btex'.
 POS is where to start search and MAX is where to stop."
-  (mumamo-chunk-start-fw-str pos max "\nverbatimtex"))
+  (let ((where (mumamo-chunk-start-fw-str pos max "\nverbatimtex")))
+    (when where
+      (list where 'plain-tex-mode))))
 
 (defun mumamo-search-fw-btex-end (pos max)
   "Helper for `mumamo-chunk-btex'.
@@ -1939,11 +2105,14 @@ POS is where to start search and MAX is where to stop."
 (defun mumamo-chunk-btex (pos min max)
   "Find btex - etex chunks.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-btex-start
-                              'mumamo-search-bw-btex-end
-                              'mumamo-search-fw-btex-start
-                              'mumamo-search-fw-btex-end))
+  ;; (mumamo-find-possible-chunk pos min max
+  ;;                             'mumamo-search-bw-btex-start
+  ;;                             'mumamo-search-bw-btex-end
+  ;;                             'mumamo-search-fw-btex-start-old
+  ;;                             'mumamo-search-fw-btex-end)
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-btex-start
+                                 'mumamo-search-fw-btex-end))
 
 ;;;###autoload
 (define-mumamo-multi-major-mode metapost-mumamo-mode
@@ -1983,10 +2152,33 @@ POS is where to start search and MIN is where to stop."
           (cons (point) 'javascript-mode))
         ))))
 
-(defun mumamo-search-bw-exc-end-inlined-lzx-method (pos min)
-  "Helper for `mumamo-chunk-inlined-lzx-method'.
-POS is where to start search and MIN is where to stop."
-  (mumamo-chunk-end-bw-str pos min "</method>"))
+;; (defun mumamo-search-bw-exc-end-inlined-lzx-method (pos min)
+;;   "Helper for `mumamo-chunk-inlined-lzx-method'.
+;; POS is where to start search and MIN is where to stop."
+;;   (mumamo-chunk-end-bw-str pos min "</method>"))
+
+;; (defun mumamo-search-fw-exc-start-inlined-lzx-method-old (pos max)
+;;   "Helper for `mumamo-chunk-inlined-lzx-method'.
+;; POS is where to start search and MAX is where to stop."
+;;   (goto-char (1+ pos))
+;;   (skip-chars-backward "^<")
+;;   ;; Handle <![CDATA[
+;;   (when (and
+;;          (eq ?< (char-before))
+;;          (eq ?! (char-after))
+;;          (not (bobp)))
+;;     (backward-char)
+;;     (skip-chars-backward "^<"))
+;;   (unless (bobp)
+;;     (backward-char 1))
+;;   (let ((exc-start (search-forward "<method" max t))
+;;         exc-mode)
+;;     (when exc-start
+;;       (goto-char (- exc-start 7))
+;;       (when (looking-at mumamo-lzx-method-tag-start-regex)
+;;         (goto-char (match-end 0))
+;;         (point)
+;;         ))))
 
 (defun mumamo-search-fw-exc-start-inlined-lzx-method (pos max)
   "Helper for `mumamo-chunk-inlined-lzx-method'.
@@ -2008,7 +2200,7 @@ POS is where to start search and MAX is where to stop."
       (goto-char (- exc-start 7))
       (when (looking-at mumamo-lzx-method-tag-start-regex)
         (goto-char (match-end 0))
-        (point)
+        (list (point) 'javascript-mode)
         ))))
 
 (defun mumamo-search-fw-exc-end-inlined-lzx-method (pos max)
@@ -2020,11 +2212,14 @@ POS is where to start search and MAX is where to stop."
 (defun mumamo-chunk-inlined-lzx-method (pos min max)
   "Find <method>...</method>.  Return range and 'javascript-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-exc-start-inlined-lzx-method
-                              'mumamo-search-bw-exc-end-inlined-lzx-method
-                              'mumamo-search-fw-exc-start-inlined-lzx-method
-                              'mumamo-search-fw-exc-end-inlined-lzx-method))
+  ;; (mumamo-find-possible-chunk pos min max
+  ;;                             'mumamo-search-bw-exc-start-inlined-lzx-method
+  ;;                             'mumamo-search-bw-exc-end-inlined-lzx-method
+  ;;                             'mumamo-search-fw-exc-start-inlined-lzx-method-old
+  ;;                             'mumamo-search-fw-exc-end-inlined-lzx-method)
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-exc-start-inlined-lzx-method
+                                 'mumamo-search-fw-exc-end-inlined-lzx-method))
 
 (defconst mumamo-lzx-handler-tag-start-regex
   (rx "<handler"
@@ -2037,25 +2232,48 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
       ;;(optional (0+ space) "<![CDATA[" )
       ))
 
-(defun mumamo-search-bw-exc-start-inlined-lzx-handler (pos min)
-  "Helper for `mumamo-chunk-inlined-lzx-handler'.
-POS is where to start search and MIN is where to stop."
-  (goto-char (+ pos 8))
-  (let ((marker-start (search-backward "<handler" min t))
-        exc-mode
-        exc-start)
-    (when marker-start
-      (when (looking-at mumamo-lzx-handler-tag-start-regex)
-        (setq exc-start (match-end 0))
-        (goto-char exc-start)
-        (when (<= exc-start pos)
-          (cons (point) 'javascript-mode))
-        ))))
+;; (defun mumamo-search-bw-exc-start-inlined-lzx-handler (pos min)
+;;   "Helper for `mumamo-chunk-inlined-lzx-handler'.
+;; POS is where to start search and MIN is where to stop."
+;;   (goto-char (+ pos 8))
+;;   (let ((marker-start (search-backward "<handler" min t))
+;;         exc-mode
+;;         exc-start)
+;;     (when marker-start
+;;       (when (looking-at mumamo-lzx-handler-tag-start-regex)
+;;         (setq exc-start (match-end 0))
+;;         (goto-char exc-start)
+;;         (when (<= exc-start pos)
+;;           (cons (point) 'javascript-mode))
+;;         ))))
 
-(defun mumamo-search-bw-exc-end-inlined-lzx-handler (pos min)
-  "Helper for `mumamo-chunk-inlined-lzx-handler'.
-POS is where to start search and MIN is where to stop."
-  (mumamo-chunk-end-bw-str pos min "</handler>"))
+;; (defun mumamo-search-bw-exc-end-inlined-lzx-handler (pos min)
+;;   "Helper for `mumamo-chunk-inlined-lzx-handler'.
+;; POS is where to start search and MIN is where to stop."
+;;   (mumamo-chunk-end-bw-str pos min "</handler>"))
+
+;; (defun mumamo-search-fw-exc-start-inlined-lzx-handler-old (pos max)
+;;   "Helper for `mumamo-chunk-inlined-lzx-handler'.
+;; POS is where to start search and MAX is where to stop."
+;;   (goto-char (1+ pos))
+;;   (skip-chars-backward "^<")
+;;   ;; Handle <![CDATA[
+;;   (when (and
+;;          (eq ?< (char-before))
+;;          (eq ?! (char-after))
+;;          (not (bobp)))
+;;     (backward-char)
+;;     (skip-chars-backward "^<"))
+;;   (unless (bobp)
+;;     (backward-char 1))
+;;   (let ((exc-start (search-forward "<handler" max t))
+;;         exc-mode)
+;;     (when exc-start
+;;       (goto-char (- exc-start 8))
+;;       (when (looking-at mumamo-lzx-handler-tag-start-regex)
+;;         (goto-char (match-end 0))
+;;         (point)
+;;         ))))
 
 (defun mumamo-search-fw-exc-start-inlined-lzx-handler (pos max)
   "Helper for `mumamo-chunk-inlined-lzx-handler'.
@@ -2077,7 +2295,7 @@ POS is where to start search and MAX is where to stop."
       (goto-char (- exc-start 8))
       (when (looking-at mumamo-lzx-handler-tag-start-regex)
         (goto-char (match-end 0))
-        (point)
+        (list (point) 'javascript-mode)
         ))))
 
 (defun mumamo-search-fw-exc-end-inlined-lzx-handler (pos max)
@@ -2089,11 +2307,14 @@ POS is where to start search and MAX is where to stop."
 (defun mumamo-chunk-inlined-lzx-handler (pos min max)
   "Find <handler>...</handler>.  Return range and 'javascript-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-exc-start-inlined-lzx-handler
-                              'mumamo-search-bw-exc-end-inlined-lzx-handler
-                              'mumamo-search-fw-exc-start-inlined-lzx-handler
-                              'mumamo-search-fw-exc-end-inlined-lzx-handler))
+  ;; (mumamo-find-possible-chunk pos min max
+  ;;                             'mumamo-search-bw-exc-start-inlined-lzx-handler
+  ;;                             'mumamo-search-bw-exc-end-inlined-lzx-handler
+  ;;                             'mumamo-search-fw-exc-start-inlined-lzx-handler-old
+  ;;                             'mumamo-search-fw-exc-end-inlined-lzx-handler)
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-exc-start-inlined-lzx-handler
+                                 'mumamo-search-fw-exc-end-inlined-lzx-handler))
 
 
 ;;;###autoload
@@ -2109,23 +2330,30 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; csound
 
-(defun mumamo-search-bw-exc-start-csound-orc (pos min)
-  "Helper for `mumamo-chunk-csound-orc'.
-POS is where to start search and MIN is where to stop."
-  (let ((exc-start (mumamo-chunk-start-bw-str pos min "<csinstruments>")))
-    (and exc-start
-         (<= exc-start pos)
-         (cons exc-start 'csound-orc-mode))))
+;; (defun mumamo-search-bw-exc-start-csound-orc (pos min)
+;;   "Helper for `mumamo-chunk-csound-orc'.
+;; POS is where to start search and MIN is where to stop."
+;;   (let ((exc-start (mumamo-chunk-start-bw-str pos min "<csinstruments>")))
+;;     (and exc-start
+;;          (<= exc-start pos)
+;;          (cons exc-start 'csound-orc-mode))))
 
-(defun mumamo-search-bw-exc-end-csound-orc (pos min)
-  "Helper for `mumamo-chunk-csound-orc'.
-POS is where to start search and MIN is where to stop."
-  (mumamo-chunk-end-bw-str pos min "</csinstruments>"))
+;; (defun mumamo-search-bw-exc-end-csound-orc (pos min)
+;;   "Helper for `mumamo-chunk-csound-orc'.
+;; POS is where to start search and MIN is where to stop."
+;;   (mumamo-chunk-end-bw-str pos min "</csinstruments>"))
+
+;; (defun mumamo-search-fw-exc-start-csound-orc-old (pos max)
+;;   "Helper for `mumamo-chunk-csound-orc'.
+;; POS is where to start search and MAX is where to stop."
+;;   (mumamo-chunk-start-fw-str pos max "<csinstruments>"))
 
 (defun mumamo-search-fw-exc-start-csound-orc (pos max)
   "Helper for `mumamo-chunk-csound-orc'.
 POS is where to start search and MAX is where to stop."
-  (mumamo-chunk-start-fw-str pos max "<csinstruments>"))
+  (let ((where (mumamo-chunk-start-fw-str pos max "<csinstruments>")))
+    (when where
+      (list where 'csound-orc-mode))))
 
 (defun mumamo-search-fw-exc-end-csound-orc (pos max)
   "Helper for `mumamo-chunk-csound-orc'.
@@ -2136,29 +2364,39 @@ POS is where to start search and MAX is where to stop."
 (defun mumamo-chunk-csound-orc (pos min max)
   "Find <csinstruments>...</...>.  Return range and 'csound-orc-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-exc-start-csound-orc
-                              'mumamo-search-bw-exc-end-csound-orc
-                              'mumamo-search-fw-exc-start-csound-orc
-                              'mumamo-search-fw-exc-end-csound-orc))
+  ;; (mumamo-find-possible-chunk pos min max
+  ;;                             'mumamo-search-bw-exc-start-csound-orc
+  ;;                             'mumamo-search-bw-exc-end-csound-orc
+  ;;                             'mumamo-search-fw-exc-start-csound-orc-old
+  ;;                             'mumamo-search-fw-exc-end-csound-orc)
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-exc-start-csound-orc
+                                 'mumamo-search-fw-exc-end-csound-orc))
 
-(defun mumamo-search-bw-exc-start-csound-sco (pos min)
-  "Helper for `mumamo-chunk-csound-sco'.
-POS is where to start search and MIN is where to stop."
-  (let ((exc-start (mumamo-chunk-start-bw-str pos min "<csscore>")))
-    (and exc-start
-         (<= exc-start pos)
-         (cons exc-start 'csound-sco-mode))))
+;; (defun mumamo-search-bw-exc-start-csound-sco (pos min)
+;;   "Helper for `mumamo-chunk-csound-sco'.
+;; POS is where to start search and MIN is where to stop."
+;;   (let ((exc-start (mumamo-chunk-start-bw-str pos min "<csscore>")))
+;;     (and exc-start
+;;          (<= exc-start pos)
+;;          (cons exc-start 'csound-sco-mode))))
 
-(defun mumamo-search-bw-exc-end-csound-sco (pos min)
-  "Helper for `mumamo-chunk-csound-sco'.
-POS is where to start search and MIN is where to stop."
-  (mumamo-chunk-end-bw-str pos min "</csscore>"))
+;; (defun mumamo-search-bw-exc-end-csound-sco (pos min)
+;;   "Helper for `mumamo-chunk-csound-sco'.
+;; POS is where to start search and MIN is where to stop."
+;;   (mumamo-chunk-end-bw-str pos min "</csscore>"))
+
+;; (defun mumamo-search-fw-exc-start-csound-sco-old (pos max)
+;;   "Helper for `mumamo-chunk-csound-sco'.
+;; POS is where to start search and MAX is where to stop."
+;;   (mumamo-chunk-start-fw-str pos max "<csscore>"))
 
 (defun mumamo-search-fw-exc-start-csound-sco (pos max)
   "Helper for `mumamo-chunk-csound-sco'.
 POS is where to start search and MAX is where to stop."
-  (mumamo-chunk-start-fw-str pos max "<csscore>"))
+  (let ((where (mumamo-chunk-start-fw-str pos max "<csscore>")))
+    (when where
+      (list where 'csound-sco-mode))))
 
 (defun mumamo-search-fw-exc-end-csound-sco (pos max)
   "Helper for `mumamo-chunk-csound-sco'.
@@ -2169,11 +2407,14 @@ POS is where to start search and MAX is where to stop."
 (defun mumamo-chunk-csound-sco (pos min max)
   "Found <csscore>...</csscore>.  Return range and 'csound-sco-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-exc-start-csound-sco
-                              'mumamo-search-bw-exc-end-csound-sco
-                              'mumamo-search-fw-exc-start-csound-sco
-                              'mumamo-search-fw-exc-end-csound-sco))
+  ;; (mumamo-find-possible-chunk pos min max
+  ;;                             'mumamo-search-bw-exc-start-csound-sco
+  ;;                             'mumamo-search-bw-exc-end-csound-sco
+  ;;                             'mumamo-search-fw-exc-start-csound-sco-old
+  ;;                             'mumamo-search-fw-exc-end-csound-sco)
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-exc-start-csound-sco
+                                 'mumamo-search-fw-exc-end-csound-sco))
 
 ;;;###autoload
 (define-mumamo-multi-major-mode csound-sgml-mumamo-mode
@@ -2209,39 +2450,50 @@ Used by `noweb2-mumamo-mode'."
 (defun mumamo-noweb2-chunk-start-fw (pos max)
   "Helper for `mumamo-noweb2-chunk'.
 POS is where to start search and MAX is where to stop."
-  (mumamo-chunk-start-fw-re pos max "^<<\\(.*?\\)>>="))
-
-(defun mumamo-noweb2-chunk-start-bw (pos min)
-  "Helper for `mumamo-noweb2-chunk'.
-POS is where to start search and MIN is where to stop."
-  (let ((exc-start (mumamo-chunk-start-bw-re pos min "^<<\\(.*?\\)>>="))
+  (let ((where (mumamo-chunk-start-fw-re pos max "^<<\\(.*?\\)>>="))
         (exc-mode 'text-mode))
-    (when exc-start
-      (let* ((file-name (match-string 1))
-             (file-ext  (when file-name (file-name-extension file-name))))
+    (when where
+      (let* ((file-name (match-string-no-properties 1))
+             (file-ext (when file-name (file-name-extension file-name))))
         (when file-ext
           (setq exc-mode (catch 'major
                            (dolist (rec mumamo-noweb2-mode-from-ext)
                              (when (string-match (car rec) file-ext)
                                (throw 'major (cdr rec))))
-                           nil))
-          (unless exc-mode
-            (setq exc-mode
-                  (cdr (assoc file-ext mumamo-noweb2-found-mode-from-ext)))
-            (unless exc-mode
-              ;; Get the major mode from file name
-              (with-temp-buffer
-                (setq buffer-file-name file-name)
-                (condition-case err
-                    (normal-mode)
-                  (error (message "error (normal-mode): %s"
-                                  (error-message-string err))))
-                (setq exc-mode (or major-mode
-                                   'text-mode))
-                (add-to-list 'mumamo-noweb2-found-mode-from-ext
-                             (cons file-ext exc-mode)))
-              ))))
-      (cons exc-start exc-mode))))
+                           nil))))
+      (list where exc-mode))))
+
+;; (defun mumamo-noweb2-chunk-start-bw (pos min)
+;;   "Helper for `mumamo-noweb2-chunk'.
+;; POS is where to start search and MIN is where to stop."
+;;   (let ((exc-start (mumamo-chunk-start-bw-re pos min "^<<\\(.*?\\)>>="))
+;;         (exc-mode 'text-mode))
+;;     (when exc-start
+;;       (let* ((file-name (match-string 1))
+;;              (file-ext  (when file-name (file-name-extension file-name))))
+;;         (when file-ext
+;;           (setq exc-mode (catch 'major
+;;                            (dolist (rec mumamo-noweb2-mode-from-ext)
+;;                              (when (string-match (car rec) file-ext)
+;;                                (throw 'major (cdr rec))))
+;;                            nil))
+;;           (unless exc-mode
+;;             (setq exc-mode
+;;                   (cdr (assoc file-ext mumamo-noweb2-found-mode-from-ext)))
+;;             (unless exc-mode
+;;               ;; Get the major mode from file name
+;;               (with-temp-buffer
+;;                 (setq buffer-file-name file-name)
+;;                 (condition-case err
+;;                     (normal-mode)
+;;                   (error (message "error (normal-mode): %s"
+;;                                   (error-message-string err))))
+;;                 (setq exc-mode (or major-mode
+;;                                    'text-mode))
+;;                 (add-to-list 'mumamo-noweb2-found-mode-from-ext
+;;                              (cons file-ext exc-mode)))
+;;               ))))
+;;       (cons exc-start exc-mode))))
 
 (defun mumamo-noweb2-chunk-end-fw (pos max)
   "Helper for `mumamo-noweb2-chunk'.
@@ -2249,20 +2501,23 @@ POS is where to start search and MAX is where to stop."
   (save-match-data
     (mumamo-chunk-end-fw-re pos max "^@")))
 
-(defun mumamo-noweb2-chunk-end-bw (pos min)
-  "Helper for `mumamo-noweb2-chunk'.
-POS is where to start search and MIN is where to stop."
-  (mumamo-chunk-end-bw-re pos min "^@"))
+;; (defun mumamo-noweb2-chunk-end-bw (pos min)
+;;   "Helper for `mumamo-noweb2-chunk'.
+;; POS is where to start search and MIN is where to stop."
+;;   (mumamo-chunk-end-bw-re pos min "^@"))
 
 (defun mumamo-noweb2-code-chunk (pos min max)
   "Find noweb chunks.  Return range and found mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (save-match-data
-    (mumamo-find-possible-chunk pos min max
-                                'mumamo-noweb2-chunk-start-bw
-                                'mumamo-noweb2-chunk-end-bw
-                                'mumamo-noweb2-chunk-start-fw
-                                'mumamo-noweb2-chunk-end-fw)))
+    ;; (mumamo-find-possible-chunk pos min max
+    ;;                             'mumamo-noweb2-chunk-start-bw
+    ;;                             'mumamo-noweb2-chunk-end-bw
+    ;;                             'mumamo-noweb2-chunk-start-fw-old
+    ;;                             'mumamo-noweb2-chunk-end-fw)
+    (mumamo-possible-chunk-forward pos max
+                                   'mumamo-noweb2-chunk-start-fw
+                                   'mumamo-noweb2-chunk-end-fw)))
 
 
 ;;;###autoload
@@ -2324,15 +2579,21 @@ This also covers inlined style and javascript."
       "\""
       (0+ space)))
 
+(defun mumamo-search-fw-exc-start-jsp (pos min max)
+  ;; fix-me
+  )
 (defun mumamo-chunk-asp (pos min max)
   "Find <% ... %>.  Return range and 'asp-js-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   ;; Fix-me: this is broken!
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-exc-start-asp
-                              'mumamo-search-bw-exc-end-jsp
-                              'mumamo-search-fw-exc-start-jsp
-                              'mumamo-search-fw-exc-end-jsp))
+  ;; (mumamo-find-possible-chunk pos min max
+  ;;                             'mumamo-search-bw-exc-start-asp
+  ;;                             'mumamo-search-bw-exc-end-jsp
+  ;;                             'mumamo-search-fw-exc-start-jsp-old
+  ;;                             'mumamo-search-fw-exc-end-jsp)
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-exc-start-asp
+                                 'mumamo-search-fw-exc-end-jsp))
 
 
 ;;;; asp <% ...>
@@ -2384,27 +2645,50 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
       ;;(optional (0+ space) "<![CDATA[" )
       ))
 
-(defun mumamo-asp-search-bw-exc-start-inlined-script (pos min)
-  "Helper function for `mumamo-asp-chunk-inlined-script'.
-POS is where to start search and MIN is where to stop."
-  (goto-char (+ pos 7))
-  (let ((marker-start (search-backward "<script" min t))
-        (exc-mode 'asp-vb-mode)
-        exc-start
-        lang)
-    (when marker-start
-      (when (looking-at mumamo-asp-script-tag-start-regex)
-        (setq lang (downcase (match-string-no-properties 1)))
-        (cond
-         ((string= lang "javascript")
-          (setq exc-mode 'asp-js-mode))
-         ((string= lang "vbscript")
-          (setq exc-mode 'asp-vb-mode))))
-      (setq exc-start (match-end 0))
-      (goto-char exc-start)
-      (when (<= exc-start pos)
-        (cons (point) exc-mode))
-      )))
+;; (defun mumamo-asp-search-bw-exc-start-inlined-script (pos min)
+;;   "Helper function for `mumamo-asp-chunk-inlined-script'.
+;; POS is where to start search and MIN is where to stop."
+;;   (goto-char (+ pos 7))
+;;   (let ((marker-start (search-backward "<script" min t))
+;;         (exc-mode 'asp-vb-mode)
+;;         exc-start
+;;         lang)
+;;     (when marker-start
+;;       (when (looking-at mumamo-asp-script-tag-start-regex)
+;;         (setq lang (downcase (match-string-no-properties 1)))
+;;         (cond
+;;          ((string= lang "javascript")
+;;           (setq exc-mode 'asp-js-mode))
+;;          ((string= lang "vbscript")
+;;           (setq exc-mode 'asp-vb-mode))))
+;;       (setq exc-start (match-end 0))
+;;       (goto-char exc-start)
+;;       (when (<= exc-start pos)
+;;         (cons (point) exc-mode))
+;;       )))
+
+;; (defun mumamo-asp-search-fw-exc-start-inlined-script-old (pos max)
+;;   "Helper for `mumamo-chunk-inlined-script'.
+;; POS is where to start search and MAX is where to stop."
+;;   (goto-char (1+ pos))
+;;   (skip-chars-backward "^<")
+;;   ;; Handle <![CDATA[
+;;   (when (and
+;;          (eq ?< (char-before))
+;;          (eq ?! (char-after))
+;;          (not (bobp)))
+;;     (backward-char)
+;;     (skip-chars-backward "^<"))
+;;   (unless (bobp)
+;;     (backward-char 1))
+;;   (let ((exc-start (search-forward "<script" max t))
+;;         exc-mode)
+;;     (when exc-start
+;;       (goto-char (- exc-start 7))
+;;       (when (looking-at mumamo-asp-script-tag-start-regex)
+;;         (goto-char (match-end 0))
+;;         (point)
+;;         ))))
 
 (defun mumamo-asp-search-fw-exc-start-inlined-script (pos max)
   "Helper for `mumamo-chunk-inlined-script'.
@@ -2421,22 +2705,32 @@ POS is where to start search and MAX is where to stop."
   (unless (bobp)
     (backward-char 1))
   (let ((exc-start (search-forward "<script" max t))
-        exc-mode)
+        (exc-mode 'asp-vb-mode)
+        (lang "vbscript"))
     (when exc-start
       (goto-char (- exc-start 7))
       (when (looking-at mumamo-asp-script-tag-start-regex)
         (goto-char (match-end 0))
-        (point)
+        (setq lang (downcase (match-string-no-properties 1)))
+        (cond
+         ((string= lang "javascript")
+          (setq exc-mode 'asp-js-mode))
+         ((string= lang "vbscript")
+          (setq exc-mode 'asp-vb-mode)))
+        (list (point) exc-mode)
         ))))
 
 (defun mumamo-asp-chunk-inlined-script (pos min max)
   "Find <script language=...  runat=...>...</script>.  Return 'asp-js-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-asp-search-bw-exc-start-inlined-script
-                              'mumamo-search-bw-exc-end-inlined-script
-                              'mumamo-asp-search-fw-exc-start-inlined-script
-                              'mumamo-search-fw-exc-end-inlined-script))
+  ;; (mumamo-find-possible-chunk pos min max
+  ;;                             'mumamo-asp-search-bw-exc-start-inlined-script
+  ;;                             'mumamo-search-bw-exc-end-inlined-script
+  ;;                             'mumamo-asp-search-fw-exc-start-inlined-script-old
+  ;;                             'mumamo-search-fw-exc-end-inlined-script)
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-asp-search-fw-exc-start-inlined-script
+                                 'mumamo-search-fw-exc-end-inlined-script))
 
 ;;;###autoload
 (define-mumamo-multi-major-mode asp-html-mumamo-mode
@@ -2488,34 +2782,47 @@ See `mumamo-org-submodes' for an explanation."
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   (mumamo-quick-static-chunk pos min max "#+BEGIN_HTML" "#+END_HTML" nil 'html-mode nil))
 
-(defun mumamo-search-bw-org-src-start (pos min)
-  "Helper for `mumamo-chunk-org-src'.
-POS is where to start search and MIN is where to stop."
-  (let* ((exc-start (mumamo-chunk-start-bw-str pos min "#+BEGIN_SRC"))
-         (exc-mode (when exc-start
-                     (let ((here (point)))
-                       (goto-char exc-start)
-                       (prog1
-                           (read (current-buffer))
-                         (goto-char here))))))
-    (setq exc-mode (mumamo-org-mode-from-spec exc-mode))
-    ;;(setq exc-mode (eval exc-mode))
-    ;;(setq exc-mode 'text-mode)
-    ;;(when exc-mode (setq exc-mode (quote exc-mode)))
-    ;;(assert (eq exc-mode 'emacs-lisp-mode) t)
-    (when exc-start
-      (when (<= exc-start pos)
-        (cons exc-start exc-mode)))))
+;; (defun mumamo-search-bw-org-src-start (pos min)
+;;   "Helper for `mumamo-chunk-org-src'.
+;; POS is where to start search and MIN is where to stop."
+;;   (let* ((exc-start (mumamo-chunk-start-bw-str pos min "#+BEGIN_SRC"))
+;;          (exc-mode (when exc-start
+;;                      (let ((here (point)))
+;;                        (goto-char exc-start)
+;;                        (prog1
+;;                            (read (current-buffer))
+;;                          (goto-char here))))))
+;;     (setq exc-mode (mumamo-org-mode-from-spec exc-mode))
+;;     ;;(setq exc-mode (eval exc-mode))
+;;     ;;(setq exc-mode 'text-mode)
+;;     ;;(when exc-mode (setq exc-mode (quote exc-mode)))
+;;     ;;(assert (eq exc-mode 'emacs-lisp-mode) t)
+;;     (when exc-start
+;;       (when (<= exc-start pos)
+;;         (cons exc-start exc-mode)))))
 
-(defun mumamo-search-bw-org-src-end (pos min)
-  "Helper for `mumamo-chunk-org-src'.
-POS is where to start search and MIN is where to stop."
-  (mumamo-chunk-end-bw-str pos min "#+END_SRC"))
+;; (defun mumamo-search-bw-org-src-end (pos min)
+;;   "Helper for `mumamo-chunk-org-src'.
+;; POS is where to start search and MIN is where to stop."
+;;   (mumamo-chunk-end-bw-str pos min "#+END_SRC"))
+
+;; (defun mumamo-search-fw-org-src-start-old (pos max)
+;;   "Helper for `mumamo-chunk-org-src'.
+;; POS is where to start search and MAX is where to stop."
+;;   (mumamo-chunk-start-fw-str pos max "#+BEGIN_SRC"))
 
 (defun mumamo-search-fw-org-src-start (pos max)
   "Helper for `mumamo-chunk-org-src'.
 POS is where to start search and MAX is where to stop."
-  (mumamo-chunk-start-fw-str pos max "#+BEGIN_SRC"))
+  (let ((where (mumamo-chunk-start-fw-str pos max "#+BEGIN_SRC")))
+    (when where
+      (let ((exc-mode (let ((here (point)))
+                        (goto-char where)
+                        (prog1
+                            (read (current-buffer))
+                          (goto-char here)))))
+        (setq exc-mode (mumamo-org-mode-from-spec exc-mode))
+        (list where exc-mode)))))
 
 (defun mumamo-search-fw-org-src-end (pos max)
   "Helper for `mumamo-chunk-org-src'.
@@ -2529,11 +2836,14 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX.
 
 See Info node `(org) Literal Examples' for how to specify major
 mode."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-org-src-start
-                              'mumamo-search-bw-org-src-end
-                              'mumamo-search-fw-org-src-start
-                              'mumamo-search-fw-org-src-end))
+  ;; (mumamo-find-possible-chunk pos min max
+  ;;                             'mumamo-search-bw-org-src-start
+  ;;                             'mumamo-search-bw-org-src-end
+  ;;                             'mumamo-search-fw-org-src-start-old
+  ;;                             'mumamo-search-fw-org-src-end)
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-org-src-start
+                                 'mumamo-search-fw-org-src-end))
 
 ;;;###autoload
 (define-mumamo-multi-major-mode org-mumamo-mode
@@ -2570,9 +2880,13 @@ sub chunks."
 (defun mumamo-chunk-mako-<% (pos min max)
   "Find <% ... %> and <%! ... %>. Return range and `python-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-mako-<%-bw-start
-                              'mumamo-mako-<%-bw-end
+  ;; (mumamo-find-possible-chunk pos min max
+  ;;                             'mumamo-mako-<%-bw-start
+  ;;                             'mumamo-mako-<%-bw-end
+  ;;                             'mumamo-mako-<%-fw-start-old
+  ;;                             'mumamo-mako-<%-fw-end
+  ;;                             'mumamo-mako-<%-find-borders)
+  (mumamo-possible-chunk-forward pos max
                               'mumamo-mako-<%-fw-start
                               'mumamo-mako-<%-fw-end
                               'mumamo-mako-<%-find-borders
@@ -2589,19 +2903,33 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
      (when end (- end 2))
      exc-mode)))
 
-(defun mumamo-mako-<%-bw-start (pos min)
-  (let ((here (point))
-        start
-        ret
-        )
-    (goto-char (+ pos 3))
-    (setq start (re-search-backward "<%!?\\(?:[ \t]\\|$\\)" min t))
-    (when (and start (<= start pos))
-      (setq ret (list start 'python-mode)))
-    (goto-char here)
-    ret))
-(defun mumamo-mako-<%-bw-end (pos min)
-  (mumamo-chunk-end-bw-str-inc pos min "%>")) ;; ok
+;; (defun mumamo-mako-<%-bw-start (pos min)
+;;   (let ((here (point))
+;;         start
+;;         ret
+;;         )
+;;     (goto-char (+ pos 3))
+;;     (setq start (re-search-backward "<%!?\\(?:[ \t]\\|$\\)" min t))
+;;     (when (and start (<= start pos))
+;;       (setq ret (list start 'python-mode)))
+;;     (goto-char here)
+;;     ret))
+
+;; (defun mumamo-mako-<%-bw-end (pos min)
+;;   (mumamo-chunk-end-bw-str-inc pos min "%>")) ;; ok
+
+;; (defun mumamo-mako-<%-fw-start-old (pos max)
+;;   (let ((here (point))
+;;         start
+;;         ret)
+;;     (goto-char pos)
+;;     (setq start
+;;           (re-search-forward "<%!?\\(?:[ \t]\\|$\\)" max t))
+;;     (when start
+;;       (setq ret (match-beginning 0)))
+;;     (goto-char here)
+;;     ret))
+
 (defun mumamo-mako-<%-fw-start (pos max)
   (let ((here (point))
         start
@@ -2612,7 +2940,8 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
     (when start
       (setq ret (match-beginning 0)))
     (goto-char here)
-    ret))
+    (list ret 'python-mode)))
+
 (defun mumamo-mako-<%-fw-end (pos max)
   (save-match-data
     (mumamo-chunk-end-fw-str-inc pos max "%>"))) ;; ok
@@ -2896,6 +3225,28 @@ You will need `haskell-mode' which you can download from URL
    (
     mumamo-latex-haskell-chunk
     )))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Python + ReST
+
+;; From Martin Soto
+
+(defun python-rst-long-string-chunk (pos min max)
+ "Find Python long strings.  Return range and 'mumamo-comment-mode.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+ ;;(mumamo-quick-static-chunk pos min max "\"\"\"((" "))\"\"\"" nil 'rst-mode nil))
+ (mumamo-quick-static-chunk pos min max "\"\"\"" "\"\"\"" t 'rst-mode t))
+
+;;;###autoload
+(define-mumamo-multi-major-mode python-rst-mumamo-mode
+ "Turn on multiple major modes for Python with RestructuredText docstrings."
+ ("Python ReST Family" python-mode
+  (
+   python-rst-long-string-chunk
+   )))
+
 
 (provide 'mumamo-fun)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
