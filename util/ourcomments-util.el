@@ -1309,6 +1309,7 @@ PREDICATE.  PREDICATE takes one argument, the symbol."
          (beg (progn (forward-comment (- size))
                      ;; It looks like the wrong syntax-table is used here:
                      ;;(message "skipped %s " (skip-chars-forward "[:space:]"))
+                     ;; See Emacs bug 3823, http://debbugs.gnu.org/cgi/bugreport.cgi?bug=3823
                      (message "skipped %s " (skip-chars-forward " \t\r\n"))
                      (point)))
          (end (progn (forward-comment size)
