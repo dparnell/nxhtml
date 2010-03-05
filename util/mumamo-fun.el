@@ -310,7 +310,7 @@ POS is where to start search and MIN is where to stop."
         (if exc-mode
             (setq exc-mode (cdr exc-mode))
           (setq exc-mode 'mumamo-bad-mode))
-        (setq ret (list (- start 2) (point) exc-mode nil))))
+        (setq ret (list (- start 2) exc-mode nil))))
     (goto-char here)
     ret))
 
@@ -389,7 +389,7 @@ of LT-CHARS see `mumamo-search-bw-exc-start-xml-pi-1'."
         (setq end-out nil))
       end-out)))
 
-(defun mumamo-search-fw-exc-start-xml-pi (pos max)
+(defun mumamo-search-fw-exc-start-xml-pi-old (pos max)
   "Helper for `mumamo-chunk-xml-pi'.
 POS is where to start search and MAX is where to stop."
   (mumamo-search-fw-exc-start-xml-pi-1 pos max "<?"))
@@ -435,13 +435,16 @@ POS is where to start search and MAX is where to stop."
 (defun mumamo-chunk-xml-pi (pos min max)
   "Find process instruction, <? ... ?>.  Return range and wanted mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-find-possible-chunk pos min max
-                              'mumamo-search-bw-exc-start-xml-pi
-                              'mumamo-search-bw-exc-end-xml-pi
-                              'mumamo-search-fw-exc-start-xml-pi
-                              'mumamo-search-fw-exc-end-xml-pi
-                              'mumamo-find-borders-xml-pi
-                              ))
+  ;; (mumamo-find-possible-chunk pos min max
+  ;;                             'mumamo-search-bw-exc-start-xml-pi
+  ;;                             'mumamo-search-bw-exc-end-xml-pi
+  ;;                             'mumamo-search-fw-exc-start-xml-pi-old
+  ;;                             'mumamo-search-fw-exc-end-xml-pi
+  ;;                             'mumamo-find-borders-xml-pi)
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-exc-start-xml-pi-new
+                                 'mumamo-search-fw-exc-end-xml-pi
+                                 'mumamo-find-borders-xml-pi))
 
 
 ;;;; <style ...>

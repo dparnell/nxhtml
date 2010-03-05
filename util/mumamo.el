@@ -3543,6 +3543,7 @@ meaning of POS, MAX and MARKER."
   (assert (stringp marker))
   ;;(goto-char (1+ pos)) ;; 1+ cause otherwise ?> is at point
   (goto-char (1+ (- pos (length marker))))
+  ;;(msgtrc "mumamo-chunk-end-fw-str-inc %s %s %s, point=%s point-max=%s" pos max marker (point) (point-max))
   (search-forward marker max t))
 
 ;; search end backward
@@ -3654,6 +3655,7 @@ possible chunk is found:
 CHUNK-END-FUN should return the end of the chunk.
 
 "
+  ;;(msgtrc "possible-chunk-forward %s %s" pos max)
   (let ((here (point))
         start-rec
         start
@@ -4497,7 +4499,7 @@ information.
         ;; of the change.
         ;;(message "set after-change-max nil")
         ;;(setq after-change-max nil)
-        (let* ((use-max (if after-change-max
+        (let* ((use-max (if nil ;;after-change-max
                             (+ after-change-max 100)
                           max))
                (chunk-end (and chunk-at-after-change
@@ -4516,7 +4518,7 @@ information.
           (while (and possible-end-fun-end
                       (not curr-end-fun-end)
                       (< use-min use-max))
-            (msgtrc "find-next-chunk-values: curr-end-fun=%s use-min/max=%s/%s" curr-end-fun use-min use-max)
+            ;;(msgtrc "find-next-chunk-values: curr-end-fun=%s use-min/max=%s/%s max=%s" curr-end-fun use-min use-max max)
             (setq curr-end-fun-end (funcall curr-end-fun use-min use-max))
             (if (not curr-end-fun-end)
                 (setq possible-end-fun-end nil)
@@ -4842,6 +4844,7 @@ the sexp syntax using major mode MAJOR."
                                    min max
                                    begin-mark end-mark inc mode
                                    mark-is-border)
+  ;;(msgtrc "quick-chunk-forward %s %s %s" pos min max)
   (let ((search-fw-exc-start
          `(lambda (pos max)
             (let ((exc-start
@@ -4852,10 +4855,13 @@ the sexp syntax using major mode MAJOR."
                 (list exc-start mode nil)))))
         (search-fw-exc-end
          `(lambda (pos max)
+            ;;(msgtrc "search-fw-exc-end %s %s, inc=%s, end-mark=%s" pos max ,inc ,end-mark)
             (save-match-data
-              (if ,inc
-                  (mumamo-chunk-end-fw-str-inc pos max ,end-mark)
-                (mumamo-chunk-end-fw-str pos max ,end-mark)))))
+              (let ((ret (if ,inc
+                             (mumamo-chunk-end-fw-str-inc pos max ,end-mark)
+                           (mumamo-chunk-end-fw-str pos max ,end-mark))))
+                ;;(msgtrc "search-fw-exc-end ret=%s" ret)
+                ret))))
         (find-borders
          (when mark-is-border
            `(lambda (start end exc-mode)
