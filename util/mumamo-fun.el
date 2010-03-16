@@ -406,7 +406,7 @@ POS is where to start search and MAX is where to stop."
         (begin-mark "<?")
         (end-mark "?>")
         (here (point)))
-    (if (and inc exc-mode)
+    (if (and inc) ;; exc-mode)
         (progn
           (when start
             ;;(setq start-border (+ start (length begin-mark)))
@@ -1180,7 +1180,10 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 (defun mumamo-chunk-django (pos min max)
   "Find {% ... %}.  Return range and `django-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-quick-static-chunk pos min max "{%" "%}" t 'django-mode t))
+  (let ((chunk (mumamo-quick-static-chunk pos min max "{%" "%}" t 'django-mode t)))
+    (when chunk
+      (setcdr (last chunk) '(mumamo-template-indentor))
+      chunk)))
 
 (defun mumamo-search-bw-exc-start-django (pos min)
   "Helper for `mumamo-chunk-django'.
@@ -1634,12 +1637,13 @@ Current major-mode will be used as the main major mode."
   "Turn on multiple major modes for eRuby with main mode `html-mode'.
 This also covers inlined style and javascript."
   ("eRuby Html Family" html-mode
-   (mumamo-chunk-eruby-comment
+   (
+    ;;mumamo-chunk-eruby-comment
     mumamo-chunk-eruby
-    mumamo-chunk-inlined-style
-    mumamo-chunk-inlined-script
-    mumamo-chunk-style=
-    mumamo-chunk-onjs=
+    ;;mumamo-chunk-inlined-style
+    ;;mumamo-chunk-inlined-script
+    ;;mumamo-chunk-style=
+    ;;mumamo-chunk-onjs=
     )))
 
 
@@ -1885,6 +1889,7 @@ See `mumamo-heredoc-modes' for how to specify heredoc major modes."
    (mumamo-chunk-php-heredoc
     )))
 (mumamo-inherit-sub-chunk-family 'php-heredoc-mumamo-mode)
+(mumamo-inherit-sub-chunk-family-locally 'php-heredoc-mumamo-mode 'html-mumamo-mode)
 
 
 ;;;; Perl heredoc

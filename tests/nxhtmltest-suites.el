@@ -89,6 +89,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define tests using ert.el
 
+(ert-deftest nxhtml-ert-bug531328 ()
+  "Test of eRuby chunks with nothing between."
+  (ert-with-temp-buffer-include-file "bug531328.rhtml"
+    (add-hook 'ert-simulate-command-post-hook
+              'nxhtmltest-should-no-mumamo-errors
+              nil t)
+    (ert-simulate-command '(eruby-html-mumamo-mode) t)
+    (nxhtmltest-get-fontification-method)
+    (nxhtmltest-fontify-default-way 2 "trans")
+    (ert-simulate-command '(goto-char 12) t)
+    (ert-should (eq major-mode 'ruby-mode))
+    ))
+
 (ert-deftest nxhtml-ert-indent-bug-johan-2010-02-17()
   "Test of eRuby indentation.
 Got a bug report by mail on the emacs-on-rails list."
