@@ -1457,7 +1457,7 @@ This is not supposed to be entirely correct."
   (indent-according-to-mode)
   (insert "\n")
   (indent-according-to-mode)
-  (insert "\n/* ]] */")
+  (insert "\n/* ]]> */")
   (indent-according-to-mode)
   (insert "\n</style>")
   (indent-according-to-mode)

@@ -962,7 +962,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19337 51497))
+;;;;;;  (19360 4078))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1107,7 +1107,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode
 ;;;;;;  mumamo-define-html-file-wide-keys) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19337 43605))
+;;;;;;  (19356 8838))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1335,7 +1335,7 @@ new are maybe ... - and you have it available here in Emacs.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (19325 55060))
+;;;;;;  "tests/nxhtmltest-suites.el" (19345 37345))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 (web-autoload-require 'nxhtmltest-suites 'lp '(nxhtml-download-root-url nil) "tests/nxhtmltest-suites" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1418,7 +1418,7 @@ Color up digits three by three.
 ;;;;;;  ourcomments-move-beginning-of-line ourcomments-mark-whole-buffer-or-field
 ;;;;;;  fill-dwim unfill-individual-paragraphs unfill-region unfill-paragraph
 ;;;;;;  define-toggle-old define-toggle popup-menu-at-point ourcomments-indirect-fun)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19296 7446))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19345 24442))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2058,6 +2058,30 @@ When opening a file with the shell a (temporary) dummy buffer is
 created in Emacs with major mode `sex-file-mode' and an external
 program is called to handle the file.  How this dummy buffer is
 handled is governed by `sex-keep-dummy-buffer'.
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads (sml-mode sml-modeline) "sml-modeline" "util/sml-modeline.el"
+;;;;;;  (19359 46784))
+;;; Generated autoloads from util/sml-modeline.el
+(web-autoload-require 'sml-modeline 'lp '(nxhtml-download-root-url nil) "util/sml-modeline" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(let ((loads (get 'sml-modeline 'custom-loads))) (if (member '"sml-modeline" loads) nil (put 'sml-modeline 'custom-loads (cons '"sml-modeline" loads))))
+
+(defvar sml-mode nil "\
+Non-nil if Sml mode is enabled.
+See the command `sml-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `sml-mode'.")
+
+(nxhtml-custom-autoload 'sml-mode 'sml-modeline nil)
+
+(nxhtml-autoload 'sml-mode `(lp '(nxhtml-download-root-url nil) "util/sml-modeline" nxhtml-install-dir) "\
+Show buffer size and position like scrollbar in mode line.
 
 \(fn &optional ARG)" t nil)
 
@@ -3670,8 +3694,8 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
-;;;;;;  nxhtml-mode) "nxhtml-mode" "nxhtml/nxhtml-mode.el" (19277
-;;;;;;  65356))
+;;;;;;  nxhtml-mode) "nxhtml-mode" "nxhtml/nxhtml-mode.el" (19356
+;;;;;;  2125))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 (web-autoload-require 'nxhtml-mode 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4297,8 +4321,8 @@ accept it or skip it.
 ;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/key-cat.el"
 ;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/nxml-mode-os-additions.el" "util/org-panel.el" "util/rxi.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19337 52213
-;;;;;;  562000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19360 6140
+;;;;;;  265000))
 
 ;;;***
 
