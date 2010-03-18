@@ -10,7 +10,7 @@
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   Required feature `sml-modeline' was not provided.
+;;   None
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -141,5 +141,6 @@ If you turn this on then you probably want to turn off option
     (setcar mode-line-position sml-old-car-mode-line-position)))
 
 
+(provide 'sml-modeline)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; sml-modeline.el ends here

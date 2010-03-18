@@ -460,6 +460,8 @@
                   (browse-url "http://hyperstruct.net/projects/mozlab"))))
         )
 
+      (define-key tools-map [nxhtml-ediff-url]
+        (list 'menu-item "Compare download file" 'ediff-url))
       (define-key tools-map [nxhtml-investigate-elisp]
         (list 'menu-item "Investigate Elisp File" 'web-vcs-investigate-elisp-file))
 

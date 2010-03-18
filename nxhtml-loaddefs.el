@@ -481,6 +481,20 @@ For more information about this see `cusnu-export-cust-group'.
 
 ;;;***
 
+;;;### (autoloads (ediff-url) "ediff-url" "util/ediff-url.el" (19362
+;;;;;;  29689))
+;;; Generated autoloads from util/ediff-url.el
+(web-autoload-require 'ediff-url 'lp '(nxhtml-download-root-url nil) "util/ediff-url" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'ediff-url `(lp '(nxhtml-download-root-url nil) "util/ediff-url" nxhtml-install-dir) "\
+Compare current buffer to a web URL using `ediff-buffers'.
+Check URL using `ediff-url-redirects' before fetching the file.
+
+\(fn URL)" t nil)
+
+;;;***
+
 ;;;### (autoloads (ffip-find-file-in-dirtree ffip-set-current-project)
 ;;;;;;  "ffip" "util/ffip.el" (19257 25432))
 ;;; Generated autoloads from util/ffip.el
@@ -2064,7 +2078,7 @@ handled is governed by `sex-keep-dummy-buffer'.
 ;;;***
 
 ;;;### (autoloads (sml-mode sml-modeline) "sml-modeline" "util/sml-modeline.el"
-;;;;;;  (19362 11736))
+;;;;;;  (19362 29702))
 ;;; Generated autoloads from util/sml-modeline.el
 (web-autoload-require 'sml-modeline 'lp '(nxhtml-download-root-url nil) "util/sml-modeline" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3696,8 +3710,8 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
-;;;;;;  nxhtml-mode) "nxhtml-mode" "nxhtml/nxhtml-mode.el" (19356
-;;;;;;  2125))
+;;;;;;  nxhtml-mode) "nxhtml-mode" "nxhtml/nxhtml-mode.el" (19362
+;;;;;;  19119))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 (web-autoload-require 'nxhtml-mode 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3831,7 +3845,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19360 10988))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19362 29225))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4206,8 +4220,8 @@ accept it or skip it.
 ;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/key-cat.el"
 ;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/nxml-mode-os-additions.el" "util/org-panel.el" "util/rxi.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19362 18491
-;;;;;;  343000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19362 29734
+;;;;;;  578000))
 
 ;;;***
 

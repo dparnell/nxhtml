@@ -128,6 +128,7 @@
         ))))
 
 (define-toggle nxhtml-tag-do-also t
+;;(define-minor-mode nxhtml-tag-do-also
   "When completing tag names do some more if non-nil.
 For some tag names additional things can be done at completion to
 speed writing up.  For example for an <img ...> tag `nxhtml-mode'
@@ -136,6 +137,7 @@ if this attribute points to a local file.
 
 You can add additional elisp code for completing to
 `nxhtml-complete-tag-do-also'."
+  ;;:global t :init-value t
   :set (lambda (symbol value)
          (set-default symbol value)
          (nxhtml-turn-onoff-tag-do-also value))
