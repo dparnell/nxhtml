@@ -258,41 +258,41 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 ;; so that parsing of them by nxml may be skipped. Or, rather if the
 ;; borders are not part of the chunk then assume nxml can not parse
 ;; the chunk and the borders.
-(defun mumamo-search-bw-exc-start-xml-pi-1 (pos min lt-chars)
-  "Helper for `mumamo-chunk-xml-pi'.
-POS is where to start search and MIN is where to stop.
-LT-CHARS is just <?.
+;; (defun mumamo-search-bw-exc-start-xml-pi-1 (pos min lt-chars)
+;;   "Helper for `mumamo-chunk-xml-pi'.
+;; POS is where to start search and MIN is where to stop.
+;; LT-CHARS is just <?.
 
-Actual use is in `mumamo-search-bw-exc-start-xml-pi'."
-  (let ((exc-start (mumamo-chunk-start-bw-str (+ pos 2) min lt-chars))
-        spec
-        exc-mode
-        hit)
-    (when exc-start
-      (goto-char exc-start)
-      (when (and (not (looking-at "xml"))
-                 (looking-at (rx (0+ (any "a-z")))))
-        ;; (setq exc-start (match-end 0)) include it in sub chunk instead
-        (setq exc-start (- exc-start 2))
-        (setq spec (match-string-no-properties 0))
-        (setq exc-mode (assoc spec mumamo-xml-pi-mode-alist))
-        (when exc-mode (setq exc-mode (cdr exc-mode)))
-        (setq hit t)
-        )
-      (when hit
-        (unless exc-mode
-          ;;(setq exc-mode 'fundamental-mode)
-          ;; Fix-me: Better assume php-mode
-          (setq exc-mode 'php-mode))
-        (when (<= exc-start pos)
-          ;;(cons exc-start exc-mode)
-          (list exc-start exc-mode nil)
-          )))))
+;; Actual use is in `mumamo-search-bw-exc-start-xml-pi'."
+;;   (let ((exc-start (mumamo-chunk-start-bw-str (+ pos 2) min lt-chars))
+;;         spec
+;;         exc-mode
+;;         hit)
+;;     (when exc-start
+;;       (goto-char exc-start)
+;;       (when (and (not (looking-at "xml"))
+;;                  (looking-at (rx (0+ (any "a-z")))))
+;;         ;; (setq exc-start (match-end 0)) include it in sub chunk instead
+;;         (setq exc-start (- exc-start 2))
+;;         (setq spec (match-string-no-properties 0))
+;;         (setq exc-mode (assoc spec mumamo-xml-pi-mode-alist))
+;;         (when exc-mode (setq exc-mode (cdr exc-mode)))
+;;         (setq hit t)
+;;         )
+;;       (when hit
+;;         (unless exc-mode
+;;           ;;(setq exc-mode 'fundamental-mode)
+;;           ;; Fix-me: Better assume php-mode
+;;           (setq exc-mode 'php-mode))
+;;         (when (<= exc-start pos)
+;;           ;;(cons exc-start exc-mode)
+;;           (list exc-start exc-mode nil)
+;;           )))))
 
-(defun mumamo-search-bw-exc-start-xml-pi (pos min)
-  "Helper for `mumamo-chunk-xml-pi'.
-POS is where to start search and MIN is where to stop."
-  (mumamo-search-bw-exc-start-xml-pi-1 pos min "<?"))
+;; (defun mumamo-search-bw-exc-start-xml-pi (pos min)
+;;   "Helper for `mumamo-chunk-xml-pi'.
+;; POS is where to start search and MIN is where to stop."
+;;   (mumamo-search-bw-exc-start-xml-pi-1 pos min "<?"))
 
 (defun mumamo-search-fw-exc-start-xml-pi-new (pos min)
   (let ((here (point))
@@ -328,22 +328,22 @@ POS is where to start search and MIN is where to stop."
               (mumamo-msgfntfy "mumamo-xml-pi-end-is-xml-end %s => t" pos)
               t)))))))
 
-(defun mumamo-search-bw-exc-end-xml-pi (pos min)
-  "Helper for `mumamo-chunk-xml-pi'.
-POS is where to start search and MIN is where to stop."
-  ;; Fix me: merge xml header
-  (mumamo-msgfntfy "mumamo-search-bw-exc-end-xml-pi %s %s" pos min)
-  ;;(let ((end-pos (mumamo-chunk-end-bw-str pos min "?>")))
-  (let ((end-pos (mumamo-chunk-end-bw-str-inc pos min "?>")))
-    (mumamo-msgfntfy "  end-pos=%s" end-pos)
-    (when end-pos
-      (unless (or (mumamo-xml-pi-end-is-xml-end end-pos)
-                  (= (save-restriction
-                       (widen)
-                       (char-after (- end-pos 1)))
-                     ?<))
-        (mumamo-msgfntfy "  returning end-pos")
-        end-pos))))
+;; (defun mumamo-search-bw-exc-end-xml-pi (pos min)
+;;   "Helper for `mumamo-chunk-xml-pi'.
+;; POS is where to start search and MIN is where to stop."
+;;   ;; Fix me: merge xml header
+;;   (mumamo-msgfntfy "mumamo-search-bw-exc-end-xml-pi %s %s" pos min)
+;;   ;;(let ((end-pos (mumamo-chunk-end-bw-str pos min "?>")))
+;;   (let ((end-pos (mumamo-chunk-end-bw-str-inc pos min "?>")))
+;;     (mumamo-msgfntfy "  end-pos=%s" end-pos)
+;;     (when end-pos
+;;       (unless (or (mumamo-xml-pi-end-is-xml-end end-pos)
+;;                   (= (save-restriction
+;;                        (widen)
+;;                        (char-after (- end-pos 1)))
+;;                      ?<))
+;;         (mumamo-msgfntfy "  returning end-pos")
+;;         end-pos))))
 
 (defun mumamo-search-fw-exc-end-xml-pi (pos max)
   "Helper for `mumamo-chunk-xml-pi'.
@@ -1185,58 +1185,58 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
       (setcdr (last chunk) '(mumamo-template-indentor))
       chunk)))
 
-(defun mumamo-search-bw-exc-start-django (pos min)
-  "Helper for `mumamo-chunk-django'.
-POS is where to start search and MIN is where to stop."
-  (let ((exc-start (mumamo-chunk-start-bw-str-inc pos min "{%")))
-    (and exc-start
-         (<= exc-start pos)
-         (cons exc-start 'django-mode))))
+;; (defun mumamo-search-bw-exc-start-django (pos min)
+;;   "Helper for `mumamo-chunk-django'.
+;; POS is where to start search and MIN is where to stop."
+;;   (let ((exc-start (mumamo-chunk-start-bw-str-inc pos min "{%")))
+;;     (and exc-start
+;;          (<= exc-start pos)
+;;          (cons exc-start 'django-mode))))
 
-(defun mumamo-search-bw-exc-start-django2(pos min)
-  "Helper for `mumamo-chunk-django2'.
-POS is where to start search and MIN is where to stop."
-  (let ((exc-start (mumamo-chunk-start-bw-str-inc pos min "{{")))
-    (and exc-start
-         (<= exc-start pos)
-         (cons exc-start 'django-mode))))
+;; (defun mumamo-search-bw-exc-start-django2(pos min)
+;;   "Helper for `mumamo-chunk-django2'.
+;; POS is where to start search and MIN is where to stop."
+;;   (let ((exc-start (mumamo-chunk-start-bw-str-inc pos min "{{")))
+;;     (and exc-start
+;;          (<= exc-start pos)
+;;          (cons exc-start 'django-mode))))
 
-(defun mumamo-search-bw-exc-start-django3(pos min)
-  "Helper for `mumamo-chunk-django3'.
-POS is where to start search and MIN is where to stop."
-  (let ((exc-start (mumamo-chunk-start-bw-str-inc pos min "{#")))
-    (and exc-start
-         (<= exc-start pos)
-         (cons exc-start 'mumamo-comment-mode))))
+;; (defun mumamo-search-bw-exc-start-django3(pos min)
+;;   "Helper for `mumamo-chunk-django3'.
+;; POS is where to start search and MIN is where to stop."
+;;   (let ((exc-start (mumamo-chunk-start-bw-str-inc pos min "{#")))
+;;     (and exc-start
+;;          (<= exc-start pos)
+;;          (cons exc-start 'mumamo-comment-mode))))
 
-(defun mumamo-search-bw-exc-start-django4(pos min)
-  "Helper for `mumamo-chunk-django4'.
-POS is where to start search and MIN is where to stop."
-  (let ((exc-start (mumamo-chunk-start-bw-str-inc pos min
-                                                       "{% comment %}")))
-    (and exc-start
-         (<= exc-start pos)
-         (cons exc-start 'mumamo-comment-mode))))
+;; (defun mumamo-search-bw-exc-start-django4(pos min)
+;;   "Helper for `mumamo-chunk-django4'.
+;; POS is where to start search and MIN is where to stop."
+;;   (let ((exc-start (mumamo-chunk-start-bw-str-inc pos min
+;;                                                        "{% comment %}")))
+;;     (and exc-start
+;;          (<= exc-start pos)
+;;          (cons exc-start 'mumamo-comment-mode))))
 
-(defun mumamo-search-bw-exc-end-django (pos min)
-  "Helper for `mumamo-chunk-django'.
-POS is where to start search and MIN is where to stop."
-  (mumamo-chunk-end-bw-str-inc pos min "%}"))
+;; (defun mumamo-search-bw-exc-end-django (pos min)
+;;   "Helper for `mumamo-chunk-django'.
+;; POS is where to start search and MIN is where to stop."
+;;   (mumamo-chunk-end-bw-str-inc pos min "%}"))
 
-(defun mumamo-search-bw-exc-end-django2(pos min)
-  "Helper for `mumamo-chunk-django2'.
-POS is where to start search and MIN is where to stop."
-  (mumamo-chunk-end-bw-str-inc pos min "}}"))
+;; (defun mumamo-search-bw-exc-end-django2(pos min)
+;;   "Helper for `mumamo-chunk-django2'.
+;; POS is where to start search and MIN is where to stop."
+;;   (mumamo-chunk-end-bw-str-inc pos min "}}"))
 
-(defun mumamo-search-bw-exc-end-django3(pos min)
-  "Helper for `mumamo-chunk-django3'.
-POS is where to start search and MIN is where to stop."
-  (mumamo-chunk-end-bw-str-inc pos min "#}"))
+;; (defun mumamo-search-bw-exc-end-django3(pos min)
+;;   "Helper for `mumamo-chunk-django3'.
+;; POS is where to start search and MIN is where to stop."
+;;   (mumamo-chunk-end-bw-str-inc pos min "#}"))
 
-(defun mumamo-search-bw-exc-end-django4(pos min)
-  "Helper for `mumamo-chunk-django4'.
-POS is where to start search and MIN is where to stop."
-  (mumamo-chunk-end-bw-str-inc pos min "{% endcomment %}"))
+;; (defun mumamo-search-bw-exc-end-django4(pos min)
+;;   "Helper for `mumamo-chunk-django4'.
+;; POS is where to start search and MIN is where to stop."
+;;   (mumamo-chunk-end-bw-str-inc pos min "{% endcomment %}"))
 
 (defun mumamo-search-fw-exc-start-django (pos max)
   "Helper for `mumamo-chunk-django'.
