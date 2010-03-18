@@ -962,7 +962,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19360 11809))
+;;;;;;  (19362 16428))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1107,7 +1107,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode
 ;;;;;;  mumamo-define-html-file-wide-keys) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19356 8838))
+;;;;;;  (19362 8256))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2064,7 +2064,7 @@ handled is governed by `sex-keep-dummy-buffer'.
 ;;;***
 
 ;;;### (autoloads (sml-mode sml-modeline) "sml-modeline" "util/sml-modeline.el"
-;;;;;;  (19360 10799))
+;;;;;;  (19362 11736))
 ;;; Generated autoloads from util/sml-modeline.el
 (web-autoload-require 'sml-modeline 'lp '(nxhtml-download-root-url nil) "util/sml-modeline" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4048,7 +4048,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;### (autoloads (web-vcs-investigate-elisp-file web-vcs-byte-compile-file
 ;;;;;;  web-vcs-message-with-face web-vcs-get-files-from-root web-vcs-log-edit
 ;;;;;;  web-vcs-default-download-directory) "web-vcs" "web-vcs.el"
-;;;;;;  (19292 49706))
+;;;;;;  (19362 18337))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4103,7 +4103,7 @@ Not documented
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-byte-recompile
 ;;;;;;  nxhtmlmaint-start-byte-compilation) "nxhtmlmaint" "nxhtmlmaint.el"
-;;;;;;  (19292 11678))
+;;;;;;  (19362 18469))
 ;;; Generated autoloads from nxhtmlmaint.el
 (web-autoload-require 'nxhtmlmaint 'lp '(nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4206,8 +4206,8 @@ accept it or skip it.
 ;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/key-cat.el"
 ;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/nxml-mode-os-additions.el" "util/org-panel.el" "util/rxi.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19361 28111
-;;;;;;  890000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19362 18491
+;;;;;;  343000))
 
 ;;;***
 

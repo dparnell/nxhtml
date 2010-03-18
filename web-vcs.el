@@ -1273,14 +1273,16 @@ If LOAD"
           (insert "** Compile " rel-file "\n"))
         (setq start (point))
         (when (file-exists-p elc-file) (delete-file elc-file))
-        (setenv "EMACSLOADPATH" newlp)
-        (apply 'call-process this-emacs-exe nil out-buf t
-               "-Q" "--batch"
-               "--eval" "(remove-hook 'find-file-hook 'vc-find-file-hook)"
-               "--file" file
-               "-f" "emacs-lisp-byte-compile"
-               nil)
-        (setenv "EMACSLOADPATH" old-emacsloadpath)
+        (if (not window-system)
+            (emacs-lisp-byte-compile-and-load)
+          (setenv "EMACSLOADPATH" newlp)
+          (apply 'call-process this-emacs-exe nil out-buf t
+                 "-Q" "--batch"
+                 "--eval" "(remove-hook 'find-file-hook 'vc-find-file-hook)"
+                 "--file" file
+                 "-f" "emacs-lisp-byte-compile"
+                 nil)
+          (setenv "EMACSLOADPATH" old-emacsloadpath))
         (goto-char start)
         (while (re-search-forward "^\\([a-zA-Z0-9/\._-]+\\):[0-9]+:[0-9]+:" nil t)
           (let ((rel-file (file-relative-name file))
@@ -1288,7 +1290,7 @@ If LOAD"
             (replace-match rel-file nil nil nil 1)))
         (goto-char (point-max))))
     (when (file-exists-p elc-file)
-      (when load (load elc-file))
+      (when (and load window-system) (load elc-file))
       t)))
 
 

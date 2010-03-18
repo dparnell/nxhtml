@@ -323,7 +323,8 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
                                   exec-suffixes))
          (process-args `(,this-emacs nil 0 nil "-Q")))
     (nxhtmlmaint-byte-uncompile-all)
-    (if noninteractive
+    (if (or noninteractive
+            (not window-system))
         (nxhtmlmaint-byte-compile-all)
       ;;(when noninteractive (setq process-args (append process-args '("-batch"))))
       (setq process-args (append process-args
@@ -357,6 +358,7 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
          (emacsw32-dir (file-name-as-directory
                         (expand-file-name "../lisp"
                                           nxhtmlmaint-dir)))
+         (default-dir nxhtml-dir)
          )
     (add-to-list 'load-path nxhtml-dir)
     (add-to-list 'load-path util-dir)
