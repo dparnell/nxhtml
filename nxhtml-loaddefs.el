@@ -482,7 +482,7 @@ For more information about this see `cusnu-export-cust-group'.
 ;;;***
 
 ;;;### (autoloads (ediff-url) "ediff-url" "util/ediff-url.el" (19362
-;;;;;;  29689))
+;;;;;;  32321))
 ;;; Generated autoloads from util/ediff-url.el
 (web-autoload-require 'ediff-url 'lp '(nxhtml-download-root-url nil) "util/ediff-url" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -490,6 +490,13 @@ For more information about this see `cusnu-export-cust-group'.
 (nxhtml-autoload 'ediff-url `(lp '(nxhtml-download-root-url nil) "util/ediff-url" nxhtml-install-dir) "\
 Compare current buffer to a web URL using `ediff-buffers'.
 Check URL using `ediff-url-redirects' before fetching the file.
+
+This is for checking downloaded file.  A the file may have a comment
+telling the download URL of thise form in the header:
+
+   ;; URL: http://the-server.net/the-path/the-file.el
+
+If not the user is asked for the URL.
 
 \(fn URL)" t nil)
 
@@ -2077,27 +2084,29 @@ handled is governed by `sex-keep-dummy-buffer'.
 
 ;;;***
 
-;;;### (autoloads (sml-mode sml-modeline) "sml-modeline" "util/sml-modeline.el"
-;;;;;;  (19362 29702))
+;;;### (autoloads (sml-modeline-mode sml-modeline) "sml-modeline"
+;;;;;;  "util/sml-modeline.el" (19362 42184))
 ;;; Generated autoloads from util/sml-modeline.el
 (web-autoload-require 'sml-modeline 'lp '(nxhtml-download-root-url nil) "util/sml-modeline" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
 
 (let ((loads (get 'sml-modeline 'custom-loads))) (if (member '"sml-modeline" loads) nil (put 'sml-modeline 'custom-loads (cons '"sml-modeline" loads))))
 
-(defvar sml-mode nil "\
-Non-nil if Sml mode is enabled.
-See the command `sml-mode' for a description of this minor mode.
+(defvar sml-modeline-mode nil "\
+Non-nil if Sml-Modeline mode is enabled.
+See the command `sml-modeline-mode' for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
-or call the function `sml-mode'.")
+or call the function `sml-modeline-mode'.")
 
-(nxhtml-custom-autoload 'sml-mode 'sml-modeline nil)
+(nxhtml-custom-autoload 'sml-modeline-mode 'sml-modeline nil)
 
-(nxhtml-autoload 'sml-mode `(lp '(nxhtml-download-root-url nil) "util/sml-modeline" nxhtml-install-dir) "\
+(nxhtml-autoload 'sml-modeline-mode `(lp '(nxhtml-download-root-url nil) "util/sml-modeline" nxhtml-install-dir) "\
 Show buffer size and position like scrollbar in mode line.
-If you turn this on then you probably want to turn off option
-`scroll-bar-mode'.
+You can customize this minor mode, see option `sml-modeline-mode'.
+
+Note: If you turn this mode on then you probably want to turn off
+option `scroll-bar-mode'.
 
 \(fn &optional ARG)" t nil)
 
@@ -4220,8 +4229,8 @@ accept it or skip it.
 ;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/key-cat.el"
 ;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/nxml-mode-os-additions.el" "util/org-panel.el" "util/rxi.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19362 29734
-;;;;;;  578000))
+;;;;;;  "util/useful-commands.el" "web-autoload.el") (19362 42356
+;;;;;;  46000))
 
 ;;;***
 
