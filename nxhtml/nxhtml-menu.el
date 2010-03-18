@@ -832,7 +832,7 @@
         (list 'menu-item "Options" options-map))
 
       (define-key options-map [nxhtml-save-opt]
-        (list 'menu-item "Save Changed Options" 'customize-save-customized))
+        (list 'menu-item "Save All Changed Options" 'customize-save-customized))
 
       (define-key options-map [nxhtml-save-sep] (list 'menu-item "--"))
 
@@ -855,6 +855,10 @@
               :button '(:toggle . (and (boundp 'inlimg-global-mode)
                                        inlimg-global-mode))))
       (define-key options-map [nxhtml-opt-sep] (list 'menu-item "--"))
+      (define-key options-map [nxhtml-sml-mode]
+        (list 'menu-item "Mode line scroll indicator" 'sml-mode
+              :button '(:toggle . (and (boundp 'sml-mode)
+                                       sml-mode))))
       (define-key options-map [rebind-keys]
         (list 'menu-item "Rebind My Choosen Keys" 'rebind-keys-mode
               :button '(:toggle . (and (boundp 'rebind-keys-mode)

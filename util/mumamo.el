@@ -1901,7 +1901,10 @@ correct but we want to check those after.  Put thosie in
              (last-chunk-is-closed t)
              (ok-pos (or (and mumamo-last-chunk
                               (- (overlay-end mumamo-last-chunk)
-                                 (or (and last-chunk-is-closed 1)
+                                 ;;(or (and last-chunk-is-closed 1)
+                                 (or (and (/= (overlay-end mumamo-last-chunk)
+                                             (1+ (buffer-size)))
+                                          1)
                                      0)))
                          0))
              (end-param end)
@@ -1930,6 +1933,7 @@ correct but we want to check those after.  Put thosie in
                   (while (and (mumamo-while 1500 'while-n3 "until end")
                               (or (not end)
                                   (<= ok-pos end))
+                              (prog1 t (msgtrc "ok-pos=%s in while" ok-pos))
                               (< ok-pos (point-max))
                               (not (setq interrupted (and (not end)
                                                           (input-pending-p)))))
@@ -1965,6 +1969,7 @@ correct but we want to check those after.  Put thosie in
                       (setq first-check-from nil)
                       (setq ok-pos (or (mumamo-new-chunk-value-max this-new-values) ;;(overlay-end this-chunk)
                                        (point-max)))
+                      (msgtrc "ok-pos=%s, point-max=%s max=%s" ok-pos (point-max) (mumamo-new-chunk-value-max this-new-values))
                       ;; With the new organization all chunks are created here.
                       (if (mumamo-old-tail-fits this-new-values)
                           (mumamo-reuse-old-tail-head)
@@ -3411,7 +3416,9 @@ This just considers existing chunks."
 
 (defun mumamo-main-major-mode ()
   "Return major mode used when there are no chunks."
-  (cadr mumamo-current-chunk-family))
+  (let ((mm (cadr mumamo-current-chunk-family)))
+    (if mm mm
+      (msgtrc "main-major-mode => nil, mumamo-current-chunk-family=%s" mumamo-current-chunk-family))))
 ;;;   (let ((main (cadr mumamo-current-chunk-family)))
 ;;;     (if main
 ;;;         main
@@ -4103,8 +4110,9 @@ after this in the properties below of the now created chunk:
           (mumamo-chunk-push this-chunk 'mumamo-next-end-fun next-end-fun))
          ((= -1 next-depth-diff)
           (mumamo-chunk-pop this-chunk 'mumamo-next-border-fun)
-          (mumamo-chunk-pop  this-chunk 'mumamo-next-end-fun)
-          )
+          (mumamo-chunk-pop  this-chunk 'mumamo-next-end-fun))
+         ((= 0 next-depth-diff)
+          nil)
          (t (error "next-depth-diff=%s" next-depth-diff)))
         ;;(msgtrc "mumamo-next-end-fun=%S" (overlay-get this-chunk 'mumamo-next-end-fun))
 
@@ -4440,6 +4448,7 @@ See also `mumamo-new-create-chunk' for more information."
                           ;; We are going out of a sub chunk.
                           (mumamo-chunk-cadr after-chunk 'mumamo-major-mode))
                        (mumamo-main-major-mode)))
+         (dummy (msgtrc "curr-major=%s" curr-major))
          (curr-chunk-funs
           (if (or (not after-chunk)
                   (= 0 (+ (overlay-get after-chunk 'mumamo-depth)
@@ -4662,13 +4671,14 @@ See also `mumamo-new-create-chunk' for more information."
           (setq curr-max (min (if next-min next-min curr-max)
                               (if curr-end-fun-end curr-end-fun-end curr-max))))
         ;;(setq curr-max nil)
-        (setq next-depth-diff (if (and curr-max curr-end-fun-end
+        (setq next-depth-diff (cond
+                               ( (and curr-max curr-end-fun-end
                                        (= curr-max curr-end-fun-end))
-                                  -1
-                                1))
-        (when (= -1 next-depth-diff)
-          ;;(setq next-major (mumamo-chunk-car after-chunk 'mumamo-major-mode))
-          ;; We will pop it from 'mumamo-major-mode
+                                 -1)
+                               ( (= curr-max (1+ (buffer-size)))
+                                 0)
+                               ( t 1)))
+        (when (= -1 next-depth-diff) ;; We will pop it from 'mumamo-major-mode
           (setq next-major nil))
         (when curr-max
           (unless (>= curr-max curr-min)
@@ -4678,8 +4688,16 @@ See also `mumamo-new-create-chunk' for more information."
           (assert (eq curr-major (mumamo-main-major-mode)) t)
           )
         (assert (symbolp next-major) t)
-        (when (or (not curr-end-fun-end)
-                  (/= curr-end-fun-end curr-max))
+        ;; Fix-me: see for example rr-min8.php
+        (when (or (not after-chunk)
+                  (cond
+                   ((= next-depth-diff 1)
+                    next-border-fun)
+                   ((= next-depth-diff -1)
+                    next-border-fun)
+                   ((= next-depth-diff 0)
+                    t)
+                   (t (error "next-depth-diff=%s" next-depth-diff))))
           (setq curr-insertion-type-end t))
         (let ((current (list curr-min curr-max curr-major curr-border-min curr-border-max curr-parseable
                              curr-chunk-funs after-chunk
