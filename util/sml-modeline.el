@@ -17,6 +17,7 @@
 ;;; Commentary:
 ;;
 ;; Show scrollbar like position indicator in mode line.
+;; See the global minor mode `sml-modeline-mode' for more information.
 ;;
 ;; Idea and part of this code is adapted from David Engster's and Drew
 ;; Adam's code in these mail messages:
@@ -52,7 +53,7 @@
 
 ;;;###autoload
 (defgroup sml-modeline nil
-  "Customization group for `sml-mode'."
+  "Customization group for `sml-modeline-mode'."
   :group 'frames)
 
 (defcustom sml-len 12
@@ -127,13 +128,15 @@ This is a pair of indicators, like [] or nil."
 (defvar sml-old-car-mode-line-position nil)
 
 ;;;###autoload
-(define-minor-mode sml-mode
+(define-minor-mode sml-modeline-mode
   "Show buffer size and position like scrollbar in mode line.
-If you turn this on then you probably want to turn off option
-`scroll-bar-mode'."
+You can customize this minor mode, see option `sml-modeline-mode'.
+
+Note: If you turn this mode on then you probably want to turn off
+option `scroll-bar-mode'."
   :global t
   :group 'sml-modeline
-  (if sml-mode
+  (if sml-modeline-mode
       (progn
         (unless sml-old-car-mode-line-position
           (setq sml-old-car-mode-line-position (car mode-line-position)))
