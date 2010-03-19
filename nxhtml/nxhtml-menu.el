@@ -857,10 +857,14 @@
               :button '(:toggle . (and (boundp 'inlimg-global-mode)
                                        inlimg-global-mode))))
       (define-key options-map [nxhtml-opt-sep] (list 'menu-item "--"))
-      (define-key options-map [nxhtml-sml-mode]
-        (list 'menu-item "Mode line scroll indicator" 'sml-mode
-              :button '(:toggle . (and (boundp 'sml-mode)
-                                       sml-mode))))
+      (define-key options-map [nxhtml-hl-needed-mode]
+        (list 'menu-item "Tell Me Where I Am" 'hl-needed-mode
+              :button '(:toggle . (and (boundp 'hl-needed-mode)
+                                       hl-needed-mode))))
+      (define-key options-map [nxhtml-sml-modeline-mode]
+        (list 'menu-item "Mode line scroll indicator" 'sml-modeline-mode
+              :button '(:toggle . (and (boundp 'sml-modeline-mode)
+                                       sml-modeline-mode))))
       (define-key options-map [rebind-keys]
         (list 'menu-item "Rebind My Choosen Keys" 'rebind-keys-mode
               :button '(:toggle . (and (boundp 'rebind-keys-mode)
