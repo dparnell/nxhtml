@@ -4663,7 +4663,7 @@ See also `mumamo-new-create-chunk' for more information."
                     (assert (<= curr-border-min max) t))
                   (when curr-border-max
                     (assert (<= next-min curr-border-max) t)
-                    (assert (< curr-border-max max) t))))
+                    (assert (<= curr-border-max max) t))))
               )))
         (goto-char here)
         (setq curr-max-found (or curr-max-found curr-end-fun-end))
@@ -7153,9 +7153,7 @@ The following rules are used when indenting:
                                          (overlay-get prev-prev-line-chunk2 'mumamo-depth)))
                      (prev-prev-depth3 (when prev-prev-line-chunk3
                                          (overlay-get prev-prev-line-chunk3 'mumamo-depth))))
-                (msgtrc "depths 2=%s/%s/%s 3=%s/%s/%s"
-                        prev-prev-depth2 prev-depth2 this-depth2
-                        prev-prev-depth3 prev-depth3 this-depth3)
+                (msgtrc "depths 2=%s/%s/%s 3=%s/%s/%s" prev-prev-depth2 prev-depth2 this-depth2 prev-prev-depth3 prev-depth3 this-depth3)
                 (setq entering-submode-arg
                       (if prev-prev-depth2
                           (if (and (eq prev-prev-line-chunk2
