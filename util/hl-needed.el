@@ -2,15 +2,15 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Fri Nov 30 21:19:18 2007
-;; Version: 0.59
-;; Last-Updated: 2008-01-21T01:47:44+0100 Mon
+;; Version: 0.60
+;; Last-Updated: 2010-03-19 Fri
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/hl-needed.el
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   None
+  ;; `hl-line', `vline'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -82,7 +82,7 @@ This is similar to turning on `vline-mode' and `hl-line-mode'"
   :type '(repeat function)
   :group 'hl-needed)
 
-(defcustom hl-needed-idle-time 30
+(defcustom hl-needed-idle-time 20
   "Highligh current line and/or column if Emacs is idle for more seconds.
 If nil do not turn on `hl-line-mode' when Emacs is idle."
   :type '(choice (const :tag "Don't turn on when Emacs is idle" nil)
@@ -120,13 +120,13 @@ If nil do not turn on `hl-line-mode' when Emacs is idle."
   "Face for flashing."
   :group 'hl-needed)
 
-(defcustom hl-needed-flash-delay 0.5
+(defcustom hl-needed-flash-delay 0.0
   "Time to wait before turning on flash highlighting.
 If a key is pressed before this flash highlighting is not done."
   :type 'float
   :group 'hl-needed)
 
-(defcustom hl-needed-flash-duration 0.3
+(defcustom hl-needed-flash-duration 1.0
   "Turn off flash highlighting after this number of second.
 Highlighting is turned off only if it was turned on because of
 some change. It will not be turned off if it was turned on
@@ -147,7 +147,7 @@ otherwise."
 
 (defvar hl-needed-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [(control ?c) ??] 'hl-needed-show)
+    (define-key map [(control ?c) ?? ??] 'hl-needed-show)
     map))
 
 ;;;###autoload
@@ -186,7 +186,7 @@ overrides the variables for turning on the respective
 highlighting here."
   :global t
   :group 'hl-needed
-  :keymap hl-needed-mode-map
+  ;;:keymap hl-needed-mode-map
   (if hl-needed-mode
       (progn
         ;;(unless (memq major-mode hl-needed-not-in-modes) (setq hl-needed-window t))
@@ -210,6 +210,7 @@ highlighting here."
 (defvar hl-needed-flash-this nil)
 (defvar hl-needed-config-change nil)
 
+(defvar hl-needed-old-blink nil)
 (defun hl-needed-show ()
   "Highlight current line and/or column now."
   (interactive)
@@ -219,6 +220,8 @@ highlighting here."
       (message "Use hl-needed-hide to remove highlighting")))
   (hl-needed-hide)
   (unless (active-minibuffer-window)
+    (setq hl-needed-old-blink blink-cursor-mode)
+    (when blink-cursor-mode (blink-cursor-mode -1))
     (unless hl-line-mode
       (when hl-needed-mark-line
         (let ((hl-line-mode t)
@@ -235,6 +238,7 @@ highlighting here."
 
 (defun hl-needed-hide ()
   (interactive)
+  (when hl-needed-old-blink (blink-cursor-mode 1))
   (unless hl-line-mode
     (hl-line-unhighlight))
   (when (featurep 'vline)
@@ -267,6 +271,17 @@ Erros may go unnoticed in timers.  This should prevent it."
   (condition-case err
       (unless hl-needed-always
         (hl-needed-hide))
+    (error
+     (lwarn 'hl-needed-hide
+            :error "%s" (error-message-string err)))))
+
+(defun hl-needed-hide-flash-in-timer ()
+  "Turn off with special error handling.
+Erros may go unnoticed in timers.  This should prevent it."
+  (condition-case err
+      (unless hl-needed-always
+        (hl-needed-hide)
+        (hl-needed-start-timer hl-needed-idle-time))
     (error
      (lwarn 'hl-needed-hide
             :error "%s" (error-message-string err)))))
@@ -310,7 +325,7 @@ Erros may go unnoticed in timers.  This should prevent it."
     (hl-needed-cancel-flash-timer)
     (setq hl-needed-flash-timer
           (run-with-timer (+ hl-needed-flash-delay hl-needed-flash-duration)
-                          nil 'hl-needed-hide-in-timer))))
+                          nil 'hl-needed-hide-flash-in-timer))))
 
 (defvar hl-needed-pre-command-time (current-time))
 
@@ -330,8 +345,7 @@ Erros may go unnoticed in timers.  This should prevent it."
               (hl-needed-start-timer hl-needed-flash-delay)
               (hl-needed-start-maybe-flash-timer))))
       ;; Submit an idle timer that can turn highlighting on.
-      (hl-needed-start-timer hl-needed-idle-time)
-      ))
+      (hl-needed-start-timer hl-needed-idle-time)))
     (setq hl-needed-config-change nil)
     (unless (active-minibuffer-window)
       (setq hl-needed-window (selected-window))
