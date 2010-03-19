@@ -1933,7 +1933,7 @@ correct but we want to check those after.  Put thosie in
                   (while (and (mumamo-while 1500 'while-n3 "until end")
                               (or (not end)
                                   (<= ok-pos end))
-                              (prog1 t (msgtrc "ok-pos=%s in while" ok-pos))
+                              ;;(prog1 t (msgtrc "ok-pos=%s in while" ok-pos))
                               (< ok-pos (point-max))
                               (not (setq interrupted (and (not end)
                                                           (input-pending-p)))))
@@ -1969,7 +1969,7 @@ correct but we want to check those after.  Put thosie in
                       (setq first-check-from nil)
                       (setq ok-pos (or (mumamo-new-chunk-value-max this-new-values) ;;(overlay-end this-chunk)
                                        (point-max)))
-                      (msgtrc "ok-pos=%s, point-max=%s max=%s" ok-pos (point-max) (mumamo-new-chunk-value-max this-new-values))
+                      ;;(msgtrc "ok-pos=%s, point-max=%s max=%s" ok-pos (point-max) (mumamo-new-chunk-value-max this-new-values))
                       ;; With the new organization all chunks are created here.
                       (if (mumamo-old-tail-fits this-new-values)
                           (mumamo-reuse-old-tail-head)
@@ -4416,7 +4416,7 @@ is used to find the new chunk, its border etc.
 
 
 See also `mumamo-new-create-chunk' for more information."
-  (msgtrc "(find-next-chunk-values %s %s %s %s)" after-chunk from after-change-max chunk-at-after-change)
+  ;;(msgtrc "(find-next-chunk-values %s %s %s %s)" after-chunk from after-change-max chunk-at-after-change)
   ;;(mumamo-backtrace "find-next")
   (when after-chunk
     (unless (eq (overlay-buffer after-chunk)
@@ -4439,7 +4439,7 @@ See also `mumamo-new-create-chunk' for more information."
                               1))
          (search-from (or nil ;from
                           curr-syntax-min))
-         (dummy (msgtrc "search-from=%s" search-from))
+         ;;(dummy (msgtrc "search-from=%s" search-from))
          (main-chunk-funs (let ((chunk-info (cdr mumamo-current-chunk-family)))
                             (cadr chunk-info)))
          (curr-major (if after-chunk
@@ -4449,7 +4449,7 @@ See also `mumamo-new-create-chunk' for more information."
                           ;; We are going out of a sub chunk.
                           (mumamo-chunk-cadr after-chunk 'mumamo-major-mode))
                        (mumamo-main-major-mode)))
-         (dummy (msgtrc "curr-major=%s" curr-major))
+         ;;(dummy (msgtrc "curr-major=%s" curr-major))
          (curr-chunk-funs
           (if (or (not after-chunk)
                   (= 0 (+ (overlay-get after-chunk 'mumamo-depth)
@@ -4708,7 +4708,7 @@ See also `mumamo-new-create-chunk' for more information."
                              curr-insertion-type-end
                              ))
               (next    (list next-major next-fw-exc-fun next-border-fun next-depth-diff next-indent)))
-          (msgtrc "find-next-chunk-values=> current=%s, next=%s" current next)
+          ;;(msgtrc "find-next-chunk-values=> current=%s, next=%s" current next)
           (list current next))))))
 
 ;; Fix-me: This should check if the new chunk should be
@@ -4782,7 +4782,7 @@ the sexp syntax using major mode MAJOR."
            ;; defadvice of this to make that possible.
            ;;(msgtrc "end-in-code:here b  after-chunk=%s" (when (boundp 'after-chunk) after-chunk))
            (setq ppss (parse-partial-sexp ,syntax-start (+ ,syntax-end 0)))
-           (msgtrc "end-in-code %s %s %s:ppss=%S" ,syntax-start ,syntax-end ',major ppss)
+           ;;(msgtrc "end-in-code %s %s %s:ppss=%S" ,syntax-start ,syntax-end ',major ppss)
            ;;(msgtrc "end-in-code:here c  after-chunk=%s" (when (boundp 'after-chunk) after-chunk))
            ;; If inside a string or comment then the end marker is
            ;; invalid:
@@ -6912,37 +6912,26 @@ This list consists of four chunks at these positions:
     (widen)
     (let* ((lb-pos (line-beginning-position))
            (le-pos (line-end-position))
-           (pos1 (if (> lb-pos (point-min))
+           (pos0 (if (> lb-pos (point-min))
                      (1- lb-pos)
                    (point-min)))
-           (pos2 lb-pos)
-           (pos3 le-pos)
-           (pos4 (if (< le-pos (point-max))
-                     (1+ le-pos)
+           (pos1 lb-pos)
+           (pos2 le-pos)
+           (pos3 (if (< le-pos (point-max))
+                     (+ 1 le-pos)
                    (point-max)))
            ;; Create all chunks on this line first, then grab them
-           ;;(ovl4 (mumamo-get-chunk-save-buffer-state pos4))
-           (ovl4 (mumamo-find-chunks pos4 "mumamo-indent-current-line-chunks"))
-           (ovl3 (if (>= pos3 (overlay-start ovl4))
-                     ovl4
-                   ;;(mumamo-get-chunk-save-buffer-state pos3)
-                   (mumamo-get-existing-new-chunk-at pos3)
-                   ))
+           (ovl3 (mumamo-find-chunks pos3 "mumamo-indent-current-line-chunks"))
            (ovl2 (if (>= pos2 (overlay-start ovl3))
                      ovl3
-                   ;;(mumamo-get-chunk-save-buffer-state pos2)
-                   (mumamo-get-existing-new-chunk-at pos2)
-                   ))
-           (ovl1 (if (> pos1 (overlay-start ovl2))
+                   (mumamo-get-existing-new-chunk-at pos2)))
+           (ovl1 (if (>= pos1 (overlay-start ovl2))
                      ovl2
-                   ;;(mumamo-get-chunk-save-buffer-state pos2)
-                   (mumamo-get-existing-new-chunk-at pos1 t)
-                   ))
-           ;; (ovl1 (<= (overlay-end last-chunk-prev-line) pos1))
-           ;;           last-chunk-prev-line
-           ;;         (mumamo-get-chunk-save-buffer-state pos1)))
-           )
-      (list ovl1 ovl2 ovl3 ovl4))))
+                   (mumamo-get-existing-new-chunk-at pos1)))
+           (ovl0 (if (> pos0 (overlay-start ovl1))
+                     ovl1
+                   (mumamo-get-existing-new-chunk-at pos0 t))))
+      (list ovl0 ovl1 ovl2 ovl3))))
 
 ;; Fix-me: need to back up past comments in for example <style> /* comment */
 ;; fix-me: clean up
@@ -7190,7 +7179,8 @@ The following rules are used when indenting:
     ;;                   prev-line-major0 prev-line-major1 prev-line-major2 prev-line-major3
     ;;                   )
     (when (and leaving-submode entering-submode)
-      (error "Do not know how to indent here (both leaving and entering sub chunks)"))
+      (message "Do not know how to indent here (both leaving and entering sub chunks)")
+      )
     ;; Fix-me: indentation
     ;;(error "Leaving=%s, entering=%s this0,1,2,3=%s,%s,%s,%s" leaving-submode entering-submode this-line-major0 this-line-major1 this-line-major2 this-line-major3)
     (when (or leaving-submode entering-submode)
@@ -7601,7 +7591,7 @@ when `c-fill-paragraph' is the real function used."
 
 (defun mumamo-c-state-cache-init ()
   (unless mumamo-c-state-cache-init
-    (msgtrc "c-state-cache-init running")
+    ;;(msgtrc "c-state-cache-init running")
     (setq mumamo-c-state-cache-init t)
     (setq c-state-cache (or c-state-cache nil))
     (put 'c-state-cache 'permanent-local t)
