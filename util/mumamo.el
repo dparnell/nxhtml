@@ -7096,24 +7096,36 @@ The following rules are used when indenting:
       (unless (= (point) 1)
         (skip-chars-backward "\n\t ")
         (goto-char (line-beginning-position 1))
-        (setq prev-line-chunks (mumamo-indent-current-line-chunks nil)))))
+        (setq prev-line-chunks (mumamo-indent-current-line-chunks nil))
+        (msgtrc "%d:prev-line-chunks=%S"
+                (save-restriction (widen) (line-number-at-pos))
+                prev-line-chunks
+                )
+        )))
   (let* ((prev-line-chunk0 (nth 0 prev-line-chunks))
+         (prev-line-chunk2 (nth 2 prev-line-chunks))
          (prev-line-chunk3 (nth 3 prev-line-chunks))
          (prev-line-major0 (mumamo-chunk-major-mode (nth 0 prev-line-chunks)))
          (prev-line-major1 (mumamo-chunk-major-mode (nth 1 prev-line-chunks)))
          (prev-line-major2 (mumamo-chunk-major-mode (nth 2 prev-line-chunks)))
          (prev-line-major3 (mumamo-chunk-major-mode (nth 3 prev-line-chunks)))
+         (prev-depth2 (if prev-line-chunk2
+                          (overlay-get prev-line-chunk2 'mumamo-depth)
+                        0))
          (prev-depth3 (if prev-line-chunk3
                           (overlay-get prev-line-chunk3 'mumamo-depth)
                         0))
 
          (this-line-chunks (mumamo-indent-current-line-chunks (nth 3 prev-line-chunks)))
+         (dummy (msgtrc "%d:this-line-chunks=%S" (save-restriction (widen) (line-number-at-pos)) this-line-chunks))
          (this-line-chunk0 (nth 0 this-line-chunks))
+         (this-line-chunk2 (nth 2 this-line-chunks))
          (this-line-chunk3 (nth 3 this-line-chunks))
          (this-line-major0 (mumamo-chunk-major-mode (nth 0 this-line-chunks)))
          (this-line-major1 (mumamo-chunk-major-mode (nth 1 this-line-chunks)))
          (this-line-major2 (mumamo-chunk-major-mode (nth 2 this-line-chunks)))
          (this-line-major3 (mumamo-chunk-major-mode (nth 3 this-line-chunks)))
+         (this-depth2 (overlay-get this-line-chunk2 'mumamo-depth))
          (this-depth3 (overlay-get this-line-chunk3 'mumamo-depth))
 
          ;;(dummy (msgtrc "a\t this=%S" this-line-chunks))
@@ -7125,31 +7137,39 @@ The following rules are used when indenting:
          (entering-submode
           ;; Fix-me
           (progn
-            (unless entering-submode-arg
+            (unless nil ;entering-submode-arg
               (let* ((prev-prev-line-chunks
                       (save-excursion
                         (goto-char (line-beginning-position 0))
                         (unless (bobp)
                           (skip-chars-backward "\n\t ")
                           (goto-char (line-beginning-position 1))
-                          (mumamo-indent-current-line-chunks nil))))
+                          (let ((chunks (mumamo-indent-current-line-chunks nil)))
+                            (msgtrc "%d:prev-prev-line-chunks=%S" (save-restriction (widen) (line-number-at-pos)) chunks)
+                            chunks))))
+                     (prev-prev-line-chunk2 (nth 2 prev-prev-line-chunks))
                      (prev-prev-line-chunk3 (nth 3 prev-prev-line-chunks))
+                     (prev-prev-depth2 (when prev-prev-line-chunk2
+                                         (overlay-get prev-prev-line-chunk2 'mumamo-depth)))
                      (prev-prev-depth3 (when prev-prev-line-chunk3
                                          (overlay-get prev-prev-line-chunk3 'mumamo-depth))))
+                (msgtrc "depths 2=%s/%s/%s 3=%s/%s/%s"
+                        prev-prev-depth2 prev-depth2 this-depth2
+                        prev-prev-depth3 prev-depth3 this-depth3)
                 (setq entering-submode-arg
-                      (if prev-prev-depth3
-                          (if (and (eq prev-prev-line-chunk3
-                                       (overlay-get prev-line-chunk3 'mumamo-prev-chunk))
-                                   (< prev-prev-depth3 prev-depth3))
+                      (if prev-prev-depth2
+                          (if (and (eq prev-prev-line-chunk2
+                                       (overlay-get prev-line-chunk2 'mumamo-prev-chunk))
+                                   (< prev-prev-depth2 prev-depth2))
                               'yes
                             'no)
-                        (if (> this-depth3 0) 'yes 'no)
+                        (if (> this-depth2 0) 'yes 'no)
                         ))
                 ))
             (eq 'yes entering-submode-arg)
             )) ;; fix-me
          ;; Fix-me
-         (leaving-submode (> prev-depth3 this-depth3))
+         (leaving-submode (> prev-depth2 this-depth2))
          want-indent ;; The indentation we desire
          got-indent
          (here-on-line (point-marker))
