@@ -161,6 +161,8 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 	      look-max
               )
           ;; make sure if we have find prev-attr= or not
+          (unless (eq (char-after) ?\")
+            (setq next-attr= nil))
           (when next-attr=
             (forward-char)
             (skip-chars-forward "^\"")
@@ -235,6 +237,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
           ;;                'mumamo-chunk-attr=-new-find-borders-fun ;; find-borders-fun
           ;;                ))
           (goto-char here)
+          (setq end nil)
           (when (or start end)
             (list start
                   end
