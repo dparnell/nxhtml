@@ -82,6 +82,7 @@ This is similar to turning on `vline-mode' and `hl-line-mode'"
   :type '(repeat function)
   :group 'hl-needed)
 
+;;(setq hl-needed-idle-time 5)
 (defcustom hl-needed-idle-time 20
   "Highligh current line and/or column if Emacs is idle for more seconds.
 If nil do not turn on `hl-line-mode' when Emacs is idle."

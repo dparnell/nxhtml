@@ -315,6 +315,8 @@ You must restart Emacs to use the byte compiled files.
 If for some reason the byte compiled files does not work you can
 remove then with `nxhtmlmaint-byte-uncompile-all'."
   (interactive)
+  ;; Fix-me: This message and redisplay seems only necessary sometimes.
+  (message "Preparing byte compilation of nXhtml ...") (redisplay t)
   (let* ((this-file    (expand-file-name "nxhtmlmaint.el" nxhtmlmaint-dir))
          (auto-file    (expand-file-name "autostart.el" nxhtmlmaint-dir))
          (web-vcs-file (expand-file-name "nxhtml-web-vcs.el" nxhtmlmaint-dir))

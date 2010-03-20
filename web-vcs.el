@@ -1240,6 +1240,7 @@ If LOAD"
          (newlp old-emacsloadpath)
          ;; Fix-me: name of compile log buffer. When should it be
          ;; deleted? How do I bind it to byte-compile-file? Or do I?
+         (file-buf (find-buffer-visiting file))
          (out-buf (get-buffer-create "*Compile-Log*"))
          (elc-file (byte-compile-dest-file file))
          (this-emacs-exe (locate-file invocation-name
@@ -1247,6 +1248,10 @@ If LOAD"
                                       exec-suffixes))
          (default-directory (or comp-dir default-directory))
          start)
+    ;; (when (and file-buf
+    ;;            (buffer-modified-p file-buf))
+    ;;   (switch-to-buffer file-buf)
+    ;;   (error "Buffer must be saved first: %S" file-buf))
     (dolist (full-p extra-load-path)
       (setq newlp (concat full-p ";" newlp)))
     (unless (get-buffer-window out-buf (selected-frame))
@@ -1274,7 +1279,7 @@ If LOAD"
         (setq start (point))
         (when (file-exists-p elc-file) (delete-file elc-file))
         (if (not window-system)
-            (emacs-lisp-byte-compile-and-load)
+            (byte-compile-file file)
           (setenv "EMACSLOADPATH" newlp)
           (apply 'call-process this-emacs-exe nil out-buf t
                  "-Q" "--batch"
