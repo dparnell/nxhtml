@@ -1,8 +1,6 @@
 ;;; html-toc.el --- Building and updating TOC for a site
-
-;; Copyright (C) 2005, 2006, 2007 Lennart Borgman
-
-;; Author: Lennart Borgman <lennartDOTborgmanDOT073ATstudentDOTluDOTse>
+;;
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Wed Feb 01 14:40:13 2006
 (defconst html-toc:version "0.4");; Version:
 ;; Last-Updated: Tue Apr 10 04:09:29 2007 (7200 +0200)

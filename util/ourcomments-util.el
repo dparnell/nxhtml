@@ -1783,6 +1783,8 @@ of those in for example common web browsers."
                          (when (file-directory-p p)
                            (throw 'first p)))))
          (default-directory (file-name-as-directory (expand-file-name first-path))))
+    ;; Fix-me: Adding -nw to restart in console does not work. Any way to fix it?
+    (unless window-system (setq restart-args (cons "-nw" restart-args)))
     (apply 'call-process (ourcomments-find-emacs) nil 0 nil restart-args)
     ;; Wait to give focus to new Emacs instance:
     (sleep-for 3)))
@@ -1791,14 +1793,16 @@ of those in for example common web browsers."
 (defun emacs-restart ()
   "Restart Emacs and start `server-mode' if on before."
   (interactive)
-  (let ((wait 4))
-    (while (> (setq wait (1- wait)) 0)
-      (message (propertize (format "Will restart Emacs in %d seconds..." wait)
-                           'face 'secondary-selection))
-      (sit-for 1)))
-  (setq ourcomments-restart-server-mode server-mode)
-  (add-hook 'kill-emacs-hook 'emacs-restart-in-kill t)
-  (save-buffers-kill-emacs))
+  (if (not window-system)
+      (message "Can't restart emacs if window-system is nil")
+    (let ((wait 4))
+      (while (> (setq wait (1- wait)) 0)
+        (message (propertize (format "Will restart Emacs in %d seconds..." wait)
+                             'face 'secondary-selection))
+        (sit-for 1)))
+    (setq ourcomments-restart-server-mode server-mode)
+    (add-hook 'kill-emacs-hook 'emacs-restart-in-kill t)
+    (save-buffers-kill-emacs)))
 
 ;;;###autoload
 (defun emacs (&rest args)

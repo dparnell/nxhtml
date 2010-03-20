@@ -1,8 +1,6 @@
 ;;; html-wtoc.el --- Creating pages with site TOC
-
-;; Copyright (C) 2005 by Lennart Borgman
-
-;; Author: Lennart Borgman <lennartDOTborgmanDOT073ATstudentDOTluDOTse>
+;;
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Feb 11 00:06:14 2006
 (defconst html-wtoc:version "0.2") ;; Version:
 ;; Last-Updated: Sun Nov 04 21:49:34 2007 (3600 +0100)

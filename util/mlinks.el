@@ -317,7 +317,8 @@ This is specified in `mlinks-mode-functions'."
            (not (boundp 'define-global-minor-mode-bug)))
   (mlinks-global-mode 1))
 
-(define-toggle mlinks-active-links t
+;;(define-toggle mlinks-active-links t
+(define-minor-mode mlinks-active-links
   "Use quick movement keys on active links if non-nil.
 When moving to an mlink with `mlinks-forward-link' or
 `mlinks-backward-link' the link moved to will be in an active
@@ -326,6 +327,8 @@ When the new color is shown the following keys are active
 
 \\{mlinks-hyperactive-point-hilighter-keymap}
 Any command cancels this state."
+  :global t
+  :init-value t
   :group 'mlinks)
 
 

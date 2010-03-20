@@ -1,9 +1,7 @@
 ;;; nxhtml-mode.el --- Edit XHTML files
-
-;; Copyright (C) 2005-2008 by Lennart Borgman
+;;
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Parts are from Peter Heslin (see below)
-
-;; Author:  Lennart Borgman <lennart DOT borgman DOT 073 AT student DOT lu DOT se>
 ;; Created: 2005-08-05
 ;;Version:
 ;; Last-Updated: 2008-12-28 Sun
