@@ -1,8 +1,6 @@
 ;;; html-site.el --- Keeping (X)HTML files together
-
-;; Copyright (C) 2006, 2007 by Lennart Borgman
-
-;; Author: Lennart Borgman <lennartDOTborgmanDOT073ATstudentDOTluDOTse>
+;;
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Wed Mar 01 17:25:52 2006
 (defconst html-site:version "0.3");; Version:
 ;; Last-Updated: 2008-03-22T03:32:06+0100 Sat

@@ -1,8 +1,6 @@
 ;;; html-pagetoc.el --- Insert/rebuild table of contents for html page
-
-;; Copyright (C) 2004 by Lennart Borgman
-
-;; Author:     Lennart Borgman <lennart DOT borgman DOT 073 AT student DOT lu DOT se>
+;;
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2005-08-03
 ;; Last-Updated: Sat Apr 21 14:11:13 2007 (7200 +0200)
 (defconst html-pagetoc:version "0.85") ;; Version:

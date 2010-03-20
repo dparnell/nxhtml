@@ -6,8 +6,7 @@
 ;; Emacs Lisp Archive Entry
 ;; Ancestors filename: tidy.el
 ;; Author: Kahlil (Kal) HODGSON <dorge@tpg.com.au>
-;;     and Lennart Borgman
-;;         <lennart dot borgman dot 073 dot student dot lu dot se>
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Original X-URL: http://www.emacswiki.org/elisp/tidy.el
 ;; Last-Updated: 2008-03-09T13:10:06+0100 Sun
 (defconst tidy-xhtml:version "2.25")

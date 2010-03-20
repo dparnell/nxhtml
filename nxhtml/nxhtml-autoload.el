@@ -1,8 +1,6 @@
 ;; nxhtml-autoload.el -- Autoloading of nxthml-mode
-
-;; Copyright (C) 2005, 2006, 2007 by Lennart Borgman
-
-;; Author: Lennart Borgman <lennartDOTborgmanDOT073ATstudentDOTluDOTse>
+;;
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Feb 11 00:06:14 2006
 ;; Version: 0.51
 ;; Last-Updated: 2008-02-13T01:21:14+0100 Wed
