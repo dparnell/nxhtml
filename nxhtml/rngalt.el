@@ -63,26 +63,38 @@
 ;; (setq x (macroexpand '(defcustom my-temp-opt t "doc" :type 'boolean)))
 ;; (setq x (macroexpand '(define-minor-mode my-temp-mode "doc")))
 ;; (setq x (macroexpand '(define-toggle my-temp-toggle t "doc")))
-(define-toggle rngalt-display-validation-header t
+;;(define-toggle rngalt-display-validation-header t
+(define-minor-mode rngalt-display-validation-header
   "Display XML validation headers at the top of buffer when t.
 The validation header is only displayed in buffers where the main
 major mode is derived from `nxml-mode'."
-  :set (lambda (sym val)
-         (set-default sym val)
-         (when (fboundp 'rngalt-update-validation-header-overlay-everywhere)
-           (rngalt-update-validation-header-overlay-everywhere)))
+  :global t
+  :init-value t
   :group 'relax-ng
-  :group 'nxhtml)
+  :group 'nxhtml
+  (when (fboundp 'rngalt-update-validation-header-overlay-everywhere)
+    (rngalt-update-validation-header-overlay-everywhere)))
 
-(define-toggle rngalt-minimal-validation-header t
+(defun rngalt-display-validation-header-toggle ()
+  "Toggle `rngalt-display-validation-header'."
+  (interactive)
+  (rngalt-display-validation-header (if rngalt-display-validation-header -1 1)))
+
+;;(define-toggle rngalt-minimal-validation-header t
+(define-minor-mode rngalt-minimal-validation-header
   "If non-nil display only a short informaion about the XML validation header.
 See also `rngalt-display-validation-header'."
-  :set (lambda (sym val)
-         (set-default sym val)
-         (when (fboundp 'rngalt-update-validation-header-overlay-everywhere)
-           (rngalt-update-validation-header-overlay-everywhere)))
+  :global t
+  :init-value t
   :group 'relax-ng
-  :group 'nxhtml)
+  :group 'nxhtml
+  (when (fboundp 'rngalt-update-validation-header-overlay-everywhere)
+    (rngalt-update-validation-header-overlay-everywhere)))
+
+(defun rngalt-minimal-validation-header-toggle ()
+  "Toggle `rngalt-minimal-validation-header'."
+  (interactive)
+  (rngalt-minimal-validation-header (if rngalt-minimal-validation-header -1 1)))
 
 (defface rngalt-validation-header-top
   '((t (:foreground "RGB:87/CE/FA" :background "white")))
