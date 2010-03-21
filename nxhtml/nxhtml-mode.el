@@ -125,8 +125,8 @@
         (remove-hook 'rngalt-complete-tag-hooks 'nxhtml-complete-tag-do-also t)
         ))))
 
-(define-toggle nxhtml-tag-do-also t
-;;(define-minor-mode nxhtml-tag-do-also
+;;(define-toggle nxhtml-tag-do-also t
+(define-minor-mode nxhtml-tag-do-also
   "When completing tag names do some more if non-nil.
 For some tag names additional things can be done at completion to
 speed writing up.  For example for an <img ...> tag `nxhtml-mode'
@@ -135,11 +135,15 @@ if this attribute points to a local file.
 
 You can add additional elisp code for completing to
 `nxhtml-complete-tag-do-also'."
-  ;;:global t :init-value t
-  :set (lambda (symbol value)
-         (set-default symbol value)
-         (nxhtml-turn-onoff-tag-do-also value))
-  :group 'nxhtml)
+  :global t
+  :init-value t
+  :group 'nxhtml
+  (nxhtml-turn-onoff-tag-do-also nxhtml-tag-do-also))
+
+(defun nxhtml-tag-do-also-toggle ()
+  "Toggle `nxhtml-tag-do-also'."
+  (interactive)
+  (nxhtml-tag-do-also (if nxhtml-tag-do-also -1 1)))
 
 (defun nxhtml-check-tag-do-also ()
   (when nxhtml-tag-do-also
@@ -2475,7 +2479,8 @@ See `nxhtml-validation-header-if-mumamo' for more information."
              (memq (mumamo-main-major-mode) nxhtml-validation-header-mumamo-modes))
     (nxhtml-validation-header-mode 1)))
 
-(define-toggle nxhtml-validation-header-if-mumamo nil
+;;(define-toggle nxhtml-validation-header-if-mumamo nil
+(define-minor-mode nxhtml-validation-header-if-mumamo
   "Add a fictive validation header when mumamo is used.
 If this variable is t then add a Fictive XHTML Validation Header
 \(see `nxhtml-validation-header-mode') in buffer when mumamo is
@@ -2485,12 +2490,16 @@ those in `nxhtml-validation-header-mumamo-modes'.
 Changing this variable through custom adds/removes the function
 `nxhtml-add-validation-header-if-mumamo' to
 `mumamo-turn-on-hook'."
-  :set '(lambda (sym val)
-          (set-default sym val)
-          (if val
-              (add-hook 'mumamo-turn-on-hook 'nxhtml-add-validation-header-if-mumamo)
-            (remove-hook 'mumamo-turn-on-hook 'nxhtml-add-validation-header-if-mumamo)))
-  :group 'nxhtml)
+  :global t
+  :group 'nxhtml
+  (if nxhtml-validation-header-if-mumamo
+      (add-hook 'mumamo-turn-on-hook 'nxhtml-add-validation-header-if-mumamo)
+    (remove-hook 'mumamo-turn-on-hook 'nxhtml-add-validation-header-if-mumamo)))
+
+(defun nxhtml-validation-header-if-mumamo-toggle ()
+  "Toggle `nxhtml-validation-header-if-mumamo'."
+  (interactive)
+  (nxhtml-validation-header-if-mumamo (if nxhtml-validation-header-if-mumamo -1 1)))
 
 (defun nxhtml-warnings-are-visible ()
   (get 'rng-error 'face))
