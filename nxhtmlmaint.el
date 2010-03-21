@@ -52,12 +52,15 @@
 
 (eval-when-compile (require 'advice))
 (eval-when-compile (require 'nxhtml-base))
-;;(eval-when-compile (require 'nxhtml-web-vcs nil t))
+(eval-when-compile (require 'nxhtml-web-vcs nil t))
 (eval-when-compile (require 'web-vcs nil t))
 (eval-when-compile (require 'ourcomments-util))
 
 (defvar nxhtmlmaint-dir
-  (file-name-directory (if load-file-name load-file-name buffer-file-name))
+  ;;(file-name-directory (if load-file-name load-file-name buffer-file-name))
+  (file-name-directory (or load-file-name
+                           (when (boundp 'bytecomp-filename) bytecomp-filename)
+                           buffer-file-name))
   "Maintenance directory for nXhtml.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -341,6 +344,7 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
 ;;(nxhtmlmaint-byte-compile-all)
 (defun nxhtmlmaint-byte-compile-all ()
   "Byte recompile all files in nXhtml that needs it."
+  (message "nxhtmlmaint-byte-compile-all: nxhtmlmaint-dir=%S, exists=%s" nxhtmlmaint-dir (file-directory-p nxhtmlmaint-dir))
   (let* ((load-path load-path)
          (nxhtml-dir (file-name-as-directory
                       (expand-file-name "nxhtml"
@@ -362,6 +366,10 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
                                           nxhtmlmaint-dir)))
          (default-dir nxhtml-dir)
          )
+    (message "nxhtmlmaint-byte-compile-all: nxhtml-dir=%S, exists=%s" nxhtml-dir (file-directory-p nxhtml-dir))
+    (message "nxhtmlmaint-byte-compile-all: util-dir=%S, exists=%s" util-dir (file-directory-p util-dir))
+    (message "nxhtmlmaint-byte-compile-all: related-dir=%S, exists=%s" related-dir (file-directory-p related-dir))
+    (message "nxhtmlmaint-byte-compile-all: tests-dir=%S, exists=%s" tests-dir (file-directory-p tests-dir))
     (add-to-list 'load-path nxhtml-dir)
     (add-to-list 'load-path util-dir)
     ;;(add-to-list 'load-path nxhtml-company-dir)
