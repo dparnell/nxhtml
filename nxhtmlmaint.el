@@ -377,7 +377,8 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
     (add-to-list 'load-path tests-dir)
     (when (file-directory-p emacsw32-dir)
       (add-to-list 'load-path emacsw32-dir))
-    (require 'cl) ;; This is run in a new Emacs
+    (require 'cl) ;; This is run in a new Emacs. Fix-me: This might not be true any more.
+    (message "load-path=%s" load-path)
     (let ((dummy-debug-on-error t))
       (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir nil nil nil))
     (web-vcs-message-with-face 'web-vcs-gold "Byte compiling nXhtml is ready, restart Emacs to use the compiled files")))
