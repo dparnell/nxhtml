@@ -1280,6 +1280,7 @@ If LOAD"
         (when (file-exists-p elc-file) (delete-file elc-file))
         (if (not window-system)
             (byte-compile-file file)
+          (message "web-vcs-byte-compile-file:newlp=%s" newlp)
           (setenv "EMACSLOADPATH" newlp)
           (apply 'call-process this-emacs-exe nil out-buf t
                  "-Q" "--batch"
