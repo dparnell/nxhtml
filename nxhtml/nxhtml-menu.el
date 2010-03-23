@@ -861,6 +861,10 @@
         (list 'menu-item "Tell Me Where I Am" 'hl-needed-mode
               :button '(:toggle . (and (boundp 'hl-needed-mode)
                                        hl-needed-mode))))
+      (define-key options-map [nxhtml-mark-nonascii]
+        (list 'menu-item "Mark special chars (default nonascii)" 'markchars-global-mode
+              :button '(:toggle . (and (boundp 'markchars-global-mode)
+                                       markchars-global-mode))))
       (define-key options-map [nxhtml-sml-modeline-mode]
         (list 'menu-item "Mode line scroll indicator" 'sml-modeline-mode
               :button '(:toggle . (and (boundp 'sml-modeline-mode)
