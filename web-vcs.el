@@ -1236,7 +1236,8 @@ If LOAD"
   (when (with-no-warnings (called-interactively-p))
     (unless (eq major-mode 'emacs-lisp-mode)
       (error "Must be in emacs-lisp-mode")))
-  (let* ((old-emacsloadpath (getenv "EMACSLOADPATH"))
+  (let* ((old-emacsloadpath (or (getenv "EMACSLOADPATH")
+                                load-path))
          (newlp old-emacsloadpath)
          ;; Fix-me: name of compile log buffer. When should it be
          ;; deleted? How do I bind it to byte-compile-file? Or do I?
