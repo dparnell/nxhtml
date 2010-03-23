@@ -589,7 +589,8 @@ Loading is done if recompiled and LOAD is t."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Start Testing function
 (defun emacs-Q-no-nxhtml (&rest args)
-  (let* ((elp (getenv "EMACSLOADPATH"))
+  (let* ((elp (or (getenv "EMACSLOADPATH")
+                  load-path))
          (elp-list (split-string elp ";"))
          (new-elp-list nil)
          (new-elp "")
