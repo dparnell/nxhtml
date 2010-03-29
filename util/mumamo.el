@@ -4521,7 +4521,15 @@ See also `mumamo-new-create-chunk' for more information."
                   (setq possible-end-fun-end nil)
                 (when (or (and t ;after-chunk-is-closed
                                (< curr-end-fun-end (overlay-end after-chunk)))
-                          (not (mumamo-end-in-code use-min curr-end-fun-end curr-major)))
+                          ;; Fix-me: call curr-border-fun here!
+                          (let* ((syn2-min-max (when curr-border-fun
+                                                 (funcall curr-border-fun
+                                                          (overlay-end after-chunk)
+                                                          curr-end-fun-end
+                                                          nil)))
+                                 (syn2-max (or (cadr syn2-min-max)
+                                                 curr-end-fun-end)))
+                            (not (mumamo-end-in-code use-min syn2-max curr-major))))
                   (setq curr-end-fun-end nil)
                   (setq end-search-pos (1+ end-search-pos)))))
             (unless curr-end-fun-end
