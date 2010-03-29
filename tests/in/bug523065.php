@@ -1,6 +1,6 @@
 
  <?php /* ?>
-
- <?php /* ?>
-        <li><?php echo "line item" ?></li>
-<?php */ ?>
+          This is a comment
+       */
+ ?>
+ This is html

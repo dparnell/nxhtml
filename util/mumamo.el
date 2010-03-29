@@ -4508,20 +4508,22 @@ See also `mumamo-new-create-chunk' for more information."
                                  (overlay-end chunk-at-after-change)))
                  ;;(use-min (max (- search-from 2) (point-min)))
                  (use-min curr-syntax-min)
-                 (possible-end-fun-end t))
+                 (possible-end-fun-end t)
+                 (end-search-pos use-min))
             ;; The code below takes care of the case when to subsequent
             ;; chunks have the same ending delimiter. (Maybe a while
             ;; loop is bit overkill here.)
             (while (and possible-end-fun-end
                         (not curr-end-fun-end)
-                        (< use-min use-max))
-              (setq curr-end-fun-end (funcall curr-end-fun use-min use-max))
+                        (< end-search-pos use-max))
+              (setq curr-end-fun-end (funcall curr-end-fun end-search-pos use-max))
               (if (not curr-end-fun-end)
                   (setq possible-end-fun-end nil)
-                (when (and t ;after-chunk-is-closed
-                           (< curr-end-fun-end (overlay-end after-chunk)))
+                (when (or (and t ;after-chunk-is-closed
+                               (< curr-end-fun-end (overlay-end after-chunk)))
+                          (not (mumamo-end-in-code use-min curr-end-fun-end curr-major)))
                   (setq curr-end-fun-end nil)
-                  (setq use-min (1+ use-min)))))
+                  (setq end-search-pos (1+ end-search-pos)))))
             (unless curr-end-fun-end
               ;; Use old end if valid
               (and after-change-max
@@ -4811,11 +4813,12 @@ the sexp syntax using major mode MAJOR."
                  (if (nth 4 ppss) ;; in comment, check if single line comment
                      (let ((here (point))
                            eol-pos)
-                       (msgtrc "end-in-code, was in comment")
-                       (goto-char ,syntax-start)
+                       ;;(msgtrc "end-in-code, was in comment, ppss=%S" ppss)
+                       (goto-char ,syntax-end)
                        (setq eol-pos (line-end-position))
                        (goto-char here)
                        (setq ppss (parse-partial-sexp ,syntax-start (+ eol-pos 1)))
+                       ;;(msgtrc "end-in-code, in comment, new ppss %s %s=%S" ,syntax-start (+ eol-pos 1) ppss)
                        (unless (nth 4 ppss)
                          (setq doesnt-ret t)))))
              (setq doesnt-ret t)
@@ -7115,10 +7118,7 @@ The following rules are used when indenting:
         (skip-chars-backward "\n\t ")
         (goto-char (line-beginning-position 1))
         (setq prev-line-chunks (mumamo-indent-current-line-chunks nil))
-        (msgtrc "%d:prev-line-chunks=%S"
-                (save-restriction (widen) (line-number-at-pos))
-                prev-line-chunks
-                )
+        ;;(msgtrc "%d:prev-line-chunks=%S" (save-restriction (widen) (line-number-at-pos)) prev-line-chunks )
         )))
   (let* ((prev-line-chunk0 (nth 0 prev-line-chunks))
          (prev-line-chunk2 (nth 2 prev-line-chunks))
@@ -7135,7 +7135,7 @@ The following rules are used when indenting:
                         0))
 
          (this-line-chunks (mumamo-indent-current-line-chunks (nth 3 prev-line-chunks)))
-         (dummy (msgtrc "%d:this-line-chunks=%S" (save-restriction (widen) (line-number-at-pos)) this-line-chunks))
+         ;;(dummy (msgtrc "%d:this-line-chunks=%S" (save-restriction (widen) (line-number-at-pos)) this-line-chunks))
          (this-line-chunk0 (nth 0 this-line-chunks))
          (this-line-chunk2 (nth 2 this-line-chunks))
          (this-line-chunk3 (nth 3 this-line-chunks))
@@ -7163,7 +7163,7 @@ The following rules are used when indenting:
                           (skip-chars-backward "\n\t ")
                           (goto-char (line-beginning-position 1))
                           (let ((chunks (mumamo-indent-current-line-chunks nil)))
-                            (msgtrc "%d:prev-prev-line-chunks=%S" (save-restriction (widen) (line-number-at-pos)) chunks)
+                            ;;(msgtrc "%d:prev-prev-line-chunks=%S" (save-restriction (widen) (line-number-at-pos)) chunks)
                             chunks))))
                      (prev-prev-line-chunk2 (nth 2 prev-prev-line-chunks))
                      (prev-prev-line-chunk3 (nth 3 prev-prev-line-chunks))
@@ -7171,7 +7171,7 @@ The following rules are used when indenting:
                                          (overlay-get prev-prev-line-chunk2 'mumamo-depth)))
                      (prev-prev-depth3 (when prev-prev-line-chunk3
                                          (overlay-get prev-prev-line-chunk3 'mumamo-depth))))
-                (msgtrc "depths 2=%s/%s/%s 3=%s/%s/%s" prev-prev-depth2 prev-depth2 this-depth2 prev-prev-depth3 prev-depth3 this-depth3)
+                ;;(msgtrc "depths 2=%s/%s/%s 3=%s/%s/%s" prev-prev-depth2 prev-depth2 this-depth2 prev-prev-depth3 prev-depth3 this-depth3)
                 (setq entering-submode-arg
                       (if prev-prev-depth2
                           (if (and (eq prev-prev-line-chunk2
