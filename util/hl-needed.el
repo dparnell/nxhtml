@@ -219,6 +219,7 @@ highlighting here."
     (setq hl-needed-flash-this nil)
     (unless hl-needed-mode
       (message "Use hl-needed-hide to remove highlighting")))
+  (setq hl-needed-old-blink nil) ;; So blink is not turned on by hl-needed-hide
   (hl-needed-hide)
   (unless (active-minibuffer-window)
     (setq hl-needed-old-blink blink-cursor-mode)
@@ -239,7 +240,9 @@ highlighting here."
 
 (defun hl-needed-hide ()
   (interactive)
-  (when hl-needed-old-blink (blink-cursor-mode 1))
+  (when (and hl-needed-old-blink
+             (not blink-cursor-mode))
+    (blink-cursor-mode 1))
   (unless hl-line-mode
     (hl-line-unhighlight))
   (when (featurep 'vline)

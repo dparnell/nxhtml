@@ -1236,9 +1236,9 @@ If LOAD"
   (when (with-no-warnings (called-interactively-p))
     (unless (eq major-mode 'emacs-lisp-mode)
       (error "Must be in emacs-lisp-mode")))
-  (let* ((old-emacsloadpath (or (getenv "EMACSLOADPATH")
-                                load-path))
-         (newlp old-emacsloadpath)
+  (let* ((old-env-load-path (getenv "EMACSLOADPATH"))
+         (sub-env-load-path (or old-env-load-path
+                                (mapconcat 'identity load-path ";")))
          ;; Fix-me: name of compile log buffer. When should it be
          ;; deleted? How do I bind it to byte-compile-file? Or do I?
          (file-buf (find-buffer-visiting file))
@@ -1254,7 +1254,7 @@ If LOAD"
     ;;   (switch-to-buffer file-buf)
     ;;   (error "Buffer must be saved first: %S" file-buf))
     (dolist (full-p extra-load-path)
-      (setq newlp (concat full-p ";" newlp)))
+      (setq sub-env-load-path (concat full-p ";" sub-env-load-path)))
     (unless (get-buffer-window out-buf (selected-frame))
       (if (string= file (buffer-file-name))
           (display-buffer out-buf)
@@ -1281,15 +1281,19 @@ If LOAD"
         (when (file-exists-p elc-file) (delete-file elc-file))
         (if (not window-system)
             (byte-compile-file file)
-          (message "web-vcs-byte-compile-file:newlp=%s" newlp)
-          (setenv "EMACSLOADPATH" newlp)
+          (message "web-vcs-byte-compile-file:sub-env-load-path=%s" sub-env-load-path)
+          (unless (stringp sub-env-load-path) (error "I did it again, sub-env-load-path=%S" sub-env-load-path))
+          (setenv "EMACSLOADPATH" sub-env-load-path)
           (apply 'call-process this-emacs-exe nil out-buf t
                  "-Q" "--batch"
                  "--eval" "(remove-hook 'find-file-hook 'vc-find-file-hook)"
                  "--file" file
                  "-f" "emacs-lisp-byte-compile"
                  nil)
-          (setenv "EMACSLOADPATH" old-emacsloadpath))
+          (when old-env-load-path
+            (unless (stringp old-env-load-path)
+              (error "I did it again, old-env-load-path=%S" old-env-load-path)))
+          (setenv "EMACSLOADPATH" old-env-load-path))
         (goto-char start)
         (while (re-search-forward "^\\([a-zA-Z0-9/\._-]+\\):[0-9]+:[0-9]+:" nil t)
           (let ((rel-file (file-relative-name file))

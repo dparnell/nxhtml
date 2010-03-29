@@ -862,11 +862,11 @@
               :button '(:toggle . (and (boundp 'hl-needed-mode)
                                        hl-needed-mode))))
       (define-key options-map [nxhtml-mark-nonascii]
-        (list 'menu-item "Mark special chars (default nonascii)" 'markchars-global-mode
+        (list 'menu-item "Mark Special Chars (default non-IDN)" 'markchars-global-mode
               :button '(:toggle . (and (boundp 'markchars-global-mode)
                                        markchars-global-mode))))
       (define-key options-map [nxhtml-sml-modeline-mode]
-        (list 'menu-item "Mode line scroll indicator" 'sml-modeline-mode
+        (list 'menu-item "Mode Line Scroll Indicator" 'sml-modeline-mode
               :button '(:toggle . (and (boundp 'sml-modeline-mode)
                                        sml-modeline-mode))))
       (define-key options-map [rebind-keys]
@@ -1174,8 +1174,13 @@
               'mumamo-list-defined-multi-major-modes))
       (define-key chunk-map [nxhtml-chunks-separator2]
         (list 'menu-item "--" nil))
+      (define-key chunk-map [nxhtml-chunk-no-colors]
+        (list 'menu-item "Remove Chunk Colors Temporarily"
+              'mumamo-no-chunk-coloring
+              :button '(:toggle . (and (boundp 'mumamo-no-chunk-coloring)
+                                       mumamo-no-chunk-coloring))))
       (define-key chunk-map [nxhtml-chunk-margin-info]
-        (list 'menu-item "Display chunk info in margin"
+        (list 'menu-item "Display Chunk Info in Margin"
               'mumamo-margin-info-global-mode
               :button '(:toggle . (and (boundp 'mumamo-margin-info-global-mode)
                                        mumamo-margin-info-global-mode))))

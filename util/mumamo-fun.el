@@ -297,10 +297,11 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 ;; POS is where to start search and MIN is where to stop."
 ;;   (mumamo-search-bw-exc-start-xml-pi-1 pos min "<?"))
 
-(defun mumamo-search-fw-exc-start-xml-pi-new (pos min)
+(defun mumamo-search-fw-exc-start-xml-pi-new (pos max)
   (let ((here (point))
         start
         spec
+        exc-mode
         ret)
     (setq start (search-forward "<?" max t))
     (when (and start

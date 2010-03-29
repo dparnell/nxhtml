@@ -1094,7 +1094,7 @@ display it."
   "Show timers with readable time format."
   (interactive)
   (with-output-to-temp-buffer (help-buffer)
-    (help-setup-xref (list #'ourcommenst-show-timers (interactive-p))
+    (help-setup-xref (list #'ourcommenst-show-timers) (interactive-p))
     (with-current-buffer (help-buffer)
       (insert (format-time-string "Timers at %Y-%m-%d %H:%M:%S\n\n" (current-time)))
       (if (not timer-list)
@@ -1133,7 +1133,7 @@ display it."
                  (time   (+ (* hi-sec 256 256) lo-sec (/ mi-sec 1000000.0)))
                  )
             (assert (not (not idle-d)) t)
-            (insert (format "  %.2f sec %3s  (`%s' %S)\n" time rpt-d fun args)))))))))
+            (insert (format "  %.2f sec %3s  (`%s' %S)\n" time rpt-d fun args))))))))
 
 (defcustom ourcomments-insert-date-and-time "%Y-%m-%d %R"
   "Time format for command `ourcomments-insert-date-and-time'.

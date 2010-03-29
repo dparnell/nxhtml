@@ -589,15 +589,16 @@ Loading is done if recompiled and LOAD is t."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;; Start Testing function
 (defun emacs-Q-no-nxhtml (&rest args)
-  (let* ((elp (or (getenv "EMACSLOADPATH")
-                  load-path))
-         (elp-list (split-string elp ";"))
-         (new-elp-list nil)
-         (new-elp "")
+  (let* ((old-env-load-path (getenv "EMACSLOADPATH"))
+         sub-env-load-path
+         (elp-list (or (when old-env-load-path
+                         (split-string old-env-load-path ";"))
+                       load-path))
+         (sub-elp-list nil)
          ret
-         (emacs-exe (locate-file invocation-name
-                                 (list invocation-directory)
-                                 exec-suffixes)))
+         (this-emacs-exe (locate-file invocation-name
+                                      (list invocation-directory)
+                                      exec-suffixes)))
     (dolist (p elp-list)
       (when (file-exists-p p)
         (unless (string= nxhtml-install-dir p)
@@ -607,12 +608,11 @@ Loading is done if recompiled and LOAD is t."
                             (directory-file-name dir))))
             (unless (and (string= "nxhtml" last-dir)
                          (member last '("util" "test" "nxhtml" "related" "alt")))
-              (setq new-elp-list (cons p new-elp-list)))))))
-    (setq new-elp (mapconcat 'identity (reverse new-elp-list) ";"))
-    (setenv "EMACSLOADPATH" new-elp)
-    ;;(setq ret (apply 'emacs-Q args))
-    (setq ret (apply 'call-process emacs-exe nil 0 nil "-Q" args))
-    (setenv "EMACSLOADPATH" elp)
+              (setq sub-elp-list (cons p sub-elp-list)))))))
+    (setq sub-env-load-path (mapconcat 'identity (reverse sub-elp-list) ";"))
+    (setenv "EMACSLOADPATH" sub-env-load-path)
+    (setq ret (apply 'call-process this-emacs-exe nil 0 nil "-Q" args))
+    (setenv "EMACSLOADPATH" old-env-load-path)
     ret))
 
 ;; (call-interactively-p 'nxhtml-setup-test-auto-download)
