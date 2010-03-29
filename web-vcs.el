@@ -1248,6 +1248,7 @@ If LOAD"
                                       (list invocation-directory)
                                       exec-suffixes))
          (default-directory (or comp-dir default-directory))
+         (debug-on-error t)
          start)
     ;; (when (and file-buf
     ;;            (buffer-modified-p file-buf))
@@ -1284,12 +1285,16 @@ If LOAD"
           (message "web-vcs-byte-compile-file:sub-env-load-path=%s" sub-env-load-path)
           (unless (stringp sub-env-load-path) (error "I did it again, sub-env-load-path=%S" sub-env-load-path))
           (setenv "EMACSLOADPATH" sub-env-load-path)
-          (apply 'call-process this-emacs-exe nil out-buf t
-                 "-Q" "--batch"
-                 "--eval" "(remove-hook 'find-file-hook 'vc-find-file-hook)"
-                 "--file" file
-                 "-f" "emacs-lisp-byte-compile"
-                 nil)
+          ;; Fix-me: status
+          (let ((ret (apply 'call-process this-emacs-exe nil out-buf t
+                            "-Q" "--batch"
+                            "--eval" "(setq debug-on-error t)"
+                            "--eval" "(remove-hook 'find-file-hook 'vc-find-file-hook)"
+                            "--file" file
+                            "-f" "emacs-lisp-byte-compile"
+                            nil))
+                (inhibit-read-only t))
+            (insert (format "call-process returned: %s\n" ret)))
           (when old-env-load-path
             (unless (stringp old-env-load-path)
               (error "I did it again, old-env-load-path=%S" old-env-load-path)))

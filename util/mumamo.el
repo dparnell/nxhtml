@@ -4521,7 +4521,7 @@ See also `mumamo-new-create-chunk' for more information."
                   (setq possible-end-fun-end nil)
                 (when (or (and t ;after-chunk-is-closed
                                (< curr-end-fun-end (overlay-end after-chunk)))
-                          ;; Fix-me: call curr-border-fun here!
+                          ;; See if the end is in code
                           (let* ((syn2-min-max (when curr-border-fun
                                                  (funcall curr-border-fun
                                                           (overlay-end after-chunk)
@@ -4545,34 +4545,34 @@ See also `mumamo-new-create-chunk' for more information."
 
             ;; Fix-me: this test should also be made for other chunks
             ;; searches, but this catches most problems I think.
-            (or (not curr-end-fun-end)
-                ;; Fix-me: The bug in wiki-090804-js.html indicates that
-                ;; we should not subtract 1 here.  The subchunk there
-                ;; ends with </script> and this can't be in column 1
-                ;; when the line before ends with a // style js comment
-                ;; unless we don't subtract 1.
-                ;;
-                ;; However wiki-strange-hili-080629.html does not work
-                ;; then because then the final " in style="..." is
-                ;; included in the scan done in mumamo-end-in-code.
-                ;;
-                ;; The solution is to check for the syntax borders here.
-                (let* ((syn2-min-max (when curr-border-fun
-                                       (funcall curr-border-fun
-                                                (overlay-end after-chunk)
-                                                curr-end-fun-end
-                                                nil)))
-                       (syntax-max (or (cadr syn2-min-max)
-                                       curr-end-fun-end)))
-                  ;;(mumamo-end-in-code syntax-min (- curr-end-fun-end 1) curr-major)
-                  ;;
-                  ;; fix-me: This should be really in the individual
-                  ;; routines that finds possible chunks. Mabye this is
-                  ;; possible to fix now when just looking forward for
-                  ;; chunks?
-                  (mumamo-end-in-code curr-syntax-min syntax-max curr-major)
-                  )
-                (setq curr-end-fun-end nil))
+            ;; (or (not curr-end-fun-end)
+            ;;     ;; Fix-me: The bug in wiki-090804-js.html indicates that
+            ;;     ;; we should not subtract 1 here.  The subchunk there
+            ;;     ;; ends with </script> and this can't be in column 1
+            ;;     ;; when the line before ends with a // style js comment
+            ;;     ;; unless we don't subtract 1.
+            ;;     ;;
+            ;;     ;; However wiki-strange-hili-080629.html does not work
+            ;;     ;; then because then the final " in style="..." is
+            ;;     ;; included in the scan done in mumamo-end-in-code.
+            ;;     ;;
+            ;;     ;; The solution is to check for the syntax borders here.
+            ;;     (let* ((syn2-min-max (when curr-border-fun
+            ;;                            (funcall curr-border-fun
+            ;;                                     (overlay-end after-chunk)
+            ;;                                     curr-end-fun-end
+            ;;                                     nil)))
+            ;;            (syntax-max (or (cadr syn2-min-max)
+            ;;                            curr-end-fun-end)))
+            ;;       ;;(mumamo-end-in-code syntax-min (- curr-end-fun-end 1) curr-major)
+            ;;       ;;
+            ;;       ;; fix-me: This should be really in the individual
+            ;;       ;; routines that finds possible chunks. Mabye this is
+            ;;       ;; possible to fix now when just looking forward for
+            ;;       ;; chunks?
+            ;;       (mumamo-end-in-code curr-syntax-min syntax-max curr-major)
+            ;;       )
+            ;;     (setq curr-end-fun-end nil))
             ;; Use old result if valid
             ;; (and nil ;(not curr-end-fun-end)
             ;;      chunk-at-after-change
