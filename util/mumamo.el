@@ -1153,6 +1153,19 @@ now \(since `linum-mode' uses the left)."
   (dolist (buf (buffer-list))
     (mumamo-update-buffer-margin-use buf)))
 
+(define-minor-mode mumamo-no-chunk-coloring
+  "Use no background colors to distinguish chunks.
+When this minor mode is on in a buffer no chunk coloring is done
+in that buffer.  This is overrides `mumamo-chunk-coloring'.  It
+is meant for situations when you temporarily need to remove the
+background colors."
+  :lighter " ø"
+  :group 'mumamo-display
+  (font-lock-mode -1)
+  (font-lock-mode 1))
+(put 'mumamo-no-chunk-coloring 'permanent-local t)
+
+
 ;; (setq mumamo-chunk-coloring 4)
 (defcustom mumamo-chunk-coloring 0
   "Color chunks with depth greater than or equal to this.
@@ -1348,8 +1361,9 @@ The values in the list should be symbols. Each symbol should either be
 ;;(mumamo-background-color 1)
 ;;(mumamo-background-color 2)
 (defun mumamo-background-color (sub-chunk-depth)
-  (when (or (not (integerp mumamo-chunk-coloring)) ;; Old values
-            (>= sub-chunk-depth mumamo-chunk-coloring))
+  (when (and (not mumamo-no-chunk-coloring)
+             (or (not (integerp mumamo-chunk-coloring)) ;; Old values
+                 (>= sub-chunk-depth mumamo-chunk-coloring)))
     (let* ((idx (when mumamo-background-colors
                   (mod sub-chunk-depth (length mumamo-background-colors))))
            (sym (when idx (nth idx mumamo-background-colors)))
@@ -1840,6 +1854,7 @@ correct but we want to check those after.  Put thosie in
           (setq mumamo-old-tail nil)))))
 
 (defun mumamo-reuse-old-tail-head ()
+  ;;(msgtrc "reusing %S" mumamo-old-tail)
   (setq mumamo-last-chunk mumamo-old-tail)
   (overlay-put mumamo-last-chunk 'mumamo-is-new t)
   (mumamo-clear-chunk-ppss-cache mumamo-last-chunk)
@@ -4273,6 +4288,7 @@ after this in the properties below of the now created chunk:
     (nth 1 this-values)))
 
 (defun mumamo-new-chunk-equal-chunk-values (chunk values)
+  ;;(msgtrc "eq? chunk=%S, values=%S" chunk values)
   (let* (;; Chunk
          (chunk-is-new          (overlay-get chunk 'mumamo-is-new))
          ;;(chunk-is-closed       (overlay-get chunk 'mumamo-is-closed))
@@ -4326,7 +4342,7 @@ after this in the properties below of the now created chunk:
          ;; (and (equal chunk-is-closed values-is-closed)
          ;;      (or (not chunk-is-closed)
          (and (equal chunk-insertion-type-end values-insertion-type-end)
-              (or chunk-insertion-type-end
+              (or ;;chunk-insertion-type-end
                   (= chunk-end values-end)))
          ;;(progn (message "eq-c-v: here c, %s /= %s" chunk-major-mode values-major-mode) t)
          (or (= -1 chunk-depth-diff)
@@ -6253,6 +6269,7 @@ Buffer must be narrowed to chunk when this function is called."
     (font-lock-unfontify-region (point-min) (point-max))
     (font-lock-after-unfontify-buffer)
     (setq font-lock-fontified nil)))
+
 (defun mumamo-set-major (major chunk)
   "Set major mode to MAJOR for mumamo."
   (mumamo-msgfntfy "mumamo-set-major %s, %s" major (current-buffer))
@@ -6521,6 +6538,7 @@ Buffer must be narrowed to chunk when this function is called."
   ;; Fix-me: Seems like setting/checking the keymap in a timer is
   ;; problematc. This is an Emacs bug.
   ;;(run-with-idle-timer 1 nil 'mumamo-set-major-check-keymap)
+  ;;(force-mode-line-update) (message "force-mode-line-update called")
   )
 
 (defun mumamo-set-major-check-keymap ()

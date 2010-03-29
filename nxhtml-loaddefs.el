@@ -730,7 +730,7 @@ With command prefix also show html source in other window.
 ;;;***
 
 ;;;### (autoloads (hl-needed-mode hl-needed) "hl-needed" "util/hl-needed.el"
-;;;;;;  (19364 56214))
+;;;;;;  (19369 20451))
 ;;; Generated autoloads from util/hl-needed.el
 (web-autoload-require 'hl-needed 'lp '(nxhtml-download-root-url nil) "util/hl-needed" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -923,7 +923,7 @@ before applying.
 ;;;***
 
 ;;;### (autoloads (markchars-global-mode markchars-mode markchars)
-;;;;;;  "markchars" "util/markchars.el" (19368 56768))
+;;;;;;  "markchars" "util/markchars.el" (19372 5886))
 ;;; Generated autoloads from util/markchars.el
 (web-autoload-require 'markchars 'lp '(nxhtml-download-root-url nil) "util/markchars" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -932,9 +932,15 @@ before applying.
 
 (nxhtml-autoload 'markchars-mode `(lp '(nxhtml-download-root-url nil) "util/markchars" nxhtml-install-dir) "\
 Mark special characters.
-Which characters to mark are defined by `markchars-pattern'.
+Which characters to mark are defined by `markchars-keywords'.
 
-The default is to mark nonascii chars with a magenta underline.
+The default is to mark non-IDN, non-ascii chars with a magenta
+underline.
+
+For information about IDN chars see `idn-is-recommended'.
+
+If you change anything in the customization group `markchars' you
+must restart this minor mode for the changes to take effect.
 
 \(fn &optional ARG)" t nil)
 
@@ -1020,7 +1026,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19362 59112))
+;;;;;;  (19372 43047))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1476,7 +1482,7 @@ Color up digits three by three.
 ;;;;;;  ourcomments-move-beginning-of-line ourcomments-mark-whole-buffer-or-field
 ;;;;;;  fill-dwim unfill-individual-paragraphs unfill-region unfill-paragraph
 ;;;;;;  define-toggle-old define-toggle popup-menu-at-point ourcomments-indirect-fun)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19364 56214))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19370 28559))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3891,7 +3897,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19368 56819))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19372 44206))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4108,7 +4114,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;### (autoloads (web-vcs-investigate-elisp-file web-vcs-byte-compile-file
 ;;;;;;  web-vcs-message-with-face web-vcs-get-files-from-root web-vcs-log-edit
 ;;;;;;  web-vcs-default-download-directory) "web-vcs" "web-vcs.el"
-;;;;;;  (19368 53582))
+;;;;;;  (19373 11079))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4263,18 +4269,18 @@ accept it or skip it.
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
 ;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
 ;;;;;;  "util/appmenu-fold.el" "util/css-simple-completion.el" "util/custsets.el"
-;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/key-cat.el"
-;;;;;;  "util/mumamo-aspnet.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
-;;;;;;  "util/nxml-mode-os-additions.el" "util/org-panel.el" "util/rxi.el"
-;;;;;;  "util/useful-commands.el" "web-autoload.el") (19368 57106
-;;;;;;  671000))
+;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/idn.el"
+;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
+;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "util/org-panel.el" "util/rxi.el" "util/useful-commands.el"
+;;;;;;  "web-autoload.el") (19373 11657 859000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtml-byte-recompile-file nxhtml-byte-compile-file
 ;;;;;;  nxhtml-get-missing-files nxhtml-update-existing-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install) "nxhtml-web-vcs"
-;;;;;;  "nxhtml-web-vcs.el" (19368 53499))
+;;;;;;  "nxhtml-web-vcs.el" (19373 11471))
 ;;; Generated autoloads from nxhtml-web-vcs.el
 (web-autoload-require 'nxhtml-web-vcs 'lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
