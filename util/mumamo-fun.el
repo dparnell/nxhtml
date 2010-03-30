@@ -1642,12 +1642,12 @@ Current major-mode will be used as the main major mode."
 This also covers inlined style and javascript."
   ("eRuby Html Family" html-mode
    (
-    ;;mumamo-chunk-eruby-comment
+    mumamo-chunk-eruby-comment
     mumamo-chunk-eruby
-    ;;mumamo-chunk-inlined-style
-    ;;mumamo-chunk-inlined-script
-    ;;mumamo-chunk-style=
-    ;;mumamo-chunk-onjs=
+    mumamo-chunk-inlined-style
+    mumamo-chunk-inlined-script
+    mumamo-chunk-style=
+    mumamo-chunk-onjs=
     )))
 
 
