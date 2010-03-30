@@ -1280,20 +1280,21 @@ If LOAD"
           (insert "** Compile " rel-file "\n"))
         (setq start (point))
         (when (file-exists-p elc-file) (delete-file elc-file))
-        (if (not window-system)
+        (if (or (not window-system)
+                (< emacs-major-version 23))
             (byte-compile-file file)
           (message "web-vcs-byte-compile-file:sub-env-load-path=%s" sub-env-load-path)
           (unless (stringp sub-env-load-path) (error "I did it again, sub-env-load-path=%S" sub-env-load-path))
           (setenv "EMACSLOADPATH" sub-env-load-path)
           ;; Fix-me: status
-          (let ((ret (apply 'call-process this-emacs-exe nil out-buf t
+          (let* ((inhibit-read-only t)
+                 (ret (apply 'call-process this-emacs-exe nil out-buf t
                             "-Q" "--batch"
                             "--eval" "(setq debug-on-error t)"
                             "--eval" "(remove-hook 'find-file-hook 'vc-find-file-hook)"
                             "--file" file
                             "-f" "emacs-lisp-byte-compile"
-                            nil))
-                (inhibit-read-only t))
+                             nil)))
             (insert (format "call-process returned: %s\n" ret)))
           (when old-env-load-path
             (unless (stringp old-env-load-path)
