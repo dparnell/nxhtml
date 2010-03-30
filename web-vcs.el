@@ -1284,6 +1284,8 @@ If LOAD"
                 (< emacs-major-version 23))
             (byte-compile-file file)
           (message "web-vcs-byte-compile-file:sub-env-load-path=%s" sub-env-load-path)
+          (unless (file-exists-p this-emacs-exe)
+            (error "Can't find this-emacs-exe=%s" this-emacs-exe))
           (unless (stringp sub-env-load-path) (error "I did it again, sub-env-load-path=%S" sub-env-load-path))
           (setenv "EMACSLOADPATH" sub-env-load-path)
           ;; Fix-me: status
