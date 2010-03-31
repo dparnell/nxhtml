@@ -400,20 +400,39 @@ See also `mumamo-chunk-value-set-min'."
                             (+ ovl-start
                                (or (overlay-get chunk 'mumamo-syntax-min-d)
                                    0))))
+           ;;(dummy (msgtrc "chunk-syntax-min-max:syntax-min=%s, chunk=%S" syntax-min chunk))
            (syntax-max
             (max ovl-start
                  (- (overlay-end chunk)
                     (or (overlay-get chunk 'mumamo-syntax-max-d)
                         0)
-                    ;; Note: We must subtract one here because
-                    ;; overlay-end is +1 from the last point in the
-                    ;; overlay. (This cured the problem with
-                    ;; kubica-freezing-i.html that made Emacs loop in
-                    ;; font-lock-extend-region-multiline.)
                     (if (= (1+ (buffer-size))
                            (overlay-end chunk))
                         0
-                      1))))
+                      ;; Note: We must subtract one here because
+                      ;; overlay-end is +1 from the last point in the
+                      ;; overlay.
+                      ;;
+                      ;; This cured the problem with
+                      ;; kubica-freezing-i.html that made Emacs loop
+                      ;; in `font-lock-extend-region-multiline'. But
+                      ;; was it really this one, I can't find any
+                      ;; 'font-lock-multiline property.  So it should
+                      ;; be `font-lock-extend-region-whole-lines'.
+                      ;;
+                      ;; Should not the problem then be the value of font-lock-end?
+                      ;;
+                      ;; Fix-me: however this is not correct since it
+                      ;; leads to not fontifying the last character in
+                      ;; the chunk, see bug 531324.
+                      ;;
+                      ;; I think this is cured by now. I have let
+                      ;; bound `font-lock-extend-region-functions'
+                      ;; once more before the call to
+                      ;; `font-lock-fontify-region'.
+                      0
+                      ;;0
+                      ))))
            (obscure (unless no-obscure (overlay-get chunk 'obscured)))
            (region-info (cadr obscure))
            (obscure-min (car region-info))
@@ -2375,7 +2394,7 @@ that does syntactic fontification."
         ;; But we must restrict to the chunk here:
         (let ((new-start (max chunk-syntax-min font-lock-beg))
               (new-end (min chunk-syntax-max font-lock-end)))
-          (mumamo-msgfntfy "  mumamo-do-fontify %s %s, chunk-syntax-min,max=%s,%s, new: %s %s" start end chunk-syntax-min chunk-syntax-max new-start new-end)
+          ;;(msgtrc "do-fontify %s %s, chunk-syntax-min,max=%s,%s, new: %s %s" start end chunk-syntax-min chunk-syntax-max new-start new-end)
           ;; A new condition-case just to catch errors easier:
           (when (< new-start new-end)
             (mumamo-condition-case err
@@ -2389,7 +2408,8 @@ that does syntactic fontification."
                     (setq font-lock-syntactically-fontified (1- new-start))
                     (mumamo-msgfntfy "ENTER font-lock-fontify-region %s %s %s" new-start new-end verbose)
                     ;;(msgtrc "mumamo-do-fontify: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
-                    (font-lock-fontify-region new-start new-end verbose)
+                    (let (font-lock-extend-region-functions)
+                      (font-lock-fontify-region new-start new-end verbose))
                     (mumamo-msgfntfy "END font-lock-fontify-region %s %s %s" new-start new-end verbose)
                     )
                   )
@@ -2714,14 +2734,16 @@ most major modes."
                  (border-min (car border-min-max))
                  (border-max (cdr border-min-max))
                  )
+            ;;(msgtrc "fontify-region-1:syntax-min-max=%S, chunk=%S" syntax-min-max chunk)
             ;;(msgtrc "chunk mumamo-border-face: %s" chunk)
             (mumamo-msgfntfy "mumamo-fontify-region-1, here=%s chunk-min=%s syn-mn/mx=%s/%s" here chunk-min syntax-min syntax-max)
             (when (<= here syntax-min)
               (mumamo-flush-chunk-syntax chunk syntax-min syntax-max))
             (when (and (<= here syntax-min)
                        (< chunk-min border-min))
-              (put-text-property chunk-min border-min
-                                 'face 'mumamo-border-face-in))
+              ;;(msgtrc "face-in: %s-%s" chunk-min border-min)
+              (put-text-property chunk-min border-min 'face 'mumamo-border-face-in)
+              )
             (when (and (<= chunk-max max)
                        (< (1+ border-max) chunk-max))
               (put-text-property (1+ border-max) chunk-max

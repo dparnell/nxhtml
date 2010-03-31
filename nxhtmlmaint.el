@@ -385,7 +385,7 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
 
 ;;;###autoload
 (defun nxhtmlmaint-byte-recompile ()
-  "Recompile or compile all files in current Emacs."
+  "Recompile or compile all nXhtml files in current Emacs."
   (interactive)
   (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir nil nil t)
   (web-vcs-message-with-face 'web-vcs-gold "Byte recompiling nXhtml ready"))
