@@ -1238,7 +1238,8 @@ If LOAD"
       (error "Must be in emacs-lisp-mode")))
   (let* ((old-env-load-path (getenv "EMACSLOADPATH"))
          (sub-env-load-path (or old-env-load-path
-                                (mapconcat 'identity load-path ";")))
+                                ;;(mapconcat 'identity load-path ";")))
+                                (mapconcat 'identity load-path path-separator)))
          ;; Fix-me: name of compile log buffer. When should it be
          ;; deleted? How do I bind it to byte-compile-file? Or do I?
          (file-buf (find-buffer-visiting file))
@@ -1255,7 +1256,8 @@ If LOAD"
     ;;   (switch-to-buffer file-buf)
     ;;   (error "Buffer must be saved first: %S" file-buf))
     (dolist (full-p extra-load-path)
-      (setq sub-env-load-path (concat full-p ";" sub-env-load-path)))
+      ;;(setq sub-env-load-path (concat full-p ";" sub-env-load-path)))
+      (setq sub-env-load-path (concat full-p path-separator sub-env-load-path)))
     (unless (get-buffer-window out-buf (selected-frame))
       (if (string= file (buffer-file-name))
           (display-buffer out-buf)
@@ -1298,9 +1300,6 @@ If LOAD"
                             "-f" "emacs-lisp-byte-compile"
                              nil)))
             (insert (format "call-process returned: %s\n" ret)))
-          (when old-env-load-path
-            (unless (stringp old-env-load-path)
-              (error "I did it again, old-env-load-path=%S" old-env-load-path)))
           (setenv "EMACSLOADPATH" old-env-load-path))
         (goto-char start)
         (while (re-search-forward "^\\([a-zA-Z0-9/\._-]+\\):[0-9]+:[0-9]+:" nil t)
@@ -1892,7 +1891,8 @@ resulting load-history entry."
     ;; Fix-me: do not use temp buffer so we can check errors
     (with-temp-buffer
       (let ((old-loadpath (getenv "EMACSLOADPATH"))
-            (new-loadpath (mapconcat 'identity load-path ";"))
+            ;;(new-loadpath (mapconcat 'identity load-path ";"))
+            (new-loadpath (mapconcat 'identity load-path path-separator))
             ret-val)
         (setenv new-loadpath)
         (message "Loading file in batch Emacs...")
