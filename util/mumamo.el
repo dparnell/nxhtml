@@ -1409,7 +1409,7 @@ The values in the list should be symbols. Each symbol should either be
   :group 'mumamo-display)
 
 (defface mumamo-border-face-out
-  '((t (:inherit font-lock-preprocessor-face :bold t :italic t)))
+  '((t (:inherit font-lock-preprocessor-face :bold t :italic t :underline t)))
   "Face for marking borders."
   :group 'mumamo-display)
 
@@ -2745,8 +2745,10 @@ most major modes."
               (put-text-property chunk-min border-min 'face 'mumamo-border-face-in)
               )
             (when (and (<= chunk-max max)
-                       (< (1+ border-max) chunk-max))
-              (put-text-property (1+ border-max) chunk-max
+                       ;;(< (1+ border-max) chunk-max))
+                       (< border-max chunk-max))
+              ;;(put-text-property (1+ border-max) chunk-max
+              (put-text-property border-max chunk-max
                                  'face 'mumamo-border-face-out))
             (mumamo-fontify-region-with here max verbose chunk-major
                                         syntax-min syntax-max))
