@@ -139,6 +139,7 @@ You can add additional elisp code for completing to
   :init-value t
   :group 'nxhtml
   (nxhtml-turn-onoff-tag-do-also nxhtml-tag-do-also))
+(when nxhtml-tag-do-also (nxhtml-tag-do-also 1))
 
 (defun nxhtml-tag-do-also-toggle ()
   "Toggle `nxhtml-tag-do-also'."
@@ -1622,13 +1623,37 @@ This is not supposed to be entirely correct."
     (insert src "\" "))
   )
 
+(defun nxhtml-a-tag-do-also ()
+  (insert " href=\"")
+  (rngalt-validate)
+  (insert (nxhtml-read-url t))
+  (insert "\"")
+  (let* ((pre-choices '("_blank" "_parent" "_self" "_top"))
+         (all-choices (reverse (cons "None" (cons "Frame name" pre-choices))))
+         choice
+         (prompt "Target: "))
+      (setq choice (popcmp-completing-read prompt all-choices nil t
+                                           "" nil nil t))
+      (unless (string= choice "None")
+        (insert " target=\"")
+        (cond ((member choice pre-choices)
+               (insert choice "\""))
+              ((string= choice "Frame name")
+               (rngalt-validate)
+               (insert (read-string "Frame name: ") "\""))
+              (t (error "Uh?")))))
+  (insert ">")
+  (rngalt-validate)
+  (insert (read-string "Link title: ")
+          "</a>"))
+
 (defconst nxhtml-complete-tag-do-also
-  '(("a"
-     (lambda ()
-       (insert " href=\"")
-       (rngalt-validate)
-       (insert (nxhtml-read-url t))
-       (insert "\"")))
+  '(("a" nxhtml-a-tag-do-also)
+     ;; (lambda ()
+     ;;   (insert " href=\"")
+     ;;   (rngalt-validate)
+     ;;   (insert (nxhtml-read-url t))
+     ;;   (insert "\"")))
     ("form" nxhtml-form-tag-do-also)
     ("img" nxhtml-img-tag-do-also)
     ("input" nxhtml-input-tag-do-also)

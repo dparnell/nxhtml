@@ -7012,6 +7012,7 @@ This list consists of four chunks at these positions:
           beg)))
 
 (defun mumamo-template-indent-get-chunk-shift (template-chunk)
+  "Return indentation shift for TEMPLATE-CHUNK row and line after."
   (assert (overlayp template-chunk) t)
   (assert (buffer-live-p (overlay-buffer template-chunk)) t)
   (unless (and mumamo-template-indent-buffer
@@ -7025,43 +7026,71 @@ This list consists of four chunks at these positions:
         (funcall major))))
   (let ((indentor (overlay-get template-chunk 'mumamo-indentor)))
     (unless (and indentor
-                 (eq (overlay-buffer indentor)
-                     mumamo-template-indent-buffer))
-      (let* ((this-syntax (mumamo-chunk-syntax-min-max template-chunk t))
-             (this-inner (buffer-substring-no-properties
-                          (cdr this-syntax)
-                          (car this-syntax)))
-             prev-template-chunk
-             (prev (overlay-get template-chunk 'mumamo-prev-chunk)))
-        (while (and prev (not prev-template-chunk))
-          (setq prev (overlay-get prev 'mumamo-prev-chunk))
-          (when prev
-            (setq prev-template-chunk (eq (overlay-get prev 'mumamo-next-indent)
-                                          'mumamo-template-indentor))))
-        (when prev-template-chunk
-          (mumamo-template-indent-get-chunk-shift (overlay-get prev 'mumamo-next-chunk)))
-        (with-current-buffer mumamo-template-indent-buffer
-          (if (not prev-template-chunk)
-              (progn
-                (erase-buffer)
-                (insert this-inner)
-                (indent-to 0))
+                 (overlay-buffer indentor)
+                 (buffer-live-p (overlay-buffer indentor)))
+      (setq indentor nil))
+    (let ((i-str (when indentor (with-current-buffer (overlay-buffer indentor)
+                                  (buffer-substring-no-properties (overlay-start indentor) (overlay-end indentor)))))
+          (i-beg (when indentor (overlay-start indentor)))
+          (i-end (when indentor (overlay-end indentor)))
+          (t-str (with-current-buffer (overlay-buffer template-chunk)
+                   (buffer-substring-no-properties (overlay-start template-chunk) (overlay-end template-chunk))))
+          (t-beg (overlay-start template-chunk))
+          (t-end (overlay-end template-chunk))
+          shift)
+      ;;(msgtrc "tigcs t=%s-%s %S  i=%s-%s %S" t-beg t-end t-str i-beg i-end i-str)
+      (unless (and indentor
+                   (eq (overlay-buffer indentor)
+                       mumamo-template-indent-buffer))
+        (let* ((this-syntax (mumamo-chunk-syntax-min-max template-chunk t))
+               (this-inner (buffer-substring-no-properties
+                            (cdr this-syntax)
+                            (car this-syntax)))
+               prev-template-chunk
+               (prev (overlay-get template-chunk 'mumamo-prev-chunk)))
+          ;;(msgtrc "tigcs this-inner=%S" this-inner)
+          (while (and prev (not prev-template-chunk))
+            (setq prev (overlay-get prev 'mumamo-prev-chunk))
+            (when prev
+              (setq prev-template-chunk (eq (overlay-get prev 'mumamo-next-indent)
+                                            'mumamo-template-indentor))))
+          (when prev-template-chunk
+            (mumamo-template-indent-get-chunk-shift (overlay-get prev 'mumamo-next-chunk)))
+          (with-current-buffer mumamo-template-indent-buffer
+            (if (not prev-template-chunk)
+                (progn
+                  (erase-buffer)
+                  (insert this-inner)
+                  (move-beginning-of-line nil)
+                  (point)
+                  (forward-to-indentation 0)
+                  (point)
+                  (delete-region (point-at-bol) (point))
+                  (indent-to 0))
+              (goto-char (point-max))
+              (insert this-inner)
+              (indent-according-to-mode))
+            (setq indentor (make-overlay (point-at-bol) (point-at-eol)))
+            (overlay-put template-chunk 'mumamo-indentor indentor)
             (goto-char (point-max))
-            (insert this-inner)
-            (indent-according-to-mode))
-          (setq indentor (make-overlay (point-at-bol) (point-at-eol)))
-          (overlay-put template-chunk 'mumamo-indentor indentor)
-          (insert "\n")
-          (indent-according-to-mode))))
-    (with-current-buffer mumamo-template-indent-buffer
-      (goto-char (overlay-end indentor))
-      (let ((this-ind (current-indentation))
-            shift)
-        (forward-char)
-        (setq shift (- (current-indentation)
-                       this-ind))
-        shift))))
-
+            (insert "\n")
+            (indent-according-to-mode))))
+      (with-current-buffer mumamo-template-indent-buffer
+        (let (prev-ind this-ind next-ind shift-in shift-out)
+          (unless (= 1 (overlay-start indentor))
+            (goto-char (overlay-start indentor))
+            (move-beginning-of-line nil)
+            (backward-char)
+            (setq prev-ind (current-indentation)))
+          (goto-char (overlay-end indentor))
+          (setq this-ind (current-indentation))
+          (move-end-of-line nil)
+          (forward-char)
+          (setq next-ind (current-indentation))
+          (when prev-ind (setq shift-in (- this-ind prev-ind)))
+          (setq shift-out (- next-ind this-ind))
+          ;;(msgtrc "tigcs =====> shift=%s,%s ti=%d ni=%d t=%s-%s %S" shift-in shift-out this-ind next-ind t-beg t-end t-str)
+          (cons shift-in shift-out))))))
 (defun mumamo-indent-line-function-1 (prev-line-chunks
                                       last-parent-major-indent
                                       entering-submode-arg)
@@ -7226,6 +7255,19 @@ The following rules are used when indenting:
          (while-n2 0)
          (while-n3 0)
          ;;(dummy (msgtrc "j\t this=%S" this-line-chunks))
+         (this-line-indentor-chunk (overlay-get this-line-chunk2 'mumamo-prev-chunk))
+         ;;(dummy (msgtrc "this-line-indentor-chunk=%S" this-line-indentor-chunk))
+         ;; Fix-me: 'mumamo-indentor is not put on the chunk yet since
+         ;; it is done in mumamo-template-indent-get-chunk-shift ... -
+         ;; and now it is calle too often ...
+         (this-line-indentor-prev (when this-line-indentor-chunk
+                                    (overlay-get this-line-indentor-chunk 'mumamo-prev-chunk)))
+         (this-line-is-indentor (and this-line-indentor-prev
+                                        (eq (overlay-get this-line-indentor-prev 'mumamo-next-indent)
+                                            'mumamo-template-indentor)))
+         (this-template-shift (when this-line-is-indentor
+                                (mumamo-template-indent-get-chunk-shift this-line-indentor-chunk)))
+         ;;(dummy (msgtrc "this-line-indentor=%s, %S" this-template-shift this-line-is-indentor))
          (template-indentor (when prev-line-chunk0
                               (unless (eq this-line-chunk0 prev-line-chunk0)
                                 (let* ((prev (overlay-get this-line-chunk0 'mumamo-prev-chunk))
@@ -7234,11 +7276,15 @@ The following rules are used when indenting:
                                              (eq (overlay-get prev-prev 'mumamo-next-indent)
                                                  'mumamo-template-indentor))
                                     prev)))))
-         (template-shift (when template-indentor
-                           (mumamo-template-indent-get-chunk-shift template-indentor)
-                           ))
+         (template-shift-rec (when template-indentor
+                               (mumamo-template-indent-get-chunk-shift template-indentor)
+                               ))
+         (template-shift (if nil ;(car this-template-shift)
+                             (car this-template-shift)
+                           (when template-shift-rec
+                             (cdr template-shift-rec))))
          )
-    ;;(msgtrc "indent-line-function-1:template-indentor=%s" template-indentor)
+    ;;(when template-indentor (msgtrc "indent-line-function-1:template-shift=%s  template-indentor=%s" template-shift template-indentor))
     ;;(msgtrc "indent-line-function-1:\n\tprev=%S\n\tthis=%S" prev-line-chunks this-line-chunks)
     ;; (mumamo-msgindent "mumamo-indent-line-function-1 L%s last=%s\n  this0=%s  %s  %s  %s\n  prev0=%s  %s  %s  %s"
     ;;                   (line-number-at-pos)
@@ -7277,21 +7323,6 @@ The following rules are used when indenting:
     ;; - next line after a template-indentor, what happens?
     ;;(setq template-indentor nil) ;; fix-me
     (cond
-     ( nil ;;template-indentor
-       ;; Fix-me: This is an extra indentation
-       (let ((here (point))
-             (ind-shift (mumamo-template-indent-get-chunk-shift template-indentor)))
-         ;;(msgtrc "current-line: %s" (buffer-substring (point-at-bol) (point-at-eol)))
-         (setq want-indent (+ ind-shift
-                              (progn
-                                ;;(goto-char (overlay-start prev-line-chunk0))
-                                (goto-char (overlay-start template-indentor))
-                                (current-indentation))))
-         ;;(msgtrc "mumamo-template-indent-get-chunk-shift: i-s=%d w-i=%s c-i=%s" ind-shift want-indent (current-indentation))
-         (goto-char here))
-       (when (> 0 want-indent)
-         (setq want-indent 0))
-       )
      ( leaving-submode
        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
        ;;;;; First line after submode
