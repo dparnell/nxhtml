@@ -308,7 +308,7 @@ Below are some examples.  To test them mark an example and do
 ;;;***
 
 ;;;### (autoloads (css-color-test css-color-global-mode css-color-mode
-;;;;;;  css-color) "css-color" "util/css-color.el" (19266 36614))
+;;;;;;  css-color) "css-color" "util/css-color.el" (19386 34254))
 ;;; Generated autoloads from util/css-color.el
 (web-autoload-require 'css-color 'lp '(nxhtml-download-root-url nil) "util/css-color" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1026,7 +1026,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19377 5524))
+;;;;;;  (19386 28657))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2299,7 +2299,7 @@ see `udev-rinari-dir' and `udev-rinari-load-rinari'.
 ;;;***
 
 ;;;### (autoloads (viper-tutorial) "viper-tut" "util/viper-tut.el"
-;;;;;;  (19277 65356))
+;;;;;;  (19387 27799))
 ;;; Generated autoloads from util/viper-tut.el
 (web-autoload-require 'viper-tut 'lp '(nxhtml-download-root-url nil) "util/viper-tut" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3762,11 +3762,32 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
-;;;;;;  nxhtml-mode) "nxhtml-mode" "nxhtml/nxhtml-mode.el" (19365
-;;;;;;  33760))
+;;;;;;  nxhtml-mode nxhtml-tag-do-also) "nxhtml-mode" "nxhtml/nxhtml-mode.el"
+;;;;;;  (19387 57312))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 (web-autoload-require 'nxhtml-mode 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
+
+(defvar nxhtml-tag-do-also t "\
+Non-nil if Nxhtml-Tag-Do-Also mode is enabled.
+See the command `nxhtml-tag-do-also' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `nxhtml-tag-do-also'.")
+
+(nxhtml-custom-autoload 'nxhtml-tag-do-also 'nxhtml-mode nil)
+
+(nxhtml-autoload 'nxhtml-tag-do-also `(lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mode" nxhtml-install-dir) "\
+When completing tag names do some more if non-nil.
+For some tag names additional things can be done at completion to
+speed writing up.  For example for an <img ...> tag `nxhtml-mode'
+can prompt for src attribute and add width and height attributes
+if this attribute points to a local file.
+
+You can add additional elisp code for completing to
+`nxhtml-complete-tag-do-also'.
+
+\(fn &optional ARG)" t nil)
 
 (when (fboundp 'nxml-mode)
 (nxhtml-autoload 'nxhtml-mode `(lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mode" nxhtml-install-dir) "\
@@ -4114,7 +4135,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;### (autoloads (web-vcs-investigate-elisp-file web-vcs-byte-compile-file
 ;;;;;;  web-vcs-message-with-face web-vcs-get-files-from-root web-vcs-log-edit
 ;;;;;;  web-vcs-default-download-directory) "web-vcs" "web-vcs.el"
-;;;;;;  (19378 27110))
+;;;;;;  (19387 13110))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4169,7 +4190,7 @@ Not documented
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-byte-recompile
 ;;;;;;  nxhtmlmaint-start-byte-compilation) "nxhtmlmaint" "nxhtmlmaint.el"
-;;;;;;  (19366 2074))
+;;;;;;  (19378 31293))
 ;;; Generated autoloads from nxhtmlmaint.el
 (web-autoload-require 'nxhtmlmaint 'lp '(nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4189,7 +4210,7 @@ remove then with `nxhtmlmaint-byte-uncompile-all'.
 \(fn)" t nil)
 
 (nxhtml-autoload 'nxhtmlmaint-byte-recompile `(lp '(nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir) "\
-Recompile or compile all files in current Emacs.
+Recompile or compile all nXhtml files in current Emacs.
 
 \(fn)" t nil)
 
@@ -4273,14 +4294,14 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/org-panel.el" "util/rxi.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19378 27214 859000))
+;;;;;;  "web-autoload.el") (19387 57358 437000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtml-byte-recompile-file nxhtml-byte-compile-file
 ;;;;;;  nxhtml-get-missing-files nxhtml-update-existing-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install) "nxhtml-web-vcs"
-;;;;;;  "nxhtml-web-vcs.el" (19373 11471))
+;;;;;;  "nxhtml-web-vcs.el" (19387 13003))
 ;;; Generated autoloads from nxhtml-web-vcs.el
 (web-autoload-require 'nxhtml-web-vcs 'lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
