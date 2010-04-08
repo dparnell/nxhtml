@@ -1023,10 +1023,10 @@ See `mlinks-mode' for more information on Mlinks mode.
 
 ;;;***
 
-;;;### (autoloads (mumamo-multi-major-modep mumamo-mark-for-refontification
-;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
-;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19386 28657))
+;;;### (autoloads (mumamo-multi-major-modep mumamo-list-defined-multi-major-modes
+;;;;;;  mumamo-mark-for-refontification mumamo-hi-lock-faces mumamo
+;;;;;;  mumamo-add-to-defined-multi-major-modes define-mumamo-multi-major-mode)
+;;;;;;  "mumamo" "util/mumamo.el" (19389 52577))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1152,6 +1152,19 @@ Mark region between MIN and MAX for refontification.
 
 \(fn MIN MAX)" nil nil)
 
+(nxhtml-autoload 'mumamo-list-defined-multi-major-modes `(lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir) "\
+List currently defined multi major modes.
+If SHOW-DOC is non-nil show the doc strings added when defining
+them. (This is not the full doc string. To show the full doc
+string you can click on the multi major mode in the list.)
+
+If SHOW-CHUNKS is non-nil show the names of the chunk dividing
+functions each multi major mode uses.
+
+If MATCH then show only multi major modes whos names matches.
+
+\(fn SHOW-DOC SHOW-CHUNKS MATCH)" t nil)
+
 (nxhtml-autoload 'mumamo-multi-major-modep `(lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir) "\
 Return t if VALUE is a multi major mode function.
 
@@ -1160,9 +1173,9 @@ Return t if VALUE is a multi major mode function.
 ;;;***
 
 ;;;### (autoloads (python-rst-mumamo-mode latex-haskell-mumamo-mode
-;;;;;;  latex-clojure-mumamo-mode xsl-sgml-mumamo-mode xsl-nxml-mumamo-mode
-;;;;;;  mako-html-mumamo-mode org-mumamo-mode asp-html-mumamo-mode
-;;;;;;  noweb2-mumamo-mode mumamo-noweb2 csound-sgml-mumamo-mode
+;;;;;;  latex-clojure-mumamo-mode markdown-html-mumamo-mode xsl-sgml-mumamo-mode
+;;;;;;  xsl-nxml-mumamo-mode mako-html-mumamo-mode org-mumamo-mode
+;;;;;;  asp-html-mumamo-mode noweb2-mumamo-mode mumamo-noweb2 csound-sgml-mumamo-mode
 ;;;;;;  laszlo-nxml-mumamo-mode metapost-mumamo-mode ruby-heredoc-mumamo-mode
 ;;;;;;  python-heredoc-mumamo-mode cperl-heredoc-mumamo-mode perl-heredoc-mumamo-mode
 ;;;;;;  php-heredoc-mumamo-mode sh-heredoc-mumamo-mode eruby-html-mumamo-mode
@@ -1171,7 +1184,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode
 ;;;;;;  mumamo-define-html-file-wide-keys) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19377 49687))
+;;;;;;  (19389 49239))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1205,8 +1218,7 @@ This also covers inlined style and javascript." t)
 
 (nxhtml-autoload 'genshi-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for Genshi with main mode `html-mode'.
-This also covers inlined style and javascript.
-" t)
+This also covers inlined style and javascript." t)
 
 (nxhtml-autoload 'mjt-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for MJT with main mode `html-mode'.
@@ -1295,6 +1307,14 @@ This covers inlined style and javascript." t)
 (nxhtml-autoload 'xsl-sgml-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multi major mode for XSL with main mode `sgml-mode'.
 This covers inlined style and javascript." t)
+
+(nxhtml-autoload 'markdown-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
+Turn on multi major markdown mode in buffer.
+Main major mode will be `markdown-mode'.
+Inlined html will be in `html-mode'.
+
+You need `markdown-mode' which you can download from URL
+`http://jblevins.org/projects/markdown-mode/'." t)
 
 (nxhtml-autoload 'latex-clojure-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multi major mode latex+clojure.
@@ -2299,7 +2319,7 @@ see `udev-rinari-dir' and `udev-rinari-load-rinari'.
 ;;;***
 
 ;;;### (autoloads (viper-tutorial) "viper-tut" "util/viper-tut.el"
-;;;;;;  (19387 27799))
+;;;;;;  (19388 44990))
 ;;; Generated autoloads from util/viper-tut.el
 (web-autoload-require 'viper-tut 'lp '(nxhtml-download-root-url nil) "util/viper-tut" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3762,32 +3782,11 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
-;;;;;;  nxhtml-mode nxhtml-tag-do-also) "nxhtml-mode" "nxhtml/nxhtml-mode.el"
-;;;;;;  (19387 57312))
+;;;;;;  nxhtml-mode) "nxhtml-mode" "nxhtml/nxhtml-mode.el" (19387
+;;;;;;  60173))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 (web-autoload-require 'nxhtml-mode 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
-
-(defvar nxhtml-tag-do-also t "\
-Non-nil if Nxhtml-Tag-Do-Also mode is enabled.
-See the command `nxhtml-tag-do-also' for a description of this minor mode.
-Setting this variable directly does not take effect;
-either customize it (see the info node `Easy Customization')
-or call the function `nxhtml-tag-do-also'.")
-
-(nxhtml-custom-autoload 'nxhtml-tag-do-also 'nxhtml-mode nil)
-
-(nxhtml-autoload 'nxhtml-tag-do-also `(lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mode" nxhtml-install-dir) "\
-When completing tag names do some more if non-nil.
-For some tag names additional things can be done at completion to
-speed writing up.  For example for an <img ...> tag `nxhtml-mode'
-can prompt for src attribute and add width and height attributes
-if this attribute points to a local file.
-
-You can add additional elisp code for completing to
-`nxhtml-complete-tag-do-also'.
-
-\(fn &optional ARG)" t nil)
 
 (when (fboundp 'nxml-mode)
 (nxhtml-autoload 'nxhtml-mode `(lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mode" nxhtml-install-dir) "\
@@ -4294,7 +4293,7 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/org-panel.el" "util/rxi.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19387 57358 437000))
+;;;;;;  "web-autoload.el") (19389 52689 640000))
 
 ;;;***
 

@@ -1349,8 +1349,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 ;;;###autoload
 (define-mumamo-multi-major-mode genshi-html-mumamo-mode
   "Turn on multiple major modes for Genshi with main mode `html-mode'.
-This also covers inlined style and javascript.
-"
+This also covers inlined style and javascript."
   ("Genshi HTML Family" html-mode
    (
     ;;mumamo-chunk-genshi%
@@ -3186,6 +3185,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
               nil ;; find-borders fun
               )))))
 
+;;;###autoload
 (define-mumamo-multi-major-mode markdown-html-mumamo-mode
   "Turn on multi major markdown mode in buffer.
 Main major mode will be `markdown-mode'.
