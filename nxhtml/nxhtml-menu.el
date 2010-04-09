@@ -278,6 +278,8 @@
         )
       (define-key help-map [nxhtml-features-check]
         (list 'menu-item "Check Optional Features" 'nxhtml-features-check))
+      (define-key help-map [nxhtml-list-multi-modes]
+        (list 'menu-item "List Available Multi Major Modes" 'mumamo-list-defined-multi-major-modes))
       (define-key help-map [nxhtml-customize]
         (list 'menu-item "Customize nXhtml ..." 'nxhtml-customize))
 ;;;       (define-key help-map [nxhtml-quick-customize]

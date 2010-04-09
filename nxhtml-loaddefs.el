@@ -1026,7 +1026,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-list-defined-multi-major-modes
 ;;;;;;  mumamo-mark-for-refontification mumamo-hi-lock-faces mumamo
 ;;;;;;  mumamo-add-to-defined-multi-major-modes define-mumamo-multi-major-mode)
-;;;;;;  "mumamo" "util/mumamo.el" (19389 52577))
+;;;;;;  "mumamo" "util/mumamo.el" (19389 61286))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1178,13 +1178,13 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  asp-html-mumamo-mode noweb2-mumamo-mode mumamo-noweb2 csound-sgml-mumamo-mode
 ;;;;;;  laszlo-nxml-mumamo-mode metapost-mumamo-mode ruby-heredoc-mumamo-mode
 ;;;;;;  python-heredoc-mumamo-mode cperl-heredoc-mumamo-mode perl-heredoc-mumamo-mode
-;;;;;;  php-heredoc-mumamo-mode sh-heredoc-mumamo-mode eruby-html-mumamo-mode
-;;;;;;  eruby-mumamo-mode jsp-html-mumamo-mode gsp-html-mumamo-mode
-;;;;;;  ssjs-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
-;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
-;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode
-;;;;;;  mumamo-define-html-file-wide-keys) "mumamo-fun" "util/mumamo-fun.el"
-;;;;;;  (19389 49239))
+;;;;;;  php-heredoc-mumamo-mode sh-heredoc-mumamo-mode eruby-javascript-mumamo-mode
+;;;;;;  eruby-html-mumamo-mode eruby-mumamo-mode jsp-html-mumamo-mode
+;;;;;;  gsp-html-mumamo-mode ssjs-html-mumamo-mode smarty-html-mumamo-mode
+;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
+;;;;;;  embperl-html-mumamo-mode mason-html-mumamo-mode nxml-mumamo-mode
+;;;;;;  html-mumamo-mode mumamo-define-html-file-wide-keys) "mumamo-fun"
+;;;;;;  "util/mumamo-fun.el" (19389 57369))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1247,6 +1247,9 @@ Current major-mode will be used as the main major mode." t)
 (nxhtml-autoload 'eruby-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for eRuby with main mode `html-mode'.
 This also covers inlined style and javascript." t)
+
+(nxhtml-autoload 'eruby-javascript-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
+Turn on multiple major modes for eRuby with main mode `javascript-mode'." t)
 
 (nxhtml-autoload 'sh-heredoc-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for sh heredoc document.
@@ -3724,7 +3727,7 @@ Check if external modules used by nXhtml are found.
 ;;;;;;  smarty-nxhtml-mumamo-mode mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode
 ;;;;;;  mason-nxhtml-mumamo-mode django-nxhtml-mumamo-mode embperl-nxhtml-mumamo-mode
 ;;;;;;  nxhtml-mumamo-mode) "nxhtml-mumamo" "nxhtml/nxhtml-mumamo.el"
-;;;;;;  (19292 11678))
+;;;;;;  (19389 57826))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 (web-autoload-require 'nxhtml-mumamo 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3917,7 +3920,7 @@ This mode may be turned on automatically in two ways:
 
 ;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
 ;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19372 44206))
+;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19389 53256))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4293,7 +4296,7 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/org-panel.el" "util/rxi.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19389 52689 640000))
+;;;;;;  "web-autoload.el") (19389 62104 750000))
 
 ;;;***
 

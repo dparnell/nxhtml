@@ -7052,6 +7052,7 @@ This list consists of four chunks at these positions:
 
 (defun mumamo-template-indent-get-chunk-shift (template-chunk)
   "Return indentation shift for TEMPLATE-CHUNK row and line after."
+  ;; Fix-me: Handle changes better
   (assert (overlayp template-chunk) t)
   (assert (buffer-live-p (overlay-buffer template-chunk)) t)
   (unless (and mumamo-template-indent-buffer
@@ -7075,26 +7076,36 @@ This list consists of four chunks at these positions:
           (t-str (with-current-buffer (overlay-buffer template-chunk)
                    (buffer-substring-no-properties (overlay-start template-chunk) (overlay-end template-chunk))))
           (t-beg (overlay-start template-chunk))
-          (t-end (overlay-end template-chunk))
-          shift)
+          (t-end (overlay-end template-chunk)))
       ;;(msgtrc "tigcs t=%s-%s %S  i=%s-%s %S" t-beg t-end t-str i-beg i-end i-str)
       (unless (and indentor
                    (eq (overlay-buffer indentor)
-                       mumamo-template-indent-buffer))
+                       mumamo-template-indent-buffer)
+                   (eq template-chunk (overlay-get indentor 'template-chunk))
+                   (string= t-str (overlay-get indentor 'template-string))
+                   )
+        (when indentor
+          (when (eq (overlay-buffer indentor) mumamo-template-indent-buffer)
+            (with-current-buffer mumamo-template-indent-buffer
+              (goto-char (overlay-start indentor))
+              (delete-region (point-at-bol) (1+ (point-at-eol)))))
+          (delete-overlay indentor)
+          (setq indentor nil))
         (let* ((this-syntax (mumamo-chunk-syntax-min-max template-chunk t))
                (this-inner (buffer-substring-no-properties
                             (cdr this-syntax)
                             (car this-syntax)))
                prev-template-chunk
-               (prev (overlay-get template-chunk 'mumamo-prev-chunk)))
+               (prev-chunk (overlay-get template-chunk 'mumamo-prev-chunk)))
           ;;(msgtrc "tigcs this-inner=%S" this-inner)
-          (while (and prev (not prev-template-chunk))
-            (setq prev (overlay-get prev 'mumamo-prev-chunk))
-            (when prev
-              (setq prev-template-chunk (eq (overlay-get prev 'mumamo-next-indent)
+          (while (and prev-chunk (not prev-template-chunk))
+            (setq prev-chunk (overlay-get prev-chunk 'mumamo-prev-chunk))
+            (when prev-chunk
+              (setq prev-template-chunk (eq (overlay-get prev-chunk 'mumamo-next-indent)
                                             'mumamo-template-indentor))))
+          ;; Fix-me: Make sure all prev indentors are there and are valid:
           (when prev-template-chunk
-            (mumamo-template-indent-get-chunk-shift (overlay-get prev 'mumamo-next-chunk)))
+            (mumamo-template-indent-get-chunk-shift (overlay-get prev-chunk 'mumamo-next-chunk)))
           (with-current-buffer mumamo-template-indent-buffer
             (if (not prev-template-chunk)
                 (progn
@@ -7106,10 +7117,13 @@ This list consists of four chunks at these positions:
                   (point)
                   (delete-region (point-at-bol) (point))
                   (indent-to 0))
+              ;; Fix-me: Find out where to insert this:
               (goto-char (point-max))
               (insert this-inner)
               (indent-according-to-mode))
             (setq indentor (make-overlay (point-at-bol) (point-at-eol)))
+            (overlay-put indentor 'template-chunk template-chunk)
+            (overlay-put indentor 'template-string t-str)
             (overlay-put template-chunk 'mumamo-indentor indentor)
             (goto-char (point-max))
             (insert "\n")
@@ -7130,6 +7144,7 @@ This list consists of four chunks at these positions:
           (setq shift-out (- next-ind this-ind))
           ;;(msgtrc "tigcs =====> shift=%s,%s ti=%d ni=%d t=%s-%s %S" shift-in shift-out this-ind next-ind t-beg t-end t-str)
           (cons shift-in shift-out))))))
+
 (defun mumamo-indent-line-function-1 (prev-line-chunks
                                       last-parent-major-indent
                                       entering-submode-arg)
@@ -7322,6 +7337,14 @@ The following rules are used when indenting:
                              (car this-template-shift)
                            (when template-shift-rec
                              (cdr template-shift-rec))))
+         (template-indent-abs (when (and template-shift
+                                         (/= 0 template-shift))
+                                (+ template-shift
+                                   (let ((here (point)))
+                                     (goto-char (overlay-start template-indentor))
+                                     (prog1
+                                         (current-indentation)
+                                       (goto-char here))))))
          )
     ;;(when template-indentor (msgtrc "indent-line-function-1:template-shift=%s  template-indentor=%s" template-shift template-indentor))
     ;;(msgtrc "indent-line-function-1:\n\tprev=%S\n\tthis=%S" prev-line-chunks this-line-chunks)
@@ -7362,6 +7385,8 @@ The following rules are used when indenting:
     ;; - next line after a template-indentor, what happens?
     ;;(setq template-indentor nil) ;; fix-me
     (cond
+     ( template-indent-abs
+       (setq want-indent (max 0 template-indent-abs)))
      ( leaving-submode
        ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
        ;;;;; First line after submode
@@ -7500,9 +7525,11 @@ The following rules are used when indenting:
     (when want-indent
       ;;(msgtrc "indent-line-to %s at line-beginning=%s" want-indent (line-beginning-position))
       (indent-line-to want-indent))
-    (when (and template-shift (/= 0 template-shift))
-      (let ((ind (+ (current-indentation) template-shift)))
-        (indent-line-to ind)))
+    ;; (when (and template-shift (/= 0 template-shift))
+    ;;   (let ((ind (+ (current-indentation) template-shift)))
+    ;;     (indent-line-to ind)))
+    ;; (when template-indent-abs
+    ;;   (indent-line-to template-indent-abs))
     (goto-char here-on-line)
     ;;(msgtrc "exit: %s" (list this-line-chunks last-parent-major-indent))
     (list this-line-chunks last-parent-major-indent next-entering-submode)))
@@ -7555,17 +7582,50 @@ The following rules are used when indenting:
             (let ((syn-min-max (mumamo-chunk-syntax-min-max chunk nil)))
               (narrow-to-region (car syn-min-max) (cdr syn-min-max))))
           ;;(msgtrc "call-indent-line fun=%s" fun)
-          (funcall fun)
+          ;;(funcall fun)
+          (mumamo-funcall-evaled fun)
           )))))
 
 (defvar mumamo-stop-widen nil)
-(defadvice widen (around
-                  mumamo-ad-widen
-                  activate
-                  compile)
-  (unless (and mumamo-multi-major-mode
-               mumamo-stop-widen)
-    ad-do-it))
+(when nil
+  (let* ((fun 'describe-variable)
+         (lib (symbol-file fun 'defun)))
+    (find-function-search-for-symbol fun nil lib)))
+
+(defun mumamo-funcall-evaled (fun &rest args)
+  "Make sure FUN is evaled, then call it.
+This make sure (currently) that defadvice for primitives are
+called.  They are not called in byte compiled code.
+
+See URL `http://debbugs.gnu.org/cgi/bugreport.cgi?bug=5863' since
+this may change."
+  (when mumamo-stop-widen
+    (unless (get fun 'mumamo-evaled)
+      (let* ((lib (symbol-file fun 'defun))
+             (where (find-function-search-for-symbol fun nil lib))
+             (buf (car where))
+             (pos (cdr where)))
+        (with-current-buffer buf
+          (let ((close (and (not (buffer-modified-p))
+                            (= 1 (point)))))
+            ;;(goto-char pos) (eval-defun nil)
+            (eval-buffer)
+            (when close (kill-buffer))))
+        (put fun 'mumamo-evaled t))))
+  (apply 'funcall fun args))
+
+;;(require 'advice)
+(defun mumamo-defadvice-widen ()
+  (defadvice widen (around
+                    mumamo-ad-widen
+                    activate
+                    compile
+                    )
+    (unless (and mumamo-multi-major-mode
+                 mumamo-stop-widen)
+      ad-do-it)))
+(eval-after-load 'mumamo
+  '(mumamo-defadvice-widen))
 
 (defun mumamo-indent-region-function (start end)
   "Indent the region between START and END."
@@ -7637,26 +7697,27 @@ mumamo is used."
         (narrow-to-region (car syn-min-max)
                           (cdr syn-min-max)))
       (let ((fill-paragraph-function mumamo-original-fill-paragraph-function)
-            (mumamo-dont-widen t))
-        (ad-enable-advice 'widen 'around 'mumamo-ad-widen)
+            (mumamo-stop-widen t))
+        ;;(ad-enable-advice 'widen 'around 'mumamo-ad-widen)
         (unwind-protect
-            (fill-paragraph justify region)
-          (ad-disable-advice 'widen 'around 'mumamo-ad-widen)
+            ;;(fill-paragraph justify region)
+            (mumamo-funcall-evaled 'fill-paragraph justify region)
+          ;;(ad-disable-advice 'widen 'around 'mumamo-ad-widen)
           )))))
 
-(defvar mumamo-dont-widen)
-(defadvice widen  (around
-                   mumamo-ad-widen
-                   activate
-                   disable
-                   compile
-                   )
-  "Make `widen' do nothing.
-This is for `mumamo-fill-paragraph-function' and is necessary
-when `c-fill-paragraph' is the real function used."
-  (unless (and (boundp 'mumamo-dont-widen)
-               mumamo-dont-widen)
-    ad-do-it))
+;; (defvar mumamo-dont-widen)
+;; (defadvice widen  (around
+;;                    mumamo-ad-widen
+;;                    activate
+;;                    disable
+;;                    compile
+;;                    )
+;;   "Make `widen' do nothing.
+;; This is for `mumamo-fill-paragraph-function' and is necessary
+;; when `c-fill-paragraph' is the real function used."
+;;   (unless (and (boundp 'mumamo-dont-widen)
+;;                mumamo-dont-widen)
+;;     ad-do-it))
 
 
 (defun mumamo-forward-chunk ()
