@@ -1649,6 +1649,19 @@ This also covers inlined style and javascript."
     mumamo-chunk-onjs=
     )))
 
+;;;###autoload
+(define-mumamo-multi-major-mode eruby-javascript-mumamo-mode
+  "Turn on multiple major modes for eRuby with main mode `javascript-mode'."
+  ("eRuby Html Family" javascript-mode
+   (
+    mumamo-chunk-eruby-comment
+    mumamo-chunk-eruby
+    ;;mumamo-chunk-inlined-style
+    ;;mumamo-chunk-inlined-script
+    ;;mumamo-chunk-style=
+    ;;mumamo-chunk-onjs=
+    )))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; heredoc
