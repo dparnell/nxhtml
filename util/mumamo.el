@@ -6281,19 +6281,22 @@ Buffer must be narrowed to chunk when this function is called."
   (let ((verbose (if (numberp font-lock-verbose)
 		     (> (- (point-max) (point-min)) font-lock-verbose)
 		   font-lock-verbose))
-        font-lock-extend-region-functions) ;; accept narrowing
+        font-lock-extend-region-functions ;; accept narrowing
+        (font-lock-unfontify-region-function 'ignore))
+    ;;(setq verbose t)
     (with-temp-message
 	(when verbose
-	  (format "Fontifying %s part..." (buffer-name)))
+	  (format "Fontifying %s part %s-%s (%s)..." (buffer-name) (point-min) (point-max) font-lock-verbose))
       ;; Make sure we fontify etc. in the whole buffer.
       (save-restriction
 	;;(widen)
-	(condition-case nil
+	(condition-case err
 	    (save-excursion
 	      (save-match-data
 		(font-lock-fontify-region (point-min) (point-max) verbose)
 		(font-lock-after-fontify-buffer)
 		(setq font-lock-fontified t)))
+          (msgtrc "font-lock-fontify-chunk: %s" (error-message-string err))
 	  ;; We don't restore the old fontification, so it's best to unfontify.
 	  (quit (mumamo-font-lock-unfontify-chunk)))))))
 
@@ -7473,9 +7476,11 @@ The following rules are used when indenting:
          (this-line-is-indentor (and this-line-indentor-prev
                                      (eq (overlay-get this-line-indentor-prev 'mumamo-next-indent)
                                          'mumamo-template-indentor)))
+         ;; Fix-me: rewrite and reorder. We do not need both shift-in and shift-out
          (this-template-shift (when this-line-is-indentor
                                 (mumamo-template-indent-get-chunk-shift this-line-indentor-chunk)))
          ;;(dummy (msgtrc "this-line-indentor=%s, %S" this-template-shift this-line-is-indentor))
+         ;; Fix-me: skip over blank lines backward here:
          (template-indentor (when prev-line-chunk0
                               (unless (eq this-line-chunk0 prev-line-chunk0)
                                 (let* ((prev (overlay-get this-line-chunk0 'mumamo-prev-chunk))
@@ -7495,7 +7500,10 @@ The following rules are used when indenting:
                                          (/= 0 template-shift))
                                 (+ template-shift
                                    (let ((here (point)))
-                                     (goto-char (overlay-start template-indentor))
+                                     (if template-indentor
+                                         (goto-char (overlay-start template-indentor))
+                                       (goto-char (overlay-start this-line-indentor-chunk))
+                                       (skip-chars-backward " \t\r\n\f"))
                                      (prog1
                                          (current-indentation)
                                        (goto-char here))))))
@@ -7784,6 +7792,22 @@ this may change."
       ad-do-it)))
 (eval-after-load 'mumamo
   '(mumamo-defadvice-widen))
+
+;; (defadvice font-lock-fontify-buffer (around
+;;                                      mumam-ad-font-lock-fontify-buffer
+;;                                      activate
+;;                                      compile
+;;                                      )
+;;   (if mumamo-multi-major-mode
+;;       (save-restriction
+;;         (let* ((chunk (mumamo-find-chunks (point) "font-lock-fontify-buffer advice"))
+;;                (syn-min-max (mumamo-chunk-syntax-min-max chunk nil))
+;;                (syn-min (car syn-min-max))
+;;                (syn-max (cdr syn-min-max))
+;;                (mumamo-stop-widen t))
+;;           (narrow-to-region syn-min syn-max)
+;;           (font-lock-fontify-region syn-min syn-max)))
+;;     ad-do-it))
 
 (defun mumamo-indent-region-function (start end)
   "Indent the region between START and END."
