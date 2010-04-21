@@ -686,11 +686,19 @@ such palette into a css-file as hexadecimal color palette.
 
 ;;;***
 
-;;;### (autoloads (hfyview-frame hfyview-window hfyview-region hfyview-buffer)
-;;;;;;  "hfyview" "util/hfyview.el" (19235 1652))
+;;;### (autoloads (hfyview-frame hfyview-window hfyview-region hfyview-buffer
+;;;;;;  hfyview-quick-print-in-files-menu) "hfyview" "util/hfyview.el"
+;;;;;;  (19400 16906))
 ;;; Generated autoloads from util/hfyview.el
 (web-autoload-require 'hfyview 'lp '(nxhtml-download-root-url nil) "util/hfyview" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
+
+(defvar hfyview-quick-print-in-files-menu nil "\
+Add Quick print entries to File menu if non-nil.
+If you set this to nil you have to restart Emacs to get rid of
+the Quick Print entry.")
+
+(nxhtml-custom-autoload 'hfyview-quick-print-in-files-menu 'hfyview nil)
 
 (nxhtml-autoload 'hfyview-buffer `(lp '(nxhtml-download-root-url nil) "util/hfyview" nxhtml-install-dir) "\
 Convert buffer to html preserving faces and show in web browser.
@@ -730,7 +738,7 @@ With command prefix also show html source in other window.
 ;;;***
 
 ;;;### (autoloads (hl-needed-mode hl-needed) "hl-needed" "util/hl-needed.el"
-;;;;;;  (19369 20451))
+;;;;;;  (19394 16942))
 ;;; Generated autoloads from util/hl-needed.el
 (web-autoload-require 'hl-needed 'lp '(nxhtml-download-root-url nil) "util/hl-needed" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1026,7 +1034,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-list-defined-multi-major-modes
 ;;;;;;  mumamo-mark-for-refontification mumamo-hi-lock-faces mumamo
 ;;;;;;  mumamo-add-to-defined-multi-major-modes define-mumamo-multi-major-mode)
-;;;;;;  "mumamo" "util/mumamo.el" (19389 61286))
+;;;;;;  "mumamo" "util/mumamo.el" (19399 46314))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3256,6 +3264,63 @@ Key bindings:
 
 ;;;***
 
+;;;### (autoloads (winring-rename-configuration winring-delete-configuration
+;;;;;;  winring-jump-to-configuration winring-prev-configuration
+;;;;;;  winring-next-configuration winring-duplicate-configuration
+;;;;;;  winring-new-configuration) "winring" "util/winring.el" (19392
+;;;;;;  30980))
+;;; Generated autoloads from util/winring.el
+(web-autoload-require 'winring 'lp '(nxhtml-download-root-url nil) "util/winring" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'winring-new-configuration `(lp '(nxhtml-download-root-url nil) "util/winring" nxhtml-install-dir) "\
+Save the current window configuration and create an empty new one.
+The buffer shown in the new empty configuration is defined by
+`winring-new-config-buffer-name'.
+
+With \\[universal-argument] prompt for the new configuration's name.
+Otherwise, the function in `winring-name-generator' will be called to
+get the new configuration's name.
+
+\(fn &optional ARG)" t nil)
+
+(nxhtml-autoload 'winring-duplicate-configuration `(lp '(nxhtml-download-root-url nil) "util/winring" nxhtml-install-dir) "\
+Push the current window configuration on the ring, and duplicate it.
+
+With \\[universal-argument] prompt for the new configuration's name.
+Otherwise, the function in `winring-name-generator' will be called to
+get the new configuration's name.
+
+\(fn &optional ARG)" t nil)
+
+(nxhtml-autoload 'winring-next-configuration `(lp '(nxhtml-download-root-url nil) "util/winring" nxhtml-install-dir) "\
+Switch to the next window configuration for this frame.
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'winring-prev-configuration `(lp '(nxhtml-download-root-url nil) "util/winring" nxhtml-install-dir) "\
+Switch to the previous window configuration for this frame.
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'winring-jump-to-configuration `(lp '(nxhtml-download-root-url nil) "util/winring" nxhtml-install-dir) "\
+Go to the named window configuration.
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'winring-delete-configuration `(lp '(nxhtml-download-root-url nil) "util/winring" nxhtml-install-dir) "\
+Delete the current configuration and switch to the next one.
+With \\[universal-argument] prompt for named configuration to delete.
+
+\(fn &optional ARG)" t nil)
+
+(nxhtml-autoload 'winring-rename-configuration `(lp '(nxhtml-download-root-url nil) "util/winring" nxhtml-install-dir) "\
+Rename the current configuration to NAME.
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
 ;;;;;;  winsav winsav-put-window-tree) "winsav" "util/winsav.el"
 ;;;;;;  (19295 38082))
@@ -4296,7 +4361,7 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/org-panel.el" "util/rxi.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19389 62104 750000))
+;;;;;;  "web-autoload.el") (19400 16929 828000))
 
 ;;;***
 
