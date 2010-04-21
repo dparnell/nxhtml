@@ -7165,8 +7165,9 @@ This function returns a cons with these two parts.
                                     (goto-char (overlay-end prev-indentor))
                                     (forward-char 1)
                                     (setq next-indentor (mumamo-indentor-at (point)))
-                                    (setq next-indentor-chunk (when next-indentor
-                                                                (overlay-get next-indentor 'indentor-chunk))))
+                                    (if next-indentor
+                                        (setq next-indentor-chunk (overlay-get next-indentor 'indentor-chunk))
+                                      (setq new-i-beg (point))))
                                 (setq new-i-beg (point))))
                             new-i-beg))
                         ;; Fix-me: Find out where to insert indentor:
@@ -7465,9 +7466,12 @@ The following rules are used when indenting:
          (while-n1 0)
          (while-n2 0)
          (while-n3 0)
-         ;;(dummy (msgtrc "j\t this=%S" this-line-chunks))
-         (this-line-indentor-chunk (overlay-get this-line-chunk2 'mumamo-prev-chunk))
+         ;; Is there a possible indentor chunk on this line?:
+         (this-line-indentor-chunk (when (> (overlay-start this-line-chunk2)
+                                            (point-at-bol))
+                                     (overlay-get this-line-chunk2 'mumamo-prev-chunk)))
          ;;(dummy (msgtrc "this-line-indentor-chunk=%S" this-line-indentor-chunk))
+         ;; Check if this really is an indentor chunk:
          ;; Fix-me: 'mumamo-indentor is not put on the chunk yet since
          ;; it is done in mumamo-template-indent-get-chunk-shift ... -
          ;; and now it is calle too often ...
@@ -7481,7 +7485,7 @@ The following rules are used when indenting:
                                 (mumamo-template-indent-get-chunk-shift this-line-indentor-chunk)))
          ;;(dummy (msgtrc "this-line-indentor=%s, %S" this-template-shift this-line-is-indentor))
          ;; Fix-me: skip over blank lines backward here:
-         (template-indentor (when prev-line-chunk0
+         (prev-template-indentor (when prev-line-chunk0
                               (unless (eq this-line-chunk0 prev-line-chunk0)
                                 (let* ((prev (overlay-get this-line-chunk0 'mumamo-prev-chunk))
                                        (prev-prev (overlay-get prev 'mumamo-prev-chunk)))
@@ -7489,19 +7493,19 @@ The following rules are used when indenting:
                                              (eq (overlay-get prev-prev 'mumamo-next-indent)
                                                  'mumamo-template-indentor))
                                     prev)))))
-         (template-shift-rec (when template-indentor
-                               (mumamo-template-indent-get-chunk-shift template-indentor)
+         (prev-template-shift-rec (when prev-template-indentor
+                               (mumamo-template-indent-get-chunk-shift prev-template-indentor)
                                ))
          (template-shift (if (and (car this-template-shift) (/= 0 (car this-template-shift)))
                              (car this-template-shift)
-                           (when template-shift-rec
-                             (cdr template-shift-rec))))
+                           (when prev-template-shift-rec
+                             (cdr prev-template-shift-rec))))
          (template-indent-abs (when (and template-shift
                                          (/= 0 template-shift))
                                 (+ template-shift
                                    (let ((here (point)))
-                                     (if template-indentor
-                                         (goto-char (overlay-start template-indentor))
+                                     (if prev-template-indentor
+                                         (goto-char (overlay-start prev-template-indentor))
                                        (goto-char (overlay-start this-line-indentor-chunk))
                                        (skip-chars-backward " \t\r\n\f"))
                                      (prog1
