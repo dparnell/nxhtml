@@ -2964,7 +2964,8 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
     (when start
       (setq ret (match-beginning 0)))
     (goto-char here)
-    (list ret 'python-mode)))
+    (when ret
+      (list ret 'python-mode))))
 
 (defun mumamo-mako-<%-fw-end (pos max)
   (save-match-data
