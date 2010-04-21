@@ -4543,19 +4543,22 @@ See also `mumamo-new-create-chunk' for more information."
               (setq curr-end-fun-end (funcall curr-end-fun end-search-pos use-max))
               (if (not curr-end-fun-end)
                   (setq possible-end-fun-end nil)
-                (when (or (and t ;after-chunk-is-closed
-                               (< curr-end-fun-end (overlay-end after-chunk)))
-                          ;; See if the end is in code
-                          (let* ((syn2-min-max (when curr-border-fun
-                                                 (funcall curr-border-fun
-                                                          (overlay-end after-chunk)
-                                                          curr-end-fun-end
-                                                          nil)))
-                                 (syn2-max (or (cadr syn2-min-max)
-                                                 curr-end-fun-end)))
-                            (not (mumamo-end-in-code use-min syn2-max curr-major))))
-                  (setq curr-end-fun-end nil)
-                  (setq end-search-pos (1+ end-search-pos)))))
+                (cond ((and t ;after-chunk-is-closed
+                            (< curr-end-fun-end (overlay-end after-chunk)))
+                       (setq curr-end-fun-end nil)
+                       (setq end-search-pos (1+ end-search-pos)))
+                      ;; See if the end is in code
+                      ((let* ((syn2-min-max (when curr-border-fun
+                                              (funcall curr-border-fun
+                                                       (overlay-end after-chunk)
+                                                       curr-end-fun-end
+                                                       nil)))
+                              (syn2-max (or (cadr syn2-min-max)
+                                            curr-end-fun-end)))
+                         (not (mumamo-end-in-code use-min syn2-max curr-major)))
+                       (setq end-search-pos (1+ curr-end-fun-end))
+                       (setq curr-end-fun-end nil)
+                       ))))
             (unless curr-end-fun-end
               ;; Use old end if valid
               (and after-change-max
