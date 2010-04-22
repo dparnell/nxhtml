@@ -1722,6 +1722,7 @@ Supported values are 'perl."
         (let (next-<<
               (want-<< t)
               heredoc-mark
+              heredoc-line
               (delimiter "")
               (skip-b "")
               start-inner
@@ -1756,6 +1757,7 @@ Supported values are 'perl."
                  (setq heredoc-mark  (buffer-substring-no-properties
                                       (match-beginning 1)
                                       (match-end 1)))
+                 (setq heredoc-line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
                  (setq start-inner (match-end 0)))))
             ('w32-ps (error "No support for windows power shell yet"))
             ('php
@@ -1774,6 +1776,7 @@ Supported values are 'perl."
                  (setq heredoc-mark  (buffer-substring-no-properties
                                       (match-beginning 1)
                                       (match-end 1)))
+                 (setq heredoc-line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
                  ;; fix-me: nowdoc
                  (when (and (= ?\' (string-to-char heredoc-mark))
                             (= ?\' (string-to-char (substring heredoc-mark (1- (length heredoc-mark))))))
@@ -1797,6 +1800,7 @@ Supported values are 'perl."
                  (setq heredoc-mark  (buffer-substring-no-properties
                                       (match-beginning 1)
                                       (match-end 1)))
+                 (setq heredoc-line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
                  (setq start-inner (1+ (match-end 0))))))
             ('python
              (unless (eobp) (forward-char))
@@ -1827,6 +1831,7 @@ Supported values are 'perl."
                  (setq heredoc-mark  (buffer-substring-no-properties
                                       (match-beginning 0)
                                       (match-end 0)))
+                 (setq heredoc-line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
                  (setq start-inner (match-end 0)))))
             (t (error "next-<< not implemented for lang %s" lang)))
           (when start-inner (assert (<= pos start-inner) t))
@@ -1856,7 +1861,7 @@ Supported values are 'perl."
                                             (- (point) 0)
                                             )
                                         (goto-char here)))))))
-            (setq exc-mode (mumamo-mode-for-heredoc heredoc-mark))
+            (setq exc-mode (mumamo-mode-for-heredoc heredoc-line))
             (list start-inner end exc-mode nil nil fw-exc-fun nil)
             ;; Fix me: Add overriding for inner chunks (see
             ;; http://www.emacswiki.org/emacs/NxhtmlMode#toc13). Maybe
