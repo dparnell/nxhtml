@@ -7867,7 +7867,11 @@ This is the buffer local value of
 (defun mumamo-fill-paragraph-function(&optional justify region)
   "Function to fill the current paragraph.
 This is the buffer local value of `fill-paragraph-function' when
-mumamo is used."
+mumamo is used.
+
+Narrow to chunk region trimmed white space at the ends.  Then
+call the major mode's fill paragraph function, but do not allow
+that function to widen the buffer."
   (let* ((ovl (mumamo-get-chunk-save-buffer-state (point)))
          (major (mumamo-chunk-major-mode ovl)))
     ;; Fix-me: There must be some bug that makes it necessary to
@@ -7879,17 +7883,27 @@ mumamo is used."
 
     (save-restriction
       (mumamo-update-obscure ovl (point))
-      (let ((syn-min-max (mumamo-chunk-syntax-min-max ovl nil)))
-        (narrow-to-region (car syn-min-max)
-                          (cdr syn-min-max)))
-      (let ((fill-paragraph-function mumamo-original-fill-paragraph-function)
-            (mumamo-stop-widen t))
-        ;;(ad-enable-advice 'widen 'around 'mumamo-ad-widen)
-        (unwind-protect
-            ;;(fill-paragraph justify region)
-            (mumamo-funcall-evaled 'fill-paragraph justify region)
-          ;;(ad-disable-advice 'widen 'around 'mumamo-ad-widen)
-          )))))
+      (let* ((syn-min-max (mumamo-chunk-syntax-min-max ovl nil))
+             (syn-min (car syn-min-max))
+             (syn-max (cdr syn-min-max))
+             use-min
+             (here (point-marker)))
+        (goto-char syn-min)
+        (skip-syntax-forward " ")
+        ;; Move back over chars that have whitespace syntax but have the p flag.
+        (backward-prefix-chars)
+        (setq use-min (point))
+        (goto-char syn-max)
+        (skip-syntax-backward " ")
+        (narrow-to-region use-min (point))
+        (let ((fill-paragraph-function mumamo-original-fill-paragraph-function)
+              (mumamo-stop-widen t))
+          ;;(ad-enable-advice 'widen 'around 'mumamo-ad-widen)
+          (unwind-protect
+              ;;(fill-paragraph justify region)
+              (mumamo-funcall-evaled 'fill-paragraph justify region)
+            ;;(ad-disable-advice 'widen 'around 'mumamo-ad-widen)
+            ))))))
 
 ;; (defvar mumamo-dont-widen)
 ;; (defadvice widen  (around
