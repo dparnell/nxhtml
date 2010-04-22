@@ -5742,7 +5742,14 @@ function, it is changed to a list of functions."
     (put 'rails-secondary-switch-func 'permanent-local t)
     ))
 
-
+;; (defun test-js-perm ()
+;;   (put 'js--quick-match-re 'permanent-local t)
+;;   (put 'js--quick-match-re-func 'permanent-local t)
+;;   (put 'js--cache-end 'permanent-local t)
+;;   (put 'js--last-parse-pos 'permanent-local t)
+;;   (put 'js--state-at-last-parse-pos 'permanent-local t)
+;;   (put 'js--tmp-location 'permanent-local t))
+;; (test-js-perm)
 
 (defvar mumamo-per-buffer-local-vars
   '(
