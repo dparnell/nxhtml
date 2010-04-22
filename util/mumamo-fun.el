@@ -1610,6 +1610,18 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
       (setcdr (last chunk) '(mumamo-template-indentor))
       chunk)))
 
+(defun mumamo-chunk-eruby-quoted (pos min max)
+  "Find \"<%= ... %>\".  Return range and 'ruby-mode.
+See `mumamo-find-possible-chunk' for POS, MIN and MAX.
+
+This is a workaround for problems with strings."
+  (let ((chunk (mumamo-quick-static-chunk pos min max "\"<%=" "%>\"" t 'ruby-mode t)))
+    (when chunk
+      ;; Put indentation type on 'mumamo-next-indent on the chunk:
+      ;; Fix-me: use this!
+      (setcdr (last chunk) '(mumamo-template-indentor))
+      chunk)))
+
 (defun mumamo-chunk-eruby-comment (pos min max)
   "Find <%# ... %>.  Return range and 'ruby-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX.
@@ -1655,6 +1667,7 @@ This also covers inlined style and javascript."
   ("eRuby Html Family" javascript-mode
    (
     mumamo-chunk-eruby-comment
+    mumamo-chunk-eruby-quoted
     mumamo-chunk-eruby
     ;;mumamo-chunk-inlined-style
     ;;mumamo-chunk-inlined-script
@@ -1681,8 +1694,8 @@ The entries in this list have the form
   (REGEXP MAJOR-MODE-SPEC)
 
 where REGEXP is a regular expression that should match the
-heredoc marker and MAJOR-MODE-SPEC is the major mode spec to use
-in the heredoc part.
+heredoc marker line and MAJOR-MODE-SPEC is the major mode spec to
+use in the heredoc part.
 
 The major mode spec is translated to a major mode using
 `mumamo-major-mode-from-modespec'."
