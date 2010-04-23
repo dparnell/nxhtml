@@ -7486,7 +7486,11 @@ The following rules are used when indenting:
                                     (overlay-get this-line-indentor-chunk 'mumamo-prev-chunk)))
          (this-line-is-indentor (and this-line-indentor-prev
                                      (eq (overlay-get this-line-indentor-prev 'mumamo-next-indent)
-                                         'mumamo-template-indentor)))
+                                         'mumamo-template-indentor)
+                                     (progn
+                                       (goto-char (overlay-start this-line-indentor-chunk))
+                                       (back-to-indentation)
+                                       (= (point) (overlay-start this-line-indentor-chunk)))))
          ;; Fix-me: rewrite and reorder. We do not need both shift-in and shift-out
          (this-template-shift (when this-line-is-indentor
                                 (mumamo-template-indent-get-chunk-shift this-line-indentor-chunk)))
