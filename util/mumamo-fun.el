@@ -2928,11 +2928,14 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
   ;;                             'mumamo-mako-<%-fw-start-old
   ;;                             'mumamo-mako-<%-fw-end
   ;;                             'mumamo-mako-<%-find-borders)
-  (mumamo-possible-chunk-forward pos max
-                              'mumamo-mako-<%-fw-start
-                              'mumamo-mako-<%-fw-end
-                              'mumamo-mako-<%-find-borders
-                              ))
+  (let ((chunk (mumamo-possible-chunk-forward pos max
+                                              'mumamo-mako-<%-fw-start
+                                              'mumamo-mako-<%-fw-end
+                                              'mumamo-mako-<%-find-borders
+                                              )))
+    (when chunk
+      (setcdr (last chunk) '(mumamo-template-indentor))
+      chunk)))
 
 (defun mumamo-mako-<%-find-borders (start end exc-mode)
   (when exc-mode
@@ -2994,7 +2997,10 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 (defun mumamo-chunk-mako-% (pos min max)
   "Find % python EOL.  Return range and `python-mode'.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-whole-line-chunk pos min max "%" 'python-mode))
+  (let ((chunk (mumamo-whole-line-chunk pos min max "%" 'python-mode)))
+    (when chunk
+      (setcdr (last chunk) '(mumamo-template-indentor))
+      chunk)))
 
 (defun mumamo-chunk-mako-one-line-comment (pos min max)
   "Find ## comment EOL.  Return range and `python-mode'.
