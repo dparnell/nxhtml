@@ -6619,8 +6619,8 @@ Buffer must be narrowed to chunk when this function is called."
 
   (set (make-local-variable 'indent-line-function) 'mumamo-indent-line-function)
 
-  (setq mumamo-original-fill-paragraph-function fill-paragraph-function)
-  (set (make-local-variable 'fill-paragraph-function) 'mumamo-fill-paragraph-function)
+  ;;(setq mumamo-original-fill-paragraph-function fill-paragraph-function)
+  ;;(set (make-local-variable 'fill-paragraph-function) 'mumamo-fill-paragraph-function)
   ;;(set (make-local-variable 'fill-forward-paragraph-function 'forward-paragraph)
 
   (make-local-variable 'indent-region-function)
@@ -7875,14 +7875,16 @@ This is the buffer local value of
     (mumamo-with-major-mode-fontification major
       fill-forward-paragraph-function)))
 
-(defun mumamo-fill-paragraph-function(&optional justify region)
-  "Function to fill the current paragraph.
-This is the buffer local value of `fill-paragraph-function' when
-mumamo is used.
-
+(defun mumamo-fill-chunk (&optional justify)
+  "Fill each of the paragraphs in the current chunk.
 Narrow to chunk region trimmed white space at the ends.  Then
-call the major mode's fill paragraph function, but do not allow
-that function to widen the buffer."
+call `fill-region'.
+
+The argument JUSTIFY is the same as in `fill-region' and a prefix
+behaves the same way as there."
+  (interactive (progn
+		 (barf-if-buffer-read-only)
+		 (list (if current-prefix-arg 'full))))
   (let* ((ovl (mumamo-get-chunk-save-buffer-state (point)))
          (major (mumamo-chunk-major-mode ovl)))
     ;; Fix-me: There must be some bug that makes it necessary to
@@ -7906,15 +7908,7 @@ that function to widen the buffer."
         (setq use-min (point))
         (goto-char syn-max)
         (skip-syntax-backward " ")
-        (narrow-to-region use-min (point))
-        (let ((fill-paragraph-function mumamo-original-fill-paragraph-function)
-              (mumamo-stop-widen t))
-          ;;(ad-enable-advice 'widen 'around 'mumamo-ad-widen)
-          (unwind-protect
-              ;;(fill-paragraph justify region)
-              (mumamo-funcall-evaled 'fill-paragraph justify region)
-            ;;(ad-disable-advice 'widen 'around 'mumamo-ad-widen)
-            ))))))
+        (fill-region use-min (point) justify)))))
 
 ;; (defvar mumamo-dont-widen)
 ;; (defadvice widen  (around
@@ -7930,6 +7924,16 @@ that function to widen the buffer."
 ;;                mumamo-dont-widen)
 ;;     ad-do-it))
 
+(defadvice flymake-display-warning (around
+                                    mumamo-ad-flymake-display-warning
+                                    activate
+                                    compile)
+  "Display flymake warnings in the usual Emacs way."
+  (let ((msg (ad-get-arg 0)))
+    ;; Fix-me: Can't get backtrace here. Report it.
+    ;;(setq msg (format (concat msg "\n%S" (with-output-to-string (backtrace)))))
+    (lwarn '(flymake) :error msg)))
+;;(lwarn '(flymake) :error "the warning")
 
 (defun mumamo-forward-chunk ()
   "Move forward to next chunk."
