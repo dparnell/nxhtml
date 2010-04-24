@@ -1736,13 +1736,15 @@ Supported values are 'perl."
               (want-<< t)
               heredoc-mark
               heredoc-line
-              (delimiter "")
+              delimiter
+              skipped
               (skip-b "")
               start-inner
               end
               exc-mode
               fw-exc-fun
               border-fun
+              allow-code-after
               start-outer
               ps
               )
@@ -1750,6 +1752,7 @@ Supported values are 'perl."
           (beginning-of-line)
           (case lang
             ('sh
+             (setq allow-code-after t)
              (while want-<<
                (setq next-<< (search-forward "<<" max t))
                (if (not next-<<)
@@ -1763,15 +1766,24 @@ Supported values are 'perl."
                (when (= (char-after) ?-)
                  (setq skip-b "\t*")
                  (unless (eolp) (forward-char)))
-               (skip-chars-forward " \t")
+               ;; fix-me: space
+               (setq skipped (skip-chars-forward " \t"))
                (when (memq (char-after) '(?\" ?\'))
                  (setq delimiter (list (char-after))))
-               (when (looking-at (concat delimiter "\\([^\n<>;]*\\)" delimiter "[[:blank:]]*\n"))
-                 (setq heredoc-mark  (buffer-substring-no-properties
-                                      (match-beginning 1)
-                                      (match-end 1)))
+               (if (and (> skipped 0) (not delimiter))
+                   (setq heredoc-mark "")
+                 (when (looking-at (rx-to-string
+                                    `(and (regexp ,(if delimiter
+                                                       (concat delimiter "\\([^\n<>;]+\\)" delimiter)
+                                                     "\\([^ \t\n<>;]+\\)"))
+                                          (or blank line-end))))
+                   (setq heredoc-mark  (buffer-substring-no-properties
+                                        (match-beginning 1)
+                                        (match-end 1)))))
+               (when heredoc-mark
                  (setq heredoc-line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
-                 (setq start-inner (match-end 0)))))
+                 (setq start-inner (1+ (point-at-eol)))
+                 )))
             ('w32-ps (error "No support for windows power shell yet"))
             ('php
              (while want-<<
@@ -1779,7 +1791,7 @@ Supported values are 'perl."
                ;; Check inside string or comment.
                (if (not next-<<)
                    (setq want-<< nil) ;; give up
-                 (setq ps (parse-partial-sexp (line-beginning-position) (point)))
+                 (setq ps (parse-partial-sexp (line-beginning-position) (- (point) 0)))
                  (unless (or (nth 3 ps) (nth 4 ps))
                    (setq want-<< nil))))
              (when next-<<
@@ -1796,6 +1808,7 @@ Supported values are 'perl."
                    (setq heredoc-mark (substring heredoc-mark 1 (- (length heredoc-mark) 1))))
                  (setq start-inner (match-end 0)))))
             ('perl
+             (setq allow-code-after t)
              (while want-<<
                (setq next-<< (search-forward "<<" max t))
                (if (not next-<<)
@@ -1806,15 +1819,25 @@ Supported values are 'perl."
                    (setq want-<< nil))))
              (when next-<<
                (setq start-outer (- (point) 2))
-               (skip-chars-forward " \t")
+               ;; fix-me: space
+               (setq skipped (skip-chars-forward " \t"))
                (when (memq (char-after) '(?\" ?\'))
                  (setq delimiter (list (char-after))))
-               (when (looking-at (concat delimiter "\\([^\n;]*\\)" delimiter ";[[:blank:]]*\n"))
-                 (setq heredoc-mark  (buffer-substring-no-properties
-                                      (match-beginning 1)
-                                      (match-end 1)))
+               (if (and (> skipped 0) (not delimiter))
+                   (setq heredoc-mark "") ;; blank line
+                 (when (looking-at (rx-to-string
+                                    `(and (regexp ,(if delimiter
+                                                       (concat delimiter "\\([^\n;]*\\)" delimiter)
+                                                     "\\([^ \t\n<>;]+\\)"))
+                                          (or blank ";"))))
+                   (setq heredoc-mark  (buffer-substring-no-properties
+                                        (match-beginning 1)
+                                        (match-end 1)))))
+               (when heredoc-mark
                  (setq heredoc-line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
-                 (setq start-inner (1+ (match-end 0))))))
+                 ;;(setq start-inner (1+ (match-end 0)))
+                 (setq start-inner (1+ (point-at-eol)))
+                 )))
             ('python
              (unless (eobp) (forward-char))
              (while want-<<
@@ -1861,9 +1884,9 @@ Supported values are 'perl."
               ;; Fix-me: rename start-inner <=> start-outer...
               (setq border-fun `(lambda (start end exc-mode)
                                   ;; Fix-me: use lengths...
-                                  (list (+ start (- ,start-inner ,start-outer 1))
-                                        (when end
-                                          (- end ,(1+ (length heredoc-mark)))))))
+                                  (list
+                                   (if ,allow-code-after nil (+ start (- ,start-inner ,start-outer 1)))
+                                   (when end (- end ,(+ 0 (length heredoc-mark)))))))
               (setq fw-exc-fun `(lambda (pos max)
                                   (save-match-data
                                     (let ((here (point)))
@@ -1881,7 +1904,9 @@ Supported values are 'perl."
             ;; make fw-exc-fun a list (or a cons, since overriding is
             ;; probably all that I want to add)? And make the
             ;; corresponding chunk property a list too?
-            (list start-outer end exc-mode (list start-inner end) nil fw-exc-fun border-fun 'heredoc)
+            ;;(list start-outer end exc-mode (list start-inner end) nil fw-exc-fun border-fun 'heredoc)
+            (list (if allow-code-after start-inner start-outer)
+                  end exc-mode (list start-inner end) nil fw-exc-fun border-fun 'heredoc)
             )))
     (error (mumamo-display-error 'mumamo-chunk-heredoc
                                  "%s" (error-message-string err)))))
