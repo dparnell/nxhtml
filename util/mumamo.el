@@ -4712,7 +4712,7 @@ See also `mumamo-new-create-chunk' for more information."
                   ;;(assert (>= next-min search-from) t)
                   (assert (<= search-from max) t)
                   (when curr-border-min
-                    (assert (< next-min curr-border-min) t)
+                    (assert (<= next-min curr-border-min) t)
                     (assert (<= curr-border-min max) t))
                   (when curr-border-max
                     (assert (<= next-min curr-border-max) t)
@@ -7764,6 +7764,7 @@ The following rules are used when indenting:
               (narrow-to-region (car syn-min-max) (cdr syn-min-max))))
           ;;(msgtrc "call-indent-line fun=%s" fun)
           ;;(funcall fun)
+          ;; Fix-me: Use mumamo-funcall-evaled to avoid (widen):
           (mumamo-funcall-evaled fun)
           )))))
 
@@ -7790,6 +7791,7 @@ this may change."
           (let ((close (and (not (buffer-modified-p))
                             (= 1 (point)))))
             ;;(goto-char pos) (eval-defun nil)
+            (msgtrc "mumamo-funcall-evaled %s" (current-buffer))
             (eval-buffer)
             (when close (kill-buffer))))
         (put fun 'mumamo-evaled t))))
