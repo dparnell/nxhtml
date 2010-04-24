@@ -1270,8 +1270,9 @@ If LOAD"
         (setq default-directory web-vcs-comp-dir)
         (widen)
         (goto-char (point-max))
-        (when (= 0 (buffer-size))
-          (insert (propertize "Web VCS compilation output" 'face 'font-lock-comment-face))
+        (when (or (= 0 (buffer-size))
+                  (not (derived-mode-p 'compilation-mode)))
+          (insert (propertize "\nWeb VCS compilation output" 'font-lock-face 'font-lock-comment-face))
           (compilation-mode)
           (setq font-lock-verbose nil)
           (font-lock-add-keywords nil
