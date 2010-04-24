@@ -1735,6 +1735,7 @@ Supported values are 'perl."
         (let (next-<<
               (want-<< t)
               heredoc-mark
+              end-mark-len
               heredoc-line
               delimiter
               skipped
@@ -1783,6 +1784,7 @@ Supported values are 'perl."
                (when heredoc-mark
                  (setq heredoc-line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
                  (setq start-inner (1+ (point-at-eol)))
+                 (setq end-mark-len (length heredoc-mark))
                  )))
             ('w32-ps (error "No support for windows power shell yet"))
             ('php
@@ -1806,6 +1808,7 @@ Supported values are 'perl."
                  (when (and (= ?\' (string-to-char heredoc-mark))
                             (= ?\' (string-to-char (substring heredoc-mark (1- (length heredoc-mark))))))
                    (setq heredoc-mark (substring heredoc-mark 1 (- (length heredoc-mark) 1))))
+                 (setq end-mark-len (1+ (length heredoc-mark)))
                  (setq start-inner (match-end 0)))))
             ('perl
              (setq allow-code-after t)
@@ -1837,6 +1840,7 @@ Supported values are 'perl."
                  (setq heredoc-line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
                  ;;(setq start-inner (1+ (match-end 0)))
                  (setq start-inner (1+ (point-at-eol)))
+                 (setq end-mark-len (length heredoc-mark))
                  )))
             ('python
              (unless (eobp) (forward-char))
@@ -1867,6 +1871,7 @@ Supported values are 'perl."
                  (setq heredoc-mark  (buffer-substring-no-properties
                                       (match-beginning 0)
                                       (match-end 0)))
+                 (setq end-mark-len (length heredoc-mark))
                  (setq heredoc-line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
                  (setq start-inner (match-end 0)))))
             (t (error "next-<< not implemented for lang %s" lang)))
@@ -1886,7 +1891,7 @@ Supported values are 'perl."
                                   ;; Fix-me: use lengths...
                                   (list
                                    (if ,allow-code-after nil (+ start (- ,start-inner ,start-outer 1)))
-                                   (when end (- end ,(+ 0 (length heredoc-mark)))))))
+                                   (when end (- end ,end-mark-len)))))
               (setq fw-exc-fun `(lambda (pos max)
                                   (save-match-data
                                     (let ((here (point)))
