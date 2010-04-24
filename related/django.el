@@ -86,10 +86,12 @@ Indent like the examples on URL
 `http://docs.djangoproject.com/en/1.1/ref/templates/builtins/'."
   (save-match-data
     (let* ((indent-re (rx-to-string `(and word-start
-                                          ,(append '(or) django-indenting-keywords))))
+                                          ,(append '(or "else") django-indenting-keywords))))
            (deindent-re (rx-to-string `(and word-start
-                                            "end"
-                                            ,(append '(or) django-indenting-keywords))))
+                                            (or "else"
+                                                (seq
+                                                 "end"
+                                                 ,(append '(or) django-indenting-keywords))))))
            (here (point-marker))
            (this-indentation (current-indentation))
            (this-line-start (progn (beginning-of-line) (point)))
