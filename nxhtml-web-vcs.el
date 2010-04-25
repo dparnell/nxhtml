@@ -463,7 +463,7 @@ command `nxhtml-setup-install'."
                                      (file-name-as-directory
                                       (expand-file-name p nxhtml-install-dir)))
                                    '("tests" "related" "nxhtml" "util" ".")))))
-    (message "nxhtml-byte-compile-file:extra-load-path=%s" extra-load-path)
+    ;; (message "nxhtml-byte-compile-file:extra-load-path=%s" extra-load-path)
     (web-vcs-byte-compile-file file load extra-load-path)))
 
 ;; fix-me: change web-vcs-byte-compile-file instead
