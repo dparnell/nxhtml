@@ -1034,7 +1034,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-list-defined-multi-major-modes
 ;;;;;;  mumamo-mark-for-refontification mumamo-hi-lock-faces mumamo
 ;;;;;;  mumamo-add-to-defined-multi-major-modes define-mumamo-multi-major-mode)
-;;;;;;  "mumamo" "util/mumamo.el" (19408 16586))
+;;;;;;  "mumamo" "util/mumamo.el" (19412 26290))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1192,7 +1192,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
 ;;;;;;  embperl-html-mumamo-mode mason-html-mumamo-mode nxml-mumamo-mode
 ;;;;;;  html-mumamo-mode mumamo-define-html-file-wide-keys) "mumamo-fun"
-;;;;;;  "util/mumamo-fun.el" (19408 18980))
+;;;;;;  "util/mumamo-fun.el" (19410 22971))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1513,7 +1513,7 @@ Color up digits three by three.
 ;;;;;;  ourcomments-move-beginning-of-line ourcomments-mark-whole-buffer-or-field
 ;;;;;;  fill-dwim unfill-individual-paragraphs unfill-region unfill-paragraph
 ;;;;;;  define-toggle-old define-toggle popup-menu-at-point ourcomments-indirect-fun)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19370 28559))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19411 29548))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1773,7 +1773,10 @@ Restart Emacs and start `server-mode' if on before.
 \(fn)" t nil)
 
 (nxhtml-autoload 'emacs `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
-Start a new Emacs.
+Start a new Emacs with default parameters.
+Additional ARGS are passed to the new Emacs.
+
+See also `ourcomments-started-emacs-use-output-buffer'.
 
 \(fn &rest ARGS)" t nil)
 
@@ -1782,25 +1785,33 @@ Start a new Emacs showing current buffer file.
 Go to the current line and column in that file.
 If there is no buffer file then instead start with `dired'.
 
+This calls the function `emacs' with argument --no-desktop and
+the file or a call to dired.
+
 \(fn)" t nil)
 
 (nxhtml-autoload 'emacs--debug-init `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
-Not documented
+Start a new Emacs with --debug-init parameter.
+This calls the function `emacs' with added arguments ARGS.
 
-\(fn)" t nil)
+\(fn &rest ARGS)" t nil)
 
 (nxhtml-autoload 'emacs--no-desktop `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
-Not documented
+Start a new Emacs with --no-desktop parameter.
+This calls the function `emacs' with added arguments ARGS.
 
 \(fn &rest ARGS)" t nil)
 
 (nxhtml-autoload 'emacs-Q `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Start a new Emacs with -Q parameter.
 Start new Emacs without any customization whatsoever.
+This calls the function `emacs' with added arguments ARGS.
 
 \(fn &rest ARGS)" t nil)
 
 (nxhtml-autoload 'emacs-Q-nxhtml `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Start new Emacs with -Q and load nXhtml.
+This calls the function `emacs' with added arguments ARGS.
 
 \(fn &rest ARGS)" t nil)
 
@@ -2271,8 +2282,8 @@ Here are all key bindings
 
 ;;;***
 
-;;;### (autoloads (udev-call-first-step) "udev" "util/udev.el" (19061
-;;;;;;  60296))
+;;;### (autoloads (udev-call-first-step) "udev" "util/udev.el" (19412
+;;;;;;  25976))
 ;;; Generated autoloads from util/udev.el
 (web-autoload-require 'udev 'lp '(nxhtml-download-root-url nil) "util/udev" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3229,8 +3240,8 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (django-mode) "django" "related/django.el" (19408
-;;;;;;  57065))
+;;;### (autoloads (django-mode) "django" "related/django.el" (19411
+;;;;;;  8520))
 ;;; Generated autoloads from related/django.el
 (web-autoload-require 'django 'lp '(nxhtml-download-root-url nil) "related/django" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3243,19 +3254,28 @@ This mode only provides syntax highlighting.
 
 ;;;***
 
-;;;### (autoloads (csharp-mode) "csharp-mode" "related/csharp-mode.el"
-;;;;;;  (18283 4168))
+;;;### (autoloads (csharp-mode csharp-mode-hook) "csharp-mode" "related/csharp-mode.el"
+;;;;;;  (19410 9973))
 ;;; Generated autoloads from related/csharp-mode.el
 (web-autoload-require 'csharp-mode 'lp '(nxhtml-download-root-url nil) "related/csharp-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
 
+(add-to-list 'auto-mode-alist '("\\.cs$" . csharp-mode))
+
+(defvar csharp-mode-hook nil "\
+*Hook called by `csharp-mode'.")
+
+(nxhtml-custom-autoload 'csharp-mode-hook 'csharp-mode t)
+
 (nxhtml-autoload 'csharp-mode `(lp '(nxhtml-download-root-url nil) "related/csharp-mode" nxhtml-install-dir) "\
-Major mode for editing C# (pronounced \"see sharp\") code.
-This is a simple example of a separate mode derived from CC Mode to
-support a language with syntax similar to C/C++/ObjC/Java/IDL/Pike.
+Major mode for editing C# code. This mode is derived from CC Mode to
+support C#.
 
 The hook `c-mode-common-hook' is run with no args at mode
 initialization, then `csharp-mode-hook'.
+
+This mode will automatically add a regexp for Csc.exe error and warning
+messages to the `compilation-error-regexp-alist'.
 
 Key bindings:
 \\{csharp-mode-map}
@@ -3768,7 +3788,7 @@ See `nxml-where-mode' for more information on Nxml-Where mode.
 ;;;***
 
 ;;;### (autoloads (nxhtml-features-check nxhtml-customize nxhtml)
-;;;;;;  "nxhtml" "nxhtml/nxhtml.el" (19278 15746))
+;;;;;;  "nxhtml" "nxhtml/nxhtml.el" (19412 25954))
 ;;; Generated autoloads from nxhtml/nxhtml.el
 (web-autoload-require 'nxhtml 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3850,8 +3870,8 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
-;;;;;;  nxhtml-mode) "nxhtml-mode" "nxhtml/nxhtml-mode.el" (19387
-;;;;;;  60173))
+;;;;;;  nxhtml-mode) "nxhtml-mode" "nxhtml/nxhtml-mode.el" (19412
+;;;;;;  25947))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 (web-autoload-require 'nxhtml-mode 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3868,7 +3888,7 @@ To see an overview in html format do \\[nxhtml-overview].
   associations are done, see `nxhtml-setup-file-assoc'.
 
 The nXhtml menu is added by this mode (or actually the minor
-mode `nxhtml-minor-mode') and gives quick access and an overview
+mode `nxhtml-menu-mode') and gives quick access and an overview
 of some other important features. These includes:
 
 - multiple major modes, see `define-mumamo-multi-major-mode'
@@ -3939,9 +3959,9 @@ Here are all key bindings in nxhtml-mode itself:
 
 \\{nxhtml-mode-map}
 
-The minor mode `nxhtml-minor-mode' adds some bindings:
+The minor mode `nxhtml-menu-mode' adds some bindings:
 
-\\{nxhtml-minor-mode-map}
+\\{nxhtml-menu-mode-map}
 
 Notice that other minor mode key bindings may also be active, as
 well as emulation modes. Do \\[describe-bindings] to get a list
@@ -3983,9 +4003,9 @@ This mode may be turned on automatically in two ways:
 
 ;;;***
 
-;;;### (autoloads (nxhtml-overview nxhtml-global-minor-mode nxhtml-minor-mode
-;;;;;;  nxhtml-browse-region nxhtml-browse-file nxhtml-edit-with-gimp)
-;;;;;;  "nxhtml-menu" "nxhtml/nxhtml-menu.el" (19389 53256))
+;;;### (autoloads (nxhtml-overview nxhtml-menu-mode nxhtml-browse-region
+;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "nxhtml-menu" "nxhtml/nxhtml-menu.el"
+;;;;;;  (19412 26360))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4005,28 +4025,15 @@ View region in web browser.
 
 \(fn)" t nil)
 
-(nxhtml-autoload 'nxhtml-minor-mode `(lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir) "\
+(defvar nxhtml-menu-mode nil "\
+Non-nil if Nxhtml-Menu mode is enabled.
+See the command `nxhtml-menu-mode' for a description of this minor mode.")
+
+(nxhtml-custom-autoload 'nxhtml-menu-mode 'nxhtml-menu nil)
+
+(nxhtml-autoload 'nxhtml-menu-mode `(lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir) "\
 Minor mode to turn on some key and menu bindings.
 See `nxhtml-mode' for more information.
-
-\(fn &optional ARG)" t nil)
-
-(defvar nxhtml-global-minor-mode nil "\
-Non-nil if Nxhtml-Global minor mode is enabled.
-See the command `nxhtml-global-minor-mode' for a description of this minor mode.
-Setting this variable directly does not take effect;
-either customize it (see the info node `Easy Customization')
-or call the function `nxhtml-global-minor-mode'.")
-
-(nxhtml-custom-autoload 'nxhtml-global-minor-mode 'nxhtml-menu nil)
-
-(nxhtml-autoload 'nxhtml-global-minor-mode `(lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir) "\
-Toggle Nxhtml minor mode in every possible buffer.
-With prefix ARG, turn Nxhtml-Global minor mode on if and only if
-ARG is positive.
-Nxhtml minor mode is enabled in all buffers where
-`nxhtml-maybe-turn-on-minor-mode' would do it.
-See `nxhtml-minor-mode' for more information on Nxhtml minor mode.
 
 \(fn &optional ARG)" t nil)
 
@@ -4202,7 +4209,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;### (autoloads (web-vcs-investigate-elisp-file web-vcs-byte-compile-file
 ;;;;;;  web-vcs-message-with-face web-vcs-get-files-from-root web-vcs-log-edit
 ;;;;;;  web-vcs-default-download-directory) "web-vcs" "web-vcs.el"
-;;;;;;  (19387 13110))
+;;;;;;  (19412 16397))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4361,14 +4368,14 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/org-panel.el" "util/rxi.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19408 59660 546000))
+;;;;;;  "web-autoload.el") (19412 26385 593000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtml-byte-recompile-file nxhtml-byte-compile-file
 ;;;;;;  nxhtml-get-missing-files nxhtml-update-existing-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install) "nxhtml-web-vcs"
-;;;;;;  "nxhtml-web-vcs.el" (19387 13003))
+;;;;;;  "nxhtml-web-vcs.el" (19412 16464))
 ;;; Generated autoloads from nxhtml-web-vcs.el
 (web-autoload-require 'nxhtml-web-vcs 'lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 

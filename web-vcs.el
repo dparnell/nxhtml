@@ -1286,7 +1286,7 @@ If LOAD"
         (if (or (not window-system)
                 (< emacs-major-version 23))
             (byte-compile-file file)
-          (message "web-vcs-byte-compile-file:sub-env-load-path=%s" sub-env-load-path)
+          ;;(message "web-vcs-byte-compile-file:sub-env-load-path=%s" sub-env-load-path)
           (unless (file-exists-p this-emacs-exe)
             (error "Can't find this-emacs-exe=%s" this-emacs-exe))
           (unless (stringp sub-env-load-path) (error "I did it again, sub-env-load-path=%S" sub-env-load-path))
@@ -1300,7 +1300,8 @@ If LOAD"
                             "--file" file
                             "-f" "emacs-lisp-byte-compile"
                              nil)))
-            (insert (format "call-process returned: %s\n" ret)))
+            ;;(insert (format "call-process returned: %s\n" ret))
+            )
           (setenv "EMACSLOADPATH" old-env-load-path))
         (goto-char start)
         (while (re-search-forward "^\\([a-zA-Z0-9/\._-]+\\):[0-9]+:[0-9]+:" nil t)

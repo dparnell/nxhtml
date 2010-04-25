@@ -5760,7 +5760,7 @@ function, it is changed to a list of functions."
     ;; is it necessary?
     ;;font-lock-mode-major-mode
     tags-file-name
-    nxhtml-minor-mode
+    nxhtml-menu-mode
     ;; Fix-me: adding rng timers here stops Emacs from looping after
     ;; indenting in ind-0-error.php, but I have no clue why. Hm. This
     ;; problem is gone, but I forgot why.
@@ -5896,7 +5896,7 @@ Just check the name."
 ;; wanted this on.
 
 (defvar mumamo-after-change-major-mode-no-nos
-  '(nxhtml-global-minor-mode-enable-in-buffers
+  '(;;nxhtml-global-minor-mode-enable-in-buffers
     global-font-lock-mode-enable-in-buffers)
   "Avoid running these in `after-change-major-mode-hook'.")
 
@@ -6150,7 +6150,7 @@ Save HOOK and the list of functions removed to
     mode-name
 
     normal-auto-fill-function
-    nxhtml-minor-mode-major-mode
+    ;;nxhtml-menu-mode-major-mode
 
     open-paren-in-column-0-is-defun-start
     outline-level
@@ -6283,10 +6283,12 @@ default values."
 
 
 (defun mumamo-font-lock-fontify-chunk ()
-  "Like `font-lock-default-fontify-buffer' for .
-Buffer must be narrowed to chunk when this function is called."
+  "Like `font-lock-default-fontify-buffer' but for a chunk.
+Buffer must be narrowed to inner part of chunk when this function
+is called."
   (let ((verbose (if (numberp font-lock-verbose)
-		     (> (- (point-max) (point-min)) font-lock-verbose)
+                     (and (> font-lock-verbose 0)
+                          (> (- (point-max) (point-min)) font-lock-verbose))
 		   font-lock-verbose))
         font-lock-extend-region-functions ;; accept narrowing
         (font-lock-unfontify-region-function 'ignore))
@@ -6294,18 +6296,15 @@ Buffer must be narrowed to chunk when this function is called."
     (with-temp-message
 	(when verbose
 	  (format "Fontifying %s part %s-%s (%s)..." (buffer-name) (point-min) (point-max) font-lock-verbose))
-      ;; Make sure we fontify etc. in the whole buffer.
-      (save-restriction
-	;;(widen)
-	(condition-case err
-	    (save-excursion
-	      (save-match-data
-		(font-lock-fontify-region (point-min) (point-max) verbose)
-		(font-lock-after-fontify-buffer)
-		(setq font-lock-fontified t)))
-          (msgtrc "font-lock-fontify-chunk: %s" (error-message-string err))
-	  ;; We don't restore the old fontification, so it's best to unfontify.
-	  (quit (mumamo-font-lock-unfontify-chunk)))))))
+      (condition-case err
+          (save-excursion
+            (save-match-data
+              (font-lock-fontify-region (point-min) (point-max) verbose)
+              (font-lock-after-fontify-buffer)
+              (setq font-lock-fontified t)))
+        (msgtrc "font-lock-fontify-chunk: %s" (error-message-string err))
+        ;; We don't restore the old fontification, so it's best to unfontify.
+        (quit (mumamo-font-lock-unfontify-chunk))))))
 
 
 (defun mumamo-font-lock-unfontify-chunk ()
