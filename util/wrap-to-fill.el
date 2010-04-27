@@ -118,16 +118,27 @@ the left margin."
 By default the display columns are centered, but see the option
 `wrap-to-fill-left-marg'.
 
-Fix-me:
-Note 1: When turning this on `visual-line-mode' is also turned on. This
-is not reset when turning off this mode.
+Also indent continuation lines when word-wrap is on if the line
+begins like '- ' etc:
 
-Note 2: The text properties 'wrap-prefix and 'wrap-to-fill-prefix
-is set by this mode to indent continuation lines.
+  - Indent lines after
+    this
+  * and after
+    this
+  1) and when counting
+     things
+  a) wether using numbers
+     or letters.
+
+Note: The text properties 'wrap-prefix and 'wrap-to-fill-prefix
+is set by this mode to indent continuation lines for the above.
 
 Key bindings added by this minor mode:
 
-\\{wrap-to-fill-column-mode-map}"
+\\{wrap-to-fill-column-mode-map}
+
+Fix-me: When turning this on `visual-line-mode' is also turned on. This
+is not reset when turning off this mode."
   :lighter " WrapFill"
   :group 'wrap-to-fill
   ;; (message "wrap-to-fill-column-mode %s, cb=%s, major=%s, multi=%s" wrap-to-fill-column-mode (current-buffer)
@@ -312,48 +323,55 @@ Key bindings added by this minor mode:
 ;;; Font lock
 
 (defun wrap-to-fill-fontify (bound)
+  "During fontification indent lines starting like '- '.
+BOUND is the limit of fontification.
+
+This is called as a matcher in `font-lock-keywords'.  It never
+matches but puts properties 'wrap-prefix and 'wrap-to-fill-prefix
+on those line.  Indentation is done only when `word-wrap' is on.
+
+See `wrap-to-fill-column-mode' for more info."
   (save-restriction
     (widen)
-    (while (< (point) bound)
-      (let ((this-bol (if (bolp) (point)
-                        (1+ (line-end-position)))))
-        (if (>= this-bol bound)
-            (goto-char (1+ bound))
-          (goto-char this-bol)
-          (let (ind-str
-                ind-str-fill
-                skipped
-                (beg-pos this-bol)
-                (end-pos (line-end-position)))
-            (when (equal (get-text-property beg-pos 'wrap-prefix)
-                         (get-text-property beg-pos 'wrap-to-fill-prefix))
-              ;; Find indentation
-              (when (< 0 (skip-chars-forward "[:blank:]"))
-                (setq ind-str (buffer-substring-no-properties beg-pos (point)))
-                ;; Any special markers like -, * etc
-                (when (< (1+ (point)) (point-max))
-                  (or (and (memq (char-after) '(?- ;; 45
-                                                ?– ;; 8211
-                                                ?*
-                                                ))
-                           (eq (char-after (1+ (point))) ?\ )
-                           (progn (forward-char)
-                                  (setq ind-str-fill (concat "  " ind-str))))
-                      (and (setq skipped (skip-chars-forward "[:digit:]"))
-                           (eq (char-after (point)) ?\))
-                           (eq (char-after (1+ (point))) ?\ )
-                           (progn (forward-char 2)
-                                  (setq ind-str-fill (concat (make-string (+ 2 skipped) 32) ind-str))))))
-                (unless ind-str-fill (setq ind-str-fill ind-str))
-                ;;(setq ind-str-fill (concat "  " ind-str))
-                (mumamo-with-buffer-prepared-for-jit-lock
-                 (put-text-property beg-pos end-pos 'wrap-prefix ind-str-fill)
-                 (put-text-property beg-pos end-pos 'wrap-to-fill-prefix ind-str-fill)))))))
-      (forward-line 1))
-    ;; Note: doing it line by line and returning t gave problem in mumamo.
-    (when nil ;this-bol
-      (set-match-data (list (point) (point)))
-      t)))
+    (let ((n-while 0))
+      (unless (bolp) (forward-line 1))
+      (while (and (mumamo-while 200 'n-while "wrap-to-fill-fontify")
+                  (< (point) bound)) ;; Max bound = (point-max)
+        (let (ind-str
+              ind-str-fill
+              skipped
+              (beg-pos (point))
+              end-pos)
+          ;; Fix-me: Why did I check this? Step aside from org-mode or?
+          (when (equal (get-text-property beg-pos 'wrap-prefix)
+                       (get-text-property beg-pos 'wrap-to-fill-prefix))
+            (setq end-pos (point-at-eol))
+            ;; Find indentation quickly
+            (when (< 0 (skip-chars-forward "[:blank:]"))
+              (setq ind-str (buffer-substring-no-properties beg-pos (point))))
+            ;; Any special markers like "- ", "* ", "1) ", "1. " etc
+            (when (< (1+ (point)) (point-max))
+              (or (and (memq (char-after) '(?- ;; 45
+                                            ?– ;; 8211
+                                            ?*
+                                            ))
+                       (eq (char-after (1+ (point))) ?\ )
+                       (setq ind-str-fill (concat "  " ind-str)))
+                  (and (setq skipped (skip-chars-forward "[:digit:]"))
+                       (or (> skipped 0)
+                           (= 1 (setq skipped (skip-chars-forward "[:alpha:]"))))
+                       (memq (char-after (point)) '(?\) ?.))
+                       (eq (char-after (1+ (point))) ?\ )
+                       (setq ind-str-fill (concat ind-str (make-string (+ 2 skipped) 32))))))
+            (unless ind-str-fill (setq ind-str-fill ind-str))
+            (mumamo-with-buffer-prepared-for-jit-lock
+             (put-text-property beg-pos end-pos 'wrap-prefix ind-str-fill)
+             (put-text-property beg-pos end-pos 'wrap-to-fill-prefix ind-str-fill))))
+        ;; This moves to the end of line if there is no more lines. That
+        ;; means we will not get stuck here.
+        (forward-line 1))))
+  ;; Do not set match-data, there is none, just return nil.
+  nil)
 
 (defun wrap-to-fill-font-lock (on)
   ;; See mlinks.el

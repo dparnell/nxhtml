@@ -279,7 +279,7 @@ It defines the following key bindings:
               (add-hook 'window-configuration-change-hook 'pause-break-exit))))
 
       (remove-hook 'window-configuration-change-hook 'pause-break-exit)
-      (pause-tell-again-cancel-timer)
+      ;;(pause-tell-again-cancel-timer)
       ;;(set-frame-parameter nil 'background-color "white")
       (dolist (f (frame-list))
         (set-frame-parameter f 'background-color     (cdr (assq f old-frame-bg-color)))
@@ -415,7 +415,8 @@ Please note that it is run in a timer.")
 (defun pause-tell-again ()
   (when (and window-system pause-even-if-not-in-emacs)
     (pause-max-frame pause-frame)
-    (raise-frame pause-frame)))
+    (raise-frame pause-frame)
+    (x-focus-frame pause-frame)))
 
 
 (defun pause-break-message ()
@@ -437,6 +438,7 @@ Please note that it is run in a timer.")
 
 (defun pause-break-exit ()
   (interactive)
+  (pause-tell-again-cancel-timer)
   (let ((elapsed (- (float-time) pause-break-last-wcfg-change)))
     ;;(message "elapsed=%s pause-break-last-wcfg-change=%s" elapsed pause-break-last-wcfg-change)
     (setq pause-break-last-wcfg-change (float-time))
@@ -719,6 +721,7 @@ See `pause-start' for more info.
                           'action `(lambda (button)
                                      (condition-case err
                                          (progn
+                                           (pause-tell-again-cancel-timer)
                                            (browse-url ,pose-url)
                                            (run-with-idle-timer 1 nil 'pause-break-exit-from-button))
                                        (error (message "%s" (error-message-string err))))))
