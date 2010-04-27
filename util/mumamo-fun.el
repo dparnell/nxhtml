@@ -1886,20 +1886,24 @@ Supported values are 'perl."
                      ('python (concat "^" heredoc-mark "[[:space:]]*"))
                      ('ruby (concat "^" skip-b heredoc-mark "$"))
                      (t (error "mark-regexp not implemented for %s" lang)))))
-              ;; Fix-me: rename start-inner <=> start-outer...
               (setq border-fun `(lambda (start end exc-mode)
-                                  ;; Fix-me: use lengths...
                                   (list
                                    (if ,allow-code-after nil (+ start (- ,start-inner ,start-outer 1)))
-                                   (when end (- end ,end-mark-len)))))
+                                   (when end (- (1- end) ,end-mark-len)))))
               (setq fw-exc-fun `(lambda (pos max)
                                   (save-match-data
                                     (let ((here (point)))
                                       (goto-char pos)
                                       (prog1
                                           (when (re-search-forward ,endmark-regexp max t)
-                                            (- (point) 1 ,(length heredoc-mark))
-                                            (- (point) 0)
+                                            ;;(- (point) 1 ,(length heredoc-mark))
+                                            ;; Extend heredoc chunk
+                                            ;; until after newline to
+                                            ;; avoid the "syntax-table
+                                            ;; (15)" entry on the
+                                            ;; newline char in
+                                            ;; `sh-mode':
+                                            (+ (point) 1)
                                             )
                                         (goto-char here)))))))
             (setq exc-mode (mumamo-mode-for-heredoc heredoc-line))
