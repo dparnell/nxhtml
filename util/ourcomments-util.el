@@ -1832,14 +1832,14 @@ See also `ourcomments-started-emacs-use-output-buffer'."
     (when out-buf
       (display-buffer out-buf)
       (setq fin-msg ". Finished.")
-      (message "Started 'emacs%s' => %s. Locked until this is finished." args-text ret fin-msg)
+      (message "Started 'emacs%s' => %s. Locked until this is finished." args-text ret)
       (redisplay))
     (setq ret (apply 'call-process (ourcomments-find-emacs) nil buf-arg nil args))
     (message "Started 'emacs%s' => %s%s" args-text ret fin-msg)
     ret))
 
 ;;;###autoload
-(defun emacs-buffer-file()
+(defun emacs-buffer-file(&rest args)
   "Start a new Emacs showing current buffer file.
 Go to the current line and column in that file.
 If there is no buffer file then instead start with `dired'.
@@ -1852,8 +1852,8 @@ the file or a call to dired."
         (lin (line-number-at-pos))
         (col (current-column)))
     (if file
-        (apply 'emacs "--no-desktop" (format "+%d:%d" lin col) file nil)
-      (applay 'emacs "--no-desktop" "--eval" (format "(dired \"%s\")" default-directory nil)))))
+        (apply 'emacs "--no-desktop" (format "+%d:%d" lin col) file args)
+      (apply 'emacs "--no-desktop" "--eval" (format "(dired \"%s\")" default-directory) args))))
 
 ;;;###autoload
 (defun emacs--debug-init(&rest args)
