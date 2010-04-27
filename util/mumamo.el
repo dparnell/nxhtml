@@ -8358,9 +8358,10 @@ Do here also other necessary adjustments for this."
                 (setq syntax-ppss-cache-min nil)
                 (setq syntax-ppss-stats (default-value 'syntax-ppss-stats)))
               (when dump2
-                (msgtrc " get syntax-ppss-last-min=%s len=%s chunk=%s" syntax-ppss-last-min (length syntax-ppss-last-min) chunk-at-pos)
-                (msgtrc " prop syntax-ppss-last-min=%s" (overlay-properties chunk-at-pos))
-                (msgtrc " chunk-major=%s, %s, syntax-min=%s\n last-min=%s" chunk-major major-mode chunk-syntax-min syntax-ppss-last-min))
+                (msgtrc " get syntax-ppss-last-min=%s chunk=%s" syntax-ppss-last-min chunk-at-pos)
+                ;;(msgtrc " prop syntax-ppss-last-min=%s" (overlay-properties chunk-at-pos))
+                ;;(msgtrc " chunk-major=%s, %s, syntax-min=%s\n last-min=%s" chunk-major major-mode chunk-syntax-min syntax-ppss-last-min)
+                )
               ;;(setq dump2 nil)
               (when syntax-ppss-last-min
                 (unless (car syntax-ppss-last-min)
@@ -8435,8 +8436,8 @@ Do here also other necessary adjustments for this."
                       ;;(assert (and old-pos pos) t)
                       (unless (and old-pos pos) (error "defadvice syntax-ppss 2 (and old-pos=%s pos=%s)" old-pos pos))
                       (when dump2
-                        (msgtrc "parse-partial-sexp %s %s nil nil %s" old-pos pos old-ppss))
-                      (setq ret-val (parse-partial-sexp old-pos pos nil nil old-ppss)))))
+                        (msgtrc "parse-partial-sexp %s %s nil nil %s" (+ 0 old-pos) pos old-ppss))
+                      (setq ret-val (parse-partial-sexp (+ 0 old-pos) pos nil nil old-ppss)))))
                 (when dump2 (msgtrc " ==>ret-val=%s" ret-val))
                 ;;(mumamo-backtrace "syntax-ppss")
                 (setq ad-return-value ret-val))

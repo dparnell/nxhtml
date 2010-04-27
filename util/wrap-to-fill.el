@@ -317,31 +317,38 @@ Key bindings added by this minor mode:
     (while (< (point) bound)
       (let ((this-bol (if (bolp) (point)
                         (1+ (line-end-position)))))
-        (unless (< this-bol bound) (setq this-bol nil))
-        (when this-bol
-          (goto-char (+ this-bol 0))
+        (if (>= this-bol bound)
+            (goto-char (1+ bound))
+          (goto-char this-bol)
           (let (ind-str
                 ind-str-fill
+                skipped
                 (beg-pos this-bol)
                 (end-pos (line-end-position)))
             (when (equal (get-text-property beg-pos 'wrap-prefix)
                          (get-text-property beg-pos 'wrap-to-fill-prefix))
               ;; Find indentation
-              (skip-chars-forward "[:blank:]")
-              (setq ind-str (buffer-substring-no-properties beg-pos (point)))
-              ;; Any special markers like -, * etc
-              (if (and (< (1+ (point)) (point-max))
-                       (memq (char-after) '(?- ;; 45
-                                            ?– ;; 8211
-                                            ?*
-                                            ))
-                       (eq (char-after (1+ (point))) ?\ ))
-                  (setq ind-str-fill (concat "  " ind-str))
-                (setq ind-str-fill ind-str))
-              ;;(setq ind-str-fill (concat "  " ind-str))
-              (mumamo-with-buffer-prepared-for-jit-lock
-               (put-text-property beg-pos end-pos 'wrap-prefix ind-str-fill)
-               (put-text-property beg-pos end-pos 'wrap-to-fill-prefix ind-str-fill))))))
+              (when (< 0 (skip-chars-forward "[:blank:]"))
+                (setq ind-str (buffer-substring-no-properties beg-pos (point)))
+                ;; Any special markers like -, * etc
+                (when (< (1+ (point)) (point-max))
+                  (or (and (memq (char-after) '(?- ;; 45
+                                                ?– ;; 8211
+                                                ?*
+                                                ))
+                           (eq (char-after (1+ (point))) ?\ )
+                           (progn (forward-char)
+                                  (setq ind-str-fill (concat "  " ind-str))))
+                      (and (setq skipped (skip-chars-forward "[:digit:]"))
+                           (eq (char-after (point)) ?\))
+                           (eq (char-after (1+ (point))) ?\ )
+                           (progn (forward-char 2)
+                                  (setq ind-str-fill (concat (make-string (+ 2 skipped) 32) ind-str))))))
+                (unless ind-str-fill (setq ind-str-fill ind-str))
+                ;;(setq ind-str-fill (concat "  " ind-str))
+                (mumamo-with-buffer-prepared-for-jit-lock
+                 (put-text-property beg-pos end-pos 'wrap-prefix ind-str-fill)
+                 (put-text-property beg-pos end-pos 'wrap-to-fill-prefix ind-str-fill)))))))
       (forward-line 1))
     ;; Note: doing it line by line and returning t gave problem in mumamo.
     (when nil ;this-bol
