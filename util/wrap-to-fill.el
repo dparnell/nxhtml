@@ -263,7 +263,8 @@ is not reset when turning off this mode."
     (dolist (win buf-windows)
       (if wrap-to-fill-column-mode
           (wrap-to-fill-set-values-in-window win)
-        (set-window-buffer nil (current-buffer))))))
+        ;;(set-window-buffer win (current-buffer))
+        ))))
 
 (defvar wrap-old-win-width nil)
 (make-variable-buffer-local 'wrap-old-win-width)
@@ -334,7 +335,7 @@ See `wrap-to-fill-column-mode' for more info."
   (save-restriction
     (widen)
     (let ((n-while 0))
-      (unless (bolp) (forward-line 1))
+      (unless (or (bolp) (eobp)) (forward-line 1))
       (while (and (mumamo-while 200 'n-while "wrap-to-fill-fontify")
                   (< (point) bound)) ;; Max bound = (point-max)
         (let (ind-str
@@ -369,7 +370,7 @@ See `wrap-to-fill-column-mode' for more info."
              (put-text-property beg-pos end-pos 'wrap-to-fill-prefix ind-str-fill))))
         ;; This moves to the end of line if there is no more lines. That
         ;; means we will not get stuck here.
-        (forward-line 1))))
+        (unless (eobp) (forward-line 1)))))
   ;; Do not set match-data, there is none, just return nil.
   nil)
 

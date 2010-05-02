@@ -1827,8 +1827,8 @@ ends before END then create chunks upto END."
 Make it two parts. The first, before FIRST-CHECK-FROM is still
 correct but we want to check those after.  Put thosie in
 `mumamo-old-tail'."
-  (let ((while-n0 0))
-    (while (and (mumamo-while 500 'while-n0 "mumamo-last-chunk first-check-from")
+  (let ((n0-while 0))
+    (while (and (mumamo-while 500 'n0-while "mumamo-last-chunk first-check-from")
                 mumamo-last-chunk
                 first-check-from
                 (< first-check-from (overlay-end mumamo-last-chunk)))
@@ -1845,8 +1845,8 @@ correct but we want to check those after.  Put thosie in
 
 (defun mumamo-delete-empty-chunks-at-end ()
   ;; fix-me: later? Delete empty chunks at end, will be recreated if really needed
-  (let ((while-n1 0))
-    (while (and (mumamo-while 500 'while-n1 "mumamo-last-chunk del empty chunks")
+  (let ((n1-while 0))
+    (while (and (mumamo-while 500 'n1-while "mumamo-last-chunk del empty chunks")
                 mumamo-last-chunk
                 ;;(= (point-max) (overlay-end mumamo-last-chunk))
                 (= (overlay-end mumamo-last-chunk) (overlay-start mumamo-last-chunk)))
@@ -1861,8 +1861,8 @@ correct but we want to check those after.  Put thosie in
   (or (not mumamo-old-tail)
       (overlay-buffer mumamo-old-tail)
       (setq mumamo-old-tail nil))
-  (let ((while-n2 0))
-    (while (and (mumamo-while 500 'while-n2 "mumamo-old-tail")
+  (let ((n2-while 0))
+    (while (and (mumamo-while 500 'n2-while "mumamo-old-tail")
                 (and mumamo-old-tail (< (overlay-start mumamo-old-tail) ok-pos)))
       (mumamo-mark-for-refontification (overlay-start mumamo-old-tail) (overlay-end mumamo-old-tail))
       ;;(msgtrc "find-chunks:ok-pos=%s, not eq delete %s" ok-pos mumamo-old-tail)
@@ -1948,7 +1948,7 @@ correct but we want to check those after.  Put thosie in
              prev-chunk
              first-change-pos
              interrupted
-             (while-n3 0))
+             (n3-while 0))
         (when (>= ok-pos end)
           (setq this-new-chunk (mumamo-get-existing-new-chunk-at end nil))
           (unless this-new-chunk
@@ -1964,7 +1964,7 @@ correct but we want to check those after.  Put thosie in
                 (progn
 
                   ;; Loop forward until end or buffer end ...
-                  (while (and (mumamo-while 1500 'while-n3 "until end")
+                  (while (and (mumamo-while 1500 'n3-while "until end")
                               (or (not end)
                                   (<= ok-pos end))
                               ;;(prog1 t (msgtrc "ok-pos=%s in while" ok-pos))
@@ -2049,15 +2049,16 @@ correct but we want to check those after.  Put thosie in
             (delete-overlay this-new-chunk)
             (setq this-new-chunk prev-chunk)
             )
-          (while (and mumamo-old-tail
-                      (overlay-buffer mumamo-old-tail)
-                      (= (overlay-start mumamo-old-tail) (overlay-end mumamo-old-tail)))
-            (assert (not (eq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))) t)
-            (setq prev-chunk mumamo-old-tail)
-            (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))
-            ;;(msgtrc "mumamo-find-chunks-1:after mumamo-old-tail=%s" mumamo-old-tail)
-            (delete-overlay prev-chunk)
-            )
+          (let ((n0-while 0))
+            (while (and (mumamo-while 1000 'n0-while "old-tail")
+                        mumamo-old-tail
+                        (overlay-buffer mumamo-old-tail)
+                        (= (overlay-start mumamo-old-tail) (overlay-end mumamo-old-tail)))
+              (assert (not (eq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))) t)
+              (setq prev-chunk mumamo-old-tail)
+              (setq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))
+              ;;(msgtrc "mumamo-find-chunks-1:after mumamo-old-tail=%s" mumamo-old-tail)
+              (delete-overlay prev-chunk)))
           )
         ;;(unless (overlay-get mumamo-last-chunk 'mumamo-is-closed)
         (unless t ;(= (overlay-end mumamo-last-chunk) (save-restriction (widen) (point-max)))
@@ -2379,9 +2380,8 @@ that does syntactic fontification."
              (funs font-lock-extend-region-functions)
              (font-lock-beg (max chunk-syntax-min start))
              (font-lock-end (min chunk-syntax-max end))
-             (while-n1 0))
-        ;;(while (and (> 500 (setq while-n1 (1+ while-n1)))
-        (while (and (mumamo-while 500 'while-n1 "funs")
+             (n1-while 0))
+        (while (and (mumamo-while 500 'n1-while "funs")
                     funs)
           (setq funs (if (or (not (funcall (car funs)))
                              (eq funs font-lock-extend-region-functions))
@@ -2660,13 +2660,12 @@ most major modes."
            (first-new-ovl nil)
            (last-new-ovl nil)
            (chunk-at-start-1 (mumamo-find-chunks start "mumamo-fontify-region-1"))
-           (while-n1 0)
+           (n1-while 0)
            )
       (when chunk-at-start-1
         (unless (= start (1- (overlay-end chunk-at-start-1)))
           (setq chunk-at-start-1 nil)))
-      ;;(while (and (> 500 (setq while-n1 (1+ while-n1)))
-      (while (and (mumamo-while 9000 'while-n1 "fontified-t")
+      (while (and (mumamo-while 9000 'n1-while "fontified-t")
                   fontified-t
                   (< here end))
         ;;(msgtrc "mumamo-fontify-region-1 heree 1, here=%s, end=%s" here end)
@@ -4228,8 +4227,8 @@ after this in the properties below of the now created chunk:
     (save-restriction
       (widen)
       (let ((chunk (mumamo-find-chunks 1 "margin-disp"))
-            (while-n0 0))
-        (while (and (mumamo-while 1500 'while-n0 "chunk")
+            (n0-while 0))
+        (while (and (mumamo-while 1500 'n0-while "chunk")
                     chunk)
           (mumamo-update-chunk-margin-display chunk)
           (setq chunk (overlay-get chunk 'mumamo-next-chunk)))))))
@@ -4533,18 +4532,22 @@ See also `mumamo-new-create-chunk' for more information."
                  ;;(use-min (max (- search-from 2) (point-min)))
                  (use-min curr-syntax-min)
                  (possible-end-fun-end t)
-                 (end-search-pos use-min))
+                 (end-search-pos use-min)
+                 (n-while 0))
             ;; The code below takes care of the case when to subsequent
             ;; chunks have the same ending delimiter. (Maybe a while
             ;; loop is bit overkill here.)
-            (while (and possible-end-fun-end
+            (while (and (mumamo-while 10 'n-while "possible-end-fun-end")
+                        possible-end-fun-end
                         (not curr-end-fun-end)
                         (< end-search-pos use-max))
               (setq curr-end-fun-end (funcall curr-end-fun end-search-pos use-max))
+              (when (> n-while 1) (msgtrc "end-search-pos=%s, curr-end-fun-end=%s after-chunk=%S" end-search-pos curr-end-fun-end after-chunk))
               (if (not curr-end-fun-end)
                   (setq possible-end-fun-end nil)
                 (cond ((and t ;after-chunk-is-closed
                             (< curr-end-fun-end (overlay-end after-chunk)))
+                       (msgtrc "path A")
                        (setq curr-end-fun-end nil)
                        (setq end-search-pos (1+ end-search-pos)))
                       ;; See if the end is in code
@@ -4555,6 +4558,7 @@ See also `mumamo-new-create-chunk' for more information."
                                                        nil)))
                               (syn2-max (or (cadr syn2-min-max)
                                             curr-end-fun-end)))
+                         (msgtrc "path B use-min=%s syn2-max=%s curr-major=%s" use-min syn2-max curr-major)
                          (not (mumamo-end-in-code use-min syn2-max curr-major)))
                        (setq end-search-pos (1+ curr-end-fun-end))
                        (setq curr-end-fun-end nil)
@@ -6340,9 +6344,14 @@ Buffer must be narrowed to chunk when this function is called."
         ;; both buffer local value and global value. The global
         ;; changes are in this variable, but the buffer local values
         ;; have been set once again.
+
+        ;; Fix-me: It is not quire ok to use let-bound values here
+        ;; since the major mode may add to the buffer local
+        ;; value. This will be lost because of the let-bound value.
         (change-major-mode-hook (mumamo-get-hook-value
                                  'change-major-mode-hook
                                  mumamo-change-major-mode-no-nos))
+        (old-default-change-major-mode-hook (default-value 'change-major-mode-hook))
         (after-change-major-mode-hook (mumamo-get-hook-value
                                        'after-change-major-mode-hook
                                        mumamo-after-change-major-mode-no-nos))
@@ -6366,6 +6375,13 @@ Buffer must be narrowed to chunk when this function is called."
     ;; good choice since they may contain other stuff too):
     (setq mumamo-removed-from-hook nil)
     (mumamo-remove-from-hook 'change-major-mode-hook mumamo-change-major-mode-no-nos)
+
+    ;; We can't run `change-major-mode-hook' the normal way. This runs
+    ;; it with troublesome entries removed:
+    ;;(run-hooks 'temp-change-major-mode-hook)
+    ;;(kill-local-variable 'change-major-mode-hook)
+    ;;(set-default 'change-major-mode-hook nil)
+
 
     ;;;;;;;;;;;;;;;;
     ;; Save per buffer local variables
@@ -6456,6 +6472,7 @@ Buffer must be narrowed to chunk when this function is called."
                 (put 'font-lock-fontify-buffer-function 'permanent-local t)
                 (funcall major) ;; <-----------------------------------------------
                 (put 'font-lock-fontify-buffer-function 'permanent-local nil)
+                ;;(set-default 'change-major-mode-hook old-default-change-major-mode-hook)
                 (when old-bf
                   (set (make-local-variable 'font-lock-fontify-buffer-function) old-bf))
                 ))
@@ -6586,6 +6603,9 @@ Buffer must be narrowed to chunk when this function is called."
   ;; problematc. This is an Emacs bug.
   ;;(run-with-idle-timer 1 nil 'mumamo-set-major-check-keymap)
   ;;(force-mode-line-update) (message "force-mode-line-update called")
+
+  ;; Fix-me: panic work around
+  (setq font-lock-mode t)
   )
 
 (defun mumamo-set-major-check-keymap ()
@@ -7469,9 +7489,9 @@ The following rules are used when indenting:
          got-indent
          (here-on-line (point-marker))
          this-pending-undo-list
-         (while-n1 0)
-         (while-n2 0)
-         (while-n3 0)
+         (n1-while 0)
+         (n2-while 0)
+         (n3-while 0)
          ;; Is there a possible indentor chunk on this line?:
          (this-line-indentor-chunk (when (> (overlay-start this-line-chunk2)
                                             (point-at-bol))
@@ -7530,8 +7550,7 @@ The following rules are used when indenting:
     (when (or leaving-submode entering-submode)
       (unless last-parent-major-indent
         (save-excursion
-          ;;(while (and (> 500 (setq while-n1 (1+ while-n1)))
-          (while (and (mumamo-while 500 'while-n1 "last-parent-major-indent")
+          (while (and (mumamo-while 500 'n1-while "last-parent-major-indent")
                       (not last-parent-major-indent))
             (if (bobp)
                 (setq last-parent-major-indent 0)
@@ -7677,8 +7696,7 @@ The following rules are used when indenting:
                (save-excursion
                  (setq want-indent 0)
                  (unless (= 0 ind-on-first-sub-line)
-                   ;;(while (and (> 500 (setq while-n2 (1+ while-n2)))
-                   (while (and (mumamo-while 500 'while-n2 "want-indent")
+                   (while (and (mumamo-while 500 'n2-while "want-indent")
                                (= 0 want-indent)
                                (/= (point) (point-min)))
                      (beginning-of-line 0)
@@ -7686,8 +7704,7 @@ The following rules are used when indenting:
                    ;; Now if want-indent is still 0 we need to look further above
                    (when (= 0 want-indent)
                      (widen)
-                     ;;(while (and (> 500 (setq while-n3 (1+ while-n3)))
-                     (while (and (mumamo-while 500 'while-n3 "want-indent 2")
+                     (while (and (mumamo-while 500 'n3-while "want-indent 2")
                                  (= 0 want-indent)
                                  (/= (point) (point-min)))
                        (beginning-of-line 0)
@@ -7844,10 +7861,9 @@ this may change."
                              'nxhtml-mode-hook
                              '(html-imenu-setup)))
           ;;
-          (while-n1 0))
+          (n1-while 0))
       (when old-rng-validate-mode (rng-validate-mode -1))
-      ;;(while (and (> 3000 (setq while-n1 (1+ while-n1)))
-      (while (and (mumamo-while 3000 'while-n1 "indent-region")
+      (while (and (mumamo-while 3000 'n1-while "indent-region")
                   (< (point) end)
                   (/= old-point (point)))
         ;;(message "mumamo-indent-region-function, point=%s" (point))
@@ -8506,8 +8522,8 @@ Do here also other necessary adjustments for this."
           xmltok-namespace-attributes
           xmltok-dependent-regions
           xmltok-errors
-          (while-n1 0)
-          (while-n2 0)
+          (n1-while 0)
+          (n2-while 0)
           (old-point -1)
           )
       ;;(msgtrc "> > > > > enter rng-do-some-validation-1, continue-p-function=%s" continue-p-function)
@@ -8523,8 +8539,8 @@ Do here also other necessary adjustments for this."
         (unless (equal rng-dtd xmltok-dtd)
           (rng-clear-conditional-region))
         (setq rng-dtd xmltok-dtd))
-      (setq while-n1 0)
-      (while (and (mumamo-while 2000 'while-n1 "continue")
+      (setq n1-while 0)
+      (while (and (mumamo-while 2000 'n1-while "continue")
                   (/= old-point (point))
                   continue)
         (setq old-point (point))
@@ -8543,8 +8559,8 @@ Do here also other necessary adjustments for this."
                          (< next-non-space-pos end-major-mode-chunk))
               (setq end-major-mode-chunk nil)
               (setq major-mode-chunk (funcall rng-get-major-mode-chunk-function next-non-space-pos "rng-do-some-validation-1 A"))
-              (setq while-n2 0)
-              (while (and (mumamo-while 500 'while-n2 "major-mode-chunk")
+              (setq n2-while 0)
+              (while (and (mumamo-while 500 'n2-while "major-mode-chunk")
                           major-mode-chunk
                           (not (funcall rng-valid-nxml-major-mode-chunk-function major-mode-chunk))
                           (< next-non-space-pos (point-max)))

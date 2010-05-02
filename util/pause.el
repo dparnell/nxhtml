@@ -5,7 +5,7 @@
 (defconst pause:version "0.70");; Version:
 ;; Last-Updated: 2010-01-18 Mon
 ;; URL:
-;; Keywords:
+;; Keywords: calendar convenience
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
@@ -183,25 +183,30 @@ A random image is choosen from this directory for pauses."
 ;;(defvar pause-break-exit-calls nil)
 
 (defun pause-start-timer ()
+  "Start main timer with delay `pause-after-minutes'."
   (pause-start-timer-1 (* 60 pause-after-minutes)))
 
 (defun pause-start-timer-1 (sec)
+  "Start main timer with delay SEC seconds."
   (pause-cancel-timer)
   (setq pause-timer (run-with-timer sec nil 'pause-pre-break)))
 
 (defun pause-one-minute ()
-  "Give you another minute ..."
+  "Give you another minute ...
+Start main timer with delay `pause-1-minute-delay'."
   (pause-start-timer-1 pause-1-minute-delay)
   (message (propertize " OK, I will come back in a minute! -- greatings from pause"
                        'face 'pause-message-face)))
 
 (defun pause-save-me ()
+  "Start main timer and give a message."
   (pause-start-timer)
   (message (propertize " OK, I will save you again in %d minutes! -- greatings from pause "
                        'face 'pause-message-face)
            pause-after-minutes))
 
 (defun pause-pre-break ()
+  "Start waiting for idle `pause-idle-delay' before break."
   (condition-case err
       (save-match-data ;; runs in timer
         (pause-cancel-timer)
@@ -220,7 +225,9 @@ A random image is choosen from this directory for pauses."
     map))
 
 (defvar pause-buffer nil)
+(defvar pause-image-buffer nil)
 (defvar pause-frame nil)
+(defvar pause-before-frame nil)
 
 (define-derived-mode pause-break-mode nil "Pause"
   "Mode used during pause in pause buffer.
@@ -241,6 +248,13 @@ It defines the following key bindings:
 
 
 (defun pause-break ()
+  "Do the break.
+Setup the pause frame and show it.  Enter recursive edit to avoid
+bad edits.
+
+After pause exit start timer again after next command.
+Fix-me: This is wrong in single pause Emacs.
+"
   (pause-cancel-timer)
   (let ((wcfg (current-frame-configuration))
         (old-mode-line-bg (face-attribute 'mode-line :background))
@@ -249,8 +263,9 @@ It defines the following key bindings:
         old-frame-right-fringe
         old-frame-tool-bar-lines
         old-frame-menu-bar-lines
-        old-frame-vertical-scroll-bars)
-    (dolist (f (frame-list))
+        old-frame-vertical-scroll-bars
+        (old-frame-list (unless (pause-use-topmost) (frame-list))))
+    (dolist (f old-frame-list)
       (add-to-list 'old-frame-bg-color (cons f (frame-parameter f 'background-color)))
       (add-to-list 'old-frame-left-fringe (cons f (frame-parameter f 'left-fringe)))
       (add-to-list 'old-frame-right-fringe (cons f (frame-parameter f 'right-fringe)))
@@ -281,7 +296,7 @@ It defines the following key bindings:
       (remove-hook 'window-configuration-change-hook 'pause-break-exit)
       ;;(pause-tell-again-cancel-timer)
       ;;(set-frame-parameter nil 'background-color "white")
-      (dolist (f (frame-list))
+      (dolist (f old-frame-list)
         (set-frame-parameter f 'background-color     (cdr (assq f old-frame-bg-color)))
         (set-frame-parameter f 'left-fringe          (cdr (assq f old-frame-left-fringe)))
         (set-frame-parameter f 'right-fringe         (cdr (assq f old-frame-right-fringe)))
@@ -290,8 +305,11 @@ It defines the following key bindings:
         (set-frame-parameter f 'vertical-scroll-bars (cdr (assq f old-frame-vertical-scroll-bars))))
       ;; Fix-me: The frame grows unless we do redisplay here:
       (redisplay t)
+      (when (< 1 (length (frame-list)))
+        (delete-frame pause-frame)
+        (setq pause-frame nil))
       (set-frame-configuration wcfg t)
-      (when pause-frame(lower-frame pause-frame))
+      ;;(when pause-frame (lower-frame pause-frame))
       (set-face-attribute 'mode-line nil :background old-mode-line-bg)
       (run-with-idle-timer 2.0 nil 'run-hooks 'pause-break-exit-hook)
       (kill-buffer pause-buffer)
@@ -306,6 +324,7 @@ It defines the following key bindings:
              (run-with-idle-timer 0 nil 'pause-save-me))))))
 
 (defun pause-save-me-post-command ()
+  "Start pause timer again.  Version for `post-command-hook'."
   (pause-start-timer))
 
 (defvar pause-break-exit-hook nil
@@ -326,6 +345,8 @@ Please note that it is run in a timer.")
 (defvar pause-break-last-wcfg-change (float-time))
 
 (defun pause-break-show-1 ()
+  ;;(setq pause-frame (selected-frame))
+  (pause-get-pause-frame)
   ;; Do these first if something goes wrong.
   (setq pause-break-last-wcfg-change (float-time))
   ;;(run-with-idle-timer (* 1.5 (length (frame-list))) nil 'add-hook 'window-configuration-change-hook 'pause-break-exit)
@@ -336,13 +357,21 @@ Please note that it is run in a timer.")
   (run-with-idle-timer 10 nil 'pause-break-exit-activate)
   (setq pause-break-1-minute-state t)
   (set-face-attribute 'mode-line nil :background pause-1-minute-mode-line-color)
+  (with-current-buffer (setq pause-image-buffer
+                             (get-buffer-create "* P A U S E *"))
+    (setq mode-line-format nil)
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (pause-insert-img nil)
+      ))
   (with-current-buffer (setq pause-buffer
                              (get-buffer-create "* P A U S E *"))
+    (setq mode-line-format nil)
     (let ((inhibit-read-only t))
       (erase-buffer)
       (pause-break-mode)
-      (setq left-margin-width 25)
-      (pause-insert-img)
+      ;;(setq left-margin-width 25)
+      ;;(pause-insert-img 'left-margin)
       (insert (propertize pause-break-text 'face 'pause-text-face))
       (goto-char (point-min))
       (when (search-forward "mindfulness" nil t)
@@ -362,13 +391,14 @@ Please note that it is run in a timer.")
       (dolist (m '(hl-needed-mode))
         (when (and (boundp m) (symbol-value m))
           (funcall m -1)))))
+  (unless (pause-use-topmost)
     (dolist (f (frame-list))
-      (pause-max-frame f))
-    (pause-tell-again)
-    (when pause-extra-fun (funcall pause-extra-fun))
-    ;;(setq pause-break-exit-calls 0)
-    (setq pause-break-last-wcfg-change (float-time))
-    (pause-tell-again-start-timer))
+      (pause-max-frame f)))
+  (pause-tell-again)
+  (when pause-extra-fun (funcall pause-extra-fun))
+  ;;(setq pause-break-exit-calls 0)
+  (setq pause-break-last-wcfg-change (float-time))
+  (pause-tell-again-start-timer))
 
 (defun pause-max-frame (f)
   (let* ((avail-width (- (display-pixel-width)
@@ -381,24 +411,14 @@ Please note that it is run in a timer.")
          (rows (- (/ avail-height (frame-char-height)) 2)))
     ;;(set-frame-parameter (selected-frame) 'fullscreen 'fullboth)
     ;;(set-frame-parameter (selected-frame) 'fullscreen 'maximized)
+    (setq cols 55)
+    (setq rows 15)
     (setq pause-break-last-wcfg-change (float-time))
     (with-selected-frame f
       (delete-other-windows (frame-first-window f))
       (with-selected-window (frame-first-window)
         (switch-to-buffer pause-buffer)
-        (goto-char (point-max))))
-    (modify-frame-parameters f
-                             `((background-color . ,pause-background-color)
-                               (left-fringe . 0)
-                               (right-fringe . 0)
-                               (tool-bar-lines . 0)
-                               (menu-bar-lines . 0)
-                               (vertical-scroll-bars . nil)
-                               (left . 0)
-                               (top . 0)
-                               (width  . ,cols)
-                               (height . ,rows)
-                               ))))
+        (goto-char (point-max))))))
 
 (defvar pause-tell-again-timer nil)
 
@@ -412,12 +432,34 @@ Please note that it is run in a timer.")
     (cancel-timer pause-tell-again-timer))
   (setq pause-tell-again-timer nil))
 
+(defun pause-use-topmost ()
+  (fboundp 'w32-set-frame-topmost))
+
 (defun pause-tell-again ()
   (when (and window-system pause-even-if-not-in-emacs)
-    (pause-max-frame pause-frame)
-    (raise-frame pause-frame)
-    (x-focus-frame pause-frame)))
+    (let ((curr-frame (selected-frame))
+          old-make-vis)
+      (pause-max-frame pause-frame)
+      (if (fboundp 'w32-set-frame-topmost)
+          (w32-set-frame-topmost pause-frame t nil)
+        (message "raise-frame part")
+        (raise-frame pause-frame)
+        (x-focus-frame pause-frame))
+      (when window-system
+        (condition-case nil
+            (make-frame-visible pause-frame t)
+          (error
+           (setq old-make-vis t)))
+        (when old-make-vis
+          (make-frame-visible pause-frame)
+          (run-with-idle-timer 5 nil 'pause-tell-again-reset-frame curr-frame))))
+          ))
 
+(defun pause-tell-again-reset-frame (frame)
+  (message "reset-frame frame=%S" frame)
+  (condition-case err
+      (select-frame frame)
+    (error (message "reset-frame frame=%S: %s" frame (error-message-string err)))))
 
 (defun pause-break-message ()
   (when (/= 0 (recursion-depth))
@@ -454,14 +496,13 @@ Please note that it is run in a timer.")
   (setq pause-exited-from-button t)
   (pause-break-exit))
 
-(defun pause-insert-img ()
+(defun pause-insert-img (where)
   (let* ((inhibit-read-only t)
         img
         src
         (slice '(0 0 200 300))
         (imgs (directory-files pause-img-dir nil nil t))
-        skip
-        )
+        skip)
     (setq imgs (delete nil
                        (mapcar (lambda (d)
                                  (unless (file-directory-p d) d))
@@ -483,9 +524,7 @@ Please note that it is run in a timer.")
         (setq img (concat "Image not found: " src))))
     (if (stringp img)
         (insert img)
-      (insert-image img nil 'left-margin slice)
-      )
-    ))
+      (insert-image img nil where slice))))
 
 (defun pause-hide-cursor ()
   ;; runs in timer, save-match-data
@@ -606,6 +645,8 @@ interrupted."
         (setq cus-saved-vars (cons (cadr vl) cus-saved-vars))))
     cus-saved-vars))
 
+(defvar pause-in-separate-emacs nil)
+
 ;; (emacs-Q "-l" buffer-file-name "--eval" "(pause-start 0.1 nil)")
 (defun pause-start (after-minutes cus-file)
   "Start `pause-mode' with interval AFTER-MINUTES.
@@ -619,38 +660,62 @@ minutes:
 
 Note: Another easier alternative might be to use
       `pause-start-in-new-emacs'."
-  (interactive "nPause after how many minutes: ")
+  (interactive (list
+                (string-to-number (read-string "Pause after how many minutes: "))
+                t))
   (pause-start-1 after-minutes cus-file))
 
 (defun pause-start-1 (after-minutes cus-file)
-  (setq debug-on-error t)
+  (setq pause-in-separate-emacs (or (not cus-file) (stringp cus-file)))
   (pause-cancel-timer)
-  (when (and cus-file (file-exists-p cus-file))
-    (let ((args (pause-get-group-saved-customizations 'pause cus-file)))
-      ;;(message "cus-file=%S" cus-file)
-      ;;(message "args=%S" args)
-      (apply 'custom-set-variables args)))
   (setq pause-after-minutes after-minutes)
+  (when pause-in-separate-emacs
+    (setq debug-on-error t)
+    (when (and cus-file (file-exists-p cus-file))
+      (let ((args (pause-get-group-saved-customizations 'pause cus-file)))
+        ;;(message "cus-file=%S" cus-file) (message "args=%S" args)
+        (apply 'custom-set-variables args))))
   (let ((pause-only-when-server-mode nil))
     (pause-mode 1))
-  (switch-to-buffer (get-buffer-create "Pause information"))
-  (insert (propertize "Emacs pause\n"
-                      'face '(:inherit variable-pitch :height 1.5)))
-  (insert (format "Pausing every %d minute.\n" after-minutes))
-  (insert "Or, ")
-  (insert-text-button "pause now"
-                      'action `(lambda (button)
-                                 (condition-case err
-                                     (pause-break)
-                                   (error (message "%s" (error-message-string err))))))
-  (insert "!\n")
-  ;;(setq buffer-read-only t)
-  (pause-break-mode)
-  (delete-other-windows)
-  (setq mode-line-format nil)
-  (setq pause-frame (selected-frame))
-  (message nil)
-  (set-frame-parameter nil 'background-color pause-background-color))
+  (when pause-in-separate-emacs
+    (setq pause-frame (selected-frame))
+    (delete-other-windows)
+    (switch-to-buffer (get-buffer-create "Pause information"))
+    (setq mode-line-format nil)
+    (insert (propertize "Emacs pause\n"
+                        'face '(:inherit variable-pitch :height 1.5)))
+    (insert (format "Pausing every %d minute.\n" after-minutes))
+    (insert "Or, ")
+    (insert-text-button "pause now"
+                        'action `(lambda (button)
+                                   (condition-case err
+                                       (pause-break)
+                                     (error (message "%s" (error-message-string err))))))
+    (insert "!\n")
+    (pause-break-mode)
+    (message nil)))
+
+(defun pause-get-pause-frame ()
+  (if pause-in-separate-emacs
+      (setq pause-frame (selected-frame))
+    (unless (and pause-frame
+                 (frame-live-p pause-frame))
+      (setq pause-frame
+            (if window-system
+                (make-frame `((visibility . nil)
+                              (alpha . (100 . 20))
+                              (background-color . ,pause-background-color)
+                              (left-fringe . 0)
+                              (right-fringe . 0)
+                              (tool-bar-lines . 0)
+                              (menu-bar-lines . 0)
+                              (vertical-scroll-bars . nil)
+                              (left . 0)
+                              (top . 0)
+                              (width  . 70)
+                              (height . 18)))
+              (selected-frame)))))
+  (set-frame-parameter pause-frame 'background-color pause-background-color))
 
 ;; (pause-start-in-new-emacs 0.3)
 ;; (pause-start-in-new-emacs 15)

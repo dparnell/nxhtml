@@ -45,8 +45,9 @@
 ;;
 ;;; Code:
 
-(require 'url-util)
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'url-http))
+(require 'url-util)
 
 (defvar ediff-url-read-url-history nil)
 

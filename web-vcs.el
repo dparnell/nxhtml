@@ -1484,8 +1484,9 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
           (end   (point-max)))
       (cond ((and (boundp 'jit-lock-mode) (symbol-value 'jit-lock-mode))
              (jit-lock-fontify-now start end))
-            ((and (boundp 'lazy-lock-mode) (symbol-value 'lazy-lock-mode))
-             (lazy-lock-fontify-region start end))))))
+            ;; ((and (boundp 'lazy-lock-mode) (symbol-value 'lazy-lock-mode))
+            ;;  (lazy-lock-fontify-region start end))
+            ))))
 
 
 ;;(web-vcs-get-fun-details 'describe-function)
