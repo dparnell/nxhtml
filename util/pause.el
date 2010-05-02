@@ -116,8 +116,38 @@ pause frame has just been shown."
 
 (defvar pause-exited-from-button nil)
 
-(defcustom pause-background-color "orange"
+(defcustom pause-break-frame-size '(60 . 20)
+  "Frame size between pauses.
+This is only seen when using a separate Emacs since the pause
+frame is otherwise deleted between pauses."
+  :type '(cons (integer :tag "Columns")
+               (integer :tag "Rows"))
+  :group 'pause)
+
+(defcustom pause-goon-frame-size '(35 . 6)
+  "Frame size between pauses.
+This is only seen when using a separate Emacs since the pause
+frame is otherwise deleted between pauses."
+  :type '(cons (integer :tag "Columns")
+               (integer :tag "Rows"))
+  :group 'pause)
+
+(defcustom pause-hint-alpha 10
+  "Initial opacity for break screen.
+See also `frame-alpha-lower-limit' which is the lowest alpha that
+can be used."
+  :type '(integer :tag "Opacity (100 full)")
+  :group 'pause)
+
+(defcustom pause-break-background-color "orange"
   "Background color during pause."
+  :type 'color
+  :group 'pause)
+
+(defcustom pause-goon-background-color "green yellow"
+  "Background color between pauses.
+This is only seen when using a separate Emacs since the pause
+frame is otherwise deleted between pauses."
   :type 'color
   :group 'pause)
 
@@ -161,6 +191,8 @@ pause frame has just been shown."
   "Text to show during pause."
   :type 'integer
   :group 'pause)
+
+(defvar pause-in-separate-emacs nil)
 
 (defvar pause-el-file (or load-file-name
                           (when (boundp 'bytecomp-filename) bytecomp-filename)
@@ -314,8 +346,19 @@ Fix-me: This is wrong in single pause Emacs.
       (run-with-idle-timer 2.0 nil 'run-hooks 'pause-break-exit-hook)
       (kill-buffer pause-buffer)
       (cond (pause-exited-from-button
-             ;; Do not start timer until we start working again.
-             (run-with-idle-timer 1 nil 'add-hook 'post-command-hook 'pause-save-me-post-command)
+             ;; Do not start timer until we start working again if not
+             ;; in a separate Emacs.
+             (if pause-in-separate-emacs
+                 (progn
+                   (modify-frame-parameters pause-frame
+                                            `((background-color . ,pause-goon-background-color)
+                                              (width . ,(car pause-goon-frame-size))
+                                              (height . ,(cdr pause-goon-frame-size))
+                                              (alpha . 100)
+                                              ))
+                   (when (pause-use-topmost) (pause-set-topmost nil))
+                   (pause-start-timer))
+               (run-with-idle-timer 1 nil 'add-hook 'post-command-hook 'pause-save-me-post-command))
              ;; But if we do not do that within some minutes then start timer anyway.
              (run-with-idle-timer (* 60 pause-restart-anyway-after) nil 'pause-save-me))
             (pause-break-1-minute-state
@@ -344,9 +387,27 @@ Please note that it is run in a timer.")
 
 (defvar pause-break-last-wcfg-change (float-time))
 
+(defun pause-set-alpha-100 ()
+  (when (frame-live-p pause-frame)
+    (modify-frame-parameters pause-frame '((alpha . 100)))))
+
 (defun pause-break-show-1 ()
   ;;(setq pause-frame (selected-frame))
   (pause-get-pause-frame)
+  ;;(set-frame-parameter pause-frame 'background-color pause-break-background-color)
+  ;;(setq frame-alpha-lower-limit 5)
+  (let ((frame-alpha-lower-limit pause-hint-alpha)
+        (use-alpha (if (pause-use-topmost) pause-hint-alpha 100)))
+    (modify-frame-parameters pause-frame
+                             `((background-color . ,pause-break-background-color)
+                               (width . ,(car pause-break-frame-size))
+                               (height . ,(cdr pause-break-frame-size))
+                               (alpha . (100 . ,use-alpha))
+                               )))
+  ;; topmost
+  (when (pause-use-topmost)
+    (pause-set-topmost t)
+    (run-with-idle-timer 30 nil 'pause-set-alpha-100))
   ;; Do these first if something goes wrong.
   (setq pause-break-last-wcfg-change (float-time))
   ;;(run-with-idle-timer (* 1.5 (length (frame-list))) nil 'add-hook 'window-configuration-change-hook 'pause-break-exit)
@@ -435,13 +496,16 @@ Please note that it is run in a timer.")
 (defun pause-use-topmost ()
   (fboundp 'w32-set-frame-topmost))
 
+(defun pause-set-topmost (on)
+  (w32-set-frame-topmost pause-frame on nil))
+
 (defun pause-tell-again ()
   (when (and window-system pause-even-if-not-in-emacs)
     (let ((curr-frame (selected-frame))
           old-make-vis)
       (pause-max-frame pause-frame)
-      (if (fboundp 'w32-set-frame-topmost)
-          (w32-set-frame-topmost pause-frame t nil)
+      (if (pause-use-topmost)
+          (pause-set-topmost t)
         (message "raise-frame part")
         (raise-frame pause-frame)
         (x-focus-frame pause-frame))
@@ -645,8 +709,6 @@ interrupted."
         (setq cus-saved-vars (cons (cadr vl) cus-saved-vars))))
     cus-saved-vars))
 
-(defvar pause-in-separate-emacs nil)
-
 ;; (emacs-Q "-l" buffer-file-name "--eval" "(pause-start 0.1 nil)")
 (defun pause-start (after-minutes cus-file)
   "Start `pause-mode' with interval AFTER-MINUTES.
@@ -679,19 +741,23 @@ Note: Another easier alternative might be to use
     (pause-mode 1))
   (when pause-in-separate-emacs
     (setq pause-frame (selected-frame))
+    (set-frame-parameter pause-frame 'background-color pause-goon-background-color)
     (delete-other-windows)
     (switch-to-buffer (get-buffer-create "Pause information"))
     (setq mode-line-format nil)
     (insert (propertize "Emacs pause\n"
                         'face '(:inherit variable-pitch :height 1.5)))
     (insert (format "Pausing every %d minute.\n" after-minutes))
-    (insert "Or, ")
+    (insert "But you can ")
     (insert-text-button "pause now"
                         'action `(lambda (button)
                                    (condition-case err
-                                       (pause-break)
+                                       (progn
+                                         (goto-char (point-min))
+                                         (pause-break))
                                      (error (message "%s" (error-message-string err))))))
-    (insert "!\n")
+    ;;(insert "!\n")
+    (goto-char (point-min))
     (pause-break-mode)
     (message nil)))
 
@@ -703,8 +769,6 @@ Note: Another easier alternative might be to use
       (setq pause-frame
             (if window-system
                 (make-frame `((visibility . nil)
-                              (alpha . (100 . 20))
-                              (background-color . ,pause-background-color)
                               (left-fringe . 0)
                               (right-fringe . 0)
                               (tool-bar-lines . 0)
@@ -714,8 +778,7 @@ Note: Another easier alternative might be to use
                               (top . 0)
                               (width  . 70)
                               (height . 18)))
-              (selected-frame)))))
-  (set-frame-parameter pause-frame 'background-color pause-background-color))
+              (selected-frame))))))
 
 ;; (pause-start-in-new-emacs 0.3)
 ;; (pause-start-in-new-emacs 15)
