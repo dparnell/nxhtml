@@ -398,10 +398,6 @@ Please note that it is run in a timer.")
 (defun pause-break-show-1 ()
   ;;(setq pause-frame (selected-frame))
   (pause-get-pause-frame)
-  ;; topmost
-  (when (pause-use-topmost)
-    (pause-set-topmost t)
-    (setq pause-set-alpha-100-timer (run-with-idle-timer 30 nil 'pause-set-alpha-100)))
   ;;(set-frame-parameter pause-frame 'background-color pause-break-background-color)
   ;;(setq frame-alpha-lower-limit 5)
   (let ((frame-alpha-lower-limit pause-hint-alpha)
@@ -518,14 +514,18 @@ Please note that it is run in a timer.")
         (raise-frame pause-frame)
         (x-focus-frame pause-frame))
       (when window-system
+        ;; topmost
+        (when (pause-use-topmost)
+          (pause-set-topmost t)
+          (setq pause-set-alpha-100-timer (run-with-idle-timer 30 nil 'pause-set-alpha-100)))
         (condition-case nil
             (make-frame-visible pause-frame t)
           (error
            (setq old-make-vis t)))
         (when old-make-vis
           (make-frame-visible pause-frame)
-          (run-with-idle-timer 5 nil 'pause-tell-again-reset-frame curr-frame))))
-          ))
+          (run-with-idle-timer 5 nil 'pause-tell-again-reset-frame curr-frame))
+        ))))
 
 (defun pause-tell-again-reset-frame (frame)
   (message "reset-frame frame=%S" frame)
@@ -741,6 +741,7 @@ Note: Another easier alternative might be to use
   (setq pause-after-minutes after-minutes)
   (when pause-in-separate-emacs
     (setq debug-on-error t)
+    (setq frame-title-format "Emacs Pause")
     (when (and cus-file (file-exists-p cus-file))
       (let ((args (pause-get-group-saved-customizations 'pause cus-file)))
         ;;(message "cus-file=%S" cus-file) (message "args=%S" args)
@@ -791,6 +792,7 @@ Note: Another easier alternative might be to use
 ;; (pause-start-in-new-emacs 0.2)
 ;; (pause-start-in-new-emacs 0.3)
 ;; (pause-start-in-new-emacs 0.5)
+;; (pause-start-in-new-emacs 1)
 ;; (pause-start-in-new-emacs 15)
 ;;;###autoload
 (defun pause-start-in-new-emacs (after-minutes)
