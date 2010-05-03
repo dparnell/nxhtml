@@ -381,8 +381,7 @@ Any command cancels this state."
           (make-overlay (car bounds) (cdr bounds)))
     (overlay-put mlinks-point-hilighter-overlay 'priority mlinks-link-overlay-priority)
     (overlay-put mlinks-point-hilighter-overlay 'mouse-face 'highlight)
-    (mlinks-set-normal-point-hilight)
-    ))
+    (mlinks-set-normal-point-hilight)))
 
 (defun mlinks-point-hilighter ()
   "Mark link at point if any.
@@ -397,9 +396,11 @@ This moves the hilight point overlay to point or deletes it."
   (when mlinks-mode
     (let ((bounds-- (mlinks-link-range (point))))
       (if bounds--
-          (if mlinks-point-hilighter-overlay
-              (move-overlay mlinks-point-hilighter-overlay (car bounds--) (cdr bounds--))
-            (mlinks-make-point-hilighter-overlay bounds--))
+          (progn
+            (if mlinks-point-hilighter-overlay
+                (move-overlay mlinks-point-hilighter-overlay (car bounds--) (cdr bounds--))
+              (mlinks-make-point-hilighter-overlay bounds--))
+            (overlay-put mlinks-point-hilighter-overlay 'window (selected-window)))
         (when mlinks-point-hilighter-overlay
           (delete-overlay mlinks-point-hilighter-overlay))))))
 
