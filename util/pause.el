@@ -241,7 +241,9 @@ Start main timer with delay `pause-1-minute-delay'."
   "Start waiting for idle `pause-idle-delay' before break."
   (condition-case err
       (save-match-data ;; runs in timer
+        (message "enter pause-bre-break")
         (pause-cancel-timer)
+        (message "after pause-cancel-timer, pause-idle-delay=%s" pause-idle-delay)
         (setq pause-timer (run-with-idle-timer pause-idle-delay nil 'pause-break-in-timer)))
     (error
      (lwarn 'pause-pre-break
@@ -350,13 +352,13 @@ Fix-me: This is wrong in single pause Emacs.
              ;; in a separate Emacs.
              (if pause-in-separate-emacs
                  (progn
+                   (when (pause-use-topmost) (pause-set-topmost nil))
                    (modify-frame-parameters pause-frame
                                             `((background-color . ,pause-goon-background-color)
                                               (width . ,(car pause-goon-frame-size))
                                               (height . ,(cdr pause-goon-frame-size))
                                               (alpha . 100)
                                               ))
-                   (when (pause-use-topmost) (pause-set-topmost nil))
                    (pause-start-timer))
                (run-with-idle-timer 1 nil 'add-hook 'post-command-hook 'pause-save-me-post-command))
              ;; But if we do not do that within some minutes then start timer anyway.
@@ -387,6 +389,8 @@ Please note that it is run in a timer.")
 
 (defvar pause-break-last-wcfg-change (float-time))
 
+(defvar pause-set-alpha-100-timer nil)
+
 (defun pause-set-alpha-100 ()
   (when (frame-live-p pause-frame)
     (modify-frame-parameters pause-frame '((alpha . 100)))))
@@ -394,6 +398,10 @@ Please note that it is run in a timer.")
 (defun pause-break-show-1 ()
   ;;(setq pause-frame (selected-frame))
   (pause-get-pause-frame)
+  ;; topmost
+  (when (pause-use-topmost)
+    (pause-set-topmost t)
+    (setq pause-set-alpha-100-timer (run-with-idle-timer 30 nil 'pause-set-alpha-100)))
   ;;(set-frame-parameter pause-frame 'background-color pause-break-background-color)
   ;;(setq frame-alpha-lower-limit 5)
   (let ((frame-alpha-lower-limit pause-hint-alpha)
@@ -404,10 +412,6 @@ Please note that it is run in a timer.")
                                (height . ,(cdr pause-break-frame-size))
                                (alpha . (100 . ,use-alpha))
                                )))
-  ;; topmost
-  (when (pause-use-topmost)
-    (pause-set-topmost t)
-    (run-with-idle-timer 30 nil 'pause-set-alpha-100))
   ;; Do these first if something goes wrong.
   (setq pause-break-last-wcfg-change (float-time))
   ;;(run-with-idle-timer (* 1.5 (length (frame-list))) nil 'add-hook 'window-configuration-change-hook 'pause-break-exit)
@@ -497,7 +501,11 @@ Please note that it is run in a timer.")
   (fboundp 'w32-set-frame-topmost))
 
 (defun pause-set-topmost (on)
-  (w32-set-frame-topmost pause-frame on nil))
+  (cond
+   ((fboundp 'w32-set-frame-topmost)
+    (w32-set-frame-topmost pause-frame on nil))
+   (t
+    (message "pause-set-topmost: don't know how"))))
 
 (defun pause-tell-again ()
   (when (and window-system pause-even-if-not-in-emacs)
@@ -780,7 +788,9 @@ Note: Another easier alternative might be to use
                               (height . 18)))
               (selected-frame))))))
 
+;; (pause-start-in-new-emacs 0.2)
 ;; (pause-start-in-new-emacs 0.3)
+;; (pause-start-in-new-emacs 0.5)
 ;; (pause-start-in-new-emacs 15)
 ;;;###autoload
 (defun pause-start-in-new-emacs (after-minutes)
