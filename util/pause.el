@@ -359,6 +359,7 @@ Fix-me: This is wrong in single pause Emacs.
                                               (height . ,(cdr pause-goon-frame-size))
                                               (alpha . 100)
                                               ))
+                   (lower-frame pause-frame)
                    (pause-start-timer))
                (run-with-idle-timer 1 nil 'add-hook 'post-command-hook 'pause-save-me-post-command))
              ;; But if we do not do that within some minutes then start timer anyway.
@@ -741,6 +742,8 @@ Note: Another easier alternative might be to use
   (setq pause-after-minutes after-minutes)
   (when pause-in-separate-emacs
     (setq debug-on-error t)
+    (setq pause-frame (pause-get-pause-frame))
+    (lower-frame pause-frame)
     (setq frame-title-format "Emacs Pause")
     (when (and cus-file (file-exists-p cus-file))
       (let ((args (pause-get-group-saved-customizations 'pause cus-file)))
@@ -749,7 +752,6 @@ Note: Another easier alternative might be to use
   (let ((pause-only-when-server-mode nil))
     (pause-mode 1))
   (when pause-in-separate-emacs
-    (setq pause-frame (selected-frame))
     (set-frame-parameter pause-frame 'background-color pause-goon-background-color)
     (delete-other-windows)
     (switch-to-buffer (get-buffer-create "Pause information"))
