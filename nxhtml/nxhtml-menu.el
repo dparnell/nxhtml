@@ -544,6 +544,12 @@
       (define-key tools-map [nxhtml-help-separator]
         (list 'menu-item "--"))
 
+      (let ((rncdl-map (make-sparse-keymap)))
+        (define-key tools-map [rncdl-map]
+          (list 'menu-item "Download/Update Schema Files" rncdl-map))
+        (define-key rncdl-map [rncdl-html5]
+          (list 'menu-item "(X)HTML5 Schema Files" 'rncdl-update-html5))
+        )
 
       (let ((html-link-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-link-map]

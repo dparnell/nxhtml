@@ -971,7 +971,13 @@ backward compatibility.")
 Give it the name NAME."
   (let* ((fbuf (find-file-noselect file)))
     (when fbuf
-      (make-indirect-buffer fbuf name))))
+      (let ((newname (if (not (get-buffer name))
+                         name
+                       (save-match-data
+                         (when (string-match "<[0-9]+>\\'" name)
+                           (setq name (substring name 0 (match-beginning 0)))))
+                       (generate-new-buffer-name name))))
+        (make-indirect-buffer fbuf newname)))))
 
 (defun winsav-save-indirect-buffers (to-buffer)
   "Save information about indirect buffers.

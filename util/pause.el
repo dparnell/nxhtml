@@ -392,9 +392,20 @@ Please note that it is run in a timer.")
 
 (defvar pause-set-alpha-100-timer nil)
 
+(defun pause-cancel-alpha-100-timer ()
+  (when (timerp pause-set-alpha-100-timer)
+    (cancel-timer pause-set-alpha-100-timer))
+  (setq pause-set-alpha-100-timer nil))
+
+(defun pause-start-alpha-100-timer (delay)
+  (pause-cancel-alpha-100-timer)
+  (setq pause-set-alpha-100-timer (run-with-idle-timer delay nil 'pause-set-alpha-100)))
+
 (defun pause-set-alpha-100 ()
   (when (frame-live-p pause-frame)
-    (modify-frame-parameters pause-frame '((alpha . 100)))))
+    (modify-frame-parameters pause-frame '((alpha . 100)))
+    (message "pause: alpha 100 done")
+    (redisplay t)))
 
 (defun pause-break-show-1 ()
   ;;(setq pause-frame (selected-frame))
@@ -456,6 +467,7 @@ Please note that it is run in a timer.")
   (unless (pause-use-topmost)
     (dolist (f (frame-list))
       (pause-max-frame f)))
+  ;; Fix-me: the alpha timer should be handled by pause-extra-fun.
   (pause-tell-again)
   (when pause-extra-fun (funcall pause-extra-fun))
   ;;(setq pause-break-exit-calls 0)
@@ -494,15 +506,21 @@ Please note that it is run in a timer.")
     (cancel-timer pause-tell-again-timer))
   (setq pause-tell-again-timer nil))
 
+(defvar pause-dont-use-topmost nil)
+
 (defun pause-use-topmost ()
-  (fboundp 'w32-set-frame-topmost))
+  (unless pause-dont-use-topmost
+    (fboundp 'w32-set-frame-topmost)))
 
 (defun pause-set-topmost (on)
   (cond
    ((fboundp 'w32-set-frame-topmost)
-    (w32-set-frame-topmost pause-frame on nil))
+    (w32-set-frame-topmost pause-frame on nil)
+    ;;(redisplay t)
+    t)
    (t
-    (message "pause-set-topmost: don't know how"))))
+    (message "pause-set-topmost: don't know how")
+    nil)))
 
 (defun pause-tell-again ()
   (when (and window-system pause-even-if-not-in-emacs)
@@ -510,23 +528,21 @@ Please note that it is run in a timer.")
           old-make-vis)
       (pause-max-frame pause-frame)
       (if (pause-use-topmost)
-          (pause-set-topmost t)
+          (progn
+            (pause-set-topmost t)
+            (message "pause: topmost t done")
+            (pause-start-alpha-100-timer 60)
+            )
         (message "raise-frame part")
         (raise-frame pause-frame)
         (x-focus-frame pause-frame))
-      (when window-system
-        ;; topmost
-        (when (pause-use-topmost)
-          (pause-set-topmost t)
-          (setq pause-set-alpha-100-timer (run-with-idle-timer 30 nil 'pause-set-alpha-100)))
-        (condition-case nil
-            (make-frame-visible pause-frame t)
-          (error
-           (setq old-make-vis t)))
-        (when old-make-vis
-          (make-frame-visible pause-frame)
-          (run-with-idle-timer 5 nil 'pause-tell-again-reset-frame curr-frame))
-        ))))
+      (condition-case nil
+          (make-frame-visible pause-frame t)
+        (error
+         (setq old-make-vis t)))
+      (when old-make-vis
+        (make-frame-visible pause-frame)
+        (run-with-idle-timer 5 nil 'pause-tell-again-reset-frame curr-frame)))))
 
 (defun pause-tell-again-reset-frame (frame)
   (message "reset-frame frame=%S" frame)
@@ -850,7 +866,9 @@ See `pause-start' for more info.
   (let ((pose (pause-random-yoga-pose (pause-get-yoga-poses-1 (current-buffer)))))
     (message nil)
     (when (and pose (buffer-live-p pause-buffer))
-      (pause-insert-yoga-link pose))))
+      (pause-insert-yoga-link pose)
+      (pause-start-alpha-100-timer 60)
+      )))
 
 (defun pause-insert-yoga-link (pose)
   (with-current-buffer pause-buffer

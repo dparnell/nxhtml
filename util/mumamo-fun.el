@@ -2520,56 +2520,39 @@ Used by `noweb2-mumamo-mode'."
           (cons regexp major-mode-function))
   :group 'mumamo-noweb2)
 
-(defvar mumamo-noweb2-found-mode-from-ext nil
-  "Major modes determined from file names.  Internal use.")
+;; (defvar mumamo-noweb2-found-mode-from-ext nil
+;;   "Major modes determined from file names.  Internal use.")
+
+(defvar mumamo-noweb2-code-major-mode nil)
+(put 'mumamo-noweb2-code-major-mode 'permanent-local t)
+
+(defun mumamo-noweb2-set-code-major-mode (major)
+  (interactive "CCode major mode: ")
+  (message "major=%s" major)
+  (set (make-local-variable 'mumamo-noweb2-code-major-mode) major)
+  (mumamo-remove-all-chunk-overlays)
+  ;; fix-me
+  )
 
 (defun mumamo-noweb2-chunk-start-fw (pos max)
   "Helper for `mumamo-noweb2-chunk'.
 POS is where to start search and MAX is where to stop."
-  (let ((where (mumamo-chunk-start-fw-re pos max "^<<\\(.*?\\)>>="))
-        (exc-mode 'text-mode))
+  (let* ((where (mumamo-chunk-start-fw-re pos max "^<<\\(.*?\\)>>="))
+         (border-start (when where (match-beginning 0)))
+         (exc-mode 'text-mode))
     (when where
-      (let* ((file-name (match-string-no-properties 1))
-             (file-ext (when file-name (file-name-extension file-name))))
-        (when file-ext
-          (setq exc-mode (catch 'major
-                           (dolist (rec mumamo-noweb2-mode-from-ext)
-                             (when (string-match (car rec) file-ext)
-                               (throw 'major (cdr rec))))
-                           nil))))
+      (if mumamo-noweb2-code-major-mode
+          (setq exc-mode mumamo-noweb2-code-major-mode)
+        (let* ((file-name (buffer-file-name)) ;(match-string-no-properties 1))
+               (file-ext (when file-name (file-name-extension file-name))))
+          (when file-ext
+            (setq exc-mode (catch 'major
+                             (dolist (rec mumamo-noweb2-mode-from-ext)
+                               (when (string-match (car rec) file-ext)
+                                 (throw 'major (cdr rec))))
+                             nil)))))
       (list where exc-mode))))
 
-;; (defun mumamo-noweb2-chunk-start-bw (pos min)
-;;   "Helper for `mumamo-noweb2-chunk'.
-;; POS is where to start search and MIN is where to stop."
-;;   (let ((exc-start (mumamo-chunk-start-bw-re pos min "^<<\\(.*?\\)>>="))
-;;         (exc-mode 'text-mode))
-;;     (when exc-start
-;;       (let* ((file-name (match-string 1))
-;;              (file-ext  (when file-name (file-name-extension file-name))))
-;;         (when file-ext
-;;           (setq exc-mode (catch 'major
-;;                            (dolist (rec mumamo-noweb2-mode-from-ext)
-;;                              (when (string-match (car rec) file-ext)
-;;                                (throw 'major (cdr rec))))
-;;                            nil))
-;;           (unless exc-mode
-;;             (setq exc-mode
-;;                   (cdr (assoc file-ext mumamo-noweb2-found-mode-from-ext)))
-;;             (unless exc-mode
-;;               ;; Get the major mode from file name
-;;               (with-temp-buffer
-;;                 (setq buffer-file-name file-name)
-;;                 (condition-case err
-;;                     (normal-mode)
-;;                   (error (message "error (normal-mode): %s"
-;;                                   (error-message-string err))))
-;;                 (setq exc-mode (or major-mode
-;;                                    'text-mode))
-;;                 (add-to-list 'mumamo-noweb2-found-mode-from-ext
-;;                              (cons file-ext exc-mode)))
-;;               ))))
-;;       (cons exc-start exc-mode))))
 
 (defun mumamo-noweb2-chunk-end-fw (pos max)
   "Helper for `mumamo-noweb2-chunk'.
@@ -2577,20 +2560,11 @@ POS is where to start search and MAX is where to stop."
   (save-match-data
     (mumamo-chunk-end-fw-re pos max "^@")))
 
-;; (defun mumamo-noweb2-chunk-end-bw (pos min)
-;;   "Helper for `mumamo-noweb2-chunk'.
-;; POS is where to start search and MIN is where to stop."
-;;   (mumamo-chunk-end-bw-re pos min "^@"))
-
 (defun mumamo-noweb2-code-chunk (pos min max)
   "Find noweb chunks.  Return range and found mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-find-possible-chunk' for POS, MIN and MAX.
+`mumamo-noweb2-set-code-major-mode'"
   (save-match-data
-    ;; (mumamo-find-possible-chunk pos min max
-    ;;                             'mumamo-noweb2-chunk-start-bw
-    ;;                             'mumamo-noweb2-chunk-end-bw
-    ;;                             'mumamo-noweb2-chunk-start-fw-old
-    ;;                             'mumamo-noweb2-chunk-end-fw)
     (mumamo-possible-chunk-forward pos max
                                    'mumamo-noweb2-chunk-start-fw
                                    'mumamo-noweb2-chunk-end-fw)))

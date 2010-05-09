@@ -258,7 +258,7 @@ If nil show only tag names."
 
 ;;;###autoload
 (define-minor-mode nxml-where-mode
-  "Shows path in mode line."
+  "Shows path in header line."
   :global nil
   :group 'nxml-where
   (if nxml-where-mode
