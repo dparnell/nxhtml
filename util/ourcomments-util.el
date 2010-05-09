@@ -2150,6 +2150,50 @@ Return full path if found."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Org Mode
 
+;; (define-minor-mode ourcomments-org-where-mode
+;;   "Shows path in header line."
+;;   :global nil
+;;   :group 'ourcomments-util
+;;   :group 'org
+;;   (if ourcomments-org-where-mode
+;;       ;;Turn it on
+;;       (ourcomments-org-where-mode-start)
+;;     ;; Turn it off
+;;     (ourcomments-org-where-mode-stop)
+;;     ))
+;; (put 'ourcomments-org-where-mode 'permanent-local t)
+
+(defun ourcomments-org-beginning-of-defun (arg)
+  "Find previous header start.
+If ARG is positive then search that many times backward, else forward.
+
+This is the function is used for `beginning-of-defun-function'."
+  (let ((here (point))
+        on-heading)
+    (outline-back-to-heading)
+    (setq on-heading (= here (point)))
+    (if (< 0 arg)
+        (progn
+          ;;(backward-char)
+          (outline-backward-same-level (+ arg (if on-heading 0 -1))))
+      ;;(forward-char)
+      (outline-forward-same-level (- arg)))))
+
+(defun ourcomments-org-end-of-defun ()
+  "Find next header start.
+This function is used for `end-of-defun-function'."
+  (org-end-of-subtree t t)
+  (backward-char)
+  )
+
+(defun ourcomments-org-set-beginning-and-end-defuns ()
+  "Setup beginning and end of defun functions for `org-mode'."
+  (unless (local-variable-p 'beginning-of-defun-function)
+    (set (make-local-variable 'beginning-of-defun-function) 'ourcomments-org-beginning-of-defun)
+    (set (make-local-variable 'end-of-defun-function) 'ourcomments-org-end-of-defun)))
+
+(add-hook 'org-mode-hook 'ourcomments-org-set-beginning-and-end-defuns)
+
 (defun ourcomments-org-complete-and-replace-file-link ()
   "If on a org file link complete file name and replace it."
   (interactive)

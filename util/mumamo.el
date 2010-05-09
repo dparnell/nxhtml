@@ -3515,7 +3515,7 @@ the name) to search for."
 See `mumamo-chunk-start-fw-str' for more information and the
 meaning of POS, MAX and MARKER."
   (assert (stringp marker))
-  (goto-char (- pos (length marker)))
+  ;;(goto-char (- pos (length marker)))
   (re-search-forward marker max t))
 
 (defun mumamo-chunk-start-fw-str-inc (pos max marker)
@@ -4561,7 +4561,7 @@ See also `mumamo-new-create-chunk' for more information."
                          (msgtrc "path B use-min=%s syn2-max=%s curr-major=%s" use-min syn2-max curr-major)
                          (not (mumamo-end-in-code use-min syn2-max curr-major)))
                        (setq end-search-pos (1+ curr-end-fun-end))
-                       (setq curr-end-fun-end nil)
+                       (setq curr-end-fun-end nil) ;; Fix-me
                        ))))
             (unless curr-end-fun-end
               ;; Use old end if valid
