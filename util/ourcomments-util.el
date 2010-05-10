@@ -1303,24 +1303,72 @@ PREDICATE.  PREDICATE takes one argument, the symbol."
 
 ;;;###autoload
 (defun narrow-to-comment ()
+  "Narrow to current comments."
   (interactive)
+  (let ((range (ourcomments-find-comments-range (point))))
+    (if (not range)
+        (message "Can't narrow to comment because not in a comment")
+      (narrow-to-region (car range) (cdr range)))))
+
+;;;###autoload
+(defun narrow-to-defun+comments-above ()
+  "Like `narrow-to-defun' but include comments above.
+See also `widen-to-comments-above'."
+  (interactive)
+  (narrow-to-defun)
+  (widen-to-comments-above))
+
+;;;###autoload
+(defun widen-to-comments-above ()
+  "Widen to include comments above current narrowing.
+See also `narrow-to-defun+comments-above'."
+  (interactive)
+  (let ((here (point))
+        (beg (point-min))
+        (end (point-max))
+        new-beg)
+    (unless (= 1 beg)
+      (widen)
+      (when (setq new-beg (car (ourcomments-find-comments-range (1- beg))))
+        (setq beg new-beg)))
+    (narrow-to-region beg end)
+    (if new-beg
+        (progn
+          (set-window-point (selected-window) new-beg)
+          (redisplay t)
+          (goto-char here)
+          (message "Widened to comments above"))
+      (message "There is no comments immediately above"))))
+
+(defun ourcomments-find-comments-range (pos)
   (let* ((here (point-marker))
-         (size 1000)
-         (beg (progn (forward-comment (- size))
-                     ;; It looks like the wrong syntax-table is used here:
-                     ;;(message "skipped %s " (skip-chars-forward "[:space:]"))
-                     ;; See Emacs bug 3823, http://debbugs.gnu.org/cgi/bugreport.cgi?bug=3823
-                     (message "skipped %s " (skip-chars-forward " \t\r\n"))
-                     (point)))
-         (end (progn (forward-comment size)
-                     ;;(message "skipped %s " (skip-chars-backward "[:space:]"))
-                     (message "skipped %s " (skip-chars-backward " \t\r\n"))
-                     (point))))
-    (goto-char here)
-    (if (not (and (>= here beg)
-                  (<= here end)))
-        (error "Not in a comment")
-      (narrow-to-region beg end))))
+         (in-comment (syntax-ppss-context (syntax-ppss pos))))
+    (unless (eq in-comment 'comment)
+      ;; It looks like the wrong syntax-table is used here: (message
+      ;;"skipped %s " (skip-chars-forward "[:space:]")) See Emacs bug
+      ;;3823, http://debbugs.gnu.org/cgi/bugreport.cgi?bug=3823
+      (skip-chars-backward " \t\r\n")
+      (setq in-comment (syntax-ppss-context (syntax-ppss))))
+    (unless (eq in-comment 'comment)
+      (goto-char pos)
+      (skip-chars-forward " \t\r\n")
+      (unless (eobp) (forward-char 1))
+      (setq in-comment (syntax-ppss-context (syntax-ppss))))
+    (when (eq in-comment 'comment)
+      (let* ((syntax (syntax-ppss))
+             (beg (nth 8 syntax))
+             end)
+        (goto-char beg)
+        (while (forward-comment -1)
+          (setq beg (point)))
+        (goto-char beg)
+        (skip-chars-backward " \t")
+        (when (bolp) (setq beg (point)))
+        (goto-char beg)
+        (while (forward-comment 1)
+          (setq end (point)))
+        (goto-char here)
+        (cons beg end)))))
 
 (defvar describe-symbol-alist nil)
 
@@ -2174,8 +2222,17 @@ This is the function is used for `beginning-of-defun-function'."
     (setq on-heading (= here (point)))
     (if (< 0 arg)
         (progn
-          ;;(backward-char)
-          (outline-backward-same-level (+ arg (if on-heading 0 -1))))
+          (unless on-heading (setq arg (1- arg)))
+          ;; See `outline-backward-same-level'.
+          (while (> arg 0)
+            (let ((here2 (point))
+                  (point-to-move-to (outline-get-last-sibling)))
+              (if point-to-move-to
+                  (progn
+                    (goto-char point-to-move-to)
+                    (setq arg (1- arg)))
+                (setq arg 0)
+                (goto-char here2)))))
       ;;(forward-char)
       (outline-forward-same-level (- arg)))))
 

@@ -465,16 +465,16 @@ See `nxml-where-mode' for more information on Nxml-Where mode.
 ;;;***
 
 ;;;### (autoloads (rncdl-update-html5) "../nxhtml/rncdl" "nxhtml/rncdl.el"
-;;;;;;  (19431 17221))
+;;;;;;  (19431 21606))
 ;;; Generated autoloads from nxhtml/rncdl.el
 (web-autoload-require 'rncdl 'lp '(nxhtml-download-root-url nil) "nxhtml/rncdl" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
 
 (nxhtml-autoload 'rncdl-update-html5 `(lp '(nxhtml-download-root-url nil) "nxhtml/rncdl" nxhtml-install-dir) "\
-Update html5 rnc files from known location.
+Update and setup (x)html5 rnc files.
 Download rnc files from url `http://syntax.whattf.org/relaxng/'.
 
-Those files are needed to edit (x)htl5 with `nxml-mode' support.
+Those files are needed to edit (x)html5 with `nxml-mode' support.
 
 The schemas will be enabled based on file name extensions
 '.html5' and '.xhtml5'.
@@ -3030,14 +3030,15 @@ Color up digits three by three.
 ;;;;;;  emacs--debug-init emacs-buffer-file emacs emacs-restart ourcomments-ido-ctrl-tab
 ;;;;;;  ourcomments-ido-buffer-raise-frame ourcomments-ido-buffer-other-frame
 ;;;;;;  ourcomments-ido-buffer-other-window describe-symbol describe-defstruct
-;;;;;;  describe-custom-group narrow-to-comment buffer-narrowed-p
-;;;;;;  describe-command ourcomments-ediff-files find-emacs-other-file
-;;;;;;  ourcomments-insert-date-and-time describe-timers ourcomments-copy+paste-set-point
-;;;;;;  better-fringes-mode describe-key-and-map-briefly ourcomments-move-end-of-line
-;;;;;;  ourcomments-move-beginning-of-line ourcomments-mark-whole-buffer-or-field
-;;;;;;  fill-dwim unfill-individual-paragraphs unfill-region unfill-paragraph
-;;;;;;  define-toggle-old define-toggle popup-menu-at-point ourcomments-indirect-fun)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19430 8840))
+;;;;;;  describe-custom-group widen-to-comments-above narrow-to-defun+comments-above
+;;;;;;  narrow-to-comment buffer-narrowed-p describe-command ourcomments-ediff-files
+;;;;;;  find-emacs-other-file ourcomments-insert-date-and-time describe-timers
+;;;;;;  ourcomments-copy+paste-set-point better-fringes-mode describe-key-and-map-briefly
+;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
+;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
+;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
+;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
+;;;;;;  "util/ourcomments-util.el" (19432 4745))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3227,7 +3228,19 @@ Return non-nil if the current buffer is narrowed.
 \(fn)" nil nil)
 
 (nxhtml-autoload 'narrow-to-comment `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
-Not documented
+Narrow to current comments.
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'narrow-to-defun+comments-above `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Like `narrow-to-defun' but include comments above.
+See also `widen-to-comments-above'.
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'widen-to-comments-above `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Widen to include comments above current narrowing.
+See also `narrow-to-defun+comments-above'.
 
 \(fn)" t nil)
 
@@ -4364,7 +4377,7 @@ accept it or skip it.
 ;;;;;;  "util/fupd.el" "util/idn.el" "util/key-cat.el" "util/mumamo-aspnet.el"
 ;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/org-panel.el" "util/rxi.el" "util/tipframe.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19431 17296 968000))
+;;;;;;  "web-autoload.el") (19432 4796 93000))
 
 ;;;***
 
