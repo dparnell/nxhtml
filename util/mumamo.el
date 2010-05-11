@@ -4489,7 +4489,7 @@ See also `mumamo-new-create-chunk' for more information."
           (let* ((use-max max)
                  (use-min curr-syntax-min)
                  (possible-end-fun-end t)
-                 (end-search-pos use-min)
+                 (start-search-pos use-min)
                  (n-while 0))
             ;; The code below takes care of the case when to subsequent
             ;; chunks have the same ending delimiter. (Maybe a while
@@ -4497,16 +4497,18 @@ See also `mumamo-new-create-chunk' for more information."
             (while (and (mumamo-while 10 'n-while "possible-end-fun-end")
                         possible-end-fun-end
                         (not curr-end-fun-end)
-                        (< end-search-pos use-max))
-              (setq curr-end-fun-end (funcall curr-end-fun end-search-pos use-max))
-              (when (> n-while 1) (msgtrc "end-search-pos=%s, curr-end-fun-end=%s after-chunk=%S" end-search-pos curr-end-fun-end after-chunk))
-              (if (not curr-end-fun-end)
+                        (< start-search-pos use-max))
+              (setq curr-end-fun-end (funcall curr-end-fun start-search-pos use-max))
+              (when (> n-while 2) (msgtrc "start-search-pos=%s, curr-end-fun-end=%s after-chunk=%S" start-search-pos curr-end-fun-end after-chunk))
+              (if (or (not curr-end-fun-end)
+                      ;; Some end-fun:s can't restart at later positions, just fail then:
+                      (< curr-end-fun-end start-search-pos))
                   (setq possible-end-fun-end nil)
                 (cond ((and t ;after-chunk-is-closed
                             (< curr-end-fun-end (overlay-end after-chunk)))
-                       (msgtrc "path A")
+                       (msgtrc "path A, could this happen now??")
                        (setq curr-end-fun-end nil)
-                       (setq end-search-pos (1+ end-search-pos)))
+                       (setq start-search-pos (1+ start-search-pos)))
                       ;; See if the end is in code
                       ((let* ((syn2-min-max (when curr-border-fun
                                               (funcall curr-border-fun
@@ -4515,11 +4517,10 @@ See also `mumamo-new-create-chunk' for more information."
                                                        nil)))
                               (syn2-max (or (cadr syn2-min-max)
                                             curr-end-fun-end)))
-                         (msgtrc "path B use-min=%s syn2-max=%s curr-major=%s" use-min syn2-max curr-major)
+                         ;;(msgtrc "path B start-search-pos=%s syn2-max=%s curr-major=%s" start-search-pos syn2-max curr-major)
                          (not (mumamo-end-in-code use-min syn2-max curr-major)))
-                       (setq end-search-pos (1+ curr-end-fun-end))
-                       (setq curr-end-fun-end nil) ;; Fix-me
-                       ))))
+                       (setq start-search-pos (1+ curr-end-fun-end))
+                       (setq curr-end-fun-end nil)))))
             ))
         ;;(msgtrc "find-next-chunk-values:here d, curr-min=%s, after-chunk=%s" curr-min after-chunk)
         (when (listp curr-chunk-funs)
