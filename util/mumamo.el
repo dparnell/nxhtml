@@ -247,14 +247,15 @@
 (eval-when-compile (require 'cc-engine))
 (eval-when-compile (require 'desktop))
 (eval-when-compile (require 'flyspell))
-(eval-when-compile (require 'rngalt nil t))
+(declare-function flyspell-mode "flyspell")
 (eval-when-compile (require 'nxml-mode nil t))
-(eval-when-compile
-  (when (featurep 'nxml-mode)
-    (require 'rng-valid nil t)
-    ;;(require 'rngalt nil t)
-    ))
+(eval-when-compile (require 'rngalt nil t))
+(eval-when-compile (require 'rng-valid nil t))
+(declare-function rng-validate-mode "rng-valid")
+(eval-when-compile (require 'ruby-mode nil t))
 (eval-when-compile (require 'sgml-mode)) ;; For sgml-xml-mode
+(declare-function sgml-lexical-context "sgml-mode")
+
 ;; For `define-globalized-minor-mode-with-on-off':
 ;;(require 'ourcomments-util)
 
@@ -1995,7 +1996,7 @@ correct but we want to check those after.  Put thosie in
                                                      )))
                       (setq this-new-values (mumamo-find-next-chunk-values
                                              mumamo-last-chunk
-                                             first-check-from
+                                             ;;first-check-from
                                              use-change-max
                                              use-chunk-at-change-min)))
                     (if (not this-new-values)
@@ -3990,39 +3991,6 @@ See also `mumamo-quick-static-chunk'."
   ;;)
   )
 
-;; (defun temp-overlays-here ()
-;;   (interactive)
-;;   (let* ((here (point))
-;;          (ovl-at (overlays-at here))
-;;          (ovl-in (overlays-in here (1+ here)))
-;;          (ovl-in0 (overlays-in here here))
-;;          )
-;;     (with-output-to-temp-buffer (help-buffer)
-;;       (help-setup-xref (list #'temp-overlays-at) (interactive-p))
-;;       (with-current-buffer (help-buffer)
-;;         (insert (format "overlays-at %s:\n%S\n\n" here ovl-at))
-;;         (insert (format "overlays-in %s-%s:\n%S\n\n" here (1+ here) ovl-in))
-;;         (insert (format "overlays-in %s-%s:\n%S\n\n" here here ovl-in0))
-;;         ))))
-;; (defun temp-cursor-pos ()
-;;   (interactive)
-;;   (what-cursor-position t))
-;; ;;(global-set-key [f9] 'temp-cursor-pos)
-;; (defun temp-test-new-create-chunk ()
-;;   (interactive)
-;;   (mumamo-delete-new-chunks)
-;;   ;;(setq x1 nil)
-;;   (let (x1
-;;         (first t))
-;;     (while (or first x1)
-;;       (setq first nil)
-;;       (setq x1 (mumamo-new-create-chunk (mumamo-find-next-chunk-values x1 nil nil nil)))))
-;;   )
-
-;; (defun temp-create-last-chunk ()
-;;   (interactive)
-;;   (mumamo-new-create-chunk (mumamo-find-next-chunk-values mumamo-last-chunk nil nil nil)))
-
 (defun mumamo-delete-new-chunks ()
   (setq mumamo-last-chunk nil)
   (save-restriction
@@ -4445,7 +4413,7 @@ this chunk familyu to find subchunks."
         (error "Major mode %s major can't be used in sub chunks" major)))
     (add-to-list 'mumamo-sub-chunk-families (list major chunk-family))))
 
-(defun mumamo-find-next-chunk-values (after-chunk from after-change-max chunk-at-after-change)
+(defun mumamo-find-next-chunk-values (after-chunk after-change-max chunk-at-after-change)
   "Search forward for start of next chunk.
 Return a list with chunk values for next chunk after AFTER-CHUNK
 and some values for the chunk after it.
@@ -4453,9 +4421,10 @@ and some values for the chunk after it.
 For the first chunk AFTER-CHUNK is nil.  Otherwise the values in stored in AFTER-CHUNK
 is used to find the new chunk, its border etc.
 
+AFTER-CHANGE-MAX
 
 See also `mumamo-new-create-chunk' for more information."
-  ;;(msgtrc "(find-next-chunk-values %s %s %s %s)" after-chunk from after-change-max chunk-at-after-change)
+  ;;(msgtrc "(find-next-chunk-values %s %s s %s)" after-chunk after-change-max chunk-at-after-change)
   ;;(mumamo-backtrace "find-next")
   (when after-chunk
     (unless (eq (overlay-buffer after-chunk)
@@ -4476,8 +4445,7 @@ See also `mumamo-new-create-chunk' for more information."
          (curr-syntax-min (or (car curr-syntax-min-max)
                               (when after-chunk (overlay-end after-chunk))
                               1))
-         (search-from (or nil ;from
-                          curr-syntax-min))
+         (search-from curr-syntax-min)
          ;;(dummy (msgtrc "search-from=%s" search-from))
          (main-chunk-funs (let ((chunk-info (cdr mumamo-current-chunk-family)))
                             (cadr chunk-info)))
@@ -4527,8 +4495,8 @@ See also `mumamo-new-create-chunk' for more information."
           (let* ((use-max (if nil ;;after-change-max
                               (+ after-change-max 100)
                             max))
-                 (chunk-end (and chunk-at-after-change
-                                 (overlay-end chunk-at-after-change)))
+                 ;; (chunk-end (and chunk-at-after-change
+                 ;;                 (overlay-end chunk-at-after-change)))
                  ;;(use-min (max (- search-from 2) (point-min)))
                  (use-min curr-syntax-min)
                  (possible-end-fun-end t)
@@ -4563,53 +4531,6 @@ See also `mumamo-new-create-chunk' for more information."
                        (setq end-search-pos (1+ curr-end-fun-end))
                        (setq curr-end-fun-end nil) ;; Fix-me
                        ))))
-            (unless curr-end-fun-end
-              ;; Use old end if valid
-              (and after-change-max
-                   chunk-end
-                   (= -1 (overlay-get chunk-at-after-change 'mumamo-next-depth-diff))
-                   (< after-change-max chunk-end)
-                   chunk-end))
-            ;; Fix-me: Check if old chunk is valid. It is not valid if
-            ;; depth-diff = -1 and curr-end-fun-end is not the same as
-            ;; before.
-
-            ;; Fix-me: this test should also be made for other chunks
-            ;; searches, but this catches most problems I think.
-            ;; (or (not curr-end-fun-end)
-            ;;     ;; Fix-me: The bug in wiki-090804-js.html indicates that
-            ;;     ;; we should not subtract 1 here.  The subchunk there
-            ;;     ;; ends with </script> and this can't be in column 1
-            ;;     ;; when the line before ends with a // style js comment
-            ;;     ;; unless we don't subtract 1.
-            ;;     ;;
-            ;;     ;; However wiki-strange-hili-080629.html does not work
-            ;;     ;; then because then the final " in style="..." is
-            ;;     ;; included in the scan done in mumamo-end-in-code.
-            ;;     ;;
-            ;;     ;; The solution is to check for the syntax borders here.
-            ;;     (let* ((syn2-min-max (when curr-border-fun
-            ;;                            (funcall curr-border-fun
-            ;;                                     (overlay-end after-chunk)
-            ;;                                     curr-end-fun-end
-            ;;                                     nil)))
-            ;;            (syntax-max (or (cadr syn2-min-max)
-            ;;                            curr-end-fun-end)))
-            ;;       ;;(mumamo-end-in-code syntax-min (- curr-end-fun-end 1) curr-major)
-            ;;       ;;
-            ;;       ;; fix-me: This should be really in the individual
-            ;;       ;; routines that finds possible chunks. Mabye this is
-            ;;       ;; possible to fix now when just looking forward for
-            ;;       ;; chunks?
-            ;;       (mumamo-end-in-code curr-syntax-min syntax-max curr-major)
-            ;;       )
-            ;;     (setq curr-end-fun-end nil))
-            ;; Use old result if valid
-            ;; (and nil ;(not curr-end-fun-end)
-            ;;      chunk-at-after-change
-            ;;      (= -1 (overlay-get chunk-at-after-change 'mumamo-next-depth-diff))
-            ;;      (setq curr-end-fun-end (overlay-end chunk-at-after-change)))
-            ;;(msgtrc "find-next-chunk-values:curr-end-fun-end after end-in-code=%s" curr-end-fun-end)
             ))
         ;;(msgtrc "find-next-chunk-values:here d, curr-min=%s, after-chunk=%s" curr-min after-chunk)
         (when (listp curr-chunk-funs)
