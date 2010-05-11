@@ -863,6 +863,8 @@ See `pause-start' for more info.
                   'pause-callback-get-yoga-poses)))
 
 (defun pause-callback-get-yoga-poses (status)
+  (message "pause-callback-get-yoga-poses: status=%S" status)
+  ;; pause-callback-get-yoga-poses: status=(:error (error http 500))
   (let ((pose (pause-random-yoga-pose (pause-get-yoga-poses-1 (current-buffer)))))
     (message nil)
     (when (and pose (buffer-live-p pause-buffer))

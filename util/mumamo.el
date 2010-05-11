@@ -1978,27 +1978,29 @@ correct but we want to check those after.  Put thosie in
                     (narrow-to-region (max (- ok-pos 200) 1)
                                       (1+ (buffer-size)))
                     ;; If this was after a change within one chunk then tell that:
-                    (let ((use-change-max (when (and change-max
-                                                     chunk-at-change-min
-                                                     (overlay-buffer chunk-at-change-min)
-                                                     (< change-max
-                                                        (overlay-end chunk-at-change-min))
-                                                     (or (not mumamo-last-chunk)
-                                                         (> change-max (overlay-end mumamo-last-chunk))))
-                                            change-max))
-                          (use-chunk-at-change-min (when (or (not mumamo-last-chunk)
-                                                             (not (overlay-buffer mumamo-last-chunk))
-                                                             (not chunk-at-change-min)
-                                                             (not (overlay-buffer chunk-at-change-min))
-                                                             (> (overlay-end chunk-at-change-min)
-                                                                (overlay-end mumamo-last-chunk)))
-                                                     chunk-at-change-min
-                                                     )))
+                    ;; (let ((use-change-max (when (and change-max
+                    ;;                                  chunk-at-change-min
+                    ;;                                  (overlay-buffer chunk-at-change-min)
+                    ;;                                  (< change-max
+                    ;;                                     (overlay-end chunk-at-change-min))
+                    ;;                                  (or (not mumamo-last-chunk)
+                    ;;                                      (> change-max (overlay-end mumamo-last-chunk))))
+                    ;;                         change-max))
+                    ;;       (use-chunk-at-change-min (when (or (not mumamo-last-chunk)
+                    ;;                                          (not (overlay-buffer mumamo-last-chunk))
+                    ;;                                          (not chunk-at-change-min)
+                    ;;                                          (not (overlay-buffer chunk-at-change-min))
+                    ;;                                          (> (overlay-end chunk-at-change-min)
+                    ;;                                             (overlay-end mumamo-last-chunk)))
+                    ;;                                  chunk-at-change-min
+                    ;;                                  )))
                       (setq this-new-values (mumamo-find-next-chunk-values
                                              mumamo-last-chunk
                                              ;;first-check-from
-                                             use-change-max
-                                             use-chunk-at-change-min)))
+                                             ;;use-change-max
+                                             ;;use-chunk-at-change-min
+                                             ))
+                      ;;)
                     (if (not this-new-values)
                         (setq ok-pos (point-max))
                       (setq first-check-from nil)
@@ -4413,7 +4415,7 @@ this chunk familyu to find subchunks."
         (error "Major mode %s major can't be used in sub chunks" major)))
     (add-to-list 'mumamo-sub-chunk-families (list major chunk-family))))
 
-(defun mumamo-find-next-chunk-values (after-chunk after-change-max chunk-at-after-change)
+(defun mumamo-find-next-chunk-values (after-chunk)
   "Search forward for start of next chunk.
 Return a list with chunk values for next chunk after AFTER-CHUNK
 and some values for the chunk after it.
@@ -4421,10 +4423,8 @@ and some values for the chunk after it.
 For the first chunk AFTER-CHUNK is nil.  Otherwise the values in stored in AFTER-CHUNK
 is used to find the new chunk, its border etc.
 
-AFTER-CHANGE-MAX
-
 See also `mumamo-new-create-chunk' for more information."
-  ;;(msgtrc "(find-next-chunk-values %s %s s %s)" after-chunk after-change-max chunk-at-after-change)
+  ;;(msgtrc "(find-next-chunk-values %s)" after-chunk)
   ;;(mumamo-backtrace "find-next")
   (when after-chunk
     (unless (eq (overlay-buffer after-chunk)
@@ -4486,18 +4486,7 @@ See also `mumamo-new-create-chunk' for more information."
                     (overlay-end after-chunk)))
       (when (>= max search-from)
         (when curr-end-fun
-          ;; If after-change-max is non-nil here then this function has
-          ;; been called after changes that are all in one chunk. We
-          ;; need to check if the chunk right border have been changed,
-          ;; but we do not have to look much longer than the max point
-          ;; of the change.
-          ;;(message "set after-change-max nil") (setq after-change-max nil)
-          (let* ((use-max (if nil ;;after-change-max
-                              (+ after-change-max 100)
-                            max))
-                 ;; (chunk-end (and chunk-at-after-change
-                 ;;                 (overlay-end chunk-at-after-change)))
-                 ;;(use-min (max (- search-from 2) (point-min)))
+          (let* ((use-max max)
                  (use-min curr-syntax-min)
                  (possible-end-fun-end t)
                  (end-search-pos use-min)
