@@ -697,7 +697,7 @@ appear here during the chunk division process.
 
 If you want to write new functions for chunk divisions then
 please see `mumamo-find-possible-chunk'.  You can perhaps also
-use `mumamo-quick-static-chunk' which is more easy-to-use
+use `mumamo-quick-chunk-forward' which is more easy-to-use
 alternative.  See also the file mumamo-fun.el where there are
 many routines for chunk division.
 
@@ -3692,8 +3692,6 @@ Otherwise return nil."
 
 ;;; The main generic chunk routine
 
-;; Fix-me: new routine that really search forward only. Rewrite
-;; `mumamo-quick-static-chunk' first with this.
 (defun mumamo-possible-chunk-forward (pos
                                       max
                                       chunk-start-fun
@@ -3869,7 +3867,7 @@ is either FW-EXC-START-FUN or FW-EXC-END-FUN.
 chunk families.  If you want to add a new chunk family you could
 most often do that by writing functions for this routine.  Please
 see the many examples in mumamo-fun.el for how this can be done.
-See also `mumamo-quick-static-chunk'."
+See also `mumamo-quick-chunk-forward'."
   ;;(msgtrc "====")
   ;;(msgtrc "find-poss-new %s %s %s %s %s %s" pos max bw-exc-start-fun fw-exc-start-fun fw-exc-end-fun find-borders-fun)
 
@@ -4806,8 +4804,7 @@ the sexp syntax using major mode MAJOR."
 
 (defun mumamo-quick-chunk-forward (pos max
                                    beg-mark-cons end-mark-cons
-                                   inc mode
-                                   &optional mark-is-border)
+                                   inc mode)
   "Quick way to make a chunk function.
 Dividers may be strings or reg exps.
 
@@ -4823,23 +4820,13 @@ function you define.  \(MIN is obsolete.)
 BEG-MARK can be a string that begins the chunk.
 END-MARK can be a string that ends the chunk.
 Both of them can also be a cons cell \(REGEXP . dummy).
+In that case submatch 1 is used if found, otherwise whole match.
 
 If INC is non-nil then the dividers are included in the chunk.
 Otherwise they are instead made parts of the surrounding chunks.
 
 If INC is 'borders then the marks are just borders and not
-supposed to have the same syntax as the inner part och the chunk.
-
-MODE should be the major mode for the chunk.
-
-If MARK-IS-BORDER (obsolete!) is non-nil then the marks are just borders and
-not supposed to have the same syntax as the inner part of the
-
-Fix-me: This can only be useful if the marks are included in the
-chunk, ie INC is non-nil.  Should not these two arguments be
-mixed then?"
-  (when (and (not inc) mark-is-border)
-    (error "inc must be non-nil if mark-is-border"))
+supposed to have the same syntax as the inner part och the chunk."
   ;;(memq 'borders '(nil t borders))
   (unless (memq inc '(nil t borders))
     (error "inc=%s must be nil, t or 'borders" inc))
@@ -4848,7 +4835,7 @@ mixed then?"
          (beg-mark (if beg-re (car beg-mark-cons) beg-mark-cons))
          (end-mark   (if end-re (car end-mark-cons) end-mark-cons))
          (include (when inc t))
-         (borders (or (eq inc 'borders) mark-is-border))
+         (borders (eq inc 'borders))
          (search-fw-exc-start
           `(lambda (pos max)
              (let ((exc-start
@@ -4906,7 +4893,9 @@ mixed then?"
                                   min max
                                   begin-mark end-mark inc mode
                                   mark-is-border)
-  (mumamo-quick-chunk-forward pos max begin-mark end-mark inc mode mark-is-border))
+  (mumamo-quick-chunk-forward pos max begin-mark end-mark
+                              (if mark-is-border 'borders inc)
+                              mode))
 
 
 
@@ -6756,7 +6745,7 @@ added to this list.  See this function for a general description
 of how the functions work.
 
 If you want to quickly define a new mix of major modes you can
-use `mumamo-quick-static-chunk'.")
+use `mumamo-quick-chunk-forward'.")
 
 ;;;###autoload
 (defun mumamo-list-defined-multi-major-modes (show-doc show-chunks match)
