@@ -44,7 +44,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;### (autoloads (html-site-query-replace html-site-rgrep html-site-find-file
 ;;;;;;  html-site-dired-current html-site-set-site html-site-buffer-or-dired-file-name
 ;;;;;;  html-site) "../nxhtml/html-site" "nxhtml/html-site.el" (19431
-;;;;;;  15979))
+;;;;;;  17740))
 ;;; Generated autoloads from nxhtml/html-site.el
 (web-autoload-require 'html-site 'lp '(nxhtml-download-root-url nil) "nxhtml/html-site" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -190,7 +190,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-menu-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19431 16777))
+;;;;;;  "nxhtml/nxhtml-menu.el" (19431 17740))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -431,7 +431,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxml-where-global-mode nxml-where-mode nxml-where)
-;;;;;;  "../nxhtml/nxml-where" "nxhtml/nxml-where.el" (19428 51355))
+;;;;;;  "../nxhtml/nxml-where" "nxhtml/nxml-where.el" (19431 17740))
 ;;; Generated autoloads from nxhtml/nxml-where.el
 (web-autoload-require 'nxml-where 'lp '(nxhtml-download-root-url nil) "nxhtml/nxml-where" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -465,7 +465,7 @@ See `nxml-where-mode' for more information on Nxml-Where mode.
 ;;;***
 
 ;;;### (autoloads (rncdl-update-html5) "../nxhtml/rncdl" "nxhtml/rncdl.el"
-;;;;;;  (19431 21606))
+;;;;;;  (19432 12408))
 ;;; Generated autoloads from nxhtml/rncdl.el
 (web-autoload-require 'rncdl 'lp '(nxhtml-download-root-url nil) "nxhtml/rncdl" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -569,6 +569,19 @@ Delete byte compiled files in nXhtml.
 This will also update the file nxhtml-loaddefs.el.
 
 See `nxhtmlmaint-start-byte-compilation' for byte compiling.
+
+\(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads (amrita-mode) "../related/amrita" "related/amrita.el"
+;;;;;;  (19434 34445))
+;;; Generated autoloads from related/amrita.el
+(web-autoload-require 'amrita 'lp '(nxhtml-download-root-url nil) "related/amrita" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'amrita-mode `(lp '(nxhtml-download-root-url nil) "related/amrita" nxhtml-install-dir) "\
+A major mode for editing Amrita files.
 
 \(fn)" t nil)
 
@@ -1515,7 +1528,7 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 ;;;### (autoloads (web-vcs-investigate-elisp-file web-vcs-url-copy-file
 ;;;;;;  web-vcs-url-retrieve-synch web-vcs-byte-compile-file web-vcs-message-with-face
 ;;;;;;  web-vcs-get-files-from-root web-vcs-log-edit web-vcs-default-download-directory)
-;;;;;;  "../web-vcs" "web-vcs.el" (19431 17271))
+;;;;;;  "../web-vcs" "web-vcs.el" (19431 17740))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2319,7 +2332,7 @@ With command prefix also show html source in other window.
 ;;;***
 
 ;;;### (autoloads (hl-needed-mode hl-needed) "hl-needed" "util/hl-needed.el"
-;;;;;;  (19423 26704))
+;;;;;;  (19423 65098))
 ;;; Generated autoloads from util/hl-needed.el
 (web-autoload-require 'hl-needed 'lp '(nxhtml-download-root-url nil) "util/hl-needed" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2615,7 +2628,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;### (autoloads (mumamo-multi-major-modep mumamo-list-defined-multi-major-modes
 ;;;;;;  mumamo-mark-for-refontification mumamo-hi-lock-faces mumamo
 ;;;;;;  mumamo-add-to-defined-multi-major-modes define-mumamo-multi-major-mode)
-;;;;;;  "mumamo" "util/mumamo.el" (19427 33829))
+;;;;;;  "mumamo" "util/mumamo.el" (19432 50946))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2761,7 +2774,7 @@ Return t if VALUE is a multi major mode function.
 
 ;;;***
 
-;;;### (autoloads (python-rst-mumamo-mode latex-haskell-mumamo-mode
+;;;### (autoloads (amrita-mumamo-mode python-rst-mumamo-mode latex-haskell-mumamo-mode
 ;;;;;;  latex-clojure-mumamo-mode markdown-html-mumamo-mode xsl-sgml-mumamo-mode
 ;;;;;;  xsl-nxml-mumamo-mode mako-html-mumamo-mode org-mumamo-mode
 ;;;;;;  asp-html-mumamo-mode noweb2-mumamo-mode mumamo-noweb2 csound-sgml-mumamo-mode
@@ -2773,7 +2786,7 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
 ;;;;;;  embperl-html-mumamo-mode mason-html-mumamo-mode nxml-mumamo-mode
 ;;;;;;  html-mumamo-mode mumamo-define-html-file-wide-keys) "mumamo-fun"
-;;;;;;  "util/mumamo-fun.el" (19427 35583))
+;;;;;;  "util/mumamo-fun.el" (19434 42159))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2927,6 +2940,10 @@ You will need `haskell-mode' which you can download from URL
 (nxhtml-autoload 'python-rst-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for Python with RestructuredText docstrings." t)
 
+(nxhtml-autoload 'amrita-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
+Turn on multiple major modes for Amrita.
+Fix-me: This does not yet take care of inner chunks." t)
+
 ;;;***
 
 ;;;### (autoloads (mumamo-add-region-from-string mumamo-add-region)
@@ -3038,7 +3055,7 @@ Color up digits three by three.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
 ;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19432 4745))
+;;;;;;  "util/ourcomments-util.el" (19432 12408))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3467,7 +3484,7 @@ Return t if VALUE is a major mode function.
 ;;;***
 
 ;;;### (autoloads (pause-start-in-new-emacs pause-mode pause) "pause"
-;;;;;;  "util/pause.el" (19427 9401))
+;;;;;;  "util/pause.el" (19433 58833))
 ;;; Generated autoloads from util/pause.el
 (web-autoload-require 'pause 'lp '(nxhtml-download-root-url nil) "util/pause" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3942,7 +3959,7 @@ Display vertical line mode as globally.
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
 ;;;;;;  winsav winsav-put-window-tree) "winsav" "util/winsav.el"
-;;;;;;  (19427 60915))
+;;;;;;  (19431 17740))
 ;;; Generated autoloads from util/winsav.el
 (web-autoload-require 'winsav 'lp '(nxhtml-download-root-url nil) "util/winsav" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4372,12 +4389,13 @@ accept it or skip it.
 ;;;;;;  "related/flymake-helpers.el" "related/flymakemsg.el" "related/php-imenu.el"
 ;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
-;;;;;;  "util/css-simple-completion.el" "util/custsets.el" "util/ecb-batch-compile.el"
-;;;;;;  "util/fupd.el" "util/idn.el" "util/key-cat.el" "util/mumamo-aspnet.el"
-;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
+;;;;;;  "util/appmenu-fold.el" "util/css-simple-completion.el" "util/custsets.el"
+;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/idn.el"
+;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
+;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/org-panel.el" "util/rxi.el" "util/tipframe.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19432 4796 93000))
+;;;;;;  "web-autoload.el") (19434 42295 437000))
 
 ;;;***
 
