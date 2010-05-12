@@ -255,7 +255,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 (defvar mumamo-xml-pi-mode-alist
   '(("php"    . php-mode)
     ("python" . python-mode))
-  "Alist used by `mumamo-chunk-xml-pi' to get exception mode." )
+  "Alist used by `mumamo-chunk-xml-pi' to get chunk mode." )
 
 ;; Fix-me: make it possible to make the borders part of the php chunk
 ;; so that parsing of them by nxml may be skipped. Or, rather if the
@@ -573,12 +573,10 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
       (0+ space)
       "="
       (0+ space)
-      ?\"
       ;;(or "text" "application")
       ;;"/"
       ;;(or "javascript" "ecmascript")
-      "text/javascript"
-      ?\"
+      (or "'text/javascript'" "\"text/javascript\"")
       (0+ (not (any ">")))
       ">"
       ;; FIX-ME: Commented out because of bug in Emacs
@@ -1603,7 +1601,7 @@ This also covers inlined style and javascript."
 (defun mumamo-chunk-eruby (pos min max)
   "Find <% ... %>.  Return range and 'ruby-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (let ((chunk (mumamo-quick-static-chunk pos min max "<%" "%>" t 'ruby-mode t)))
+  (let ((chunk (mumamo-quick-chunk-forward pos max "<%" '("-?%>" . t) 'borders 'ruby-mode)))
     (when chunk
       ;; Put indentation type on 'mumamo-next-indent on the chunk:
       ;; Fix-me: use this!
@@ -1615,7 +1613,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 See `mumamo-find-possible-chunk' for POS, MIN and MAX.
 
 This is a workaround for problems with strings."
-  (let ((chunk (mumamo-quick-static-chunk pos min max "\"<%=" "%>\"" t 'ruby-mode t)))
+  (let ((chunk (mumamo-quick-chunk-forward pos max "\"<%=" "%>\"" 'borders 'ruby-mode)))
     (when chunk
       ;; Put indentation type on 'mumamo-next-indent on the chunk:
       ;; Fix-me: use this!
@@ -1628,7 +1626,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX.
 
 This is needed since otherwise the end marker is thought to be
 part of a comment."
-  (mumamo-quick-static-chunk pos min max "<%#" "%>" t 'mumamo-comment-mode t))
+  (mumamo-quick-chunk-forward pos max "<%#" "%>" 'borders 'mumamo-comment-mode))
 
 ;; (defun mumamo-search-bw-exc-start-ruby (pos min)
 ;;   "Helper for `mumamo-chunk-ruby'.
@@ -3291,7 +3289,7 @@ You will need `haskell-mode' which you can download from URL
 
 ;; From Martin Soto
 
-(defun python-rst-long-string-chunk (pos min max)
+(defun mumamo-python-rst-long-string-chunk (pos min max)
  "Find Python long strings.  Return range and 'mumamo-comment-mode.
 See `mumamo-find-possible-chunk' for POS, MIN and MAX."
  ;;(mumamo-quick-static-chunk pos min max "\"\"\"((" "))\"\"\"" nil 'rst-mode nil))
@@ -3302,9 +3300,97 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
  "Turn on multiple major modes for Python with RestructuredText docstrings."
  ("Python ReST Family" python-mode
   (
-   python-rst-long-string-chunk
+   mumamo-python-rst-long-string-chunk
    )))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Amrita
+
+(eval-when-compile (require 'amrita nil t))
+
+(defcustom mumamo-amrita-mode-alist nil
+  "Alist used by `mumamo-chunk-amrita-fold' to get chunk mode.
+This is used only if the major mode can not by guessed.  See
+`mumamo-search-fw-amrita-fold' for more info."
+  :type '(alist :key-type string :value-type function)
+  :group 'mumamo-modes)
+
+(defun mumamo-search-fw-amrita-fold (pos max)
+  (when (require 'amrita nil t)
+    (let ((here (point))
+          (hit-pos -1)
+          start
+          (patt (rx word-start
+                    "fold::"
+                    (submatch (+ (any alpha)))
+                    (+ space)
+                    "{"
+                    (* not-newline)
+                    line-end
+                    ))
+          spec
+          chunk-mode)
+      (save-match-data
+        (while (and (not start) hit-pos)
+          (setq hit-pos (re-search-forward patt nil max))
+          (when hit-pos
+            ;; check if not in string
+            (if (mumamo-end-in-code pos hit-pos amrita-mode-syntax-table)
+                (setq start (match-end 0))
+              (goto-char (match-end 1)))))
+        (when start
+          (setq spec (match-string-no-properties 1))
+          ;; Guess the major mode name
+          (setq chunk-mode (intern-soft (concat spec "-mode")))
+          (unless (commandp chunk-mode)
+            (setq chunk-mode (assoc spec mumamo-amrita-mode-alist))
+            (if chunk-mode
+                (setq chunk-mode (cdr chunk-mode))
+              (setq chunk-mode 'mumamo-bad-mode)))))
+      (goto-char here)
+      (when start
+        (list start chunk-mode nil)))))
+
+(defun mumamo-search-fw-exc-end-amrita-fold (pos max)
+  "Helper for `mumamo-chunk-amrita-fold.
+POS is where to start search and MAX is where to stop.
+
+Note: This simply matches {}-pairs and will fail if there is a
+non-matching pair inside a string."
+  (save-match-data
+    (let ((here (point))
+          ;; {} par level, we start after first {
+          (level 1))
+      (goto-char pos)
+      (while (and (> level 0)
+                  (re-search-forward "[{}]" max t))
+        (setq level (+ level
+                       (if (eq (char-before) ?\{)
+                           1 -1))))
+      (prog1
+          (when (= 0 level) (1- (point)))
+        (goto-char here)))))
+
+(defun mumamo-chunk-amrita-fold (pos min max)
+  "Find Amrita fold::PROGLANG chnks."
+  (mumamo-possible-chunk-forward pos max
+                                 ;;'mumamo-search-fw-exc-start-xml-pi-new
+                                 'mumamo-search-fw-amrita-fold
+                                 ;;'mumamo-search-fw-exc-end-xml-pi
+                                 'mumamo-search-fw-exc-end-amrita-fold
+                                 ;;'mumamo-find-borders-xml-pi
+                                 nil
+                                 ))
+
+;;;###autoload
+(define-mumamo-multi-major-mode amrita-mumamo-mode
+ "Turn on multiple major modes for Amrita.
+Fix-me: This does not yet take care of inner chunks."
+ ("Amrita Family" amrita-mode
+  (
+   mumamo-chunk-amrita-fold
+   )))
 
 (provide 'mumamo-fun)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

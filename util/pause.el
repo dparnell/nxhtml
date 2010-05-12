@@ -241,9 +241,9 @@ Start main timer with delay `pause-1-minute-delay'."
   "Start waiting for idle `pause-idle-delay' before break."
   (condition-case err
       (save-match-data ;; runs in timer
-        (message "enter pause-bre-break")
+        (message "pause: enter pause-bre-break")
         (pause-cancel-timer)
-        (message "after pause-cancel-timer, pause-idle-delay=%s" pause-idle-delay)
+        (message "pause: after pause-cancel-timer, pause-idle-delay=%s" pause-idle-delay)
         (setq pause-timer (run-with-idle-timer pause-idle-delay nil 'pause-break-in-timer)))
     (error
      (lwarn 'pause-pre-break
@@ -251,7 +251,7 @@ Start main timer with delay `pause-1-minute-delay'."
 
 (defvar pause-break-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [(control meta shift ?p)] 'pause-break-exit)
+    (define-key map [(control meta shift ?p)] 'pause-break-exit-from-button)
     (define-key map [tab]         'forward-button)
     (define-key map [(meta tab)]  'backward-button)
     (define-key map [(shift tab)] 'backward-button)
@@ -280,15 +280,16 @@ It defines the following key bindings:
 (defvar pause-break-exit-active nil)
 (defvar pause-break-1-minute-state nil)
 
+(defun pause-break-topmost ()
+  (pause-break-show))
 
-(defun pause-break ()
+(defun pause-break-no-topmost ()
   "Do the break.
 Setup the pause frame and show it.  Enter recursive edit to avoid
 bad edits.
 
-After pause exit start timer again after next command.
-Fix-me: This is wrong in single pause Emacs.
-"
+After pause exit start timer again after next command.  However
+if single pause Emacs start timer immediately."
   (pause-cancel-timer)
   (let ((wcfg (current-frame-configuration))
         (old-mode-line-bg (face-attribute 'mode-line :background))
@@ -308,7 +309,7 @@ Fix-me: This is wrong in single pause Emacs.
       (add-to-list 'old-frame-vertical-scroll-bars (cons f (frame-parameter f 'vertical-scroll-bars))))
 
     ;; Fix-me: Something goes wrong with the window configuration, try a short pause
-    (remove-hook 'window-configuration-change-hook 'pause-break-exit)
+    (remove-hook 'window-configuration-change-hook 'pause-break-exit-no-topmost)
     (run-with-idle-timer 0.2 nil 'pause-break-show)
     (setq pause-break-exit-active nil)
     (setq pause-break-1-minute-state nil) ;; set in `pause-break-show'
@@ -321,13 +322,13 @@ Fix-me: This is wrong in single pause Emacs.
                       (not pause-break-1-minute-state))
             (condition-case err
                 (recursive-edit)
-              (error (message "%s" (error-message-string err))))
+              (error (message "pause: %s" (error-message-string err))))
             (unless (or pause-break-exit-active
                         pause-break-1-minute-state)
               (when (> 2 n) (message "Too early to pause (%s < 2)" n))
               (add-hook 'window-configuration-change-hook 'pause-break-exit))))
 
-      (remove-hook 'window-configuration-change-hook 'pause-break-exit)
+      (remove-hook 'window-configuration-change-hook 'pause-break-exit-no-topmost)
       ;;(pause-tell-again-cancel-timer)
       ;;(set-frame-parameter nil 'background-color "white")
       (dolist (f old-frame-list)
@@ -340,34 +341,36 @@ Fix-me: This is wrong in single pause Emacs.
       ;; Fix-me: The frame grows unless we do redisplay here:
       (redisplay t)
       (when (< 1 (length (frame-list)))
-        (delete-frame pause-frame)
-        (setq pause-frame nil))
+        (pause-delete-pause-frame))
       (set-frame-configuration wcfg t)
       ;;(when pause-frame (lower-frame pause-frame))
       (set-face-attribute 'mode-line nil :background old-mode-line-bg)
       (run-with-idle-timer 2.0 nil 'run-hooks 'pause-break-exit-hook)
       (kill-buffer pause-buffer)
       (cond (pause-exited-from-button
-             ;; Do not start timer until we start working again if not
-             ;; in a separate Emacs.
-             (if pause-in-separate-emacs
-                 (progn
-                   (when (pause-use-topmost) (pause-set-topmost nil))
-                   (modify-frame-parameters pause-frame
-                                            `((background-color . ,pause-goon-background-color)
-                                              (width . ,(car pause-goon-frame-size))
-                                              (height . ,(cdr pause-goon-frame-size))
-                                              (alpha . 100)
-                                              ))
-                   (lower-frame pause-frame)
-                   (pause-start-timer))
-               (run-with-idle-timer 1 nil 'add-hook 'post-command-hook 'pause-save-me-post-command))
-             ;; But if we do not do that within some minutes then start timer anyway.
-             (run-with-idle-timer (* 60 pause-restart-anyway-after) nil 'pause-save-me))
+             (pause-restart-after-button))
             (pause-break-1-minute-state
              (run-with-idle-timer 0 nil 'pause-one-minute))
             (t
              (run-with-idle-timer 0 nil 'pause-save-me))))))
+
+(defun pause-restart-after-button ()
+  ;; Do not start timer until we start working again if not
+  ;; in a separate Emacs.
+  (if pause-in-separate-emacs
+      (progn
+        (when (pause-use-topmost) (pause-set-topmost nil))
+        (modify-frame-parameters pause-frame
+                                 `((background-color . ,pause-goon-background-color)
+                                   (width . ,(car pause-goon-frame-size))
+                                   (height . ,(cdr pause-goon-frame-size))
+                                   (alpha . 100)
+                                   ))
+        (pause-minimize)
+        (pause-start-timer))
+    (run-with-idle-timer 1 nil 'add-hook 'post-command-hook 'pause-save-me-post-command)
+    ;; But if we do not do that within some minutes then start timer anyway.
+    (run-with-idle-timer (* 60 pause-restart-anyway-after) nil 'pause-save-me)))
 
 (defun pause-save-me-post-command ()
   "Start pause timer again.  Version for `post-command-hook'."
@@ -385,7 +388,7 @@ Please note that it is run in a timer.")
         (pause-break-show-1)
       (error
        ;;(remove-hook 'window-configuration-change-hook 'pause-break-exit)
-       (pause-break-exit)
+       (pause-break-exit-from-button)
        (message "pause-break-show error: %s" (error-message-string err))))))
 
 (defvar pause-break-last-wcfg-change (float-time))
@@ -429,7 +432,8 @@ Please note that it is run in a timer.")
   (unless pause-extra-fun (run-with-idle-timer 1  nil 'pause-break-message))
   (run-with-idle-timer 10 nil 'pause-break-exit-activate)
   (setq pause-break-1-minute-state t)
-  (set-face-attribute 'mode-line nil :background pause-1-minute-mode-line-color)
+  (unless (pause-use-topmost)
+    (set-face-attribute 'mode-line nil :background pause-1-minute-mode-line-color))
   (with-current-buffer (setq pause-image-buffer
                              (get-buffer-create "* P A U S E *"))
     (setq mode-line-format nil)
@@ -453,13 +457,13 @@ Please note that it is run in a timer.")
                           'action (lambda (btn)
                                     (browse-url "http://www.jimhopper.com/mindfulness/"))))
       (goto-char (point-max))
-      (insert (propertize "\n\nClick on a link below to exit pause\n" 'face 'pause-info-text-face))
+      (insert (propertize "\n\nClick on a link below to continue\n" 'face 'pause-info-text-face))
       ;;(add-text-properties (point-min) (point-max) (list 'keymap (make-sparse-keymap)))
-      (insert-text-button "Exit pause"
+      (insert-text-button "I am ready with this break"
                           'action `(lambda (button)
                                      (condition-case err
                                          (pause-break-exit-from-button)
-                                       (error (message "%s" (error-message-string err))))))
+                                       (error (message "pause-break-show-1: %s" (error-message-string err))))))
       (insert "\n")
       (dolist (m '(hl-needed-mode))
         (when (and (boundp m) (symbol-value m))
@@ -530,10 +534,10 @@ Please note that it is run in a timer.")
       (if (pause-use-topmost)
           (progn
             (pause-set-topmost t)
-            (message "pause: topmost t done")
+            (message "pause-tell-again: : topmost t done")
             (pause-start-alpha-100-timer 60)
             )
-        (message "raise-frame part")
+        (message "pause-tell-again: raise-frame part")
         (raise-frame pause-frame)
         (x-focus-frame pause-frame))
       (condition-case nil
@@ -545,10 +549,10 @@ Please note that it is run in a timer.")
         (run-with-idle-timer 5 nil 'pause-tell-again-reset-frame curr-frame)))))
 
 (defun pause-tell-again-reset-frame (frame)
-  (message "reset-frame frame=%S" frame)
+  (message "pause-tell-again-reset-frame: frame=%S" frame)
   (condition-case err
       (select-frame frame)
-    (error (message "reset-frame frame=%S: %s" frame (error-message-string err)))))
+    (error (message "pause-tell-again-reset-frame frame=%S: %s" frame (error-message-string err)))))
 
 (defun pause-break-message ()
   (when (/= 0 (recursion-depth))
@@ -559,7 +563,8 @@ Please note that it is run in a timer.")
   (when (/= 0 (recursion-depth))
     (setq pause-break-exit-active t)
     (setq pause-break-1-minute-state nil)
-    (set-face-attribute 'mode-line nil :background pause-mode-line-color)
+    (unless (pause-use-topmost)
+      (set-face-attribute 'mode-line nil :background pause-mode-line-color))
     (message nil)
     (with-current-buffer pause-buffer
       (let ((inhibit-read-only t))
@@ -567,7 +572,11 @@ Please note that it is run in a timer.")
         ;;(add-text-properties (point-min) (point-max) (list 'keymap nil))
         ))))
 
-(defun pause-break-exit ()
+(defun pause-break-exit-topmost ()
+  (pause-delete-pause-frame)
+  (setq pause-frame nil))
+
+(defun pause-break-exit-no-topmost ()
   (interactive)
   (pause-tell-again-cancel-timer)
   (let ((elapsed (- (float-time) pause-break-last-wcfg-change)))
@@ -583,7 +592,10 @@ Please note that it is run in a timer.")
 (defun pause-break-exit-from-button ()
   (setq pause-break-1-minute-state nil)
   (setq pause-exited-from-button t)
-  (pause-break-exit))
+  (pause-restart-after-button)
+  (if (pause-use-topmost)
+      (pause-break-exit-topmost)
+    (pause-break-exit-no-topmost)))
 
 (defun pause-insert-img (where)
   (let* ((inhibit-read-only t)
@@ -628,31 +640,49 @@ Please note that it is run in a timer.")
 (defun pause-break-in-timer ()
   (save-match-data ;; runs in timer
     (pause-cancel-timer)
-    (if (or (active-minibuffer-window)
-            (and (boundp 'edebug-active)
-                 edebug-active))
-        (let ((pause-idle-delay 5))
-          (pause-pre-break))
-      (let ((there-was-an-error nil))
+    (if (pause-use-topmost)
         (condition-case err
-            (pause-break)
-          (error
-           (setq there-was-an-error t)))
-        (when there-was-an-error
+            (pause-break-topmost)
+          (error (error-message-string err)))
+      (if (or (active-minibuffer-window)
+              (and (boundp 'edebug-active)
+                   edebug-active))
+          (let ((pause-idle-delay 5))
+            (pause-pre-break))
+        (let ((there-was-an-error nil))
           (condition-case err
-              (progn
-                (select-frame last-event-frame)
-                (let ((pause-idle-delay nil))
-                  (pause-pre-break)))
+              (pause-break-no-topmost)
             (error
-             (lwarn 'pause-break-in-timer2 :error "%s" (error-message-string err))
-             )))))))
+             (setq there-was-an-error t)))
+          (when there-was-an-error
+            (condition-case err
+                (progn
+                  (select-frame last-event-frame)
+                  (let ((pause-idle-delay nil))
+                    (pause-pre-break)))
+              (error
+               (lwarn 'pause-break-in-timer2 :error "%s" (error-message-string err))
+               ))))))))
 
 (defcustom pause-only-when-server-mode t
   "Allow `pause-mode' inly in the Emacs that has server-mode enabled.
 This is to prevent multiple Emacs with `pause-mode'."
   :type 'boolean
   :group 'pause)
+
+;; (setq x (selected-frame))
+;; (eq x (selected-frame))
+(defvar pause-is-deleting-pause-frame nil)
+(defun pause-delete-pause-frame ()
+  (let ((pause-is-deleting-pause-frame t))
+    (delete-frame pause-frame))
+  (setq pause-frame nil))
+
+(defun pause-stop-on-frame-delete (frame)
+  (unless pause-is-deleting-pause-frame
+    (when (eq frame pause-frame)
+      (pause-mode -1))))
+
 
 ;;;###autoload
 (define-minor-mode pause-mode
@@ -678,7 +708,9 @@ interrupted."
           (progn
             (setq pause-mode nil)
             (message "Pause mode canceled because not server-mode"))
+        (add-hook 'delete-frame-functions 'pause-stop-on-frame-delete)
         (pause-start-timer))
+    (remove-hook 'delete-frame-functions 'pause-stop-on-frame-delete)
     (pause-cancel-timer)))
 
 ;; (emacs-Q "-l" buffer-file-name "--eval" "(pause-temp-err)")
@@ -752,6 +784,16 @@ Note: Another easier alternative might be to use
                 t))
   (pause-start-1 after-minutes cus-file))
 
+(defun pause-minimize ()
+  "Minimize if possible, otherwise lower frame."
+  (unless window-system (error "pause-minimize: window-system=%s" window-system))
+  (cond ((fboundp 'w32-showwindow)
+         ;; #define SW_MINIMIZE 6
+         (w32-showwindow pause-frame 6))
+        ((window-system 'w32)
+         (w32-send-sys-command #xf020))
+        (t (lower-frame))))
+
 (defun pause-start-1 (after-minutes cus-file)
   (setq pause-in-separate-emacs (or (not cus-file) (stringp cus-file)))
   (pause-cancel-timer)
@@ -759,7 +801,7 @@ Note: Another easier alternative might be to use
   (when pause-in-separate-emacs
     (setq debug-on-error t)
     (setq pause-frame (pause-get-pause-frame))
-    (lower-frame pause-frame)
+    (pause-minimize)
     (setq frame-title-format "Emacs Pause")
     (when (and cus-file (file-exists-p cus-file))
       (let ((args (pause-get-group-saved-customizations 'pause cus-file)))
@@ -781,8 +823,10 @@ Note: Another easier alternative might be to use
                                    (condition-case err
                                        (progn
                                          (goto-char (point-min))
-                                         (pause-break))
-                                     (error (message "%s" (error-message-string err))))))
+                                         (if (pause-use-topmost)
+                                             (pause-break-topmost)
+                                           (pause-break-no-topmost)))
+                                     (error (message "pause-start: %s" (error-message-string err))))))
     ;;(insert "!\n")
     (goto-char (point-min))
     (pause-break-mode)
@@ -863,14 +907,27 @@ See `pause-start' for more info.
                   'pause-callback-get-yoga-poses)))
 
 (defun pause-callback-get-yoga-poses (status)
-  (message "pause-callback-get-yoga-poses: status=%S" status)
+  (message "pause get-yoga-poses: status=%S" status) (message nil)
   ;; pause-callback-get-yoga-poses: status=(:error (error http 500))
-  (let ((pose (pause-random-yoga-pose (pause-get-yoga-poses-1 (current-buffer)))))
-    (message nil)
-    (when (and pose (buffer-live-p pause-buffer))
-      (pause-insert-yoga-link pose)
-      (pause-start-alpha-100-timer 60)
-      )))
+  (let ((err (plist-get status :error)))
+    (if err
+        (when (buffer-live-p pause-buffer)
+          (with-current-buffer pause-buffer
+            (let ((inhibit-read-only t))
+              (goto-char (point-max))
+              (insert "Sorry, no yoga pose available at the moment\n  from ")
+              (insert-text-button pause-yoga-poses-host-url
+                                  'action (lambda (button)
+                                            (condition-case err
+                                                (browse-url pause-yoga-poses-host-url)
+                                              (error (message "pause-callback-get-yoga-poses: %s" (error-message-string err))))))
+              (insert (format ": %S" (cdr err))))))
+      (let ((pose (pause-random-yoga-pose (pause-get-yoga-poses-1 (current-buffer)))))
+        (message nil)
+        (when (and pose (buffer-live-p pause-buffer))
+          (pause-insert-yoga-link pose)
+          (pause-start-alpha-100-timer 60)
+          )))))
 
 (defun pause-insert-yoga-link (pose)
   (with-current-buffer pause-buffer
@@ -886,7 +943,7 @@ See `pause-start' for more info.
                                            (pause-tell-again-cancel-timer)
                                            (browse-url ,pose-url)
                                            (run-with-idle-timer 1 nil 'pause-break-exit-from-button))
-                                       (error (message "%s" (error-message-string err))))))
+                                       (error (message "pause-insert-yoga-link: %s" (error-message-string err))))))
       (insert "\n")
       (pause-break-message))))
 
@@ -939,7 +996,7 @@ See `pause-start' for more info.
               nil))))
     (if trouble-msg
         (progn
-          (message "%s" trouble-msg)
+          (message "pause-get-yoga-poses: %s" trouble-msg)
           nil)
       (message "Number of yoga poses found=%s" (length poses))
       poses)))

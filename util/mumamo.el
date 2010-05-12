@@ -3521,6 +3521,16 @@ meaning of POS, MAX and MARKER."
   ;;(goto-char (- pos (length marker)))
   (re-search-forward marker max t))
 
+(defun mumamo-chunk-start-fw-re-inc (pos max marker)
+  "General chunk function helper.
+See `mumamo-chunk-start-fw-str' for more information and the
+meaning of POS, MAX and MARKER."
+  (assert (stringp marker))
+  ;;(goto-char (- pos (length marker)))
+  (re-search-forward marker max t)
+  (or (match-beginning 1)
+      (match-beginning 0)))
+
 (defun mumamo-chunk-start-fw-str-inc (pos max marker)
   "General chunk function helper.
 See `mumamo-chunk-start-fw-str' for more information and the
@@ -3592,7 +3602,20 @@ meaning of POS, MAX and MARKER."
     (setq end-in (re-search-forward marker max t))
     (when end-in
       ;; do not include the marker
-      (setq end-in (match-beginning 0)))
+      (setq end-in (or (match-beginning 1) (match-beginning 0))))
+    end-in))
+
+(defun mumamo-chunk-end-fw-re-inc (pos max marker)
+  "General chunk function helper.
+See `mumamo-chunk-start-fw-str' for more information and the
+meaning of POS, MAX and MARKER."
+  (assert (stringp marker))
+  (goto-char (1+ pos)) ;; 1+ cause otherwise ?> is at point
+  (let (end-in)
+    (setq end-in (re-search-forward marker max t))
+    (when end-in
+      ;; include the marker
+      (setq end-in (or (match-end 1) (match-end 0))))
     end-in))
 
 (defun mumamo-chunk-end-fw-str-inc (pos max marker)
@@ -4642,7 +4665,7 @@ See also `mumamo-new-create-chunk' for more information."
         ;;(setq curr-max nil)
         (setq next-depth-diff (cond
                                ( (and curr-max curr-end-fun-end
-                                       (= curr-max curr-end-fun-end))
+                                      (= curr-max curr-end-fun-end))
                                  -1)
                                ( (= curr-max (1+ (buffer-size)))
                                  0)
@@ -4659,15 +4682,15 @@ See also `mumamo-new-create-chunk' for more information."
         (assert (symbolp next-major) t)
         ;; Fix-me: see for example rr-min8.php
         (when (or ;;(not after-chunk)
-                  (= curr-max (1+ (buffer-size)))
-                  (cond
-                   ((= next-depth-diff 1)
-                    next-border-fun)
-                   ((= next-depth-diff -1)
-                    next-border-fun)
-                   ((= next-depth-diff 0)
-                    t)
-                   (t (error "next-depth-diff=%s" next-depth-diff))))
+               (= curr-max (1+ (buffer-size)))
+               (cond
+                ((= next-depth-diff 1)
+                 next-border-fun)
+                ((= next-depth-diff -1)
+                 next-border-fun)
+                ((= next-depth-diff 0)
+                 t)
+                (t (error "next-depth-diff=%s" next-depth-diff))))
           (setq curr-insertion-type-end t))
         (let ((current (list curr-min curr-max curr-major curr-border-min curr-border-max curr-parseable
                              curr-chunk-funs after-chunk
@@ -4781,154 +4804,110 @@ the sexp syntax using major mode MAJOR."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Easy chunk defining
 
-(defun mumamo-quick-chunk-forward (pos
-                                   min max
-                                   begin-mark end-mark inc mode
-                                   mark-is-border)
-  ;;(msgtrc "quick-chunk-forward %s %s %s" pos min max)
-  (let ((search-fw-exc-start
-         `(lambda (pos max)
-            (let ((exc-start
-                   (if ,inc
-                       (mumamo-chunk-start-fw-str-inc pos max ,begin-mark)
-                     (mumamo-chunk-start-fw-str pos max ,begin-mark))))
-              (when exc-start
-                (list exc-start mode nil)))))
-        (search-fw-exc-end
-         `(lambda (pos max)
-            ;;(msgtrc "search-fw-exc-end %s %s, inc=%s, end-mark=%s" pos max ,inc ,end-mark)
-            (save-match-data
-              (let ((ret (if ,inc
-                             (mumamo-chunk-end-fw-str-inc pos max ,end-mark)
-                           (mumamo-chunk-end-fw-str pos max ,end-mark))))
-                ;;(msgtrc "search-fw-exc-end ret=%s" ret)
-                ret))))
-        (find-borders
-         (when mark-is-border
-           `(lambda (start end exc-mode)
-              (let ((start-border)
-                    (end-border))
-                (if (and ,inc);; exc-mode)
-                    (progn
-                      (when start
-                        (setq start-border
-                              (+ start (length ,begin-mark))))
-                      (when end
-                        (setq end-border
-                              (- end (length ,end-mark)))))
-                  (if (and (not ,inc) (not exc-mode))
-                      (progn
-                        (when start
-                          (setq start-border
-                                (+ start (length ,end-mark))))
-                        (when end
-                          (setq end-border
-                                (- end (length ,begin-mark)))))))
-                (when (or start-border end-border)
-                  (mumamo-msgfntfy "quick.start-border/end=%s/%s, start/end=%s/%s exc-mode=%s" start-border end-border start end exc-mode)
-                  (list start-border end-border)))))))
+(defun mumamo-quick-chunk-forward (pos max
+                                   beg-mark-cons end-mark-cons
+                                   inc mode
+                                   &optional mark-is-border)
+  "Quick way to make a chunk function.
+Dividers may be strings or reg exps.
+
+Here is an example of how to use it:
+
+  (defun mumamo-chunk-embperl-<- (pos min max)
+    \"Find [- ... -], return range and perl-mode.\"
+    (mumamo-quick-chunk-forward pos max \"[-\" \"-]\" 'borders 'perl-mode))
+
+As you can see POS and MAX comes from argument of the
+function you define.  \(MIN is obsolete.)
+
+BEG-MARK can be a string that begins the chunk.
+END-MARK can be a string that ends the chunk.
+Both of them can also be a cons cell \(REGEXP . dummy).
+
+If INC is non-nil then the dividers are included in the chunk.
+Otherwise they are instead made parts of the surrounding chunks.
+
+If INC is 'borders then the marks are just borders and not
+supposed to have the same syntax as the inner part och the chunk.
+
+MODE should be the major mode for the chunk.
+
+If MARK-IS-BORDER (obsolete!) is non-nil then the marks are just borders and
+not supposed to have the same syntax as the inner part of the
+
+Fix-me: This can only be useful if the marks are included in the
+chunk, ie INC is non-nil.  Should not these two arguments be
+mixed then?"
+  (when (and (not inc) mark-is-border)
+    (error "inc must be non-nil if mark-is-border"))
+  ;;(memq 'borders '(nil t borders))
+  (unless (memq inc '(nil t borders))
+    (error "inc=%s must be nil, t or 'borders" inc))
+  (let* ((beg-re (consp beg-mark-cons))
+         (end-re (consp end-mark-cons))
+         (beg-mark (if beg-re (car beg-mark-cons) beg-mark-cons))
+         (end-mark   (if end-re (car end-mark-cons) end-mark-cons))
+         (include (when inc t))
+         (borders (or (eq inc 'borders) mark-is-border))
+         (search-fw-exc-start
+          `(lambda (pos max)
+             (let ((exc-start
+                    (if ,include
+                        (if ,beg-re
+                            (mumamo-chunk-start-fw-re-inc pos max ,beg-mark)
+                          (mumamo-chunk-start-fw-str-inc pos max ,beg-mark))
+                      (if ,beg-re
+                          (mumamo-chunk-start-fw-re pos max ,beg-mark)
+                        (mumamo-chunk-start-fw-str pos max ,beg-mark)))))
+               (when exc-start
+                 (list exc-start mode nil)))))
+         (search-fw-exc-end
+          `(lambda (pos max)
+             (let ((ret (if ,include
+                            (if ,end-re
+                                (mumamo-chunk-end-fw-re-inc pos max ,end-mark)
+                              (mumamo-chunk-end-fw-str-inc pos max ,end-mark))
+                          (if ,end-re
+                              (mumamo-chunk-end-fw-re pos max ,end-mark)
+                            (mumamo-chunk-end-fw-str pos max ,end-mark)))))
+               ret)))
+         (find-borders
+          (when borders
+            `(lambda (start end exc-mode)
+               (let ((start-border)
+                     (end-border)
+                     (here (point)))
+                 (when start
+                   (setq start-border
+                         (if (not ,beg-re)
+                             (+ start (length ,beg-mark))
+                           (goto-char start)
+                           (looking-at ,beg-mark)
+                           (or (match-end 1) (match-end 0))
+                           )))
+                 (when end
+                   (setq end-border
+                         (if (not ,end-re)
+                             (- end (length ,end-mark))
+                           (goto-char start)
+                           (looking-back ,beg-mark)
+                           (or (match-beginning 1) (match-beginning 0)))))
+                 (goto-char here)
+                 (when (or start-border end-border)
+                   (mumamo-msgfntfy "quick.start-border/end=%s/%s, start/end=%s/%s exc-mode=%s" start-border end-border start end exc-mode)
+                   (list start-border end-border)))))))
     (mumamo-possible-chunk-forward pos max
                                    search-fw-exc-start
                                    search-fw-exc-end
                                    find-borders)))
 
+(make-obsolete 'mumamo-quick-static-chunk 'mumamo-quick-chunk-forward "nXhtml ver 2.09")
 (defun mumamo-quick-static-chunk (pos
                                   min max
                                   begin-mark end-mark inc mode
                                   mark-is-border)
-  (if t
-      (mumamo-quick-chunk-forward pos min max begin-mark end-mark inc mode mark-is-border)
-    ;; (let ((old (mumamo-quick-static-chunk-old pos min max begin-mark end-mark inc mode mark-is-border))
-    ;;       (new (mumamo-quick-chunk-forward pos min max begin-mark end-mark inc mode mark-is-border)))
-    ;;   (unless (equal old new) (msgtrc "equal=%s\n\told=%S\n\tnew=%S" (equal old new) old new))
-    ;;   (if nil old new))
-    ))
+  (mumamo-quick-chunk-forward pos max begin-mark end-mark inc mode mark-is-border))
 
-;; (defun mumamo-quick-static-chunk-old (pos
-;;                                       min max
-;;                                       begin-mark end-mark inc mode
-;;                                       mark-is-border)
-;;   "Quick way to make a chunk function with static dividers.
-;; Here is an example of how to use it:
-
-;;   (defun mumamo-chunk-embperl-<- (pos min max)
-;;     \"Find [- ... -], return range and perl-mode.\"
-;;     (mumamo-quick-static-chunk pos min max \"[-\" \"-]\" nil 'perl-mode))
-
-;; As you can see POS, MIN and MAX comes from argument of the
-;; function you define.
-
-;; BEGIN-MARK should be a string that begins the chunk.
-;; END-MARK should be a string that ends the chunk.
-
-;; If INC is non-nil then the dividers are included in the chunk.
-;; Otherwise they are instead made parts of the surrounding chunks.
-
-;; MODE should be the major mode for the chunk.
-
-;; If MARK-IS-BORDER is non-nil then the marks are just borders and
-;; not supposed to have the same syntax as the inner part of the
-
-;; Fix-me: This can only be useful if the marks are included in the
-;; chunk, ie INC is non-nil.  Should not these two arguments be
-;; mixed then?
-;; "
-;;   (mumamo-msgfntfy "quick.pos=%s min,max=%s,%s begin-mark/end=%s/%s mark-is-border=%s" pos min max begin-mark end-mark mark-is-border)
-;;   (let ((search-bw-exc-start
-;;          `(lambda (pos min)
-;;             (let ((exc-start
-;;                    (if ,inc
-;;                        (mumamo-chunk-start-bw-str-inc pos min begin-mark)
-;;                      (mumamo-chunk-start-bw-str pos min begin-mark))))
-;;               (when (and exc-start
-;;                          (<= exc-start pos))
-;;                 (cons exc-start mode)))))
-;;         (search-bw-exc-end
-;;          `(lambda (pos min)
-;;             (if ,inc
-;;                 (mumamo-chunk-end-bw-str-inc pos min ,end-mark)
-;;               (mumamo-chunk-end-bw-str pos min ,end-mark))))
-;;         (search-fw-exc-start
-;;          `(lambda (pos max)
-;;             (if ,inc
-;;                 (mumamo-chunk-start-fw-str-inc pos max ,begin-mark)
-;;               (mumamo-chunk-start-fw-str pos max ,begin-mark))))
-;;         (search-fw-exc-end
-;;          `(lambda (pos max)
-;;             (save-match-data
-;;               (if ,inc
-;;                   (mumamo-chunk-end-fw-str-inc pos max ,end-mark)
-;;                 (mumamo-chunk-end-fw-str pos max ,end-mark)))))
-;;         (find-borders
-;;          (when mark-is-border
-;;            `(lambda (start end exc-mode)
-;;               (let ((start-border)
-;;                     (end-border))
-;;                 (if (and ,inc exc-mode)
-;;                     (progn
-;;                       (when start
-;;                         (setq start-border
-;;                               (+ start (length ,begin-mark))))
-;;                       (when end
-;;                         (setq end-border
-;;                               (- end (length ,end-mark)))))
-;;                   (if (and (not ,inc) (not exc-mode))
-;;                       (progn
-;;                         (when start
-;;                           (setq start-border
-;;                                 (+ start (length ,end-mark))))
-;;                         (when end
-;;                           (setq end-border
-;;                                 (- end (length ,begin-mark)))))))
-;;                 (when (or start-border end-border)
-;;                   (mumamo-msgfntfy "quick.start-border/end=%s/%s, start/end=%s/%s exc-mode=%s" start-border end-border start end exc-mode)
-;;                   (list start-border end-border)))))))
-;;     (mumamo-find-possible-chunk pos min max
-;;                                 search-bw-exc-start
-;;                                 search-bw-exc-end
-;;                                 search-fw-exc-start
-;;                                 search-fw-exc-end
-;;                                 find-borders)))
 
 
 
