@@ -1497,7 +1497,7 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 See `mumamo-find-possible-chunk' for POS, MIN and MAX.
 
 This is a workaround for problems with strings."
-  (let ((chunk (mumamo-quick-chunk-forward pos max "\"<%=" "%>\"" 'borders 'ruby-mode)))
+  (let ((chunk (mumamo-quick-chunk-forward pos max "\"<%=" '("-?%>\"" . t) 'borders 'ruby-mode)))
     (when chunk
       ;; Put indentation type on 'mumamo-next-indent on the chunk:
       ;; Fix-me: use this!
