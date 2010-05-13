@@ -2009,7 +2009,9 @@ correct but we want to check those after.  Put thosie in
                       ;;(msgtrc "ok-pos=%s, point-max=%s max=%s" ok-pos (point-max) (mumamo-new-chunk-value-max this-new-values))
                       ;; With the new organization all chunks are created here.
                       (if (mumamo-old-tail-fits this-new-values)
-                          (mumamo-reuse-old-tail-head)
+                          (progn
+                            (msgtrc "old tailed fitted")
+                            (mumamo-reuse-old-tail-head))
                         (mumamo-delete-chunks-upto ok-pos)
                         ;; Create chunk and chunk links
                         (setq mumamo-last-chunk (mumamo-new-create-chunk this-new-values))
@@ -3755,8 +3757,9 @@ CHUNK-END-FUN should return the end of the chunk.
       (setq chunk-major  (nth 1 start-rec))
       (setq parseable-by (nth 2 start-rec))
       (goto-char start)
-      ;; Fix-me: check valid
-      ;;(setq end (funcall chunk-end-fun (point) max))
+      ;; Fix-me: There should mabye be a check here, calling
+      ;; mumamo-end-in-code, but that is a bit of job.
+      (setq end (funcall chunk-end-fun start max))
       (when borders-fun
         (let ((start-border (when start (unless (and (= 1 start)
                                                      (not chunk-major))
@@ -3764,6 +3767,7 @@ CHUNK-END-FUN should return the end of the chunk.
               (end-border   (when end   (unless (and (= (point-max) end)
                                                      (not chunk-major))
                                           end))))
+          ;;(msgtrc "poss-fw: %s %s %s %s" borders-fun start-border end-border chunk-major)
           (setq borders (funcall borders-fun start-border end-border chunk-major))))
       (setq ret (list start end chunk-major borders parseable-by chunk-end-fun borders-fun)))
     (goto-char here)
@@ -3774,6 +3778,7 @@ CHUNK-END-FUN should return the end of the chunk.
 ;; surrounding chunks syntax. Patterns that possibly could be chunk
 ;; borders might instead be parts of comments or strings in cases
 ;; where they should not be valid borders there.
+;;(make-obsolete 'mumamo-find-possible-chunk 'mumamo-possible-chunk-forward "nXhtml ver 2.09")
 (defun mumamo-find-possible-chunk (pos
                                    min max
                                    bw-exc-start-fun ;; obsolete
@@ -3790,6 +3795,7 @@ CHUNK-END-FUN should return the end of the chunk.
                                   fw-exc-end-fun
                                   find-borders-fun))
 
+;;(make-obsolete 'mumamo-find-possible-chunk-new 'mumamo-possible-chunk-forward "nXhtml ver 2.09")
 (defun mumamo-find-possible-chunk-new (pos
                                        ;;min
                                        max
@@ -4369,8 +4375,8 @@ after this in the properties below of the now created chunk:
          ;;(eq chunk-is-closed values-is-closed)
          (eq chunk-insertion-type-end values-insertion-type-end)
          ;; fix-me: bmin bmax
-         ;;(and chunk-bmin values-bmin (= chunk-bmin values-bmin))
-         ;;(and chunk-bmax values-bmax (= chunk-bmax values-bmax))
+         (and chunk-bmin values-bmin (= chunk-bmin values-bmin))
+         (and chunk-bmax values-bmax (= chunk-bmax values-bmax))
          )
     ))
 
@@ -4566,7 +4572,7 @@ See also `mumamo-new-create-chunk' for more information."
               ;;(msgtrc "find-next-chunk-values:fn=%s, r=%s" fn r)
               (goto-char r-point)
               (when r
-                (when rmax (message "mumamo warning: Bad r=%s, nth 1 should be nil" r))
+                ;;(when rmax (message "mumamo warning: Bad r=%s, nth 1 should be nil" r))
                 (unless (or rmin rmax)
                   (error "Bad r=%s, fn=%s" r fn))
                 (unless rfw-exc-fun
@@ -7043,11 +7049,13 @@ This function returns a cons with these two parts.
           (when indentor
             ;;(unless (string= c-str (overlay-get indentor 'indentor-chunk-string))
             (unless (mumamo-indentor-valid indentor indentor-chunk c-str)
-              (mumamo-remove-indentor indentor)))
+              (mumamo-remove-indentor indentor)
+              (setq indentor nil)))
           (when prev-indentor
             ;;(unless (string= p-str (overlay-get prev-indentor 'indentor-chunk-string))
             (unless (mumamo-indentor-valid prev-indentor prev-indentor-chunk p-str)
-              (mumamo-remove-indentor prev-indentor)))
+              (mumamo-remove-indentor prev-indentor)
+              (setq prev-indentor nil)))
           (unless indentor
             (setq i-beg
                     (or i-beg
@@ -7159,16 +7167,19 @@ This function returns a cons with these two parts.
           (throw 'ind ovl))))))
 
 (defun mumamo-remove-indentor (indentor)
+  "Delete overlay INDENTOR and the text within it.
+This is in the temporary buffer for indentation."
   (let (beg end)
     (goto-char (overlay-start indentor))
     (setq beg (point-at-bol))
     (goto-char (overlay-end indentor))
     (setq end (1+ (point-at-eol)))
     (delete-region beg end)
-    (delete-overlay indentor)
-    (setq indentor nil)))
+    (delete-overlay indentor)))
 
 (defun mumamo-indent-indentor (indentor)
+  "Indent overlay INDENTOR.
+This is in the temporary buffer for indentation."
   (goto-char (overlay-start indentor))
   (if (= 2 (point-at-bol))
       (progn
