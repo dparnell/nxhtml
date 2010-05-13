@@ -262,7 +262,9 @@ This is done by checking `as-external-alist'."
 (defun as-external-server-window-fix-frames ()
   (condition-case err
       (with-current-buffer as-external-last-buffer
-        (unless (buffer-live-p pause-buffer)
+        (unless (and (featurep pause)
+                     (buffer-live-p pause-buffer)
+                     (not (pause-use-topmost)))
           (remove-hook 'pause-break-exit-hook 'as-external-server-window-fix-frames)
           (setq as-external-my-frame (or as-external-my-frame
                                          (make-frame)))
