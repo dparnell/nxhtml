@@ -751,7 +751,19 @@ major mode's local keymap.
 
 The multi mode keymap is named `" (symbol-name turn-on-map) "'.
 
+"
+           (if (let ((major-mode (nth 1 chunks)))
+                 (derived-mode-p 'nxml-mode))
 
+"Notice: The main major mode parses the whole buffer.
+   This gives some validation errors, please see
+   url `https://answers.launchpad.net/nxhtml/+faq/1078'.
+
+"
+
+             "")
+
+"
 
 The main use for a multi major mode is to use it instead of a
 normal major mode in `auto-mode-alist'.  \(You can of course call
@@ -6753,6 +6765,13 @@ of how the functions work.
 If you want to quickly define a new mix of major modes you can
 use `mumamo-quick-chunk-forward'.")
 
+(defvar mumamo-known-multi-major-mode-libraries '(mumamo-fun nxhtml-mumamo)
+  "List of known elisp libraries defining multi major modes.")
+
+(defun mumamo-load-known-multi-major-modes ()
+  (dolist (lib mumamo-known-multi-major-mode-libraries)
+    (require lib nil t)))
+
 ;;;###autoload
 (defun mumamo-list-defined-multi-major-modes (show-doc show-chunks match)
   "List currently defined multi major modes.
@@ -6763,10 +6782,13 @@ string you can click on the multi major mode in the list.)
 If SHOW-CHUNKS is non-nil show the names of the chunk dividing
 functions each multi major mode uses.
 
-If MATCH then show only multi major modes whos names matches."
+If MATCH then show only multi major modes whos names matches.
+
+See also `mumamo-guess-multi-major'."
   (interactive (list (y-or-n-p "Include short doc string? ")
                      (y-or-n-p "Include chunk function names? ")
                      (read-string "List only multi major mode matching regexp (emtpy for all): ")))
+  (mumamo-load-known-multi-major-modes)
   (with-output-to-temp-buffer (help-buffer)
     (help-setup-xref (list #'mumamo-list-defined-multi-major-modes) (interactive-p))
     (with-current-buffer (help-buffer)
@@ -6793,24 +6815,76 @@ If MATCH then show only multi major modes whos names matches."
                           (concat "   " auto-desc "\n")
                         "")
                       (if show-chunks
-                          (format "   Chunks:%s\n"
+                          (format "Chunks:%s\n"
                                   (let ((str "")
                                         (nn 0))
                                     (mapc (lambda (c)
                                             (if (< nn 2)
                                                 (setq str (concat str " "))
                                               (setq nn 0)
-                                              (setq str (concat str "\n           ")))
+                                              (setq str (concat str "\n        ")))
                                             (setq nn (1+ nn))
                                             (setq str (concat str (format "%-30s" (format "`%s'" c))))
                                             )
                                           chunks)
                                     str))
                         "")
-                      (if (or show-doc show-chunks) "\n\n" "")
-                      ))
-            (setq mmms (cdr mmms))))
-        ))))
+                      (if (or show-doc show-chunks) "\n\n" "")))
+            (setq mmms (cdr mmms))))))))
+
+;;;###autoload
+(defun mumamo-guess-multi-major (regexp)
+  "Find and apply a multi major mode fitting current buffer.
+Choose from a list of multi major modes which chunk dividing routines
+seems to be able to find chunks in the current buffer.
+
+If REGEXP is given limit the choice to multi major mode with
+names matching REGEXP.  Interactively prompt for REGEXP.
+
+See also `mumamo-list-defined-multi-major-modes'."
+  (interactive (list (read-regexp "Limit to multi major modes matching")))
+  (mumamo-load-known-multi-major-modes)
+  (save-match-data
+    (let ((here (point))
+          matches)
+      (dolist (mm-rec mumamo-defined-multi-major-modes)
+        (let* ((mm (cdr mm-rec))
+               (mm-family (get mm 'mumamo-chunk-family))
+               (mm-chunks (nth 2 mm-family))
+               (mm-matches 0)
+               (mm-types 0)
+               this-type
+               (pos 1)
+               res)
+          (when (string-match-p regexp (symbol-name mm))
+            (dolist (mc mm-chunks)
+              (setq this-type nil)
+              (while (and pos (setq res (funcall mc pos pos (point-max))))
+                (setq this-type t)
+                (setq pos (nth 1 res))
+                (setq mm-matches (1+ mm-matches)))
+              (when this-type (setq mm-types (1+ mm-types))))
+            (when (> (* mm-matches mm-types) 0)
+              (let ((weight (* (+ 8 mm-matches) mm-types)))
+                (add-to-list 'matches `(,mm ,weight)))))))
+      (setq matches (sort matches (lambda (a b)
+                                    (> (nth 1 a) (nth 1 b)))))
+      ;;(when (nth 5 matches) (setcdr (nthcdr 5 matches) nil))
+      (setq matches (mapcar (lambda (rec)
+                              (let* ((mm (nth 0 rec))
+                                     (weight (nth 1 rec))
+                                     (display (format "%s (score %s)" mm weight)))
+                                `(,display ,mm)))
+                            matches))
+      ;;(message "matches=%S" matches)
+      (if (not matches)
+          (message "No matching multi major modes found")
+        (let* ((choice (completing-read "Select a multi major mode for current buffer: " matches))
+               (rec (assoc choice matches))
+               (mm (nth 1 rec)))
+          ;;(message "choice=%S, rec=%s, mm=%s" choice rec mm)
+          (when mm (funcall mm)))))))
+
 
 (defun mumamo-describe-chunks (chunks)
   "Return text describing CHUNKS."
@@ -8588,6 +8662,14 @@ Do here also other necessary adjustments for this."
   (if (not (buffer-live-p buffer))
       (rng-kill-timers)
     ad-do-it))
+
+(defadvice rng-validate-mode (after
+                              mumamo-ad-rng-validate-mode
+                              activate
+                              compile)
+  (unless rng-validate-mode
+    (when nxhtml-validation-header-mode
+      (nxhtml-validation-header-mode -1))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; xmltok.el

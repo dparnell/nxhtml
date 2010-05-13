@@ -189,11 +189,16 @@ Report a bug in nXhtml.
 ;;;***
 
 ;;;### (autoloads (nxhtml-overview nxhtml-menu-mode nxhtml-browse-region
-;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp) "../nxhtml/nxhtml-menu"
-;;;;;;  "nxhtml/nxhtml-menu.el" (19431 17740))
+;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp mumamo-switch-to-other-html)
+;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19436 3012))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
+
+(nxhtml-autoload 'mumamo-switch-to-other-html `(lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir) "\
+Not documented
+
+\(fn)" t nil)
 
 (nxhtml-autoload 'nxhtml-edit-with-gimp `(lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir) "\
 Edit with GIMP buffer or file at point.
@@ -295,7 +300,7 @@ Show a HTML page with an overview of nXhtml.
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
 ;;;;;;  nxhtml-mode) "../nxhtml/nxhtml-mode" "nxhtml/nxhtml-mode.el"
-;;;;;;  (19412 30364))
+;;;;;;  (19435 38874))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 (web-autoload-require 'nxhtml-mode 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -373,7 +378,7 @@ This mode may be turned on automatically in two ways:
 ;;;;;;  smarty-nxhtml-mumamo-mode mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode
 ;;;;;;  mason-nxhtml-mumamo-mode django-nxhtml-mumamo-mode embperl-nxhtml-mumamo-mode
 ;;;;;;  nxhtml-mumamo-mode) "../nxhtml/nxhtml-mumamo" "nxhtml/nxhtml-mumamo.el"
-;;;;;;  (19390 29614))
+;;;;;;  (19435 36319))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 (web-autoload-require 'nxhtml-mumamo 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -484,7 +489,7 @@ The schemas will be enabled based on file name extensions
 ;;;***
 
 ;;;### (autoloads (rngalt-set-validation-header) "../nxhtml/rngalt"
-;;;;;;  "nxhtml/rngalt.el" (19365 33760))
+;;;;;;  "nxhtml/rngalt.el" (19435 31791))
 ;;; Generated autoloads from nxhtml/rngalt.el
 (web-autoload-require 'rngalt 'lp '(nxhtml-download-root-url nil) "nxhtml/rngalt" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2625,10 +2630,11 @@ See `mlinks-mode' for more information on Mlinks mode.
 
 ;;;***
 
-;;;### (autoloads (mumamo-multi-major-modep mumamo-list-defined-multi-major-modes
-;;;;;;  mumamo-mark-for-refontification mumamo-hi-lock-faces mumamo
-;;;;;;  mumamo-add-to-defined-multi-major-modes define-mumamo-multi-major-mode)
-;;;;;;  "mumamo" "util/mumamo.el" (19435 14837))
+;;;### (autoloads (mumamo-multi-major-modep mumamo-guess-multi-major
+;;;;;;  mumamo-list-defined-multi-major-modes mumamo-mark-for-refontification
+;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
+;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
+;;;;;;  (19436 4179))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2765,12 +2771,39 @@ functions each multi major mode uses.
 
 If MATCH then show only multi major modes whos names matches.
 
+See also `mumamo-guess-multi-major'.
+
 \(fn SHOW-DOC SHOW-CHUNKS MATCH)" t nil)
+
+(nxhtml-autoload 'mumamo-guess-multi-major `(lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir) "\
+Find and apply a multi major mode fitting current buffer.
+Choose from a list of multi major modes which chunk dividing routines
+seems to be able to find chunks in the current buffer.
+
+If REGEXP is given limit the choice to multi major mode with
+names matching REGEXP.
+
+See also `mumamo-list-defined-multi-major-modes'.
+
+\(fn REGEXP)" t nil)
 
 (nxhtml-autoload 'mumamo-multi-major-modep `(lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir) "\
 Return t if VALUE is a multi major mode function.
 
 \(fn VALUE)" nil nil)
+
+;;;***
+
+;;;### (autoloads (mumamo-define-html-file-wide-keys) "mumamo-chunks"
+;;;;;;  "util/mumamo-chunks.el" (19436 3347))
+;;; Generated autoloads from util/mumamo-chunks.el
+(web-autoload-require 'mumamo-chunks 'lp '(nxhtml-download-root-url nil) "util/mumamo-chunks" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'mumamo-define-html-file-wide-keys `(lp '(nxhtml-download-root-url nil) "util/mumamo-chunks" nxhtml-install-dir) "\
+Define keys in multi major mode keymap for html files.
+
+\(fn)" nil nil)
 
 ;;;***
 
@@ -2781,20 +2814,14 @@ Return t if VALUE is a multi major mode function.
 ;;;;;;  laszlo-nxml-mumamo-mode metapost-mumamo-mode ruby-heredoc-mumamo-mode
 ;;;;;;  python-heredoc-mumamo-mode cperl-heredoc-mumamo-mode perl-heredoc-mumamo-mode
 ;;;;;;  php-heredoc-mumamo-mode sh-heredoc-mumamo-mode eruby-javascript-mumamo-mode
-;;;;;;  eruby-html-mumamo-mode eruby-mumamo-mode jsp-html-mumamo-mode
-;;;;;;  gsp-html-mumamo-mode ssjs-html-mumamo-mode smarty-html-mumamo-mode
-;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
-;;;;;;  embperl-html-mumamo-mode mason-html-mumamo-mode nxml-mumamo-mode
-;;;;;;  html-mumamo-mode mumamo-define-html-file-wide-keys) "mumamo-fun"
-;;;;;;  "util/mumamo-fun.el" (19435 14220))
+;;;;;;  eruby-html-mumamo-mode jsp-html-mumamo-mode gsp-html-mumamo-mode
+;;;;;;  ssjs-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
+;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
+;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19435 36470))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
-
-(nxhtml-autoload 'mumamo-define-html-file-wide-keys `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
-Define keys in multi major mode keymap for html files.
-
-\(fn)" nil nil)
 
 (nxhtml-autoload 'html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for (X)HTML with main mode `html-mode'.
@@ -2841,10 +2868,6 @@ This also covers inlined style and javascript." t)
 (nxhtml-autoload 'jsp-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for JSP with main mode `html-mode'.
 This also covers inlined style and javascript." t)
-
-(nxhtml-autoload 'eruby-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
-Turn on multiple major mode for eRuby with unspecified main mode.
-Current major-mode will be used as the main major mode." t)
 
 (nxhtml-autoload 'eruby-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for eRuby with main mode `html-mode'.
@@ -3484,7 +3507,7 @@ Return t if VALUE is a major mode function.
 ;;;***
 
 ;;;### (autoloads (pause-start-in-new-emacs pause-mode pause) "pause"
-;;;;;;  "util/pause.el" (19435 912))
+;;;;;;  "util/pause.el" (19435 16018))
 ;;; Generated autoloads from util/pause.el
 (web-autoload-require 'pause 'lp '(nxhtml-download-root-url nil) "util/pause" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4395,7 +4418,7 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/org-panel.el" "util/rxi.el" "util/tipframe.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19435 14870 46000))
+;;;;;;  "web-autoload.el") (19436 4212 359000))
 
 ;;;***
 

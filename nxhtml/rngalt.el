@@ -726,10 +726,10 @@ nxhtml.el.
       (when old-rvm
         (rng-set-vacuous-schema)
         (rng-auto-set-schema)))
-    (when old-rvm
-      (rng-validate-mode 1)
-      (rngalt-update-validation-header-overlay)
-      (rngalt-update-validation-header-buffer))))
+    (when start-of-doc ;;old-rvm
+      (rng-validate-mode 1))
+    (rngalt-update-validation-header-overlay)
+    (rngalt-update-validation-header-buffer)))
 
 (defun rngalt-reapply-validation-header ()
   (when rngalt-validation-header
