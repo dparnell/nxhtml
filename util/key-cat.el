@@ -174,8 +174,7 @@ See also `key-cat-cmd-list'."
   (condition-case err
       (save-match-data ;; runs in timer
         (let ((result))
-          (help-setup-xref (list #'key-cat-help)
-                           (interactive-p))
+          (help-setup-xref (list #'key-cat-help) (interactive-p))
           ;;         (push (list "Changing commands"
           ;;                     (list
           ;;                      'command

@@ -1848,7 +1848,18 @@ is available.  In this case the return value is undefined.
 
 Otherwise END must be a position in the buffer.  Return the
 mumamo chunk containing the position.  If `mumamo-last-chunk'
-ends before END then create chunks upto END."
+ends before END then create chunks upto END.
+
+The chunk functions deciding where and how to create the chunks
+are stored in \"chunk families\".  Those are created and hold by
+`define-mumamo-multi-major-mode'.
+
+A chunk function is a function that given two parameters POS
+\(where to start searching) and MAX \(where to stop searching)
+returns info about how and where a chunk can be created.  It
+should return that info like `mumamo-possible-chunk-forward'.  In
+many cases the latter function can be used by the chunk
+functions, but it is not necessary."
   (when mumamo-multi-major-mode
     (let ((chunk (mumamo-find-chunks-1 end tracer))
           region-info)
@@ -3743,7 +3754,8 @@ Otherwise return nil."
                                       chunk-end-fun
                                       &optional borders-fun)
   "Search forward from POS to MAX for possible chunk.
-Return as a list with values
+Return nil if no possible chunk where found.  Otherwise return a
+list with values
 
   \(START END CHUNK-MAJOR BORDERS PARSEABLE-BY CHUNK-END-FUN BORDERS-FUN)
 
@@ -3913,11 +3925,12 @@ the chunk.
 FW-EXC-FUN is the function that finds the end of the chunk.  This
 is either FW-EXC-START-FUN or FW-EXC-END-FUN.
 
----- * Note: This routine is used by to create new members for
-chunk families.  If you want to add a new chunk family you could
-most often do that by writing functions for this routine.  Please
-see the many examples in mumamo-fun.el for how this can be done.
-See also `mumamo-quick-chunk-forward'."
+----
+* Note: This routine is used by to create new members for chunk
+  families.  If you want to add a new chunk family you could most
+  often do that by writing functions for this routine.  Please
+  see the many examples in mumamo-fun.el for how this can be
+  done.  See also `mumamo-quick-chunk-forward'."
   ;;(msgtrc "====")
   ;;(msgtrc "find-poss-new %s %s %s %s %s %s" pos max bw-exc-start-fun fw-exc-start-fun fw-exc-end-fun find-borders-fun)
 
@@ -6835,7 +6848,7 @@ See also `mumamo-guess-multi-major'."
                      (read-string "List only multi major mode matching regexp (emtpy for all): ")))
   (mumamo-load-known-multi-major-modes)
   (with-output-to-temp-buffer (help-buffer)
-    (help-setup-xref (list #'mumamo-list-defined-multi-major-modes) (interactive-p))
+    (help-setup-xref (list #'mumamo-list-defined-multi-major-modes show-doc show-chunks match) (interactive-p))
     (with-current-buffer (help-buffer)
       (insert "The currently defined multi major modes in your Emacs are:\n\n")
       (let ((mmms (reverse mumamo-defined-multi-major-modes))
