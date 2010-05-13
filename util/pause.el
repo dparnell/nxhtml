@@ -71,6 +71,10 @@
   "Customize your health personal Emacs health saver!"
   :group 'convenience)
 
+;; DEBUG
+;;(progn (setq pause-after-minutes 0.2) (setq pause-alpha-100-delay 5) (setq pause-extra-fun nil) (pause-mode -1))
+;;(setq pause-extra-fun 'pause-start-get-yoga-poses)
+;;(pause-mode 1)
 (defcustom pause-after-minutes 15
   "Pause after this number of minutes."
   :type 'number
@@ -137,6 +141,11 @@ frame is otherwise deleted between pauses."
 See also `frame-alpha-lower-limit' which is the lowest alpha that
 can be used."
   :type '(integer :tag "Opacity (100 full)")
+  :group 'pause)
+
+(defcustom pause-alpha-100-delay 60
+  "Delay seconds before setting pause frame opaque."
+  :type 'integer
   :group 'pause)
 
 (defcustom pause-break-background-color "orange"
@@ -329,7 +338,7 @@ if single pause Emacs start timer immediately."
               (add-hook 'window-configuration-change-hook 'pause-break-exit))))
 
       (remove-hook 'window-configuration-change-hook 'pause-break-exit-no-topmost)
-      ;;(pause-tell-again-cancel-timer)
+      ;;(pause-cancel-tell-again-timer)
       ;;(set-frame-parameter nil 'background-color "white")
       (dolist (f old-frame-list)
         (set-frame-parameter f 'background-color     (cdr (assq f old-frame-bg-color)))
@@ -402,13 +411,17 @@ Please note that it is run in a timer.")
 
 (defun pause-start-alpha-100-timer (delay)
   (pause-cancel-alpha-100-timer)
-  (setq pause-set-alpha-100-timer (run-with-idle-timer delay nil 'pause-set-alpha-100)))
+  (setq pause-set-alpha-100-timer (run-with-timer delay nil 'pause-set-alpha-100)))
 
 (defun pause-set-alpha-100 ()
-  (when (frame-live-p pause-frame)
-    (modify-frame-parameters pause-frame '((alpha . 100)))
-    (message "pause: alpha 100 done")
-    (redisplay t)))
+  (condition-case err
+      (when (frame-live-p pause-frame)
+        (modify-frame-parameters pause-frame '((alpha . 100)))
+        (message "pause: alpha 100 done")
+        (pause-set-topmost t)
+        ;;(redisplay t)
+        )
+    (error (message "pause-set-alpha-100 error: %s" (error-message-string err)))))
 
 (defun pause-break-show-1 ()
   ;;(setq pause-frame (selected-frame))
@@ -501,11 +514,11 @@ Please note that it is run in a timer.")
 (defvar pause-tell-again-timer nil)
 
 (defun pause-tell-again-start-timer ()
-  (pause-tell-again-cancel-timer)
+  (pause-cancel-tell-again-timer)
   (setq pause-tell-again-timer
         (run-with-idle-timer (* 60 pause-tell-again-after) t 'pause-tell-again)))
 
-(defun pause-tell-again-cancel-timer ()
+(defun pause-cancel-tell-again-timer ()
   (when (timerp pause-tell-again-timer)
     (cancel-timer pause-tell-again-timer))
   (setq pause-tell-again-timer nil))
@@ -519,6 +532,7 @@ Please note that it is run in a timer.")
 (defun pause-set-topmost (on)
   (cond
    ((fboundp 'w32-set-frame-topmost)
+    (message "pause-set-topmost: %s %s" pause-frame on)
     (w32-set-frame-topmost pause-frame on nil)
     ;;(redisplay t)
     t)
@@ -534,19 +548,19 @@ Please note that it is run in a timer.")
       (if (pause-use-topmost)
           (progn
             (pause-set-topmost t)
+            (pause-show-no-activate)
             (message "pause-tell-again: : topmost t done")
-            (pause-start-alpha-100-timer 60)
-            )
+            (pause-start-alpha-100-timer pause-alpha-100-delay))
         (message "pause-tell-again: raise-frame part")
         (raise-frame pause-frame)
-        (x-focus-frame pause-frame))
-      (condition-case nil
-          (make-frame-visible pause-frame t)
-        (error
-         (setq old-make-vis t)))
-      (when old-make-vis
-        (make-frame-visible pause-frame)
-        (run-with-idle-timer 5 nil 'pause-tell-again-reset-frame curr-frame)))))
+        (x-focus-frame pause-frame)
+        (condition-case nil
+            (make-frame-visible pause-frame t)
+          (error
+           (setq old-make-vis t)))
+        (when old-make-vis
+          (make-frame-visible pause-frame)
+          (run-with-idle-timer 5 nil 'pause-tell-again-reset-frame curr-frame))))))
 
 (defun pause-tell-again-reset-frame (frame)
   (message "pause-tell-again-reset-frame: frame=%S" frame)
@@ -578,14 +592,14 @@ Please note that it is run in a timer.")
 
 (defun pause-break-exit-no-topmost ()
   (interactive)
-  (pause-tell-again-cancel-timer)
+  (pause-cancel-tell-again-timer)
   (let ((elapsed (- (float-time) pause-break-last-wcfg-change)))
     ;;(message "elapsed=%s pause-break-last-wcfg-change=%s" elapsed pause-break-last-wcfg-change)
     (setq pause-break-last-wcfg-change (float-time))
     (when (> elapsed 1.0)
       (setq pause-break-exit-active t)
       (remove-hook 'window-configuration-change-hook 'pause-break-exit)
-      ;;(pause-tell-again-cancel-timer)
+      ;;(pause-cancel-tell-again-timer)
       (when (/= 0 (recursion-depth))
         (exit-recursive-edit)))))
 
@@ -711,7 +725,12 @@ interrupted."
         (add-hook 'delete-frame-functions 'pause-stop-on-frame-delete)
         (pause-start-timer))
     (remove-hook 'delete-frame-functions 'pause-stop-on-frame-delete)
-    (pause-cancel-timer)))
+    (pause-cancel-timer)
+    (pause-cancel-alpha-100-timer)
+    (pause-cancel-tell-again-timer)
+    (when pause-frame
+      (when (frame-live-p pause-frame) (delete-frame pause-frame))
+      (setq pause-frame nil))))
 
 ;; (emacs-Q "-l" buffer-file-name "--eval" "(pause-temp-err)")
 ;; (emacs-Q "-l" buffer-file-name "--eval" "(run-with-timer 1 nil 'pause-temp-err)")
@@ -791,8 +810,18 @@ Note: Another easier alternative might be to use
          ;; #define SW_MINIMIZE 6
          (w32-showwindow pause-frame 6))
         ((window-system 'w32)
+         (select-frame pause-frame)
          (w32-send-sys-command #xf020))
         (t (lower-frame))))
+
+(defun pause-show-no-activate ()
+  (cond ((fboundp 'w32-showwindow)
+         ;; #define SW_SHOWNOACTIVATE 4
+         (w32-showwindow pause-frame 4))
+        ((window-system 'w32)
+         (select-frame pause-frame)
+         (w32-send-sys-command #xf120))
+        (t (raise-frame))))
 
 (defun pause-start-1 (after-minutes cus-file)
   (setq pause-in-separate-emacs (or (not cus-file) (stringp cus-file)))
@@ -942,7 +971,7 @@ See `pause-start' for more info.
                           'action `(lambda (button)
                                      (condition-case err
                                          (progn
-                                           (pause-tell-again-cancel-timer)
+                                           (pause-cancel-tell-again-timer)
                                            (browse-url ,pose-url)
                                            (run-with-idle-timer 1 nil 'pause-break-exit-from-button))
                                        (error (message "pause-insert-yoga-link: %s" (error-message-string err))))))

@@ -2470,6 +2470,7 @@ Note: This minor mode will defadvice the paste commands."
 ;; (setq extended-command-history nil)
 (defun ourcomments-M-x-menu-pre ()
   "Add menu command to M-x history."
+  ;;(message "M-x-menu-pre: %s" (this-command-keys-vector))
   (let ((is-menu-command (equal '(menu-bar)
                                 (when (< 0 (length (this-command-keys-vector)))
                                   (elt (this-command-keys-vector) 0))))
