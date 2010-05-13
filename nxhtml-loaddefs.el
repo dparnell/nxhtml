@@ -1720,7 +1720,7 @@ much about computation time as for entries in the menu bar.
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-mail-mode
 ;;;;;;  as-external-for-xhtml as-external) "as-external" "util/as-external.el"
-;;;;;;  (19292 49706))
+;;;;;;  (19436 6267))
 ;;; Generated autoloads from util/as-external.el
 (web-autoload-require 'as-external 'lp '(nxhtml-download-root-url nil) "util/as-external" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2634,7 +2634,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;;;;  mumamo-list-defined-multi-major-modes mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19436 4179))
+;;;;;;  (19436 7682))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2781,7 +2781,7 @@ Choose from a list of multi major modes which chunk dividing routines
 seems to be able to find chunks in the current buffer.
 
 If REGEXP is given limit the choice to multi major mode with
-names matching REGEXP.
+names matching REGEXP.  Interactively prompt for REGEXP.
 
 See also `mumamo-list-defined-multi-major-modes'.
 
@@ -2795,7 +2795,7 @@ Return t if VALUE is a multi major mode function.
 ;;;***
 
 ;;;### (autoloads (mumamo-define-html-file-wide-keys) "mumamo-chunks"
-;;;;;;  "util/mumamo-chunks.el" (19436 3347))
+;;;;;;  "util/mumamo-chunks.el" (19436 7314))
 ;;; Generated autoloads from util/mumamo-chunks.el
 (web-autoload-require 'mumamo-chunks 'lp '(nxhtml-download-root-url nil) "util/mumamo-chunks" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4418,7 +4418,7 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/org-panel.el" "util/rxi.el" "util/tipframe.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19436 4212 359000))
+;;;;;;  "web-autoload.el") (19436 8838 484000))
 
 ;;;***
 

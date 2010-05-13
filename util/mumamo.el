@@ -8668,7 +8668,8 @@ Do here also other necessary adjustments for this."
                               activate
                               compile)
   (unless rng-validate-mode
-    (when nxhtml-validation-header-mode
+    (when (and (boundp 'nxhtml-validation-header-mode)
+               nxhtml-validation-header-mode)
       (nxhtml-validation-header-mode -1))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
