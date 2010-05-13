@@ -906,6 +906,8 @@ See `pause-start' for more info.
     (url-retrieve (concat pause-yoga-poses-host-url "yogapractice/mountain.asp")
                   'pause-callback-get-yoga-poses)))
 
+(defvar pause-collected-yoga-poses nil)
+
 (defun pause-callback-get-yoga-poses (status)
   (message "pause get-yoga-poses: status=%S" status) (message nil)
   ;; pause-callback-get-yoga-poses: status=(:error (error http 500))

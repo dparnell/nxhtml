@@ -60,6 +60,55 @@
 ;;(eval-when-compile (require 'udev-cedet))
 (eval-when-compile (require 'udev-rinari nil t))
 
+;; Fix-me: The compiler still complains...
+;;(eval-when-compile (require 'nxhtml-mode))
+;;(declare-function gud-find-c-expr "gud.el" nil)
+(declare-function nxhtml-validation-header-mode "nxhtml-mode")
+
+;;(mumamo-find-other-html 'html-mumamo)
+;;(mumamo-find-other-html 'eruby-mumamo)
+;;(mumamo-find-other-html 'nxhtml-mumamo)
+(defun mumamo-find-other-html (multi-mode)
+  "Find html/nxhtml corresponding to MULTI-MODE'.
+"
+  (let ((multi-mode-name (symbol-name multi-mode))
+        (patt (rx (or "-" word-start)
+                  (submatch
+                   (? "nx")
+                   "html")
+                  "-"))
+        new-name
+        )
+    (when (string-match patt multi-mode-name)
+      (let ((len (- (match-end 1) (match-beginning 1))))
+      (setq new-name (replace-regexp-in-string patt (cond ((= 6 len)
+                                                           "html")
+                                                          ((= 4 len)
+                                                           "nxhtml")
+                                                          (t (error "bad match")))
+                                               multi-mode-name
+                                               nil
+                                               nil
+                                               1))
+      (list (intern-soft new-name) (when (= len 4) t))))))
+
+;;;###autoload
+(defun mumamo-switch-to-other-html ()
+  (interactive)
+  (if (not (nxhtml-html-in-buffer))
+      (message "No html mode in buffer.")
+    (let ((other-mode (mumamo-find-other-html (or mumamo-multi-major-mode
+                                                  major-mode))))
+      (if (not other-mode)
+          (if (nxhtml-nxhtml-in-buffer)
+              (message "Can't find corresponding html mode")
+            (message "Can't find corresponding nxhtml mode"))
+        (funcall (nth 0 other-mode))
+        (when (and mumamo-multi-major-mode
+                   (nth 1 other-mode))
+          (nxhtml-validation-header-mode 1))
+        ))))
+
 (defun nxhtml-nxhtml-in-buffer ()
   (or (derived-mode-p 'nxhtml-mode)
       (when (and (boundp 'mumamo-multi-major-mode)
@@ -209,7 +258,8 @@
       (save-restriction
         (widen)
         (setq header
-              (if nxhtml-validation-header-mode
+              (if (and (boundp 'nxhtml-validation-header-mode)
+                       nxhtml-validation-header-mode)
                   (let* ((key nxhtml-current-validation-header)
                          (rec (unless (listp key)
                                 (assoc key nxhtml-validation-headers)))
@@ -702,7 +752,9 @@
                 ;; :enable '(or (derived-mode-p 'nxml-mode) (nxhtml-nxhtml-in-buffer))
                 :visible `(not (derived-mode-p 'dired-mode))
                 :enable ' (or (derived-mode-p 'nxml-mode)
-                                  (nxhtml-nxhtml-in-buffer))
+                                  ;;(nxhtml-nxhtml-in-buffer)
+                                  (nxhtml-html-in-buffer)
+                                  )
                 ))
         (let ((val-map (make-sparse-keymap)))
           (define-key cmpl-map [nxhtml-cmpl-val-map]
@@ -832,6 +884,12 @@
           (list 'menu-item "Complete tag, attribute etc" 'nxml-complete
                 :enable '(nxhtml-nxml-in-buffer)
                 :visible '(nxhtml-nxml-html-in-buffer)))
+        (define-key cmpl-map [nxhtml-cmpl-toggle-separator]
+          (list 'menu-item "--" nil))
+        (define-key cmpl-map [nxhtml-toggle-nxml]
+          (list 'menu-item "Toggle use of nXml" 'mumamo-switch-to-other-html
+                :enable '(nxhtml-html-in-buffer)
+                :button '(:toggle . (nxhtml-nxhtml-in-buffer))))
         )
 
 
@@ -1177,6 +1235,9 @@
       (define-key chunk-map [nxhtml-customize-mumamo]
         (list 'menu-item "Customize MuMaMo"
               (lambda () (interactive) (customize-group-other-window 'mumamo))))
+      (define-key chunk-map [nxhtml-fit-mumamo]
+        (list 'menu-item "Find a Multi Major Mode"
+              'mumamo-guess-multi-major))
       (define-key chunk-map [nxhtml-list-mumamo]
         (list 'menu-item "List defined Multi Major Modes"
               'mumamo-list-defined-multi-major-modes))

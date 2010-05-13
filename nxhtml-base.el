@@ -131,7 +131,7 @@ Otherwise setup for normal local autoloading."
   "Let nXhtml add some addtions to flymake.
 This adds support for CSS and JavaScript files.
 
-It also adds showing of errors in minibuffer when point is on
+It also adds showing errors in minibuffer when point is on
 them.
 
 If you turn this off you must restart Emacs for it to take
