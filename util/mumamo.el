@@ -74,18 +74,14 @@
 ;; You may call those functions directly (like you can with major mode
 ;; functions) or you may use them in for example `auto-mode-alist'.
 ;;
-;; You can load mumamo in your .emacs with
+;; *NOTICE*: The only supported way to use this is currently by
+;;           installing nXhtml.
 ;;
-;;   (require 'mumamo-fun)
+;; See below under "How it works" for more information.
 ;;
-;; or you can generate an autoload file from mumamo-fun.el
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; Note that no multi major mode functions are defined in this file.
-;; Together with this file comes the file mumamo-fun.el that defines
-;; some such functions.  All those functions defined in that file are
-;; marked for autoload.
-;;
-;;
+;;;; Acknowledgement
 ;;
 ;; Thanks to Stefan Monnier for beeing a good and knowledgeable
 ;; speaking partner for some difficult parts while I was trying to
@@ -93,6 +89,40 @@
 ;;
 ;; Thanks to RMS for giving me support and ideas about the programming
 ;; interface.  That simplified the code and usage quite a lot.
+;;
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;;; How it works
+;;
+;; When you instead of a single major mode select a multi major mode
+;; (defined by `define-mumamo-multi-major-mode') the buffer will be
+;; divided into chunks dependent on text markers in the buffer.
+;; Markers are things like <?php ... ?> for php etc.
+;;
+;; Each chunk gets its own major mode.  This major mode is used by
+;; fontifation routines in font-lock to get the correct syntax
+;; highlighting.
+;;
+;; The major mode in the chunk is also used when you operate
+;; interactively on the buffer.  After each command the point in the
+;; selected window is checked to get the major mode that should be
+;; used in that chunk.  This check is delayed and sometimes avoided if
+;; possible to speed things up a bit.
+;;
+;; Chunks are found when needed or when Emacs is idle (by the function
+;; `mumamo-find-chunks').  Because of this the chunks can be createed
+;; either during the fontification, before a command or when Emacs is
+;; idle.
+;;
+;; Since chunks affects the semantics in the buffer in a dramatic way
+;; they must be made with some care.  This means that they have to be
+;; created from top to bottom.
+;;
+;; When the buffer content is changed it might change the chunk
+;; dividing of the whole rest of the buffer.  That would keep Emacs
+;; very busy.  To avoid refontification of the whole buffer old chunks
+;; are fitted against new possible chunks.
 ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -205,9 +235,7 @@
 ;; "Information for minor mode authors".
 ;;
 ;; Another problem is that the major modes must use
-;; `font-lock-fontify-region-function'.  Currently the only major
-;; modes I know that does not do this are `nxml-mode' and its
-;; derivatives.
+;; `font-lock-fontify-region-function'.
 ;;
 ;; The indentation is currently working rather ok, but with the price
 ;; that buffer modified is sometimes set even though there are no
@@ -232,12 +260,18 @@
 ;; - There is no way in Emacs to tell a mode not to change
 ;;   fontification when changing to or from that mode.
 ;;
+;; - There is no way in Emacs to stop a parser to stop parsing the
+;;   whole buffer.  (Except changing the parser of course.)  One idea
+;;   is to hide parts of the buffer for all functions called from the
+;;   parse.  This of course requires some difficult low level changes
+;;   to Emacs.
 ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;;; Change log:
 ;;
+;; See Launchpad.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -373,7 +407,7 @@ See also `mumamo-chunk-value-set-min'."
 (defsubst mumamo-chunk-value-parseable-by    (chunk-values)
   "Get parseable-by from CHUNK-VALUES.
 See also `mumamo-chunk-value-set-min'.
-For parseable-by see `mumamo-find-possible-chunk'."
+For parseable-by see `mumamo-possible-chunk-forward'."
   (nth 5 chunk-values))
 ;; (defsubst mumamo-chunk-prev-chunk (chunk-values)
 ;;   "Get previous chunk from CHUNK-VALUES.
@@ -665,9 +699,6 @@ major mode function:
 
 ** A little bit more technical description:
 
-The dividing of a buffer into chunks is done during fontification
-by `mumamo-get-chunk-at'.
-
 The name of the function is saved in in the buffer local variable
 `mumamo-multi-major-mode' when the function is called.
 
@@ -696,21 +727,17 @@ chunk division of the buffer.  They are tried in the order they
 appear here during the chunk division process.
 
 If you want to write new functions for chunk divisions then
-please see `mumamo-find-possible-chunk'.  You can perhaps also
+please see `mumamo-possible-chunk-forward'.  You can perhaps also
 use `mumamo-quick-chunk-forward' which is more easy-to-use
-alternative.  See also the file mumamo-fun.el where there are
-many routines for chunk division.
+alternative.  See also the file mumamo-chunks.el where there are
+many routines for chunk division and the file mumamo-fun where
+many multi major modes are defined.
 
 When you write those new functions you may want to use some of
-the functions for testing chunks:
+the functions for testing chunks in the file
 
- `mumamo-test-create-chunk-at'  `mumamo-test-create-chunks-at-all'
- `mumamo-test-easy-make'        `mumamo-test-fontify-region'
-
-These are in the file mumamo-test.el."
-  ;;(let ((c (if (symbolp chunks) (symbol-value chunks) chunks))) (message "c=%S" c))
-  (let* (;;(mumamo-describe-chunks (make-symbol "mumamo-describe-chunks"))
-         (turn-on-fun (if (symbolp fun-sym)
+   `nxhtml/tests/mumamo-test.el'"
+  (let* ((turn-on-fun (if (symbolp fun-sym)
                           fun-sym
                         (error "Parameter FUN-SYM must be a symbol")))
          (turn-on-fun-alias (intern (concat "mumamo-alias-" (symbol-name fun-sym))))
@@ -1601,10 +1628,10 @@ Each entry has the form
   \(MAJOR-SPEC MAJORMODE ...)
 
 where the symbol MAJOR-SPEC specifies the code type and should
-match the value returned from `mumamo-find-possible-chunk'.  The
-MAJORMODE symbols are major modes that can be used for editing
-that code type.  The first available MAJORMODE is the one that is
-used.
+match the value returned from `mumamo-possible-chunk-forward'.
+The MAJORMODE symbols are major modes that can be used for
+editing that code type.  The first available MAJORMODE is the one
+that is used.
 
 The MAJOR-SPEC symbols are used by the chunk definitions in
 `define-mumamo-multi-major-mode'.
@@ -2645,7 +2672,7 @@ function just step over the `condition-case' in
 The fontification is done in steps:
 
 - First a mumamo chunk is found or created at the start of the
-  region with `mumamo-get-chunk-at'.
+  region with `mumamo-find-chunks'.
 - Then this chunk is fontified according to the major mode for
   that chunk.
 - If the chunk did not encompass the whole region then this
@@ -3370,11 +3397,16 @@ modes to a major mode.
 See `mumamo-major-modes' for an explanation."
   (mumamo-major-mode-from-spec major-spec mumamo-major-modes))
 
-(defun mumamo-major-mode-from-spec (major-spec table)
-  (unless major-spec
-    (mumamo-backtrace "mode-from-modespec, major-spec is nil"))
-  (let ((modes (cdr (assq major-spec table)))
-        (mode 'mumamo-bad-mode))
+(defun mumamo-major-mode-from-spec (spec table)
+  (unless spec
+    (mumamo-backtrace "mode-from-modespec, spec is nil"))
+  (let* ((spec-name (symbol-name spec))
+         (ends-in-mode (and (> (length spec-name) 5)
+                            (string= (substring spec-name -5)
+                                     "-mode")))
+         (major-spec (if ends-in-mode spec (intern-soft (concat spec-name "-mode"))))
+         (modes (when major-spec (cdr (assq major-spec table))))
+         (mode 'mumamo-bad-mode))
     (setq mode
           (catch 'mode
             (dolist (m modes)
@@ -3436,7 +3468,6 @@ However if FIRST get first existing chunk at POS instead."
   "Return chunk overlay at POS.  Preserve state."
   (let (chunk)
     ;;(mumamo-save-buffer-state nil
-      ;;(setq chunk (mumamo-get-chunk-at pos)))
       (setq chunk (mumamo-find-chunks pos "mumamo-get-chunk-save-buffer-state"))
       ;;)
     chunk))
@@ -3498,7 +3529,7 @@ This just considers existing chunks."
 (defun mumamo-chunk-start-fw-str (pos max marker)
   "General chunk function helper.
 A chunk function helper like this can be used in
-`mumamo-find-possible-chunk' to find the borders of a chunk.
+`mumamo-possible-chunk-forward' to find the borders of a chunk.
 There are several functions like this that comes with mumamo.
 Their names tell what they do.  Lets look at the parts of the
 name of this function:
@@ -3790,7 +3821,8 @@ CHUNK-END-FUN should return the end of the chunk.
 ;; surrounding chunks syntax. Patterns that possibly could be chunk
 ;; borders might instead be parts of comments or strings in cases
 ;; where they should not be valid borders there.
-;;(make-obsolete 'mumamo-find-possible-chunk 'mumamo-possible-chunk-forward "nXhtml ver 2.09")
+
+(make-obsolete 'mumamo-find-possible-chunk 'mumamo-possible-chunk-forward "nXhtml ver 2.09")
 (defun mumamo-find-possible-chunk (pos
                                    min max
                                    bw-exc-start-fun ;; obsolete
@@ -3807,7 +3839,7 @@ CHUNK-END-FUN should return the end of the chunk.
                                   fw-exc-end-fun
                                   find-borders-fun))
 
-;;(make-obsolete 'mumamo-find-possible-chunk-new 'mumamo-possible-chunk-forward "nXhtml ver 2.09")
+(make-obsolete 'mumamo-find-possible-chunk-new 'mumamo-possible-chunk-forward "nXhtml ver 2.09")
 (defun mumamo-find-possible-chunk-new (pos
                                        ;;min
                                        max
@@ -4019,12 +4051,9 @@ See also `mumamo-quick-chunk-forward'."
                            nil
                            ))
         (mumamo-msgfntfy "--- mumamo-find-possible-chunk-new %s" (list start end exc-mode borders parseable-by fw-exc-fun))
-        ;;(message "--- mumamo-find-possible-chunk-new %s" (list start end exc-mode borders parseable-by fw-exc-fun))
         (when fw-exc-mode
           (unless (eq fw-exc-mode exc-mode)
-            ;;(message "fw-exc-mode=%s NEQ exc-mode=%s" fw-exc-mode exc-mode)
             ))
-        ;;(msgtrc "find-poss-new returns %s" (list start end exc-mode borders parseable-by fw-exc-fun find-borders-fun))
         (when fw-exc-fun
           (list start end exc-mode borders parseable-by fw-exc-fun find-borders-fun)))))
   ;;(error (mumamo-display-error 'mumamo-chunk "%s" (error-message-string err)))
@@ -4454,6 +4483,21 @@ this chunk familyu to find subchunks."
         (error "Major mode %s major can't be used in sub chunks" major)))
     (add-to-list 'mumamo-sub-chunk-families (list major chunk-family))))
 
+(defun mumamo-arity (func)
+  "Temp fix returning arity of function FUNC."
+  (unless (functionp func) (error "Not a function: %s" func))
+  (let* ((fn (if (symbolp func) (symbol-function func)
+               func)))
+    (if (subrp fn)
+        (cdr (subr-arity fn))
+      (let* ((arg-list (if (listp fn)
+                           (cadr fn)
+                         (aref fn 0)))
+             (len (length arg-list))
+             ;; Should check &rest and &optional here, perhaps
+             )
+        len))))
+
 (defun mumamo-find-next-chunk-values (after-chunk)
   "Search forward for start of next chunk.
 Return a list with chunk values for next chunk after AFTER-CHUNK
@@ -4568,7 +4612,10 @@ See also `mumamo-new-create-chunk' for more information."
           (dolist (fn curr-chunk-funs)
             ;;(msgtrc "find-next-chunk-values:before (r (funcall fn search-from search-from max)), fn=%s search-from=%s, max=%s" fn search-from max)
             (assert (= r-point (point)) t)
-            (let* ((r (funcall fn search-from search-from max))
+            (let* ((fn-arity 2) ;;(mumamo-arity fn))
+                   (r (cond
+                       ((= 2 fn-arity) (funcall fn search-from max))
+                       ((= 3 fn-arity) (funcall fn search-from search-from max))))
                    (rmin        (nth 0 r))
                    (rmax        (nth 1 r))
                    (rmajor-sub  (nth 2 r))
@@ -5151,8 +5198,6 @@ explanation."
       (with-current-buffer (window-buffer window)
         (when (eq buffer (current-buffer))
           (mumamo-condition-case err
-              ;;(let* ((ovl (mumamo-get-chunk-at (point)))
-              ;;(message "idle point=%s" (point))
               (let* ((ovl (mumamo-find-chunks (point) "mumamo-idle-set-major-mode"))
                      (major (mumamo-chunk-major-mode ovl))
                      (modified (buffer-modified-p)))

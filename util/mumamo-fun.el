@@ -133,24 +133,24 @@ This covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Embperl
 
-(defun mumamo-chunk-embperl-<- (pos min max)
+(defun mumamo-chunk-embperl-<- (pos max)
   "Find [- ... -], return range and `perl-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "[-" "-]" 'borders 'perl-mode))
 
-(defun mumamo-chunk-embperl-<+ (pos min max)
+(defun mumamo-chunk-embperl-<+ (pos max)
   "Find [+ ... +], return range and `perl-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "[+" "+]" 'borders 'perl-mode))
 
-(defun mumamo-chunk-embperl-<! (pos min max)
+(defun mumamo-chunk-embperl-<! (pos max)
   "Find [! ... !], return range and `perl-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "[!" "!]" 'borders 'perl-mode))
 
-(defun mumamo-chunk-embperl-<$ (pos min max)
+(defun mumamo-chunk-embperl-<$ (pos max)
   "Find [$ ... $], return range and `perl-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   ;; This is a bit tricky since [$var] etc must be avoided.
   (let* ((begin-mark "[$")
          (end-mark "$]")
@@ -199,24 +199,24 @@ This also covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; django
 
-(defun mumamo-chunk-django4(pos min max)
+(defun mumamo-chunk-django4(pos max)
   "Find {% comment %}.  Return range and `django-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "{% comment %}" "{% endcomment %}" 'borders 'mumamo-comment-mode))
 
-(defun mumamo-chunk-django3(pos min max)
+(defun mumamo-chunk-django3(pos max)
   "Find {# ... #}.  Return range and `django-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "{#" "#}" 'borders 'mumamo-comment-mode))
 
-(defun mumamo-chunk-django2(pos min max)
+(defun mumamo-chunk-django2(pos max)
   "Find {{ ... }}.  Return range and `django-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "{{" "}}" 'borders 'django-variable-mode))
 
-(defun mumamo-chunk-django (pos min max)
+(defun mumamo-chunk-django (pos max)
   "Find {% ... %}.  Return range and `django-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (let ((chunk (mumamo-quick-chunk-forward pos max "{%" "%}" 'borders 'django-mode)))
     (when chunk
       (setcdr (last chunk) '(mumamo-template-indentor))
@@ -282,15 +282,15 @@ This also covers inlined style and javascript."
 ;;;; Genshi / kid
 
 ;; {% python ... %}
-(defun mumamo-chunk-genshi%(pos min max)
+(defun mumamo-chunk-genshi%(pos max)
   "Find {% python ... %}.  Return range and `genshi-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "{% python" "%}" 'borders 'python-mode))
 
 ;; ${expr}
-(defun mumamo-chunk-genshi$(pos min max)
+(defun mumamo-chunk-genshi$(pos max)
   "Find ${ ... }, return range and `python-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (let ((chunk
          (mumamo-quick-chunk-forward pos max "${" "}" 'borders 'python-mode)))
     (when chunk
@@ -347,9 +347,9 @@ This also covers inlined style and javascript."
 ;;;; MJT
 
 ;; ${expr}
-(defun mumamo-chunk-mjt$(pos min max)
+(defun mumamo-chunk-mjt$(pos max)
   "Find ${ ... }, return range and `javascript-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "${" "}" 'borders 'javascript-mode))
 
 ;;;###autoload
@@ -370,24 +370,24 @@ This also covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; smarty
 
-(defun mumamo-chunk-smarty-literal (pos min max)
+(defun mumamo-chunk-smarty-literal (pos max)
   "Find {literal} ... {/literal}.  Return range and 'html-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "{literal}" "{/literal}" 'borders 'html-mode))
 
-(defun mumamo-chunk-smarty-t (pos min max)
+(defun mumamo-chunk-smarty-t (pos max)
   "Find {t} ... {/t}.  Return range and 'html-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "{t}" "{/t}" 'borders 'text-mode))
 
-(defun mumamo-chunk-smarty-comment (pos min max)
+(defun mumamo-chunk-smarty-comment (pos max)
   "Find {* ... *}.  Return range and 'mumamo-comment-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "{*" "*}" t 'mumamo-comment-mode))
 
-(defun mumamo-chunk-smarty (pos min max)
+(defun mumamo-chunk-smarty (pos max)
   "Find { ... }.  Return range and 'smarty-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "{" "}" t 'smarty-mode))
 
 ;;;###autoload
@@ -416,9 +416,9 @@ This also covers inlined style and javascript."
 ;;
 ;;  <script runat="server">...</script> and <% ... %>.
 
-(defun mumamo-chunk-ssjs-% (pos min max)
+(defun mumamo-chunk-ssjs-% (pos max)
   "Find <% ... %>.  Return range and 'javascript-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "<%" "%>" 'borders 'javascript-mode))
 
 (defconst mumamo-ssjs-tag-start-regex
@@ -466,9 +466,9 @@ POS is where to start search and MAX is where to stop."
         (list (point) 'javascript-mode)
         ))))
 
-(defun mumamo-chunk-inlined-ssjs (pos min max)
+(defun mumamo-chunk-inlined-ssjs (pos max)
   "Find <script runat=...>...</script>.  Return range and 'javascript-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-possible-chunk-forward pos max
                                  'mumamo-search-fw-exc-start-inlined-ssjs
                                  'mumamo-search-fw-exc-end-inlined-script))
@@ -491,9 +491,9 @@ This covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; gsp
 
-(defun mumamo-chunk-gsp (pos min max)
+(defun mumamo-chunk-gsp (pos max)
   "Find <% ... %>.  Return range and 'groovy-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "<%" "%>" 'borders 'groovy-mode))
 
 ;;;###autoload
@@ -511,9 +511,9 @@ This also covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; jsp - Java Server Pages
 
-(defun mumamo-chunk-jsp (pos min max)
+(defun mumamo-chunk-jsp (pos max)
   "Find <% ... %>.  Return range and 'java-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "<%" "%>" 'borders 'java-mode))
 
 ;;;###autoload
@@ -536,29 +536,27 @@ This also covers inlined style and javascript."
 ;; ruby people if this is worth doing.
 ;;
 ;; See also http://wiki.rubyonrails.org/rails/pages/UnderstandingViews
-(defun mumamo-chunk-eruby (pos min max)
+(defun mumamo-chunk-eruby (pos max)
   "Find <% ... %>.  Return range and 'ruby-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (let ((chunk (mumamo-quick-chunk-forward pos max "<%" '("-?%>" . t) 'borders 'ruby-mode)))
     (when chunk
       ;; Put indentation type on 'mumamo-next-indent on the chunk:
-      ;; Fix-me: use this!
       (setcdr (last chunk) '(mumamo-template-indentor))
       chunk)))
 
-(defun mumamo-chunk-eruby= (pos min max)
+(defun mumamo-chunk-eruby= (pos max)
   "Find <% ... %>.  Return range and 'ruby-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (let ((chunk (mumamo-quick-chunk-forward pos max "<%=" '("-?%>" . t) 'borders 'ruby-mode)))
     (when chunk
       ;; Put indentation type on 'mumamo-next-indent on the chunk:
-      ;; Fix-me: use this!
-      ;;(setcdr (last chunk) '(mumamo-template-indentor))
+      (setcdr (last chunk) '(mumamo-template-indentor))
       chunk)))
 
-(defun mumamo-chunk-eruby=quoted (pos min max)
+(defun mumamo-chunk-eruby=quoted (pos max)
   "Find \"<%= ... %>\".  Return range and 'ruby-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX.
+See `mumamo-possible-chunk-forward' for POS and MAX.
 
 This is a workaround for problems with strings."
   (let ((chunk (mumamo-quick-chunk-forward pos max "\"<%=" '("-?%>\"" . t) 'borders 'ruby-mode)))
@@ -568,9 +566,9 @@ This is a workaround for problems with strings."
       ;;(setcdr (last chunk) '(mumamo-template-indentor))
       chunk)))
 
-(defun mumamo-chunk-eruby-comment (pos min max)
+(defun mumamo-chunk-eruby-comment (pos max)
   "Find <%# ... %>.  Return range and 'ruby-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX.
+See `mumamo-possible-chunk-forward' for POS and MAX.
 
 This is needed since otherwise the end marker is thought to be
 part of a comment."
@@ -656,9 +654,9 @@ If no match use `text-mode'."
         (mumamo-major-mode-from-modespec mode)
       'text-mode)))
 
-(defun mumamo-chunk-heredoc (pos min max lang)
-  "This should work similar to `mumamo-find-possible-chunk'.
-POS, MIN and MAX have the same meaning as there.
+(defun mumamo-chunk-heredoc (pos max lang)
+  "This should work similar to `mumamo-possible-chunk-forward'.
+POS and MAX have the same meaning as there.
 
 LANG is the programming language.
 Supported values are 'perl."
@@ -859,11 +857,10 @@ Supported values are 'perl."
 
 ;;;; Unix style sh heredoc
 
-(defun mumamo-chunk-sh-heredoc (pos min max)
+(defun mumamo-chunk-sh-heredoc (pos max)
   "Find sh here docs.
-See `mumamo-find-possible-chunk' for POS, MIN
-and MAX."
-  (let ((r (mumamo-chunk-heredoc pos min max 'sh)))
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((r (mumamo-chunk-heredoc pos max 'sh)))
     r))
 
 ;;;###autoload
@@ -878,11 +875,10 @@ See `mumamo-heredoc-modes' for how to specify heredoc major modes."
 
 ;;;; PHP heredoc
 
-(defun mumamo-chunk-php-heredoc (pos min max)
+(defun mumamo-chunk-php-heredoc (pos max)
   "Find PHP here docs.
-See `mumamo-find-possible-chunk' for POS, MIN
-and MAX."
-  (let ((r (mumamo-chunk-heredoc pos min max 'php)))
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((r (mumamo-chunk-heredoc pos max 'php)))
     r))
 
 ;;;###autoload
@@ -898,11 +894,10 @@ See `mumamo-heredoc-modes' for how to specify heredoc major modes."
 
 ;;;; Perl heredoc
 
-(defun mumamo-chunk-perl-heredoc (pos min max)
+(defun mumamo-chunk-perl-heredoc (pos max)
   "Find perl here docs.
-See `mumamo-find-possible-chunk' for POS, MIN
-and MAX."
-  (let ((r (mumamo-chunk-heredoc pos min max 'perl)))
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((r (mumamo-chunk-heredoc pos max 'perl)))
     r))
 
 ;;;###autoload
@@ -926,11 +921,10 @@ See `mumamo-heredoc-modes' for how to specify heredoc major modes."
 
 ;;;; Python heredoc
 
-(defun mumamo-chunk-python-heredoc (pos min max)
+(defun mumamo-chunk-python-heredoc (pos max)
   "Find python here docs.
-See `mumamo-find-possible-chunk' for POS, MIN
-and MAX."
-  (let ((r (mumamo-chunk-heredoc pos min max 'python)))
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((r (mumamo-chunk-heredoc pos max 'python)))
     r))
 
 ;;;###autoload
@@ -945,11 +939,10 @@ See `mumamo-heredoc-modes' for how to specify heredoc major modes."
 
 ;;;; Ruby heredoc
 
-(defun mumamo-chunk-ruby-heredoc (pos min max)
+(defun mumamo-chunk-ruby-heredoc (pos max)
   "Find Ruby here docs.
-See `mumamo-find-possible-chunk' for POS, MIN
-and MAX."
-  (let ((r (mumamo-chunk-heredoc pos min max 'ruby)))
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((r (mumamo-chunk-heredoc pos max 'ruby)))
     r))
 
 ;;;###autoload
@@ -1003,9 +996,9 @@ POS is where to start search and MAX is where to stop."
     (let ((end (mumamo-chunk-end-fw-str pos max "\")")))
       (mumamo-textext-test-is-end end))))
 
-(defun mumamo-chunk-textext (pos min max)
+(defun mumamo-chunk-textext (pos max)
   "Find textext or TEX chunks.  Return range and 'plain-tex-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-possible-chunk-forward pos max
                                  'mumamo-search-fw-textext-start
                                  'mumamo-search-fw-textext-end))
@@ -1023,9 +1016,9 @@ POS is where to start search and MAX is where to stop."
   (save-match-data
     (mumamo-chunk-end-fw-str pos max "\netex")))
 
-(defun mumamo-chunk-verbatimtex (pos min max)
+(defun mumamo-chunk-verbatimtex (pos max)
   "Find verbatimtex - etex chunks.  Return range and 'plain-tex-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-possible-chunk-forward pos max
                                  'mumamo-search-fw-verbatimtex-start
                                  'mumamo-search-fw-verbatimtex-end))
@@ -1043,9 +1036,9 @@ POS is where to start search and MAX is where to stop."
   (save-match-data
     (mumamo-chunk-end-fw-str pos max "\netex")))
 
-(defun mumamo-chunk-btex (pos min max)
+(defun mumamo-chunk-btex (pos max)
   "Find btex - etex chunks.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-possible-chunk-forward pos max
                                  'mumamo-search-fw-btex-start
                                  'mumamo-search-fw-btex-end))
@@ -1118,9 +1111,9 @@ POS is where to start search and MAX is where to stop."
   (save-match-data
     (mumamo-chunk-end-fw-str pos max "</method>")))
 
-(defun mumamo-chunk-inlined-lzx-method (pos min max)
+(defun mumamo-chunk-inlined-lzx-method (pos max)
   "Find <method>...</method>.  Return range and 'javascript-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-possible-chunk-forward pos max
                                  'mumamo-search-fw-exc-start-inlined-lzx-method
                                  'mumamo-search-fw-exc-end-inlined-lzx-method))
@@ -1166,9 +1159,9 @@ POS is where to start search and MAX is where to stop."
   (save-match-data
     (mumamo-chunk-end-fw-str pos max "</handler>")))
 
-(defun mumamo-chunk-inlined-lzx-handler (pos min max)
+(defun mumamo-chunk-inlined-lzx-handler (pos max)
   "Find <handler>...</handler>.  Return range and 'javascript-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-possible-chunk-forward pos max
                                  'mumamo-search-fw-exc-start-inlined-lzx-handler
                                  'mumamo-search-fw-exc-end-inlined-lzx-handler))
@@ -1200,9 +1193,9 @@ POS is where to start search and MAX is where to stop."
   (save-match-data
     (mumamo-chunk-end-fw-str pos max "</csinstruments>")))
 
-(defun mumamo-chunk-csound-orc (pos min max)
+(defun mumamo-chunk-csound-orc (pos max)
   "Find <csinstruments>...</...>.  Return range and 'csound-orc-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-possible-chunk-forward pos max
                                  'mumamo-search-fw-exc-start-csound-orc
                                  'mumamo-search-fw-exc-end-csound-orc))
@@ -1220,9 +1213,9 @@ POS is where to start search and MAX is where to stop."
   (save-match-data
     (mumamo-chunk-end-fw-str pos max "</csscore>")))
 
-(defun mumamo-chunk-csound-sco (pos min max)
+(defun mumamo-chunk-csound-sco (pos max)
   "Found <csscore>...</csscore>.  Return range and 'csound-sco-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-possible-chunk-forward pos max
                                  'mumamo-search-fw-exc-start-csound-sco
                                  'mumamo-search-fw-exc-end-csound-sco))
@@ -1295,9 +1288,9 @@ POS is where to start search and MAX is where to stop."
   (save-match-data
     (mumamo-chunk-end-fw-re pos max "^@")))
 
-(defun mumamo-noweb2-code-chunk (pos min max)
+(defun mumamo-noweb2-code-chunk (pos max)
   "Find noweb chunks.  Return range and found mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX.
+See `mumamo-possible-chunk-forward' for POS and MAX.
 `mumamo-noweb2-set-code-major-mode'"
   (save-match-data
     (mumamo-possible-chunk-forward pos max
@@ -1321,9 +1314,9 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX.
 ;;       (append '(("\\.tt2?$" . tt-mode))  auto-mode-alist ))
 
 ;;(require 'tt-mode)
-(defun mumamo-chunk-tt (pos min max)
+(defun mumamo-chunk-tt (pos max)
   "Find [% ... %], return range and `tt-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX.
+See `mumamo-possible-chunk-forward' for POS and MAX.
 
 This is for Template Toolkit.
 See URL `http://dave.org.uk/emacs/' for `tt-mode'."
@@ -1364,12 +1357,12 @@ This also covers inlined style and javascript."
       "\""
       (0+ space)))
 
-(defun mumamo-search-fw-exc-start-jsp (pos min max)
+(defun mumamo-search-fw-exc-start-jsp (pos max)
   ;; fix-me
   )
-(defun mumamo-chunk-asp (pos min max)
+(defun mumamo-chunk-asp (pos max)
   "Find <% ... %>.  Return range and 'asp-js-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   ;; Fix-me: this is broken!
   (mumamo-possible-chunk-forward pos max
                                  'mumamo-search-fw-exc-start-asp
@@ -1378,9 +1371,9 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 
 ;;;; asp <% ...>
 
-(defun mumamo-chunk-asp% (pos min max)
+(defun mumamo-chunk-asp% (pos max)
   "Find <% ... %>.  Return range and 'asp-js-mode or 'asp-vb-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (let* ((chunk (mumamo-quick-chunk-forward pos max "<%" "%>" 'borders 'java-mode))
          (beg (nth 0 chunk))
          (here (point))
@@ -1455,9 +1448,9 @@ POS is where to start search and MAX is where to stop."
         (list (point) exc-mode)
         ))))
 
-(defun mumamo-asp-chunk-inlined-script (pos min max)
+(defun mumamo-asp-chunk-inlined-script (pos max)
   "Find <script language=...  runat=...>...</script>.  Return 'asp-js-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-possible-chunk-forward pos max
                                  'mumamo-asp-search-fw-exc-start-inlined-script
                                  'mumamo-search-fw-exc-end-inlined-script))
@@ -1480,15 +1473,13 @@ This also covers inlined style and javascript."
 
 (defcustom mumamo-org-submodes
   '(
-    (emacs-lisp emacs-lisp-mode)
-    (ruby ruby-mode)
-    (python python-mode)
-    (sh sh-mode)
-    (R R-mode)
     (ditaa picture-mode)
     )
   "Alist for conversion of org #+BEGIN_SRC specifier to major mode.
 Works kind of like `mumamo-major-modes'.
+
+Note that adding '-mode' to the specifier is tried before this
+list.
 
 This may be used for example for org-babel \(see URL
 `http://orgmode.org/worg/org-contrib/babel/')."
@@ -1500,6 +1491,8 @@ This may be used for example for org-babel \(see URL
           )
   :group 'mumamo-modes)
 
+;;(mumamo-org-mode-from-spec 'css)
+;;(mumamo-org-mode-from-spec 'abcdef)
 (defun mumamo-org-mode-from-spec (major-spec)
   "Translate MAJOR-SPEC to a major mode.
 Translate MAJOR-SPEC used in #BEGIN_SRC to a major mode.
@@ -1507,9 +1500,9 @@ Translate MAJOR-SPEC used in #BEGIN_SRC to a major mode.
 See `mumamo-org-submodes' for an explanation."
   (mumamo-major-mode-from-spec major-spec mumamo-org-submodes))
 
-(defun mumamo-chunk-org-html (pos min max)
+(defun mumamo-chunk-org-html (pos max)
   "Find #+BEGIN_HTML ... #+END_HTML, return range and `html-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "#+BEGIN_HTML" "#+END_HTML" nil 'html-mode))
 
 (defun mumamo-search-fw-org-src-start (pos max)
@@ -1531,9 +1524,9 @@ POS is where to start search and MAX is where to stop."
   (save-match-data
     (mumamo-chunk-end-fw-str pos max "#+END_SRC")))
 
-(defun mumamo-chunk-org-src (pos min max)
+(defun mumamo-chunk-org-src (pos max)
   "Find #+BEGIN_SRC ... #+END_SRC, return range and choosen major mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX.
+See `mumamo-possible-chunk-forward' for POS and MAX.
 
 See Info node `(org) Literal Examples' for how to specify major
 mode."
@@ -1573,9 +1566,9 @@ sub chunks."
 
 
 
-(defun mumamo-chunk-mako-<% (pos min max)
+(defun mumamo-chunk-mako-<% (pos max)
   "Find <% ... %> and <%! ... %>. Return range and `python-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (let ((chunk (mumamo-possible-chunk-forward pos max
                                               'mumamo-mako-<%-fw-start
                                               'mumamo-mako-<%-fw-end
@@ -1615,41 +1608,41 @@ See `mumamo-find-possible-chunk' for POS, MIN and MAX."
 
 
 
-(defun mumamo-chunk-mako-% (pos min max)
+(defun mumamo-chunk-mako-% (pos max)
   "Find % python EOL.  Return range and `python-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (let ((chunk (mumamo-whole-line-chunk pos min max "%" 'python-mode)))
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((chunk (mumamo-whole-line-chunk pos max "%" 'python-mode)))
     (when chunk
       (setcdr (last chunk) '(mumamo-template-indentor))
       chunk)))
 
-(defun mumamo-chunk-mako-one-line-comment (pos min max)
+(defun mumamo-chunk-mako-one-line-comment (pos max)
   "Find ## comment EOL.  Return range and `python-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (mumamo-whole-line-chunk pos min max "##" 'mumamo-comment-mode))
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-whole-line-chunk pos max "##" 'mumamo-comment-mode))
 
-(defun mumamo-chunk-mako-<%doc (pos min max)
+(defun mumamo-chunk-mako-<%doc (pos max)
   (mumamo-quick-chunk-forward pos max "<%doc>" "</%doc>" 'borders 'mumamo-comment-mode))
 
-(defun mumamo-chunk-mako-<%include (pos min max)
+(defun mumamo-chunk-mako-<%include (pos max)
   (mumamo-quick-chunk-forward pos max "<%include" "/>" 'borders 'html-mode))
 
-(defun mumamo-chunk-mako-<%inherit (pos min max)
+(defun mumamo-chunk-mako-<%inherit (pos max)
   (mumamo-quick-chunk-forward pos max "<%inherit" "/>" 'borders 'html-mode))
 
-(defun mumamo-chunk-mako-<%namespace (pos min max)
+(defun mumamo-chunk-mako-<%namespace (pos max)
   (mumamo-quick-chunk-forward pos max "<%namespace" "/>" 'borders 'html-mode))
 
-(defun mumamo-chunk-mako-<%page (pos min max)
+(defun mumamo-chunk-mako-<%page (pos max)
   (mumamo-quick-chunk-forward pos max "<%page" "/>" 'borders 'html-mode))
 
 ;; Fix-me: this is not correct
-(defun mumamo-chunk-mako-<%def (pos min max)
+(defun mumamo-chunk-mako-<%def (pos max)
   (mumamo-quick-chunk-forward pos max "<%def" "</%def>" 'borders 'html-mode))
 
-(defun mumamo-chunk-mako$(pos min max)
+(defun mumamo-chunk-mako$(pos max)
   "Find ${ ... }, return range and `python-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "${" "}" 'borders 'python-mode))
 
 ;;;###autoload
@@ -1715,10 +1708,10 @@ This covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Markdown
 
-(defun mumamo-chunk-markdown-html-1 (pos min max)
+(defun mumamo-chunk-markdown-html-1 (pos max)
   (save-restriction
     (goto-char pos)
-    (narrow-to-region (or min (point)) (or max (point-max)))
+    (narrow-to-region (point) (or max (point-max)))
     (save-match-data
       (let ((here (point)))
         (when (re-search-forward (rx (* space)
@@ -1739,14 +1732,14 @@ This covers inlined style and javascript."
               (cons beg end))))))))
 
 (defun mumamo-chunk-markdown-html-fw-exc-fun (pos max)
-  (let ((beg-end (mumamo-chunk-markdown-html-1 pos nil max)))
+  (let ((beg-end (mumamo-chunk-markdown-html-1 pos max)))
     (cdr beg-end)))
 
-(defun mumamo-chunk-markdown-html (pos min max)
+(defun mumamo-chunk-markdown-html (pos max)
   "Find a chunk of html code in `markdown-mode'.
 Return range and `html-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
-  (let ((beg-end (mumamo-chunk-markdown-html-1 pos nil max)))
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((beg-end (mumamo-chunk-markdown-html-1 pos max)))
     (when beg-end
       (let ((beg (car beg-end))
             (end (cdr beg-end)))
@@ -1775,7 +1768,7 @@ You need `markdown-mode' which you can download from URL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Latex related
 
-(defun mumamo-latex-closure-chunk (pos min max)
+(defun mumamo-latex-closure-chunk (pos max)
   (mumamo-quick-chunk-forward pos max "\\begin{clojure}" "\\end{clojure}" 'borders 'clojure-mode))
 
 ;;;###autoload
@@ -1794,7 +1787,7 @@ You will need `clojure-mode' which you can download from URL
 (add-to-list 'auto-mode-alist '("\\.lclj\\'" . latex-clojure-mumamo-mode))
 
 
-(defun mumamo-latex-haskell-chunk (pos min max)
+(defun mumamo-latex-haskell-chunk (pos max)
   (mumamo-quick-chunk-forward pos max "\\begin{code}" "\\end{code}" 'borders 'haskell-mode))
 
 ;;;###autoload
@@ -1817,9 +1810,9 @@ You will need `haskell-mode' which you can download from URL
 
 ;; From Martin Soto
 
-(defun mumamo-python-rst-long-string-chunk (pos min max)
+(defun mumamo-python-rst-long-string-chunk (pos max)
  "Find Python long strings.  Return range and 'mumamo-comment-mode.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX."
+See `mumamo-possible-chunk-forward' for POS and MAX."
  ;;(mumamo-quick-chunk-forward pos max "\"\"\"((" "))\"\"\"" nil 'rst-mode nil))
  (mumamo-quick-chunk-forward pos max "\"\"\"" "\"\"\"" 'borders 'rst-mode))
 
@@ -1900,7 +1893,7 @@ non-matching pair inside a string."
           (when (= 0 level) (1- (point)))
         (goto-char here)))))
 
-(defun mumamo-chunk-amrita-fold (pos min max)
+(defun mumamo-chunk-amrita-fold (pos max)
   "Find Amrita fold::PROGLANG chnks."
   (mumamo-possible-chunk-forward pos max
                                  ;;'mumamo-search-fw-exc-start-xml-pi-new

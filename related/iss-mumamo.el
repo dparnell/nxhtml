@@ -47,12 +47,12 @@
 (require 'iss-mode)
 (require 'mumamo)
 
-(defun mumamo-chunk-iss-code (pos min max)
+(defun mumamo-chunk-iss-code (pos max)
   "Find [code]..., return range and `pascal-mode'.
-See `mumamo-find-possible-chunk' for POS, MIN and MAX.
+See `mumamo-possible-chunk-forward' for POS and MAX.
 
 Note that if this section is not the last"
-  (mumamo-quick-chunk-forward pos min max "[code]" "{*** End of CODE **}" 'borders 'pascal-mode))
+  (mumamo-quick-chunk-forward pos max "[code]" "{*** End of CODE **}" 'borders 'pascal-mode))
 
 ;;;###autoload
 (define-mumamo-multi-major-mode iss-mumamo-mode
