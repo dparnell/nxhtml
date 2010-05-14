@@ -5862,19 +5862,21 @@ Just check the name."
 (defvar mumamo-removed-from-hook nil)
 
 (defun mumamo-remove-from-hook (hook remove)
-  "From hook HOOK remove functions in list REMOVE.
+  "From global hook HOOK remove functions in list REMOVE.
 Save HOOK and the list of functions removed to
-`mumamo-removed-from-hook'."
+`mumamo-removed-from-hook'.
+
+Those values can be put back by `mumamo-addback-to-hook'."
   (let (did-remove
         removed)
     (dolist (rem remove)
       ;;(message "rem.rem=%s" rem)
       (setq did-remove nil)
       (if (listp rem)
-          (when (memq (car rem) (symbol-value hook))
+          (when (memq (car rem) (default-value hook))
             (setq did-remove t)
-            (remove-hook hook (car rem) t))
-        (when (memq rem (symbol-value hook))
+            (remove-hook hook (car rem)))
+        (when (memq rem (default-value hook))
           (setq did-remove t)
           (remove-hook hook rem)))
       (when did-remove
@@ -5891,12 +5893,14 @@ Save HOOK and the list of functions removed to
 
 (defun mumamo-addback-to-hook (hook removed)
   "Add to hook HOOK the list of functions in REMOVED."
-  ;;(message "addback: hook=%s, removed=%s" hook removed)
+  (msgtrc "addback: hook=%s, removed=%s" hook removed)
   (dolist (rem removed)
     ;;(message "add.rem=%s" rem)
-    (if (listp rem)
-        (add-hook hook (car rem) nil t)
-      (add-hook hook rem))))
+    ;; (if (listp rem)
+    ;;     (add-hook hook (car rem) nil t)
+    ;;   (add-hook hook rem))
+    (add-hook hook rem)
+    ))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Compare mumamo-irrelevant-buffer-local-vars
@@ -6222,14 +6226,23 @@ mode."
 ;;     ))
 ;; ;;(benchmark 1000 '(mumamo-testing-new))
 
-(defun mumamo-get-hook-value (hook remove)
+;;(mumamo-get-hook-value 'change-major-mode-hook nil t t)
+(defun mumamo-get-hook-value (hook remove local default)
   "Return hook HOOK value with entries in REMOVE removed.
-Remove also t. The value returned is a list of both local and
-default values."
-  (let ((value (append (symbol-value hook) (default-value hook) nil)))
+If both LOCAL and DEFAULT then remove also t.  The value returned
+is then a list of both local and default values.
+
+Otherwise return buffer local value if LOCAL and global default
+value if DEFAULT."
+  (let ((value (cond ((and local default)
+                      (append (symbol-value hook) (default-value hook) nil))
+                     (local (symbol-value hook))
+                     (default (default-value hook))
+                     (t (error "not implemented yet")))))
     (dolist (rem remove)
       (setq value (delq rem value)))
-    (delq t value)))
+    (when (and local default) (delq t value))
+    value))
 
 ;; FIX-ME: Clean up the different ways of surviving variables during
 ;; change of major mode.
@@ -6278,7 +6291,9 @@ Buffer must be narrowed to chunk when this function is called."
 
 (defun mumamo-set-major (major chunk)
   "Set major mode to MAJOR for mumamo."
-  (mumamo-msgfntfy "mumamo-set-major %s, %s" major (current-buffer))
+  (msgtrc "set-major BEG: after-change-major-mode-hook = glob=%s loc=%s" (default-value 'after-change-major-mode-hook) (when (local-variable-p 'after-change-major-mode-hook) after-change-major-mode-hook))
+  ;;(msgtrc "mumamo-set-major %s, %s" major (current-buffer))
+  ;;(mumamo-backtrace "mumamo-set-major")
   (mumamo-cancel-idle-set-major-mode)
   (remove-hook 'pre-command-hook 'mumamo-set-major-pre-command t)
   ;;(mumamo-backtrace "mumamo-set-major")
@@ -6303,13 +6318,10 @@ Buffer must be narrowed to chunk when this function is called."
         ;; Fix-me: It is not quire ok to use let-bound values here
         ;; since the major mode may add to the buffer local
         ;; value. This will be lost because of the let-bound value.
-        (change-major-mode-hook (mumamo-get-hook-value
-                                 'change-major-mode-hook
-                                 mumamo-change-major-mode-no-nos))
-        (old-default-change-major-mode-hook (default-value 'change-major-mode-hook))
-        (after-change-major-mode-hook (mumamo-get-hook-value
-                                       'after-change-major-mode-hook
-                                       mumamo-after-change-major-mode-no-nos))
+        ;;(change-major-mode-hook (mumamo-get-hook-value 'change-major-mode-hook mumamo-change-major-mode-no-nos t t))
+        ;;(old-default-change-major-mode-hook (default-value 'change-major-mode-hook))
+        ;;(after-change-major-mode-hook (mumamo-get-hook-value 'after-change-major-mode-hook mumamo-after-change-major-mode-no-nos t t))
+        ;;(old-default-after-change-major-mode-hook (default-value 'after-change-major-mode-hook))
         ;; Some major modes deactivates the mark, we do not want that:
         deactivate-mark
         ;; Font lock
@@ -6327,9 +6339,19 @@ Buffer must be narrowed to chunk when this function is called."
         )
     ;; We are not changing mode from font-lock's point of view, so do
     ;; not tell font-lock (let binding these hooks is probably not a
-    ;; good choice since they may contain other stuff too):
+    ;; good choice since they may contain other stuff too).  Remove
+    ;; some other stuff here too:
     (setq mumamo-removed-from-hook nil)
     (mumamo-remove-from-hook 'change-major-mode-hook mumamo-change-major-mode-no-nos)
+    (mumamo-remove-from-hook 'after-change-major-mode-hook mumamo-after-change-major-mode-no-nos)
+    ;;(set-default 'change-major-mode-hook (mumamo-get-hook-value 'change-major-mode-hook mumamo-change-major-mode-no-nos nil t))
+    (set (make-local-variable 'change-major-mode-hook)
+         (mumamo-get-hook-value 'change-major-mode-hook mumamo-change-major-mode-no-nos t nil))
+    ;;(set-default 'after-change-major-mode-hook (mumamo-get-hook-value 'after-change-major-mode-hook mumamo-after-change-major-mode-no-nos nil t))
+    (set (make-local-variable 'after-change-major-mode-hook)
+         (mumamo-get-hook-value 'after-change-major-mode-hook mumamo-after-change-major-mode-no-nos t nil))
+    (msgtrc "mumamo-removed-from-hook =%s" mumamo-removed-from-hook)
+    (msgtrc "set-major REM: after-change-major-mode-hook = glob=%s loc=%s" (default-value 'after-change-major-mode-hook) (when (local-variable-p 'after-change-major-mode-hook) after-change-major-mode-hook))
 
     ;; We can't run `change-major-mode-hook' the normal way. This runs
     ;; it with troublesome entries removed:
@@ -6428,6 +6450,7 @@ Buffer must be narrowed to chunk when this function is called."
                 (funcall major) ;; <-----------------------------------------------
                 (put 'font-lock-fontify-buffer-function 'permanent-local nil)
                 ;;(set-default 'change-major-mode-hook old-default-change-major-mode-hook)
+                ;;(set-default 'after-change-major-mode-hook old-default-after-change-major-mode-hook)
                 (when old-bf
                   (set (make-local-variable 'font-lock-fontify-buffer-function) old-bf))
                 ))
@@ -6477,11 +6500,16 @@ Buffer must be narrowed to chunk when this function is called."
 
     ;;;;;;;;;;;;;;;;
     ;; Restore per main major local variables
+    (msgtrc "set-major BK1: after-change-major-mode-hook = glob=%s loc=%s" (default-value 'after-change-major-mode-hook) (when (local-variable-p 'after-change-major-mode-hook) after-change-major-mode-hook))
+    (msgtrc "mumamo-removed-from-hook =%s" mumamo-removed-from-hook)
     (unless (mumamo-fun-eq major-mode (mumamo-main-major-mode))
       (dolist (saved per-main-major-local-vars-state)
         (set (make-local-variable (car saved)) (cdr saved))))
+    (msgtrc "set-major BK2: after-change-major-mode-hook = glob=%s loc=%s" (default-value 'after-change-major-mode-hook) (when (local-variable-p 'after-change-major-mode-hook) after-change-major-mode-hook))
+    (msgtrc "mumamo-removed-from-hook =%s" mumamo-removed-from-hook)
 
     (mumamo-addback-to-hooks)
+    (msgtrc "set-major ADD: after-change-major-mode-hook = glob=%s loc=%s" (default-value 'after-change-major-mode-hook) (when (local-variable-p 'after-change-major-mode-hook) after-change-major-mode-hook))
 
     (setq cursor-type old-cursor-type)
     (run-hooks 'mumamo-after-change-major-mode-hook)
@@ -6561,6 +6589,7 @@ Buffer must be narrowed to chunk when this function is called."
 
   ;; Fix-me: panic work around
   (setq font-lock-mode t)
+  (msgtrc "set-major END: after-change-major-mode-hook = glob=%s loc=%s" (default-value 'after-change-major-mode-hook) (when (local-variable-p 'after-change-major-mode-hook) after-change-major-mode-hook))
   )
 
 (defun mumamo-set-major-check-keymap ()
@@ -6882,8 +6911,7 @@ See also `mumamo-guess-multi-major'."
                                               (setq nn 0)
                                               (setq str (concat str "\n        ")))
                                             (setq nn (1+ nn))
-                                            (setq str (concat str (format "%-30s" (format "`%s'" c))))
-                                            )
+                                            (setq str (concat str (format "%-30s" (format "`%s'" c)))))
                                           chunks)
                                     str))
                         "")
@@ -7881,7 +7909,8 @@ this may change."
           rng-nxml-auto-validate-flag
           (nxhtml-mode-hook (mumamo-get-hook-value
                              'nxhtml-mode-hook
-                             '(html-imenu-setup)))
+                             '(html-imenu-setup)
+                             t t))
           ;;
           (n1-while 0))
       (when old-rng-validate-mode (rng-validate-mode -1))
