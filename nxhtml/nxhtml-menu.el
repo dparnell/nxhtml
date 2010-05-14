@@ -1239,7 +1239,7 @@
         (list 'menu-item "Find a Multi Major Mode"
               'mumamo-guess-multi-major))
       (define-key chunk-map [nxhtml-list-mumamo]
-        (list 'menu-item "List defined Multi Major Modes"
+        (list 'menu-item "List Defined Multi Major Modes"
               'mumamo-list-defined-multi-major-modes))
       (define-key chunk-map [nxhtml-chunks-separator2]
         (list 'menu-item "--" nil))

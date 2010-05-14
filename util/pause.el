@@ -73,7 +73,7 @@
 
 ;; DEBUG
 ;;(progn (setq pause-after-minutes 0.2) (setq pause-alpha-100-delay 5) (setq pause-extra-fun nil) (pause-mode -1))
-;;(setq pause-extra-fun 'pause-start-get-yoga-poses)
+;;(progn (setq pause-after-minutes 15) (setq pause-alpha-100-delay 30) (setq pause-extra-fun 'pause-start-get-yoga-poses) (pause-mode 1))
 ;;(pause-mode 1)
 (defcustom pause-after-minutes 15
   "Pause after this number of minutes."
