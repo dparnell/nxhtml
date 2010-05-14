@@ -6917,7 +6917,7 @@ See also `mumamo-list-defined-multi-major-modes'."
           (when (string-match-p regexp (symbol-name mm))
             (dolist (mc mm-chunks)
               (setq this-type nil)
-              (while (and pos (setq res (funcall mc pos pos (point-max))))
+              (while (and pos (setq res (funcall mc pos (point-max))))
                 (setq this-type t)
                 (setq pos (nth 1 res))
                 (setq mm-matches (1+ mm-matches)))

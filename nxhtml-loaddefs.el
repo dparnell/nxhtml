@@ -190,7 +190,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-menu-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp mumamo-switch-to-other-html)
-;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19436 3012))
+;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19436 5868))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -300,7 +300,7 @@ Show a HTML page with an overview of nXhtml.
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
 ;;;;;;  nxhtml-mode) "../nxhtml/nxhtml-mode" "nxhtml/nxhtml-mode.el"
-;;;;;;  (19435 38874))
+;;;;;;  (19436 5868))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 (web-autoload-require 'nxhtml-mode 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -378,7 +378,7 @@ This mode may be turned on automatically in two ways:
 ;;;;;;  smarty-nxhtml-mumamo-mode mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode
 ;;;;;;  mason-nxhtml-mumamo-mode django-nxhtml-mumamo-mode embperl-nxhtml-mumamo-mode
 ;;;;;;  nxhtml-mumamo-mode) "../nxhtml/nxhtml-mumamo" "nxhtml/nxhtml-mumamo.el"
-;;;;;;  (19435 36319))
+;;;;;;  (19436 5868))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 (web-autoload-require 'nxhtml-mumamo 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -489,7 +489,7 @@ The schemas will be enabled based on file name extensions
 ;;;***
 
 ;;;### (autoloads (rngalt-set-validation-header) "../nxhtml/rngalt"
-;;;;;;  "nxhtml/rngalt.el" (19435 31791))
+;;;;;;  "nxhtml/rngalt.el" (19436 5868))
 ;;; Generated autoloads from nxhtml/rngalt.el
 (web-autoload-require 'rngalt 'lp '(nxhtml-download-root-url nil) "nxhtml/rngalt" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -580,7 +580,7 @@ See `nxhtmlmaint-start-byte-compilation' for byte compiling.
 ;;;***
 
 ;;;### (autoloads (amrita-mode) "../related/amrita" "related/amrita.el"
-;;;;;;  (19435 10873))
+;;;;;;  (19436 5868))
 ;;; Generated autoloads from related/amrita.el
 (web-autoload-require 'amrita 'lp '(nxhtml-download-root-url nil) "related/amrita" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -691,7 +691,7 @@ Major mode for editing InnoSetup script files. Upon startup iss-mode-hook is run
 ;;;***
 
 ;;;### (autoloads (iss-mumamo-mode) "../related/iss-mumamo" "related/iss-mumamo.el"
-;;;;;;  (19435 12916))
+;;;;;;  (19436 27222))
 ;;; Generated autoloads from related/iss-mumamo.el
 (web-autoload-require 'iss-mumamo 'lp '(nxhtml-download-root-url nil) "related/iss-mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1720,7 +1720,7 @@ much about computation time as for entries in the menu bar.
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-mail-mode
 ;;;;;;  as-external-for-xhtml as-external) "as-external" "util/as-external.el"
-;;;;;;  (19436 6267))
+;;;;;;  (19436 8902))
 ;;; Generated autoloads from util/as-external.el
 (web-autoload-require 'as-external 'lp '(nxhtml-download-root-url nil) "util/as-external" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2634,7 +2634,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;;;;  mumamo-list-defined-multi-major-modes mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19436 7682))
+;;;;;;  (19436 41124))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2700,9 +2700,6 @@ major mode function:
 
 ** A little bit more technical description:
 
-The dividing of a buffer into chunks is done during fontification
-by `mumamo-get-chunk-at'.
-
 The name of the function is saved in in the buffer local variable
 `mumamo-multi-major-mode' when the function is called.
 
@@ -2731,18 +2728,16 @@ chunk division of the buffer.  They are tried in the order they
 appear here during the chunk division process.
 
 If you want to write new functions for chunk divisions then
-please see `mumamo-find-possible-chunk'.  You can perhaps also
+please see `mumamo-possible-chunk-forward'.  You can perhaps also
 use `mumamo-quick-chunk-forward' which is more easy-to-use
-alternative.  See also the file mumamo-fun.el where there are
-many routines for chunk division.
+alternative.  See also the file mumamo-chunks.el where there are
+many routines for chunk division and the file mumamo-fun where
+many multi major modes are defined.
 
 When you write those new functions you may want to use some of
-the functions for testing chunks:
+the functions for testing chunks in the file
 
- `mumamo-test-create-chunk-at'  `mumamo-test-create-chunks-at-all'
- `mumamo-test-easy-make'        `mumamo-test-fontify-region'
-
-These are in the file mumamo-test.el.
+   `nxhtml/tests/mumamo-test.el'
 
 \(fn FUN-SYM SPEC-DOC CHUNKS)" nil (quote macro))
 
@@ -2795,7 +2790,7 @@ Return t if VALUE is a multi major mode function.
 ;;;***
 
 ;;;### (autoloads (mumamo-define-html-file-wide-keys) "mumamo-chunks"
-;;;;;;  "util/mumamo-chunks.el" (19436 7314))
+;;;;;;  "util/mumamo-chunks.el" (19436 27222))
 ;;; Generated autoloads from util/mumamo-chunks.el
 (web-autoload-require 'mumamo-chunks 'lp '(nxhtml-download-root-url nil) "util/mumamo-chunks" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2818,7 +2813,7 @@ Define keys in multi major mode keymap for html files.
 ;;;;;;  ssjs-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19435 36470))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19436 27222))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3078,7 +3073,7 @@ Color up digits three by three.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
 ;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19432 12408))
+;;;;;;  "util/ourcomments-util.el" (19436 27222))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3507,7 +3502,7 @@ Return t if VALUE is a major mode function.
 ;;;***
 
 ;;;### (autoloads (pause-start-in-new-emacs pause-mode pause) "pause"
-;;;;;;  "util/pause.el" (19435 16018))
+;;;;;;  "util/pause.el" (19436 27222))
 ;;; Generated autoloads from util/pause.el
 (web-autoload-require 'pause 'lp '(nxhtml-download-root-url nil) "util/pause" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4418,7 +4413,7 @@ accept it or skip it.
 ;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
 ;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
 ;;;;;;  "util/org-panel.el" "util/rxi.el" "util/tipframe.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19436 8838 484000))
+;;;;;;  "web-autoload.el") (19436 41341 781000))
 
 ;;;***
 
