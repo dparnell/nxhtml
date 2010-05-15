@@ -1516,7 +1516,12 @@ POS is where to start search and MAX is where to stop."
                             (read (current-buffer))
                           (goto-char here)))))
         (setq exc-mode (mumamo-org-mode-from-spec exc-mode))
-        (list where exc-mode)))))
+        (let ((start where)
+              (here (point)))
+          (goto-char where)
+          (setq start (1+ (line-end-position)))
+          (goto-char here)
+          (list start exc-mode))))))
 
 (defun mumamo-search-fw-org-src-end (pos max)
   "Helper for `mumamo-chunk-org-src'.
