@@ -26,3 +26,4 @@ A: They are here now!
 
 Hm, org full header lines are broken, why?
 Does not seem related to mumamo.
+No, it has been fixed, now, org-mode bug.
