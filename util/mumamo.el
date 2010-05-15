@@ -1604,6 +1604,8 @@ somewhat visible."
      ecmascript-mode)
     (asp-vb-mode
      visual-basic-mode)
+    (asp-csharp-mode
+     csharp-mode)
     ;;(css-mode fundamental-mode)
     (javascript-mode
      js-mode ;; Not autoloaded in the pretest
@@ -6964,12 +6966,14 @@ See also `mumamo-list-defined-multi-major-modes'."
       (setq matches (sort matches (lambda (a b)
                                     (> (nth 1 a) (nth 1 b)))))
       ;;(when (nth 5 matches) (setcdr (nthcdr 5 matches) nil))
-      (setq matches (mapcar (lambda (rec)
-                              (let* ((mm (nth 0 rec))
-                                     (weight (nth 1 rec))
-                                     (display (format "%s (score %s)" mm weight)))
-                                `(,display ,mm)))
-                            matches))
+      (let ((num ?A))
+        (setq matches (mapcar (lambda (rec)
+                                (let* ((mm (nth 0 rec))
+                                       (weight (nth 1 rec))
+                                       (display (format "%c %s (score %s)" num mm weight)))
+                                  (setq num (1+ num))
+                                  `(,display ,mm)))
+                              matches)))
       ;;(message "matches=%S" matches)
       (if (not matches)
           (message "No matching multi major modes found")

@@ -1345,57 +1345,60 @@ This also covers inlined style and javascript."
 (make-variable-buffer-local 'mumamo-asp-default-major)
 (put 'mumamo-asp-default-major 'permanent-local t)
 
+;; Fix-me: Format?
+;;<%@ Language="C#" %>
+;;<%@ Page Language="C#" %>
+;;<%@ Control... %>
+
 (defconst mumamo-asp-lang-marker
-  (rx "<%@"
-      (0+ space)
-      "language"
-      (0+ space)
-      "="
-      (0+ space)
-      "\""
-      (submatch (1+ (not (any "\""))))
-      "\""
-      (0+ space)))
+  (rx "<%@" (* space) "language" (* space) "=" (* space)
+      "\"" (submatch (1+ (not (any "\"")))) "\""))
 
-(defun mumamo-search-fw-exc-start-jsp (pos max)
-  ;; fix-me
-  )
-(defun mumamo-chunk-asp (pos max)
-  "Find <% ... %>.  Return range and 'asp-js-mode.
-See `mumamo-possible-chunk-forward' for POS and MAX."
-  ;; Fix-me: this is broken!
-  (mumamo-possible-chunk-forward pos max
-                                 'mumamo-search-fw-exc-start-asp
-                                 'mumamo-search-fw-exc-end-jsp))
+(defconst mumamo-asp-page-decl-marker
+  (rx "<%@" (* space) (or "Page" "Control")))
 
+(defvar mumamo-asp-languages-assoc
+  '(("javascript" asp-js-mode)
+    ("vbscript" asp-vb-mode)
+    ("vb" asp-vb-mode)
+    ("c#" asp-csharp-mode))
+  "Association between language markers and major mode spec.")
 
-;;;; asp <% ...>
+;;(mumamo-asp-lang-to-major-spec "C#")
+;;(mumamo-asp-lang-to-major-spec "C")
+(defun mumamo-asp-lang-to-major-spec (lang)
+  "Translate language marker LANG to a major mode spec.
+Note that the spec may be translated further by
+`mumamo-major-modes'."
+  (setq lang (downcase lang))
+  (let ((rec (assoc lang mumamo-asp-languages-assoc)))
+    (when rec (nth 1 rec))))
 
 (defun mumamo-chunk-asp% (pos max)
-  "Find <% ... %>.  Return range and 'asp-js-mode or 'asp-vb-mode.
+  "Find chunk <% ... %>.
+If this is a language specifier use comment mode for the chunk
+and set `mumamo-asp-default-major' to the specified language.
+Otherwise use `mumamo-asp-default-major' for the chunk.
+
 See `mumamo-possible-chunk-forward' for POS and MAX."
-  (let* ((chunk (mumamo-quick-chunk-forward pos max "<%" "%>" 'borders 'java-mode))
+  (let* ((chunk (mumamo-quick-chunk-forward pos max "<%" "%>" 'borders 'fundamental-mode))
          (beg (nth 0 chunk))
-         (here (point))
          glang)
     (when chunk
       (goto-char beg)
-      (if (looking-at mumamo-asp-lang-marker)
-          (progn
-            (setq glang (downcase (match-string 1)))
-            (cond
-             ((string= glang "javascript")
-              (setq mumamo-asp-default-major 'asp-js-mode))
-             ((string= glang "vbscript")
-              (setq mumamo-asp-default-major 'asp-vb-mode))
-             )
-            (setcar (nthcdr 2 chunk) 'mumamo-comment-mode))
-        (setcar (nthcdr 2 chunk) mumamo-asp-default-major))
+      (cond ((looking-at mumamo-asp-lang-marker)
+             (setq glang (match-string-no-properties 1))
+             (setq mumamo-asp-default-major (mumamo-asp-lang-to-major-spec glang))
+             (setcar (nthcdr 2 chunk) 'mumamo-comment-mode))
+            ((looking-at mumamo-asp-page-decl-marker)
+             (setcar (nthcdr 2 chunk) 'mumamo-comment-mode))
+            (t
+             (setcar (nthcdr 2 chunk) mumamo-asp-default-major)))
       chunk)))
 
 ;;;; asp <script ...>
 
-(defconst mumamo-asp-script-tag-start-regex
+(defconst mumamo-asp-server-script-tag-start-regex
   (rx "<script"
       space
       (0+ (not (any ">")))
@@ -1403,53 +1406,42 @@ See `mumamo-possible-chunk-forward' for POS and MAX."
       (0+ space)
       "="
       (0+ space)
-      ?\"
-      ;;(or "text" "application")
-      ;;"/"
-      ;;(or "javascript" "ecmascript")
-      ;; "text/javascript"
-      (submatch
-       (or "javascript" "vbscript"))
-      ?\"
+      (or
+       (seq ?\" (submatch (+ (not (any "\""))) (? "#")) ?\")
+       (seq ?\' (submatch (+ (not (any "\""))) (? "#")) ?\'))
       (0+ (not (any ">")))
-      ">"
-      ;; FIX-ME: Commented out because of bug in Emacs
-      ;;
-      ;;(optional (0+ space) "<![CDATA[" )
-      ))
+      ">"))
 
 (defun mumamo-asp-search-fw-exc-start-inlined-script (pos max)
   "Helper for `mumamo-chunk-inlined-script'.
 POS is where to start search and MAX is where to stop."
-  (goto-char (1+ pos))
-  (skip-chars-backward "^<")
-  ;; Handle <![CDATA[
-  (when (and
-         (eq ?< (char-before))
-         (eq ?! (char-after))
-         (not (bobp)))
-    (backward-char)
-    (skip-chars-backward "^<"))
-  (unless (bobp)
-    (backward-char 1))
-  (let ((exc-start (search-forward "<script" max t))
-        (exc-mode 'asp-vb-mode)
-        (lang "vbscript"))
-    (when exc-start
-      (goto-char (- exc-start 7))
-      (when (looking-at mumamo-asp-script-tag-start-regex)
-        (goto-char (match-end 0))
-        (setq lang (downcase (match-string-no-properties 1)))
-        (cond
-         ((string= lang "javascript")
-          (setq exc-mode 'asp-js-mode))
-         ((string= lang "vbscript")
-          (setq exc-mode 'asp-vb-mode)))
-        (list (point) exc-mode)
-        ))))
+  (let ((case-fold-search t))
+    ;; Is this fix needed any more???
+    (goto-char (1+ pos))
+    (skip-chars-backward "^<")
+    ;; Handle <![CDATA[
+    (when (and
+           (eq ?< (char-before))
+           (eq ?! (char-after))
+           (not (bobp)))
+      (backward-char)
+      (skip-chars-backward "^<"))
+    (unless (bobp)
+      (backward-char 1))
+    (let ((exc-start (search-forward "<script" max t))
+          exc-mode
+          lang)
+      (when exc-start
+        (goto-char (- exc-start 7))
+        (when (looking-at mumamo-asp-server-script-tag-start-regex)
+          (goto-char (match-end 0))
+          (setq lang (match-string-no-properties 1))
+          (setq exc-mode (mumamo-asp-lang-to-major-spec lang))
+          (when exc-mode
+            (list (point) exc-mode)))))))
 
-(defun mumamo-asp-chunk-inlined-script (pos max)
-  "Find <script language=...  runat=...>...</script>.  Return 'asp-js-mode.
+(defun mumamo-chunk-asp-server-script (pos max)
+  "Find <script language=...  runat=...>...</script>.
 See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-possible-chunk-forward pos max
                                  'mumamo-asp-search-fw-exc-start-inlined-script
@@ -1461,7 +1453,7 @@ See `mumamo-possible-chunk-forward' for POS and MAX."
 This also covers inlined style and javascript."
   ("ASP Html Family" html-mode
    (mumamo-chunk-asp%
-    mumamo-asp-chunk-inlined-script
+    mumamo-chunk-asp-server-script
     mumamo-chunk-inlined-script
     mumamo-chunk-style=
     mumamo-chunk-onjs=
@@ -1471,10 +1463,7 @@ This also covers inlined style and javascript."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Org-mode
 
-(defcustom mumamo-org-submodes
-  '(
-    (ditaa picture-mode)
-    )
+(defcustom mumamo-org-submodes '((ditaa picture-mode))
   "Alist for conversion of org #+BEGIN_SRC specifier to major mode.
 Works kind of like `mumamo-major-modes'.
 

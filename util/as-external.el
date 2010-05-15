@@ -85,6 +85,8 @@
 
 (defcustom as-external-alist
   '(
+    ("" as-external-check-contents)
+    ("/itsalltext/.*\.el'" as-external-for-el-files)
     ("/itsalltext/.*wiki" as-external-for-wiki)
     ("/itsalltext/.*mail" as-external-for-mail-mode)
     ("/itsalltext/"       as-external-for-xhtml)
@@ -92,21 +94,18 @@
   "List to determine setup if Emacs is used as an external Editor.
 Element in this list should have the form
 
-  \(FILE-REGEXP BUFFER-SETUP)
+  \(FILE-REGEXP BUFFER-SETUP-FUN)
 
 where FILE-REGEXP should be a regular expression to match
-`buffer-file-name'. If it matches then BUFFER-SETUP should be
-called in the buffer.
+`buffer-file-name'.  BUFFER-SETUP-FUN is a function to be called
+in the buffer containting the text to edit for setting up things.
 
-* Tip when using Firefox's add-on It's All Text: It looks like
-  the file name used will be constructed from the host url. For
-  example if your are editing something on
-  http://www.emacswiki.org/ the file name may be something like
-  'www.emacswiki.org.283b1y212e.html'.
+BUFFER-SETUP-FUN should return non-nil if it can setup for
+editing.  If our special setup for `server-window' should not be
+used the value should be 'use-default-server-window.
 
-
-The list is processed by `as-external-setup'. Note that the first
-match is used!
+The list is processed by `as-external-setup'.
+The matching functions are called until one returns non-nil.
 
 The default entries in this list supports for Firefox addon It's
 All Text:
@@ -118,7 +117,15 @@ All Text:
 
 - `as-external-for-wiki', for mediawiki.
 
-See also `as-external-mode'."
+- `as-external-for-el-files', for Emacs lisp files.
+
+See also `as-external-mode'.
+
+* Tip when using Firefox's add-on It's All Text: It looks like
+  the file name used will be constructed from the host url. For
+  example if your are editing something on
+  http://www.emacswiki.org/ the file name may be something like
+  'www.emacswiki.org.283b1y212e.html'."
   :type '(repeat
           (list (choice (variable :tag "Regexp variable")
                         regexp)
@@ -167,7 +174,8 @@ emacsw32-eol."
     (when (fboundp 'html-write-mode) (html-write-mode 1))
     (when (boundp 'emacsw32-eol-ask-before-save)
       (make-local-variable 'emacsw32-eol-ask-before-save)
-      (setq emacsw32-eol-ask-before-save nil))))
+      (setq emacsw32-eol-ask-before-save nil)))
+  t)
 
 
 (defvar as-external-mail-mode-comment-pattern "^>.*$"
@@ -205,16 +213,37 @@ See also `as-external-mode'."
        '((as-external-mail-mode-font-lock-keywords) nil))
   (setq fill-column 90)
   (mlinks-mode 1)
-  (wrap-to-fill-column-mode 1))
+  (wrap-to-fill-column-mode 1)
+  t)
+
+;;;###autoload
+(defun as-external-check-contents ()
+  "Try to guess the file contents."
+  (cond
+   ((equal ";;" (buffer-substring-no-properties 1 3))
+    (as-external-for-el-files))
+   ;; We don't know about this, let others handle it.
+   (t nil)))
+
+;;;###autoload
+(defun as-external-for-el-files ()
+  "Setup for Firefox addon It's All Text to edit MediaWikis."
+  (interactive)
+  (emacs-lisp-mode)
+  ;; Use default `server-window' since our own setup is for message
+  ;; editing mainly.
+  'use-default-server-window)
 
 ;;;###autoload
 (defun as-external-for-wiki ()
   "Setup for Firefox addon It's All Text to edit MediaWikis."
   (interactive)
-  (require 'wikipedia-mode nil t)
-  (if (not (featurep 'wikipedia-mode))
-      (as-external-fall-back "Can't find file wikipedia-mode.el")
-    (wikipedia-mode)))
+  ;;(require 'wikipedia-mode nil t)
+  (require 'mediawiki nil t)
+  (if (not (featurep 'mediawiki))
+      (as-external-fall-back "Can't find file mediawiki.el")
+    (mediawiki-mode))
+  t)
 
 
 ;;;###autoload
@@ -262,7 +291,7 @@ This is done by checking `as-external-alist'."
 (defun as-external-server-window-fix-frames ()
   (condition-case err
       (with-current-buffer as-external-last-buffer
-        (unless (and (featurep pause)
+        (unless (and (featurep 'pause)
                      (buffer-live-p pause-buffer)
                      (not (pause-use-topmost)))
           (remove-hook 'pause-break-exit-hook 'as-external-server-window-fix-frames)
@@ -293,19 +322,22 @@ This is done by checking `as-external-alist'."
 (defun as-external-setup-1 ()
   ;; Fix-me: How does one know if the file names are case sensitive?
   (unless (when (boundp 'nowait) nowait) ;; dynamically bound in `server-visit-files'
-    (unless server-window
-      ;; `server-goto-toplevel' has been done here.
-      ;; Setup to use a new frame
-      (setq server-window 'as-external-server-window))
-    (catch 'done
-      (dolist (rec as-external-alist)
-        (let ((file-regexp (car rec))
-              (setup-fun   (cadr rec)))
-          (when (symbolp file-regexp)
-            (setq file-regexp (symbol-value file-regexp)))
-          (when (string-match file-regexp (buffer-file-name))
-            (funcall setup-fun)
-            (throw 'done t)))))))
+    (msgtrc "as-external-setup-t cb=%S" (current-buffer))
+    (let* ((use-server-window
+            (catch 'fun
+              (dolist (rec as-external-alist)
+                (let ((file-regexp (car rec))
+                      (setup-fun   (cadr rec)))
+                  (when (symbolp file-regexp)
+                    (setq file-regexp (symbol-value file-regexp)))
+                  (when (string-match file-regexp (buffer-file-name))
+                    (let ((ret (funcall setup-fun)))
+                      (when ret (throw 'fun ret)))))))))
+      (unless (or server-window
+                 (eq use-server-window 'use-default-server-window))
+        ;; `server-goto-toplevel' has been done here.
+        ;; Setup to use a new frame
+        (setq server-window 'as-external-server-window)))))
 
 (provide 'as-external)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
