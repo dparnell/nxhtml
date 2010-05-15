@@ -1,11 +1,15 @@
 
 <%@LANGUAGE="VBScript"%>
 
+<SCRIPT language="C#" RUNAT="Server">
+
+</script>
+
 <SCRIPT LANGUAGE="JavaScript" RUNAT="Server">
 function JSGreeting()
-	{
-	return "Greetings from a JavaScript Function";
-	}
+{
+    return "Greetings from a JavaScript Function";
+}
 </SCRIPT>
 
 <SCRIPT LANGUAGE="VBScript" RUNAT="Server">
@@ -32,9 +36,9 @@ function add(x,y)
 	return result;	
 	}
 
-Response.Write("<HTML>\r")
-Response.Write(JSGreeting() + "<BR>\r")
-Response.Write(VBGreeting() + "<BR>\r")
-Response.Write(c + " <BR>\r")
-Response.Write("</HTML>\r")
+        Response.Write("<HTML>\r")
+        Response.Write(JSGreeting() + "<BR>\r")
+        Response.Write(VBGreeting() + "<BR>\r")
+        Response.Write(c + " <BR>\r")
+        Response.Write("</HTML>\r")
 %>
