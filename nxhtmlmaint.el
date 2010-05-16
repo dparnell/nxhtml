@@ -316,7 +316,9 @@ This will also update the file nxhtml-loaddefs.el.
 You must restart Emacs to use the byte compiled files.
 
 If for some reason the byte compiled files does not work you can
-remove then with `nxhtmlmaint-byte-uncompile-all'."
+remove then with `nxhtmlmaint-byte-uncompile-all'.
+
+See also `nxhtmlmaint-byte-recompile'"
   (interactive)
   ;; Fix-me: This message and redisplay seems only necessary sometimes.
   (message "Preparing byte compilation of nXhtml ...") (redisplay t)
@@ -385,7 +387,9 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
 
 ;;;###autoload
 (defun nxhtmlmaint-byte-recompile ()
-  "Recompile or compile all nXhtml files in current Emacs."
+  "Recompile or compile all nXhtml files in current Emacs.
+Byte compile all elisp libraries whose .el files are newer their
+.elc files."
   (interactive)
   (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir nil nil t)
   (web-vcs-message-with-face 'web-vcs-gold "Byte recompiling nXhtml ready"))

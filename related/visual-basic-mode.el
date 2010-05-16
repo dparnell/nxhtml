@@ -125,7 +125,7 @@
 ;;           add command visual-basic-insert-item
 
 ;; Lennart Borgman:
-;; 2010-05-15
+;; 2010-05-16
 ;; - Minor corrections
 ;;
 ;; Notes:
@@ -435,8 +435,9 @@ Commands:
   (setq local-abbrev-table visual-basic-mode-abbrev-table)
   (if visual-basic-capitalize-keywords-p
       (progn
-        (make-local-variable 'pre-abbrev-expand-hook)
-        (add-hook 'pre-abbrev-expand-hook 'visual-basic-pre-abbrev-expand-hook)
+        ;;(make-local-variable 'pre-abbrev-expand-hook)
+        ;;(add-hook 'pre-abbrev-expand-hook 'visual-basic-pre-abbrev-expand-hook)
+        (add-hook 'abbrev-expand-functions 'visual-basic-abbrev-expand-function nil t)
         (abbrev-mode 1)))
 
   (make-local-variable 'comment-start)
@@ -543,11 +544,13 @@ Commands:
            (null (nth 4 list))))))      ; inside comment
 
 
-(defun visual-basic-pre-abbrev-expand-hook ()
+;;(defun visual-basic-pre-abbrev-expand-hook ()
+(defun visual-basic-abbrev-expand-function (expand-fun)
   ;; Allow our abbrevs only in a code context.
   (setq local-abbrev-table
         (if (visual-basic-in-code-context-p)
-            visual-basic-mode-abbrev-table)))
+            visual-basic-mode-abbrev-table))
+  (call expand-fun))
 
 
 (defun visual-basic-newline-and-indent (&optional count)

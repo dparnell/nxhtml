@@ -116,6 +116,7 @@ order."
   (add-to-list 'auto-mode-alist '("\\.mhtml\\'"    . mason-nxhtml-mumamo-mode))
   (add-to-list 'auto-mode-alist '("\\.amrita\\'"   . amrita-mumamo-mode))
   (add-to-list 'auto-mode-alist '("\\.tpl\\'"      . smarty-html-mumamo-mode))
+  (add-to-list 'auto-mode-alist '("\\.lclj\\'"     . latex-clojure-mumamo-mode))
 
   ;; Add html-mumamo style entry if there is an nxhtml-mumamo style entry.
   (save-match-data

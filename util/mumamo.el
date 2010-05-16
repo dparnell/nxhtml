@@ -5287,7 +5287,13 @@ Turn on `debug-on-error' unless NO-DEBUG is nil."
         )
     ))
 
-(defvar mumamo-has-bug3467 (mumamo-check-has-bug3467 nil))
+;; Fix-me: enable check again later!
+(defvar mumamo-has-bug3467
+  (when (or (>= 23 emacs-major-version)
+            (time-less-p emacs-build-time (encode-time 0 0 0 15 5 2010)))
+    (let ((has-it (mumamo-check-has-bug3467 nil)))
+      (message "Running test for Bug 3467 => %s"
+               (if has-it "FAILED" "PASSED")))))
 
 (defun mumamo-emacs-start-bug3467-timer-if-needed ()
   "Work around for Emacs bug 3467. The only one I have found."

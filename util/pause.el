@@ -213,7 +213,7 @@ frame is otherwise deleted between pauses."
 
 (defcustom pause-img-dir pause-default-img-dir
   "Image directory for pause.
-A random image is choosen from this directory for pauses."
+A random image is chosen from this directory for pauses."
   :type 'directory
   :group 'pause)
 
@@ -236,13 +236,13 @@ A random image is choosen from this directory for pauses."
   "Give you another minute ...
 Start main timer with delay `pause-1-minute-delay'."
   (pause-start-timer-1 pause-1-minute-delay)
-  (message (propertize " OK, I will come back in a minute! -- greatings from pause"
+  (message (propertize " OK, I will come back in a minute! -- greetings from pause"
                        'face 'pause-message-face)))
 
 (defun pause-save-me ()
   "Start main timer and give a message."
   (pause-start-timer)
-  (message (propertize " OK, I will save you again in %d minutes! -- greatings from pause "
+  (message (propertize " OK, I will save you again in %d minutes! -- gratings from pause "
                        'face 'pause-message-face)
            pause-after-minutes))
 
@@ -806,7 +806,7 @@ interrupted."
   "Start `pause-mode' with interval AFTER-MINUTES.
 This bypasses `pause-only-when-server-mode'.
 
-You can use this funciton to start a separate Emacs process that
+You can use this function to start a separate Emacs process that
 handles pause, for example like this if you want a pause every 15
 minutes:
 

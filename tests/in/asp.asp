@@ -1,5 +1,6 @@
 
 <%@LANGUAGE="VBScript"%>
+<%@ Page LANGUAGE="javascript"%>
 
 <SCRIPT language="C#" RUNAT="Server">
 
@@ -30,15 +31,15 @@ c += " (Two numbers are added by JavaScript, "
 c += "and then formatted into currency by VBScript.)"
 
 function add(x,y)
-	{
-	result = x + y;
-	result = toDollars(result);
-	return result;	
-	}
+{
+    result = x + y;
+    result = toDollars(result);
+    return result;
+}
 
-        Response.Write("<HTML>\r")
-        Response.Write(JSGreeting() + "<BR>\r")
-        Response.Write(VBGreeting() + "<BR>\r")
-        Response.Write(c + " <BR>\r")
-        Response.Write("</HTML>\r")
+Response.Write("<HTML>\r")
+Response.Write(JSGreeting() + "<BR>\r")
+Response.Write(VBGreeting() + "<BR>\r")
+Response.Write(c + " <BR>\r")
+Response.Write("</HTML>\r")
 %>
