@@ -190,7 +190,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-menu-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp mumamo-switch-to-other-html)
-;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19436 5868))
+;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19440 496))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -545,7 +545,7 @@ Show xhtml reference for tag name at or before point.
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-byte-recompile
 ;;;;;;  nxhtmlmaint-start-byte-compilation) "../nxhtmlmaint" "nxhtmlmaint.el"
-;;;;;;  (19378 49412))
+;;;;;;  (19439 20781))
 ;;; Generated autoloads from nxhtmlmaint.el
 (web-autoload-require 'nxhtmlmaint 'lp '(nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -562,10 +562,14 @@ You must restart Emacs to use the byte compiled files.
 If for some reason the byte compiled files does not work you can
 remove then with `nxhtmlmaint-byte-uncompile-all'.
 
+See also `nxhtmlmaint-byte-recompile'
+
 \(fn)" t nil)
 
 (nxhtml-autoload 'nxhtmlmaint-byte-recompile `(lp '(nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir) "\
 Recompile or compile all nXhtml files in current Emacs.
+Byte compile all elisp libraries whose .el files are newer their
+.elc files.
 
 \(fn)" t nil)
 
@@ -593,7 +597,7 @@ A major mode for editing Amrita files.
 ;;;***
 
 ;;;### (autoloads (csharp-mode csharp-mode-hook) "../related/csharp-mode"
-;;;;;;  "related/csharp-mode.el" (19412 27326))
+;;;;;;  "related/csharp-mode.el" (19439 2878))
 ;;; Generated autoloads from related/csharp-mode.el
 (web-autoload-require 'csharp-mode 'lp '(nxhtml-download-root-url nil) "related/csharp-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -612,8 +616,9 @@ support C#.
 The hook `c-mode-common-hook' is run with no args at mode
 initialization, then `csharp-mode-hook'.
 
-This mode will automatically add a regexp for Csc.exe error and warning
-messages to the `compilation-error-regexp-alist'.
+This mode will automatically add a symbol and regexp to the
+`compilation-error-regexp-alist' and `compilation-error-regexp-alist-alist'
+respectively, for Csc.exe error and warning messages.
 
 Key bindings:
 \\{csharp-mode-map}
@@ -831,7 +836,7 @@ Major mode for editing PHP code.
 ;;;***
 
 ;;;### (autoloads (smarty-mode smarty) "../related/smarty-mode" "related/smarty-mode.el"
-;;;;;;  (19235 1650))
+;;;;;;  (19438 60940))
 ;;; Generated autoloads from related/smarty-mode.el
 (web-autoload-require 'smarty-mode 'lp '(nxhtml-download-root-url nil) "related/smarty-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -851,44 +856,27 @@ Smarty-Mode is a mode allowing easy edit of Smarty templates:
 highlight, templates, navigation into source files...
 
 
-
 Features (new features in bold) :
 
    * Completion
-
    * Customizable
-
    * Highlight
-
    * Menu
-
    * Stuttering
-
    * Templates
         - Built-in Functions
-
         - User Functions
-
         - Variable Modifiers
-
         - Plugin (Functions)
              * BlockRepeatPlugin
-
              * ClipCache
-
              * Smarty Formtool
-
              * Smarty Paginate
-
              * Smarty Validate
-
         - Plugin (Variable Modifiers)
              * AlternativeDateModifierPlugin
-
              * B2Smilies
-
              * BBCodePlugin
-
         - Fonctions Non-Smarty
 
 
@@ -902,9 +890,9 @@ This manual describes Smarty Mode version 0.0.5.
 ================
 
 Smarty Mode is a XEmacs major mode that needs the following
-software/packages:
+software/packages (all are included in Emacs 23):
 
-   * XEmacs (http://www.xemacs.org/).
+   * GNU Emacs or XEmacs (http://www.xemacs.org/).
 
    * `font-lock' mode generaly installed with XEmacs.
 
@@ -1348,7 +1336,7 @@ Major mode for editing Template Toolkit files.
 ;;;***
 
 ;;;### (autoloads (visual-basic-mode) "../related/visual-basic-mode"
-;;;;;;  "related/visual-basic-mode.el" (19235 1650))
+;;;;;;  "related/visual-basic-mode.el" (19439 16634))
 ;;; Generated autoloads from related/visual-basic-mode.el
 (web-autoload-require 'visual-basic-mode 'lp '(nxhtml-download-root-url nil) "related/visual-basic-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1361,115 +1349,6 @@ Commands:
 \\{visual-basic-mode-map}
 
 \(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads (wikipedia-draft-buffer wikipedia-draft-page wikipedia-draft
-;;;;;;  wikipedia-mode) "../related/wikipedia-mode" "related/wikipedia-mode.el"
-;;;;;;  (19277 65356))
-;;; Generated autoloads from related/wikipedia-mode.el
-(web-autoload-require 'wikipedia-mode 'lp '(nxhtml-download-root-url nil) "related/wikipedia-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
-
-
-(nxhtml-autoload 'wikipedia-mode `(lp '(nxhtml-download-root-url nil) "related/wikipedia-mode" nxhtml-install-dir) "\
-Major mode for editing wikimedia style wikis.
-Major mode for editing articles written in the markup language
-used by Wikipedia, the free on-line
-encyclopedia (see URL `http://www.wikipedia.org').
-
-There are several ways to use wikipedia-mode:
-
-- You can simply cut and paste articles between Emacs and your
-  web browser's text box.
-- If you are using Firefox you can use the It's All Text add-on
-  for Firefox.
-- You can use MozEx, a Mozilla/Firefox web browser extension that
-  allows you to call Emacs from a text
-  box (see URL `http://mozex.mozdev.org/').
-- Another way is to use the PERL script ee-helper, which allows
-  you to up and download wiki texts.
-
-Wikipedia articles are usually unfilled: newline characters are not
-used for breaking paragraphs into lines. Unfortunately, Emacs does not
-handle word wrapping yet. As a workaround, wikipedia-mode turns on
-longlines-mode automatically. In case something goes wrong, the
-following commands may come in handy:
-
-\\[wikipedia-fill-article] fills the buffer.
-\\[wikipedia-unfill-article] unfills the buffer.
-Be warned that function can be dead  slow, better use wikipedia-unfill-paragraph-or-region.
-\\[wikipedia-unfill-paragraph-or-region] unfills the paragraph
-\\[wikipedia-unfill-paragraph-simple] doehe same but simpler.
-
-
-
-The following commands put in markup structures.
-
-\\[wikipedia-insert-bold-italic] bold+italic
-\\[wikipedia-insert-bold] bold text
-\\[wikipedia-insert-italics] italics
-\\[wikipedia-insert-nowiki] no wiki markup
-\\[wikipedia-insert-link-wiki] inserts a link
-
-The following commands are also defined:
-\\[wikipedia-insert-user] inserts user name
-\\[wikipedia-insert-signature] inserts ~~~~
-\\[wikipedia-insert-enumerate] inserts enumerate type structures
-\\[wikipedia-insert-itemize] inserts itemize type structures
-\\[wikipedia-insert-hline] inserts a hline
-
-The draft functionality
-\\[wikipedia-draft]
-\\[wikipedia-draft-region]
-\\[wikipedia-draft-view-draft]
-\\[wikipedia-draft-page]
-\\[wikipedia-draft-buffer]
-
-Replying and sending functionality
-\\[wikipedia-reply-at-point-simple]
-\\[wikipedia-draft-reply]
-
-
-The register functionality
-\\[wikipedia-copy-page-to-register]
-\\[defun wikipedia-insert-page-to-register]
-
-
-Some simple editing commands.
-\\[wikipedia-enhance-indent]
-\\[wikipedia-yank-prefix]
-\\[wikipedia-unfill-paragraph-or-region]
-
-
-
-\\[wikipedia-terminate-paragraph]     starts a new list item or paragraph in a context-aware manner.
-
-\(fn)" t nil)
-
-(nxhtml-autoload 'wikipedia-draft `(lp '(nxhtml-download-root-url nil) "related/wikipedia-mode" nxhtml-install-dir) "\
-Open a temporary buffer in wikipedia mode for editing an
- wikipedia draft, which an arbitrary piece of data. After
- finishing the editing either use \\[wikipedia-draft-buffer] to
- send the data into the wikipedia-draft-data-file, or send the
- buffer using `wikipedia-draft-send-to-mozex' and insert it later
- into a wikipedia article.
-
-\(fn)" t nil)
-
-(nxhtml-autoload 'wikipedia-draft-page `(lp '(nxhtml-download-root-url nil) "related/wikipedia-mode" nxhtml-install-dir) "\
-Not documented
-
-\(fn)" t nil)
-
-(nxhtml-autoload 'wikipedia-draft-buffer `(lp '(nxhtml-download-root-url nil) "related/wikipedia-mode" nxhtml-install-dir) "\
-Wikipedia-draft-buffer sends the contents of the current (temporary)
-buffer to the wikipedia-draft-buffer, see the variable
-wikipedia-draft-data-file.
-
-\(fn)" t nil)
-
-(defvar wikipedia-draft-send-archive t "\
-*Archive the reply.")
 
 ;;;***
 
@@ -1718,9 +1597,9 @@ much about computation time as for entries in the menu bar.
 
 ;;;***
 
-;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-mail-mode
-;;;;;;  as-external-for-xhtml as-external) "as-external" "util/as-external.el"
-;;;;;;  (19436 8902))
+;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-el-files
+;;;;;;  as-external-check-contents as-external-for-mail-mode as-external-for-xhtml
+;;;;;;  as-external) "as-external" "util/as-external.el" (19438 53286))
 ;;; Generated autoloads from util/as-external.el
 (web-autoload-require 'as-external 'lp '(nxhtml-download-root-url nil) "util/as-external" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1756,6 +1635,16 @@ that it will look similar to how it will look in the sent plain
 text mail.
 
 See also `as-external-mode'.
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'as-external-check-contents `(lp '(nxhtml-download-root-url nil) "util/as-external" nxhtml-install-dir) "\
+Try to guess the file contents.
+
+\(fn)" nil nil)
+
+(nxhtml-autoload 'as-external-for-el-files `(lp '(nxhtml-download-root-url nil) "util/as-external" nxhtml-install-dir) "\
+Setup for Firefox addon It's All Text to edit MediaWikis.
 
 \(fn)" t nil)
 
@@ -2080,8 +1969,8 @@ For more information about this see `cusnu-export-cust-group'.
 
 ;;;***
 
-;;;### (autoloads (ediff-url) "ediff-url" "util/ediff-url.el" (19421
-;;;;;;  32106))
+;;;### (autoloads (ediff-url) "ediff-url" "util/ediff-url.el" (19438
+;;;;;;  52982))
 ;;; Generated autoloads from util/ediff-url.el
 (web-autoload-require 'ediff-url 'lp '(nxhtml-download-root-url nil) "util/ediff-url" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2265,7 +2154,7 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (gpl-mode) "gpl" "util/gpl.el" (18795 27308))
+;;;### (autoloads (gpl-mode) "gpl" "util/gpl.el" (19436 42020))
 ;;; Generated autoloads from util/gpl.el
 (web-autoload-require 'gpl 'lp '(nxhtml-download-root-url nil) "util/gpl" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2489,6 +2378,20 @@ See also the command `inlimg-mode'.
 
 ;;;***
 
+;;;### (autoloads (key-cat-help) "key-cat" "util/key-cat.el" (19440
+;;;;;;  380))
+;;; Generated autoloads from util/key-cat.el
+(web-autoload-require 'key-cat 'lp '(nxhtml-download-root-url nil) "util/key-cat" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'key-cat-help `(lp '(nxhtml-download-root-url nil) "util/key-cat" nxhtml-install-dir) "\
+Display reference sheet style help for common commands.
+See also `key-cat-cmd-list'.
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads (majmodpri majmodpri-apply-priorities majmodpri-apply
 ;;;;;;  majmodpri-sort-lists) "majmodpri" "util/majmodpri.el" (19421
 ;;;;;;  32106))
@@ -2573,7 +2476,7 @@ See `markchars-mode' for more information on Markchars mode.
 ;;;***
 
 ;;;### (autoloads (mlinks-global-mode mlinks-mode mlinks) "mlinks"
-;;;;;;  "util/mlinks.el" (19422 45768))
+;;;;;;  "util/mlinks.el" (19439 26117))
 ;;; Generated autoloads from util/mlinks.el
 (web-autoload-require 'mlinks 'lp '(nxhtml-download-root-url nil) "util/mlinks" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2634,7 +2537,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;;;;  mumamo-list-defined-multi-major-modes mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19436 41124))
+;;;;;;  (19439 26090))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2789,8 +2692,8 @@ Return t if VALUE is a multi major mode function.
 
 ;;;***
 
-;;;### (autoloads (mumamo-define-html-file-wide-keys) "mumamo-chunks"
-;;;;;;  "util/mumamo-chunks.el" (19436 27222))
+;;;### (autoloads (mumamo-noweb2 mumamo-define-html-file-wide-keys)
+;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19439 63780))
 ;;; Generated autoloads from util/mumamo-chunks.el
 (web-autoload-require 'mumamo-chunks 'lp '(nxhtml-download-root-url nil) "util/mumamo-chunks" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2800,12 +2703,14 @@ Define keys in multi major mode keymap for html files.
 
 \(fn)" nil nil)
 
+(let ((loads (get 'mumamo-noweb2 'custom-loads))) (if (member '"mumamo-chunks" loads) nil (put 'mumamo-noweb2 'custom-loads (cons '"mumamo-chunks" loads))))
+
 ;;;***
 
 ;;;### (autoloads (amrita-mumamo-mode python-rst-mumamo-mode latex-haskell-mumamo-mode
 ;;;;;;  latex-clojure-mumamo-mode markdown-html-mumamo-mode xsl-sgml-mumamo-mode
 ;;;;;;  xsl-nxml-mumamo-mode mako-html-mumamo-mode org-mumamo-mode
-;;;;;;  asp-html-mumamo-mode noweb2-mumamo-mode mumamo-noweb2 csound-sgml-mumamo-mode
+;;;;;;  asp-html-mumamo-mode noweb2-mumamo-mode csound-sgml-mumamo-mode
 ;;;;;;  laszlo-nxml-mumamo-mode metapost-mumamo-mode ruby-heredoc-mumamo-mode
 ;;;;;;  python-heredoc-mumamo-mode cperl-heredoc-mumamo-mode perl-heredoc-mumamo-mode
 ;;;;;;  php-heredoc-mumamo-mode sh-heredoc-mumamo-mode eruby-javascript-mumamo-mode
@@ -2813,7 +2718,7 @@ Define keys in multi major mode keymap for html files.
 ;;;;;;  ssjs-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19436 27222))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19439 63783))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2903,8 +2808,6 @@ Turn on multiple major modes for OpenLaszlo." t)
 
 (nxhtml-autoload 'csound-sgml-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on mutiple major modes for CSound orc/sco Modes." t)
-
-(let ((loads (get 'mumamo-noweb2 'custom-loads))) (if (member '"mumamo-fun" loads) nil (put 'mumamo-noweb2 'custom-loads (cons '"mumamo-fun" loads))))
 
 (nxhtml-autoload 'noweb2-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Multi major mode for noweb files." t)
@@ -3045,6 +2948,30 @@ new are maybe ... - and you have it available here in Emacs.
 
 ;;;***
 
+;;;### (autoloads (rng-find-schema-file-other-window rng-find-schema-file-other-frame
+;;;;;;  rng-find-schema-file) "nxml-mode-os-additions" "util/nxml-mode-os-additions.el"
+;;;;;;  (19439 64362))
+;;; Generated autoloads from util/nxml-mode-os-additions.el
+(web-autoload-require 'nxml-mode-os-additions 'lp '(nxhtml-download-root-url nil) "util/nxml-mode-os-additions" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'rng-find-schema-file `(lp '(nxhtml-download-root-url nil) "util/nxml-mode-os-additions" nxhtml-install-dir) "\
+Edit the current schema file.
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'rng-find-schema-file-other-frame `(lp '(nxhtml-download-root-url nil) "util/nxml-mode-os-additions" nxhtml-install-dir) "\
+Edit the current schema in another frame.
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'rng-find-schema-file-other-window `(lp '(nxhtml-download-root-url nil) "util/nxml-mode-os-additions" nxhtml-install-dir) "\
+Edit the current schema in another window.
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads (ocr-user-mode) "ocr-user" "util/ocr-user.el" (19290
 ;;;;;;  21626))
 ;;; Generated autoloads from util/ocr-user.el
@@ -3073,7 +3000,7 @@ Color up digits three by three.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
 ;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19436 27222))
+;;;;;;  "util/ourcomments-util.el" (19438 56231))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3502,7 +3429,7 @@ Return t if VALUE is a major mode function.
 ;;;***
 
 ;;;### (autoloads (pause-start-in-new-emacs pause-mode pause) "pause"
-;;;;;;  "util/pause.el" (19436 27222))
+;;;;;;  "util/pause.el" (19439 20218))
 ;;; Generated autoloads from util/pause.el
 (web-autoload-require 'pause 'lp '(nxhtml-download-root-url nil) "util/pause" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4410,10 +4337,9 @@ accept it or skip it.
 ;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
 ;;;;;;  "util/appmenu-fold.el" "util/css-simple-completion.el" "util/custsets.el"
 ;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/idn.el"
-;;;;;;  "util/key-cat.el" "util/mumamo-aspnet.el" "util/mumamo-trace.el"
-;;;;;;  "util/new-key-seq-widget.el" "util/nxml-mode-os-additions.el"
-;;;;;;  "util/org-panel.el" "util/rxi.el" "util/tipframe.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19436 41341 781000))
+;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/org-panel.el"
+;;;;;;  "util/rxi.el" "util/tipframe.el" "util/useful-commands.el"
+;;;;;;  "web-autoload.el") (19440 639 375000))
 
 ;;;***
 

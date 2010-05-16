@@ -368,6 +368,9 @@
       (define-key tools-map [nxhtml-viper-tut]
         (list 'menu-item "Viper Try-Out Tutorial"
               'viper-tutorial))
+      (define-key tools-map [nxhtml-important-commands]
+        (list 'menu-item "Important Commands Ref Card"
+              'key-cat-help))
       (define-key tools-map [nxhtml-viper-separator]
         (list 'menu-item "--" nil))
       ;;(define-key tools-map [nxhtml-frame-win-separator] (list 'menu-item "--" nil))

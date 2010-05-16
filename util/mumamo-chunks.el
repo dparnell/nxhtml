@@ -50,6 +50,24 @@
 (eval-when-compile (require 'cl))
 (eval-when-compile (add-to-list 'load-path default-directory))
 (eval-when-compile (require 'mumamo))
+(eval-when-compile (require 'sgml-mode))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Mumamo Comments Mode
+;;
+;; Help mode for chunks.
+(defconst mumamo-comment-font-lock-keywords
+  (list
+   (cons "\\(.*\\)" (list 1 font-lock-comment-face))
+   ))
+(defvar mumamo-comment-font-lock-defaults
+  '(mumamo-comment-font-lock-keywords t t))
+
+(define-derived-mode mumamo-comment-mode nil "Comment chunk"
+  "For comment blocks."
+  (set (make-local-variable 'font-lock-defaults) mumamo-comment-font-lock-defaults))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -107,7 +125,6 @@ See `mumamo-possible-chunk-forward' for POS and MAX."
         (goto-char here)))))
 
 (defun mumamo-chunk-attr=-new-find-borders-fun (start-border end-border dummy)
-  ;;(setq borders (funcall find-borders-fun start-border end-border exc-mode))
   (save-match-data
     (let ((here (point))
           (end2 (when end-border (1- end-border)))
@@ -119,14 +136,11 @@ See `mumamo-possible-chunk-forward' for POS and MAX."
       (list start2 end2))))
 
 (defun mumamo-chunk-attr=-new (pos
-                               ;;min
                                max
                                attr=
                                attr=is-regex
                                attr-regex
                                submode)
-  ;;(message "\n(mumamo-chunk-attr=-new %s %s %s %s %s %s)" pos max attr= attr=is-regex attr-regex submode)
-  ;;(mumamo-condition-case err
   (condition-case err
       (save-match-data
         (let ((here (point))
@@ -141,7 +155,6 @@ See `mumamo-possible-chunk-forward' for POS and MAX."
                                 (re-search-forward attr= max t)
                               (search-forward attr= max t))))
               next-attr-sure
-              ;;next-attr=
               start start-border
               end   end-border
               exc-mode
@@ -251,46 +264,6 @@ See `mumamo-possible-chunk-forward' for POS and MAX."
     ("python" . python-mode))
   "Alist used by `mumamo-chunk-xml-pi' to get chunk mode." )
 
-;; Fix-me: make it possible to make the borders part of the php chunk
-;; so that parsing of them by nxml may be skipped. Or, rather if the
-;; borders are not part of the chunk then assume nxml can not parse
-;; the chunk and the borders.
-;; (defun mumamo-search-bw-exc-start-xml-pi-1 (pos min lt-chars)
-;;   "Helper for `mumamo-chunk-xml-pi'.
-;; POS is where to start search and MIN is where to stop.
-;; LT-CHARS is just <?.
-
-;; Actual use is in `mumamo-search-bw-exc-start-xml-pi'."
-;;   (let ((exc-start (mumamo-chunk-start-bw-str (+ pos 2) min lt-chars))
-;;         spec
-;;         exc-mode
-;;         hit)
-;;     (when exc-start
-;;       (goto-char exc-start)
-;;       (when (and (not (looking-at "xml"))
-;;                  (looking-at (rx (0+ (any "a-z")))))
-;;         ;; (setq exc-start (match-end 0)) include it in sub chunk instead
-;;         (setq exc-start (- exc-start 2))
-;;         (setq spec (match-string-no-properties 0))
-;;         (setq exc-mode (assoc spec mumamo-xml-pi-mode-alist))
-;;         (when exc-mode (setq exc-mode (cdr exc-mode)))
-;;         (setq hit t)
-;;         )
-;;       (when hit
-;;         (unless exc-mode
-;;           ;;(setq exc-mode 'fundamental-mode)
-;;           ;; Fix-me: Better assume php-mode
-;;           (setq exc-mode 'php-mode))
-;;         (when (<= exc-start pos)
-;;           ;;(cons exc-start exc-mode)
-;;           (list exc-start exc-mode nil)
-;;           )))))
-
-;; (defun mumamo-search-bw-exc-start-xml-pi (pos min)
-;;   "Helper for `mumamo-chunk-xml-pi'.
-;; POS is where to start search and MIN is where to stop."
-;;   (mumamo-search-bw-exc-start-xml-pi-1 pos min "<?"))
-
 (defun mumamo-search-fw-exc-start-xml-pi-new (pos max)
   (let ((here (point))
         start
@@ -325,23 +298,6 @@ See `mumamo-possible-chunk-forward' for POS and MAX."
             (when (looking-at (rx line-start "<\?xml" (1+ space)))
               (mumamo-msgfntfy "mumamo-xml-pi-end-is-xml-end %s => t" pos)
               t)))))))
-
-;; (defun mumamo-search-bw-exc-end-xml-pi (pos min)
-;;   "Helper for `mumamo-chunk-xml-pi'.
-;; POS is where to start search and MIN is where to stop."
-;;   ;; Fix me: merge xml header
-;;   (mumamo-msgfntfy "mumamo-search-bw-exc-end-xml-pi %s %s" pos min)
-;;   ;;(let ((end-pos (mumamo-chunk-end-bw-str pos min "?>")))
-;;   (let ((end-pos (mumamo-chunk-end-bw-str-inc pos min "?>")))
-;;     (mumamo-msgfntfy "  end-pos=%s" end-pos)
-;;     (when end-pos
-;;       (unless (or (mumamo-xml-pi-end-is-xml-end end-pos)
-;;                   (= (save-restriction
-;;                        (widen)
-;;                        (char-after (- end-pos 1)))
-;;                      ?<))
-;;         (mumamo-msgfntfy "  returning end-pos")
-;;         end-pos))))
 
 (defun mumamo-search-fw-exc-end-xml-pi (pos max)
   "Helper for `mumamo-chunk-xml-pi'.
@@ -392,10 +348,6 @@ of LT-CHARS see `mumamo-search-bw-exc-start-xml-pi-1'."
 POS is where to start search and MAX is where to stop."
   (mumamo-search-fw-exc-start-xml-pi-1 pos max "<?"))
 
-;; Add a find-borders-fun here so that for example src="<?php some
-;; code ?>" can be handled.
-;;
-;; Fix-me: Maybe generalize for other values than <?php
 (defun mumamo-find-borders-xml-pi (start end exc-mode)
   (let (start-border
         end-border
@@ -886,6 +838,1341 @@ See `mumamo-possible-chunk-forward' for POS and MAX."
                                  'mumamo-chunk-mason-compcont-fw-exc-end-fun
                                  'mumamo-chunk-mason-compcont-find-borders-fun))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Embperl
+
+(defun mumamo-chunk-embperl-<- (pos max)
+  "Find [- ... -], return range and `perl-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "[-" "-]" 'borders 'perl-mode))
+
+(defun mumamo-chunk-embperl-<+ (pos max)
+  "Find [+ ... +], return range and `perl-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "[+" "+]" 'borders 'perl-mode))
+
+(defun mumamo-chunk-embperl-<! (pos max)
+  "Find [! ... !], return range and `perl-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "[!" "!]" 'borders 'perl-mode))
+
+(defun mumamo-chunk-embperl-<$ (pos max)
+  "Find [$ ... $], return range and `perl-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  ;; This is a bit tricky since [$var] etc must be avoided.
+  (let* ((begin-mark "[$")
+         (end-mark "$]")
+         (good-chars '(32 ;space
+                       10 ;line feed
+                       9  ;tab
+                       ))
+         (search-fw-exc-start (lambda (pos max)
+                                (let ((not-found t)
+                                      (next-char nil)
+                                      (exc-start (mumamo-chunk-start-fw-str
+                                                  pos max begin-mark))
+                                      (here (point)))
+                                  (while (and not-found
+                                              exc-start)
+                                    (setq next-char (char-after))
+                                    (if (memq next-char good-chars)
+                                        (setq not-found nil)
+                                      (setq exc-start
+                                            (search-forward begin-mark
+                                                            max t))))
+                                  (when exc-start (list exc-start 'perl-mode)))))
+         (search-fw-exc-end (lambda (pos max)
+                              (save-match-data
+                                (mumamo-chunk-end-fw-str pos max end-mark)))))
+    (mumamo-possible-chunk-forward pos max
+                                   search-fw-exc-start
+                                   search-fw-exc-end)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; django
+
+(defun mumamo-chunk-django4(pos max)
+  "Find {% comment %}.  Return range and `django-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "{% comment %}" "{% endcomment %}" 'borders 'mumamo-comment-mode))
+
+(defun mumamo-chunk-django3(pos max)
+  "Find {# ... #}.  Return range and `django-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "{#" "#}" 'borders 'mumamo-comment-mode))
+
+(defun mumamo-chunk-django2(pos max)
+  "Find {{ ... }}.  Return range and `django-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "{{" "}}" 'borders 'django-variable-mode))
+
+(defun mumamo-chunk-django (pos max)
+  "Find {% ... %}.  Return range and `django-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((chunk (mumamo-quick-chunk-forward pos max "{%" "%}" 'borders 'django-mode)))
+    (when chunk
+      (setcdr (last chunk) '(mumamo-template-indentor))
+      chunk)))
+
+(defun mumamo-search-fw-exc-start-django (pos max)
+  "Helper for `mumamo-chunk-django'.
+POS is where to start search and MAX is where to stop."
+  (mumamo-chunk-start-fw-str-inc pos max "{%"))
+
+(defun mumamo-search-fw-exc-start-django2(pos max)
+  "Helper for `mumamo-chunk-django2'.
+POS is where to start search and MAX is where to stop."
+  (mumamo-chunk-start-fw-str-inc pos max "{{"))
+
+(defun mumamo-search-fw-exc-start-django3(pos max)
+  "Helper for `mumamo-chunk-django3'.
+POS is where to start search and MAX is where to stop."
+  (mumamo-chunk-start-fw-str-inc pos max "{#"))
+
+(defun mumamo-search-fw-exc-start-django4(pos max)
+  "Helper for `mumamo-chunk-django4'.
+POS is where to start search and MAX is where to stop."
+  (mumamo-chunk-start-fw-str-inc pos max "{% comment %}"))
+
+(defun mumamo-search-fw-exc-end-django (pos max)
+  "Helper for `mumamo-chunk-django'.
+POS is where to start search and MAX is where to stop."
+  (mumamo-chunk-end-fw-str-inc pos max "%}"))
+
+(defun mumamo-search-fw-exc-end-django2(pos max)
+  "Helper for `mumamo-chunk-django2'.
+POS is where to start search and MAX is where to stop."
+  (mumamo-chunk-end-fw-str-inc pos max "}}"))
+
+(defun mumamo-search-fw-exc-end-django3(pos max)
+  "Helper for `mumamo-chunk-django3'.
+POS is where to start search and MAX is where to stop."
+  (mumamo-chunk-end-fw-str-inc pos max "#}"))
+
+(defun mumamo-search-fw-exc-end-django4(pos max)
+  "Helper for `mumamo-chunk-django4'.
+POS is where to start search and MAX is where to stop."
+  (mumamo-chunk-end-fw-str-inc pos max "{% endcomment %}"))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Genshi / Kid
+
+;; {% python ... %}
+(defun mumamo-chunk-genshi%(pos max)
+  "Find {% python ... %}.  Return range and `genshi-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "{% python" "%}" 'borders 'python-mode))
+
+;; ${expr}
+(defun mumamo-chunk-genshi$(pos max)
+  "Find ${ ... }, return range and `python-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((chunk
+         (mumamo-quick-chunk-forward pos max "${" "}" 'borders 'python-mode)))
+    (when chunk
+      ;; Test for clash with %}
+      (let ((sub-mode (nth 2 chunk))
+            (start (nth 0 chunk)))
+        (if sub-mode
+            chunk
+          ;;(message "point.1=%s" (point))
+          (when (and start
+                     (eq ?% (char-before start)))
+            ;;(message "point.2=%s" (point))
+            ;;(message "clash with %%}, chunk=%s" chunk)
+            ;;(setq chunk nil)
+            (setcar chunk (1- start))
+            )
+          ;;(message "chunk.return=%s" chunk)
+          chunk)))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; MJT
+
+;; ${expr}
+(defun mumamo-chunk-mjt$(pos max)
+  "Find ${ ... }, return range and `javascript-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "${" "}" 'borders 'javascript-mode))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; smarty
+
+(defun mumamo-chunk-smarty-literal (pos max)
+  "Find {literal} ... {/literal}.  Return range and 'html-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "{literal}" "{/literal}" 'borders 'html-mode))
+
+(defun mumamo-chunk-smarty-t (pos max)
+  "Find {t} ... {/t}.  Return range and 'html-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "{t}" "{/t}" 'borders 'text-mode))
+
+(defun mumamo-chunk-smarty-comment (pos max)
+  "Find {* ... *}.  Return range and 'mumamo-comment-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "{*" "*}" t 'mumamo-comment-mode))
+
+(defun mumamo-chunk-smarty (pos max)
+  "Find { ... }.  Return range and 'smarty-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "{" "}" t 'smarty-mode))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; ssjs - server side javascript
+
+(defun mumamo-chunk-ssjs-% (pos max)
+  "Find <% ... %>.  Return range and 'javascript-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "<%" "%>" 'borders 'javascript-mode))
+
+(defconst mumamo-ssjs-tag-start-regex
+  (rx "<script"
+      space
+      (0+ (not (any ">")))
+      "runat"
+      (0+ space)
+      "="
+      (0+ space)
+      ?\"
+      ;;(or "text" "application")
+      ;;"/"
+      ;;(or "javascript" "ecmascript")
+      (or "server" "both" "server-proxy")
+      ?\"
+      (0+ (not (any ">")))
+      ">"
+      ;; FIX-ME: Commented out because of bug in Emacs
+      ;;
+      ;;(optional (0+ space) "<![CDATA[" )
+      ))
+
+
+(defun mumamo-search-fw-exc-start-inlined-ssjs (pos max)
+  "Helper for `mumamo-chunk-inlined-ssjs'.
+POS is where to start search and MAX is where to stop."
+  (goto-char (1+ pos))
+  (skip-chars-backward "^<")
+  ;; Handle <![CDATA[
+  (when (and
+         (eq ?< (char-before))
+         (eq ?! (char-after))
+         (not (bobp)))
+    (backward-char)
+    (skip-chars-backward "^<"))
+  (unless (bobp)
+    (backward-char 1))
+  (let ((exc-start (search-forward "<script" max t))
+        exc-mode)
+    (when exc-start
+      (goto-char (- exc-start 7))
+      (when (looking-at mumamo-ssjs-tag-start-regex)
+        (goto-char (match-end 0))
+        (list (point) 'javascript-mode)
+        ))))
+
+(defun mumamo-chunk-inlined-ssjs (pos max)
+  "Find <script runat=...>...</script>.  Return range and 'javascript-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-exc-start-inlined-ssjs
+                                 'mumamo-search-fw-exc-end-inlined-script))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; gsp
+
+(defun mumamo-chunk-gsp (pos max)
+  "Find <% ... %>.  Return range and 'groovy-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "<%" "%>" 'borders 'groovy-mode))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; jsp - Java Server Pages
+
+(defun mumamo-chunk-jsp (pos max)
+  "Find <% ... %>.  Return range and 'java-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "<%" "%>" 'borders 'java-mode))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; eruby
+
+(defun mumamo-chunk-eruby (pos max)
+  "Find <% ... %>.  Return range and 'ruby-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((chunk (mumamo-quick-chunk-forward pos max "<%" '("-?%>" . t) 'borders 'ruby-mode)))
+    (when chunk
+      ;; Put indentation type on 'mumamo-next-indent on the chunk:
+      (setcdr (last chunk) '(mumamo-template-indentor))
+      chunk)))
+
+(defun mumamo-chunk-eruby= (pos max)
+  "Find <% ... %>.  Return range and 'ruby-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((chunk (mumamo-quick-chunk-forward pos max "<%=" '("-?%>" . t) 'borders 'ruby-mode)))
+    (when chunk
+      ;; Put indentation type on 'mumamo-next-indent on the chunk:
+      (setcdr (last chunk) '(mumamo-template-indentor))
+      chunk)))
+
+(defun mumamo-chunk-eruby=quoted (pos max)
+  "Find \"<%= ... %>\".  Return range and 'ruby-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX.
+
+This is a workaround for problems with strings."
+  (let ((chunk (mumamo-quick-chunk-forward pos max "\"<%=" '("-?%>\"" . t) 'borders 'ruby-mode)))
+    (when chunk
+      ;; Put indentation type on 'mumamo-next-indent on the chunk:
+      ;; Fix-me: use this!
+      ;;(setcdr (last chunk) '(mumamo-template-indentor))
+      chunk)))
+
+(defun mumamo-chunk-eruby-comment (pos max)
+  "Find <%# ... %>.  Return range and 'ruby-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX.
+
+This is needed since otherwise the end marker is thought to be
+part of a comment."
+  (mumamo-quick-chunk-forward pos max "<%#" "%>" 'borders 'mumamo-comment-mode))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; heredoc
+
+(defcustom mumamo-heredoc-modes
+  '(
+    ("HTML" html-mode)
+    ("CSS" css-mode)
+    ("JAVASCRIPT" javascript-mode)
+    ("JAVA" java-mode)
+    ("GROOVY" groovy-mode)
+    ("SQL" sql-mode)
+    )
+  "Matches for heredoc modes.
+The entries in this list have the form
+
+  (REGEXP MAJOR-MODE-SPEC)
+
+where REGEXP is a regular expression that should match the
+heredoc marker line and MAJOR-MODE-SPEC is the major mode spec to
+use in the heredoc part.
+
+The major mode spec is translated to a major mode using
+`mumamo-major-mode-from-modespec'."
+  :type '(repeat
+          (list
+           regexp
+           (function :tag "Major mode")))
+  :group 'mumamo-modes)
+
+(defun mumamo-mode-for-heredoc (marker)
+  "Return major mode associated with MARKER.
+Use first match in `mumamo-heredoc-modes'.
+If no match use `text-mode'."
+  (let ((mode (catch 'mode
+                (save-match-data
+                  (dolist (rec mumamo-heredoc-modes)
+                    (let ((regexp (nth 0 rec))
+                          (mode   (nth 1 rec)))
+                      (when (string-match regexp marker)
+                        (throw 'mode mode))))))))
+    (if mode
+        (mumamo-major-mode-from-modespec mode)
+      'text-mode)))
+
+(defun mumamo-chunk-heredoc (pos max lang)
+  "This should work similar to `mumamo-possible-chunk-forward'.
+POS and MAX have the same meaning as there.
+
+LANG is the programming language.
+Supported values are 'perl."
+  ;; Fix-me: LANG
+  ;; Fix-me: use mumamo-end-in-code
+  (mumamo-condition-case err
+      (let ((old-point (point)))
+        (goto-char pos)
+        (beginning-of-line)
+        (let (next-<<
+              (want-<< t)
+              heredoc-mark
+              end-mark-len
+              heredoc-line
+              delimiter
+              skipped
+              (skip-b "")
+              start-inner
+              end
+              exc-mode
+              fw-exc-fun
+              border-fun
+              allow-code-after
+              start-outer
+              ps
+              )
+          (goto-char pos)
+          (beginning-of-line)
+          (case lang
+            ('sh
+             (setq allow-code-after t)
+             (while want-<<
+               (setq next-<< (search-forward "<<" max t))
+               (if (not next-<<)
+                   (setq want-<< nil) ;; give up
+                 ;; Check inside string or comment.
+                 (setq ps (parse-partial-sexp (line-beginning-position) (point)))
+                 (unless (or (nth 3 ps) (nth 4 ps))
+                   (setq want-<< nil))))
+             (when next-<<
+               (setq start-outer (- (point) 2))
+               (when (= (char-after) ?-)
+                 (setq skip-b "\t*")
+                 (unless (eolp) (forward-char)))
+               ;; fix-me: space
+               (setq skipped (skip-chars-forward " \t"))
+               (when (memq (char-after) '(?\" ?\'))
+                 (setq delimiter (list (char-after))))
+               (if (and (> skipped 0) (not delimiter))
+                   (setq heredoc-mark "")
+                 (when (looking-at (rx-to-string
+                                    `(and (regexp ,(if delimiter
+                                                       (concat delimiter "\\([^\n<>;]+\\)" delimiter)
+                                                     "\\([^ \t\n<>;]+\\)"))
+                                          (or blank line-end))))
+                   (setq heredoc-mark  (buffer-substring-no-properties
+                                        (match-beginning 1)
+                                        (match-end 1)))))
+               (when heredoc-mark
+                 (setq heredoc-line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
+                 (setq start-inner (1+ (point-at-eol)))
+                 (setq end-mark-len (length heredoc-mark))
+                 )))
+            ('w32-ps (error "No support for windows power shell yet"))
+            ('php
+             (while want-<<
+               (setq next-<< (search-forward "<<<" max t))
+               ;; Check inside string or comment.
+               (if (not next-<<)
+                   (setq want-<< nil) ;; give up
+                 (setq ps (parse-partial-sexp (line-beginning-position) (- (point) 0)))
+                 (unless (or (nth 3 ps) (nth 4 ps))
+                   (setq want-<< nil))))
+             (when next-<<
+               (setq start-outer (- (point) 3))
+               (skip-chars-forward " \t")
+               (when (looking-at (concat "\\([^\n;]*\\)[[:blank:]]*\n"))
+                 (setq heredoc-mark  (buffer-substring-no-properties
+                                      (match-beginning 1)
+                                      (match-end 1)))
+                 (setq heredoc-line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
+                 ;; fix-me: nowdoc
+                 (when (and (= ?\' (string-to-char heredoc-mark))
+                            (= ?\' (string-to-char (substring heredoc-mark (1- (length heredoc-mark))))))
+                   (setq heredoc-mark (substring heredoc-mark 1 (- (length heredoc-mark) 1))))
+                 (setq end-mark-len (1+ (length heredoc-mark)))
+                 (setq start-inner (match-end 0)))))
+            ('perl
+             (setq allow-code-after t)
+             (while want-<<
+               (setq next-<< (search-forward "<<" max t))
+               (if (not next-<<)
+                   (setq want-<< nil) ;; give up
+                 ;; Check inside string or comment.
+                 (setq ps (parse-partial-sexp (line-beginning-position) (point)))
+                 (unless (or (nth 3 ps) (nth 4 ps))
+                   (setq want-<< nil))))
+             (when next-<<
+               (setq start-outer (- (point) 2))
+               ;; fix-me: space
+               (setq skipped (skip-chars-forward " \t"))
+               (when (memq (char-after) '(?\" ?\'))
+                 (setq delimiter (list (char-after))))
+               (if (and (> skipped 0) (not delimiter))
+                   (setq heredoc-mark "") ;; blank line
+                 (when (looking-at (rx-to-string
+                                    `(and (regexp ,(if delimiter
+                                                       (concat delimiter "\\([^\n;]*\\)" delimiter)
+                                                     "\\([^ \t\n<>;]+\\)"))
+                                          (or blank ";"))))
+                   (setq heredoc-mark  (buffer-substring-no-properties
+                                        (match-beginning 1)
+                                        (match-end 1)))))
+               (when heredoc-mark
+                 (setq heredoc-line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
+                 ;;(setq start-inner (1+ (match-end 0)))
+                 (setq start-inner (1+ (point-at-eol)))
+                 (setq end-mark-len (length heredoc-mark))
+                 )))
+            ('python
+             (unless (eobp) (forward-char))
+             (while want-<<
+               (setq next-<< (re-search-forward "\"\"\"\\|'''" max t))
+               (setq start-outer (- (point) 3))
+               (if (not next-<<)
+                   (setq want-<< nil) ;; give up
+                 ;; Check inside string or comment.
+                 (setq ps (parse-partial-sexp (line-beginning-position) (- (point) 3)))
+                 (unless (or (nth 3 ps) (nth 4 ps))
+                   (setq want-<< nil)))))
+            ('ruby
+             (while want-<<
+               (setq next-<< (search-forward "<<" max t))
+               (if (not next-<<)
+                   (setq want-<< nil) ;; give up
+                 ;; Check inside string or comment.
+                 (setq ps (parse-partial-sexp (line-beginning-position) (point)))
+                 (unless (or (nth 3 ps) (nth 4 ps))
+                   (setq want-<< nil))))
+             (when next-<<
+               (setq start-outer (- (point) 2))
+               (when (= (char-after) ?-)
+                 (setq skip-b "[ \t]*")
+                 (forward-char))
+               (when (looking-at (concat "[^\n[:blank:]]*"))
+                 (setq heredoc-mark  (buffer-substring-no-properties
+                                      (match-beginning 0)
+                                      (match-end 0)))
+                 (setq end-mark-len (length heredoc-mark))
+                 (setq heredoc-line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
+                 (setq start-inner (match-end 0)))))
+            (t (error "next-<< not implemented for lang %s" lang)))
+          (when start-inner (assert (<= pos start-inner) t))
+          (goto-char old-point)
+          (when (or start-inner end)
+            (let ((endmark-regexp
+                   (case lang
+                     ('sh (concat "^" skip-b heredoc-mark "$"))
+                     ('php (concat "^" heredoc-mark ";?$"))
+                     ('perl (concat "^" heredoc-mark "$"))
+                     ('python (concat "^" heredoc-mark "[[:space:]]*"))
+                     ('ruby (concat "^" skip-b heredoc-mark "$"))
+                     (t (error "mark-regexp not implemented for %s" lang)))))
+              (setq border-fun `(lambda (start end exc-mode)
+                                  (list
+                                   (if ,allow-code-after nil (+ start (- ,start-inner ,start-outer 1)))
+                                   (when end (- (1- end) ,end-mark-len)))))
+              (setq fw-exc-fun `(lambda (pos max)
+                                  (save-match-data
+                                    (let ((here (point)))
+                                      (goto-char pos)
+                                      (prog1
+                                          (when (re-search-forward ,endmark-regexp max t)
+                                            ;;(- (point) 1 ,(length heredoc-mark))
+                                            ;; Extend heredoc chunk
+                                            ;; until after newline to
+                                            ;; avoid the "syntax-table
+                                            ;; (15)" entry on the
+                                            ;; newline char in
+                                            ;; `sh-mode':
+                                            (+ (point) 1)
+                                            )
+                                        (goto-char here)))))))
+            (setq exc-mode (mumamo-mode-for-heredoc heredoc-line))
+            (list start-inner end exc-mode nil nil fw-exc-fun nil)
+            ;; Fix me: Add overriding for inner chunks (see
+            ;; http://www.emacswiki.org/emacs/NxhtmlMode#toc13). Maybe
+            ;; make fw-exc-fun a list (or a cons, since overriding is
+            ;; probably all that I want to add)? And make the
+            ;; corresponding chunk property a list too?
+            ;;(list start-outer end exc-mode (list start-inner end) nil fw-exc-fun border-fun 'heredoc)
+            (list (if allow-code-after start-inner start-outer)
+                  end exc-mode (list start-inner end) nil fw-exc-fun border-fun 'heredoc)
+            )))
+    (error (mumamo-display-error 'mumamo-chunk-heredoc
+                                 "%s" (error-message-string err)))))
+
+;;;; Unix style sh heredoc
+
+(defun mumamo-chunk-sh-heredoc (pos max)
+  "Find sh here docs.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((r (mumamo-chunk-heredoc pos max 'sh)))
+    r))
+
+;;;; PHP heredoc
+
+(defun mumamo-chunk-php-heredoc (pos max)
+  "Find PHP here docs.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((r (mumamo-chunk-heredoc pos max 'php)))
+    r))
+
+;;;; Perl heredoc
+
+(defun mumamo-chunk-perl-heredoc (pos max)
+  "Find perl here docs.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((r (mumamo-chunk-heredoc pos max 'perl)))
+    r))
+
+;;;; Python heredoc
+
+(defun mumamo-chunk-python-heredoc (pos max)
+  "Find python here docs.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((r (mumamo-chunk-heredoc pos max 'python)))
+    r))
+
+;;;; Ruby heredoc
+
+(defun mumamo-chunk-ruby-heredoc (pos max)
+  "Find Ruby here docs.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((r (mumamo-chunk-heredoc pos max 'ruby)))
+    r))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Tex meta
+
+(defconst mumamo-textext-end-regex
+  (rx "textext("
+      (0+
+       (0+ (not (any "\"()")))
+       ?\"
+       (0+ (not (any "\"")))
+       ?\"
+       )
+      (0+ (not (any "\"()")))
+      ")"))
+
+(defun mumamo-textext-test-is-end (pos)
+  "Helper for `mumamo-chunk-textext'.
+Return POS if POS is at the end of textext chunk."
+  (when pos
+    (let ((here (point))
+          hit)
+      (goto-char (+ 2 pos))
+      (when (looking-back mumamo-textext-end-regex)
+        (setq hit t))
+      (goto-char here)
+      (when hit pos))))
+
+
+(defun mumamo-search-fw-textext-start (pos max)
+  "Helper for `mumamo-chunk-textext'.
+POS is where to start search and MAX is where to stop."
+  (let ((where (mumamo-chunk-start-fw-str pos max "textext(\"")))
+    (when where
+      (list where 'plain-tex-mode))))
+
+(defun mumamo-search-fw-textext-end (pos max)
+  "Helper for `mumamo-chunk-textext'.
+POS is where to start search and MAX is where to stop."
+  (save-match-data
+    (let ((end (mumamo-chunk-end-fw-str pos max "\")")))
+      (mumamo-textext-test-is-end end))))
+
+(defun mumamo-chunk-textext (pos max)
+  "Find textext or TEX chunks.  Return range and 'plain-tex-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-textext-start
+                                 'mumamo-search-fw-textext-end))
+
+(defun mumamo-search-fw-verbatimtex-start (pos max)
+  "Helper for `mumamo-chunk-verbatimtextext'.
+POS is where to start search and MAX is where to stop."
+  (let ((where (mumamo-chunk-start-fw-str pos max "\nverbatimtex")))
+    (when where
+      (list where 'plain-tex-mode))))
+
+(defun mumamo-search-fw-verbatimtex-end (pos max)
+  "Helper for `mumamo-chunk-verbatimtextext'.
+POS is where to start search and MAX is where to stop."
+  (save-match-data
+    (mumamo-chunk-end-fw-str pos max "\netex")))
+
+(defun mumamo-chunk-verbatimtex (pos max)
+  "Find verbatimtex - etex chunks.  Return range and 'plain-tex-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-verbatimtex-start
+                                 'mumamo-search-fw-verbatimtex-end))
+
+(defun mumamo-search-fw-btex-start (pos max)
+  "Helper for `mumamo-chunk-btex'.
+POS is where to start search and MAX is where to stop."
+  (let ((where (mumamo-chunk-start-fw-str pos max "\nverbatimtex")))
+    (when where
+      (list where 'plain-tex-mode))))
+
+(defun mumamo-search-fw-btex-end (pos max)
+  "Helper for `mumamo-chunk-btex'.
+POS is where to start search and MAX is where to stop."
+  (save-match-data
+    (mumamo-chunk-end-fw-str pos max "\netex")))
+
+(defun mumamo-chunk-btex (pos max)
+  "Find btex - etex chunks.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-btex-start
+                                 'mumamo-search-fw-btex-end))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; OpenLaszlo
+
+(defconst mumamo-lzx-method-tag-start-regex
+  (rx "<method"
+      (optional
+       space
+       (0+ (not (any ">"))))
+      ">"
+      ;; FIX-ME: Commented out because of bug in Emacs
+      ;;
+      ;;(optional (0+ space) "<![CDATA[" )
+      ))
+
+(defun mumamo-search-bw-exc-start-inlined-lzx-method (pos min)
+  "Helper for `mumamo-chunk-inlined-lzx-method'.
+POS is where to start search and MIN is where to stop."
+  (goto-char (+ pos 7))
+  (let ((marker-start (search-backward "<method" min t))
+        exc-mode
+        exc-start)
+    (when marker-start
+      (when (looking-at mumamo-lzx-method-tag-start-regex)
+        (setq exc-start (match-end 0))
+        (goto-char exc-start)
+        (when (<= exc-start pos)
+          (cons (point) 'javascript-mode))
+        ))))
+
+
+(defun mumamo-search-fw-exc-start-inlined-lzx-method (pos max)
+  "Helper for `mumamo-chunk-inlined-lzx-method'.
+POS is where to start search and MAX is where to stop."
+  (goto-char (1+ pos))
+  (skip-chars-backward "^<")
+  ;; Handle <![CDATA[
+  (when (and
+         (eq ?< (char-before))
+         (eq ?! (char-after))
+         (not (bobp)))
+    (backward-char)
+    (skip-chars-backward "^<"))
+  (unless (bobp)
+    (backward-char 1))
+  (let ((exc-start (search-forward "<method" max t))
+        exc-mode)
+    (when exc-start
+      (goto-char (- exc-start 7))
+      (when (looking-at mumamo-lzx-method-tag-start-regex)
+        (goto-char (match-end 0))
+        (list (point) 'javascript-mode)
+        ))))
+
+(defun mumamo-search-fw-exc-end-inlined-lzx-method (pos max)
+  "Helper for `mumamo-chunk-inlined-lzx-method'.
+POS is where to start search and MAX is where to stop."
+  (save-match-data
+    (mumamo-chunk-end-fw-str pos max "</method>")))
+
+(defun mumamo-chunk-inlined-lzx-method (pos max)
+  "Find <method>...</method>.  Return range and 'javascript-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-exc-start-inlined-lzx-method
+                                 'mumamo-search-fw-exc-end-inlined-lzx-method))
+
+(defconst mumamo-lzx-handler-tag-start-regex
+  (rx "<handler"
+      (optional
+       space
+       (0+ (not (any ">"))))
+      ">"
+      ;; FIX-ME: Commented out because of bug in Emacs
+      ;;
+      ;;(optional (0+ space) "<![CDATA[" )
+      ))
+
+
+(defun mumamo-search-fw-exc-start-inlined-lzx-handler (pos max)
+  "Helper for `mumamo-chunk-inlined-lzx-handler'.
+POS is where to start search and MAX is where to stop."
+  (goto-char (1+ pos))
+  (skip-chars-backward "^<")
+  ;; Handle <![CDATA[
+  (when (and
+         (eq ?< (char-before))
+         (eq ?! (char-after))
+         (not (bobp)))
+    (backward-char)
+    (skip-chars-backward "^<"))
+  (unless (bobp)
+    (backward-char 1))
+  (let ((exc-start (search-forward "<handler" max t))
+        exc-mode)
+    (when exc-start
+      (goto-char (- exc-start 8))
+      (when (looking-at mumamo-lzx-handler-tag-start-regex)
+        (goto-char (match-end 0))
+        (list (point) 'javascript-mode)
+        ))))
+
+(defun mumamo-search-fw-exc-end-inlined-lzx-handler (pos max)
+  "Helper for `mumamo-chunk-inlined-lzx-handler'.
+POS is where to start search and MAX is where to stop."
+  (save-match-data
+    (mumamo-chunk-end-fw-str pos max "</handler>")))
+
+(defun mumamo-chunk-inlined-lzx-handler (pos max)
+  "Find <handler>...</handler>.  Return range and 'javascript-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-exc-start-inlined-lzx-handler
+                                 'mumamo-search-fw-exc-end-inlined-lzx-handler))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; csound
+
+(defun mumamo-search-fw-exc-start-csound-orc (pos max)
+  "Helper for `mumamo-chunk-csound-orc'.
+POS is where to start search and MAX is where to stop."
+  (let ((where (mumamo-chunk-start-fw-str pos max "<csinstruments>")))
+    (when where
+      (list where 'csound-orc-mode))))
+
+(defun mumamo-search-fw-exc-end-csound-orc (pos max)
+  "Helper for `mumamo-chunk-csound-orc'.
+POS is where to start search and MAX is where to stop."
+  (save-match-data
+    (mumamo-chunk-end-fw-str pos max "</csinstruments>")))
+
+(defun mumamo-chunk-csound-orc (pos max)
+  "Find <csinstruments>...</...>.  Return range and 'csound-orc-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-exc-start-csound-orc
+                                 'mumamo-search-fw-exc-end-csound-orc))
+
+(defun mumamo-search-fw-exc-start-csound-sco (pos max)
+  "Helper for `mumamo-chunk-csound-sco'.
+POS is where to start search and MAX is where to stop."
+  (let ((where (mumamo-chunk-start-fw-str pos max "<csscore>")))
+    (when where
+      (list where 'csound-sco-mode))))
+
+(defun mumamo-search-fw-exc-end-csound-sco (pos max)
+  "Helper for `mumamo-chunk-csound-sco'.
+POS is where to start search and MAX is where to stop."
+  (save-match-data
+    (mumamo-chunk-end-fw-str pos max "</csscore>")))
+
+(defun mumamo-chunk-csound-sco (pos max)
+  "Found <csscore>...</csscore>.  Return range and 'csound-sco-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-exc-start-csound-sco
+                                 'mumamo-search-fw-exc-end-csound-sco))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; noweb
+
+;;;###autoload
+(defgroup mumamo-noweb2 nil
+  "Customization group for `noweb2-mumamo-mode'."
+  :group 'mumamo-modes)
+
+(defcustom mumamo-noweb2-mode-from-ext
+  '(
+    ("php" . php-mode)
+    ("c" . c-mode)
+    )
+  "File extension regexp to major mode mapping.
+Used by `noweb2-mumamo-mode'."
+  :type '(repeat
+          (cons regexp major-mode-function))
+  :group 'mumamo-noweb2)
+
+;; (defvar mumamo-noweb2-found-mode-from-ext nil
+;;   "Major modes determined from file names.  Internal use.")
+
+(defvar mumamo-noweb2-code-major-mode nil)
+(put 'mumamo-noweb2-code-major-mode 'permanent-local t)
+
+(defun mumamo-noweb2-set-code-major-mode (major)
+  (interactive "CCode major mode: ")
+  (message "major=%s" major)
+  (set (make-local-variable 'mumamo-noweb2-code-major-mode) major)
+  (mumamo-remove-all-chunk-overlays)
+  ;; fix-me
+  )
+
+(defun mumamo-noweb2-chunk-start-fw (pos max)
+  "Helper for `mumamo-noweb2-chunk'.
+POS is where to start search and MAX is where to stop."
+  (let* ((where (mumamo-chunk-start-fw-re pos max "^<<\\(.*?\\)>>="))
+         (border-start (when where (match-beginning 0)))
+         (exc-mode 'text-mode))
+    (when where
+      (if mumamo-noweb2-code-major-mode
+          (setq exc-mode mumamo-noweb2-code-major-mode)
+        (let* ((file-name (buffer-file-name)) ;(match-string-no-properties 1))
+               (file-ext (when file-name (file-name-extension file-name))))
+          (when file-ext
+            (setq exc-mode (catch 'major
+                             (dolist (rec mumamo-noweb2-mode-from-ext)
+                               (when (string-match (car rec) file-ext)
+                                 (throw 'major (cdr rec))))
+                             nil)))))
+      (list where exc-mode))))
+
+
+(defun mumamo-noweb2-chunk-end-fw (pos max)
+  "Helper for `mumamo-noweb2-chunk'.
+POS is where to start search and MAX is where to stop."
+  (save-match-data
+    (mumamo-chunk-end-fw-re pos max "^@")))
+
+(defun mumamo-noweb2-code-chunk (pos max)
+  "Find noweb chunks.  Return range and found mode.
+See `mumamo-possible-chunk-forward' for POS and MAX.
+`mumamo-noweb2-set-code-major-mode'"
+  (save-match-data
+    (mumamo-possible-chunk-forward pos max
+                                   'mumamo-noweb2-chunk-start-fw
+                                   'mumamo-noweb2-chunk-end-fw)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Template-Toolkit
+
+(defun mumamo-chunk-tt (pos max)
+  "Find [% ... %], return range and `tt-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX.
+
+This is for Template Toolkit.
+See URL `http://dave.org.uk/emacs/' for `tt-mode'."
+  (mumamo-quick-chunk-forward pos max "[%" "%]" t 'tt-mode))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Asp
+
+;;;; asp <%@language="javscript"%>
+
+(defvar mumamo-asp-default-major 'asp-js-mode)
+(make-variable-buffer-local 'mumamo-asp-default-major)
+(put 'mumamo-asp-default-major 'permanent-local t)
+
+;; Fix-me: Format?
+;;<%@ Language="C#" %> ???
+;;<%@ Page Language="C#" ... %>
+;;<%@ Control ... %>
+
+(defconst mumamo-asp-decl-marker
+  (rx "<%@" (+ space)
+      (or "Control"
+          (seq "Page"
+               (+ space)
+               "language" (* space) "=" (* space)
+               "\"" (submatch (1+ (not (any "\"")))) "\""
+               ))))
+
+(defvar mumamo-asp-languages-assoc
+  '(("javascript" asp-js-mode)
+    ("vbscript" asp-vb-mode)
+    ("vb" asp-vb-mode)
+    ("c#" asp-csharp-mode))
+  "Association between language markers and major mode spec.")
+
+;;(mumamo-asp-page-lang-to-major-spec "C#")
+;;(mumamo-asp-page-lang-to-major-spec "C")
+(defun mumamo-asp-page-lang-to-major-spec (lang)
+  "Translate language marker LANG to a major mode spec.
+Note that the spec may be translated further by
+`mumamo-major-modes'."
+  (setq lang (downcase lang))
+  (let ((rec (assoc lang mumamo-asp-languages-assoc)))
+    (when rec (nth 1 rec))))
+
+(defun mumamo-chunk-asp% (pos max)
+  "Find chunk <% ... %>.
+If this is a language specifier use comment mode for the chunk
+and set `mumamo-asp-default-major' to the specified language.
+Otherwise use `mumamo-asp-default-major' for the chunk.
+
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let* ((chunk (mumamo-quick-chunk-forward pos max "<%" "%>" 'borders 'fundamental-mode))
+         (beg (nth 0 chunk))
+         page-lang
+         lang)
+    (when chunk
+      (goto-char beg)
+      (cond ((looking-at mumamo-asp-decl-marker)
+             (setq page-lang (match-string-no-properties 1))
+             (when page-lang
+               (setq lang (mumamo-asp-page-lang-to-major-spec page-lang))
+               (when lang
+                 (setq mumamo-asp-default-major lang)))
+             (setcar (nthcdr 2 chunk) 'mumamo-comment-mode))
+            (t
+             (setcar (nthcdr 2 chunk) mumamo-asp-default-major)))
+      chunk)))
+
+;;;; asp <script ...>
+
+(defconst mumamo-asp-server-script-tag-start-regex
+  (rx "<script"
+      space
+      (0+ (not (any ">")))
+      "language"
+      (0+ space)
+      "="
+      (0+ space)
+      (or
+       (seq ?\" (submatch (+ (not (any "\""))) (? "#")) ?\")
+       (seq ?\' (submatch (+ (not (any "\""))) (? "#")) ?\'))
+      (0+ (not (any ">")))
+      ">"))
+
+(defun mumamo-asp-search-fw-exc-start-inlined-script (pos max)
+  "Helper for `mumamo-chunk-inlined-script'.
+POS is where to start search and MAX is where to stop."
+  (let ((case-fold-search t))
+    ;; Is this fix needed any more???
+    (goto-char (1+ pos))
+    (skip-chars-backward "^<")
+    ;; Handle <![CDATA[
+    (when (and
+           (eq ?< (char-before))
+           (eq ?! (char-after))
+           (not (bobp)))
+      (backward-char)
+      (skip-chars-backward "^<"))
+    (unless (bobp)
+      (backward-char 1))
+    (let ((exc-start (search-forward "<script" max t))
+          exc-mode
+          lang)
+      (when exc-start
+        (goto-char (- exc-start 7))
+        (when (looking-at mumamo-asp-server-script-tag-start-regex)
+          (goto-char (match-end 0))
+          (setq lang (match-string-no-properties 1))
+          (setq exc-mode (mumamo-asp-page-lang-to-major-spec lang))
+          (when exc-mode
+            (list (point) exc-mode)))))))
+
+(defun mumamo-chunk-asp-server-script (pos max)
+  "Find <script language=...  runat=...>...</script>.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-asp-search-fw-exc-start-inlined-script
+                                 'mumamo-search-fw-exc-end-inlined-script))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Org-mode
+
+(defcustom mumamo-org-submodes '((ditaa picture-mode))
+  "Alist for conversion of org #+BEGIN_SRC specifier to major mode.
+Works kind of like `mumamo-major-modes'.
+
+Note that adding '-mode' to the specifier is tried before this
+list.
+
+This may be used for example for org-babel \(see URL
+`http://orgmode.org/worg/org-contrib/babel/')."
+  :type '(alist
+          :key-type (symbol :tag "Symbol in #BEGIN_SRC specifier")
+          :value-type (repeat (choice
+                               (command :tag "Major mode")
+                               (symbol :tag "Major mode (not yet loaded)")))
+          )
+  :group 'mumamo-modes)
+
+;;(mumamo-org-mode-from-spec 'css)
+;;(mumamo-org-mode-from-spec 'abcdef)
+(defun mumamo-org-mode-from-spec (major-spec)
+  "Translate MAJOR-SPEC to a major mode.
+Translate MAJOR-SPEC used in #BEGIN_SRC to a major mode.
+
+See `mumamo-org-submodes' for an explanation."
+  (mumamo-major-mode-from-spec major-spec mumamo-org-submodes))
+
+(defun mumamo-chunk-org-html (pos max)
+  "Find #+BEGIN_HTML ... #+END_HTML, return range and `html-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "#+BEGIN_HTML" "#+END_HTML" nil 'html-mode))
+
+(defun mumamo-search-fw-org-src-start (pos max)
+  "Helper for `mumamo-chunk-org-src'.
+POS is where to start search and MAX is where to stop."
+  (let ((where (mumamo-chunk-start-fw-str pos max "#+BEGIN_SRC")))
+    (when where
+      (let ((exc-mode (let ((here (point)))
+                        (goto-char where)
+                        (prog1
+                            (read (current-buffer))
+                          (goto-char here)))))
+        (setq exc-mode (mumamo-org-mode-from-spec exc-mode))
+        (let ((start where)
+              (here (point)))
+          (goto-char where)
+          (setq start (1+ (line-end-position)))
+          (goto-char here)
+          (list start exc-mode))))))
+
+(defun mumamo-search-fw-org-src-end (pos max)
+  "Helper for `mumamo-chunk-org-src'.
+POS is where to start search and MAX is where to stop."
+  (save-match-data
+    (mumamo-chunk-end-fw-str pos max "#+END_SRC")))
+
+(defun mumamo-chunk-org-src (pos max)
+  "Find #+BEGIN_SRC ... #+END_SRC, return range and choosen major mode.
+See `mumamo-possible-chunk-forward' for POS and MAX.
+
+See Info node `(org) Literal Examples' for how to specify major
+mode."
+  (mumamo-possible-chunk-forward pos max
+                                 'mumamo-search-fw-org-src-start
+                                 'mumamo-search-fw-org-src-end))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Mako
+
+(defun mumamo-chunk-mako-<% (pos max)
+  "Find <% ... %> and <%! ... %>. Return range and `python-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((chunk (mumamo-possible-chunk-forward pos max
+                                              'mumamo-mako-<%-fw-start
+                                              'mumamo-mako-<%-fw-end
+                                              'mumamo-mako-<%-find-borders
+                                              )))
+    (when chunk
+      (setcdr (last chunk) '(mumamo-template-indentor))
+      chunk)))
+
+(defun mumamo-mako-<%-find-borders (start end exc-mode)
+  (when exc-mode
+    (list
+     (when start
+       (+ start
+          (if (eq ?! (char-after (+ start 2)))
+              3
+            2)))
+     (when end (- end 2))
+     exc-mode)))
+
+(defun mumamo-mako-<%-fw-start (pos max)
+  (let ((here (point))
+        start
+        ret)
+    (goto-char pos)
+    (setq start
+          (re-search-forward "<%!?\\(?:[ \t]\\|$\\)" max t))
+    (when start
+      (setq ret (match-beginning 0)))
+    (goto-char here)
+    (when ret
+      (list ret 'python-mode))))
+
+(defun mumamo-mako-<%-fw-end (pos max)
+  (save-match-data
+    (mumamo-chunk-end-fw-str-inc pos max "%>"))) ;; ok
+
+
+
+(defun mumamo-chunk-mako-% (pos max)
+  "Find % python EOL.  Return range and `python-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((chunk (mumamo-whole-line-chunk pos max "%" 'python-mode)))
+    (when chunk
+      (setcdr (last chunk) '(mumamo-template-indentor))
+      chunk)))
+
+(defun mumamo-chunk-mako-one-line-comment (pos max)
+  "Find ## comment EOL.  Return range and `python-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-whole-line-chunk pos max "##" 'mumamo-comment-mode))
+
+(defun mumamo-chunk-mako-<%doc (pos max)
+  (mumamo-quick-chunk-forward pos max "<%doc>" "</%doc>" 'borders 'mumamo-comment-mode))
+
+(defun mumamo-chunk-mako-<%include (pos max)
+  (mumamo-quick-chunk-forward pos max "<%include" "/>" 'borders 'html-mode))
+
+(defun mumamo-chunk-mako-<%inherit (pos max)
+  (mumamo-quick-chunk-forward pos max "<%inherit" "/>" 'borders 'html-mode))
+
+(defun mumamo-chunk-mako-<%namespace (pos max)
+  (mumamo-quick-chunk-forward pos max "<%namespace" "/>" 'borders 'html-mode))
+
+(defun mumamo-chunk-mako-<%page (pos max)
+  (mumamo-quick-chunk-forward pos max "<%page" "/>" 'borders 'html-mode))
+
+;; Fix-me: this is not correct
+(defun mumamo-chunk-mako-<%def (pos max)
+  (mumamo-quick-chunk-forward pos max "<%def" "</%def>" 'borders 'html-mode))
+
+(defun mumamo-chunk-mako$(pos max)
+  "Find ${ ... }, return range and `python-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "${" "}" 'borders 'python-mode))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Markdown
+
+(defun mumamo-chunk-markdown-html-1 (pos max)
+  (save-restriction
+    (goto-char pos)
+    (narrow-to-region (point) (or max (point-max)))
+    (save-match-data
+      (let ((here (point)))
+        (when (re-search-forward (rx (* space)
+                                     (submatch "<")
+                                     (* (any "a-z"))
+                                     (or ">" (any " \t\n")))
+                                 nil t)
+          (let ((beg (match-beginning 1))
+                (end))
+            (goto-char beg)
+            (condition-case err
+                (progn
+                  (while (not (sgml-skip-tag-forward 1)))
+                  (setq end (point)))
+              (error (message "mumamo-chunk-markdown-html-1: %s" err)))
+            (goto-char here)
+            (when (and beg end)
+              (cons beg end))))))))
+
+(defun mumamo-chunk-markdown-html-fw-exc-fun (pos max)
+  (let ((beg-end (mumamo-chunk-markdown-html-1 pos max)))
+    (cdr beg-end)))
+
+(defun mumamo-chunk-markdown-html (pos max)
+  "Find a chunk of html code in `markdown-mode'.
+Return range and `html-mode'.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (let ((beg-end (mumamo-chunk-markdown-html-1 pos max)))
+    (when beg-end
+      (let ((beg (car beg-end))
+            (end (cdr beg-end)))
+        (list beg end 'html-mode
+              nil ;; borders
+              nil ;; parseable y
+              'mumamo-chunk-markdown-html-fw-exc-fun
+              nil ;; find-borders fun
+              )))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Latex related
+
+(defun mumamo-latex-closure-chunk (pos max)
+  (mumamo-quick-chunk-forward pos max "\\begin{clojure}" "\\end{clojure}" 'borders 'clojure-mode))
+
+(defun mumamo-latex-haskell-chunk (pos max)
+  (mumamo-quick-chunk-forward pos max "\\begin{code}" "\\end{code}" 'borders 'haskell-mode))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Python + ReST
+
+;; From Martin Soto
+
+(defun mumamo-python-rst-long-string-chunk (pos max)
+ "Find Python long strings.  Return range and 'mumamo-comment-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+ ;;(mumamo-quick-chunk-forward pos max "\"\"\"((" "))\"\"\"" nil 'rst-mode nil))
+ (mumamo-quick-chunk-forward pos max "\"\"\"" "\"\"\"" 'borders 'rst-mode))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Amrita
+
+(eval-when-compile (require 'amrita nil t))
+
+(defcustom mumamo-amrita-mode-alist nil
+  "Alist used by `mumamo-chunk-amrita-fold' to get chunk mode.
+This is used only if the major mode can not by guessed.  See
+`mumamo-search-fw-amrita-fold' for more info."
+  :type '(alist :key-type string :value-type function)
+  :group 'mumamo-modes)
+
+(defun mumamo-search-fw-amrita-fold (pos max)
+  (when (require 'amrita nil t)
+    (let ((here (point))
+          (hit-pos -1)
+          start
+          (patt (rx word-start
+                    "fold::"
+                    (submatch (+ (any alpha)))
+                    (+ space)
+                    "{"
+                    (* not-newline)
+                    line-end
+                    ))
+          spec
+          chunk-mode)
+      (save-match-data
+        (while (and (not start) hit-pos)
+          (setq hit-pos (re-search-forward patt nil max))
+          (when hit-pos
+            ;; check if not in string
+            (if (mumamo-end-in-code pos hit-pos amrita-mode-syntax-table)
+                (setq start (match-end 0))
+              (goto-char (match-end 1)))))
+        (when start
+          (setq spec (match-string-no-properties 1))
+          ;; Guess the major mode name
+          (setq chunk-mode (intern-soft (concat spec "-mode")))
+          (unless (commandp chunk-mode)
+            (setq chunk-mode (assoc spec mumamo-amrita-mode-alist))
+            (if chunk-mode
+                (setq chunk-mode (cdr chunk-mode))
+              (setq chunk-mode 'mumamo-bad-mode)))))
+      (goto-char here)
+      (when start
+        (list start chunk-mode nil)))))
+
+(defun mumamo-search-fw-exc-end-amrita-fold (pos max)
+  "Helper for `mumamo-chunk-amrita-fold.
+POS is where to start search and MAX is where to stop.
+
+Note: This simply matches {}-pairs and will fail if there is a
+non-matching pair inside a string."
+  (save-match-data
+    (let ((here (point))
+          ;; {} par level, we start after first {
+          (level 1))
+      (goto-char pos)
+      (while (and (> level 0)
+                  (re-search-forward "[{}]" max t))
+        (setq level (+ level
+                       (if (eq (char-before) ?\{)
+                           1 -1))))
+      (prog1
+          (when (= 0 level) (1- (point)))
+        (goto-char here)))))
+
+(defun mumamo-chunk-amrita-fold (pos max)
+  "Find Amrita fold::PROGLANG chnks."
+  (mumamo-possible-chunk-forward pos max
+                                 ;;'mumamo-search-fw-exc-start-xml-pi-new
+                                 'mumamo-search-fw-amrita-fold
+                                 ;;'mumamo-search-fw-exc-end-xml-pi
+                                 'mumamo-search-fw-exc-end-amrita-fold
+                                 ;;'mumamo-find-borders-xml-pi
+                                 nil
+                                 ))
 
 (provide 'mumamo-chunks)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
