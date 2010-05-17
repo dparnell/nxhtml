@@ -61,6 +61,13 @@ buffer.")
 (make-variable-buffer-local 'mumamo-cmirr-back-link)
 (put 'mumamo-cmirr-back-link 'permanent-local t)
 
+(defun mumamo-cmirror-kill-mirror-buffers ()
+  "Kill all mirror buffers when killing main buffer.
+For `kill-buffer-hook' in main buffer."
+  (dolist (rec mumamo-cmirr-buffers)
+    (let ((mbuf (nth 1 rec)))
+      (kill-buffer mbuf))))
+
 ;; (setq mumamo-cmirr-buffers nil)
 ;; (mumamo-cmirr-get-mirror 'text-mode (current-buffer))
 ;;;###autoload
@@ -85,6 +92,7 @@ buffer.")
           (with-current-buffer buf
             (setq mumamo-cmirr-back-link back))
           (setq mumamo-cmirr-buffers (cons back mumamo-cmirr-buffers))))
+      (add-hook 'kill-buffer-hook 'mumamo-cmirror-kill-mirror-buffers nil t)
       (add-hook 'after-change-functions 'mumamo-cmirr-after-change nil t)
       rec)))
 
