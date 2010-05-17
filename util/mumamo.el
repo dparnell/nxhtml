@@ -7459,10 +7459,16 @@ This is in the temporary buffer for indentation."
     (unless (string= line-in-src line-in-mirror)
       ;; It could have happened that spaces at the end of line where
       ;; trimmed by indentation if the line is blank.
-      (if line-in-mirror-is-blank
-          (with-current-buffer mirror-buf
-            (insert (make-string (- (length line-in-src) (length line-in-mirror)) 32)))
-        (error "cmirr-indent-line error at pos %d, lines not eq after indentation" line-end)))
+      (unless (or line-in-mirror-is-blank
+                  ;; Could be a chunk in another mode on the line.
+                  (with-current-buffer buf
+                    (let ((chunks (mumamo-indent-current-line-chunks nil)))
+                      (unless (eq (nth 0 chunks) (nth 3 chunks))
+                        (with-current-buffer mirror-buf
+                          (goto-char (point-at-eol))
+                          (insert (make-string (- (length line-in-src) (length line-in-mirror)) 32))
+                          t)))))
+        (error "indent-line-in-mirror error at pos %d, %s, lines not eq after indentation" line-end major)))
     ))
 
 (defun mumamo-indent-line-function-1 (prev-line-chunks
