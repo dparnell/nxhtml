@@ -7400,7 +7400,7 @@ This is in the temporary buffer for indentation."
 
 ;; (mumamo-update-cmirr-buffer 'text-mode (current-buffer))
 (defun mumamo-update-cmirr-buffer (major for-buffer to-point)
-  "Update content of mirror buffer."
+  "Update content of mirror buffer. Return mirror buffer."
   (let* ((rec (mumamo-cmirr-get-mirror major for-buffer))
          (buf (nth 1 rec))
          (change-beg (nth 2 rec))
@@ -7433,6 +7433,29 @@ This is in the temporary buffer for indentation."
                             (overlay-get chunk 'mumamo-next-chunk))))))))
     buf))
 
+(defun mumamo-indent-line-copy-indentation-to-mirror (chunk line-end)
+  "Copy indentation on current line in main buffer to mirror."
+  (let* ((major (mumamo-chunk-major-mode chunk))
+         (for-buffer (overlay-buffer chunk))
+         (to-point line-end)
+         (mirror-buffer (mumamo-update-cmirr-buffer major for-buffer to-point))
+         line-beg
+         indent-in-src)
+    (with-current-buffer for-buffer
+      (save-restriction
+        (widen)
+        (goto-char line-end)
+        (goto-char (point-at-bol))
+        (setq line-beg (point-at-bol))
+        (back-to-indentation)
+        (setq indent-in-src (buffer-substring-no-properties line-beg (point)))))
+    (with-current-buffer mirror-buffer
+      (widen)
+      (goto-char line-beg)
+      (back-to-indentation)
+      (delete-region line-beg (point))
+      (insert indent-in-src))))
+
 (defun mumamo-indent-line-in-mirror (chunk line-end)
   (let* ((major (mumamo-chunk-major-mode chunk))
          (buf (overlay-buffer chunk))
@@ -7450,11 +7473,11 @@ This is in the temporary buffer for indentation."
       (setq line-in-mirror-is-blank (eolp))
       (setq line-in-mirror (buffer-substring-no-properties (point-at-bol) (point-at-eol))))
     (with-current-buffer buf
-      (goto-char line-end)
-      (goto-char (point-at-bol))
-      (indent-line-to new-ind)
       (save-restriction
         (widen)
+        (goto-char line-end)
+        (goto-char (point-at-bol))
+        (indent-line-to new-ind)
         (setq line-in-src (buffer-substring-no-properties (point-at-bol) (point-at-eol)))))
     (unless (string= line-in-src line-in-mirror)
       ;; It could have happened that spaces at the end of line where
@@ -7641,6 +7664,7 @@ The following rules are used when indenting:
          ;; Fix-me
          (leaving-submode (> prev-depth2 this-depth2))
          want-indent ;; The indentation we desire
+         want-indent-major ;; Set this for copy back to cmirr buffer
          got-indent
          (here-on-line (point-marker))
          this-pending-undo-list
@@ -7728,6 +7752,8 @@ The following rules are used when indenting:
     ;; - clean up after chunk deletion
     ;; - next line after a template-indentor, what happens?
     ;;(setq template-indentor nil) ;; fix-me
+
+    ;; Fix-me: copy back to mirror buffer!!!!
     (cond
      ( template-indent-abs
        (setq want-indent (max 0 template-indent-abs)))
@@ -7738,7 +7764,12 @@ The following rules are used when indenting:
        (if (eq (overlay-get (overlay-get this-line-chunk0 'mumamo-prev-chunk)
                             'mumamo-next-indent)
                'heredoc)
-           (setq want-indent 0)
+           (progn
+             (setq want-indent-major (mumamo-chunk-major-mode prev-line-chunk3))
+             (setq want-indent 0))
+         ;; Fix-me: mumamo-call-indent-line???
+         ;; or set want-indent-major??
+         (setq want-indent-major (mumamo-chunk-major-mode this-line-chunk0))
          (setq want-indent last-parent-major-indent)))
 
      ( entering-submode
@@ -7775,7 +7806,8 @@ The following rules are used when indenting:
                ;;(msgtrc "NO signal this-line-chunks =%S" this-line-chunks)
                (setq want-indent nil))
            (mumamo-error-ind-0)))
-       (unless want-indent
+       (if want-indent
+           (setq want-indent-major this-line-indent-major)
          ;;(msgtrc "want-indent this-line-chunks =%S" this-line-chunks)
          (mumamo-call-indent-line (nth 0 this-line-chunks)))
        (mumamo-msgindent "  enter sub.want-indent=%s, curr=%s, last-main=%s" want-indent (current-indentation)
@@ -7861,6 +7893,7 @@ The following rules are used when indenting:
              ;;
              ;; See c:/test/erik-lilja-index.php for an example.
              (when ind-zero ;(and t (= 0 (current-indentation)))
+               (setq want-indent-major (mumamo-chunk-major-mode this-line-chunk0))
                (save-excursion
                  (setq want-indent 0)
                  (unless (= 0 ind-on-first-sub-line)
@@ -7888,13 +7921,12 @@ The following rules are used when indenting:
                                                 mumamo-submode-indent-offset)))))))))
              )))))
     (when want-indent
-      ;;(msgtrc "indent-line-to %s at line-beginning=%s" want-indent (line-beginning-position))
-      (indent-line-to want-indent))
-    ;; (when (and template-shift (/= 0 template-shift))
-    ;;   (let ((ind (+ (current-indentation) template-shift)))
-    ;;     (indent-line-to ind)))
-    ;; (when template-indent-abs
-    ;;   (indent-line-to template-indent-abs))
+      ;;(msgtrc "indent-line-to %s %s at line-beginning=%s" want-indent want-indent-major (line-beginning-position))
+      (indent-line-to want-indent)
+      (when want-indent-major
+        ;; fix-me: copy back to cmirr
+        (mumamo-indent-line-copy-indentation-to-mirror this-line-chunk0 (point-at-eol))
+        ))
     (goto-char here-on-line)
     ;;(msgtrc "exit: %s" (list this-line-chunks last-parent-major-indent))
     (list this-line-chunks last-parent-major-indent next-entering-submode)))
