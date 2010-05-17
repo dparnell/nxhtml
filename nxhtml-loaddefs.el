@@ -2537,7 +2537,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;;;;  mumamo-list-defined-multi-major-modes mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19439 26090))
+;;;;;;  (19440 41646))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2693,7 +2693,7 @@ Return t if VALUE is a multi major mode function.
 ;;;***
 
 ;;;### (autoloads (mumamo-noweb2 mumamo-define-html-file-wide-keys)
-;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19439 63780))
+;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19440 16471))
 ;;; Generated autoloads from util/mumamo-chunks.el
 (web-autoload-require 'mumamo-chunks 'lp '(nxhtml-download-root-url nil) "util/mumamo-chunks" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2704,6 +2704,19 @@ Define keys in multi major mode keymap for html files.
 \(fn)" nil nil)
 
 (let ((loads (get 'mumamo-noweb2 'custom-loads))) (if (member '"mumamo-chunks" loads) nil (put 'mumamo-noweb2 'custom-loads (cons '"mumamo-chunks" loads))))
+
+;;;***
+
+;;;### (autoloads (mumamo-cmirr-get-mirror) "mumamo-cmirr" "util/mumamo-cmirr.el"
+;;;;;;  (19440 41652))
+;;; Generated autoloads from util/mumamo-cmirr.el
+(web-autoload-require 'mumamo-cmirr 'lp '(nxhtml-download-root-url nil) "util/mumamo-cmirr" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'mumamo-cmirr-get-mirror `(lp '(nxhtml-download-root-url nil) "util/mumamo-cmirr" nxhtml-install-dir) "\
+Get the mirror rec.
+
+\(fn MAJOR FOR-BUFFER)" nil nil)
 
 ;;;***
 
@@ -4339,7 +4352,7 @@ accept it or skip it.
 ;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/idn.el"
 ;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/org-panel.el"
 ;;;;;;  "util/rxi.el" "util/tipframe.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19440 639 375000))
+;;;;;;  "web-autoload.el") (19440 41667 984000))
 
 ;;;***
 

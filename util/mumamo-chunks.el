@@ -109,7 +109,7 @@ See `mumamo-possible-chunk-forward' for POS and MAX."
     (let ((here (point))
           first-dq
           next-dq
-          (this-chunk (mumamo-get-existing-new-chunk-at pos)))
+          (this-chunk (mumamo-get-existing-chunk-at pos)))
       (if this-chunk
           (goto-char (overlay-end this-chunk))
         (goto-char (overlay-end mumamo-last-chunk)))
