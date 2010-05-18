@@ -62,8 +62,9 @@
 
 (require 'nxhtml-base)
 (eval-and-compile (when (fboundp 'nxml-mode)
-                     (load (expand-file-name "etc/schema/schema-path-patch"
-                                             nxhtml-install-dir))))
+                    (let ((patching-file "etc/schema/schema-path-patch"))
+                      (unless (load (expand-file-name patching-file nxhtml-install-dir) t)
+                        (message "File %S not found (OK during download)" patching-file)))))
 
 ;; (defun nxhtml-custom-load-and-get-value (symbol)
 ;;   (custom-load-symbol symbol)
