@@ -556,17 +556,17 @@ downloading will be made.
       (setq web-vcs-folder-cache (cdr web-vcs-folder-cache))
       (kill-buffer (nth 1 ub)))))
 
-(defun web-vcs-url-copy-file-and-check (url dl-file dest-file)
-  "Copy URL to DL-FILE.
+(defun web-vcs-url-copy-file-and-check (file-url dl-file dest-file)
+  "Copy FILE-URL to DL-FILE.
 Log what happened. Use DEST-FILE in the log, not DL-FILE which is
 a temporary file."
   (let ((http-sts nil)
         (file-nonempty nil)
         (fail-reason nil))
-    (when dest-file (web-vcs-log url dest-file nil))
+    (when dest-file (web-vcs-log file-url dest-file nil))
     (web-vcs-display-messages nil)
     ;;(message "before url-copy-file %S" dl-file)
-    (setq http-sts (web-vcs-url-copy-file url dl-file nil t)) ;; don't overwrite, keep time
+    (setq http-sts (web-vcs-url-copy-file file-url dl-file nil t)) ;; don't overwrite, keep time
     ;;(message "after  url-copy-file %S" dl-file)
     (if (and (file-exists-p dl-file)
              (setq file-nonempty (< 0 (nth 7 (file-attributes dl-file)))) ;; file size 0
@@ -578,13 +578,13 @@ a temporary file."
              (http-sts (format "HTTP %s" http-sts))
              (file-nonempty "File looks bad")
              (t "Server did not respond")))
-      (unless dest-file (web-vcs-log url dl-file "TEMP FILE"))
+      (unless dest-file (web-vcs-log file-url dl-file "TEMP FILE"))
       (web-vcs-log nil nil (format "   *Failed:* %s\n" fail-reason))
       ;; Requires user attention and intervention
-      (web-vcs-message-with-face 'web-vcs-red "Download failed: %s, %S" fail-reason url)
+      (web-vcs-message-with-face 'web-vcs-red "Download failed: %s, %S" fail-reason file-url)
       (web-vcs-display-messages t)
-      (when (y-or-n-p (format "Vist page %S to see what is wrong? " url))
-        (browse-url page-url))
+      (when (y-or-n-p (format "Vist page %S to see what is wrong? " file-url))
+        (browse-url file-url))
       (message "\n")
       (web-vcs-message-with-face 'web-vcs-yellow "Please retry what you did before!\n")
       (throw 'command-level nil))))
@@ -687,18 +687,21 @@ VCS-REC should be an entry like the entries in the list
   (let ((url-buf (url-retrieve-synchronously url)))
     (web-vcs-get-revision-from-url-buf vcs-rec url-buf url)))
 
-(defun web-vcs-get-revision-from-url-buf (vcs-rec url-buf url)
+(defun web-vcs-get-revision-from-url-buf (vcs-rec url-buf rev-page-url)
   "Get revision number using VCS-REC.
 VCS-REC should be an entry in the list `web-vcs-links-regexp'.
-The buffer URL-BUF should contain the content on page URL."
+The buffer URL-BUF should contain the content on page
+REV-PAGE-URL."
   (let ((revision-regexp    (nth 5 vcs-rec)))
     ;; Get revision number
     (with-current-buffer url-buf
       (goto-char (point-min))
       (if (not (re-search-forward revision-regexp nil t))
           (progn
-            (web-vcs-message-with-face 'web-vcs-red "Can't find revision number on %S" url)
+            (web-vcs-message-with-face 'web-vcs-red "Can't find revision number on %S" rev-page-url)
             (web-vcs-display-messages t)
+            (when (y-or-n-p (format "Coult not find rev no on %S, visit page to see what is wrong? " rev-page-url))
+              (browse-url rev-page-url))
             (throw 'command-level nil))
         (match-string 1)))))
 
