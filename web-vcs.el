@@ -583,6 +583,8 @@ a temporary file."
       ;; Requires user attention and intervention
       (web-vcs-message-with-face 'web-vcs-red "Download failed: %s, %S" fail-reason url)
       (web-vcs-display-messages t)
+      (when (y-or-n-p (format "Vist page %S to see what is wrong? " url))
+        (browse-url page-url))
       (message "\n")
       (web-vcs-message-with-face 'web-vcs-yellow "Please retry what you did before!\n")
       (throw 'command-level nil))))
