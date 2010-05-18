@@ -464,7 +464,9 @@ If TEST is non-nil then do not download, just list the files"
       ;;   (insert-file-contents temp-list-file))
       (unless (memq (cdr folder-res) '(200 201))
         (web-vcs-message-with-face 'web-vcs-red "Could not get %S" page-url)
-          (web-vcs-display-messages t)
+        (web-vcs-display-messages t)
+        (when (y-or-n-p (format "Coult not get %S, visit page to see what is wrong? " page-url))
+          (browse-url page-url))
         (throw 'command-level nil)))
     ;;(with-current-buffer temp-list-buf
     (with-current-buffer (car folder-res)
