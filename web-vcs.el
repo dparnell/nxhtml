@@ -271,30 +271,30 @@ Considers site-start.el, site-
 ;;; Finding and downloading files
 
 ;;;###autoload
-(defun web-vcs-get-files-from-root (web-vcs url dl-dir)
+(defun web-vcs-get-files-from-root (web-vcs full-url dl-dir)
   "Download a file tree from VCS system using the web interface.
 Use WEB-VCS entry in variable `web-vcs-links-regexp' to download
-files via http from URL to directory DL-DIR.
+files via http from FULL-URL to directory DL-DIR.
 
-Show URL first and offer to visit the page.  That page will give
-you information about version control system \(VCS) system used
-etc."
+Show FULL-URL first and offer to visit the page.  That page will
+give you information about version control system \(VCS) system
+used etc."
   (unless (web-vcs-contains-moved-files dl-dir)
-    (when (if (not (y-or-n-p (concat "Download files from \"" url "\".\n"
+    (when (if (not (y-or-n-p (concat "Download files from \"" full-url "\".\n"
                                      "You can see on that page which files will be downloaded.\n\n"
                                      "Visit that page before downloading? ")))
               t
-            (browse-url url)
+            (browse-url full-url)
             (if (y-or-n-p "Start downloading? ")
                 t
               (message "Aborted")
               nil))
       (message "")
-      (web-vcs-get-files-on-page web-vcs url t (file-name-as-directory dl-dir) nil)
+      (web-vcs-get-files-on-page web-vcs full-url t (file-name-as-directory dl-dir) nil)
       t)))
 
-(defun web-vcs-get-files-on-page (web-vcs url recursive dl-dir test)
-  "Download files listed by WEB-VCS on web page URL.
+(defun web-vcs-get-files-on-page (web-vcs page-url recursive dl-dir test)
+  "Download files listed by WEB-VCS on web page PAGE-URL.
 WEB-VCS is a specifier in `web-vcs-links-regexp'.
 
 If RECURSIVE go into sub folders on the web page and download
@@ -327,12 +327,12 @@ If TEST is non-nil then do not download, just list the files."
       ;;     (switch-to-buffer-other-window "*Messages*"))
       ;;   (goto-char (point-max))
       ;;   (insert "\n")
-      ;;   (insert (propertize (format "\n\nWeb-Vcs Download: %S\n" url) 'face 'web-vcs-gold))
+      ;;   (insert (propertize (format "\n\nWeb-Vcs Download: %S\n" page-url) 'face 'web-vcs-gold))
       ;;   (insert "\n")
       ;;   (redisplay t)
       ;;   (set-window-point (selected-window) (point-max))
       ;;   (select-window old-win))
-      (web-vcs-message-with-face 'web-vcs-gold "\n\nWeb-Vcs Download: %S\n" url)
+      (web-vcs-message-with-face 'web-vcs-gold "\n\nWeb-Vcs Download: %S\n" page-url)
       (web-vcs-display-messages nil)
       (let* ((rev-file (expand-file-name "web-vcs-revision.txt" dl-dir))
              (rev-buf (find-file-noselect rev-file))
@@ -349,7 +349,7 @@ If TEST is non-nil then do not download, just list the files."
                              (with-current-buffer rev-buf
                                (buffer-substring-no-properties (car old-rev-range)
                                                                (cdr old-rev-range)))))
-             (dl-revision (web-vcs-get-revision-on-page vcs-rec url))
+             (dl-revision (web-vcs-get-revision-on-page vcs-rec page-url))
              ret
              moved)
         (when (and old-revision (string= old-revision dl-revision))
@@ -363,7 +363,7 @@ If TEST is non-nil then do not download, just list the files."
             (delete-region (car old-rev-range) (cdr old-rev-range))
             (basic-save-buffer)))
         (setq ret (web-vcs-get-files-on-page-1
-                   vcs-rec url
+                   vcs-rec page-url
                    dl-dir
                    ""
                    nil
@@ -380,7 +380,7 @@ If TEST is non-nil then do not download, just list the files."
           (basic-save-buffer)
           (kill-buffer))
         (message "-----------------")
-        (web-vcs-message-with-face 'web-vcs-gold "Web-Vcs Download Ready: %S" url)
+        (web-vcs-message-with-face 'web-vcs-gold "Web-Vcs Download Ready: %S" page-url)
         (web-vcs-message-with-face 'web-vcs-gold "  Time elapsed: %S"
                                    (web-vcs-nice-elapsed start-time (current-time)))
         (when (> moved 0)
@@ -388,8 +388,8 @@ If TEST is non-nil then do not download, just list the files."
                                      "  %i files updated (old versions renamed to *.moved)"
                                      moved))))))
 
-(defun web-vcs-get-files-on-page-1 (vcs-rec url dl-root dl-relative file-mask recursive dl-revision test)
-  "Download files listed by VCS-REC on web page URL.
+(defun web-vcs-get-files-on-page-1 (vcs-rec page-url dl-root dl-relative file-mask recursive dl-revision test)
+  "Download files listed by VCS-REC on web page page-URL.
 VCS-REC should be an entry like the entries in the list
 `web-vcs-links-regexp'.
 
@@ -412,17 +412,33 @@ files from them too.
 
 Place the files under DL-DIR.
 
-The revision on the page URL should match DL-REVISION if this is non-nil.
+The revision on the page page-URL should match DL-REVISION if this is non-nil.
 
 If TEST is non-nil then do not download, just list the files"
-  ;;(web-vcs-message-with-face 'font-lock-comment-face "web-vcs-get-files-on-page-1 %S %S %S %S" url dl-root dl-relative file-mask)
+  ;;(web-vcs-message-with-face 'font-lock-comment-face "web-vcs-get-files-on-page-1 %S %S %S %S" page-url dl-root dl-relative file-mask)
   (let* ((files-matcher      (nth 2 vcs-rec))
          (dirs-href-regexp   (nth 3 vcs-rec))
          (revision-regexp    (nth 5 vcs-rec))
+         ;; (setq x (url-generic-parse-url "http://somewhere.com/file/path.el"))
+         ;; (setq x (url-generic-parse-url "http://somewhere.com"))
+         ;; (setq x (url-generic-parse-url "/somewhere.com"))
+         ;; (url-type x)
+         ;; (url-host x)
+         ;; (url-filename x)
+         ;; (url-fullness x)
+         ;; (url-port x)
+         ;; (setq y (url-expand-file-name "/suburl/other.el" x))
+         ;; (setq y (url-expand-file-name "http://other.com/suburl/other.el" x))
+         ;;(page-urlobj (url-generic-parse-url page-url))
+         ;;(page-url-fullness (or (url-fullness page-urlobj) (error "Incomplete URL: %S" page-url)))
+         ;;(page-url-host (url-host page-urlobj))
+         ;;(page-url-type (url-type page-urlobj))
+         ;;(page-url-file (url-filename page-urlobj))
+         ;;(page-host-url (concat page-url-type "://" page-url-host))
          (dl-dir (file-name-as-directory (expand-file-name dl-relative dl-root)))
          (lst-dl-relative (web-vcs-file-name-as-list dl-relative))
          (lst-file-mask   (when (stringp file-mask) (web-vcs-file-name-as-list file-mask)))
-         ;;(url-buf (url-retrieve-synchronously url))
+         ;;(url-buf (url-retrieve-synchronously page-url))
          this-page-revision
          files
          suburls
@@ -439,15 +455,15 @@ If TEST is non-nil then do not download, just list the files"
     (unless (file-directory-p dl-dir) (make-directory dl-dir t))
     ;;(message "TRACE: dl-dir=%S" dl-dir)
     (setq temp-list-file (make-temp-name temp-file-base))
-    (setq temp-list-buf (web-vcs-ass-folder-cache url))
+    (setq temp-list-buf (web-vcs-ass-folder-cache page-url))
     (unless temp-list-buf
       ;;(setq temp-list-buf (generate-new-buffer "web-wcs-folder"))
-      ;;(web-vcs-url-copy-file-and-check url temp-list-file nil)
-      (setq folder-res (web-vcs-url-retrieve-synch url))
+      ;;(web-vcs-url-copy-file-and-check page-url temp-list-file nil)
+      (setq folder-res (web-vcs-url-retrieve-synch page-url))
       ;; (with-current-buffer temp-list-buf
       ;;   (insert-file-contents temp-list-file))
       (unless (memq (cdr folder-res) '(200 201))
-        (web-vcs-message-with-face 'web-vcs-red "Could not get %S" url)
+        (web-vcs-message-with-face 'web-vcs-red "Could not get %S" page-url)
           (web-vcs-display-messages t)
         (throw 'command-level nil)))
     ;;(with-current-buffer temp-list-buf
@@ -455,11 +471,11 @@ If TEST is non-nil then do not download, just list the files"
       ;;(delete-file temp-list-file)
       ;;(find-file-noselect temp-list-file)
       (when dl-revision
-        (setq this-page-revision (web-vcs-get-revision-from-url-buf vcs-rec (current-buffer) url)))
+        (setq this-page-revision (web-vcs-get-revision-from-url-buf vcs-rec (current-buffer) page-url)))
       (when dl-revision
         (unless (string= dl-revision this-page-revision)
           (web-vcs-message-with-face 'web-vcs-red "Revision on %S is %S, but should be %S"
-                                     url this-page-revision dl-revision)
+                                     page-url this-page-revision dl-revision)
           (web-vcs-display-messages t)
           (throw 'command-level nil)))
       ;; Find files
@@ -468,18 +484,21 @@ If TEST is non-nil then do not download, just list the files"
             (url-num           (nth 1 (assq 'url  files-matcher)))
             (time-num          (nth 1 (assq 'time files-matcher))))
         (while (re-search-forward files-href-regexp nil t)
-          (let ((file (match-string url-num))
-                (time (match-string time-num)))
-            (add-to-list 'files (list file time)))))
+          ;; Fix-me: What happened to full url???
+          (let* ((file (match-string url-num))
+                 (time (match-string time-num))
+                 (full-file (url-expand-file-name file page-url)))
+            (add-to-list 'files (list full-file time)))))
       ;; Find subdirs
       (when recursive
         (goto-char (point-min))
         (while (re-search-forward dirs-href-regexp nil t)
-          (let ((suburl (match-string 1))
-                (lenurl (length url)))
-            (when (and (> (length suburl) lenurl)
-                       (string= (substring suburl 0 lenurl) url))
-              (add-to-list 'suburls suburl)))))
+          (let* ((suburl (match-string 1))
+                 (lenurl (length page-url))
+                 (full-suburl (url-expand-file-name suburl page-url)))
+            (when (and (> (length full-suburl) lenurl)
+                       (string= (substring full-suburl 0 lenurl) page-url))
+              (add-to-list 'suburls full-suburl)))))
       (kill-buffer))
     ;; Download files
     ;;(message "TRACE: files=%S" files)
@@ -487,7 +506,7 @@ If TEST is non-nil then do not download, just list the files"
     ;; Download subdirs
     (when suburls
       (dolist (suburl (reverse suburls))
-        (let* ((dl-sub-dir (substring suburl (length url)))
+        (let* ((dl-sub-dir (substring suburl (length page-url)))
                (full-dl-sub-dir (file-name-as-directory
                                  (expand-file-name dl-sub-dir dl-dir)))
                (rel-dl-sub-dir (file-relative-name full-dl-sub-dir dl-root)))

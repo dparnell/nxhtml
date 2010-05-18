@@ -620,6 +620,7 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 "
   (interactive)
   (setq message-log-max t)
+  (setq resize-mini-windows nil)
   (when (called-interactively-p)
     (nxhtmltest-get-fontification-method))
   (nxhtmltest-run-ert nil))
