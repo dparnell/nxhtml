@@ -64,9 +64,16 @@ buffer.")
 (defun mumamo-cmirror-kill-mirror-buffers ()
   "Kill all mirror buffers when killing main buffer.
 For `kill-buffer-hook' in main buffer."
-  (dolist (rec mumamo-cmirr-buffers)
-    (let ((mbuf (nth 1 rec)))
-      (kill-buffer mbuf))))
+  (when (and (boundp 'mumamo-cmirr-buffers)
+             mumamo-cmirr-buffers)
+    (condition-case err
+        (progn
+          (dolist (rec mumamo-cmirr-buffers)
+            (let ((mbuf (nth 1 rec)))
+              (kill-buffer mbuf)))
+          (kill-local-variable 'mumamo-cmirr-buffers))
+      (error (message "mumamo-cmirror-kill-mirror-buffers: %s"
+                      (error-message-string err))))))
 
 ;; (setq mumamo-cmirr-buffers nil)
 ;; (mumamo-cmirr-get-mirror 'text-mode (current-buffer))
@@ -85,15 +92,18 @@ For `kill-buffer-hook' in main buffer."
         (with-current-buffer buf
           (setq buffer-undo-list t)
           (font-lock-mode -1)
-          (funcall major))
+          (funcall major)
+          (setq indent-tabs-mode (with-current-buffer for-buffer indent-tabs-mode)))
         (let* ((back (list major buf 1))
                (back-link (list for-buffer back)))
           (setq rec back)
           (with-current-buffer buf
             (setq mumamo-cmirr-back-link back))
-          (setq mumamo-cmirr-buffers (cons back mumamo-cmirr-buffers))))
-      (add-hook 'kill-buffer-hook 'mumamo-cmirror-kill-mirror-buffers nil t)
-      (add-hook 'after-change-functions 'mumamo-cmirr-after-change nil t)
+          (setq mumamo-cmirr-buffers (cons back mumamo-cmirr-buffers)))
+        (add-hook 'kill-buffer-hook 'mumamo-cmirror-kill-mirror-buffers nil t)
+        ;; after-revert-hook is not permanent-local. Just put it globally, it will not harm.
+        (add-hook 'after-revert-hook 'mumamo-cmirror-kill-mirror-buffers)
+        (add-hook 'after-change-functions 'mumamo-cmirr-after-change nil t))
       rec)))
 
 (defun mumamo-cmirr-after-change (beg end len)
@@ -105,6 +115,7 @@ For `kill-buffer-hook' in main buffer."
           (when (and (integerp val2)
                      (> val2 beg))
             (setcar (nthcdr 2 rec) beg)))))))
+(put 'mumamo-cmirr-after-change 'permanent-local-hook t)
 
 (provide 'mumamo-cmirr)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
