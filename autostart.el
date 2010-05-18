@@ -168,8 +168,10 @@
 
   ;; Turn on `nxhtml-menu-mode' unconditionally
   (nxhtml-autostart-trace "Turn on `nxhtml-menu-mode' unconditionally")
-  (nxhtml-menu-mode 1)
-  (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
+  (if (not (fboundp 'nxhtml-menu-mode))
+      (nxhtml-autostart-trace "... Not loaded yet? Downloading?")
+    (nxhtml-menu-mode 1)
+    (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start)))
 
   ;; Patch the rnc include paths
   (when (fboundp 'rncpp-patch-xhtml-loader) (rncpp-patch-xhtml-loader))
