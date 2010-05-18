@@ -168,7 +168,7 @@
 
   ;; Turn on `nxhtml-menu-mode' unconditionally
   (nxhtml-autostart-trace "Turn on `nxhtml-menu-mode' unconditionally")
-  (if (not (fboundp 'nxhtml-menu-mode))
+  (if (not (featurep 'nxhtml-menu))
       (nxhtml-autostart-trace "... Not loaded yet? Downloading?")
     (nxhtml-menu-mode 1)
     (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start)))
