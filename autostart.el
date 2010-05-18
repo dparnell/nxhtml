@@ -179,7 +179,9 @@
 
   ;; Load nXhtml
   (unless (featurep 'nxhtml-autoload)
-    (load (expand-file-name "nxhtml/nxhtml-autoload" nxhtml-install-dir))))
+    (unless (load (expand-file-name "nxhtml/nxhtml-autoload" nxhtml-install-dir) t)
+      (nxhtml-autostart-trace "Could not load nxhtml-autoload. Downloading?"))))
+
 (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
 
