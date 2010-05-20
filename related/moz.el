@@ -282,7 +282,7 @@ Note that you have to start the MozRepl server from Firefox."
           "\nMozRepl is also available directly from Firefox add-on"
           "\npages, but is updated less frequently there.")
          ))
-     (error "Can't start MozRepl"))))
+     (error "Can't start MozRepli - see help buffer for more information"))))
 
 (provide 'moz)
 

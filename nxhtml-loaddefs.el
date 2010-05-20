@@ -436,7 +436,7 @@ This also covers inlined style and javascript." t)
 ;;;***
 
 ;;;### (autoloads (nxml-where-global-mode nxml-where-mode nxml-where)
-;;;;;;  "../nxhtml/nxml-where" "nxhtml/nxml-where.el" (19431 17740))
+;;;;;;  "../nxhtml/nxml-where" "nxhtml/nxml-where.el" (19444 34556))
 ;;; Generated autoloads from nxhtml/nxml-where.el
 (web-autoload-require 'nxml-where 'lp '(nxhtml-download-root-url nil) "nxhtml/nxml-where" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -709,7 +709,7 @@ The [code] section, if any, will be in `pascal-mode'." t)
 ;;;***
 
 ;;;### (autoloads (inferior-moz-mode moz-minor-mode) "../related/moz"
-;;;;;;  "related/moz.el" (19048 2102))
+;;;;;;  "related/moz.el" (19443 52001))
 ;;; Generated autoloads from related/moz.el
 (web-autoload-require 'moz 'lp '(nxhtml-download-root-url nil) "related/moz" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -740,7 +740,7 @@ Major mode for interacting with Firefox via MozRepl.
 
 ;;;### (autoloads (global-mozadd-mirror-mode mozadd-mirror-mode global-mozadd-refresh-edited-on-save-mode
 ;;;;;;  mozadd-refresh-edited-on-save-mode) "../related/mozadd" "related/mozadd.el"
-;;;;;;  (19235 1650))
+;;;;;;  (19444 27326))
 ;;; Generated autoloads from related/mozadd.el
 (web-autoload-require 'mozadd 'lp '(nxhtml-download-root-url nil) "related/mozadd" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1385,7 +1385,7 @@ See `nxhtmltest-run' for more information about the tests.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "../tests/nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (19360 6294))
+;;;;;;  "tests/nxhtmltest-suites.el" (19441 39170))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 (web-autoload-require 'nxhtmltest-suites 'lp '(nxhtml-download-root-url nil) "tests/nxhtmltest-suites" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1412,7 +1412,7 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 ;;;### (autoloads (web-vcs-investigate-elisp-file web-vcs-url-copy-file
 ;;;;;;  web-vcs-url-retrieve-synch web-vcs-byte-compile-file web-vcs-message-with-face
 ;;;;;;  web-vcs-get-files-from-root web-vcs-log-edit web-vcs-default-download-directory)
-;;;;;;  "../web-vcs" "web-vcs.el" (19431 17740))
+;;;;;;  "../web-vcs" "web-vcs.el" (19442 48435))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1431,13 +1431,13 @@ Open log file.
 (nxhtml-autoload 'web-vcs-get-files-from-root `(lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir) "\
 Download a file tree from VCS system using the web interface.
 Use WEB-VCS entry in variable `web-vcs-links-regexp' to download
-files via http from URL to directory DL-DIR.
+files via http from FULL-URL to directory DL-DIR.
 
-Show URL first and offer to visit the page.  That page will give
-you information about version control system (VCS) system used
-etc.
+Show FULL-URL first and offer to visit the page.  That page will
+give you information about version control system (VCS) system
+used etc.
 
-\(fn WEB-VCS URL DL-DIR)" nil nil)
+\(fn WEB-VCS FULL-URL DL-DIR)" nil nil)
 
 (nxhtml-autoload 'web-vcs-message-with-face `(lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir) "\
 Display a colored message at the bottom of the string.
@@ -2537,7 +2537,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;;;;  mumamo-list-defined-multi-major-modes mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19440 41646))
+;;;;;;  (19442 4970))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2708,7 +2708,7 @@ Define keys in multi major mode keymap for html files.
 ;;;***
 
 ;;;### (autoloads (mumamo-cmirr-get-mirror) "mumamo-cmirr" "util/mumamo-cmirr.el"
-;;;;;;  (19440 41652))
+;;;;;;  (19442 6099))
 ;;; Generated autoloads from util/mumamo-cmirr.el
 (web-autoload-require 'mumamo-cmirr 'lp '(nxhtml-download-root-url nil) "util/mumamo-cmirr" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3906,6 +3906,19 @@ Display vertical line mode as globally.
 
 ;;;***
 
+;;;### (autoloads (web-vcs-linkpatt-mode) "web-vcs-linkpatt" "util/web-vcs-linkpatt.el"
+;;;;;;  (19444 37410))
+;;; Generated autoloads from util/web-vcs-linkpatt.el
+(web-autoload-require 'web-vcs-linkpatt 'lp '(nxhtml-download-root-url nil) "util/web-vcs-linkpatt" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'web-vcs-linkpatt-mode `(lp '(nxhtml-download-root-url nil) "util/web-vcs-linkpatt" nxhtml-install-dir) "\
+Minor mode helping finding link patt for web-vcs.
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
 ;;;### (autoloads (whelp) "whelp" "util/whelp.el" (19277 65356))
 ;;; Generated autoloads from util/whelp.el
 (web-autoload-require 'whelp 'lp '(nxhtml-download-root-url nil) "util/whelp" nxhtml-install-dir 'nxhtml-byte-compile-file)
@@ -4352,7 +4365,7 @@ accept it or skip it.
 ;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/idn.el"
 ;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/org-panel.el"
 ;;;;;;  "util/rxi.el" "util/tipframe.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19440 41667 984000))
+;;;;;;  "web-autoload.el") (19444 40858 109000))
 
 ;;;***
 
