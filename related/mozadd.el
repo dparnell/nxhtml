@@ -49,6 +49,7 @@
 
 (require 'moz)
 (require 'json)
+(eval-when-compile (require 'org))
 
 (defun mozadd-warning (format-string &rest args)
   (let ((str (apply 'format format-string args)))
@@ -144,7 +145,12 @@ The mozadd edited file must be shown in Firefox and visible."
 (defun mozadd-get-initial-mirror-location (comint-output)
   ;;(message "mozadd-get-initial-mirror-location %S" comint-output)
   (with-current-buffer mozadd-edited-buffer
-    (setq mozadd-initial-mirror-location (mozadd-get-comint-string-part comint-output)))
+    (setq mozadd-initial-mirror-location (mozadd-get-comint-string-part comint-output))
+    (require 'org)
+    (setq mozadd-initial-mirror-location
+	  (org-link-escape mozadd-initial-mirror-location
+                           org-link-escape-chars-browser)))
+
   (mozadd-exec-next)
   comint-output)
 
@@ -171,15 +177,37 @@ The mozadd edited file must be shown in Firefox and visible."
 (defun mozadd-queue-send-buffer-content-to-mozilla (buffer)
   (mozadd-add-queue-get-mirror-location)
   (setq mozadd-edited-buffer buffer)
-  (mozadd-add-task-1 'mozadd-send-buffer-content-to-mozilla))
+  ;; Queue only a single send of buffer content.
+  (mozadd-add-task-1 'mozadd-send-buffer-content-to-mozilla t))
 
 (defun mozadd-edited-file-is-shown ()
   (with-current-buffer mozadd-edited-buffer
     (string= mozadd-mirror-location mozadd-initial-mirror-location)))
 
-(defvar mozadd-xml-path-outline-style "2px solid red")
+(defvar mozadd-send-buffer-hook nil
+  "Hook run before sending to the moz process.
+Called by `mozadd-send-buffer-content-to-mozilla' before sending
+buffer content.
+
+Every function in the hook is called with one parameter, a symbol
+whose variable value is a list.  The functions should add to this
+list a record with information where they want the CSS property
+outline added.  The record should have the format
+
+  (START-TAG-END . OUTLINE-STYLE)
+
+- START-TAG-END is the end of a start tag \(i.e. the position of
+  the '>').
+- OUTLINE-STYLE is the CSS style for the outline \(for example
+  '1px solid red')."  )
+
+;;(setq where-points (sort where-points '<)))))
+;; (setq y nil)
+;; (push 0 (symbol-value 'y))
+
 (defun mozadd-send-buffer-content-to-mozilla ()
-  "Update the remote mozrepl instance"
+  "Update the remote mozrepl instance.
+This runs the hook `mozadd-send-buffer-hook' before sending."
   (with-current-buffer mozadd-edited-buffer
     (if (mozadd-edited-file-is-shown)
         (mozadd-requeue-me-as-task
@@ -189,31 +217,32 @@ The mozadd edited file must be shown in Firefox and visible."
                     (widen)
                     (let ((where-points nil)
                           (str "")
-                          (p1 (point-min))
-                          p2)
+                          (p1 (point-min)))
                       ;; If nxml-where-mode is on add corresponding outline style.
-                      (when (and (boundp 'nxml-where-mode) nxml-where-mode)
-                        (mapc (lambda (ovl)
-                                (when (overlay-get ovl 'nxml-where)
-                                  (when (/= ?/ (1+ (char-after (overlay-start ovl))))
-                                    (push (1- (overlay-end ovl)) where-points))))
-                              (overlays-in (point-min) (point-max)))
-                        (setq where-points (sort where-points '<)))
-                      (dolist (p2 where-points)
-                        (setq str (concat str
-                                          (buffer-substring-no-properties p1
-                                                                          p2)))
-                        (setq str (concat str
-                                          " style=\"outline: "
-                                          mozadd-xml-path-outline-style
-                                          "\""))
-                        (setq p1 p2)
-                        )
+                      (run-hook-with-args 'mozadd-send-buffer-hook 'where-points)
+                      ;; (when (and (boundp 'nxml-where-mode) nxml-where-mode)
+                      ;;   (mapc (lambda (ovl)
+                      ;;           (when (overlay-get ovl 'nxml-where)
+                      ;;             (when (/= ?/ (1+ (char-after (overlay-start ovl))))
+                      ;;               (push (1- (overlay-end ovl)) where-points))))
+                      ;;         (overlays-in (point-min) (point-max)))
+                      ;;   (setq where-points (sort where-points '<)))
+                      (setq where-points (sort where-points (lambda (a b)
+                                                              (< (car a) (car b)))))
+                      ;;(message "where-points =%S" where-points)
+                      (dolist (rec where-points)
+                        (let ((p2    (nth 0 rec))
+                              (style (nth 1 rec)))
+                          (setq str (concat str
+                                            (buffer-substring-no-properties p1
+                                                                            p2)))
+                          (setq str (concat str " style=\"outline: " style "\""))
+                          (setq p1 p2)))
                       (setq str (concat str
                                         (buffer-substring-no-properties p1
                                                                         (point-max))))
-                      str))
-                  )
+                      ;;(message "STRSTR=\n%s" str)
+                      str)))
                  ";")
          'mozadd-skip-output-until-prompt)
       (mozadd-skip-current-task))
@@ -241,7 +270,9 @@ The mozadd edited file must be shown in Firefox and visible."
 (defun mozadd-add-task (input task)
   (mozadd-add-task-1 (list input task)))
 
-(defun mozadd-add-task-1 (task)
+(defun mozadd-add-task-1 (task &optional single)
+  (when single
+    (setq mozadd-task-queue (delete task mozadd-task-queue)))
   (setq mozadd-task-queue (cons task mozadd-task-queue))
   (setq mozadd-task-queue (reverse mozadd-task-queue))
   ;;(message "add-task: mozadd-task-queue=%S, current=%s" mozadd-task-queue mozadd-current-task)
@@ -362,7 +393,6 @@ See also `mozadd-refresh-edited-on-save-mode'."
   (setq mozadd-buffer-content-to-mozilla-timer
         (run-with-idle-timer 1 nil 'mozadd-queue-send-buffer-content-to-mozilla (current-buffer))))
 (put 'mozadd-update-mozilla 'permanent-local-hook t)
-
 
 (provide 'mozadd)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
