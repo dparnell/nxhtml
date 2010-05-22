@@ -168,6 +168,7 @@
 
   ;; Turn on `nxhtml-menu-mode' unconditionally
   (nxhtml-autostart-trace "Turn on `nxhtml-menu-mode' unconditionally")
+  (require 'nxhtml-menu nil t)
   (if (not (featurep 'nxhtml-menu))
       (nxhtml-autostart-trace "... Not loaded yet? Downloading?")
     (nxhtml-menu-mode 1)

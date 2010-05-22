@@ -1348,6 +1348,7 @@ See also `narrow-to-defun+comments-above'."
       ;;"skipped %s " (skip-chars-forward "[:space:]")) See Emacs bug
       ;;3823, http://debbugs.gnu.org/cgi/bugreport.cgi?bug=3823
       (skip-chars-backward " \t\r\n")
+      (unless (bobp) (backward-char))
       (setq in-comment (syntax-ppss-context (syntax-ppss))))
     (unless (eq in-comment 'comment)
       (goto-char pos)
