@@ -75,7 +75,6 @@
 ;;; Code:
 
 (require 'comint)
-(require 'cc-cmds)
 
 ;; Maybe fix-me: C-c control-char are reserved for major modes. But
 ;; this minor mode is used in only one major mode (or one family of
@@ -155,7 +154,7 @@ The following keys are bound in this minor mode:
 Curent function is the one recognized by c-mark-function."
   (interactive)
   (save-excursion
-    (c-mark-function)
+    (mark-defun)
     (moz-send-region (point) (mark))))
 
 (defun moz-send-defun-and-go ()

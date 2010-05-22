@@ -365,12 +365,15 @@ See also `mozadd-refresh-edited-on-save-mode'."
                 (add-hook 'after-change-functions 'mozadd-update-mozilla t t)
                 (add-hook 'nxhtml-where-hook 'mozadd-update-mozilla t t)
                 (add-hook 'post-command-hook 'mozadd-edited-buffer-post-command)
+                ;; Fix-me: move to isearch-mode-hook
+                (define-key isearch-mode-map [(control ?p)] 'web-vcs-linkpatt-send-mozilla)
                 t)
         (setq mozadd-mirror-mode nil))
     (setq mozadd-edited-buffer nil)
     (remove-hook 'post-command-hook 'mozadd-edited-buffer-post-command)
     (remove-hook 'nxhtml-where-hook 'mozadd-update-mozilla t)
-    (remove-hook 'after-change-functions 'mozadd-update-mozilla t)))
+    (remove-hook 'after-change-functions 'mozadd-update-mozilla t)
+    (define-key isearch-mode-map [(control ?p)] 'isearch-other-control-char)))
 (put 'mozadd-mirror-mode 'permanent-local t)
 
 ;;;###autoload
@@ -393,6 +396,53 @@ See also `mozadd-refresh-edited-on-save-mode'."
   (setq mozadd-buffer-content-to-mozilla-timer
         (run-with-idle-timer 1 nil 'mozadd-queue-send-buffer-content-to-mozilla (current-buffer))))
 (put 'mozadd-update-mozilla 'permanent-local-hook t)
+
+(defcustom mozadd-isearch-outline-style "1px solid red"
+  "CSS style for isearch matches when shown in Firefox.
+`mozadd-send-buffer
+This is added as
+
+  style=\"outline: THIS-STYLE\""
+  :type 'string
+  :group 'mozadd)
+
+(defvar mozadd-isearch-submatch-num 0)
+
+(defun isearch-mozadd-send-buffer-hook-fun (mozadd-points)
+  "Add outlines to Firefox.
+Added to `mozadd-send-buffer-hook' by `web-vcs-linkpatt-mode'."
+  ;; isearch-lazy-highlight-overlays isearch-overlay
+  (let ((my-points (symbol-value mozadd-points))
+        (matches `(,(overlay-start isearch-overlay)))
+        tag-starts
+        (here (point)))
+    (save-match-data
+      (goto-char (point-min))
+      (while (if isearch-regexp
+                 (re-search-forward isearch-string nil t)
+               (search-forward isearch-string nil t))
+        (let ((match-point (match-beginning mozadd-isearch-submatch-num)))
+          (unless (memq match-point matches)
+            (setq matches (cons match-point matches)))))
+      (dolist (match matches)
+        (let (tag-start
+              tag-start-end)
+          (goto-char match)
+          (while (and (not tag-start)
+                      (search-backward "<" nil t))
+            (unless (eq ?/
+                        (char-after (1+ (point))))
+              (setq tag-start (point))))
+          (when tag-start
+            (when (search-forward ">" nil t)
+              (setq tag-start-end (1- (point)))
+              (unless (memq tag-start-end tag-starts)
+                (setq tag-starts (cons tag-start-end tag-starts))))))))
+    (dolist (start tag-starts)
+      (let ((rec `(,start ,mozadd-isearch-outline-style)))
+        (setq my-points (cons rec my-points))))
+    (set mozadd-points my-points)
+    (goto-char here)))
 
 (provide 'mozadd)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

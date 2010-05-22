@@ -2304,11 +2304,12 @@ mode."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Font lock functions
 
-(defadvice hi-lock-set-pattern (around use-overlays activate)
-  (if mumamo-multi-major-mode
-      (let ((font-lock-fontified nil))
-        ad-do-it)
-    ad-do-it))
+;; (ad-deactivate 'hi-lock-set-pattern)
+;; (defadvice hi-lock-set-pattern (around use-overlays activate)
+;;   (if mumamo-multi-major-mode
+;;       (let ((font-lock-fontified nil))
+;;         ad-do-it)
+;;     ad-do-it))
 
 ;;;###autoload
 (defun mumamo-mark-for-refontification (min max)
@@ -4193,6 +4194,7 @@ after this in the properties below of the now created chunk:
       ;;(message "fw-funs=%s" fw-funs)
       (when this-chunk
         (overlay-put this-chunk 'mumamo-is-new t)
+        (overlay-put this-chunk 'priority -1)
         (overlay-put this-chunk 'face (mumamo-background-color depth))
         (overlay-put this-chunk 'mumamo-depth depth)
         ;; Values for next chunk
