@@ -3,7 +3,7 @@
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Apr 21 2007
 ;; Moved version to autostart.el.
-;; Last-Updated: 2010-01-04 Mon
+;; Last-Updated: 2010-05-25 Tue
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
@@ -1034,11 +1034,22 @@
 
       (define-key edit-map [nxhtml-folding-sep] (list 'menu-item "--"))
 
-      (define-key edit-map [nxhtml-wrap-to-fill-column-mode]
-        (list 'menu-item "Wrap To Fill Column Mode"
-              'wrap-to-fill-column-mode
-              :button '(:toggle . (and (boundp 'wrap-to-fill-column-mode)
-                                         wrap-to-fill-column-mode))))
+      (let ((wrap-fill-map (make-sparse-keymap)))
+        (define-key edit-map [nxhtml-wrap-fill-map]
+          `(menu-item "Wrap To Fill Column" ,wrap-fill-map))
+        (define-key wrap-fill-map [nxhtml-wrap-fill-0]
+          '(menu-item "Normal Width" wrap-to-fill-normal))
+        (define-key wrap-fill-map [nxhtml-wrap-fill-+]
+          '(menu-item "Wider" wrap-to-fill-wider))
+        (define-key wrap-fill-map [nxhtml-wrap-fill--]
+          '(menu-item "Narrower" wrap-to-fill-narrower))
+        (define-key wrap-fill-map [nxhtml-wrap-fill-div]
+          '(menu-item "--"))
+        (define-key wrap-fill-map [nxhtml-wrap-to-fill-column-mode]
+          '(menu-item "Wrap To Fill Column Mode"
+                      wrap-to-fill-column-mode
+                      :button (:toggle . (and (boundp 'wrap-to-fill-column-mode)
+                                              wrap-to-fill-column-mode)))))
       (define-key edit-map [nxhtml-fill-dwim]
         (list 'menu-item "Fill DWIM" 'fill-dwim))
 
