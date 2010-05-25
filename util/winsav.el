@@ -816,7 +816,8 @@ Parameters are those returned by `frame-parameters'."
   "Return t if FRAME is visible.
 This tries to be more corrent on w32 than `frame-visible-p'."
   (cond ((fboundp 'w32-frame-placement)
-         (< 0 (nth 4 (w32-frame-placement frame))))
+         (< 0 (or (nth 4 (w32-frame-placement frame))
+                  -1)))
         (t
          (frame-visible-p frame))))
 
@@ -875,7 +876,7 @@ whose minibuffer should be used."
          (placement (when (fboundp 'w32-frame-placement) (w32-frame-placement frame)))
          ;; (was-max (and frm-size-rst
          ;;               (not (equal frm-size-now frm-size-rst))))
-         (window-state (abs (nth 4 placement)))
+         (window-state (when placement (abs (nth 4 placement))))
          ;; (frm-size-rst (when (winsav-set-restore-size frame)
          ;;                   (cons (frame-pixel-height frame)
          ;;                         (frame-pixel-width frame))))
