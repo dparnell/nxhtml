@@ -288,9 +288,11 @@ By default the link moved to will be active, see
   :group 'mlinks
   (if mlinks-mode
       (progn
+        (add-hook 'post-command-hook 'mlinks-start-point-hilighter nil t)
         (mlinks-add-appmenu)
-        (mlinks-start-point-hilighter)
+        ;;(mlinks-start-point-hilighter)
         (mlinks-add-font-lock))
+    (remove-hook 'post-command-hook 'mlinks-start-point-hilighter t)
     (mlinks-stop-point-hilighter)
     (when mlinks-point-hilighter-overlay
       (when (overlayp mlinks-point-hilighter-overlay)
@@ -371,7 +373,7 @@ Any command cancels this state."
 (defun mlinks-start-point-hilighter ()
   (mlinks-stop-point-hilighter)
   (setq mlinks-point-hilighter-timer
-        (run-with-idle-timer 0.1 t 'mlinks-point-hilighter)))
+        (run-with-idle-timer 0.1 nil 'mlinks-point-hilighter)))
 
 (defvar mlinks-link-overlay-priority 100)
 
@@ -424,13 +426,15 @@ This moves the hilight point overlay to point or deletes it."
 
 (defun mlinks-point-hilighter-pre-command ()
   (condition-case err
-      (unless (let ((map (overlay-get mlinks-point-hilighter-overlay 'keymap)))
-                (where-is-internal this-command
-                                   (list
-                                    map)))
-        (mlinks-set-normal-point-hilight)
-        (unless mlinks-point-hilighter-timer
-          (delete-overlay mlinks-point-hilighter-overlay)))
+      (progn
+        (mlinks-start-point-hilighter)
+        (unless (let ((map (overlay-get mlinks-point-hilighter-overlay 'keymap)))
+                  (where-is-internal this-command
+                                     (list
+                                      map)))
+          (mlinks-set-normal-point-hilight)
+          (unless mlinks-point-hilighter-timer
+            (delete-overlay mlinks-point-hilighter-overlay))))
     (error (message "mlinks-point-hilighter-pre-command: %s" err))))
 (put 'mlinks-point-hilighter-pre-command 'permanent-local t)
 
@@ -991,11 +995,20 @@ Uses `switch-to-buffer-other-frame'."
   (let ((symbol-- (intern-soft symbol-name--))
         defs--)
     (when (and symbol-- (boundp symbol--))
-      (add-to-list 'defs-- 'variable))
+      (add-to-list 'defs--
+                   ;;'variable
+                   'defvar
+                   ))
     (when (fboundp symbol--)
-      (add-to-list 'defs-- 'function))
+      (add-to-list 'defs--
+                   ;;'function
+                   nil
+                   ))
     (when (facep symbol--)
-      (add-to-list 'defs-- 'face))
+      (add-to-list 'defs--
+                   ;;'face
+                   'defface
+                   ))
     ;; Avoid some fails hits
     (when (memq symbol--
                 '(goto t
@@ -1018,30 +1031,31 @@ Uses `switch-to-buffer-other-frame'."
                           '(defvar defface))
                          (t
                           (error "Bad goto-- value: %s" goto--))))
-            (condition-case err
-                (add-to-list 'defs-places
-                             (cons
-                              type
-                              (save-excursion
-                                (let* ((bp (find-definition-noselect symbol-- type))
-                                       (b (car bp))
-                                       (p (cdr bp)))
-                                  (unless p
-                                    (with-current-buffer b
-                                      (save-restriction
-                                        (widen)
-                                        (setq bp (find-definition-noselect symbol-- type)))))
-                                  bp))))
-              (error
-               ;;(lwarn '(mlinks) :error "%s" (error-message-string err))
-               (when t
-                 (cond
-                  ((eq (car err) 'search-failed))
-                  ((and (eq (car err) 'error)
-                        (string= (error-message-string err)
-                                 (format "Don't know where `%s' is defined" symbol--))))
-                  (t
-                   (message "%s: %s" (car err) (error-message-string err))))))))
+            (when (memq type defs--)
+              (condition-case err
+                  (add-to-list 'defs-places
+                               (cons
+                                type
+                                (save-excursion
+                                  (let* ((bp (find-definition-noselect symbol-- type))
+                                         (b (car bp))
+                                         (p (cdr bp)))
+                                    (unless p
+                                      (with-current-buffer b
+                                        (save-restriction
+                                          (widen)
+                                          (setq bp (find-definition-noselect symbol-- type)))))
+                                    bp))))
+                (error
+                 ;;(lwarn '(mlinks) :error "%s" (error-message-string err))
+                 (when t
+                   (cond
+                    ((eq (car err) 'search-failed))
+                    ((and (eq (car err) 'error)
+                          (string= (error-message-string err)
+                                   (format "Don't know where `%s' is defined" symbol--))))
+                    (t
+                     (message "%s: %s" (car err) (error-message-string err)))))))))
           (if (= 1 (length defs-places))
               (setq def (car defs-places))
             (let ((many nil)

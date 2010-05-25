@@ -391,6 +391,8 @@ See also `nxhtmlmaint-byte-recompile'"
 Byte compile all elisp libraries whose .el files are newer their
 .elc files."
   (interactive)
+  (message "Starting checking if anything in nXhtml should be recompiled...")
+  (redisplay t)
   (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir nil nil t)
   (web-vcs-message-with-face 'web-vcs-gold "Byte recompiling nXhtml ready"))
 

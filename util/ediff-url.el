@@ -99,6 +99,7 @@ file so this might work in many cases."
   "Check if bazaar project page on Launchpad.
 If URL is a project page for a file try to get description page
 URL instead."
+  (declare (special url-http-end-of-headers url-http-response-status))
   (let* ((proj-url-re (rx string-start
                           (or "http:" "https:") "//launchpad.net/"
                           (submatch (+ (not (any "/"))))
@@ -239,7 +240,8 @@ suggest to use the download URL instead."
              (not (string-match-p "/download/" url)))
         (let ((prompt
                (concat "This seem to be the description page on EmacsWiki,"
-                       "\n\tdo you want the download url instead? ")))
+                       "\n\tdo you want the download url instead? "))
+              (resize-mini-windows (or resize-mini-windows t)))
           (when (y-or-n-p prompt)
             ;;(let ((start (+ 6 (string-match "/wiki/" url))))
             (let ((start (+ 0 (string-match file-name url))))

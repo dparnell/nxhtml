@@ -185,6 +185,11 @@ frame is otherwise deleted between pauses."
   "Face for pause messages."
   :group 'pause)
 
+(defface pause-mouse-face
+  '((t (:background "yellow" :underline t)))
+  "Mouse face used for links in pause buffer."
+  :group 'pause)
+
 (defface pause-1-minute-message-face
   '((t (:inherit mode-line-inactive)))
   "Face for pause messages."
@@ -242,7 +247,7 @@ Start main timer with delay `pause-1-minute-delay'."
 (defun pause-save-me ()
   "Start main timer and give a message."
   (pause-start-timer)
-  (message (propertize " OK, I will save you again in %d minutes! -- gratings from pause "
+  (message (propertize " OK, I will save you again in %d minutes! -- greetings from pause "
                        'face 'pause-message-face)
            pause-after-minutes))
 
@@ -443,6 +448,7 @@ Please note that it is run in a timer.")
       (when (search-forward "mindfulness" nil t)
         (make-text-button (- (point) 11) (point)
                           'face '(:inherit pause-text-face :underline t)
+                          'mouse-face 'pause-mouse-face
                           'action (lambda (btn)
                                      (condition-case err
                                          (when (pause-check-alpha-on-click)
@@ -452,6 +458,7 @@ Please note that it is run in a timer.")
       (insert (propertize "\n\nClick on a link below to continue\n" 'face 'pause-info-text-face))
       ;;(add-text-properties (point-min) (point-max) (list 'keymap (make-sparse-keymap)))
       (insert-text-button "I am ready with this break"
+                          'mouse-face 'pause-mouse-face
                           'action `(lambda (button)
                                      (condition-case err
                                          (when (pause-check-alpha-on-click)
@@ -757,6 +764,7 @@ interrupted."
   (let ((inhibit-read-only t))
     (add-text-properties (point-min) (point-max) (list 'keymap nil))
     (insert-text-button "click to test"
+                        'mouse-face 'pause-mouse-face
                         'action (lambda (btn)
                                   (message "Click worked")))
     ;;(add-text-properties (point-min) (point-max) (list 'keymap nil))
@@ -864,6 +872,7 @@ Note: Another easier alternative might be to use
     (insert (format "Pausing every %d minute.\n" after-minutes))
     (insert "But you can ")
     (insert-text-button "pause now"
+                        'mouse-face 'pause-mouse-face
                         'action `(lambda (button)
                                    (condition-case err
                                        (progn
@@ -1000,6 +1009,7 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
                   (insert "Sorry, no yoga pose available at the moment\n  from ")
                   (insert-text-button
                    pause-yoga-poses-host-url
+                   'mouse-face 'pause-mouse-face
                    'action (lambda (button)
                              (condition-case err
                                  (when (pause-check-alpha-on-click)
@@ -1022,6 +1032,7 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
       (insert "Link to yoga posture for you: ")
       (insert-text-button
        (cdr pose)
+       'mouse-face 'pause-mouse-face
        'action `(lambda (button)
                   (condition-case err
                       (when (pause-check-alpha-on-click)

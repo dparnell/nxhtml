@@ -280,18 +280,19 @@ Show FULL-URL first and offer to visit the page.  That page will
 give you information about version control system \(VCS) system
 used etc."
   (unless (web-vcs-contains-moved-files dl-dir)
-    (when (if (not (y-or-n-p (concat "Download files from \"" full-url "\".\n"
-                                     "You can see on that page which files will be downloaded.\n\n"
-                                     "Visit that page before downloading? ")))
-              t
-            (browse-url full-url)
-            (if (y-or-n-p "Start downloading? ")
+    (let ((resize-mini-windows (or resize-mini-windows t)))
+      (when (if (not (y-or-n-p (concat "Download files from \"" full-url "\".\n"
+                                       "You can see on that page which files will be downloaded.\n\n"
+                                       "Visit that page before downloading? ")))
                 t
-              (message "Aborted")
-              nil))
-      (message "")
-      (web-vcs-get-files-on-page web-vcs full-url t (file-name-as-directory dl-dir) nil)
-      t)))
+              (browse-url full-url)
+              (if (y-or-n-p "Start downloading? ")
+                  t
+                (message "Aborted")
+                nil))
+        (message "")
+        (web-vcs-get-files-on-page web-vcs full-url t (file-name-as-directory dl-dir) nil)
+        t))))
 
 (defun web-vcs-get-files-on-page (web-vcs page-url recursive dl-dir test)
   "Download files listed by WEB-VCS on web page PAGE-URL.
@@ -465,7 +466,7 @@ If TEST is non-nil then do not download, just list the files"
       (unless (memq (cdr folder-res) '(200 201))
         (web-vcs-message-with-face 'web-vcs-red "Could not get %S" page-url)
         (web-vcs-display-messages t)
-        (when (y-or-n-p (format "Coult not get %S, visit page to see what is wrong? " page-url))
+        (when (y-or-n-p (format "Could not get %S, visit page to see what is wrong? " page-url))
           (browse-url page-url))
         (throw 'command-level nil)))
     ;;(with-current-buffer temp-list-buf
@@ -1408,7 +1409,8 @@ A prefix arg makes KEEP-TIME non-nil."
 
 (defun web-vcs-read-and-accept-key (prompt accepted &optional reject-message help-function)
   (let ((key nil)
-        rejected)
+        rejected
+        (resize-mini-windows (or resize-mini-windows t)))
     (while (not (member key accepted))
       (if (and help-function
                (or (member key help-event-list)
@@ -2078,7 +2080,8 @@ Download and install nXhtml."
                (concat "Welcome to install nXhtml."
                        "\nFirst the nXhtml specific web install file must be downloaded."
                        "\nYou will get a chance to review it before it is used."
-                       "\n\nDo you want to continue? ")))
+                       "\n\nDo you want to continue? "))
+              (resize-mini-windows (or resize-mini-windows t)))
           (unless (y-or-n-p prompt)
             (message "Aborted")
             (throw 'command-level nil))))

@@ -518,6 +518,7 @@ but I could not figure out how to do it.  So I wrote this alternative.
   "<%@.+?%>"
   "Regex for matching directive blocks in ASP.NET files (.aspx, .ashx, .ascx)")
 
+(eval-and-compile
 (defconst csharp-enum-decl-re
   (concat
    "\\<enum[ \t\n\r\f\v]+"
@@ -531,6 +532,7 @@ but I could not figure out how to do it.  So I wrote this alternative.
    "\\)?")
   "Regex that captures an enum declaration in C#"
   )
+)
 
 
 

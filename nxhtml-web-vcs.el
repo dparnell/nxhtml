@@ -91,6 +91,7 @@
                   "A directory named 'nxhtml' will be created below the root you give."
                   "\n"
                   prompt))
+             (resize-mini-windows (or resize-mini-windows t))
              (root (read-directory-name pr (nxhtml-default-download-directory))))
         (when root
           (expand-file-name "nxhtml" root)))))
@@ -153,7 +154,8 @@ please see URL `http://ourcomments.org/Emacs/nXhtml/doc/nxhtml.html'."
                          (allowed-keys (if has-nxhtml
                                            '(?1 ?2 ?3 ?T ?q 7)
                                          '(?1 ?2 ?T ?q 7)))
-                         (please nil))
+                         (please nil)
+                         (resize-mini-windows (or resize-mini-windows t)))
                     (while (not (member key allowed-keys))
                       (if (not (member key '(??)))
                           (when key
@@ -515,33 +517,34 @@ Loading is done if recompiled and LOAD is t."
 (defun nxhtml-add-loading-to-custom-file (file-to-load part-by-part)
   (message "")
   (require 'cus-edit)
-  (if (not (condition-case nil (custom-file) (error nil)))
-      (progn
-        (message "\n\n")
-        (web-vcs-message-with-face
-         'web-vcs-red
-         (concat "Since you have started this Emacs session without running your init files"
-                 "\nthey are unknown and the installation can not add the statement below."
-                 "\nTo finish the setup of nXhtml you must add"
-                 "\n\n  (load %S)"
-                 "\n\nto your custom-file if you have not done it yet."
-                 "\nYou must also customize the variable `nxhtml-autoload-web' to tell that"
-                 (if part-by-part
-                     "\nyou want to download nXhml files as you need them."
-                   "\nyou do not want to allow automatic downloading of nXhtml files."
-                   )
-                 "\n")
-         file-to-load)
-        (message "")
-        (web-vcs-display-messages t))
-    (let ((prompt (concat "Basic setup of nXhtml is done, but it must be loaded from (custom-file)."
-                          "\nShould I add loading of nXhtml to (custom-file) for you? ")))
-      (if (yes-or-no-p prompt)
-          (nxhtml-add-loading-to-custom-file-auto file-to-load)
-        (if (yes-or-no-p "Should I guide you through how to do it? ")
-            (nxhtml-handheld-add-loading-to-custom-file file-to-load)
-          (web-vcs-message-with-face 'web-vcs-green
-                                     "OK. You need to add (load %S) to your init file" file-to-load))))))
+  (let ((resize-mini-windows nil))
+    (if (not (condition-case nil (custom-file) (error nil)))
+        (progn
+          (message "\n\n")
+          (web-vcs-message-with-face
+           'web-vcs-red
+           (concat "Since you have started this Emacs session without running your init files"
+                   "\nthey are unknown and the installation can not add the statement below."
+                   "\nTo finish the setup of nXhtml you must add"
+                   "\n\n  (load %S)"
+                   "\n\nto your custom-file if you have not done it yet."
+                   "\nYou must also customize the variable `nxhtml-autoload-web' to tell that"
+                   (if part-by-part
+                       "\nyou want to download nXhml files as you need them."
+                     "\nyou do not want to allow automatic downloading of nXhtml files."
+                     )
+                   "\n")
+           file-to-load)
+          (message "")
+          (web-vcs-display-messages t))
+      (let ((prompt (concat "Basic setup of nXhtml is done, but it must be loaded from (custom-file)."
+                            "\nShould I add loading of nXhtml to (custom-file) for you? ")))
+        (if (yes-or-no-p prompt)
+            (nxhtml-add-loading-to-custom-file-auto file-to-load)
+          (if (yes-or-no-p "Should I guide you through how to do it? ")
+              (nxhtml-handheld-add-loading-to-custom-file file-to-load)
+            (web-vcs-message-with-face 'web-vcs-green
+                                       "OK. You need to add (load %S) to your init file" file-to-load)))))))
 
 ;; Fix-me: really do this? Is it safe enough?
 (defun nxhtml-add-loading-to-custom-file-auto (file-to-load)
