@@ -3065,6 +3065,7 @@ The main reasons for doing it this way is:
   ;;(msgtrc "fetch-major 1: font-lock-keywords-only =%s" font-lock-keywords-only)
   (let ((func-sym (intern (concat "mumamo-eval-in-" (symbol-name major))))
         (func-def-sym (intern (concat "mumamo-def-eval-in-" (symbol-name major))))
+        (func-kw-sym (intern (concat "mumamo-kw-eval-in-" (symbol-name major))))
         ;;(add-keywords-hook (mumamo-font-lock-keyword-hook-symbol major))
         byte-compiled-fun
         (fetch-func-definition `(lambda  (body))) ;;`(defun ,func-sym (body)))
@@ -3243,27 +3244,34 @@ The main reasons for doing it this way is:
         (setq byte-compiled-fun (let ((major-syntax-table))
                                   (byte-compile fetch-func-definition)))
         (assert (functionp byte-compiled-fun))
-        (unless mu-keywords
+        (unless (boundp func-sym)
           (eval `(defvar ,func-sym nil))
-          (eval `(defvar ,func-def-sym ,fetch-func-definition))
-          (set func-sym byte-compiled-fun) ;; Will be used as default
+          ;;(eval `(defvar ,func-def-sym ,fetch-func-definition))
+          (eval `(defvar ,func-def-sym nil))
+          (eval `(defvar ,func-kw-sym nil))
+          (put func-sym 'permanent-local t)
+          (put func-def-sym 'permanent-local t)
+          (put func-kw-sym 'permanent-local t))
+        (unless mu-keywords
+          (set-default func-sym byte-compiled-fun) ;; Will be used as default
+          (set-default func-def-sym fetch-func-definition) ;; Will be used as default
           (assert (functionp (symbol-value func-sym)) t)
           (funcall (symbol-value func-sym) nil)
-          (put func-sym 'permanent-local t)
-          (put func-def-sym 'permanent-local t))))
+          )))
     (kill-buffer temp-buf)
     ;; Use the new value in current buffer.
     (when  mu-keywords
       ;;(set (make-local-variable func-sym) (symbol-value func-sym))
       ;;(msgtrc "fetch: major=%s func-def-sym=%s cb=%s fetch-func-definition=%s" major func-def-sym (current-buffer) fetch-func-definition)
       ;;(msgtrc "fetch: major=%s func-def-sym=%s cb=%s fetch-func-definition" major func-def-sym (current-buffer))
+      (msgtrc "fetch: major=%s func-sym=%s cb=%s bcf=%S" major func-sym (current-buffer)
+              (functionp byte-compiled-fun))
       (set (make-local-variable func-sym) byte-compiled-fun)
       (set (make-local-variable func-def-sym) fetch-func-definition)
-      (put func-sym 'permanent-local t)
-      (put func-def-sym 'permanent-local t))
+      (set (make-local-variable func-kw-sym) (copy-sequence mu-keywords)))
     (assert (functionp (symbol-value func-sym)) t)
     ;; return a list def + fun
-    (cons func-sym func-def-sym)))
+    (list func-sym func-def-sym func-kw-sym)))
 
 (defvar mumamo-buffer-added-font-lock-keywords nil
   "Added font lock keywords in this buffer.
@@ -3379,8 +3387,10 @@ fontification and speeds up fontification significantly."
   (let ((use-major-entry (assq use-major mumamo-internal-major-modes-alist))
         bad-mode-entry
         dummy-entry
+        fun-list
         fun-var-sym
-        fun-var-def-sym)
+        fun-var-def-sym
+        fun-var-kw-sym)
     (unless use-major-entry
       ;; Get mumamo-bad-mode entry and add a dummy entry based on
       ;; this to avoid looping.
@@ -3400,15 +3410,27 @@ fontification and speeds up fontification significantly."
       (setq use-major-entry
             (list use-major
                   (mumamo-fetch-major-mode-setup use-major
-                                                 mumamo-buffer-added-font-lock-keywords)))
+                                                 ;;mumamo-buffer-added-font-lock-keywords
+                                                 nil ;; This is the default entry
+                                                 )))
       (setq mumamo-internal-major-modes-alist
             (delete dummy-entry
                     mumamo-internal-major-modes-alist))
       (add-to-list 'mumamo-internal-major-modes-alist use-major-entry))
-    (setq fun-var-sym (caadr use-major-entry))
-    (setq fun-var-def-sym (cdadr use-major-entry))
+    (setq fun-list (nth 1 use-major-entry))
+    (setq fun-var-sym (nth 0 fun-list))
+    (setq fun-var-def-sym (nth 1 fun-list))
+    (setq fun-var-kw-sym (nth 2 fun-list))
     (assert (functionp (symbol-value fun-var-sym)) t)
     (assert (eq 'lambda (car (symbol-value fun-var-def-sym))) t)
+    (assert (boundp fun-var-kw-sym) t)
+    (when (and mumamo-buffer-added-font-lock-keywords
+               (not (equal mumamo-buffer-added-font-lock-keywords
+                           (buffer-local-value fun-var-kw-sym (current-buffer)))))
+      ;; Get the buffer local values. We do not use the return values
+      ;; here.  The buffer local values are created in the funciton.
+      (mumamo-fetch-major-mode-setup use-major
+                                     mumamo-buffer-added-font-lock-keywords))
     ;; Always make a buffer local value for keywords.
     (unless (local-variable-p fun-var-sym)
       (set (make-local-variable fun-var-sym) (symbol-value fun-var-sym))

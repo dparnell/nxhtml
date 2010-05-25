@@ -288,9 +288,14 @@ By default the link moved to will be active, see
   :group 'mlinks
   (if mlinks-mode
       (progn
-        (add-hook 'post-command-hook 'mlinks-start-point-hilighter nil t)
         (mlinks-add-appmenu)
-        ;;(mlinks-start-point-hilighter)
+        ;; Use post-command hook for debugging and a repeated idle timer otherwise
+        (if nil
+            (progn
+              (setq mlinks-repeat-point-hilighter nil)
+              (add-hook 'post-command-hook 'mlinks-start-point-hilighter nil t))
+          (setq mlinks-repeat-point-hilighter t)
+          (mlinks-start-point-hilighter))
         (mlinks-add-font-lock))
     (remove-hook 'post-command-hook 'mlinks-start-point-hilighter t)
     (mlinks-stop-point-hilighter)
@@ -370,10 +375,14 @@ Any command cancels this state."
     (cancel-timer mlinks-point-hilighter-timer)
     (setq mlinks-point-hilighter-timer nil)))
 
+(defvar mlinks-repeat-point-hilighter nil)
+
 (defun mlinks-start-point-hilighter ()
   (mlinks-stop-point-hilighter)
   (setq mlinks-point-hilighter-timer
-        (run-with-idle-timer 0.1 nil 'mlinks-point-hilighter)))
+        (run-with-idle-timer 0.1
+                             mlinks-repeat-point-hilighter
+                             'mlinks-point-hilighter)))
 
 (defvar mlinks-link-overlay-priority 100)
 
