@@ -540,16 +540,19 @@ variable `winsize-autoselect-borders'.
   (setq winsize-window-for-side-ver nil))
 
 (defun winsize-fit-window-to-fill-column (window)
-  "Adjust width of WINDOW to `fill-column'."
+  "Adjust width of WINDOW to `fill-column'.
+This will not delete any window but may widen the window as much
+as possible up to fill column."
   (interactive (list (selected-window)))
   (let* ((our-frame (window-frame window))
-         (our-edges (window-edges window))   ; edges: (x0, y0, x1, y1)
+         (our-edges (window-edges window))
          (root-window (frame-root-window our-frame))
-         (root-edges (window-edges root-window))   ; edges: (x0, y0, x1, y1)
+         (root-edges (window-edges root-window))
          (our-buffer (window-buffer window))
          (our-fill-column (or (with-current-buffer our-buffer fill-column) 72))
          (max-width (window-width root-window))
-         (our-width (window-width window))
+         ;;(our-width (window-width window))
+         (our-width (- (nth 2 our-edges) (nth 0 our-edges)))
          (diff (- (min max-width our-fill-column) our-width))
          (old-wcfg (current-window-configuration our-frame))
          (num-windows (length (window-list our-frame 'no-mini)))
@@ -558,19 +561,19 @@ variable `winsize-autoselect-borders'.
          (orig-diff diff))
     (cond
      ((= 1 num-windows)
-      (message "There is only one window on the frame, can't enlarge window"))
-     ((and (= 0 (nth 0 our-edges))
-           (= (nth 2 our-edges) (nth 2 root-edges)))
+      (message "There is only one window on the frame, can't widen window"))
+     ((and (= 0 (nth 0 our-edges)) ;; left
+           (= (nth 2 our-edges) (nth 2 root-edges))) ;; right
       (message "This window already is as wide as the frame"))
      (t
-      (catch 'done
-        (while (< 0 (setq nn (1- nn)))
-          (with-selected-window window
-            (enlarge-window diff t))
-          (setq new-num-windows (length (window-list our-frame 'no-mini)))
-          (when (= num-windows new-num-windows) (throw 'done 't))
-          (set-window-configuration old-wcfg)
-          (setq diff (1- diff))))
+      (with-selected-window window
+        (catch 'done
+          (while (< 0 (setq nn (1- nn)))
+            (enlarge-window diff t)
+            (setq new-num-windows (length (window-list our-frame 'no-mini)))
+            (when (= num-windows new-num-windows) (throw 'done 't))
+            (set-window-configuration old-wcfg)
+            (setq diff (1- diff)))))
       (unless (= diff orig-diff)
         (message "Could not fit window to fill-column without deleting windows"))))))
 
