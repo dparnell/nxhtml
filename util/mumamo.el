@@ -2314,6 +2314,7 @@ mode."
 ;;;###autoload
 (defun mumamo-mark-for-refontification (min max)
   "Mark region between MIN and MAX for refontification."
+  ;; fix-me: is not this just jit-lock-refontify?
   ;;(msgtrc "mark-for-refontification A min,max=%s,%s point-min,max=%s,%s modified=%s" min max (point-min) (point-max) (buffer-modified-p) )
   ;;(mumamo-backtrace "mark-for-refontification")
   (mumamo-msgfntfy "mumamo-mark-for-refontification A min,max=%s,%s point-min,max=%s,%s modified=%s" min max (point-min) (point-max) (buffer-modified-p) )
@@ -2341,7 +2342,7 @@ mode."
 Internal use only.  This is automatically set up by
 `mumamo-get-major-mode-setup'.")
 (setq mumamo-internal-major-modes-alist nil)
-(put 'mumamo-internal-major-modes-alist 'permanent-local t)
+;;(put 'mumamo-internal-major-modes-alist 'permanent-local t)
 
 (defvar mumamo-ppss-last-chunk nil
   "Internal variable used to avoid unnecessary flushing.")
@@ -2594,7 +2595,7 @@ this to ensure that the whole buffer is fontified."
     ;; This function is normally not called, but when new patterns
     ;; have been added by hi-lock it will be called.  In this case we
     ;; need to make buffer local fontification variables:
-    (set (make-local-variable 'mumamo-internal-major-modes-alist) nil)
+    ;;(set (make-local-variable 'mumamo-internal-major-modes-alist) nil)
     (jit-lock-refontify)))
 
 
@@ -3012,16 +3013,20 @@ If MAJOR is non-nil delete the corresponding entry in
 including the new keyword list when the major mode is called from
 mumamo.
 
-If MAJOR is nil then instead delete the entries in the buffer
-local value of `mumamo-internal-major-modes-alist' for the major
-modes that has been setup for the buffer so far.
+If MAJOR is nil then instead delete for all entries the buffer
+local variables of `mumamo-internal-major-modes-alist' for the
+major modes that has been setup for the buffer so far.
 
 Fix-me: Does not work yet."
   (if major
       (set-default 'mumamo-internal-major-modes-alist
             (assq-delete-all major (default-value 'mumamo-internal-major-modes-alist)))
-    ;; Buffer local, just delete the buffer local values so it will be refreshed.
-    (kill-local-variable 'mumamo-internal-major-modes-alist)
+    ;;(kill-local-variable 'mumamo-internal-major-modes-alist)
+    (dolist (rec mumamo-internal-major-modes-alist)
+      (let* ((major (nth 0 rec))
+             (vars  (nth 1 rec)))
+        (dolist (var vars)
+          (kill-local-variable var))))
     ))
 
 ;; RMS had the following idea:
@@ -3103,7 +3108,9 @@ The main reasons for doing it this way is:
       ;; forgotten??? font-lock-keywords looks ok...
       (when mu-keywords
         (let ((mumamo-fetching-major t)
-              (kws-how))
+              (kws-how)
+              font-lock-keywords-alist
+              font-lock-removed-keywords-alist)
           (dolist (mu-kw mu-keywords)
             (let* ((kw  (nth 0 mu-kw))
                    (how (nth 1 mu-kw))
@@ -3115,8 +3122,14 @@ The main reasons for doing it this way is:
           (dolist (kh kws-how)
             (let ((how (car kh))
                   (kw  (cdr kh)))
-              (font-lock-add-keywords major kw how))))
-        (font-lock-mode -1) (font-lock-mode 1))
+              ;;(msgtrc "(font-lock-add-keywords %s %S %s)" major kw how)
+              (font-lock-add-keywords major kw how)))
+          (font-lock-mode -1) (font-lock-mode 1)
+          ;;(msgtrc "font-lock-keywords-alist=%S" font-lock-keywords-alist)
+          (setq font-lock-set-defaults nil) ;; Tell font-lock-set-defaults that we have not done it yet.
+          (font-lock-set-defaults)
+          ;;(msgtrc "YYYY font-lock-keywords=%S" font-lock-keywords)
+          ))
       ;;(run-hooks add-keywords-hook)
 
       (add-to-list 'mumamo-major-modes-local-maps
@@ -3264,8 +3277,7 @@ The main reasons for doing it this way is:
       ;;(set (make-local-variable func-sym) (symbol-value func-sym))
       ;;(msgtrc "fetch: major=%s func-def-sym=%s cb=%s fetch-func-definition=%s" major func-def-sym (current-buffer) fetch-func-definition)
       ;;(msgtrc "fetch: major=%s func-def-sym=%s cb=%s fetch-func-definition" major func-def-sym (current-buffer))
-      (msgtrc "fetch: major=%s func-sym=%s cb=%s bcf=%S" major func-sym (current-buffer)
-              (functionp byte-compiled-fun))
+      ;;(msgtrc "fetch: major=%s func-sym=%s cb=%s bcf=%S kw=%S" major func-sym (current-buffer) (functionp byte-compiled-fun) mu-keywords)
       (set (make-local-variable func-sym) byte-compiled-fun)
       (set (make-local-variable func-def-sym) fetch-func-definition)
       (set (make-local-variable func-kw-sym) (copy-sequence mu-keywords)))
@@ -3299,22 +3311,40 @@ the major modes in the buffer.  Note that this is different from
 the way `font-lock-add-keywords' and `font-lock-remove-keywords'
 works by default.  However that way does not seem meaningful to
 extend to multi major buffers."
-  (if (eq how 'set)
-      (if (not add)
-          (error "MU: how is 'set, but not adding")
-        (setq mumamo-buffer-added-font-lock-keywords
-              (mapcar (lambda (kw) (list kw nil))
-                      keywords)))
-    (let (mkws)
-      (dolist (mkw mumamo-buffer-added-font-lock-keywords)
-        (unless (member (car mkw) keywords)
-          (setq mkws (cons mkw mkws))))
-      (if (not add)
-          (when how (error "MU: how is %s, but removing" how))
-        (setq mkws (append mkws
-                           (mapcar (lambda (kw) (list kw how))
-                                   keywords))))
-      (setq mumamo-buffer-added-font-lock-keywords mkws))))
+  (let (new-kws)
+    (if (eq how 'set)
+        (if (not add)
+            (error "MU: how is 'set, but not adding")
+          (setq new-kws
+                (mapcar (lambda (kw) (list kw nil))
+                        keywords)))
+      (let (mkws)
+        (dolist (mkw mumamo-buffer-added-font-lock-keywords)
+          (unless (member (car mkw) keywords)
+            (setq mkws (cons mkw mkws))))
+        (if (not add)
+            (when how (error "MU: how is %s, but removing" how))
+          (setq mkws (append mkws
+                             (mapcar (lambda (kw) (list kw how))
+                                     keywords))))
+        (setq new-kws mkws)))
+    (when new-kws
+      (unless (equal new-kws mumamo-buffer-added-font-lock-keywords)
+        (setq new-kws (sort new-kws (lambda (a b)
+                                      (string< (format "%S" a)
+                                               (format "%S" b)))))
+        (unless (equal new-kws mumamo-buffer-added-font-lock-keywords)
+          ;;(msgtrc "Calling all refresh...")
+          (setq mumamo-buffer-added-font-lock-keywords new-kws)
+          ;; (save-restriction
+          ;;   (widen)
+          ;;   (mumamo-mark-for-refontification (point-min) (point-max)))
+          (mumamo-refresh-multi-font-lock nil)
+          (mumamo-fontify-buffer)
+          ;;(jit-lock-fontify-now)
+          ))))
+  ;;(msgtrc "ad-font-lock-helper: kw=%S" mumamo-buffer-added-font-lock-keywords)
+  )
 
 ;; Fix-me: Updating happens one step later when adding next keyword???
 (defadvice font-lock-add-keywords (around
@@ -3333,8 +3363,7 @@ extend to multi major buffers."
           ( t
             (if major
                 ad-do-it
-              (mumamo-ad-font-lock-keywords-helper t keywords how))
-            (mumamo-refresh-multi-font-lock major)))))
+              (mumamo-ad-font-lock-keywords-helper t keywords how))))))
 
 (defadvice font-lock-remove-keywords (around
                                       mumamo-ad-font-lock-remove-keywords
@@ -3351,8 +3380,7 @@ extend to multi major buffers."
           ( t
             (if major
                 ad-do-it
-              (mumamo-ad-font-lock-keywords-helper nil keywords nil))
-            (mumamo-refresh-multi-font-lock major)))))
+              (mumamo-ad-font-lock-keywords-helper nil keywords nil))))))
 
 (defun mumamo-bad-mode ()
   "MuMaMo replacement for a major mode that could not be loaded."
@@ -3410,7 +3438,6 @@ fontification and speeds up fontification significantly."
       (setq use-major-entry
             (list use-major
                   (mumamo-fetch-major-mode-setup use-major
-                                                 ;;mumamo-buffer-added-font-lock-keywords
                                                  nil ;; This is the default entry
                                                  )))
       (setq mumamo-internal-major-modes-alist
