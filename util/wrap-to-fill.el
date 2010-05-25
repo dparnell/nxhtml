@@ -3,7 +3,7 @@
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2009-08-12 Wed
 ;; Version:
-;; Last-Updated: x
+;; Last-Updated: 2010-05-25 Tue
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
@@ -73,7 +73,7 @@ the left margin."
 (defcustom wrap-to-fill-left-marg-modes
   '(text-mode
     fundamental-mode)
-  "Major modes where `wrap-to-fill-left-margin' may be nil."
+  "Major modes where `wrap-to-fill-left-marg' may be nil."
   :type '(repeat command)
   :group 'wrap-to-fill)
 
@@ -230,41 +230,34 @@ is not reset when turning off this mode."
 (make-variable-buffer-local 'wrap-to-fill-timer)
 
 (defun wrap-to-fill-set-values ()
-  (when (timerp wrap-to-fill-timer)
-    (cancel-timer wrap-to-fill-timer))
-  (setq wrap-to-fill-timer
-        (run-with-idle-timer 0 nil 'wrap-to-fill-set-values-in-timer
-                             (selected-window) (current-buffer))))
+  (if t
+      ;; Seems like this works now. Why did not this work before???
+      (wrap-to-fill-set-values-in-window (selected-window))
+    (when (timerp wrap-to-fill-timer)
+      (cancel-timer wrap-to-fill-timer))
+    (setq wrap-to-fill-timer
+          (run-with-idle-timer 0 nil 'wrap-to-fill-set-values-in-timer
+                               (selected-window) (current-buffer)))))
 (put 'wrap-to-fill-set-values 'permanent-local-hook t)
 
 (defun wrap-to-fill-set-values-in-timer (win buf)
   (condition-case err
       (when (buffer-live-p buf)
-        (wrap-to-fill-set-values-in-buffer-windows buf))
+        ;; Fix-me: Seems like we have to do it in all buffer windows, but why?
+        (wrap-to-fill-set-values-in-buffer-windows buf)
+        ;;(wrap-to-fill-set-values-in-window win)
+        )
     (error (message "ERROR wrap-to-fill-set-values-in-timer: %s"
                     (error-message-string err)))))
 
-(defun wrap-to-fill-set-values-in-timer-old (win buf)
-  (when (and (window-live-p win) (buffer-live-p buf)
-             (eq buf (window-buffer win)))
-    (condition-case err
-        (with-current-buffer buf
-          (when wrap-to-fill-column-mode
-            (wrap-to-fill-set-values-in-window win)))
-      (error (message "ERROR wrap-to-fill-set-values: %s"
-                      (error-message-string err))))))
-
 (defun wrap-to-fill-set-values-in-buffer-windows (&optional buffer)
   "Use `fill-column' display columns in buffer windows."
-  (let ((buf-windows (get-buffer-window-list (or buffer
-                                                 (current-buffer))
-                                             nil
-                                             t)))
+  (let* ((buf (or buffer (current-buffer)))
+         (wfm (with-current-buffer buf wrap-to-fill-column-mode))
+         (buf-windows (when wfm (get-buffer-window-list buf nil t))))
     (dolist (win buf-windows)
       (if wrap-to-fill-column-mode
-          (wrap-to-fill-set-values-in-window win)
-        ;;(set-window-buffer win (current-buffer))
-        ))))
+          (wrap-to-fill-set-values-in-window win)))))
 
 (defvar wrap-old-win-width nil)
 (make-variable-buffer-local 'wrap-old-win-width)
@@ -286,39 +279,20 @@ is not reset when turning off this mode."
                           (- (/ extra-width 2) 1)))
              ;; Fix-me: Why do I have to subtract 1 here...???
              (right-marg (- win-full fill-column left-marg 1))
-             (need-update nil)
-             )
-        ;; (when wrap-old-win-width
-        ;;   (unless (= wrap-old-win-width win-width)
-        ;;     (message "-")
-        ;;     (message "win-width 0: %s => %s, win-full=%s, e=%s l/r=%s/%s %S %S %S" wrap-old-win-width win-width win-full extra-width left-marg right-marg (window-edges) (window-inside-edges) (window-margins))
-        ;;    ))
+             (old-window-point (window-point win)))
         (setq wrap-old-win-width win-width)
         (unless (> left-marg 0) (setq left-marg 0))
         (unless (> right-marg 0) (setq right-marg 0))
-        (unless nil;(= left-marg (or left-margin-width 0))
-          ;;(setq left-margin-width left-marg)
-          (setq need-update t))
-        (unless nil;(= right-marg (or right-margin-width 0))
-          ;;(setq right-margin-width right-marg)
-          (setq need-update t))
-        ;;(message "win-width a: %s => %s, win-full=%s, e=%s l/r=%s/%s %S %S %S" wrap-old-win-width win-width win-full extra-width left-margin-width right-margin-width (window-edges) (window-inside-edges) (window-margins))
-        (when need-update
-          ;;(set-window-buffer win (window-buffer win))
-          ;;(run-with-idle-timer 0 nil 'set-window-buffer win (window-buffer win))
-          ;;(dolist (win (get-buffer-window-list (current-buffer)))
-            ;; Fix-me: check window width...
-          (set-window-margins win left-marg right-marg)
-          ;;)
-          ;;(message "win-width b: %s => %s, win-full=%s, e=%s l/r=%s/%s %S %S %S" wrap-old-win-width win-width win-full extra-width left-marg right-marg (window-edges) (window-inside-edges) (window-margins))
-          )
-        ))))
+        (set-window-margins win left-marg right-marg)
+        ;; This does not change point in window so scrolling might
+        ;; still occur (which is good here):
+        (set-window-point win old-window-point)))))
 
 ;; (add-hook 'post-command-hook 'my-win-post-command nil t)
 ;; (remove-hook 'post-command-hook 'my-win-post-command t)
-(defun my-win-post-command ()
-  (message "win-post-command: l/r=%s/%s %S %S %S" left-margin-width right-margin-width (window-edges) (window-inside-edges) (window-margins))
-           )
+;; (defun my-win-post-command ()
+;;   (message "win-post-command: l/r=%s/%s %S %S %S" left-margin-width right-margin-width (window-edges) (window-inside-edges) (window-margins)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Font lock

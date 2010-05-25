@@ -131,8 +131,10 @@ makes the mouse jump a few times."
     (define-key map [menu-bar bw prev-config]
       '("Previous saved window configuration" . winsize-previous-window-configuration))
     (define-key map [menu-bar bw sep2] '(menu-item "--"))
-    (define-key map [menu-bar bw fit]
-      '("Fit Window to Buffer" . fit-window-to-buffer))
+    (define-key map [menu-bar bw fit-height]
+      '("Fit Window Height to Buffer" . fit-window-to-buffer))
+    (define-key map [menu-bar bw fit-width]
+      '(menu-item "Fit Window Width to Buffer" winsize-fit-window-to-fill-column))
     (define-key map [menu-bar bw shrink]
       '("Shrink Window to Buffer" . shrink-window-if-larger-than-buffer))
     (define-key map [menu-bar bw sep1] '(menu-item "--"))
@@ -145,7 +147,8 @@ makes the mouse jump a few times."
       (define-key map [?|] 'winsav-rotate))
     (define-key map [?+] 'balance-windows)
     (define-key map [?.] 'winsize-balance-siblings)
-    (define-key map [?=] 'fit-window-to-buffer)
+    (define-key map [?= ?h] 'fit-window-to-buffer)
+    (define-key map [?= ?w] 'winsize-fit-window-to-fill-column)
     (define-key map [?-] 'shrink-window-if-larger-than-buffer)
 
     (define-key map [(up)]    'winsize-move-border-up)
@@ -347,6 +350,7 @@ bindings during resizing:\\<winsize-keymap>
   `balance-windows'                      \\[balance-windows]
   `winsize-balance-siblings'             \\[winsize-balance-siblings]
   `fit-window-to-buffer'                 \\[fit-window-to-buffer]
+  `winsize-fit-window-to-fill-column'    \\[winsize-fit-window-to-fill-column]
   `shrink-window-if-larger-than-buffer'  \\[shrink-window-if-larger-than-buffer]
 
   `winsav-rotate'                        \\[winsav-rotate]
@@ -535,6 +539,25 @@ variable `winsize-autoselect-borders'.
   (setq winsize-window-for-side-hor nil)
   (setq winsize-window-for-side-ver nil))
 
+(defun winsize-fit-window-to-fill-column (window)
+  "Adjust width of WINDOW to `fill-column'."
+  (interactive (list (selected-window)))
+  (let* ((our-frame (window-frame window))
+         (our-buffer (window-buffer window))
+         (our-fill-column (or (with-current-buffer our-buffer fill-column) 72))
+         (max-width (window-width (frame-root-window our-frame)))
+         (diff (- our-fill-column (window-width window)))
+         (old-wcfg (current-window-configuration our-frame))
+         (num-windows (length (window-list our-frame 'no-mini)))
+         new-num-windows)
+    (unless (< max-width our-fill-column)
+      (with-selected-window window
+        (enlarge-window diff t))
+      (setq new-num-windows (length (window-list our-frame 'no-mini)))
+      (unless (= num-windows new-num-windows)
+        (when (y-or-n-p "Could not fit window to fill-column without deleting other windows. Reset? ")
+          (set-window-configuration old-wcfg)))
+      )))
 
 (defun winsize-setup-local-map ()
   "Setup an overriding keymap and use this during resizing.
