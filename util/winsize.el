@@ -543,21 +543,36 @@ variable `winsize-autoselect-borders'.
   "Adjust width of WINDOW to `fill-column'."
   (interactive (list (selected-window)))
   (let* ((our-frame (window-frame window))
+         (our-edges (window-edges window))   ; edges: (x0, y0, x1, y1)
+         (root-window (frame-root-window our-frame))
+         (root-edges (window-edges root-window))   ; edges: (x0, y0, x1, y1)
          (our-buffer (window-buffer window))
          (our-fill-column (or (with-current-buffer our-buffer fill-column) 72))
-         (max-width (window-width (frame-root-window our-frame)))
-         (diff (- our-fill-column (window-width window)))
+         (max-width (window-width root-window))
+         (our-width (window-width window))
+         (diff (- (min max-width our-fill-column) our-width))
          (old-wcfg (current-window-configuration our-frame))
          (num-windows (length (window-list our-frame 'no-mini)))
-         new-num-windows)
-    (unless (< max-width our-fill-column)
-      (with-selected-window window
-        (enlarge-window diff t))
-      (setq new-num-windows (length (window-list our-frame 'no-mini)))
-      (unless (= num-windows new-num-windows)
-        (when (y-or-n-p "Could not fit window to fill-column without deleting other windows. Reset? ")
-          (set-window-configuration old-wcfg)))
-      )))
+         new-num-windows
+         (nn (abs diff))
+         (orig-diff diff))
+    (cond
+     ((= 1 num-windows)
+      (message "There is only one window on the frame, can't enlarge window"))
+     ((and (= 0 (nth 0 our-edges))
+           (= (nth 2 our-edges) (nth 2 root-edges)))
+      (message "This window already is as wide as the frame"))
+     (t
+      (catch 'done
+        (while (< 0 (setq nn (1- nn)))
+          (with-selected-window window
+            (enlarge-window diff t))
+          (setq new-num-windows (length (window-list our-frame 'no-mini)))
+          (when (= num-windows new-num-windows) (throw 'done 't))
+          (set-window-configuration old-wcfg)
+          (setq diff (1- diff))))
+      (unless (= diff orig-diff)
+        (message "Could not fit window to fill-column without deleting windows"))))))
 
 (defun winsize-setup-local-map ()
   "Setup an overriding keymap and use this during resizing.
