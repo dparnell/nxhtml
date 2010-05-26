@@ -7659,7 +7659,7 @@ This is in the temporary buffer for indentation."
 (defun mumamo-indent-line-in-mirror (chunk line-beg line-end)
   (let* ((major (mumamo-chunk-major-mode chunk))
          (for-buffer (overlay-buffer chunk))
-         (mirror-buf (mumamo-update-cmirr-buffer major for-buffer line-end))
+         (mirror-buf (mumamo-update-cmirr-buffer major for-buffer (1+ line-end)))
          new-ind
          line-in-mirror
          line-in-mirror-is-blank
