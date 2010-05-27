@@ -1818,6 +1818,36 @@ of those in for example common web browsers."
 
 (defvar ourcomments-restart-server-mode nil)
 
+(defvar emacs-restart-in-kill-fun nil)
+;;(setq emacs-restart-in-kill-fun 'emacs-start-under-gdb)
+
+(defun emacs-start-under-gdb (&rest args)
+  (interactive)
+  (unless (eq system-type 'windows-nt)
+    (error "Sorry, this version just runs under w32. Please send me your enhancements."))
+  (recentf-save-list)
+  (setq args (cons (ourcomments-find-emacs) args))
+  (setq args (cons (ourcomments-find-emacs) args))
+  (let* ((out-buf (when ourcomments-started-emacs-use-output-buffer
+                    (get-buffer-create "call-process emacs output")))
+         (buf-arg (or out-buf 0))
+         (args-text (mapconcat 'identity (cons "" args) " "))
+         (this-emacs (ourcomments-find-emacs))
+         ret
+         (gdb (locate-file "gdb" exec-path exec-suffixes))
+         (default-directory (expand-file-name "src" source-directory))
+         (shell-file-name (expand-file-name "cmdproxy.exe" exec-directory))
+         (fin-msg ""))
+    ;;(setq ret (apply 'call-process (ourcomments-find-emacs) nil buf-arg nil args))
+    ;;(setq ret (apply 'call-process gdb nil buf-arg nil args))
+    ;;(setq ret (apply 'call-process gdb nil buf-arg nil args))
+    ;;(start-process-shell-command "cmd" nil "")
+    ;;(call-process (locate-file "cmd.exe" exec-path) nil 0 nil "/c" "start c:\\u\\gdb-emacs.cmd")
+    (call-process (locate-file "cmd.exe" exec-path) nil 0 nil "/c"
+                  (concat "start gdb -ex=run " (ourcomments-find-emacs)))
+    ;;(start-process "dir" nil "dir")
+    ret))
+
 (defun emacs-restart-in-kill ()
   "Last step in restart Emacs and start `server-mode' if on before."
   (let* ((restart-args (when ourcomments-restart-server-mode
@@ -1835,7 +1865,9 @@ of those in for example common web browsers."
     ;; Fix-me: Adding -nw to restart in console does not work. Any way to fix it?
     (unless window-system (setq restart-args (cons "-nw" restart-args)))
     ;;(apply 'call-process (ourcomments-find-emacs) nil 0 nil restart-args)
-    (apply 'emacs restart-args)
+    (if emacs-restart-in-kill-fun
+        (funcall emacs-restart-in-kill-fun)
+      (apply 'emacs restart-args))
     ;; Wait to give focus to new Emacs instance:
     (sleep-for 3)))
 

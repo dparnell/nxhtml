@@ -77,7 +77,7 @@
 
 ;;; Code:
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'mumamo nil t))
+;;(eval-when-compile (require 'mumamo nil t))
 
 ;;;###autoload
 (defgroup css-color ()
@@ -375,9 +375,10 @@ point is at a hexadecimal colour:
     (remove-hook 'font-lock-mode-hook 'css-color-font-lock-hook-fun t)
     (font-lock-remove-keywords nil css-color-keywords))
   ;;(font-lock-fontify-buffer)
-  (save-restriction
-    (widen)
-    (mumamo-mark-for-refontification (point-min) (point-max))))
+  ;; (save-restriction
+  ;;   (widen)
+  ;;   (mumamo-mark-for-refontification (point-min) (point-max)))
+  (jit-lock-refontify))
 
 (put 'css-color-mode 'permanent-local t)
 

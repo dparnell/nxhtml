@@ -131,8 +131,8 @@ makes the mouse jump a few times."
     (define-key map [menu-bar bw prev-config]
       '("Previous saved window configuration" . winsize-previous-window-configuration))
     (define-key map [menu-bar bw sep2] '(menu-item "--"))
-    (define-key map [menu-bar bw fit-height]
-      '("Fit Window Height to Buffer" . fit-window-to-buffer))
+    ;; (define-key map [menu-bar bw fit-height]
+    ;;   '("Fit Window Height to Buffer" . fit-window-to-buffer))
     (define-key map [menu-bar bw fit-width]
       '(menu-item "Fit Window Width to Buffer" winsize-fit-window-to-desired-width))
     (define-key map [menu-bar bw shrink]
@@ -147,9 +147,10 @@ makes the mouse jump a few times."
       (define-key map [?|] 'winsav-rotate))
     (define-key map [?+] 'balance-windows)
     (define-key map [?.] 'winsize-balance-siblings)
-    (define-key map [?= ?h] 'fit-window-to-buffer)
-    (define-key map [?= ?w] 'winsize-fit-window-to-desired-width)
-    (define-key map [?-] 'shrink-window-if-larger-than-buffer)
+    ;;(define-key map [?h] 'fit-window-to-buffer)
+    (define-key map [?w] 'winsize-fit-window-to-desired-width)
+    (define-key map [?W] 'winsize-fit-windows-to-desired-width)
+    (define-key map [?h] 'shrink-window-if-larger-than-buffer)
 
     (define-key map [(up)]    'winsize-move-border-up)
     (define-key map [(down)]  'winsize-move-border-down)
@@ -211,6 +212,7 @@ makes the mouse jump a few times."
                                 ;; Fix-me: replace this with something
                                 ;; pulling in help-event-list:
                                 [(f1)]
+                                [(control ?h)]
                                 execute-extended-command
                                 eval-expression)
   "Key sequences or commands that should not be overriden during resize.
@@ -349,11 +351,11 @@ bindings during resizing:\\<winsize-keymap>
 
   `balance-windows'                      \\[balance-windows]
   `winsize-balance-siblings'             \\[winsize-balance-siblings]
-  `fit-window-to-buffer'                 \\[fit-window-to-buffer]
-  `winsize-fit-window-to-desired-width'    \\[winsize-fit-window-to-desired-width]
+  `winsize-fit-window-to-desired-width'  \\[winsize-fit-window-to-desired-width]
+  `winsize-fit-windows-to-desired-width' \\[winsize-fit-windows-to-desired-width]
   `shrink-window-if-larger-than-buffer'  \\[shrink-window-if-larger-than-buffer]
 
-  `winsav-rotate'                        \\[winsav-rotate]
+  `winsav-rotate'  \\[winsav-rotate]
 
   `winsize-move-border-up'      \\[winsize-move-border-up]
   `winsize-move-border-down'    \\[winsize-move-border-down]
@@ -364,13 +366,6 @@ bindings during resizing:\\<winsize-keymap>
   `winsize-to-border-or-window-up'      \\[winsize-to-border-or-window-up]
   `winsize-to-border-or-window-right'   \\[winsize-to-border-or-window-right]
   `winsize-to-border-or-window-down'    \\[winsize-to-border-or-window-down]
-
-   Note that you can also use your normal keys for
-   `forward-char', `backward-char', `next-line', `previous-line'
-   and what you have on HOME and END to move in the windows. That
-   might sometimes be necessary to directly select a
-   window. \(You may however also use `other-window' or click
-   with the mouse, see below.)
 
   `delete-window'                \\[delete-window]
   `delete-other-windows'         \\[delete-other-windows]
@@ -395,10 +390,16 @@ bindings during resizing:\\<winsize-keymap>
   (All the normal help keys work, and at least those above will
   play well with resizing.)
 
+ You can use keys and commands listed in `winsize-let-me-use' as
+ normal.  This means that you by default can use your normal keys
+ for `forward-char', `backward-char', `next-line',
+ `previous-line' and what you have on HOME and END to move in the
+ windows.  That might sometimes be necessary to directly select a
+ window.  \(You may however also use `other-window' or click with
+ the mouse, see below.)
+
 Nearly all other keys exits window resizing and they are also
-executed.  However, the key sequences in `winsize-let-me-use' and
-dito for commands there are also executed without exiting
-resizing.
+executed.
 
 The colors of the modelines are changed to those given in
 `winsize-mode-line-colors' to indicate that you are resizing
@@ -659,11 +660,12 @@ DESIRED-WIDTH."
 ;;(winsize-fit-windows-to-desired-width)
 (defun winsize-fit-windows-to-desired-width ()
   "Fit window width to desired width for buffers.
-The widths are set by `winsize-fit-window-to-desired-width' which
-this function calls.  Windows are changed in the order of left to
-right and only trailing edges are changed.  \(This means that the
-windows on the right edge of the frame gets the resulting width
-of the changes to the width of the windows left of them.)"
+Set widths by calling `winsize-fit-window-to-desired-width'.
+
+Change windows in the order of left to right and only change
+trailing edges.  \(This means that the windows on the right edge
+of the frame gets the resulting width of the changes to the width
+of the windows left of them.)"
   (interactive)
   (let* ((our-tree (window-tree))
          (our-sizes (winsize-get-window-tree-desired-width-1

@@ -114,35 +114,22 @@ the left margin."
 
 ;;;###autoload
 (define-minor-mode wrap-to-fill-column-mode
-  "Use `fill-column' display columns in buffer windows.
-By default the display columns are centered, but see the option
-`wrap-to-fill-left-marg'.
+  "Use a column of width `fill-column' to display buffer in windows.
+By default the column is centered, but this can be changed with
+the option `wrap-to-fill-left-marg'.
 
-Also indent continuation lines when word-wrap is on if the line
-begins like '- ' etc:
+This mode turns on/off `visual-indent-mode'.
 
-  - Indent lines after
-    this
-  * and after
-    this
-  1) and when counting
-     things
-  a) wether using numbers
-     or letters.
-
-Note: The text properties 'wrap-prefix and 'wrap-to-fill-prefix
-is set by this mode to indent continuation lines for the above.
+When turning this mode on `visual-line-mode' is also turned on.
+This is however not reset when turning off this mode.
 
 Key bindings added by this minor mode:
 
 \\{wrap-to-fill-column-mode-map}
 
-Fix-me: When turning this on `visual-line-mode' is also turned on. This
-is not reset when turning off this mode."
+"
   :lighter " WrapFill"
   :group 'wrap-to-fill
-  ;; (message "wrap-to-fill-column-mode %s, cb=%s, major=%s, multi=%s" wrap-to-fill-column-mode (current-buffer)
-  ;;          major-mode mumamo-multi-major-mode)
   (if wrap-to-fill-column-mode
       (progn
         ;; Old values (idea from visual-line-mode)
@@ -177,28 +164,8 @@ is not reset when turning off this mode."
     (dolist (win (get-buffer-window-list (current-buffer)))
       (set-window-margins win left-margin-width right-margin-width))
     ;; Indentation
-    (let ((here (point))
-          (inhibit-field-text-motion t)
-          beg-pos
-          end-pos)
-      (mumamo-with-buffer-prepared-for-jit-lock
-       (save-restriction
-         (widen)
-         (goto-char (point-min))
-         (while (< (point) (point-max))
-           (setq beg-pos (point))
-           (setq end-pos (line-end-position))
-           (when (equal (get-text-property beg-pos 'wrap-prefix)
-                        (get-text-property beg-pos 'wrap-to-fill-prefix))
-             (remove-list-of-text-properties
-              beg-pos end-pos
-              '(wrap-prefix)))
-           (forward-line))
-         (remove-list-of-text-properties
-          (point-min) (point-max)
-          '(wrap-to-fill-prefix)))
-       (goto-char here))))
-  (wrap-to-fill-font-lock wrap-to-fill-column-mode))
+    )
+  (visual-indent-mode wrap-to-fill-column-mode))
 (put 'wrap-to-fill-column-mode 'permanent-local t)
 
 (defcustom wrap-to-fill-major-modes '(org-mode
@@ -297,61 +264,119 @@ is not reset when turning off this mode."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Font lock
 
-(defun wrap-to-fill-fontify (bound)
-  "During fontification indent lines starting like '- '.
-BOUND is the limit of fontification.
+(define-minor-mode visual-indent-mode
+  "Do indentation of continuation lines for `visual-line-mode'.
+If `visual-line-mode' and `word-wrap' is on do visual indentation
+similar to `fill-paragraph', but without changing the text in the
+buffer.
 
-This is called as a matcher in `font-lock-keywords'.  It never
-matches but puts properties 'wrap-prefix and 'wrap-to-fill-prefix
-on those line.  Indentation is done only when `word-wrap' is on.
+Indent continuation lines if the line is indented and/or begins
+like '- ' etc:
 
-See `wrap-to-fill-column-mode' for more info."
-  (save-restriction
-    (widen)
-    (let ((n-while 0))
-      (unless (or (bolp) (eobp)) (forward-line 1))
-      (while (and (mumamo-while 200 'n-while "wrap-to-fill-fontify")
-                  (< (point) bound)) ;; Max bound = (point-max)
-        (let (ind-str
-              ind-str-fill
-              skipped
-              (beg-pos (point))
-              end-pos)
-          ;; Fix-me: Why did I check this? Step aside from org-mode or?
-          (when (equal (get-text-property beg-pos 'wrap-prefix)
-                       (get-text-property beg-pos 'wrap-to-fill-prefix))
+  - Indent lines after
+    this
+  * and after
+    this
+  1) and when counting
+     things
+  a) wether using numbers
+     or letters.
+
+* Note: The text property 'wrap-prefix is set by this mode to
+  indent continuation lines for the above.  The property
+  'visual-indent-wrap-prefix is used to remember this so it can
+  be set back."
+  ;; Fix-me: Check if fill-context-prefix really can be used.  It does
+  ;; not seem so useful to me. Do I misunderstand something?
+  :group 'indentation
+  (visual-indent-font-lock visual-indent-mode)
+  (if visual-indent-mode
+      nil
+    (let ((here (point))
+          (inhibit-field-text-motion t)
+          beg-pos
+          end-pos)
+      (mumamo-with-buffer-prepared-for-jit-lock
+       (save-restriction
+         (widen)
+         (goto-char (point-min))
+         (while (< (point) (point-max))
+           (setq beg-pos (point))
+           (setq end-pos (line-end-position))
+           (when (equal (get-text-property beg-pos 'wrap-prefix)
+                        (get-text-property beg-pos 'visual-indent-wrap-prefix))
+             (remove-list-of-text-properties
+              beg-pos end-pos
+              '(wrap-prefix)))
+           (forward-line))
+         (remove-list-of-text-properties
+          (point-min) (point-max)
+          '(visual-indent-wrap-prefix)))
+       (goto-char here)))))
+
+(defvar visual-indent-use-fill-context-prefix nil)
+;;(setq visual-indent-use-fill-context-prefix t)
+
+(defun visual-indent-fontify (bound)
+  "During fontification mark lines for indentation.
+This is called as a matcher in `font-lock-keywords' in
+`visual-indent-mode'.  BOUND is the limit of fontification.
+
+Put the property 'wrap-prefix on lines whose continuation lines
+\(see `visual-line-mode') should be indented.  Only do this if
+`visual-line-mode' and `word-wrap' is on.
+
+Return nil."
+  (when (and visual-line-mode word-wrap)
+    (save-restriction
+      (widen)
+      (let ((n-while 0))
+        (unless (or (bolp) (eobp)) (forward-line 1))
+        (while (and (mumamo-while 200 'n-while "visual-indent-fontify")
+                    (< (point) bound)) ;; Max bound = (point-max)
+          (let (ind-str
+                ind-str-fill
+                skipped
+                (beg-pos (point))
+                end-pos)
+            (unless (= beg-pos (point-at-bol)) (message "visual-indent internal err: beg-pos /= point-at-bol"))
             (setq end-pos (point-at-eol))
-            ;; Find indentation quickly
-            (when (< 0 (skip-chars-forward "[:blank:]"))
-              (setq ind-str (buffer-substring-no-properties beg-pos (point))))
-            ;; Any special markers like "- ", "* ", "1) ", "1. " etc
-            (when (< (1+ (point)) (point-max))
-              (or (and (memq (char-after) '(?- ;; 45
-                                            ?– ;; 8211
-                                            ?*
-                                            ))
-                       (eq (char-after (1+ (point))) ?\ )
-                       (setq ind-str-fill (concat "  " ind-str)))
-                  (and (setq skipped (skip-chars-forward "[:digit:]"))
-                       (or (> skipped 0)
-                           (= 1 (setq skipped (skip-chars-forward "[:alpha:]"))))
-                       (memq (char-after (point)) '(?\) ?.))
-                       (eq (char-after (1+ (point))) ?\ )
-                       (setq ind-str-fill (concat ind-str (make-string (+ 2 skipped) 32))))))
-            (unless ind-str-fill (setq ind-str-fill ind-str))
-            (mumamo-with-buffer-prepared-for-jit-lock
-             (put-text-property beg-pos end-pos 'wrap-prefix ind-str-fill)
-             (put-text-property beg-pos end-pos 'wrap-to-fill-prefix ind-str-fill))))
-        ;; This moves to the end of line if there is no more lines. That
-        ;; means we will not get stuck here.
-        (unless (eobp) (forward-line 1)))))
+            ;; Fix-me: Why did I check this? Step aside from org-mode or?
+            (when (equal (get-text-property beg-pos 'wrap-prefix)
+                         (get-text-property beg-pos 'visual-indent-wrap-prefix))
+              (if visual-indent-use-fill-context-prefix
+                  (setq ind-str-fill (fill-context-prefix (point-at-bol) (point-at-eol)))
+                ;; Find indentation quickly
+                (when (< 0 (skip-chars-forward "[:blank:]"))
+                  (setq ind-str (buffer-substring-no-properties beg-pos (point))))
+                ;; Any special markers like "- ", "* ", "1) ", "1. " etc
+                (when (< (1+ (point)) (point-max))
+                  (or (and (memq (char-after) '(?- ;; 45
+                                                ?– ;; 8211
+                                                ?*
+                                                ))
+                           (eq (char-after (1+ (point))) ?\ )
+                           (setq ind-str-fill (concat "  " ind-str)))
+                      (and (setq skipped (skip-chars-forward "[:digit:]"))
+                           (or (> skipped 0)
+                               (= 1 (setq skipped (skip-chars-forward "[:alpha:]"))))
+                           (memq (char-after (point)) '(?\) ?.))
+                           (eq (char-after (1+ (point))) ?\ )
+                           (setq ind-str-fill (concat ind-str (make-string (+ 2 skipped) 32))))))
+                (unless ind-str-fill (setq ind-str-fill ind-str)))
+              (mumamo-with-buffer-prepared-for-jit-lock
+               (put-text-property beg-pos end-pos 'wrap-prefix ind-str-fill)
+               (put-text-property beg-pos end-pos 'visual-indent-wrap-prefix ind-str-fill))))
+          ;; This moves to the end of line if there is no more lines. That
+          ;; means we will not get stuck here.
+          (unless (eobp) (forward-line 1))))))
   ;; Do not set match-data, there is none, just return nil.
   nil)
 
-(defun wrap-to-fill-font-lock (on)
+(defun visual-indent-font-lock (on)
   ;; See mlinks.el
   (let* ((add-or-remove (if on 'font-lock-add-keywords 'font-lock-remove-keywords))
-         (fontify-fun 'wrap-to-fill-fontify)
+         (fontify-fun 'visual-indent-fontify)
          (args (list nil `(( ,fontify-fun ( 0 'font-lock-warning-face t ))))))
     (when fontify-fun
       (when on (setq args (append args (list t))))
