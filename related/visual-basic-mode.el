@@ -77,7 +77,7 @@
 ;; 1.0 18-Apr-96  Initial version
 ;; 1.1 Accomodate emacs 19.29+ font-lock-defaults
 ;;     Simon Marshall <Simon.Marshall@esrin.esa.it>
-                                        ;  1.2 Rename to visual-basic-mode
+;  1.2 Rename to visual-basic-mode
 ;; 1.3 Fix some indentation bugs.
 ;; 1.3+ Changes by Dave Love: [No attempt at compatibility with
 ;;      anything other than Emacs 20, sorry, but little attempt to
@@ -128,6 +128,8 @@
 ;; 1.4.9 VB1 - make customizable variable accessible through defcustom
 ;;           - add support for `Select Case' in visual-basic-insert-item
 ;;           - reword of the `Dim' case in  visual-basic-insert-item
+;; 1.4.9b Lennart Borgman+VB1: correct abbreviation and support `_' as a valid
+;;        symbol character
 
 ;;
 ;; Notes:
@@ -230,15 +232,15 @@
   "*List of function templates though which visual-basic-new-sub cycles.")
 
 (defvar visual-basic-imenu-generic-expression
-  '((nil "^\\s-*\\(public\\|private\\)*\\s-+\\(declare\\s-+\\)*\\(sub\\|function\\)\\s-+\\(\\sw+\\>\\)"
+   '((nil "^\\s-*\\(public\\|private\\)*\\s-+\\(declare\\s-+\\)*\\(sub\\|function\\)\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\>\\)"
          4)
     ("Constants"
-     "^\\s-*\\(private\\|public\\|global\\)*\\s-*\\(const\\s-+\\)\\(\\sw+\\>\\s-*=\\s-*.+\\)$\\|'"
+     "^\\s-*\\(private\\|public\\|global\\)*\\s-*\\(const\\s-+\\)\\(\\(?:\\sw\\|\\s_\\)+\\>\\s-*=\\s-*.+\\)$\\|'"
      3)
     ("Variables"
-     "^\\(private\\|public\\|global\\|dim\\)+\\s-+\\(\\sw+\\>\\s-+as\\s-+\\sw+\\>\\)"
+     "^\\(private\\|public\\|global\\|dim\\)+\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\>\\s-+as\\s-+\\(?:\\sw\\|\\s_\\)+\\>\\)"
      2)
-    ("Types" "^\\(public\\s-+\\)*type\\s-+\\(\\sw+\\)" 2)))
+    ("Types" "^\\(public\\s-+\\)*type\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\)" 2)))
 
 
 
@@ -249,6 +251,7 @@
   (modify-syntax-entry ?\' "\<" visual-basic-mode-syntax-table) ; Comment starter
   (modify-syntax-entry ?\n ">" visual-basic-mode-syntax-table)
   (modify-syntax-entry ?\\ "w" visual-basic-mode-syntax-table)
+  (modify-syntax-entry ?_ "_" visual-basic-mode-syntax-table)
   (modify-syntax-entry ?\= "." visual-basic-mode-syntax-table)
   (modify-syntax-entry ?\< "." visual-basic-mode-syntax-table)
   (modify-syntax-entry ?\> "." visual-basic-mode-syntax-table)) ; Make =, etc., punctuation so that dynamic abbreviations work properly
@@ -1167,7 +1170,7 @@ Interting an item means:
   is not already a `Case Else'.
 
 * Split a Dim declaration over several lines. Split policy is
-  that: 
+  that:
 
   - the split always occur just before or just after the
     declaration of the variable V such that the pointer is
@@ -1177,7 +1180,7 @@ Interting an item means:
 
        Dim X, V(2) As T, Y
               ^^^^^^^^^^^
-    
+
   - the split being after or before `V(2) as T' decalration and
     the position of pointer after split depends on where the
     pointer was before the split:
@@ -1194,7 +1197,7 @@ Interting an item means:
        Dim X
        Dim V(2) As T, Y
            ^
-      
+
     - if the pointer is not over variable name like this:
 
 
@@ -1245,21 +1248,21 @@ Interting an item means:
 		(setq prefix (buffer-substring-no-properties
 			      (point)
 			      (goto-char (setq split-point (match-end 0)
-					       org-split-point split-point))) 
+					       org-split-point split-point)))
 		      item-case 'dim-split-after)
 		;; determine split-point, which is the point at which a new
 		;; Dim item is to be inserted. To that purpose the line is gone through
 		;; from beginning until cur-point is past
 		(while
                     (if
-			(looking-at "\\(\\s-*\\)\\sw+\\s-*"); some symbol
+			(looking-at "\\(\\s-*\\)\\(?:\\sw\\|\\s_\\)+\\s-*"); some symbol
 			(if (>  (setq tentative-split-point (match-end 0)) cur-point)
                             (progn
-			      (setq item-case (if (>= cur-point (match-end 1)) 
-						  'dim-split-after 
+			      (setq item-case (if (>= cur-point (match-end 1))
+						  'dim-split-after
                                                 'dim-split-before))
 			      nil;; stop loop
-			      ) 
+			      )
 			  (goto-char tentative-split-point)
 			  (setq item-case 'dim-split-before)
 			  (let ((loop-again t))
@@ -1276,7 +1279,7 @@ Interting an item means:
 				      (looking-at visual-basic-looked-at-continuation-regexp) ))
                               (goto-char (setq tentative-split-point (match-end 0))))
 			    (when loop-again
-			      (when (looking-at "As\\s-+\\sw+\\s-*")
+			      (when (looking-at "As\\s-+\\(?:\\sw\\|\\s_\\)+\\s-*")
 				(setq item-case 'dim-split-after)
 				(goto-char (setq tentative-split-point (match-end 0))))
 			      (when (looking-at visual-basic-looked-at-continuation-regexp)
@@ -1292,7 +1295,7 @@ Interting an item means:
 		(delete-region split-point (match-end 0))
 		(cond
 		 ((looking-back ",")
-		  (while 
+		  (while
 		      (progn
 			(delete-region split-point (setq split-point (1- split-point)))
 			(looking-back "\\s-"))))
@@ -1313,7 +1316,7 @@ Interting an item means:
 		      (beginning-of-line)
 		      (insert "Case ")
 		      (visual-basic-indent-to-column indent)
-		      (setq item-case 'select-with-else 
+		      (setq item-case 'select-with-else
 			    split-point (point))
 		      (insert ?\n))
 		  (setq item-case 'select-without-else))
@@ -1337,7 +1340,7 @@ Interting an item means:
       ((dim-split-before)  (message "split before") (goto-char split-point))
       ((select-with-else)  (goto-char split-point))
       ((select-without-else)
-       ;; go forward until the End Select or next case is met in order to 
+       ;; go forward until the End Select or next case is met in order to
        ;; to insert the new case at this position
        (let ((select-case-depth 0))
 	 (while
@@ -1345,7 +1348,7 @@ Interting an item means:
 	       (visual-basic-next-line-of-code)
                (cond
 		;; case was found, insert case and exit loop
-		((and (= 0 select-case-depth) 
+		((and (= 0 select-case-depth)
 		      (looking-at visual-basic-case-regexp))
 		 (let ((indent (current-indentation)))
 		   (beginning-of-line)
@@ -1373,11 +1376,11 @@ Interting an item means:
 		     (let ((indent (current-indentation)))
 		       (insert  "Case ")
 		       (save-excursion (insert ?\n ))
-		       (visual-basic-indent-to-column 
+		       (visual-basic-indent-to-column
 		        (+ indent visual-basic-mode-indent))
 		       nil;; break loop
                        )
-		   t; loop again 
+		   t; loop again
                    ))
 		((eobp)
 		 (goto-char cur-point)
@@ -1421,6 +1424,6 @@ If file is relative then default-directory provides the path"
 ;;; visual-basic-mode.el ends here
 
 
-                                        ;External Links
-                                        ;* [http://visualbasic.freetutes.com/ Visual Basic tutorials]
+;External Links
+;* [http://visualbasic.freetutes.com/ Visual Basic tutorials]
 
