@@ -575,11 +575,15 @@
         (define-key some-help-map [nxhtml-css-help]
           (list 'menu-item "CSS Help" 'xhtml-help-show-css-ref))
         (define-key some-help-map [nxhtml-tag-help]
-          (list 'menu-item "XHTML Tag Help" 'nxhtml-short-tag-help)))
+          (list 'menu-item "XHTML Tag Help" 'nxhtml-short-tag-help))
+        (define-key some-help-map [some-help-sep]
+          '(menu-item "--"))
+        (define-key some-help-map [nxhtml-search-net]
+          (list 'menu-item "Search Internet" 'search-net-dwim)))
 
       (let ((cssclr-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-css-color]
-          (list 'menu-item "Color Help" cssclr-map))
+          (list 'menu-item "Color Tools" cssclr-map))
         (define-key cssclr-map [nxhtml-css-color-mode]
           (list 'menu-item "Css Color Mode" 'css-color-mode
 		:enable '(and font-lock-mode
@@ -1348,6 +1352,7 @@
   (let ((map (make-sparse-keymap)))
     (define-key map [(control ?c) ?? ?x] 'nxhtml-short-tag-help)
     (define-key map [(control ?c) ?? ?c] 'xhtml-help-show-css-ref)
+    (define-key map [(control ?c) ?? ?n] 'search-net-dwim)
     (define-key map [(control ?c) ?_] 'nxhtml-toggle-visible-warnings)
     (define-key map [menu-bar nxhtml-menu-mode]
       (list 'menu-item "nXhtml" nxhtml-menu-mode-menu-map))
@@ -1360,55 +1365,8 @@ See `nxhtml-mode' for more information.
 
 This minor mode adds the entry 'nXhtml' to the menu bar.  This
 submenu gives easy access to most of the important features of
-nXhtml.
-
-To see an \(incomplete) overview in html format do
-\\[nxhtml-overview].
-
-* Note: Please observe that when loading nXhtml some file
-  associations are done, see `nxhtml-setup-file-assoc'.
-
-Here are some important features:
-
-- multiple major modes, see `define-mumamo-multi-major-mode'
-- easy uploading and viewing of files, see for example
-  `html-upl-upload-file'
-
-- validation in XHTML part for php etc, see
-  `nxhtml-validation-header-mode' (you probably also want to know
-  about `nxhtml-toggle-visible-warnings' for this!)
-
-- converting of html to xhtml, see `tidy-buffer'
-
-Some smaller, useful, but easy-to-miss features:
-
-* Following links. The href and src attribute names are
-  underlined and a special keymap is bound to
-  them:\\<mlinks-mode-map>
-
-    \\[mlinks-backward-link], \\[mlinks-forward-link] Move
-        between underlined href/src attributes
-
-    \\[mlinks-goto], Mouse-1 Follow link inside Emacs
-        (if possible)
-
-  It is even a little bit quicker when the links are in an active
-  state (marked with the face `isearch'):\\<mlinks-active-hilight-keymap>
-
-    \\[mlinks-backward-link], \\[mlinks-forward-link] Move
-        between underlined href/src attributes
-    \\[mlinks-goto], Mouse-1  Follow link inside Emacs (if possible)
-
-  If the link is not into a file that you can edit (a mailto link
-  for example) you will be prompted for an alternative action.
-
-* Creating links. To make it easier to create links to id/name
-  attribute in different files there are two special
-  functions:\\<nxhtml-mode-map>
-
-    \\[nxhtml-save-link-to-here] copy link to id/name (you must
-        be in the tag to get the link)
-    \\[nxhtml-paste-link-as-a-tag] paste this as an a-tag.
+nXhtml.  \(Some of them are not specific to nXhtml, but nXhtml
+contains enhancement of existing features, like `flyspell-mode'.)
 
 This minor mode also adds some bindings:
 

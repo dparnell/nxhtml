@@ -190,7 +190,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-menu-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp mumamo-switch-to-other-html)
-;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19451 50361))
+;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19457 53804))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -227,55 +227,8 @@ See `nxhtml-mode' for more information.
 
 This minor mode adds the entry 'nXhtml' to the menu bar.  This
 submenu gives easy access to most of the important features of
-nXhtml.
-
-To see an (incomplete) overview in html format do
-\\[nxhtml-overview].
-
-* Note: Please observe that when loading nXhtml some file
-  associations are done, see `nxhtml-setup-file-assoc'.
-
-Here are some important features:
-
-- multiple major modes, see `define-mumamo-multi-major-mode'
-- easy uploading and viewing of files, see for example
-  `html-upl-upload-file'
-
-- validation in XHTML part for php etc, see
-  `nxhtml-validation-header-mode' (you probably also want to know
-  about `nxhtml-toggle-visible-warnings' for this!)
-
-- converting of html to xhtml, see `tidy-buffer'
-
-Some smaller, useful, but easy-to-miss features:
-
-* Following links. The href and src attribute names are
-  underlined and a special keymap is bound to
-  them:\\<mlinks-mode-map>
-
-    \\[mlinks-backward-link], \\[mlinks-forward-link] Move
-        between underlined href/src attributes
-
-    \\[mlinks-goto], Mouse-1 Follow link inside Emacs
-        (if possible)
-
-  It is even a little bit quicker when the links are in an active
-  state (marked with the face `isearch'):\\<mlinks-active-hilight-keymap>
-
-    \\[mlinks-backward-link], \\[mlinks-forward-link] Move
-        between underlined href/src attributes
-    \\[mlinks-goto], Mouse-1  Follow link inside Emacs (if possible)
-
-  If the link is not into a file that you can edit (a mailto link
-  for example) you will be prompted for an alternative action.
-
-* Creating links. To make it easier to create links to id/name
-  attribute in different files there are two special
-  functions:\\<nxhtml-mode-map>
-
-    \\[nxhtml-save-link-to-here] copy link to id/name (you must
-        be in the tag to get the link)
-    \\[nxhtml-paste-link-as-a-tag] paste this as an a-tag.
+nXhtml.  (Some of them are not specific to nXhtml, but nXhtml
+contains enhancement of existing features, like `flyspell-mode'.)
 
 This minor mode also adds some bindings:
 
@@ -1336,7 +1289,7 @@ Major mode for editing Template Toolkit files.
 ;;;***
 
 ;;;### (autoloads (visual-basic-mode) "../related/visual-basic-mode"
-;;;;;;  "related/visual-basic-mode.el" (19448 20330))
+;;;;;;  "related/visual-basic-mode.el" (19457 20462))
 ;;; Generated autoloads from related/visual-basic-mode.el
 (web-autoload-require 'visual-basic-mode 'lp '(nxhtml-download-root-url nil) "related/visual-basic-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2476,7 +2429,7 @@ See `markchars-mode' for more information on Markchars mode.
 ;;;***
 
 ;;;### (autoloads (mlinks-global-mode mlinks-mode mlinks) "mlinks"
-;;;;;;  "util/mlinks.el" (19451 8891))
+;;;;;;  "util/mlinks.el" (19456 41579))
 ;;; Generated autoloads from util/mlinks.el
 (web-autoload-require 'mlinks 'lp '(nxhtml-download-root-url nil) "util/mlinks" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2537,7 +2490,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;;;;  mumamo-list-defined-multi-major-modes mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19453 55193))
+;;;;;;  (19455 12664))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3013,7 +2966,7 @@ Color up digits three by three.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
 ;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19453 51755))
+;;;;;;  "util/ourcomments-util.el" (19457 7316))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3640,6 +3593,32 @@ Display a form for search and replace.
 
 ;;;***
 
+;;;### (autoloads (search-net search-net-dwim) "search-net" "util/search-net.el"
+;;;;;;  (19457 53741))
+;;; Generated autoloads from util/search-net.el
+(web-autoload-require 'search-net 'lp '(nxhtml-download-root-url nil) "util/search-net" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'search-net-dwim `(lp '(nxhtml-download-root-url nil) "util/search-net" nxhtml-install-dir) "\
+Not documented
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'search-net `(lp '(nxhtml-download-root-url nil) "util/search-net" nxhtml-install-dir) "\
+Search the Internet with web browser.
+ENGINE is the search engine.
+WHAT is the search string.
+In interactive use those are prompted for.
+Default for WHAT is then what `word-at-point' gives.
+However if region is active the region will be default.
+
+WHAT will be url encoded.
+ENGINE must be key in `search-net-search-setup-alist'.
+
+\(fn ENGINE WHAT)" t nil)
+
+;;;***
+
 ;;;### (autoloads (sex-mode sex) "sex-mode" "util/sex-mode.el" (19218
 ;;;;;;  42182))
 ;;; Generated autoloads from util/sex-mode.el
@@ -4016,10 +3995,10 @@ See also option `winsav-save-mode' and command
 ;;;***
 
 ;;;### (autoloads (winsav-rotate winsize-set-mode-line-colors winsize-save-window-configuration
-;;;;;;  winsize-balance-siblings winsize-fit-frame-width winsize-fit-and-maxh-frame
+;;;;;;  winsize-balance-siblings winsize-fit-frame-width winsize-fitw-and-maxh-frame
 ;;;;;;  winsize-max-frame-height winsize-fit-windows-to-desired-widths
 ;;;;;;  winsize-fit-window-to-desired-width resize-windows) "winsize"
-;;;;;;  "util/winsize.el" (19454 49614))
+;;;;;;  "util/winsize.el" (19455 14652))
 ;;; Generated autoloads from util/winsize.el
 (web-autoload-require 'winsize 'lp '(nxhtml-download-root-url nil) "util/winsize" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4239,7 +4218,7 @@ Maximize frame height.
 
 \(fn)" t nil)
 
-(nxhtml-autoload 'winsize-fit-and-maxh-frame `(lp '(nxhtml-download-root-url nil) "util/winsize" nxhtml-install-dir) "\
+(nxhtml-autoload 'winsize-fitw-and-maxh-frame `(lp '(nxhtml-download-root-url nil) "util/winsize" nxhtml-install-dir) "\
 Fit width and max height of frame.
 Just like `winsize-fit-frame-width' + `winsize-max-frame-height'.
 
@@ -4391,14 +4370,14 @@ accept it or skip it.
 ;;;;;;  "nxhtml/html-quote.el" "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el"
 ;;;;;;  "nxhtml/nxhtmljs.el" "nxhtml/outline-magic.el" "nxhtml/wtest.el"
 ;;;;;;  "related/flymake-helpers.el" "related/flymakemsg.el" "related/php-imenu.el"
-;;;;;;  "temp.el" "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
+;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
 ;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
 ;;;;;;  "util/appmenu-fold.el" "util/css-simple-completion.el" "util/custsets.el"
 ;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/idn.el"
 ;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/org-panel.el"
 ;;;;;;  "util/rxi.el" "util/tipframe.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19454 62402 859000))
+;;;;;;  "web-autoload.el") (19457 53914 468000))
 
 ;;;***
 
