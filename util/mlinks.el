@@ -130,6 +130,12 @@
       (hion t)
       )
      )
+    (debugger-mode
+     ((goto mlinks-elisp-goto)
+      (hili mlinks-elisp-hili)
+      (hion t)
+      )
+     )
     (help-mode
      ((goto mlinks-elisp-goto)
       (hili mlinks-elisp-hili)
@@ -251,6 +257,8 @@
     (define-key m [(control ?c) ?\r ?h]    'mlinks-toggle-hilight)
     (define-key m [(control ?c) ?\r ?c]    'mlinks-copy-link-text)
     m))
+
+(defvar mlinks-repeat-point-hilighter nil)
 
 ;;;###autoload
 (define-minor-mode mlinks-mode
@@ -374,8 +382,6 @@ Any command cancels this state."
   (when (timerp mlinks-point-hilighter-timer)
     (cancel-timer mlinks-point-hilighter-timer)
     (setq mlinks-point-hilighter-timer nil)))
-
-(defvar mlinks-repeat-point-hilighter nil)
 
 (defun mlinks-start-point-hilighter ()
   (mlinks-stop-point-hilighter)

@@ -61,6 +61,9 @@
                                       buffer-file-name)))
 
 (require 'nxhtml-base)
+;; Fix-me: How to I tell the compile that `nxhtml-menu-mode' is there?
+;;(declare-function 'nxhtml-menu-mode (expand-file-name "nxhtml/nxhtml-menu" nxhtml-install-dir) t t)
+
 (eval-and-compile (when (fboundp 'nxml-mode)
                     (let ((patching-file "etc/schema/schema-path-patch"))
                       (unless (load (expand-file-name patching-file nxhtml-install-dir) t)

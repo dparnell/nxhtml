@@ -2339,8 +2339,11 @@ mode."
 ;; Seems like font-lock-add-keywords must be advised...
 (defvar mumamo-internal-major-modes-alist nil
   "Alist with info for different major modes.
-Internal use only.  This is automatically set up by
-`mumamo-get-major-mode-setup'.")
+Internal use only.
+
+This is automatically set up by `mumamo-get-major-mode-setup'.
+Note that the variables in the list entries are made buffer
+local, but not this variable.")
 (setq mumamo-internal-major-modes-alist nil)
 ;;(put 'mumamo-internal-major-modes-alist 'permanent-local t)
 
@@ -3015,12 +3018,20 @@ mumamo.
 
 If MAJOR is nil then instead delete for all entries the buffer
 local variables of `mumamo-internal-major-modes-alist' for the
-major modes that has been setup for the buffer so far.
-
-Fix-me: Does not work yet."
+major modes that has been setup for the buffer so far."
   (if major
-      (set-default 'mumamo-internal-major-modes-alist
-            (assq-delete-all major (default-value 'mumamo-internal-major-modes-alist)))
+      ;; Fix-me: this is wrong. It should do the same things as when a
+      ;; major mode is given.  But what should be done to buffer local
+      ;; values? Just let it be until their multi major mode is turned
+      ;; off?
+      ;;
+      ;; (set-default 'mumamo-internal-major-modes-alist
+      ;;              (assq-delete-all major (default-value 'mumamo-internal-major-modes-alist)))
+      (dolist (rec (default-value mumamo-internal-major-modes-alist))
+        (let* ((major (nth 0 rec))
+               (vars  (nth 1 rec)))
+          (dolist (var vars)
+            (set-default var nil))))
     ;;(kill-local-variable 'mumamo-internal-major-modes-alist)
     (dolist (rec mumamo-internal-major-modes-alist)
       (let* ((major (nth 0 rec))

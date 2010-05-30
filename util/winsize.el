@@ -744,13 +744,11 @@ of the windows left of them.)"
                           (< (car a) (car b)))))
             (when resize-frame
               (let* ((frame (selected-frame))
-                     (curr-width (frame-width frame))
-                     )
+                     (curr-width (frame-width frame)))
                 (when (/= curr-width tot-width)
                   (when (fboundp 'w32-frame-placement)
                     (let* ((pm (w32-frame-placement frame))
-                           (state (nth 4 pm))
-                           )
+                           (state (nth 4 pm)))
                       (when (/= state 2) ;; Not normal, i.e. min/max/hidden
                         ;; SW_NORMAL
                         (w32-showwindow frame 1)
@@ -766,9 +764,14 @@ of the windows left of them.)"
                   (winsize-fit-window-to-desired-width win t width-goal))
                 ;;(msgtrc "after set: %S => %s, buf=%S, %d" win width-goal (window-buffer win) (nth 0 (window-edges win)))
                 )))
-          (remove-hook 'window-configuration-change-hook 'winsize-fit-frame-width)
+          ;;(remove-hook 'window-configuration-change-hook this-command)
+          (remove-hook 'window-configuration-change-hook 'winsize-fitw-and-maxh-frame)
+          (remove-hook 'window-configuration-change-hook 'winsize-fit-windows-to-desired-widths)
           nil)
-    (add-hook 'window-configuration-change-hook 'winsize-fit-frame-width)
+    (when (memq this-command
+                '(winsize-fitw-and-maxh-frame winsize-fit-windows-to-desired-widths))
+      (add-hook 'window-configuration-change-hook this-command))
+    ;;window-configuration-change-hook
     ))
 
 ;;;###autoload
@@ -776,9 +779,10 @@ of the windows left of them.)"
   "Maximize frame height."
   (interactive)
   (let* ((frame (selected-frame))
-        (is-max (when (fboundp 'w32-frame-placement)
-                  (let* ((pm (w32-frame-placement frame))
-                         (state (nth 4 pm)))
+        (w32-pm(when (fboundp 'w32-frame-placement)
+                 (w32-frame-placement frame)))
+        (is-max (when w32-pm
+                  (let ((state (nth 4 w32-pm)))
                     (= state 3))))
         (char-height-pixels (frame-char-height frame))
         (root-window-rows (window-height (frame-root-window frame)))
@@ -795,6 +799,13 @@ of the windows left of them.)"
         (rows (window-height (frame-root-window frame)))
         )
     (unless is-max
+      ;; Fix-me: There is a bug in w32 Emacs here. Setting just 'top
+      ;; will make 'left to the value that it had when the frame was
+      ;; maximized if it was maximized before. The correct value is in
+      ;; the placement record, use that instead.
+      (when (listp left) ;; was max
+        (setq left (nth 0 w32-pm))
+        (when left (set-frame-parameter frame 'left left)))
       (set-frame-parameter frame 'top 0)
       (set-frame-size frame cols (+ rows char-diff)))))
 
