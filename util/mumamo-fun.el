@@ -55,6 +55,7 @@
 (eval-when-compile (add-to-list 'load-path default-directory))
 (eval-when-compile (require 'mumamo))
 (eval-and-compile (require 'mumamo-chunks))
+(declare-function nxhtml-validation-header-mode "nxhtml-mode")
 
 
 

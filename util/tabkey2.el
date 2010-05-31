@@ -837,7 +837,8 @@ See `tabkey2-first' for more information."
     (when (and (boundp 'company-mode)
                company-mode)
       ;;(message "tabkey2:company-abort")
-      (company-abort)
+      (when (fboundp 'company-abort)
+        (company-abort))
       (setq did-more t))
     (when (and C-g-binding
              (not (eq C-g-binding this-command)))

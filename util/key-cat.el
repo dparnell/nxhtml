@@ -57,6 +57,8 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'tabkey2 nil t))
+(declare-function nxhtml-validation-header-mode "nxhtml-mode")
 
 (defconst key-cat-cmd-list
   '(

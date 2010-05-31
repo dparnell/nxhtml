@@ -173,11 +173,11 @@ The patterns are grouped by VCS web system type.
   :group 'web-vcs)
 
 (defcustom web-vcs-default-download-directory
-  '~/.emacs.d/
+  "~/.emacs.d/"
   "Default download directory."
-  :type '(choice (const :tag "~/.emacs.d/" '~/.emacs.d/)
-                 (const :tag "Fist site-lisp in `load-path'" 'site-lisp-dir)
-                 (const :tag "Directory where `site-run-file' lives" 'site-run-dir)
+  :type '(choice (const :tag "~/.emacs.d/" "~/.emacs.d/")
+                 (const :tag "Fist site-lisp in `load-path'" site-lisp-dir)
+                 (const :tag "Directory where `site-run-file' lives" site-run-dir)
                  (string :tag "Specify directory"))
   :group 'web-vcs)
 
@@ -185,23 +185,24 @@ The patterns are grouped by VCS web system type.
 ;;;###autoload
 (defun web-vcs-default-download-directory ()
   "Try to find a suitable place.
-Considers site-start.el, site-
-"
-  (let ((site-run-dir (when site-run-file
-			(file-name-directory (locate-library site-run-file))))
-        (site-lisp-dir (catch 'first-site-lisp
-                         (dolist (d load-path)
-                           (let ((dir (file-name-nondirectory (directory-file-name d))))
+Use the choice in `web-vcs-default-download-directory'.
+If this does not fit fall back to \"~/.emacs.d/\"."
+  (let* ((site-run-dir (when site-run-file
+                         (let ((lib (locate-library site-run-file)))
+                           (when lib
+                             (file-name-directory lib)))))
+         (site-lisp-dir (catch 'first-site-lisp
+                          (dolist (d load-path)
+                            (let ((dir (file-name-nondirectory (directory-file-name d))))
                              (when (string= dir "site-lisp")
                                (throw 'first-site-lisp (file-name-as-directory d)))))))
-        )
-    (message "site-run-dir=%S site-lisp-dir=%S" site-run-dir site-lisp-dir)
-    (case web-vcs-default-download-directory
-      ('~/.emacs.d/ "~/.emacs.d/")
-      ('site-lisp-dir site-lisp-dir)
-      ('site-run-dir site-run-dir)
-      (t web-vcs-default-download-directory))
-    ))
+         (dummy (message "site-run-dir=%S site-lisp-dir=%S" site-run-dir site-lisp-dir))
+         (dir (or (case web-vcs-default-download-directory
+                    ;;('~/.emacs.d/ "~/.emacs.d/")
+                    ('site-lisp-dir site-lisp-dir)
+                    ('site-run-dir site-run-dir))
+                  web-vcs-default-download-directory)))
+    (or dir "~/.emacs.d/")))
 
 
 
@@ -1270,12 +1271,18 @@ If LOAD"
          ;; Fix-me: name of compile log buffer. When should it be
          ;; deleted? How do I bind it to byte-compile-file? Or do I?
          (file-buf (find-buffer-visiting file))
-         (out-buf (get-buffer-create "*Compile-Log*"))
+         (old-out-buf (get-buffer "*Compile-Log*"))
+         (default-directory (or (when old-out-buf
+                                  (with-current-buffer old-out-buf
+                                    default-directory))
+                                comp-dir
+                                (and (boundp 'nxhtml-install-dir) nxhtml-install-dir)
+                                default-directory))
+         (out-buf (or old-out-buf (get-buffer-create "*Compile-Log*")))
          (elc-file (byte-compile-dest-file file))
          (this-emacs-exe (locate-file invocation-name
                                       (list invocation-directory)
                                       exec-suffixes))
-         (default-directory (or comp-dir default-directory))
          (debug-on-error t)
          start)
     ;; (when (and file-buf

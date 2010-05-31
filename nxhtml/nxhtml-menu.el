@@ -47,9 +47,17 @@
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'cus-edit))
 (eval-when-compile (require 'dired))
+(eval-when-compile (require 'foldit))
 (eval-when-compile (require 'gimpedit nil t))
 (eval-when-compile (require 'html-site nil t))
-(eval-when-compile (when (fboundp 'nxml-mode) (require 'nxhtml-mode nil t)))
+;; The next test gives the warning: "the function
+;; `nxhtml-validation-header-mode' might not be defined at runtime",
+;; but is necessary for Emacs 22.
+(eval-when-compile
+  (when (or (>= emacs-major-version 23)
+            (fboundp 'nxml-mode))
+    (require 'nxhtml-mode nil t)))
+(declare-function nxhtml-validation-header-mode "nxhtml-mode")
 (eval-when-compile (require 'css-color nil t))
 (eval-when-compile (require 'flymake))
 ;;(eval-when-compile (require 'flymake-php))
@@ -63,7 +71,6 @@
 ;; Fix-me: The compiler still complains...
 ;;(eval-when-compile (require 'nxhtml-mode))
 ;;(declare-function gud-find-c-expr "gud.el" nil)
-(declare-function nxhtml-validation-header-mode "nxhtml-mode")
 
 ;;(mumamo-find-other-html 'html-mumamo)
 ;;(mumamo-find-other-html 'eruby-mumamo)
@@ -106,7 +113,8 @@
         (funcall (nth 0 other-mode))
         (when (and mumamo-multi-major-mode
                    (nth 1 other-mode))
-          (nxhtml-validation-header-mode 1))
+          (when (fboundp 'nxhtml-validation-header-mode)
+            (nxhtml-validation-header-mode 1)))
         ))))
 
 (defun nxhtml-nxhtml-in-buffer ()
@@ -823,6 +831,7 @@
           (define-key val-map [nxhtml-validation-header-mode]
             (list 'menu-item "Use Fictive XHTML Validation Header in Buffer"
                   'nxhtml-validation-header-mode
+                  ;;:visible '(fboundp 'nxhtml-validation-header-mode)
                   :button '(:toggle . (and (boundp 'nxhtml-validation-header-mode)
                                            nxhtml-validation-header-mode))))
           )
@@ -1354,6 +1363,8 @@
     (define-key map [(control ?c) ?? ?c] 'xhtml-help-show-css-ref)
     (define-key map [(control ?c) ?? ?n] 'search-net-dwim)
     (define-key map [(control ?c) ?_] 'nxhtml-toggle-visible-warnings)
+    (define-key map [(meta shift ?m)] 'mumamo-mark-chunk)
+    (define-key map [(control ?x) ?n ?m] 'mumamo-narrow-to-chunk-inner)
     (define-key map [menu-bar nxhtml-menu-mode]
       (list 'menu-item "nXhtml" nxhtml-menu-mode-menu-map))
     map))

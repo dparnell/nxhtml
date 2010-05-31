@@ -203,7 +203,7 @@ You can add additional elisp code for completing to
   (put 'hs-set-up-overlay 'permanent-local t)
   (when (featurep 'appmenu-fold)
     (appmenu-fold-setup))
-  (foldit-mode 1))
+  (when (fboundp 'foldit-mode) (foldit-mode 1)))
 
 (defun nxhtml-hs-start-tag-end (beg)
   (save-excursion
@@ -1929,7 +1929,8 @@ This mode may be turned on automatically in two ways:
 
 (when (featurep 'typesetter)
   (defun typesetter-init-nxhtml-mode ()
-    (typesetter-init-html-mode))
+    (when (fboundp 'typesetter-init-html-mode)
+      (typesetter-init-html-mode)))
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;

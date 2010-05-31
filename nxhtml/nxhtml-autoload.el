@@ -49,6 +49,8 @@
 
 (eval-when-compile (require 'majmodpri nil t))
 (eval-when-compile (require 'moz nil t))
+(declare-function nxhtml-validation-header-mode "nxhtml-mode")
+(declare-function moz-minor-mode "moz")
 
 ;;; Convenient moving by tags:
 (eval-after-load 'nxml-mode

@@ -1,8 +1,8 @@
-;;; visual-basic-mode.el
-;; This is free software.
+;;; visual-basic-mode.el --- A mode for editing Visual Basic programs.
 
-;; A mode for editing Visual Basic programs.
+;; This is free software.
 ;; Modified version of Fred White's visual-basic-mode.el
+
 
 ;; Copyright (C) 1996 Fred White <fwhite@alum.mit.edu>
 ;; Copyright (C) 1998 Free Software Foundation, Inc.
@@ -16,7 +16,7 @@
 ;;           : Randolph Fritz <rfritz@u.washington.edu>
 ;;           : Vincent Belaiche (VB1) <vincentb1@users.sourceforge.net>
 ;; Version: 1.4.9.b (2010-05-19)
-;; Serial Version: %Id: 20%
+;; Serial Version: %Id: 24%
 ;; Keywords: languages, basic, Evil
 ;; X-URL:  http://www.emacswiki.org/cgi-bin/wiki/visual-basic-mode.el
 
@@ -75,9 +75,9 @@
 
 ;; Revisions:
 ;; 1.0 18-Apr-96  Initial version
-;; 1.1 Accomodate emacs 19.29+ font-lock-defaults
+;; 1.1 Accomodate Emacs 19.29+ font-lock-defaults
 ;;     Simon Marshall <Simon.Marshall@esrin.esa.it>
-;  1.2 Rename to visual-basic-mode
+;; 1.2 Rename to visual-basic-mode
 ;; 1.3 Fix some indentation bugs.
 ;; 1.3+ Changes by Dave Love: [No attempt at compatibility with
 ;;      anything other than Emacs 20, sorry, but little attempt to
@@ -180,9 +180,13 @@
 ;;  etc.
 
 
+
+;;; History:
+;;
+
 ;;; Code:
 
-(provide 'visual-basic-mode)
+(eval-when-compile (require 'cl))
 
 (defvar visual-basic-xemacs-p (string-match "XEmacs\\|Lucid" (emacs-version)))
 (defvar visual-basic-winemacs-p (string-match "Win-Emacs" (emacs-version)))
@@ -222,17 +226,17 @@
   :group 'visual-basic)
 
 (defcustom visual-basic-allow-single-line-if t
-  "*Whether to allow single line if"
+  "*Whether to allow single line if."
   :group 'visual-basic)
 
 (defvar visual-basic-defn-templates
   (list "Public Sub ()\nEnd Sub\n\n"
         "Public Function () As Variant\nEnd Function\n\n"
         "Public Property Get ()\nEnd Property\n\n")
-  "*List of function templates though which visual-basic-new-sub cycles.")
+  "*List of function templates though which `visual-basic-new-sub' cycles.")
 
 (defvar visual-basic-imenu-generic-expression
-   '((nil "^\\s-*\\(public\\|private\\)*\\s-+\\(declare\\s-+\\)*\\(sub\\|function\\)\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\>\\)"
+  '((nil "^\\s-*\\(public\\|private\\)*\\s-+\\(declare\\s-+\\)*\\(sub\\|function\\)\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\>\\)"
          4)
     ("Constants"
      "^\\s-*\\(private\\|public\\|global\\)*\\s-*\\(const\\s-+\\)\\(\\(?:\\sw\\|\\s_\\)+\\>\\s-*=\\s-*.+\\)$\\|'"
@@ -382,8 +386,8 @@
       "Double" "Dynaset" "EOF" "Each" "Else" "Empty" "End" "EndProperty"
       "Enum" "Environ" "Erase" "Err" "Error" "Exit" "Exp" "Explicit" "FV" "False" "Field"
       "Fields" "FileAttr" "FileCopy" "FileDateTime" "FileLen" "Fix" "Font" "For"
-      "Form" "FormTemplate" "Format" "Forms" "FreeFile" "FreeLocks" "Friend"
-      "Function"
+      "Form" "FormTemplate" "Format" "FormatCurrency" "FormatDateTime" "FormatNumber"
+      "FormatPercent" "Forms" "FreeFile" "FreeLocks" "Friend" "Function"
       "Get" "GetAllSettings" "GetAttr" "GetObject" "GetSetting" "Global" "GoSub"
       "GoTo" "Group" "Groups" "Hex" "Hour" "IIf" "IMEStatus" "IPmt" "IRR"
       "If" "Implements" "InStr" "Input" "Int" "Integer" "Is" "IsArray" "IsDate"
@@ -498,6 +502,7 @@ Commands:
 
 
 (defun visual-basic-enable-font-lock ()
+  "Enable font locking."
   ;; Emacs 19.29 requires a window-system else font-lock-mode errs out.
   (cond ((or visual-basic-xemacs-p window-system)
 
@@ -529,7 +534,8 @@ Commands:
 ;; the correct end for the construct (with, select, if)
 ;; Is this what the abbrev table hook entry is for?
 (defun visual-basic-construct-keyword-abbrev-table ()
-  (if visual-basic-mode-abbrev-table
+  "Construction abbreviation table from list of keywords."
+(if visual-basic-mode-abbrev-table
       nil
     (let ((words visual-basic-all-keywords)
           (word nil)
@@ -546,7 +552,7 @@ Commands:
 
 
 (defun visual-basic-upgrade-keyword-abbrev-table ()
-  "Use this in case of upgrading visual-basic-mode.el"
+  "Use this in case of upgrading visual-basic-mode.el."
   (interactive)
 
   (let ((words visual-basic-all-keywords)
@@ -560,6 +566,7 @@ Commands:
 
 
 (defun visual-basic-in-code-context-p ()
+  "Predicate true when pointer is in code context."
   (if (fboundp 'buffer-syntactic-context) ; XEmacs function.
       (null (buffer-syntactic-context))
     ;; Attempt to simulate buffer-syntactic-context
@@ -573,17 +580,17 @@ Commands:
            (null (nth 4 list))))))      ; inside comment
 
 
-;;(defun visual-basic-pre-abbrev-expand-hook ()
 (defun visual-basic-abbrev-expand-function (expand-fun)
+  "Expansion of abbreviations.  EXPAND-FUN is called at the end of this function."
   ;; Allow our abbrevs only in a code context.
   (setq local-abbrev-table
         (if (visual-basic-in-code-context-p)
             visual-basic-mode-abbrev-table))
-  (call expand-fun))
+  (funcall expand-fun))
 
 
 (defun visual-basic-newline-and-indent (&optional count)
-  "Insert a newline, updating indentation."
+  "Insert a newline, updating indentation.  Argument COUNT is ignored."
   (interactive)
   (save-excursion
     (expand-abbrev)
@@ -591,14 +598,17 @@ Commands:
   (call-interactively 'newline-and-indent))
 
 (defun visual-basic-beginning-of-defun ()
+  "Set the pointer at the beginning of the Sub/Function/Property within which the pointer is located."
   (interactive)
   (re-search-backward visual-basic-defun-start-regexp))
 
 (defun visual-basic-end-of-defun ()
+  "Set the pointer at the beginning of the Sub/Function/Property within which the pointer is located."
   (interactive)
   (re-search-forward visual-basic-defun-end-regexp))
 
 (defun visual-basic-mark-defun ()
+  "Set the region pointer around Sub/Function/Property within which the pointer is located."
   (interactive)
   (beginning-of-line)
   (visual-basic-end-of-defun)
@@ -608,6 +618,8 @@ Commands:
       (zmacs-activate-region)))
 
 (defun visual-basic-indent-defun ()
+  "Indent the function within which the pointer is located.  This has a border on mark."
+  ;; VB1 to Lennart: is border effect on mark an issue ?
   (interactive)
   (save-excursion
     (visual-basic-mark-defun)
@@ -684,6 +696,8 @@ Commands:
   nil)
 
 (defun visual-basic-default-tag ()
+  "Return default TAG at point to search by grep."
+  ;; VB1 to Lennart: is border effect on match-data an issue
   (if (and (not (bobp))
            (save-excursion
              (backward-sexp)
@@ -724,7 +738,7 @@ changed files."
           ((null (setq file (visual-basic-buffer-project-file)))
            (error "No project file found"))
           ((fboundp 'win-exec)
-           (iconify-emacs)
+           (suspend-frame)
            (win-exec visual-basic-ide-pathname 'win-show-normal file))
           ((fboundp 'start-process)
            (iconify-frame (selected-frame))
@@ -737,7 +751,7 @@ changed files."
 ;;; Indentation-related stuff.
 
 (defun visual-basic-indent-region (start end)
-  "Perform visual-basic-indent-line on each line in region."
+  "Perform `visual-basic-indent-line' on each line in region delimited by START and END."
   (interactive "r")
   (save-excursion
     (goto-char start)
@@ -756,12 +770,21 @@ changed files."
 
 
 (defun visual-basic-previous-line-of-code ()
+  "Set point on previous line of code, skipping any blank or comment lines."
   (if (not (bobp))
       (forward-line -1))        ; previous-line depends on goal column
   (while (and (not (bobp))
               (or (looking-at visual-basic-blank-regexp)
                   (looking-at visual-basic-comment-regexp)))
     (forward-line -1)))
+
+(defun visual-basic-next-line-of-code ()
+  "Set point on next line of code, skipping any blank or comment lines."
+  (if (null (eobp))
+      (forward-line 1))        ; next-line depends on goal column
+  (while (and (null (eobp))
+              (looking-at visual-basic-comment-regexp))
+    (forward-line 1)))
 
 
 (defun visual-basic-find-original-statement ()
@@ -774,7 +797,13 @@ changed files."
       (visual-basic-previous-line-of-code))
     (goto-char here)))
 
-(defun visual-find-matching-stmt (open-p close-p)
+(defun visual-basic-find-predicate-matching-stmt (open-p close-p)
+  "Find opening statement statisfying OPEN-P predicate for which
+matching closing statement statisfies CLOSE-P predicate.
+
+Point is set on line statifying OPEN-P predicate, with ignoring
+any line satifying OPEN-P but for which a matching line
+statifying CLOSE-P was visited before during this search."
   ;; Searching backwards
   (let ((level 0))
     (while (and (>= level 0) (not (bobp)))
@@ -786,16 +815,17 @@ changed files."
              (setq level (- level 1)))))))
 
 (defun visual-basic-find-matching-stmt (open-regexp close-regexp)
-  (visual-find-matching-stmt
+  "Same as function `visual-basic-find-predicate-matching-stmt' except that regexps OPEN-REGEXP CLOSE-REGEXP are supplied instead of predicate, equivalent predicate being to be looking at those regexps."
+  (visual-basic-find-predicate-matching-stmt
    (lambda () (looking-at open-regexp))
    (lambda () (looking-at close-regexp))))
 
 (defun visual-basic-get-complete-tail-of-line ()
   "Return the tail of the current statement line, starting at
-  point and going up to end of statement line. If you want the
-  complete statement line, you have to call functions
-  `visual-basic-find-original-statement' and then
-  `beginning-of-line' before"
+point and going up to end of statement line. If you want the
+complete statement line, you have to call functions
+`visual-basic-find-original-statement' and then
+`beginning-of-line' before"
   (let* ((start-point (point))
 	 complete-line
 	 (line-beg start-point)
@@ -855,26 +885,32 @@ be folded over several code lines."
     nil))
 
 (defun visual-basic-find-matching-if ()
-  (visual-find-matching-stmt 'visual-basic-if-not-on-single-line
-                             (lambda () (looking-at visual-basic-endif-regexp))))
+  "Set pointer on the line with If stating the If ... Then ... [Else/Elseif ...] ... End If block containing pointer."
+  (visual-basic-find-predicate-matching-stmt 'visual-basic-if-not-on-single-line
+                                             (lambda () (looking-at visual-basic-endif-regexp))))
 
 (defun visual-basic-find-matching-select ()
+  "Set pointer on the line with Select Case stating the Select Case ... End Select block containing pointer."
   (visual-basic-find-matching-stmt visual-basic-select-regexp
                                    visual-basic-select-end-regexp))
 
 (defun visual-basic-find-matching-for ()
+  "Set pointer on the line with For stating the `For ... Next' block containing pointer."
   (visual-basic-find-matching-stmt visual-basic-for-regexp
                                    visual-basic-next-regexp))
 
 (defun visual-basic-find-matching-do ()
+  "Set pointer on the line with Do stating the `Do ... Loop' block containing pointer."
   (visual-basic-find-matching-stmt visual-basic-do-regexp
                                    visual-basic-loop-regexp))
 
 (defun visual-basic-find-matching-while ()
+  "Set pointer on the line with While stating the `While ... Wend' block containing pointer."
   (visual-basic-find-matching-stmt visual-basic-while-regexp
                                    visual-basic-wend-regexp))
 
 (defun visual-basic-find-matching-with ()
+  "Set pointer on the line with With stating the `With ... End with' block containing pointer."
   (visual-basic-find-matching-stmt visual-basic-with-regexp
                                    visual-basic-end-with-regexp))
 
@@ -882,6 +918,7 @@ be folded over several code lines."
 ;;; end not the first line because end without matching begin is a
 ;;; normal simple statement
 (defun visual-basic-find-matching-begin ()
+  "Set pointer on the line with Begin stating the `Begin ... End' block containing pointer."
   (let ((original-point (point)))
     (visual-basic-find-matching-stmt visual-basic-begin-regexp
                                      visual-basic-end-begin-regexp)
@@ -893,6 +930,7 @@ be folded over several code lines."
 
 
 (defun visual-basic-calculate-indent ()
+  "Return indent count for the line of code containing pointer."
   (let ((original-point (point)))
     (save-excursion
       (beginning-of-line)
@@ -1004,6 +1042,7 @@ be folded over several code lines."
                         indent))))))))))
 
 (defun visual-basic-indent-to-column (col)
+  "Indent line of code containing pointer up to column COL."
   (let* ((bol (save-excursion
                 (beginning-of-line)
                 (point)))
@@ -1054,7 +1093,7 @@ In Abbrev mode, any abbrev before point will be expanded."
 
 (defun visual-basic-detect-idom ()
   "Detects whether this is a VBA or VBS script. Returns symbol
-  `vba' if it is VBA, `nil' otherwise"
+`vba' if it is VBA, `nil' otherwise."
   (let (ret)
     (save-excursion
       (save-restriction
@@ -1211,11 +1250,10 @@ Interting an item means:
                        ^
        Dim Y
 
-* **under construction** Add an `Else' or `ElseIf ... Then' into an `If ... Then ... End
-  If' block. Pressing again toggles between `Else' and `ElseIf
-  ... Then'. `Else' is possible only if therei s not already an
-  `Else'.
-"
+* **under construction** Add an `Else' or `ElseIf ... Then' into
+  an `If ... Then ... End If' block.  Pressing again toggles
+  between `Else' and `ElseIf ... Then'.  `Else' is possible only
+  if therei s not already an `Else'."
   (interactive)
   ;; possible cases are
 
@@ -1249,7 +1287,7 @@ Interting an item means:
 			      (point)
 			      (goto-char (setq split-point (match-end 0)
 					       org-split-point split-point)))
-		      item-case 'dim-split-after)
+		      item-case ':dim-split-after)
 		;; determine split-point, which is the point at which a new
 		;; Dim item is to be inserted. To that purpose the line is gone through
 		;; from beginning until cur-point is past
@@ -1259,19 +1297,19 @@ Interting an item means:
 			(if (>  (setq tentative-split-point (match-end 0)) cur-point)
                             (progn
 			      (setq item-case (if (>= cur-point (match-end 1))
-						  'dim-split-after
-                                                'dim-split-before))
+						  ':dim-split-after
+                                                ':dim-split-before))
 			      nil;; stop loop
 			      )
 			  (goto-char tentative-split-point)
-			  (setq item-case 'dim-split-before)
+			  (setq item-case ':dim-split-before)
 			  (let ((loop-again t))
 			    (while
 				(or
 				 ;; array variable
 				 (when (looking-at "\\(([^)\n]+)\\)\\s-*")
                                    (if (< cur-point (match-end 1))
-                                       (setq item-case 'dim-split-after
+                                       (setq item-case ':dim-split-after
                                              loop-again nil)
                                      t))
 				 ;; continuation
@@ -1280,7 +1318,7 @@ Interting an item means:
                               (goto-char (setq tentative-split-point (match-end 0))))
 			    (when loop-again
 			      (when (looking-at "As\\s-+\\(?:\\sw\\|\\s_\\)+\\s-*")
-				(setq item-case 'dim-split-after)
+				(setq item-case ':dim-split-after)
 				(goto-char (setq tentative-split-point (match-end 0))))
 			      (when (looking-at visual-basic-looked-at-continuation-regexp)
 				(beginning-of-line 2))
@@ -1316,10 +1354,10 @@ Interting an item means:
 		      (beginning-of-line)
 		      (insert "Case ")
 		      (visual-basic-indent-to-column indent)
-		      (setq item-case 'select-with-else
+		      (setq item-case ':select-with-else
 			    split-point (point))
 		      (insert ?\n))
-		  (setq item-case 'select-without-else))
+		  (setq item-case ':select-without-else))
 		nil; break loop
 		)
 
@@ -1336,10 +1374,10 @@ Interting an item means:
 		(setq previous-line-of-code t))
 	      (null item-case)))))
     (case item-case
-      ((dim-split-after)   (message "split after") (goto-char cur-point))
-      ((dim-split-before)  (message "split before") (goto-char split-point))
-      ((select-with-else)  (goto-char split-point))
-      ((select-without-else)
+      ((:dim-split-after)   (message "split after") (goto-char cur-point))
+      ((:dim-split-before)  (message "split before") (goto-char split-point))
+      ((:select-with-else)  (goto-char split-point))
+      ((:select-without-else)
        ;; go forward until the End Select or next case is met in order to
        ;; to insert the new case at this position
        (let ((select-case-depth 0))
@@ -1393,11 +1431,12 @@ Interting an item means:
 
 ;;; Load associated files listed in the file local variables block
 (defun visual-basic-load-associated-files ()
-  "Load files that are useful to have around when editing the source of the file that has just been loaded.
-The file must have a local variable that lists the files to be loaded.
-If the file name is relative it is relative to the directory
-containing the current buffer.  If the file is already loaded nothing
-happens, this prevents circular references causing trouble.  After an
+  "Load files that are useful to have around when editing the
+source of the file that has just been loaded.  The file must have
+a local variable that lists the files to be loaded.  If the file
+name is relative it is relative to the directory containing the
+current buffer.  If the file is already loaded nothing happens,
+this prevents circular references causing trouble.  After an
 associated file is loaded its associated files list will be
 processed."
   (if (boundp 'visual-basic-associated-files)
@@ -1413,11 +1452,13 @@ processed."
 
 (defun visual-basic-load-file-ifnotloaded (file default-directory)
   "Load file if not already loaded.
-If file is relative then default-directory provides the path"
+If FILE is relative then DEFAULT-DIRECTORY provides the path."
   (let((file-absolute (expand-file-name file default-directory)))
     (if (get-file-buffer file-absolute); don't do anything if the buffer is already loaded
         ()
       (find-file-noselect file-absolute ))))
+
+(provide 'visual-basic-mode)
 
 
 

@@ -48,9 +48,10 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (add-to-list 'load-path default-directory))
+;;(eval-when-compile (add-to-list 'load-path default-directory))
 (eval-when-compile (require 'mumamo))
 (eval-when-compile (require 'sgml-mode))
+(declare-function nxhtml-validation-header-mode "nxhtml-mode")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

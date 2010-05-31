@@ -1153,31 +1153,47 @@ customize it."
   (insert (format-time-string ourcomments-insert-date-and-time)))
 
 ;;;###autoload
-(defun find-emacs-other-file (display-file)
+(defun ediff-emacs-other-file ()
+  "Ediff installed and source Emacs lisp file.
+Works like `find-emacs-other-file' but also starts ediff."
+  (interactive)
+  (let ((orig-buffer (current-buffer))
+        (orig-rel-src (file-relative-name buffer-file-name source-directory))
+        (other-buffer (find-file-noselect (find-emacs-other-file buffer-file-name))))
+    (if (string= "../" (substring orig-rel-src 0 3))
+        (ediff-buffers orig-buffer other-buffer)
+      (ediff-buffers other-buffer orig-buffer))))
+
+;;;###autoload
+(defun find-emacs-other-file (elisp-file)
   "Find corresponding file to source or installed elisp file.
 If you have checked out and compiled Emacs yourself you may have
 Emacs lisp files in two places, the checked out source tree and
-the installed Emacs tree.  If buffer contains an Emacs elisp file
+the installed Emacs tree.  If ELISP-FILE is an Emacs elisp file
 in one of these places then find the corresponding elisp file in
-the other place. Return the file name of this file.
+the other place.
 
-Rename current buffer using your `uniquify-buffer-name-style' if
-it is set.
+When interactive set ELISP-FILE to `buffer-file-name'.  Rename
+current buffer using your `uniquify-buffer-name-style' if it is
+set.  Display the other file in the other window and go to the
+same line number as in the current buffer.  Return the other
+files buffer.
 
-When DISPLAY-FILE is non-nil display this file in other window
-and go to the same line number as in the current buffer."
-  (interactive (list t))
-  (unless (buffer-file-name)
-    (error "This buffer is not visiting a file"))
+If non-interactive do not open the other file, just return the
+file name of the other file."
+  (interactive (progn
+                 (unless (buffer-file-name)
+                   (error "This buffer is not visiting a file"))
+                 (list buffer-file-name)))
   (unless source-directory
     (error "Can't find the checked out Emacs sources"))
   (let* ((installed-directory (file-name-as-directory
                                (expand-file-name ".." exec-directory)))
          (relative-installed (file-relative-name
-                              (buffer-file-name) installed-directory))
+                              elisp-file installed-directory))
          (relative-source (file-relative-name
-                           (buffer-file-name) source-directory))
-         (name-nondir (file-name-nondirectory (buffer-file-name)))
+                           elisp-file source-directory))
+         (name-nondir (file-name-nondirectory elisp-file))
          source-file
          installed-file
          other-file
@@ -1200,12 +1216,13 @@ and go to the same line number as in the current buffer."
       (error "This file is not in Emacs source or installed lisp tree"))
     (unless (file-exists-p other-file)
       (error "Can't find the corresponding file %s" other-file))
-    (when display-file
+    (if (not (called-interactively-p t))
+        other-file
       (when uniquify-buffer-name-style
         (rename-buffer (file-name-nondirectory buffer-file-name) t))
       (find-file-other-window other-file)
-      (ourcomments-goto-line line-num))
-    other-file))
+      (ourcomments-goto-line line-num)
+      (current-buffer))))
 
 ;;;###autoload
 (defun ourcomments-ediff-files (def-dir file-a file-b)

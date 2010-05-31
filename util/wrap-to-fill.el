@@ -78,7 +78,7 @@ the left margin."
   :group 'wrap-to-fill)
 
 
-         ;;ThisisaVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongWord ThisisaVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongWord
+;;ThisisaVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongWord ThisisaVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongWord
 
 (defun wrap-to-fill-wider ()
   "Increase `fill-column' with 10."
@@ -296,26 +296,69 @@ like '- ' etc:
           (inhibit-field-text-motion t)
           beg-pos
           end-pos)
-      (mumamo-with-buffer-prepared-for-jit-lock
-       (save-restriction
-         (widen)
-         (goto-char (point-min))
-         (while (< (point) (point-max))
-           (setq beg-pos (point))
-           (setq end-pos (line-end-position))
-           (when (equal (get-text-property beg-pos 'wrap-prefix)
-                        (get-text-property beg-pos 'visual-indent-wrap-prefix))
-             (remove-list-of-text-properties
-              beg-pos end-pos
-              '(wrap-prefix)))
-           (forward-line))
-         (remove-list-of-text-properties
-          (point-min) (point-max)
-          '(visual-indent-wrap-prefix)))
-       (goto-char here)))))
+      ;;(mumamo-with-buffer-prepared-for-jit-lock
+      (with-silent-modifications
+        (save-restriction
+          (widen)
+          (goto-char (point-min))
+          (while (< (point) (point-max))
+            (setq beg-pos (point))
+            (setq end-pos (line-end-position))
+            (when (equal (get-text-property beg-pos 'wrap-prefix)
+                         (get-text-property beg-pos 'visual-indent-wrap-prefix))
+              (remove-list-of-text-properties
+               beg-pos end-pos
+               '(wrap-prefix)))
+            (forward-line))
+          (remove-list-of-text-properties
+           (point-min) (point-max)
+           '(visual-indent-wrap-prefix)))
+        (goto-char here)))))
 
 (defvar visual-indent-use-fill-context-prefix nil)
 ;;(setq visual-indent-use-fill-context-prefix t)
+
+(defun visual-indent-fill-context-prefix (beg end)
+  "Replacement for `fill-context-prefix' for `visual-indent-mode'."
+  (unless (= beg (point-at-bol))
+    (message "visual-indent-fill-context-prefix internal err: not at bol"))
+  (if t
+      (let* ((first-line-prefix (fill-match-adaptive-prefix))
+             (second-line-prefix first-line-prefix)
+             (nc 0))
+        ;; (elt "hej" 1)
+        (while (< nc (length second-line-prefix))
+          (let ((cc (elt second-line-prefix nc)))
+            ;; Whitespace syntax? Otherwise set to space char.
+            (unless (memq (char-syntax cc) '(32 ?-))
+              (aset second-line-prefix nc 32)))
+          (setq nc (1+ nc)))
+        second-line-prefix)
+    (let (ind-str
+          ind-str-fill
+          skipped)
+      ;; Find indentation quickly
+      (when (< 0 (skip-chars-forward "[:blank:]"))
+        (setq ind-str (buffer-substring-no-properties beg (point))))
+      ;; Fix-me: refactor out the special markers, try to integrate with
+      ;; `fill-context-prefix'. Seems like `fill-match-adaptive-prefix'
+      ;; is what should be used.
+      ;;
+      ;; Any special markers like "- ", "* ", "1) ", "1. " etc
+      (when (< (1+ (point)) (point-max))
+        (or (and (memq (char-after) '(?- ;; 45
+                                      ?– ;; 8211
+                                      ?*
+                                      ))
+                 (eq (char-after (1+ (point))) ?\ )
+                 (setq ind-str-fill (concat "  " ind-str)))
+            (and (setq skipped (skip-chars-forward "[:digit:]"))
+                 (or (> skipped 0)
+                     (= 1 (setq skipped (skip-chars-forward "[:alpha:]"))))
+                 (memq (char-after (point)) '(?\) ?.))
+                 (eq (char-after (1+ (point))) ?\ )
+                 (setq ind-str-fill (concat ind-str (make-string (+ 2 skipped) 32))))))
+      (or ind-str-fill ind-str))))
 
 (defun visual-indent-fontify (bound)
   "During fontification mark lines for indentation.
@@ -334,39 +377,21 @@ Return nil."
         (unless (or (bolp) (eobp)) (forward-line 1))
         (while (and (mumamo-while 200 'n-while "visual-indent-fontify")
                     (< (point) bound)) ;; Max bound = (point-max)
-          (let (ind-str
-                ind-str-fill
-                skipped
+          (let (ind-str-fill
                 (beg-pos (point))
-                end-pos)
-            (unless (= beg-pos (point-at-bol)) (message "visual-indent internal err: beg-pos /= point-at-bol"))
-            (setq end-pos (point-at-eol))
+                (end-pos (point-at-eol)))
+            (unless (= beg-pos (point-at-bol))
+              (message "visual-indent-fontify internal err: beg-pos /= point-at-bol"))
             ;; Fix-me: Why did I check this? Step aside from org-mode or?
             (when (equal (get-text-property beg-pos 'wrap-prefix)
                          (get-text-property beg-pos 'visual-indent-wrap-prefix))
-              (if visual-indent-use-fill-context-prefix
-                  (setq ind-str-fill (fill-context-prefix (point-at-bol) (point-at-eol)))
-                ;; Find indentation quickly
-                (when (< 0 (skip-chars-forward "[:blank:]"))
-                  (setq ind-str (buffer-substring-no-properties beg-pos (point))))
-                ;; Any special markers like "- ", "* ", "1) ", "1. " etc
-                (when (< (1+ (point)) (point-max))
-                  (or (and (memq (char-after) '(?- ;; 45
-                                                ?– ;; 8211
-                                                ?*
-                                                ))
-                           (eq (char-after (1+ (point))) ?\ )
-                           (setq ind-str-fill (concat "  " ind-str)))
-                      (and (setq skipped (skip-chars-forward "[:digit:]"))
-                           (or (> skipped 0)
-                               (= 1 (setq skipped (skip-chars-forward "[:alpha:]"))))
-                           (memq (char-after (point)) '(?\) ?.))
-                           (eq (char-after (1+ (point))) ?\ )
-                           (setq ind-str-fill (concat ind-str (make-string (+ 2 skipped) 32))))))
-                (unless ind-str-fill (setq ind-str-fill ind-str)))
-              (mumamo-with-buffer-prepared-for-jit-lock
-               (put-text-property beg-pos end-pos 'wrap-prefix ind-str-fill)
-               (put-text-property beg-pos end-pos 'visual-indent-wrap-prefix ind-str-fill))))
+              (setq ind-str-fill
+                    (cond (visual-indent-use-fill-context-prefix
+                           (fill-context-prefix (point-at-bol) (point-at-eol)))
+                          (t (visual-indent-fill-context-prefix beg-pos end-pos))))
+              (with-silent-modifications
+                (put-text-property beg-pos end-pos 'wrap-prefix ind-str-fill)
+                (put-text-property beg-pos end-pos 'visual-indent-wrap-prefix ind-str-fill))))
           ;; This moves to the end of line if there is no more lines. That
           ;; means we will not get stuck here.
           (unless (eobp) (forward-line 1))))))

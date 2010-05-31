@@ -46,6 +46,7 @@
 
 (require 'iss-mode)
 (require 'mumamo)
+(declare-function nxhtml-validation-header-mode "nxhtml-mode")
 
 (defun mumamo-chunk-iss-code (pos max)
   "Find [code]..., return range and `pascal-mode'.
