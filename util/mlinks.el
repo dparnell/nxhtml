@@ -3,7 +3,7 @@
 ;; Author: Lennar Borgman
 ;; Created: Tue Jan 16 2007
 (defconst mlinks:version "0.28") ;;Version:
-;; Last-Updated: 2010-01-05 Tue
+;; Last-Updated: 2010-05-31 Mon
 ;; Keywords:
 ;; Compatibility:
 ;;
@@ -67,8 +67,9 @@
 
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'appmenu nil t))
-(eval-when-compile (require 'mumamo nil t))
-(eval-when-compile (require 'ourcomments-util nil t))
+;;(eval-when-compile (require 'mumamo nil t))
+;;(eval-when-compile (require 'ourcomments-util nil t))
+;;(declare-function nxhtml-validation-header-mode "nxhtml-mode")
 
 (require 'rx)
 (require 'url-parse)
@@ -1329,10 +1330,11 @@ Uses `switch-to-buffer-other-frame'."
                                     1))))
         (setq next-fontified-to (min (+ fontified-to 5000)
                                      (point-max)))
-        (mumamo-with-buffer-prepared-for-jit-lock
-         (progn
-           (put-text-property fontified-to next-fontified-to 'fontified t)
-           (font-lock-fontify-region fontified-to next-fontified-to)))
+        ;;(mumamo-with-buffer-prepared-for-jit-lock
+        (with-silent-modifications
+          (progn
+            (put-text-property fontified-to next-fontified-to 'fontified t)
+            (font-lock-fontify-region fontified-to next-fontified-to)))
         (setq fontified-to (next-single-char-property-change (1- next-fontified-to)
                                                              'fontified))
         (setq fontified-all (not fontified-to))
@@ -1372,10 +1374,11 @@ Uses `switch-to-buffer-other-frame'."
               (unless ready (setq pos nil))))
         (setq next-fontified-from (max (- fontified-from 5000)
                                        (point-min)))
-        (mumamo-with-buffer-prepared-for-jit-lock
-         (progn
-           (put-text-property next-fontified-from fontified-from 'fontified t)
-           (font-lock-fontify-region next-fontified-from fontified-from)))
+        ;;(mumamo-with-buffer-prepared-for-jit-lock
+        (with-silent-modifications
+          (progn
+            (put-text-property next-fontified-from fontified-from 'fontified t)
+            (font-lock-fontify-region next-fontified-from fontified-from)))
         (setq fontified-from (previous-single-char-property-change
                               (1+ next-fontified-from) 'fontified))
         (setq fontified-all (not fontified-from))

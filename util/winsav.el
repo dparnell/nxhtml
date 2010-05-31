@@ -154,6 +154,9 @@
 
 (eval-when-compile (require 'cl))
 (eval-and-compile (require 'desktop))
+(defvar ecb-layout-name)
+(defvar ecb-frame)
+(declare-function ecb-minor-mode "ecb")
 
 ;; (defun winsav-upper-left-window(&optional frame w)
 ;;   (let* ((tree (if w w (car (window-tree frame))))

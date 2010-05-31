@@ -290,6 +290,7 @@
 (eval-when-compile (require 'ruby-mode nil t))
 (eval-when-compile (require 'sgml-mode)) ;; For sgml-xml-mode
 (declare-function sgml-lexical-context "sgml-mode")
+(declare-function nxhtml-validation-header-mode "nxhtml-mode")
 
 ;; For `define-globalized-minor-mode-with-on-off':
 ;;(require 'ourcomments-util)
@@ -507,29 +508,29 @@ Do not record undo information during evaluation of BODY."
          (restore-buffer-modified-p nil)))))
 
 ;; From jit-lock.el:
-(defmacro mumamo-jit-with-buffer-unmodified (&rest body)
-  "Eval BODY, preserving the current buffer's modified state."
-  (declare (debug t))
-  (let ((modified (make-symbol "modified")))
-    `(let ((,modified (buffer-modified-p)))
-       (unwind-protect
-           (progn ,@body)
-         (unless ,modified
-           (restore-buffer-modified-p nil))))))
+;; (defmacro mumamo-jit-with-buffer-unmodified (&rest body)
+;;   "Eval BODY, preserving the current buffer's modified state."
+;;   (declare (debug t))
+;;   (let ((modified (make-symbol "modified")))
+;;     `(let ((,modified (buffer-modified-p)))
+;;        (unwind-protect
+;;            (progn ,@body)
+;;          (unless ,modified
+;;            (restore-buffer-modified-p nil))))))
 
-(defmacro mumamo-with-buffer-prepared-for-jit-lock (&rest body)
-  "Execute BODY in current buffer, overriding several variables.
-Preserves the `buffer-modified-p' state of the current buffer."
-  (declare (debug t))
-  `(mumamo-jit-with-buffer-unmodified
-    (let ((buffer-undo-list t)
-          (inhibit-read-only t)
-          (inhibit-point-motion-hooks t)
-          (inhibit-modification-hooks t)
-          deactivate-mark
-          buffer-file-name
-          buffer-file-truename)
-      ,@body)))
+;; (defmacro mumamo-with-buffer-prepared-for-jit-lock (&rest body)
+;;   "Execute BODY in current buffer, overriding several variables.
+;; Preserves the `buffer-modified-p' state of the current buffer."
+;;   (declare (debug t))
+;;   `(mumamo-jit-with-buffer-unmodified
+;;     (let ((buffer-undo-list t)
+;;           (inhibit-read-only t)
+;;           (inhibit-point-motion-hooks t)
+;;           (inhibit-modification-hooks t)
+;;           deactivate-mark
+;;           buffer-file-name
+;;           buffer-file-truename)
+;;       ,@body)))
 
 (defmacro mumamo-condition-case (var body-form &rest handlers)
   "Like `condition-case', but optional.
@@ -2266,7 +2267,8 @@ mode."
        (let ((jit-lock-start ,min)
              (jit-lock-end   ,max))
          ;;(mumamo-msgfntfy "mumamo-mumamo-jit-lock-after-change-1 jlacer=%s" ,jit-lock-after-change-extend-region-functions)
-         (mumamo-with-buffer-prepared-for-jit-lock
+         ;;(mumamo-with-buffer-prepared-for-jit-lock
+         (with-silent-modifications
           ;;(font-lock-extend-jit-lock-region-after-change ,min ,max ,old-len)
           (run-hook-with-args 'jit-lock-after-change-extend-region-functions min max old-len)
           ;;(setq jit-lock-end (min (max jit-lock-end (1+ min)) (point-max)))
@@ -2284,20 +2286,32 @@ mode."
   (cons min max))
 
 (defun mumamo-mark-chunk ()
-  "Mark chunk and move point to beginning of chunk."
+  "Mark inner part of chunk with point at region beginning.
+With a prefix mark whole chunk."
   (interactive)
   (let ((chunk (mumamo-find-chunks (point) "mumamo-mark-chunk")))
-    (unless chunk (msgerr "There is no MuMaMo chunk here"))
-    (goto-char (overlay-start chunk))
-    (push-mark (overlay-end chunk) t t)))
+    (if (not chunk)
+        (message "There is no MuMaMo chunk here so can't mark it")
+      (let* ((syntax-min-max (mumamo-chunk-syntax-min-max chunk t))
+             (syntax-min (car syntax-min-max))
+             (syntax-max (cdr syntax-min-max))
+             (beg (if current-prefix-arg (overlay-start chunk)
+                    syntax-min))
+             (end (if current-prefix-arg (overlay-end chunk)
+                    syntax-max)))
+        (goto-char beg)
+        (push-mark end t t)))))
 
 (defun mumamo-narrow-to-chunk-inner ()
+  "Narrow to inner part of chunk."
   (interactive)
-  (let* ((chunk (mumamo-find-chunks (point) "mumamo-narrow-to-chunk-innner"))
-         (syntax-min-max (mumamo-chunk-syntax-min-max chunk t))
-         (syntax-min (car syntax-min-max))
-         (syntax-max (cdr syntax-min-max)))
-    (narrow-to-region syntax-min syntax-max)))
+  (let ((chunk (mumamo-find-chunks (point) "mumamo-narrow-to-chunk-innner")))
+    (if (not chunk)
+        (message "There is no MuMaMo chunk here so can't narrow to it")
+      (let* ((syntax-min-max (mumamo-chunk-syntax-min-max chunk t))
+             (syntax-min (car syntax-min-max))
+             (syntax-max (cdr syntax-min-max)))
+        (narrow-to-region syntax-min syntax-max)))))
 
 
 
@@ -3027,7 +3041,7 @@ major modes that has been setup for the buffer so far."
       ;;
       ;; (set-default 'mumamo-internal-major-modes-alist
       ;;              (assq-delete-all major (default-value 'mumamo-internal-major-modes-alist)))
-      (dolist (rec (default-value mumamo-internal-major-modes-alist))
+      (dolist (rec (default-value 'mumamo-internal-major-modes-alist))
         (let* ((major (nth 0 rec))
                (vars  (nth 1 rec)))
           (dolist (var vars)

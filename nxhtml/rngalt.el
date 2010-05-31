@@ -48,22 +48,18 @@
 
 (eval-and-compile (require 'rng-valid))
 (eval-when-compile (require 'rng-nxml))
-(eval-when-compile (unless load-file-name (require 'nxhtml-mode nil t)))
+;;(eval-when-compile (unless load-file-name (require 'nxhtml-mode nil t)))
+(declare-function nxhtml-validation-header-mode "nxhtml-mode")
 
-(eval-when-compile
-  (let* ((this-file (or load-file-name
-                        (when (boundp 'bytecomp-filename) bytecomp-filename)
-                        buffer-file-name))
-         (this-dir (file-name-directory this-file))
-         (util-dir (expand-file-name "../util/" this-dir))
-         (load-path (cons util-dir load-path)))
-    (require 'ourcomments-util)))
-;;(require 'ourcomments-util)
+;; (eval-when-compile
+;;   (let* ((this-file (or load-file-name
+;;                         (when (boundp 'bytecomp-filename) bytecomp-filename)
+;;                         buffer-file-name))
+;;          (this-dir (file-name-directory this-file))
+;;          (util-dir (expand-file-name "../util/" this-dir))
+;;          (load-path (cons util-dir load-path)))
+;;     (require 'ourcomments-util)))
 
-;; (setq x (macroexpand '(defcustom my-temp-opt t "doc" :type 'boolean)))
-;; (setq x (macroexpand '(define-minor-mode my-temp-mode "doc")))
-;; (setq x (macroexpand '(define-toggle my-temp-toggle t "doc")))
-;;(define-toggle rngalt-display-validation-header t
 (define-minor-mode rngalt-display-validation-header
   "Display XML validation headers at the top of buffer when t.
 The validation header is only displayed in buffers where the main

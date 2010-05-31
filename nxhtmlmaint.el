@@ -271,19 +271,19 @@ Update nXhtml autoload file with them."
   "Advice to return relative file name."
   (setq ad-return-value (nxhtmlmaint-autoload-file-load-name (ad-get-arg 0))))
 
-(defun nxhtmlmaint-make-autoload (form file)
-  "Make autoload for multi major modes."
-  ;;(message "form=%S" form)
-  (if (or (not (listp form))
-          (not (eq 'define-mumamo-multi-major-mode (car form))))
-      ad-return-value
-    (if ad-return-value
-        ad-return-value
-      ;; Fix-me: Maybe expand??
-      (let ((name (nth 1 form))
-            (doc  (nth 2 form)))
-        `(autoload ',name ,file ,doc t)
-        ))))
+;; (defun nxhtmlmaint-make-autoload (form file)
+;;   "Make autoload for multi major modes."
+;;   ;;(message "form=%S" form)
+;;   (if (or (not (listp form))
+;;           (not (eq 'define-mumamo-multi-major-mode (car form))))
+;;       ad-return-value
+;;     (if ad-return-value
+;;         ad-return-value
+;;       ;; Fix-me: Maybe expand??
+;;       (let ((name (nth 1 form))
+;;             (doc  (nth 2 form)))
+;;         `(autoload ',name ,file ,doc t)
+;;         ))))
 
 (defadvice make-autoload (after
                           nxhtmlmaint-advice-make-autoload
@@ -291,8 +291,20 @@ Update nXhtml autoload file with them."
                           compile)
   "Make autoload for multi major modes."
   (setq ad-return-value
-        (nxhtmlmaint-make-autoload (ad-get-arg 0)
-                                   (ad-get-arg 1))))
+        ;; (nxhtmlmaint-make-autoload (ad-get-arg 0)
+        ;;                            (ad-get-arg 1))))
+        (let ((form (ad-get-arg 0))
+              (file (ad-get-arg 1)))
+          (if (or (not (listp form))
+                  (not (eq 'define-mumamo-multi-major-mode (car form))))
+              ad-return-value
+            (if ad-return-value
+                ad-return-value
+              ;; Fix-me: Maybe expand??
+              (let ((name (nth 1 form))
+                    (doc  (nth 2 form)))
+                `(autoload ',name ,file ,doc t)
+                ))))))
 
 ;; (defun nxhtmlmaint-generate-library-autoloads (library)
 ;;   "Insert at point autoloads for Emacs library LIBRARY.

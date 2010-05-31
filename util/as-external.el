@@ -69,8 +69,22 @@
 (eval-when-compile (require 'ourcomments-util nil t))
 (eval-when-compile (require 'pause nil t))
 (eval-when-compile (require 'server))
-(eval-when-compile (require 'wikipedia-mode nil t))
+(eval-when-compile (require 'mediawiki nil t))
+(declare-function mediawiki-mode "mediawiki") ;; Not in nXhtml
 (eval-and-compile  (require 'wrap-to-fill nil t))
+
+(eval-and-compile  (require 'rng-valid nil t))
+(declare-function nxhtml-validation-header-mode "nxhtml-mode")
+(declare-function rng-clear-overlays "rng-valid")
+(declare-function rng-process-encoding-name "rng-valid")
+(declare-function rng-clear-conditional-region "rng-valid")
+(declare-function rng-forward "rng-valid")
+(declare-function rng-state-matches-current "rng-valid")
+(declare-function rng-clear-cached-state "rng-valid")
+(declare-function rng-mark-xmltok-errors "rng-valid")
+(declare-function rng-mark-xmltok-dependent-regions "rng-valid")
+(declare-function rng-cache-state "rng-valid")
+(declare-function rng-process-end-document "rng-valid")
 
 ;;;###autoload
 (defgroup as-external nil
@@ -212,7 +226,8 @@ See also `as-external-mode'."
   (set (make-local-variable 'font-lock-defaults)
        '((as-external-mail-mode-font-lock-keywords) nil))
   (setq fill-column 90)
-  (mlinks-mode 1)
+  (when (fboundp 'mlinks-mode)
+    (mlinks-mode 1))
   (wrap-to-fill-column-mode 1)
   t)
 
