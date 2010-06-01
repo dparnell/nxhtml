@@ -262,10 +262,28 @@ Key bindings added by this minor mode:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Font lock
+;;; Wrapped lines indentation
+
+(defgroup visual-indent nil
+  "Customization group for `visual-indent-mode'."
+  :group 'indentation
+  :group 'vl)
+
+;;(setq visual-indent-use-adaptive-fill nil)
+(defcustom visual-indent-use-adaptive-fill t
+  "Use adaptive fill variables to determine wrapping if non-nil.
+Otherwise use the faster special visual indent functions for this.
+
+The adaptive fill variables which is used are currently:
+
+- `adaptive-fill-regexp'
+- `adaptive-fill-function'
+
+"
+  :group 'visual-indent)
 
 (define-minor-mode visual-indent-mode
-  "Do indentation of continuation lines for `visual-line-mode'.
+  "Do indentation of continuation lines like `fill-paragraph'.
 If `visual-line-mode' and `word-wrap' is on do visual indentation
 similar to `fill-paragraph', but without changing the text in the
 buffer.
@@ -282,21 +300,21 @@ like '- ' etc:
   a) wether using numbers
      or letters.
 
+See `visual-indent-use-adaptive-fill' for more info.
+
 * Note: The text property 'wrap-prefix is set by this mode to
   indent continuation lines for the above.  The property
   'visual-indent-wrap-prefix is used to remember this so it can
   be set back."
-  ;; Fix-me: Check if fill-context-prefix really can be used.  It does
-  ;; not seem so useful to me. Do I misunderstand something?
-  :group 'indentation
-  (visual-indent-font-lock visual-indent-mode)
+  :group 'visual-indent
+  ;;(visual-indent-font-lock visual-indent-mode)
   (if visual-indent-mode
-      nil
+      (jit-lock-register 'visual-indent-jit-lock-fun)
+    (jit-lock-unregister 'visual-indent-jit-lock-fun)
     (let ((here (point))
           (inhibit-field-text-motion t)
           beg-pos
           end-pos)
-      ;;(mumamo-with-buffer-prepared-for-jit-lock
       (with-silent-modifications
         (save-restriction
           (widen)
@@ -315,35 +333,76 @@ like '- ' etc:
            '(visual-indent-wrap-prefix)))
         (goto-char here)))))
 
-(defvar visual-indent-use-fill-context-prefix nil)
-;;(setq visual-indent-use-fill-context-prefix t)
+(defun visual-indent-turn-on-in-buffer ()
+  "Turn on fun for globalization."
+  (visual-indent-mode 1))
+
+(define-globalized-minor-mode visual-indent-global-mode visual-indent-mode
+  visual-indent-turn-on-in-buffer
+  :group 'visual-indent)
+
+(defcustom visual-indent-comment-regexps
+  '(org-mode
+    html-mode
+    nxhtml-mode)
+  "Major modes where to turn on `visual-indent-mode'"
+  :type '(repeat command)
+  :group 'visual-indent)
 
 (defun visual-indent-fill-context-prefix (beg end)
-  "Replacement for `fill-context-prefix' for `visual-indent-mode'."
+  "Compute fill prefix for wrapped lines.
+See `visual-indent-use-adaptive-fill' for more information."
   (unless (= beg (point-at-bol))
     (message "visual-indent-fill-context-prefix internal err: not at bol"))
-  (if t
-      (let* ((first-line-prefix (fill-match-adaptive-prefix))
-             (second-line-prefix first-line-prefix)
+  (if visual-indent-use-adaptive-fill
+      ;; Fix-me: fill-match-adaptive-prefix is not the whole
+      ;; story. There are citation regexps that could help when
+      ;; viewing mail for example.
+      (let* ((one-line-comment-prefix
+              (and (zerop (length comment-end))
+                   (let (beg-w end-w)
+                     (goto-char beg)
+                     (skip-syntax-forward " ")
+                     (when (looking-at comment-start-skip)
+                       (setq beg-w (point))
+                       (goto-char (match-end 0))
+                       (skip-syntax-backward " ")
+                       (setq end-w (point))
+                       (concat (buffer-substring (point-at-bol) beg-w)
+                               (propertize
+                                (buffer-substring beg-w end-w)
+                                'face '( ;;
+                                        :strike-through t
+                                        ;; :slant italic
+                                        ;; :weight extralight
+                                        ;; :weight light
+                                        :weight thin
+                                        ))
+                               (buffer-substring end-w (match-end 0)))))))
+             (first-line-prefix (unless one-line-comment-prefix
+                                  (goto-char beg)
+                                  (fill-match-adaptive-prefix)))
+             (second-line-prefix (or first-line-prefix
+                                     one-line-comment-prefix))
              (nc 0))
+        ;; (msgtrc "one-line-comment-prefix=%S %s %s %s" one-line-comment-prefix (zerop (length comment-end)) (looking-at comment-start-skip) comment-start-skip )
         ;; (elt "hej" 1)
-        (while (< nc (length second-line-prefix))
-          (let ((cc (elt second-line-prefix nc)))
-            ;; Whitespace syntax? Otherwise set to space char.
-            (unless (memq (char-syntax cc) '(32 ?-))
-              (aset second-line-prefix nc 32)))
-          (setq nc (1+ nc)))
+        (unless one-line-comment-prefix
+          (while (< nc (length second-line-prefix))
+            (let ((cc (elt second-line-prefix nc)))
+              ;; Whitespace syntax? Otherwise set to space char.
+              (unless (memq (char-syntax cc) '(32 ?-))
+                (aset second-line-prefix nc 32)))
+            (setq nc (1+ nc))))
         second-line-prefix)
+    ;; Keep this path too, since it is noticeable faster then using
+    ;; the fill-match-adaptive-prefix above.
     (let (ind-str
           ind-str-fill
           skipped)
       ;; Find indentation quickly
       (when (< 0 (skip-chars-forward "[:blank:]"))
         (setq ind-str (buffer-substring-no-properties beg (point))))
-      ;; Fix-me: refactor out the special markers, try to integrate with
-      ;; `fill-context-prefix'. Seems like `fill-match-adaptive-prefix'
-      ;; is what should be used.
-      ;;
       ;; Any special markers like "- ", "* ", "1) ", "1. " etc
       (when (< (1+ (point)) (point-max))
         (or (and (memq (char-after) '(?- ;; 45
@@ -360,22 +419,24 @@ like '- ' etc:
                  (setq ind-str-fill (concat ind-str (make-string (+ 2 skipped) 32))))))
       (or ind-str-fill ind-str))))
 
-(defun visual-indent-fontify (bound)
-  "During fontification mark lines for indentation.
-This is called as a matcher in `font-lock-keywords' in
-`visual-indent-mode'.  BOUND is the limit of fontification.
+(defsubst visual-indent-while (limit counter where)
+  (let ((count (symbol-value counter)))
+    (if (= count limit)
+        (progn
+          (message "Reached (while limit=%s, where=%s)" limit where)
+          nil)
+      (set counter (1+ count)))))
 
-Put the property 'wrap-prefix on lines whose continuation lines
-\(see `visual-line-mode') should be indented.  Only do this if
-`visual-line-mode' and `word-wrap' is on.
-
-Return nil."
+(defun visual-indent-jit-lock-fun (beg end)
   (when (and visual-line-mode word-wrap)
     (save-restriction
       (widen)
-      (let ((n-while 0))
-        (unless (or (bolp) (eobp)) (forward-line 1))
-        (while (and (mumamo-while 200 'n-while "visual-indent-fontify")
+      (let ((n-while 0)
+            (bound end)) ;;(save-excursion (goto-char end) (point-at-eol))))
+        (goto-char beg)
+        (goto-char (point-at-bol))
+        ;;(unless (or (bolp) (eobp)) (forward-line 1))
+        (while (and (visual-indent-while 200 'n-while "visual-indent-jit-lock-fun")
                     (< (point) bound)) ;; Max bound = (point-max)
           (let (ind-str-fill
                 (beg-pos (point))
@@ -386,15 +447,31 @@ Return nil."
             (when (equal (get-text-property beg-pos 'wrap-prefix)
                          (get-text-property beg-pos 'visual-indent-wrap-prefix))
               (setq ind-str-fill
-                    (cond (visual-indent-use-fill-context-prefix
-                           (fill-context-prefix (point-at-bol) (point-at-eol)))
-                          (t (visual-indent-fill-context-prefix beg-pos end-pos))))
+                    (visual-indent-fill-context-prefix beg-pos end-pos))
+              ;; Fix-me: ind-str-fill could be nil.
               (with-silent-modifications
                 (put-text-property beg-pos end-pos 'wrap-prefix ind-str-fill)
                 (put-text-property beg-pos end-pos 'visual-indent-wrap-prefix ind-str-fill))))
           ;; This moves to the end of line if there is no more lines. That
           ;; means we will not get stuck here.
-          (unless (eobp) (forward-line 1))))))
+          (unless (eobp) (forward-line 1)))))))
+
+
+;;; Code below is obsolete.
+
+(defun visual-indent-fontify (bound)
+  "During fontification mark lines for indentation.
+This is called as a matcher in `font-lock-keywords' in
+`visual-indent-mode'.  BOUND is the limit of fontification.
+
+Put the property 'wrap-prefix on lines whose continuation lines
+\(see `visual-line-mode') should be indented.  Only do this if
+`visual-line-mode' and `word-wrap' is on.
+
+Return nil."
+  ;; Fix-me: break up for `jit-lock-register': two args, beg end, no rules for return value.
+  ;; See (require 'glasses)
+  (visual-indent-jit-lock-fun (point) bound)
   ;; Do not set match-data, there is none, just return nil.
   nil)
 

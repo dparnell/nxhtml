@@ -102,7 +102,7 @@
     ("" as-external-check-contents)
     ("/itsalltext/.*\.el'" as-external-for-el-files)
     ("/itsalltext/.*wiki" as-external-for-wiki)
-    ("/itsalltext/.*mail" as-external-for-mail-mode)
+    ("/itsalltext/.*mail" as-external-setup-for-mail)
     ("/itsalltext/"       as-external-for-xhtml)
    )
   "List to determine setup if Emacs is used as an external Editor.
@@ -209,6 +209,10 @@ emacsw32-eol."
    ;;       '(0 font-lock-keyword-face))
    ))
 
+(defun as-external-setup-for-mail ()
+  (as-external-for-mail-mode)
+  t)
+
 ;;;###autoload
 (define-derived-mode as-external-for-mail-mode text-mode "ExtMail "
   "Setup for Firefox addon It's All Text to edit mail.
@@ -219,17 +223,30 @@ that it will look similar to how it will look in the sent plain
 text mail.
 
 See also `as-external-mode'."
-  ;; To-do: Look at http://globs.org/articles.php?lng=en&pg=2
-  (set (make-local-variable 'comment-column) 0)
-  (set (make-local-variable 'comment-start) ">")
-  (set (make-local-variable 'comment-end)   "")
+  ;; To-do: Look at ` http://globs.org/articles.php?lng=en&pg=2 '
+  ;; (set (make-local-variable 'comment-column) 0)
+  ;; (set (make-local-variable 'comment-end)   "") ;; default
+  ;; Try to do it similar to mail-mode:
+  (let ((yank-prefix "> "))
+    (set (make-local-variable 'comment-start) yank-prefix)
+    (set (make-local-variable 'comment-start-skip)
+         (concat "^" (regexp-quote yank-prefix) "[ \t]*")))
+  (make-local-variable 'adaptive-fill-regexp)
+  (setq adaptive-fill-regexp
+	(concat "[ \t]*[-[:alnum:]]+>+[ \t]*\\|"
+		adaptive-fill-regexp))
+  ;; (make-local-variable 'adaptive-fill-first-line-regexp)
+  ;; (setq adaptive-fill-first-line-regexp
+  ;;       (concat "[ \t]*[-[:alnum:]]*>+[ \t]*\\|"
+  ;;       	adaptive-fill-first-line-regexp))
+
   (set (make-local-variable 'font-lock-defaults)
        '((as-external-mail-mode-font-lock-keywords) nil))
-  (setq fill-column 90)
+  (setq fill-column 70)
   (when (fboundp 'mlinks-mode)
     (mlinks-mode 1))
-  (wrap-to-fill-column-mode 1)
-  t)
+  (when (fboundp 'wrap-to-fill-column-mode)
+    (wrap-to-fill-column-mode 1)))
 
 ;;;###autoload
 (defun as-external-check-contents ()
@@ -347,6 +364,7 @@ This is done by checking `as-external-alist'."
                     (setq file-regexp (symbol-value file-regexp)))
                   (when (string-match file-regexp (buffer-file-name))
                     (let ((ret (funcall setup-fun)))
+                      (msgtrc "as-external-setup-1: %s => %s" setup-fun ret)
                       (when ret (throw 'fun ret)))))))))
       (unless (or server-window
                  (eq use-server-window 'use-default-server-window))
