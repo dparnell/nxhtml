@@ -360,6 +360,8 @@ See `visual-indent-use-adaptive-fill' for more information."
       ;; viewing mail for example.
       (let* ((one-line-comment-prefix
               (and (zerop (length comment-end))
+                   comment-start
+                   comment-start-skip
                    (let (beg-w end-w)
                      (goto-char beg)
                      (skip-syntax-forward " ")
