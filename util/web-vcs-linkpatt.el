@@ -110,6 +110,7 @@ This will be part of the pattern as
 (defun web-vcs-linkpatt-find ()
   "Find next link in the buffer."
   (interactive)
+  (require 'ediff)
   (web-vcs-linkpatt-make-re)
   (let (hit-ovl link-ovl label-ovl)
     (if (not (re-search-forward web-vcs-linkpatt-re nil t))
@@ -123,12 +124,12 @@ This will be part of the pattern as
       (setq link-ovl (make-overlay (match-beginning 1) (match-end 1)))
       (overlay-put link-ovl 'face 'ediff-fine-diff-A)
       (overlay-put link-ovl 'priority 1001)
-      (setq label-ovl (make-overlay (match-beginning 2) (match-end 2)))
-      (overlay-put label-ovl 'face 'ediff-fine-diff-A)
-      (overlay-put label-ovl 'priority 1001)
+      ;; (setq label-ovl (make-overlay (match-beginning 2) (match-end 2)))
+      ;; (overlay-put label-ovl 'face 'ediff-fine-diff-A)
+      ;; (overlay-put label-ovl 'priority 1001)
       (set (make-local-variable 'web-vcs-hit-ovl) hit-ovl)
       (set (make-local-variable 'web-vcs-link-ovl) link-ovl)
-      (set (make-local-variable 'web-vcs-label-ovl) label-ovl)
+      ;; (set (make-local-variable 'web-vcs-label-ovl) label-ovl)
       )))
 
 (defvar web-vcs-linkpatt-re-str nil)
@@ -212,6 +213,11 @@ You can select a region to include more or less in the patterns."
     ;; (define-key map [div--1]
     ;;   `(menu-item "--"))
     (define-key map [linkpatt-make]
+      `(menu-item "Mozadd Isearch Matches Mode" mozadd-isearch-matches-mode
+                :button '(:toggle . mozadd-isearch-matches-mode)))
+    (define-key map [div--1]
+      `(menu-item "--"))
+    (define-key map [linkpatt-make]
       `(menu-item "Show" web-vcs-linkpatt-show))
     (define-key map [linkpatt-edit-href]
       `(menu-item "Edit Href Part of Pattern" web-vcs-linkpatt-edit-href-re))
@@ -230,17 +236,23 @@ You can select a region to include more or less in the patterns."
       `(menu-item "Linkpatt" ,web-vcs-linkpatt-mode-menu-map))
     map))
 
+(require 're-builder)
+(defun web-vcs-linkpatt-start-re-builder ()
+  (interactive)
+  (unless (local-variable-p 'reb-regexp)
+    (set (make-local-variable 'reb-regexp) "web-vcs"))
+  (re-builder)
+  )
+
 ;;;###autoload
 (define-minor-mode web-vcs-linkpatt-mode
   "Minor mode helping finding link patt for web-vcs."
-  :lighter " WV-LINK"
+  :lighter " WV-link"
   (if web-vcs-linkpatt-mode
       (if (not (derived-mode-p 'nxml-mode))
           (progn
             (setq web-vcs-linkpatt-mode nil)
-            (web-vcs-message-with-face 'font-lock-warning-face "You must use a major mode based on `nxml-mode'"))
-        (add-hook 'mozadd-send-buffer-hook 'isearch-mozadd-send-buffer-hook-fun nil t))
-    (remove-hook 'mozadd-send-buffer-hook 'isearch-mozadd-send-buffer-hook-fun t)
+            (web-vcs-message-with-face 'font-lock-warning-face "You must use a major mode based on `nxml-mode'")))
     (web-vcs-linkpatt-kill-overlays)))
 
 (defun web-vcs-linkpatt-send-mozilla ()

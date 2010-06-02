@@ -260,7 +260,10 @@ Note that you have to start the MozRepl server from Firefox."
      (with-output-to-temp-buffer (help-buffer)
        (help-setup-xref (list #'describe-function 'inferior-moz-start-process) (interactive-p))
        (with-current-buffer (help-buffer)
-         (insert "Can't start MozRepl, the error message was:\n\n     "
+         (insert (propertize
+                  "Can't start MozRepl, the error message was:"
+                  'font-lock-face 'secondary-selection)
+                 "\n\n     "
                  (error-message-string err)
                  "\n"
                  "\nA possible reason is that you have not installed"
@@ -281,7 +284,7 @@ Note that you have to start the MozRepl server from Firefox."
           "\nMozRepl is also available directly from Firefox add-on"
           "\npages, but is updated less frequently there.")
          ))
-     (error "Can't start MozRepli - see help buffer for more information"))))
+     (error "Can't start MozRepl - see help buffer for more information"))))
 
 (provide 'moz)
 
