@@ -58,6 +58,21 @@
   (let ((str (apply 'format format-string args)))
     (message "%s" (propertize str 'face 'secondary-selection))))
 
+(defun mozadd-warn-not-shown (format-string &rest args)
+  (with-output-to-temp-buffer (help-buffer)
+    (help-setup-xref (list #'describe-function 'inferior-moz-start-process) (interactive-p))
+    (with-current-buffer (help-buffer)
+      (insert (propertize (apply 'format format-string args)
+                          'face 'secondary-selection)
+              "\n\n"
+              "Explanation:\n\n"
+              "The buffer must be shown in the Firefox in the tab where it was shown"
+              "\nwhen `mozadd-mirror-mode' was started."
+              "\n\n- If this tab is not visible make it visible."
+              "\n\n- If this tab was closed then restart with `mozadd-restart-mirror'."
+              )))
+  (apply 'mozadd-warning format-string args))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Refresh Firefox after save etc
 
@@ -102,8 +117,8 @@ The mozadd edited file must be shown in Firefox and visible."
   "Update the remote mozrepl instance"
   (with-current-buffer mozadd-edited-buffer
     (if (not (mozadd-edited-file-is-shown))
-        (mozadd-warning "Mozadd: Edited buffer %s is not shown, can't reload browser."
-                          (buffer-name mozadd-edited-buffer))
+        (mozadd-warn-not-shown "Mozadd: Edited buffer %s is not visible in Firefox, can't reload it."
+                               (buffer-name mozadd-edited-buffer))
       (comint-send-string (inferior-moz-process)
                           "setTimeout(BrowserReload(), \"1000\");")))
   (mozadd-exec-next))
@@ -121,14 +136,35 @@ The mozadd edited file must be shown in Firefox and visible."
 
 ;; Fix-me: How do you get the currently shown page in Firefox?
 
-(defun mozadd-perhaps-start ()
-  "Start if MozRepl if not running. Return message if not ok."
-  (unless (buffer-live-p inferior-moz-buffer)
-    (condition-case err
-        (progn
-          (inferior-moz-start-process)
-          nil)
-      (error (error-message-string err)))))
+;; (process-status (inferior-moz-process))
+;; (process-type (inferior-moz-process))
+;; (process-contact (inferior-moz-process))
+;; (process-exit-status (inferior-moz-process))
+(defun mozadd-moz-process ()
+  "(Re)start if MozRepl if not running or not OK.
+Like `inferior-moz-process' but more careful."
+  (when (and inferior-moz-buffer
+             (bufferp inferior-moz-buffer))
+    (unless (and (buffer-live-p inferior-moz-buffer)
+                 (let* ((proc (get-buffer-process inferior-moz-buffer))
+                        (exit-status (when proc (process-exit-status proc)))
+                        (status (when proc (process-status proc)))
+                        )
+                   (if (and exit-status (zerop exit-status))
+                       (if (eq status 'open)
+                           t
+                         (message "MozRepl process had not exited, but was closed")
+                         (delete-process proc)
+                         nil)
+                     (message "MozRepl process has exited with exit-status=%s, status=%s" exit-status status)
+                     ;; Fix-me: should the process be deleted if it has exited?
+                     (when proc (delete-process proc))
+                     nil)))
+      (kill-buffer inferior-moz-buffer)
+      (setq inferior-moz-buffer nil)))
+  (unless inferior-moz-buffer
+    (inferior-moz-start-process))
+  (inferior-moz-process))
 
 (defvar mozadd-mirror-location nil)
 (make-variable-buffer-local 'mozadd-mirror-location)
@@ -141,7 +177,10 @@ The mozadd edited file must be shown in Firefox and visible."
 ;;(mozadd-get-comint-string-part "\"hi\" there")
 (defun mozadd-get-comint-string-part (comint-output)
   (save-match-data
-    (message "Received from Mozilla (%d chars) ..." (length comint-output))
+    (let ((len (length comint-output)))
+      (if (< len 500)
+          (message "Received from Mozilla %S ..." comint-output)
+        (message "Received from Mozilla (%d chars) ..." (length comint-output))))
     (if (string-match "^\".*?\"" comint-output)
         (match-string 0 comint-output)
       comint-output)))
@@ -179,10 +218,14 @@ The mozadd edited file must be shown in Firefox and visible."
     ))
 
 (defun mozadd-queue-send-buffer-content-to-mozilla (buffer)
-  (mozadd-add-queue-get-mirror-location)
-  (setq mozadd-edited-buffer buffer)
-  ;; Queue only a single send of buffer content.
-  (mozadd-add-task-1 'mozadd-send-buffer-content-to-mozilla t))
+  ;; In timer
+  (condition-case err
+      (progn
+        (mozadd-add-queue-get-mirror-location)
+        (setq mozadd-edited-buffer buffer)
+        ;; Queue only a single send of buffer content.
+        (mozadd-add-task-1 'mozadd-send-buffer-content-to-mozilla t))
+    (error (message "%s" (error-message-string err)))))
 
 (defun mozadd-edited-file-is-shown ()
   (with-current-buffer mozadd-edited-buffer
@@ -250,7 +293,9 @@ This runs the hook `mozadd-send-buffer-hook' before sending."
                       str)))
                  ";")
          'mozadd-skip-output-until-prompt)
-      (mozadd-skip-current-task))
+      (mozadd-skip-current-task)
+      (mozadd-warn-not-shown "Mozadd: Edited buffer %s is not visible in Firefox, can't reload it."
+                             (buffer-name mozadd-edited-buffer)))
     ;; Timer to avoid looping
     (run-with-idle-timer 0 nil 'mozadd-maybe-exec-next)
     ))
@@ -273,14 +318,21 @@ This runs the hook `mozadd-send-buffer-hook' before sending."
         (remove-hook 'comint-preoutput-filter-functions fun t)))))
 
 (defun mozadd-add-task (input task)
+  (message "mozadd-add-task %S %S" input task)
   (mozadd-add-task-1 (list input task)))
 
 (defun mozadd-add-task-1 (task &optional single)
+  (message "mozadd-add-task-1: %S" (if nil ;;(listp task)
+                                       (nth 1 task)
+                                     task))
   (when single
     (setq mozadd-task-queue (delete task mozadd-task-queue)))
+  (message "mozadd queue a: %S" mozadd-task-queue)
   (setq mozadd-task-queue (cons task mozadd-task-queue))
+  (message "mozadd queue b: %S" mozadd-task-queue)
   (setq mozadd-task-queue (reverse mozadd-task-queue))
   ;;(message "add-task: mozadd-task-queue=%S, current=%s" mozadd-task-queue mozadd-current-task)
+  (message "mozadd queue c: %S" mozadd-task-queue)
   (mozadd-maybe-exec-next))
 
 (defun mozadd-maybe-exec-next ()
@@ -302,7 +354,13 @@ This runs the hook `mozadd-send-buffer-hook' before sending."
            (task  (when (listp this) (nth 1 this))))
       (setq mozadd-current-task this)
       ;;(message "EXEC: %s" this)
-      (message "EXEC task: %s" task)
+      (when task
+        (message "EXEC task: %s %d char, start=%S (queue %s)" task
+                 (length input)
+                 (substring input 0 (min 50 (length input)))
+                 (mapcar (lambda (rec)
+                           (nth 1 rec))
+                         mozadd-task-queue)))
       (if (not (listp this))
           (funcall this)
         (when (buffer-live-p inferior-moz-buffer)
@@ -314,12 +372,20 @@ This runs the hook `mozadd-send-buffer-hook' before sending."
 (defun mozadd-skip-current-task ()
   ;;(message "mozadd-skip-current-task")
   ;;(pop mozadd-task-queue)
+  (message "mozadd-skip-current-task: %S" mozadd-current-task)
   (setq mozadd-current-task nil))
 
 (defun mozadd-requeue-me-as-task (input task)
+  (message "mozadd-requeue-me-as-task enter queue: %S" (mapcar (lambda (rec)
+                                                           (nth 1 rec))
+                                                         mozadd-task-queue))
   (mozadd-skip-current-task)
   ;;(message "mozadd-requeue-me-as-task %S %S" input task)
-  (setq mozadd-task-queue (cons (list input task) mozadd-task-queue)))
+  (setq mozadd-task-queue (cons (list input task) mozadd-task-queue))
+  (message "mozadd-requeue-me-as-task exit queue: %S" (mapcar (lambda (rec)
+                                                           (nth 1 rec))
+                                                         mozadd-task-queue))
+  )
 
 (defcustom mozadd-browseable-file-extensions
   '("html" "htm" "xhtml")
@@ -378,16 +444,14 @@ This runs the hook `mozadd-send-buffer-hook' before sending."
                   (t
                    (error "Can't find <head ...>, don't know where to add <base ...> tag"))))))))))
 
-
-
 ;;;###autoload
 (define-minor-mode mozadd-mirror-mode
   "Mirror content of current file buffer in Firefox.
 When you turn on this mode the file you are editing will be
 opened in Firefox.
-
 \\<mozadd-mirror-mode-map>
-Updating of Firefox can be made with \\[mozadd-update-mozilla].
+Updating of Firefox is made when the buffer is saved and can be
+made any time with \\[mozadd-update-mozilla].
 
 This can be done also during `isearch-mode' and from
 `re-builder'.  Tags containing matches are then shown as CSS
@@ -408,7 +472,8 @@ When updating Firefox the hook `mozadd-send-buffer-hook' is run
 first.  \(This adds the CSS outlines above.)
 
 For the mirroring to work the edited file must be shown in
-Firefox and visible.
+Firefox and visible.  It happens sometimes that the communication
+with Firefox hangs.  Then try \\[mozadd-mirror-restart].
 
 Updating Firefox can also be done automatically.  In this case
 every change you make in the buffer will trigger a redraw in
@@ -424,14 +489,13 @@ when you edit CSS files."
                 (unless (mozadd-html-buffer-file-p)
                   (mozadd-warning "You can only mirror html file buffers")
                   (throw 'ok nil))
-                (when (buffer-modified-p)
-                  (mozadd-warning "Please save buffer first")
-                  (throw 'ok nil))
-                (let ((msg (mozadd-perhaps-start)))
-                  (when msg
-                    (mozadd-warning msg)
-                    (throw 'ok nil)))
+                ;; Fix-me: why did I do this?
+                ;; (when (buffer-modified-p)
+                ;;   (mozadd-warning "Please save buffer first")
+                ;;   (throw 'ok nil))
+                (mozadd-moz-process)
                 (mozadd-clear-exec-queue)
+                (browse-url-of-file) ;; To open a new tab
                 (setq mozadd-edited-buffer (current-buffer))
                 (mozadd-add-task (concat "content.location.href = "
                                          "\"file:///" (buffer-file-name) "\";")
@@ -456,8 +520,15 @@ when you edit CSS files."
     (define-key isearch-mode-map mozadd-submatch-key 'isearch-other-meta-char)
     (define-key reb-mode-map mozadd-update-key nil)
     (define-key reb-mode-map mozadd-submatch-key nil)
-    ))
+    )
+  (mozadd-refresh-edited-on-save-mode mozadd-mirror-mode))
 (put 'mozadd-mirror-mode 'permanent-local t)
+
+(defun mozadd-restart-mirror ()
+  "Restart `mozadd-mirror-mode'."
+  (interactive)
+  (when mozadd-mirror-mode (mozadd-mirror-mode -1))
+  (mozadd-mirror-mode 1))
 
 (defun mozadd-edited-buffer-post-command ()
   "Check if we are in a new edited buffer."
@@ -549,7 +620,7 @@ outlines."
           (is-regexp isearch-regexp)
           (submatch mozadd-outline-regexp-submatch-num)
           (outline-style mozadd-matches-outline-style))
-      ;;(message "isearch mozadd: %s %s %s" pattern is-regexp submatch)
+      (message "isearch mozadd: %s %s %s" pattern is-regexp submatch)
       (mozadd-add-matches-outlines mozadd-points pattern is-regexp submatch outline-style))))
 
 (defun mozadd-re-builder-send-buffer-hook-fun (mozadd-points)
@@ -562,7 +633,7 @@ outlines."
           (is-regexp t)
           (submatch mozadd-outline-regexp-submatch-num)
           (outline-style mozadd-matches-outline-style))
-      ;;(message "re-builder mozadd: %s %s %s" pattern is-regexp submatch)
+      (message "re-builder mozadd: %s %s %s" pattern is-regexp submatch)
       (mozadd-add-matches-outlines mozadd-points pattern is-regexp submatch outline-style))))
 
 (defun mozadd-add-matches-outlines (mozadd-points pattern is-regexp submatch outline-style)
@@ -579,7 +650,7 @@ outlines."
                                (match-beginning submatch)
                              (- (point) (length pattern))
                              )))
-          ;;(message "match-point=%s, submatch=%s, is-regexp=%s" match-point submatch is-regexp)
+          (message "match-point=%s, submatch=%s, is-regexp=%s" match-point submatch is-regexp)
           (unless (memq match-point matches)
             (setq matches (cons match-point matches)))))
       (dolist (match matches)
