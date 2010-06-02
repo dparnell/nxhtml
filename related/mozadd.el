@@ -50,6 +50,9 @@
 (require 'moz)
 (require 'json)
 (eval-when-compile (require 'org))
+(require 're-builder)
+(require 'url-util)
+;;(load 'isearch)
 
 (defun mozadd-warning (format-string &rest args)
   (let ((str (apply 'format format-string args)))
@@ -138,6 +141,7 @@ The mozadd edited file must be shown in Firefox and visible."
 ;;(mozadd-get-comint-string-part "\"hi\" there")
 (defun mozadd-get-comint-string-part (comint-output)
   (save-match-data
+    (message "Received from Mozilla (%d chars) ..." (length comint-output))
     (if (string-match "^\".*?\"" comint-output)
         (match-string 0 comint-output)
       comint-output)))
@@ -168,7 +172,7 @@ The mozadd edited file must be shown in Firefox and visible."
   ;;(message "mozadd-skip-output-until-prompt %S" comint-output)
   (if (not (string-match-p "\\(\\w+\\)> $" comint-output))
       ""
-    ;;(message "done  recieve %s" (current-time-string))
+    (message "Recieved ready (prompt) from Mozilla %s" (current-time-string))
     (mozadd-exec-next)
     comint-output
     ""
@@ -184,7 +188,8 @@ The mozadd edited file must be shown in Firefox and visible."
   (with-current-buffer mozadd-edited-buffer
     (string= mozadd-mirror-location mozadd-initial-mirror-location)))
 
-(defvar mozadd-send-buffer-hook nil
+(defvar mozadd-send-buffer-hook '(mozadd-isearch-send-buffer-hook-fun
+                                  mozadd-re-builder-send-buffer-hook-fun)
   "Hook run before sending to the moz process.
 Called by `mozadd-send-buffer-content-to-mozilla' before sending
 buffer content.
@@ -294,15 +299,16 @@ This runs the hook `mozadd-send-buffer-hook' before sending."
   (when mozadd-task-queue
     (let* ((this  (pop mozadd-task-queue))
            (input (when (listp this) (nth 0 this)))
-           (task  (when (listp this) (nth 1 this)))
-           )
+           (task  (when (listp this) (nth 1 this))))
       (setq mozadd-current-task this)
       ;;(message "EXEC: %s" this)
+      (message "EXEC task: %s" task)
       (if (not (listp this))
           (funcall this)
         (when (buffer-live-p inferior-moz-buffer)
           (with-current-buffer inferior-moz-buffer
             (add-hook 'comint-preoutput-filter-functions task nil t)))
+        (message "Sending to Mozilla now (%d chars) ..." (length input))
         (comint-send-string (inferior-moz-process) input)))))
 
 (defun mozadd-skip-current-task ()
@@ -327,22 +333,90 @@ This runs the hook `mozadd-send-buffer-hook' before sending."
     (member (file-name-extension (buffer-file-name))
             mozadd-browseable-file-extensions)))
 
+(defvar mozadd-update-key [(control ?c)(control ?c)])
+(defvar mozadd-submatch-key [(control ?c)(control ?0)])
+(defvar mozadd-mirror-mode-map
+  (let ((map (make-sparse-keymap "MozMirror")))
+    (define-key map mozadd-update-key 'mozadd-update-mozilla)
+    (define-key map mozadd-submatch-key 'mozadd-set-outline-regexp-submatch-num)
+    (define-key map [(control ?c)(control ?a)] 'mozadd-toggle-auto-update)
+    (define-key map [(control ?c)(control ?b)] 'mozadd-add-href-base)
+    ;; Fix-me: menu
+    map))
+
+(defun mozadd-add-href-base (url)
+  "Add <base href=... /> tag with url URL."
+  (interactive "sOriginal URL: ")
+  (if (zerop (length url))
+             (message "No URL given")
+    (let ((urlobj (url-generic-parse-url url)))
+      (cond
+       ((not (member (url-type urlobj) '("http" "https")))
+        (message "Must be a http url"))
+       ((not (url-fullness urlobj))
+        (message "Must be a full url"))
+       (t
+        (save-excursion
+          (let ((re-base (rx "<base"
+                             (+ whitespace)
+                             "href=\""
+                             (submatch
+                              (+ (not (any "\""))))
+                             "\""))
+                (re-head (rx "<head"
+                             (* (not (any ">")))
+                             ">")))
+            (goto-char (point-min))
+            (cond ((re-search-forward re-base nil t)
+                   (delete-region (match-beginning 1) (match-end 1))
+                   (goto-char (match-beginning 1))
+                   (insert url)
+                   (message "Change old base tag to new url"))
+                  ((re-search-forward re-head nil t)
+                   (insert "\n\n<base href=\"" url "\" />\n\n")
+                   (message "Added base tag"))
+                  (t
+                   (error "Can't find <head ...>, don't know where to add <base ...> tag"))))))))))
+
+
+
 ;;;###autoload
 (define-minor-mode mozadd-mirror-mode
-  "Mirror content of current file buffer immediately in Firefox.
-When you turn on this mode the file will be opened in Firefox.
-Every change you make in the buffer will trigger a redraw in
-Firefox - regardless of if you save the file or not.
+  "Mirror content of current file buffer in Firefox.
+When you turn on this mode the file you are editing will be
+opened in Firefox.
+
+\\<mozadd-mirror-mode-map>
+Updating of Firefox can be made with \\[mozadd-update-mozilla].
+
+This can be done also during `isearch-mode' and from
+`re-builder'.  Tags containing matches are then shown as CSS
+outlines in Firefox.  To show submatches instead use
+\\[mozadd-set-outline-regexp-submatch-num].
+
+The style for the outlines is `mozadd-matches-outline-style'.
+
+If `nxml-where-mode' is on the marks will also be shown in
+Firefox as CSS outline style.  These outlines have the style
+`mozadd-xml-path-outline-style'.
+
+If you are editing a file from a web URL you may want to add a
+<base href=... /> tag to get the page looking better in Firefox.
+You can add that with the command \\[mozadd-add-href-base].
+
+When updating Firefox the hook `mozadd-send-buffer-hook' is run
+first.  \(This adds the CSS outlines above.)
 
 For the mirroring to work the edited file must be shown in
 Firefox and visible.
 
-If `nxml-where-mode' is on the marks will also be shown in
-Firefox as CSS outline style.  You can customize the style
-through the option `mozadd-xml-path-outline-style'.
+Updating Firefox can also be done automatically.  In this case
+every change you make in the buffer will trigger a redraw in
+Firefox - regardless of if you save the file or not.  This is may
+be slow currently.
 
-See also `mozadd-refresh-edited-on-save-mode'."
-  nil
+See also `mozadd-refresh-edited-on-save-mode' which can be used
+when you edit CSS files."
   :lighter " MozMirror"
   :group 'mozadd
   (if mozadd-mirror-mode
@@ -362,25 +436,28 @@ See also `mozadd-refresh-edited-on-save-mode'."
                 (mozadd-add-task (concat "content.location.href = "
                                          "\"file:///" (buffer-file-name) "\";")
                                  'mozadd-get-initial-mirror-location)
-                (add-hook 'after-change-functions 'mozadd-update-mozilla t t)
-                (add-hook 'nxhtml-where-hook 'mozadd-update-mozilla t t)
+                (add-hook 'after-change-functions 'mozadd-auto-update-mozilla t t)
+                (add-hook 'nxhtml-where-hook 'mozadd-auto-update-mozilla t t)
                 (add-hook 'post-command-hook 'mozadd-edited-buffer-post-command)
                 ;; Fix-me: move to isearch-mode-hook
-                (define-key isearch-mode-map [(control ?p)] 'web-vcs-linkpatt-send-mozilla)
+                (define-prefix-command 'mozadd-isearch-control-c-map)
+                (define-key isearch-mode-map [(control ?c)] 'mozadd-isearch-control-c-map)
+                (define-key isearch-mode-map mozadd-update-key 'mozadd-update-mozilla)
+                (define-key isearch-mode-map mozadd-submatch-key 'mozadd-set-outline-regexp-submatch-num)
+                (define-key reb-mode-map mozadd-update-key 'mozadd-update-mozilla-from-reb)
+                (define-key reb-mode-map mozadd-submatch-key 'mozadd-set-outline-regexp-submatch-from-reb)
                 t)
         (setq mozadd-mirror-mode nil))
     (setq mozadd-edited-buffer nil)
     (remove-hook 'post-command-hook 'mozadd-edited-buffer-post-command)
-    (remove-hook 'nxhtml-where-hook 'mozadd-update-mozilla t)
-    (remove-hook 'after-change-functions 'mozadd-update-mozilla t)
-    (define-key isearch-mode-map [(control ?p)] 'isearch-other-control-char)))
+    (remove-hook 'nxhtml-where-hook 'mozadd-auto-update-mozilla t)
+    (remove-hook 'after-change-functions 'mozadd-auto-update-mozilla t)
+    (define-key isearch-mode-map mozadd-update-key 'isearch-other-meta-char)
+    (define-key isearch-mode-map mozadd-submatch-key 'isearch-other-meta-char)
+    (define-key reb-mode-map mozadd-update-key nil)
+    (define-key reb-mode-map mozadd-submatch-key nil)
+    ))
 (put 'mozadd-mirror-mode 'permanent-local t)
-
-;;;###autoload
-(define-globalized-minor-mode global-mozadd-mirror-mode mozadd-mirror-mode
-  (lambda ()
-    (when (mozadd-html-buffer-file-p)
-      (mozadd-mirror-mode 1))))
 
 (defun mozadd-edited-buffer-post-command ()
   "Check if we are in a new edited buffer."
@@ -390,38 +467,119 @@ See also `mozadd-refresh-edited-on-save-mode'."
 
 (defvar mozadd-buffer-content-to-mozilla-timer nil)
 
-(defun mozadd-update-mozilla (&rest ignored)
-  (when (timerp mozadd-buffer-content-to-mozilla-timer)
-    (cancel-timer mozadd-buffer-content-to-mozilla-timer))
-  (setq mozadd-buffer-content-to-mozilla-timer
-        (run-with-idle-timer 1 nil 'mozadd-queue-send-buffer-content-to-mozilla (current-buffer))))
-(put 'mozadd-update-mozilla 'permanent-local-hook t)
+(defvar mozadd-auto-update-mirror nil)
+(put 'mozadd-auto-update-mirror 'permanent-local t)
+(defun mozadd-toggle-auto-update ()
+  "Toggle auto update in `mozadd-mirror-mode'."
+  (interactive)
+  (set (make-local-variable 'mozadd-auto-update-mirror)
+       (not mozadd-auto-update-mirror)))
 
-(defcustom mozadd-isearch-outline-style "1px solid red"
-  "CSS style for isearch matches when shown in Firefox.
-`mozadd-send-buffer
+(defun mozadd-auto-update-mozilla (&rest ignored)
+  (when mozadd-auto-update-mirror
+    (mozadd-update-mozilla)))
+(put 'mozadd-auto-update-mozilla 'permanent-local-hook t)
+
+(defun mozadd-update-mozilla-from-reb ()
+  "Update Firefox from re-builder."
+  (interactive)
+  (with-current-buffer reb-target-buffer
+    (mozadd-update-mozilla)))
+
+(defun mozadd-update-mozilla ()
+  "Update Firefox."
+  (interactive)
+  (if (not mozadd-mirror-mode)
+      (message "This buffer is not mirrored in Firefox")
+    (when (timerp mozadd-buffer-content-to-mozilla-timer)
+      (cancel-timer mozadd-buffer-content-to-mozilla-timer))
+    (setq mozadd-buffer-content-to-mozilla-timer
+          (run-with-idle-timer 1 nil 'mozadd-queue-send-buffer-content-to-mozilla (current-buffer)))
+    (message "Asked Firefox to update %s..." (current-time-string))))
+
+;; (define-minor-mode mozadd-isearch-matches-mode
+;;   "Show isearch matches when updating buffer in Firefox.
+;; Use the style in `mozadd-matches-outline-style' for the
+;; outlines."
+;;   :group 'mozadd
+;;   (if mozadd-isearch-matches-mode
+;;       (add-hook 'mozadd-send-buffer-hook 'mozadd-isearch-send-buffer-hook-fun nil t)
+;;     (remove-hook 'mozadd-send-buffer-hook 'mozadd-isearch-send-buffer-hook-fun t)))
+
+(defcustom mozadd-matches-outline-style "1px solid red"
+  "CSS style for matches outline when shown in Firefox.
 This is added as
 
   style=\"outline: THIS-STYLE\""
   :type 'string
   :group 'mozadd)
 
-(defvar mozadd-isearch-submatch-num 0)
+(defcustom mozadd-xml-path-outline-style "1px solid green"
+  "CSS style for `nxml-where-mode' outline when shown in Firefox.
+This is added as
 
-(defun isearch-mozadd-send-buffer-hook-fun (mozadd-points)
-  "Add outlines to Firefox.
-Added to `mozadd-send-buffer-hook' by `web-vcs-linkpatt-mode'."
+  style=\"outline: THIS-STYLE\""
+  :type 'string
+  :group 'mozadd)
+
+(defvar mozadd-outline-regexp-submatch-num 0)
+(put 'mozadd-outline-regexp-submatch-num 'permanent-local t)
+(defun mozadd-set-outline-regexp-submatch-num (num)
+  "Set submatch number for regexp's outlines.
+Set submatch num to NUM.
+
+This number is used when showing matches for isearch and
+re-builder.  It is per buffer."
+  (interactive "NMozadd mirror outline regexp submatch num in this buffer: ")
+  (set (make-local-variable 'mozadd-outline-regexp-submatch-num) num))
+
+(defun mozadd-set-outline-regexp-submatch-from-reb (num)
+  "Set submatch number for regexp's outlines."
+  (interactive "NMozadd mirror outline regexp submatch num for target buffer: ")
+  (with-current-buffer reb-target-buffer
+    (mozadd-set-outline-regexp-submatch-num num)))
+
+(defun mozadd-isearch-send-buffer-hook-fun (mozadd-points)
+  "Add outlines to tags matched by isearch when updating Firefox.
+Use the style in `mozadd-matches-outline-style' for the
+outlines."
   ;; isearch-lazy-highlight-overlays isearch-overlay
+  (when isearch-mode
+    (let ((pattern isearch-string)
+          (is-regexp isearch-regexp)
+          (submatch mozadd-outline-regexp-submatch-num)
+          (outline-style mozadd-matches-outline-style))
+      ;;(message "isearch mozadd: %s %s %s" pattern is-regexp submatch)
+      (mozadd-add-matches-outlines mozadd-points pattern is-regexp submatch outline-style))))
+
+(defun mozadd-re-builder-send-buffer-hook-fun (mozadd-points)
+  "Add outlines to tags matched by re-builder when updating Firefox.
+Use the style in `mozadd-matches-outline-style' for the
+outlines."
+  ;; isearch-lazy-highlight-overlays isearch-overlay
+  (when reb-overlays
+    (let ((pattern reb-regexp)
+          (is-regexp t)
+          (submatch mozadd-outline-regexp-submatch-num)
+          (outline-style mozadd-matches-outline-style))
+      ;;(message "re-builder mozadd: %s %s %s" pattern is-regexp submatch)
+      (mozadd-add-matches-outlines mozadd-points pattern is-regexp submatch outline-style))))
+
+(defun mozadd-add-matches-outlines (mozadd-points pattern is-regexp submatch outline-style)
   (let ((my-points (symbol-value mozadd-points))
-        (matches `(,(overlay-start isearch-overlay)))
+        (matches nil) ;;`(,(overlay-start isearch-overlay)))
         tag-starts
         (here (point)))
     (save-match-data
       (goto-char (point-min))
-      (while (if isearch-regexp
-                 (re-search-forward isearch-string nil t)
-               (search-forward isearch-string nil t))
-        (let ((match-point (match-beginning mozadd-isearch-submatch-num)))
+      (while (if is-regexp
+                 (re-search-forward pattern nil t)
+               (search-forward pattern nil t))
+        (let ((match-point (if is-regexp
+                               (match-beginning submatch)
+                             (- (point) (length pattern))
+                             )))
+          ;;(message "match-point=%s, submatch=%s, is-regexp=%s" match-point submatch is-regexp)
           (unless (memq match-point matches)
             (setq matches (cons match-point matches)))))
       (dolist (match matches)
@@ -439,10 +597,11 @@ Added to `mozadd-send-buffer-hook' by `web-vcs-linkpatt-mode'."
               (unless (memq tag-start-end tag-starts)
                 (setq tag-starts (cons tag-start-end tag-starts))))))))
     (dolist (start tag-starts)
-      (let ((rec `(,start ,mozadd-isearch-outline-style)))
+      (let ((rec `(,start ,outline-style)))
         (setq my-points (cons rec my-points))))
     (set mozadd-points my-points)
     (goto-char here)))
+
 
 (provide 'mozadd)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
