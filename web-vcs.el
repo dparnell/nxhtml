@@ -69,6 +69,56 @@
 
 (defcustom web-vcs-links-regexp
   `(
+    (lp-1-10 ;; Id
+     ;; Comment:
+     "http://www.launchpad.com/ uses this 2009-11-29 with Loggerhead 1.10 (generic?)"
+     ;; Files URL regexp:
+     ;;
+     ;; Extend this format to catch date/time too.
+     ;;
+     ;; ((patt (rx ...))
+     ;;  ;; use subexp numbers
+     ;;  (url 1)
+     ;;  (time 2)
+     ;;  (rev 3))
+
+     ((time 1)
+      (url 2)
+      (patt ,(rx-to-string '(and "<td class=\"date\">"
+                                 (submatch (regexp "[^<]*"))
+                                 "</td>"
+                                 (0+ space)
+                                 "<td class=\"timedate2\">"
+                                 (regexp ".+")
+                                 "</td>"
+                                 (*? (regexp ".\\|\n"))
+                                 "href=\""
+                                 (submatch (regexp ".*/download/[^\"]*"))
+                                 "\""))))
+
+     ;; ,(rx "href=\""
+     ;;      (submatch (regexp ".*/download/[^\"]*"))
+     ;;      "\"")
+
+     ;; Dirs URL regexp:
+     ,(rx-to-string '(and "href=\""
+                          (group (regexp ".*%3A/[^\"]*/"))
+                          "\""))
+     ;; File name URL part regexp:
+     "\\([^\/]*\\)$"
+     ;; Page revision regexp:
+     ,(rx-to-string '(and "for revision"
+                          (+ whitespace)
+                          "<span>"
+                          (submatch (+ digit))
+                          "</span>"))
+     ;; Release revision regexp:
+     ,(rx-to-string '(and "/"
+                          (submatch (+ digit))
+                          "\"" (+ (not (any ">"))) ">"
+                          (optional "Release ")
+                          (+ digit) "." (+ digit) "<"))
+     )
     (lp ;; Id
      ;; Comment:
      "http://www.launchpad.com/ uses this 2009-11-29 with Loggerhead 1.10 (generic?)"
@@ -84,44 +134,60 @@
 
      ((time 1)
       (url 2)
-      (patt ,(rx "<td class=\"date\">"
-                 (submatch (regexp "[^<]*"))
-                 "</td>"
-                 (0+ space)
-                 "<td class=\"timedate2\">"
-                 (regexp ".+")
-                 "</td>"
-                 (*? (regexp ".\\|\n"))
-                 "href=\""
-                 (submatch (regexp ".*/download/[^\"]*"))
-                 "\"")))
+      (patt ,(rx-to-string '(and "<td class=\"date\">"
+                                 (submatch (regexp "[^<]*"))
+                                 "</td>"
+                                 (0+ space)
+                                 "<td class=\"timedate2\">"
+                                 (regexp ".+")
+                                 "</td>"
+                                 (*? (regexp ".\\|\n"))
+                                 "href=\""
+                                 (submatch (regexp ".*/download/[^\"]*"))
+                                 "\""))))
 
      ;; ,(rx "href=\""
      ;;      (submatch (regexp ".*/download/[^\"]*"))
      ;;      "\"")
 
      ;; Dirs URL regexp:
-     ,(rx "href=\""
-          (submatch (regexp ".*%3A/[^\"]*/"))
-          "\"")
+     ,(rx-to-string '(and "href=\""
+                          (group (regexp ".*%3A/[^\"]*/"))
+                          "\""))
      ;; File name URL part regexp:
      "\\([^\/]*\\)$"
      ;; Page revision regexp:
-     ,(rx "for revision"
-          (+ whitespace)
-          "<span>"
-          (submatch (+ digit))
-          "</span>")
+     ,(rx-to-string '(and "for revision"
+                          (+ whitespace)
+                          "<span>"
+                          (submatch (+ digit))
+                          "</span>"))
      ;; Release revision regexp:
-     ,(rx "/"
-          (submatch (+ digit))
-          "\"" (+ (not (any ">"))) ">"
-          (optional "Release ")
-          (+ digit) "." (+ digit) "<")
+     ,(rx-to-string '(and "/"
+                          (submatch (+ digit))
+                          "\"" (+ (not (any ">"))) ">"
+                          (optional "Release ")
+                          (+ digit) "." (+ digit) "<"))
      )
     )
   "Regexp patterns for matching links on a VCS web page.
 The patterns are grouped by VCS web system type.
+
+\\<mozadd-mirror-mode-map>
+To make a new pattern you can do like this:
+
+- Open the file in Firefox.
+- View the buffer source in Emacs in some way.
+- Turn on `mozadd-mirror-mode'.
+- Use the command `mozadd-init-href-patten'.
+- Then start `re-builder' to refine the pattern.
+  (Or, use isearch if you prefer that.)
+- Use `ourcomments-copy-target-region-to-reb' for
+  easy copying from target buffer to re-builder.
+- To see what you patterns matches in the web page
+  use `M-x mozadd-update-mozilla'.
+- If the page looks terrible then add a <base href=...>
+  tag by doing `M-x mozadd-add-href-base'.
 
 *Note: It is always sub match 1 from these patterns that are
        used."
@@ -129,7 +195,10 @@ The patterns are grouped by VCS web system type.
           (list
            (symbol :tag "VCS web system type specifier")
            (string :tag "Description")
-           (regexp :tag "Files URL regexp")
+           (set (list (const time) integer)
+                (list (const url) integer)
+                (list (const patt) regexp))
+           ;;(regexp :tag "Files URL regexp")
            (regexp :tag "Dirs URL regexp")
            (regexp :tag "File name URL part regexp")
            (regexp :tag "Page revision regexp")
