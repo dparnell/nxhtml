@@ -83,6 +83,18 @@
           "\""
           ))))
 
+;; Fix-me: just put this in web-vcs.el with an explanation. Delete
+;; this file.
+(defun web-vcs-init-linkpatt ()
+  "Init regexps for isearch and re-builder for link searching."
+  (interactive)
+  (let ((re (web-vcs-linkpatt-make-re)))
+    ;;(setq isearch-string re)
+    (setq regexp-search-ring (cons re regexp-search-ring))
+    ;;(setq isearch-regexp t)
+    (setq isearch-last-case-fold-search t)
+    (setq reb-regexp re)))
+
 ;; (web-vcs-linkpatt-make-re)
 (defun web-vcs-linkpatt-edit-href-re ()
   "Edit inner pattern of href link.

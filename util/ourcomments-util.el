@@ -1841,10 +1841,15 @@ of those in for example common web browsers."
 (defvar emacs-restart-in-kill-fun nil)
 ;;(setq emacs-restart-in-kill-fun 'emacs-start-under-gdb)
 
+(defvar emacs-start-under-gdb-shell-file nil)
+(setq emacs-start-under-gdb-shell-file "c:/u/gdb-emacs.cmd")
+
+;;(emacs-start-under-gdb)
 (defun emacs-start-under-gdb (&rest args)
   (interactive)
   (unless (eq system-type 'windows-nt)
-    (error "Sorry, this version just runs under w32. Please send me your enhancements."))
+    (unless (y-or-n-p "Sorry, this version maybe just works under w32. Enhancements welcome. Continue? ")
+      (throw 'command-level nil)))
   (recentf-save-list)
   (setq args (cons (ourcomments-find-emacs) args))
   (let* ((args-text (mapconcat 'identity (cons "" args) " "))
@@ -1852,9 +1857,14 @@ of those in for example common web browsers."
          ret
          (gdb (locate-file "gdb" exec-path exec-suffixes))
          (default-directory (expand-file-name "src" source-directory)))
-    (call-process (locate-file "cmd.exe" exec-path) nil 0 nil "/c"
-                  (concat "start gdb -ex=run " (ourcomments-find-emacs)
-                          " " args-text))
+    ;; (call-process (locate-file "cmd.exe" exec-path) nil 0 nil "/k"
+    ;;               (concat "start gdb -ex=run --args " (ourcomments-find-emacs)
+    ;;                       " " args-text))
+    ;; (call-process "c:/u/gdb-emacs.cmd" nil 0 nil)
+    ;; (call-process (locate-file "cmd.exe" exec-path) nil 0 nil "/k" "start c:/u/gdb-emacs.cmd")
+    (if (eq system-type 'windows-nt)
+        (call-process (locate-file "cmd.exe" exec-path) nil 0 nil "/c" "start" emacs-start-under-gdb-shell-file)
+      (call-process shell-file-name emacs-start-under-gdb-shell-file))
     ret))
 
 (defun emacs-restart-in-kill ()
@@ -2373,6 +2383,125 @@ This function is used for `end-of-defun-function'."
 ;;(string-match-p ourcomments-org-paste-html-link-regexp "<a href=\"link\">text</a>")
 
 ;;(defvar temp-n 0)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Re-builder
+(require 're-builder)
+(eval-when-compile (require 'subword))
+
+(eval-after-load 're-builder
+  '(progn
+     (define-key reb-mode-map [(control ?c) (control ?v)] 'ourcomments-copy-target-region-to-reb)
+     (define-key reb-mode-map [(control ?c) (control ?f)] 'ourcomments-reb-yank-at-end-word-or-char)
+     (define-key reb-mode-map [(control ?c) (control ?b)] 'ourcomments-reb-yank-at-begin-word-or-char)))
+
+;;;###autoload
+(defun ourcomments-copy-target-region-to-reb ()
+  "Copy region in re-builder target buffer to reb buffer."
+  (interactive)
+  (when (derived-mode-p 'reb-mode)
+    ;; fix-me: check in string mode.
+    ;; In re-builder
+    (let ((str (with-current-buffer reb-target-buffer
+                 (buffer-substring-no-properties (region-beginning) (region-end)))))
+      (setq str (regexp-quote str))
+      (insert str))))
+
+;; Fix-me: grab range of whitespace
+;; Fix-me: check +-1...
+(defun ourcomments-reb-yank-at-end-word-or-char ()
+  "Pull next character, subword or word from buffer into search string.
+Subword is used when `subword-mode' is activated. "
+  (interactive)
+  (ourcomments-reb-yank-internal
+   'end
+   (lambda ()
+     (if (or (= (char-syntax (or (char-after) 0)) ?w)
+             (= (char-syntax (or (char-after (1+ (point))) 0)) ?w))
+	 (if (and (boundp 'subword-mode) subword-mode)
+	     (subword-forward 1)
+	   (forward-word 1))
+       (forward-char 1)) (point))))
+
+(defun ourcomments-reb-yank-at-begin-word-or-char ()
+  "Pull previous character, subword or word from buffer into search string.
+Subword is used when `subword-mode' is activated. "
+  (interactive)
+  (ourcomments-reb-yank-internal
+   'begin
+   (lambda ()
+     (if (or (= (char-syntax (or (char-before) 0)) ?w)
+             (= (char-syntax (or (char-before (1- (point))) 0)) ?w))
+	 (if (and (boundp 'subword-mode) subword-mode)
+	     (subword-backward 1)
+	   (backward-word 1))
+       (backward-char 1)) (point))))
+
+(defun ourcomments-reb-yank-internal (side jumpform)
+  "Pull the text from point to the point reached by JUMPFORM.
+JUMPFORM is a lambda expression that takes no arguments and returns
+a buffer position, possibly having moved point to that position.
+For example, it might move point forward by a word and return point,
+or it might return the position of the end of the line."
+  (ourcomments-reb-yank-string
+   side
+   (if (not (eq reb-target-buffer (window-buffer reb-target-window)))
+       (progn
+         (message "Target buffer not shown, can't copy")
+         (throw 'command-level nil))
+     (with-selected-window reb-target-window
+       (with-current-buffer reb-target-buffer
+         (save-excursion
+           (let* ((here (point))
+                  start stop
+                  (ovls (delete
+                         nil
+                         (mapcar (lambda (ovl)
+                                   (when (eq (overlay-get ovl 'face)
+                                             'reb-match-0)
+                                     ovl))
+                                 (or (overlays-at (point))
+                                     (overlays-at (1- (point)))))))
+                  (ovl (car ovls)))
+             (unless ovl
+               (message "Please put point at desired match first")
+               (throw 'command-level nil))
+             (cond
+              ((eq side 'begin)
+               (goto-char (overlay-start ovl)))
+              ((eq side 'end)
+               (goto-char (overlay-end ovl)))
+              (t
+               (error "side=%s" side)))
+             (setq start (point))
+             (funcall jumpform)
+             (setq stop (point))
+             (if (eq side 'begin)
+                 (buffer-substring-no-properties stop start)
+               (buffer-substring-no-properties start stop)))))))))
+
+(defun ourcomments-reb-yank-string (side string)
+  "Pull STRING into search string."
+  ;; Downcase the string if not supposed to case-fold yanked strings.
+  (when case-fold-search
+    (setq string (downcase string))
+  (setq string (regexp-quote string))
+  (cond
+   ((eq side 'begin)
+    (goto-char (point-min))
+    (skip-chars-forward "^\"")
+    (forward-char 1)
+    (insert string))
+   ((eq side 'end)
+    (goto-char (point-max))
+    (skip-chars-backward "^\"")
+    (backward-char 1)
+    (insert string))
+   (t
+    (error "side=%s" side)))))
+
+
 (defun ourcomments-org-convert-html-links-in-buffer (beg end)
   "Convert html link between BEG and END to org mode links.
 If there is an html link in the buffer
