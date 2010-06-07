@@ -47,7 +47,7 @@
 (eval-when-compile (require 'cl))
 (require 'web-vcs)
 
-(defvar rxx-tree nil)
+(defvar my-rxx-test-details t)
 
 (defvar my-rxx-result nil)
 (defun my-rxx-insert ()
@@ -56,6 +56,17 @@
   (insert "(rx "
           (format "%S" my-rxx-result)
           ")"))
+
+(defun my-rxx-parse-all (str-syntax)
+  "Test all rows in buffer."
+  (interactive "P")
+  (widen)
+  (let ((my-rxx-test-details nil))
+    (goto-char (point-min))
+    (while (not (eobp))
+      (my-rxx-parse str-syntax)
+      (forward-line 1))))
+
 (defun my-rxx-parse (str-syntax)
   "testing"
   (interactive "P")
@@ -64,7 +75,7 @@
     (narrow-to-region (point-at-bol) (point-at-eol))
     (let* ((src (buffer-substring-no-properties (point-max) (point-min)))
            (res-rx-rec (rxx-parse str-syntax))
-           (dummy (message "res-rx-rec=%S" res-rx-rec))
+           (dummy (when my-rxx-test-details (message "res-rx-rec=%S" res-rx-rec)))
            (res-rx-ok (car res-rx-rec))
            (res-rx (when res-rx-ok (cdr res-rx-rec)))
            evaled-done
@@ -105,7 +116,7 @@
                  (bad-post (buffer-substring-no-properties bad-pos (point-max))))
             (web-vcs-message-with-face bad-regexp-face "parsed \"%s\" => %s: \"%s\" HERE \"%s\"" src bad-msg bad-pre bad-post))
         (setq my-rxx-result res-rx)
-        (message "res-rx-to-string=%s" res-rx-to-string)
+        (when my-rxx-test-details (message "res-rx-to-string=%s" res-rx-to-string))
         (when same-str (setq res-rx-to-string (concat "EQUAL STR=" res-rx-to-string)))
         (when same-rx-again (setq res-rx-again "EQUAL RX"))
         (web-vcs-message-with-face
@@ -113,24 +124,32 @@
          "parsed \"%s\" => %S => \"%s\" => %S" src res-rx res-rx-to-string res-rx-again)))))
 
 (global-set-key [(f9)] 'my-rxx-parse)
+(global-set-key [(control f9)] 'my-rxx-parse-all)
 (global-set-key [(shift f9)] 'my-rxx-insert)
 
 (defun rxx-parse (str-syntax)
   "Parse buffer regexp between point min and max.
 If STR-SYNTAX is non-nil \\ must be doubled and things like \\n
 are recognized."
-  (web-vcs-message-with-face 'highlight "regexp src=%S" (buffer-string))
+  (when my-rxx-test-details (web-vcs-message-with-face 'highlight "regexp src=%S" (buffer-string)))
   (goto-char (point-min))
   (let* (ok
          (res (catch 'bad-regexp
                 (prog1
-                    (rxx-parse-1 'and-top str-syntax)
+                    (rxx-parse-1 'and-top str-syntax nil)
                   (setq ok t)))))
     (if ok
         (cons t res)
       (cons nil res))))
 
-(defun rxx-parse-1 (what str-syntax)
+(defmacro rxx-parse-consume ()
+  ;; Play with
+  ;; - state
+  ;; - str-beg, str-end
+  ;; - result
+  ;; - sub call
+  )
+(defun rxx-parse-1 (what str-syntax end-with)
   (unless (memq what '(and-top
                        or-top
                        and or
@@ -147,21 +166,161 @@ are recognized."
         str-end
         result
         ret-result
-        (want-single-item (memq what '(or))))
+        (want-single-item (not (memq what '(and and-top submatch)))))
     (while (not (or (eobp)
                     ret-result))
       (setq expr (list (char-after) (car state)))
       (forward-char)
       (cond
+       ;; Fix-me: greedy, times
+       ( (equal expr '(?\[ CHARS))
+         (unless (eq (char-after) ?:)
+           (throw 'bad-regexp (cons "[ inside a char alt must start a char class, [:" (point))))
+         (let ((pre (buffer-substring-no-properties str-beg (1- (point)))))
+           (unless (zerop (length pre))
+             (push pre result)))
+         (forward-char)
+         (let ((cbeg (point))
+               class
+               class-sym)
+           (skip-chars-forward "^:")
+           (setq class (buffer-substring-no-properties cbeg (point)))
+           (forward-char)
+           (unless (eq (char-after) ?\])
+             (throw 'bad-regexp (cons "Char class must end with :]" (point))))
+           (setq class-sym (intern-soft class))
+           (unless class-sym
+             (throw 'bad-regexp (cons (format "Unknown char class %S" class) (point))))
+           (push class-sym result)
+           (forward-char 2)
+           )
+         (setq str-beg (point))
+         )
+       ( (equal expr '(?\_ BS2))
+         (pop state)
+         (push 'BS2_ state)
+         )
+       ( (equal expr '(?\< BS2_))
+         (let ((pre (buffer-substring-no-properties str-beg (- (point) 3))))
+           (unless (zerop (length pre))
+             (push pre result)))
+         (pop state)
+         (setq str-beg (point))
+         (push 'symbol-start result)
+         )
+       ( (equal expr '(?\> BS2_))
+         (let ((pre (buffer-substring-no-properties str-beg (- (point) 3))))
+           (unless (zerop (length pre))
+             (push pre result)))
+         (pop state)
+         (setq str-beg (point))
+         (push 'symbol-end result)
+         )
+       ( (equal expr '(?\< BS2))
+         (let ((pre (buffer-substring-no-properties str-beg (- (point) 2))))
+           (unless (zerop (length pre))
+             (push pre result)))
+         (pop state)
+         (setq str-beg (point))
+         (push 'bow result)
+         )
+       ( (equal expr '(?w BS2))
+         (let ((pre (buffer-substring-no-properties str-beg (- (point) 2))))
+           (unless (zerop (length pre))
+             (push pre result)))
+         (pop state)
+         (setq str-beg (point))
+         (push '(any word) result)
+         )
+       ( (equal expr '(?W BS2))
+         (let ((pre (buffer-substring-no-properties str-beg (- (point) 2))))
+           (unless (zerop (length pre))
+             (push pre result)))
+         (pop state)
+         (setq str-beg (point))
+         (push '(not (any word)) result)
+         )
+       ( (equal expr '(?\> BS2))
+         (let ((pre (buffer-substring-no-properties str-beg (- (point) 2))))
+           (unless (zerop (length pre))
+             (push pre result)))
+         (pop state)
+         (setq str-beg (point))
+         (push 'eow result)
+         )
+       ( (equal expr '(?b BS2))
+         (let ((pre (buffer-substring-no-properties str-beg (- (point) 2))))
+           (unless (zerop (length pre))
+             (push pre result)))
+         (pop state)
+         (setq str-beg (point))
+         (push 'word-boundary result)
+         )
+       ( (equal expr '(?B BS2))
+         (let ((pre (buffer-substring-no-properties str-beg (- (point) 2))))
+           (unless (zerop (length pre))
+             (push pre result)))
+         (pop state)
+         (setq str-beg (point))
+         (push 'not-word-boundary result)
+         )
+       ( (equal expr '(?\= BS2))
+         (let ((pre (buffer-substring-no-properties str-beg (- (point) 2))))
+           (unless (zerop (length pre))
+             (push pre result)))
+         (pop state)
+         (setq str-beg (point))
+         (push 'point result)
+         )
+       ( (equal expr '(?\` BS2))
+         (let ((pre (buffer-substring-no-properties str-beg (- (point) 2))))
+           (unless (zerop (length pre))
+             (push pre result)))
+         (pop state)
+         (setq str-beg (point))
+         (push 'buffer-start result)
+         )
+       ( (equal expr '(?\' BS2))
+         (let ((pre (buffer-substring-no-properties str-beg (- (point) 2))))
+           (unless (zerop (length pre))
+             (push pre result)))
+         (pop state)
+         (setq str-beg (point))
+         (push 'buffer-end result)
+         )
+       ( (equal expr '(?^ DEFAULT))
+         (let ((pre (buffer-substring-no-properties str-beg (1- (point)))))
+           (unless (zerop (length pre))
+             (push pre result)))
+         (setq str-beg (point))
+         (push 'bol result)
+         )
+       ( (equal expr '(?$ DEFAULT))
+         (let ((pre (buffer-substring-no-properties str-beg (1- (point)))))
+           (unless (zerop (length pre))
+             (push pre result)))
+         (setq str-beg (point))
+         (push 'eol result)
+         )
+       ( (equal expr '(?. DEFAULT))
+         (let ((pre (buffer-substring-no-properties str-beg (1- (point)))))
+           (unless (zerop (length pre))
+             (push pre result)))
+         (setq str-beg (point))
+         (push 'nonl result)
+         )
        ( (equal expr '(?\[  DEFAULT))
          (push (buffer-substring-no-properties str-beg (1- (point))) result)
-         (push (rxx-parse-1 'any str-syntax) result)
+         (push (rxx-parse-1 'any str-syntax "]") result)
          (setq str-beg (point))
          )
        ( (equal expr '(?\]  CHARS))
+         (if (string= end-with "]")
+             (setq end-with nil)
+           (throw 'bad-regexp (list "Trailing ]" (1- (point)))))
          (push (buffer-substring-no-properties str-beg (1- (point))) result)
-         (setq str-beg (point))
          (setq ret-result result)
+         (setq str-beg (point))
          )
        ( (or (equal expr '(??  DEFAULT))
              (equal expr '(?+  DEFAULT))
@@ -172,8 +331,7 @@ are recognized."
                    result))
            (push (buffer-substring-no-properties (- (point) 2) (1- (point)))
                  result))
-         (unless result
-           (throw 'bad-regexp (cons "No previous term before ?" (point))))
+         (unless result (push "" result))
          (let ((last (pop result))
                ;; Fix-me: use single chars later
                (op (case (car expr)
@@ -202,7 +360,7 @@ are recognized."
           ;; Just look ahead, that is most simple.
           (if (not (eq (char-after) ??))
               (progn
-                (push (rxx-parse-1 'submatch str-syntax) result)
+                (push (rxx-parse-1 'submatch str-syntax "\\)") result)
                 (setq str-beg (point)))
             (forward-char)
             ;; \(?
@@ -216,11 +374,14 @@ are recognized."
                   (error "Found (?%d:, but can't handle it" nn))
               ;; \(?:
               (forward-char)
-              (push (rxx-parse-1 'and str-syntax) result)
+              (push (rxx-parse-1 'and str-syntax "\\)") result)
               (setq str-beg (point))))
           )
         ( (equal expr '(?\) BS2))
-          (when (memq what '(and-top or-top))
+          ;; (when (memq what '(and-top or-top))
+          ;;   (throw 'bad-regexp (cons "Trailing \\) in regexp" (- (point) 2))))
+          (if (string= end-with "\\)")
+              (setq end-with nil)
             (throw 'bad-regexp (cons "Trailing \\) in regexp" (- (point) 2))))
           (push (buffer-substring-no-properties str-beg str-end) result)
           (pop state)
@@ -228,65 +389,70 @@ are recognized."
           (setq str-beg (point))
           )
         ( (equal expr '(?\| BS2))
-          ;; Fix-me: semantic? Probably single items on both sides.
-          (let ((last-string (buffer-substring-no-properties str-beg str-end)))
-            (when (or (not (zerop (length last-string)))
-                      (not result))
-              (push last-string result)))
+          ;; Fix-me: we only want the last char here. And perhaps there is no string before.
+          (when (> str-end str-beg)
+            (let ((last-string (buffer-substring-no-properties str-beg (1- str-end))))
+              (when (or (not (zerop (length last-string)))
+                        (not result))
+                (push last-string result)))
+            (push (buffer-substring-no-properties (1- str-end) str-end) result))
           (let ((last (pop result))
                 or-result)
-            (unless last (throw 'bad-regexp (cons "\| without previous element" (point))))
+            ;;(unless last (throw 'bad-regexp (cons "\| without previous element" (point))))
+            (unless last (setq last "")) ;; Will be made an 'opt below.
             (let ((or (if (eq 'and-top what) 'or 'or)))
-              (setq or-result (cadr (rxx-parse-1 or str-syntax))))
+              (setq or-result (cadr (rxx-parse-1 or str-syntax nil))))
             (pop state)
             (setq or-result (list last or-result))
-            (let ((or-chars (catch 'or-chars
-                              (dolist (in or-result)
-                                (unless (and (stringp in)
-                                             (= 1 (length in)))
-                                  (throw 'or-chars nil)))
-                              (mapconcat 'identity or-result ""))))
-              (if or-chars
-                  (push (list 'any or-chars) result)
-                (push (cons 'or or-result) result))))
+            ;; Rework some degenerate cases to make it easier to test
+            ;; if we have done things right.
+            (when (= 2 (length or-result))
+              (setq or-result (delete "" or-result)))
+            (if (= 1 (length or-result))
+                ;; One side of or is empty so it is an 'opt.
+                (push (cons 'opt or-result) result)
+              (let ((or-chars (catch 'or-chars
+                                (dolist (in or-result)
+                                  (unless (and (stringp in)
+                                               (= 1 (length in)))
+                                    (throw 'or-chars nil)))
+                                (mapconcat 'identity or-result ""))))
+                ;; Only single chars so this is an 'any.
+                (if or-chars
+                    (push (list 'any or-chars) result)
+                  (push (cons 'or or-result) result)))))
           (setq str-beg (point))
           )
-        ( (eq (nth 1 expr) 'DEFAULT)
-          ;; Normal char for matching
+        ( (eq (nth 1 expr) 'DEFAULT) ;; Normal char that matches itself
           (when want-single-item
-            ;; We should be in DEFAULT state then
-            (unless (eq 'DEFAULT (car state))
-              (error "Internal error: want single item, but curr state=%S" (car state)))
-            (skip-chars-forward "^[+*?\\\\")
-            (when (memq (char-after) '(?+ ?* ??))
-              (backward-char))
             (push (buffer-substring-no-properties str-beg (point)) result)
-            (setq ret-result result)
-            (setq str-beg (point))
+            (setq str-beg (point)) ;; why?
             )
           )
         ( (eq (nth 1 expr) 'CHARS)
           )
         ( t (error "expr=(%c %s)" (car expr) (cadr expr))))
-      (when (eq what 'or)
+      (when want-single-item ;;(eq what 'or)
         ;; We only want one
         (setq ret-result result))
       )
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; Clean up and test after loop before return.
+
     (unless (eq this-state (car state)) ;; Initial state
-      (error "Internal error: expected this-state on state stack=%S" this-state state))
+      (error "Internal error: expected %S on state stack=%S" this-state state))
     (pop state)
     (when state (error "Internal error: state rest=%S, what=%s" state what))
     (when (eobp)
-      (if (and (not result)
-               (not (memq what '(and-top or-top))))
-          (let ((miss (case what
-                        (any "\\]")
-                        (t "\\)"))))
-            (throw 'bad-regexp (cons (format "Unfinished regexp, missing %s, what=%s" miss what) (point))))
+      (if end-with
+          (throw 'bad-regexp (cons (format "Unfinished regexp, missing %s, what=%s" end-with what) (point)))
         (let ((tail (buffer-substring-no-properties str-beg (point))))
-          (unless (zerop (length tail))
-            (push tail result)))
-        (setq ret-result result)))
+          (when (or (not result)
+                    (not (zerop (length tail))))
+            (push tail result)))))
+    (setq ret-result result)
+
     ;; Return value:
     (setq what (case what
                  (and-top 'and)
@@ -309,10 +475,8 @@ are recognized."
          )
        ( t
          (setq res-inner (car res-inner))
-         (message "res-inner c=%S" res-inner)
-         res-inner
-         ))
-        )))
+         (when my-rxx-test-details (message "res-inner c=%S" res-inner))
+         res-inner)))))
 
 
 
