@@ -1,4 +1,4 @@
-;;; mozadd.el --- Additional functionality for MozRepl
+;; mozadd.el --- Additional functionality for MozRepl
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2009-07-22 Wed
@@ -59,19 +59,64 @@
     (message "%s" (propertize str 'face 'secondary-selection))))
 
 (defun mozadd-warn-not-shown (format-string &rest args)
-  (with-output-to-temp-buffer (help-buffer)
+  (with-help-window (help-buffer)
     (help-setup-xref (list #'describe-function 'inferior-moz-start-process) (interactive-p))
-    (with-current-buffer (help-buffer)
+    (with-current-buffer standard-output
       (insert (propertize (apply 'format format-string args)
                           'face 'secondary-selection)
               "\n\n"
               "Explanation:\n\n"
-              "The buffer must be shown in the Firefox in the tab where it was shown"
-              "\nwhen `mozadd-mirror-mode' was started."
-              "\n\n- If this tab is not visible make it visible."
-              "\n\n- If this tab was closed then restart with `mozadd-restart-mirror'."
-              )))
+              "The buffer must be shown in a *visible* tab in Firefox."
+              "\n\n- So if the buffer is shown in Firefox just make the tab visible."
+              "\n- Otherwise just show the buffer's file again in Firefox."
+              "\n\n\n"
+              "This error could also be caused by problems with communication with Firefox."
+              "  Firefox might be confused over what tab to use, because it can't find the old tab."
+              "  So if the above does not help then try:"
+              "\n\n  `M-x mozadd-restart-mirror'"
+              "\n\nThis should make Firefox forget about old tabs."
+              )
+      (fill-region 1 (point))
+      ))
   (apply 'mozadd-warning format-string args))
+
+(defun mozadd-init-href-pattern ()
+  "Init regexps for re-builder and isearch for link searching."
+  (interactive)
+  ;; Fix-me: move to defcustom/var
+  (let ((re (rx-to-string
+             `(and
+               "<a" (+ space)
+               (* (not (any "<>")))
+               word-start
+               "href" (* space) "=" (* space)
+               "\""
+               ;;(submatch ,web-vcs-linkpatt-href-re
+               (regexp ,(concat "\\(?1:" "[^\"]*" "\\)"))
+               "\""
+               ))))
+    ;;(setq isearch-string re)
+    (setq regexp-search-ring (cons re regexp-search-ring))
+    ;;(setq isearch-regexp t)
+    (setq isearch-last-case-fold-search t)
+    (setq reb-regexp re)))
+
+(defgroup mozadd nil
+  "Customization group for `mozadd-mirror-mode'."
+  :group 'moz)
+
+(defvar mozadd-auto-update-mirror nil)
+(put 'mozadd-auto-update-mirror 'permanent-local t)
+(defun mozadd-toggle-auto-update ()
+  "Toggle auto update in `mozadd-mirror-mode'."
+  (interactive)
+  (set (make-local-variable 'mozadd-auto-update-mirror)
+       (not mozadd-auto-update-mirror)))
+
+(defcustom mozadd-auto-update-delay 2.0
+  "Seconds to delay before auto update Firefox."
+  :type 'number
+  :group 'mozadd)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Refresh Firefox after save etc
@@ -140,6 +185,10 @@ The mozadd edited file must be shown in Firefox and visible."
 ;; (process-type (inferior-moz-process))
 ;; (process-contact (inferior-moz-process))
 ;; (process-exit-status (inferior-moz-process))
+;; (mozadd-moz-process)
+
+(defvar mozadd-moz-process-is-ill nil)
+
 (defun mozadd-moz-process ()
   "(Re)start if MozRepl if not running or not OK.
 Like `inferior-moz-process' but more careful."
@@ -153,7 +202,7 @@ Like `inferior-moz-process' but more careful."
                    (if (and exit-status (zerop exit-status))
                        (if (eq status 'open)
                            t
-                         (message "MozRepl process had not exited, but was closed")
+                         (message "MozRepl process has not exited, but is closed")
                          (delete-process proc)
                          nil)
                      (message "MozRepl process has exited with exit-status=%s, status=%s" exit-status status)
@@ -163,8 +212,15 @@ Like `inferior-moz-process' but more careful."
       (kill-buffer inferior-moz-buffer)
       (setq inferior-moz-buffer nil)))
   (unless inferior-moz-buffer
-    (inferior-moz-start-process))
-  (inferior-moz-process))
+    (setq mozadd-moz-process-is-ill t)
+    (condition-case err
+        (progn
+          (inferior-moz-start-process)
+          (setq mozadd-moz-process-is-ill nil))
+      (error
+       (mozadd-warning (error-message-string err)))))
+  (unless mozadd-moz-process-is-ill
+    (inferior-moz-process)))
 
 (defvar mozadd-mirror-location nil)
 (make-variable-buffer-local 'mozadd-mirror-location)
@@ -229,7 +285,14 @@ Like `inferior-moz-process' but more careful."
 
 (defun mozadd-edited-file-is-shown ()
   (with-current-buffer mozadd-edited-buffer
-    (string= mozadd-mirror-location mozadd-initial-mirror-location)))
+    (message "mirror A: %S" mozadd-mirror-location)
+    (message "mirror B: %S" mozadd-initial-mirror-location)
+    (let ((res (compare-strings mozadd-mirror-location 0 nil
+                                mozadd-initial-mirror-location 0 nil
+                                t)))
+      (message "res=%s" res)
+      (eq t res)
+      )))
 
 (defvar mozadd-send-buffer-hook '(mozadd-isearch-send-buffer-hook-fun
                                   mozadd-re-builder-send-buffer-hook-fun)
@@ -341,6 +404,7 @@ This runs the hook `mozadd-send-buffer-hook' before sending."
     (mozadd-exec-next)))
 
 (defun mozadd-exec-next ()
+  (mozadd-moz-process)
   (when mozadd-current-task
     (let* ((old-task mozadd-current-task) ;;(pop mozadd-task-queue))
            (old-filter (when (listp old-task) (nth 1 old-task))))
@@ -359,14 +423,15 @@ This runs the hook `mozadd-send-buffer-hook' before sending."
                  (length input)
                  (substring input 0 (min 50 (length input)))
                  (mapcar (lambda (rec)
-                           (nth 1 rec))
+                           (if (listp rec) (nth 1 rec) rec))
                          mozadd-task-queue)))
       (if (not (listp this))
           (funcall this)
         (when (buffer-live-p inferior-moz-buffer)
           (with-current-buffer inferior-moz-buffer
             (add-hook 'comint-preoutput-filter-functions task nil t)))
-        (message "Sending to Mozilla now (%d chars) ..." (length input))
+        (message "Sending to Mozilla now (%d chars: %S) ..." (length input) (substring input 0
+                                                                                       (min 150 (length input))))
         (comint-send-string (inferior-moz-process) input)))))
 
 (defun mozadd-skip-current-task ()
@@ -402,12 +467,26 @@ This runs the hook `mozadd-send-buffer-hook' before sending."
 (defvar mozadd-update-key [(control ?c)(control ?c)])
 (defvar mozadd-submatch-key [(control ?c)(control ?0)])
 (defvar mozadd-mirror-mode-map
-  (let ((map (make-sparse-keymap "MozMirror")))
+  (let ((map (make-sparse-keymap "MozMirror"))
+        (menu-map (make-sparse-keymap)))
     (define-key map mozadd-update-key 'mozadd-update-mozilla)
     (define-key map mozadd-submatch-key 'mozadd-set-outline-regexp-submatch-num)
     (define-key map [(control ?c)(control ?a)] 'mozadd-toggle-auto-update)
     (define-key map [(control ?c)(control ?b)] 'mozadd-add-href-base)
     ;; Fix-me: menu
+    (define-key map [menu-bar mozadd-mirror-mode]
+      `(menu-item "MozMirror" ,menu-map))
+    (define-key menu-map [toggle]
+      `(menu-item "Toggle Auto Update of Firefox" mozadd-toggle-auto-update
+                  :button '(:toggle ,mozadd-auto-update-mirror)))
+    (define-key menu-map [base]
+      `(menu-item "Set Base URL" mozadd-add-href-base))
+    (define-key menu-map [div2] '(menu-item "--"))
+    (define-key menu-map [restart]
+      '(menu-item "Restart Mirroring" mozadd-restart-mirror))
+    (define-key menu-map [div1] '(menu-item "--"))
+    (define-key menu-map [update]
+      '(menu-item "Update Firefox" mozadd-update-mozilla))
     map))
 
 (defun mozadd-add-href-base (url)
@@ -447,7 +526,7 @@ This runs the hook `mozadd-send-buffer-hook' before sending."
 ;;;###autoload
 (define-minor-mode mozadd-mirror-mode
   "Mirror content of current file buffer in Firefox.
-When you turn on this mode the file you are editing will be
+When you turn on this mode the html file you are editing will be
 opened in Firefox.
 \\<mozadd-mirror-mode-map>
 Updating of Firefox is made when the buffer is saved and can be
@@ -460,7 +539,7 @@ outlines in Firefox.  To show submatches instead use
 
 The style for the outlines is `mozadd-matches-outline-style'.
 
-If `nxml-where-mode' is on the marks will also be shown in
+If `nxml-where-mode' is on its marks will also be shown in
 Firefox as CSS outline style.  These outlines have the style
 `mozadd-xml-path-outline-style'.
 
@@ -471,17 +550,14 @@ You can add that with the command \\[mozadd-add-href-base].
 When updating Firefox the hook `mozadd-send-buffer-hook' is run
 first.  \(This adds the CSS outlines above.)
 
-For the mirroring to work the edited file must be shown in
-Firefox and visible.  It happens sometimes that the communication
-with Firefox hangs.  Then try \\[mozadd-mirror-restart].
-
 Updating Firefox can also be done automatically.  In this case
-every change you make in the buffer will trigger a redraw in
-Firefox - regardless of if you save the file or not.  This is may
-be slow currently.
+every change you make in the buffer will trigger a redraw \(after
+a short delay) in Firefox - regardless of if you save the file or
+not.  This is maybe slow currently.
 
-See also `mozadd-refresh-edited-on-save-mode' which can be used
-when you edit CSS files."
+This mode also turn on `mozadd-refresh-edited-on-save-mode'.
+Note that the latter can be used when you edit CSS files to
+update Firefox when you save the CSS file."
   :lighter " MozMirror"
   :group 'mozadd
   (if mozadd-mirror-mode
@@ -493,7 +569,8 @@ when you edit CSS files."
                 ;; (when (buffer-modified-p)
                 ;;   (mozadd-warning "Please save buffer first")
                 ;;   (throw 'ok nil))
-                (mozadd-moz-process)
+                (unless (mozadd-moz-process)
+                  (throw 'ok nil))
                 (mozadd-clear-exec-queue)
                 (browse-url-of-file) ;; To open a new tab
                 (setq mozadd-edited-buffer (current-buffer))
@@ -503,7 +580,7 @@ when you edit CSS files."
                 (add-hook 'after-change-functions 'mozadd-auto-update-mozilla t t)
                 (add-hook 'nxhtml-where-hook 'mozadd-auto-update-mozilla t t)
                 (add-hook 'post-command-hook 'mozadd-edited-buffer-post-command)
-                ;; Fix-me: move to isearch-mode-hook
+                ;; Fix-me: move to isearch-mode-hook, or???
                 (define-prefix-command 'mozadd-isearch-control-c-map)
                 (define-key isearch-mode-map [(control ?c)] 'mozadd-isearch-control-c-map)
                 (define-key isearch-mode-map mozadd-update-key 'mozadd-update-mozilla)
@@ -516,8 +593,9 @@ when you edit CSS files."
     (remove-hook 'post-command-hook 'mozadd-edited-buffer-post-command)
     (remove-hook 'nxhtml-where-hook 'mozadd-auto-update-mozilla t)
     (remove-hook 'after-change-functions 'mozadd-auto-update-mozilla t)
-    (define-key isearch-mode-map mozadd-update-key 'isearch-other-meta-char)
-    (define-key isearch-mode-map mozadd-submatch-key 'isearch-other-meta-char)
+    (define-key isearch-mode-map [(control ?c)] 'isearch-other-meta-char)
+    ;;(define-key isearch-mode-map mozadd-update-key 'isearch-other-meta-char)
+    ;;(define-key isearch-mode-map mozadd-submatch-key 'isearch-other-meta-char)
     (define-key reb-mode-map mozadd-update-key nil)
     (define-key reb-mode-map mozadd-submatch-key nil)
     )
@@ -527,8 +605,15 @@ when you edit CSS files."
 (defun mozadd-restart-mirror ()
   "Restart `mozadd-mirror-mode'."
   (interactive)
-  (when mozadd-mirror-mode (mozadd-mirror-mode -1))
-  (mozadd-mirror-mode 1))
+  ;;(when mozadd-mirror-mode (mozadd-mirror-mode -1))
+  ;;(mozadd-mirror-mode 1)
+  (when (buffer-live-p inferior-moz-buffer)
+    (let ((proc (get-buffer-process inferior-moz-buffer)))
+      (when proc (delete-process proc)))
+    (kill-buffer inferior-moz-buffer))
+  (setq inferior-moz-buffer nil)
+  (mozadd-skip-current-task)
+  (mozadd-exec-next))
 
 (defun mozadd-edited-buffer-post-command ()
   "Check if we are in a new edited buffer."
@@ -538,34 +623,26 @@ when you edit CSS files."
 
 (defvar mozadd-buffer-content-to-mozilla-timer nil)
 
-(defvar mozadd-auto-update-mirror nil)
-(put 'mozadd-auto-update-mirror 'permanent-local t)
-(defun mozadd-toggle-auto-update ()
-  "Toggle auto update in `mozadd-mirror-mode'."
-  (interactive)
-  (set (make-local-variable 'mozadd-auto-update-mirror)
-       (not mozadd-auto-update-mirror)))
-
 (defun mozadd-auto-update-mozilla (&rest ignored)
   (when mozadd-auto-update-mirror
-    (mozadd-update-mozilla)))
+    (mozadd-update-mozilla mozadd-auto-update-delay)))
 (put 'mozadd-auto-update-mozilla 'permanent-local-hook t)
 
 (defun mozadd-update-mozilla-from-reb ()
   "Update Firefox from re-builder."
   (interactive)
   (with-current-buffer reb-target-buffer
-    (mozadd-update-mozilla)))
+    (mozadd-update-mozilla 0)))
 
-(defun mozadd-update-mozilla ()
+(defun mozadd-update-mozilla (delay)
   "Update Firefox."
-  (interactive)
+  (interactive (list 0))
   (if (not mozadd-mirror-mode)
       (message "This buffer is not mirrored in Firefox")
     (when (timerp mozadd-buffer-content-to-mozilla-timer)
       (cancel-timer mozadd-buffer-content-to-mozilla-timer))
     (setq mozadd-buffer-content-to-mozilla-timer
-          (run-with-idle-timer 1 nil 'mozadd-queue-send-buffer-content-to-mozilla (current-buffer)))
+          (run-with-idle-timer delay nil 'mozadd-queue-send-buffer-content-to-mozilla (current-buffer)))
     (message "Asked Firefox to update %s..." (current-time-string))))
 
 ;; (define-minor-mode mozadd-isearch-matches-mode
