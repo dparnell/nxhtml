@@ -5,6 +5,8 @@ y+
 yx*
 a\|b
 a\|bc?
+a*
+a*?
 aA?\|b
 \(?:a\|b\)
 \(a\|b\)
@@ -32,3 +34,6 @@ cd.a
 \wsome\W
 a[[:word:]]b
 a[[:wordx:]]b
+a\{5\}
+a\{5,7\}
+a\(b\)c\1d

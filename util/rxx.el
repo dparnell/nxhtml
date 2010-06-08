@@ -16,7 +16,7 @@
 ;;
 ;;; Commentary:
 ;;
-;;
+;; Parsing of string regexps to rx style.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -49,107 +49,37 @@
 
 (defvar my-rxx-test-details t)
 
-(defvar my-rxx-result nil)
-(defun my-rxx-insert ()
-  "testing"
-  (interactive)
-  (insert "(rx "
-          (format "%S" my-rxx-result)
-          ")"))
+;;;###autoload
+(defun rxx-parse-string (string read-syntax)
+  "Do like `rxx-parse' but parse STRING instead of current buffer.
+READ-SYNTAX has the same meaning and return value has the same
+format."
+  (with-temp-buffer
+    (insert string)
+    (rxx-parse read-syntax)))
 
-(defun my-rxx-parse-all (str-syntax)
-  "Test all rows in buffer."
-  (interactive "P")
-  (widen)
-  (let ((my-rxx-test-details nil))
-    (goto-char (point-min))
-    (while (not (eobp))
-      (my-rxx-parse str-syntax)
-      (forward-line 1))))
+;;;###autoload
+(defun rxx-parse (read-syntax)
+  "Parse current buffer regexp between point min and max.
+Return a cons with car t on success and nil otherwise.  If
+success the cdr is the produced form.  Otherwise it is an
+informative message about what went wrong.
 
-(defun my-rxx-parse (str-syntax)
-  "testing"
-  (interactive "P")
-  (save-restriction
-    (widen)
-    (narrow-to-region (point-at-bol) (point-at-eol))
-    (let* ((src (buffer-substring-no-properties (point-max) (point-min)))
-           (res-rx-rec (rxx-parse str-syntax))
-           (dummy (when my-rxx-test-details (message "res-rx-rec=%S" res-rx-rec)))
-           (res-rx-ok (car res-rx-rec))
-           (res-rx (when res-rx-ok (cdr res-rx-rec)))
-           evaled-done
-           (res-rx-to-string (condition-case err
-                                 (prog1
-                                     (eval (list 'rx res-rx))
-                                   (setq evaled-done t))
-                               (error (error-message-string err))))
-           (res-rx-again-rec (when res-rx-to-string
-                               (with-temp-buffer
-                                 (insert res-rx-to-string)
-                                 (rxx-parse str-syntax))))
-           (res-rx-again-ok (car res-rx-again-rec))
-           (res-rx-again (when res-rx-again-ok (cdr res-rx-again-rec)))
-           (same-str (string= src res-rx-to-string))
-           (nearly-same-str (or same-str
-                                (string= (concat "\\(?:" src "\\)")
-                                         res-rx-to-string)))
-           (same-rx-again (or same-str (equal res-rx-again res-rx)))
-           (res-rx-again-str (if (or same-rx-again (not res-rx-again))
-                                 ""
-                               (concat ", again=" (prin1-to-string res-rx-again))))
-           (ok-face '(:foreground "black" :background "green"))
-           (maybe-face '(:foreground "black" :background "yellow"))
-           (nearly-face '(:foreground "black" :background "yellow green"))
-           (fail-face '(:foreground "black" :background "red"))
-           (bad-regexp-face '(:foreground "black" :background "gray"))
-           (res-face
-            (cond (same-str ok-face)
-                  (nearly-same-str nearly-face)
-                  (same-rx-again  maybe-face)
-                  (t fail-face))))
-      (if (not res-rx-ok)
-          (let* ((bad (cdr res-rx-rec))
-                 (bad-msg (car bad))
-                 (bad-pos (cdr bad))
-                 (bad-pre  (buffer-substring-no-properties (point-min) bad-pos))
-                 (bad-post (buffer-substring-no-properties bad-pos (point-max))))
-            (web-vcs-message-with-face bad-regexp-face "parsed \"%s\" => %s: \"%s\" HERE \"%s\"" src bad-msg bad-pre bad-post))
-        (setq my-rxx-result res-rx)
-        (when my-rxx-test-details (message "res-rx-to-string=%s" res-rx-to-string))
-        (when same-str (setq res-rx-to-string (concat "EQUAL STR=" res-rx-to-string)))
-        (when same-rx-again (setq res-rx-again "EQUAL RX"))
-        (web-vcs-message-with-face
-         res-face
-         "parsed \"%s\" => %S => \"%s\" => %S" src res-rx res-rx-to-string res-rx-again)))))
-
-(global-set-key [(f9)] 'my-rxx-parse)
-(global-set-key [(control f9)] 'my-rxx-parse-all)
-(global-set-key [(shift f9)] 'my-rxx-insert)
-
-(defun rxx-parse (str-syntax)
-  "Parse buffer regexp between point min and max.
-If STR-SYNTAX is non-nil \\ must be doubled and things like \\n
-are recognized."
+If READ-SYNTAX then Emacs read syntax for strings is used.  This
+meanst that \\ must be doubled and things like \\n are
+recognized."
   (when my-rxx-test-details (web-vcs-message-with-face 'highlight "regexp src=%S" (buffer-string)))
   (goto-char (point-min))
   (let* (ok
          (res (catch 'bad-regexp
                 (prog1
-                    (rxx-parse-1 'and-top str-syntax nil)
+                    (rxx-parse-1 'and-top read-syntax nil)
                   (setq ok t)))))
     (if ok
         (cons t res)
       (cons nil res))))
 
-(defmacro rxx-parse-consume ()
-  ;; Play with
-  ;; - state
-  ;; - str-beg, str-end
-  ;; - result
-  ;; - sub call
-  )
-(defun rxx-parse-1 (what str-syntax end-with)
+(defun rxx-parse-1 (what read-syntax end-with)
   (unless (memq what '(and-top
                        or-top
                        and or
@@ -172,7 +102,8 @@ are recognized."
       (setq expr (list (char-after) (car state)))
       (forward-char)
       (cond
-       ;; Fix-me: greedy, times
+       ;; Fix-me: \sCODE \SCODE
+       ;; Fix-me: \cC \CC
        ( (equal expr '(?\[ CHARS))
          (unless (eq (char-after) ?:)
            (throw 'bad-regexp (cons "[ inside a char alt must start a char class, [:" (point))))
@@ -195,6 +126,41 @@ are recognized."
            (forward-char 2)
            )
          (setq str-beg (point))
+         )
+       ( (equal expr '(?\{ BS2))
+         (pop state)
+         (let ((pre (buffer-substring-no-properties str-beg (- (point) 2)))
+               (dbeg (point))
+               nstr
+               nbeg nend
+               last)
+           (unless (zerop (length pre))
+             (push pre result))
+           (setq last (pop result))
+           (skip-chars-forward "0-9")
+           (setq nstr (buffer-substring-no-properties dbeg (point)))
+           (setq nbeg (string-to-number nstr))
+           (cond ((eq (char-after) ?\\)
+                  (forward-char)
+                  (unless (eq (char-after) ?\})
+                    (throw 'bad-regexp (cons "Badly formatted repeat arg:" (point))))
+                  (forward-char))
+                 ((eq (char-after) ?\,)
+                  (forward-char)
+                  (setq dbeg (point))
+                  (skip-chars-forward "0-9")
+                  (setq nstr (buffer-substring-no-properties dbeg (point)))
+                  (setq nend (string-to-number nstr))
+                  (forward-char)
+                  (unless (eq (char-after) ?\})
+                    (throw 'bad-regexp (cons "Badly formatted repeat arg:" (point))))
+                  (forward-char))
+                 (t
+                  (throw 'bad-regexp (cons "Badly formatted repeat arg" (point)))))
+           (if nend
+               (push (list 'repeat nbeg nend last) result)
+             (push (list 'repeat nbeg last) result))
+           (setq str-beg (point)))
          )
        ( (equal expr '(?\_ BS2))
          (pop state)
@@ -311,7 +277,7 @@ are recognized."
          )
        ( (equal expr '(?\[  DEFAULT))
          (push (buffer-substring-no-properties str-beg (1- (point))) result)
-         (push (rxx-parse-1 'any str-syntax "]") result)
+         (push (rxx-parse-1 'any read-syntax "]") result)
          (setq str-beg (point))
          )
        ( (equal expr '(?\]  CHARS))
@@ -332,18 +298,25 @@ are recognized."
            (push (buffer-substring-no-properties (- (point) 2) (1- (point)))
                  result))
          (unless result (push "" result))
-         (let ((last (pop result))
-               ;; Fix-me: use single chars later
-               (op (case (car expr)
-                     (?? 'opt)
-                     (?+ 'one-or-more)
-                     (?* 'zero-or-more))))
-           (push (list op last) result))
+         (let* ((last (pop result))
+                (non-greedy (when (eq (char-after) ??)
+                              (forward-char)
+                              t))
+                (g (not non-greedy))
+                ;; Fix-me: use single chars later
+                (opc (car expr))
+                (op (cond
+                     ((eq opc ??) (if g '\? '\?\?)) ;;(intern-soft "?")
+                     ((eq opc ?+) (if g '+  '+\?))
+                     ((eq opc ?*) (if g '*  '*\?))
+                     ))
+                (matcher (list op last)))
+           (push matcher result))
          (setq str-beg (point))
          )
        ( (equal expr '(?\\ DEFAULT))
          (setq str-end (1- (point)))
-         (push (if str-syntax 'BS1 'BS2) state)
+         (push (if read-syntax 'BS1 'BS2) state)
          )
         ( (equal expr '(?\\ BS1))
           ;; string syntax:
@@ -360,7 +333,7 @@ are recognized."
           ;; Just look ahead, that is most simple.
           (if (not (eq (char-after) ??))
               (progn
-                (push (rxx-parse-1 'submatch str-syntax "\\)") result)
+                (push (rxx-parse-1 'submatch read-syntax "\\)") result)
                 (setq str-beg (point)))
             (forward-char)
             ;; \(?
@@ -374,7 +347,7 @@ are recognized."
                   (error "Found (?%d:, but can't handle it" nn))
               ;; \(?:
               (forward-char)
-              (push (rxx-parse-1 'and str-syntax "\\)") result)
+              (push (rxx-parse-1 'and read-syntax "\\)") result)
               (setq str-beg (point))))
           )
         ( (equal expr '(?\) BS2))
@@ -401,7 +374,7 @@ are recognized."
             ;;(unless last (throw 'bad-regexp (cons "\| without previous element" (point))))
             (unless last (setq last "")) ;; Will be made an 'opt below.
             (let ((or (if (eq 'and-top what) 'or 'or)))
-              (setq or-result (cadr (rxx-parse-1 or str-syntax nil))))
+              (setq or-result (cadr (rxx-parse-1 or read-syntax nil))))
             (pop state)
             (setq or-result (list last or-result))
             ;; Rework some degenerate cases to make it easier to test
@@ -430,6 +403,20 @@ are recognized."
             )
           )
         ( (eq (nth 1 expr) 'CHARS)
+          )
+        ( (eq (nth 1 expr) 'BS2)
+          (pop state)
+          ;; \DIGIT
+          (let ((pre (buffer-substring-no-properties str-beg (- (point) 2)))
+                (dstr (buffer-substring (1- (point)) (point)))
+                num)
+            (unless (zerop (length pre))
+              (push pre result))
+            (unless t ;;is-digit?
+              (throw 'bad-regexp (cons "Expected backref digit" (point))))
+            (setq num (string-to-number dstr))
+            (push (list 'backref num) result)
+            (setq str-beg (point)))
           )
         ( t (error "expr=(%c %s)" (car expr) (cadr expr))))
       (when want-single-item ;;(eq what 'or)
@@ -478,7 +465,89 @@ are recognized."
          (when my-rxx-test-details (message "res-inner c=%S" res-inner))
          res-inner)))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Tests
+
+(defvar my-rxx-result nil)
+
+(defun my-rxx-insert ()
+  "testing"
+  (interactive)
+  (insert "(rx "
+          (format "%S" my-rxx-result)
+          ")"))
+
+(defun my-rxx-parse-all (read-syntax)
+  "Test all rows in buffer."
+  (interactive "P")
+  (widen)
+  (let ((my-rxx-test-details nil))
+    (goto-char (point-min))
+    (while (not (eobp))
+      (my-rxx-parse read-syntax)
+      (forward-line 1))))
+
+(defun my-rxx-parse (read-syntax)
+  "testing"
+  (interactive "P")
+  (save-restriction
+    (widen)
+    (narrow-to-region (point-at-bol) (point-at-eol))
+    (let* ((src (buffer-substring-no-properties (point-max) (point-min)))
+           (res-rx-rec (rxx-parse read-syntax))
+           (dummy (when my-rxx-test-details (message "res-rx-rec=%S" res-rx-rec)))
+           (res-rx-ok (car res-rx-rec))
+           (res-rx (when res-rx-ok (cdr res-rx-rec)))
+           evaled-done
+           (res-rx-to-string (condition-case err
+                                 (prog1
+                                     (eval (list 'rx res-rx))
+                                   (setq evaled-done t))
+                               (error (error-message-string err))))
+           (res-rx-again-rec (when res-rx-to-string
+                               (with-temp-buffer
+                                 (insert res-rx-to-string)
+                                 (rxx-parse read-syntax))))
+           (res-rx-again-ok (car res-rx-again-rec))
+           (res-rx-again (when res-rx-again-ok (cdr res-rx-again-rec)))
+           (same-str (string= src res-rx-to-string))
+           (nearly-same-str (or same-str
+                                (string= (concat "\\(?:" src "\\)")
+                                         res-rx-to-string)))
+           (same-rx-again (or same-str (equal res-rx-again res-rx)))
+           (res-rx-again-str (if (or same-rx-again (not res-rx-again))
+                                 ""
+                               (concat ", again=" (prin1-to-string res-rx-again))))
+           (ok-face '(:foreground "black" :background "green"))
+           (maybe-face '(:foreground "black" :background "yellow"))
+           (nearly-face '(:foreground "black" :background "yellow green"))
+           (fail-face '(:foreground "black" :background "red"))
+           (bad-regexp-face '(:foreground "black" :background "gray"))
+           (res-face
+            (cond (same-str ok-face)
+                  (nearly-same-str nearly-face)
+                  (same-rx-again  maybe-face)
+                  (t fail-face))))
+      (if (not res-rx-ok)
+          (let* ((bad (cdr res-rx-rec))
+                 (bad-msg (car bad))
+                 (bad-pos (cdr bad))
+                 (bad-pre  (buffer-substring-no-properties (point-min) bad-pos))
+                 (bad-post (buffer-substring-no-properties bad-pos (point-max))))
+            (web-vcs-message-with-face bad-regexp-face "parsed \"%s\" => %s: \"%s\" HERE \"%s\"" src bad-msg bad-pre bad-post))
+        (setq my-rxx-result res-rx)
+        (when my-rxx-test-details (message "res-rx-to-string=%s" res-rx-to-string))
+        (when same-str (setq res-rx-to-string (concat "EQUAL STR=" res-rx-to-string)))
+        (when same-rx-again (setq res-rx-again "EQUAL RX"))
+        (web-vcs-message-with-face
+         res-face
+         "parsed \"%s\" => %S => \"%s\" => %S" src res-rx res-rx-to-string res-rx-again)))))
+
+(global-set-key [(f9)] 'my-rxx-parse)
+(global-set-key [(control f9)] 'my-rxx-parse-all)
+(global-set-key [(shift f9)] 'my-rxx-insert)
 
 
+(provide 'rxx)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; rxx.el ends here
