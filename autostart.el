@@ -47,7 +47,7 @@
 
 (message "Nxml/Nxhtml Autostart.el loading ...")
 
-(defconst nxhtml-autostart-trace nil)
+(defconst nxhtml-autostart-trace t)
 (defsubst nxhtml-autostart-trace (format-string &rest args)
   (when nxhtml-autostart-trace
     (apply 'message format-string args)))
@@ -157,10 +157,14 @@
   ;;   (nxhtml-setup-auto-download nxhtml-install-dir))
 
   (unless (featurep 'web-autoload)
+    (nxhtml-autostart-trace "... loading web-autoload")
     (load (expand-file-name "web-autoload" nxhtml-install-dir) (not nxhtml-autoload-web)))
+  (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
   (when nxhtml-autoload-web
+    (nxhtml-autostart-trace "... advicing require")
     (ad-activate 'require t))
+  (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
   ;; Fix-me: Why must as-external be loaded? Why doesn't it work in batch?
   ;;(unless noninteractive (require 'as-external))

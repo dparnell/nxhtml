@@ -135,6 +135,7 @@ variables above).
 Return the cdr of the found entry.
 
 If no entry was found return `emacs' for opening inside Emacs."
+  (require 'org)
   (let* ((apps (sex-get-apps))
          (key (if (org-file-remote-p path)
                   'remote

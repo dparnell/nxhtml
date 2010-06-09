@@ -61,6 +61,9 @@
 ;;
 ;;; Code:
 
+(defconst as-ext-load-time-start (float-time))
+
+(message " as-ext a %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'html-write nil t))
 (eval-when-compile (require 'mlinks nil t))
@@ -70,21 +73,22 @@
 (eval-when-compile (require 'pause nil t))
 (eval-when-compile (require 'server))
 (eval-when-compile (require 'mediawiki nil t))
-(declare-function mediawiki-mode "mediawiki") ;; Not in nXhtml
 (eval-and-compile  (require 'wrap-to-fill nil t))
 
-(eval-and-compile  (require 'rng-valid nil t))
-(declare-function nxhtml-validation-header-mode "nxhtml-mode")
-(declare-function rng-clear-overlays "rng-valid")
-(declare-function rng-process-encoding-name "rng-valid")
-(declare-function rng-clear-conditional-region "rng-valid")
-(declare-function rng-forward "rng-valid")
-(declare-function rng-state-matches-current "rng-valid")
-(declare-function rng-clear-cached-state "rng-valid")
-(declare-function rng-mark-xmltok-errors "rng-valid")
-(declare-function rng-mark-xmltok-dependent-regions "rng-valid")
-(declare-function rng-cache-state "rng-valid")
-(declare-function rng-process-end-document "rng-valid")
+;; (eval-and-compile  (require 'rng-valid nil t))
+;; (declare-function mediawiki-mode "mediawiki") ;; Not in nXhtml
+;; (declare-function nxhtml-validation-header-mode "nxhtml-mode")
+;; (declare-function rng-clear-overlays "rng-valid")
+;; (declare-function rng-process-encoding-name "rng-valid")
+;; (declare-function rng-clear-conditional-region "rng-valid")
+;; (declare-function rng-forward "rng-valid")
+;; (declare-function rng-state-matches-current "rng-valid")
+;; (declare-function rng-clear-cached-state "rng-valid")
+;; (declare-function rng-mark-xmltok-errors "rng-valid")
+;; (declare-function rng-mark-xmltok-dependent-regions "rng-valid")
+;; (declare-function rng-cache-state "rng-valid")
+;; (declare-function rng-process-end-document "rng-valid")
+(message " as-ext b %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
 
 ;;;###autoload
 (defgroup as-external nil
@@ -213,6 +217,8 @@ emacsw32-eol."
   (as-external-for-mail-mode)
   t)
 
+(message " as-ext c %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
+
 ;;;###autoload
 (define-derived-mode as-external-for-mail-mode text-mode "ExtMail "
   "Setup for Firefox addon It's All Text to edit mail.
@@ -252,7 +258,8 @@ See also `as-external-mode'."
 (defun as-external-check-contents ()
   "Try to guess the file contents."
   (cond
-   ((equal ";;" (buffer-substring-no-properties 1 3))
+   ((equal ";;" (and (< 2 (buffer-size))
+                     (buffer-substring-no-properties 1 3)))
     (as-external-for-el-files))
    ;; We don't know about this, let others handle it.
    (t nil)))
@@ -277,6 +284,7 @@ See also `as-external-mode'."
     (mediawiki-mode))
   t)
 
+(message " as-ext d %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
 
 ;;;###autoload
 (define-minor-mode as-external-mode
@@ -335,6 +343,8 @@ This is done by checking `as-external-alist'."
           (raise-frame as-external-my-frame)))
     (error (message "%s" (error-message-string err)))))
 
+(message " as-ext e %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
+
 (defun as-external-server-window (buffer)
   (setq server-window nil)
   (with-current-buffer buffer
@@ -358,6 +368,7 @@ This is done by checking `as-external-alist'."
     (let* ((use-server-window
             (catch 'fun
               (dolist (rec as-external-alist)
+                (msgtrc "as-external-setup-1 rec=%S" rec)
                 (let ((file-regexp (car rec))
                       (setup-fun   (cadr rec)))
                   (when (symbolp file-regexp)
@@ -372,6 +383,7 @@ This is done by checking `as-external-alist'."
         ;; Setup to use a new frame
         (setq server-window 'as-external-server-window)))))
 
+(message " as-ext fin %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
 (provide 'as-external)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; as-external.el ends here

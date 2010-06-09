@@ -241,18 +241,41 @@ See also `inferior-moz-start-process'."
 
 (defvar mozrepl-home-page "http://hyperstruct.net/projects/mozrepl")
 
+;;;###autoload
+(defun inferior-moz-stop-process ()
+  "Stop what `inferior-moz-start-process' started."
+  (interactive)
+  (cond
+   ((null inferior-moz-buffer)
+    (message "MozRepl already stopped, no inferior moz process buffer"))
+   ((buffer-live-p inferior-moz-buffer)
+    (message "MozRepl already stopped, inferior moz process buffer not alive"))
+   (t
+    (let ((proc (get-buffer-process inferior-moz-buffer)))
+      (if proc
+          (progn
+            (delete-process proc)
+            (message "Stopped MozRepl"))
+        (message "MozRepl already stopped")))))
+  (setq inferior-moz-buffer nil))
+
+;;;###autoload
 (defun inferior-moz-start-process ()
   "Start an inferior Mozrepl process and connect to Firefox.
-It runs the hook `inferior-moz-hook' after starting the process
-and setting up the inferior Firefox buffer.
+If the process is already running stop it first.
+
+Run the hook `inferior-moz-hook' after starting the process and
+setting up the inferior Firefox buffer.
 
 Note that you have to start the MozRepl server from Firefox."
   (interactive)
   (condition-case err
       (progn
+        (inferior-moz-stop-process)
         (setq inferior-moz-buffer
               (apply 'make-comint "MozRepl" (cons moz-repl-host moz-repl-port) nil nil))
         (sleep-for 0 100)
+        (set-process-query-on-exit-flag (get-buffer-process inferior-moz-buffer) nil)
         (with-current-buffer inferior-moz-buffer
           (inferior-moz-mode)
           (run-hooks 'inferior-moz-hook)))

@@ -1694,7 +1694,7 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
                                 (functionp sym)
                                 (symbol-function sym)))
                  (form-var (boundp sym))
-                 (safe-forms '( defun defmacro
+                 (safe-forms '( defun defmacro defsubst
                                 define-minor-mode define-globalized-minor-mode
                                 defvar defconst
                                 defcustom

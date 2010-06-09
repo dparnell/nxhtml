@@ -190,7 +190,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-menu-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp mumamo-switch-to-other-html)
-;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19459 64864))
+;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19470 36516))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -661,8 +661,9 @@ The [code] section, if any, will be in `pascal-mode'." t)
 
 ;;;***
 
-;;;### (autoloads (inferior-moz-mode moz-minor-mode) "../related/moz"
-;;;;;;  "related/moz.el" (19447 57410))
+;;;### (autoloads (inferior-moz-start-process inferior-moz-stop-process
+;;;;;;  inferior-moz-mode moz-minor-mode) "../related/moz" "related/moz.el"
+;;;;;;  (19470 36862))
 ;;; Generated autoloads from related/moz.el
 (web-autoload-require 'moz 'lp '(nxhtml-download-root-url nil) "related/moz" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -689,11 +690,27 @@ Major mode for interacting with Firefox via MozRepl.
 
 \(fn)" t nil)
 
+(nxhtml-autoload 'inferior-moz-stop-process `(lp '(nxhtml-download-root-url nil) "related/moz" nxhtml-install-dir) "\
+Stop what `inferior-moz-start-process' started.
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'inferior-moz-start-process `(lp '(nxhtml-download-root-url nil) "related/moz" nxhtml-install-dir) "\
+Start an inferior Mozrepl process and connect to Firefox.
+If the process is already running stop it first.
+
+Run the hook `inferior-moz-hook' after starting the process and
+setting up the inferior Firefox buffer.
+
+Note that you have to start the MozRepl server from Firefox.
+
+\(fn)" t nil)
+
 ;;;***
 
-;;;### (autoloads (global-mozadd-mirror-mode mozadd-mirror-mode global-mozadd-refresh-edited-on-save-mode
+;;;### (autoloads (mozadd-mirror-mode global-mozadd-refresh-edited-on-save-mode
 ;;;;;;  mozadd-refresh-edited-on-save-mode) "../related/mozadd" "related/mozadd.el"
-;;;;;;  (19447 57410))
+;;;;;;  (19470 36716))
 ;;; Generated autoloads from related/mozadd.el
 (web-autoload-require 'mozadd 'lp '(nxhtml-download-root-url nil) "related/mozadd" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -701,7 +718,8 @@ Major mode for interacting with Firefox via MozRepl.
 (nxhtml-autoload 'mozadd-refresh-edited-on-save-mode `(lp '(nxhtml-download-root-url nil) "related/mozadd" nxhtml-install-dir) "\
 Refresh mozadd edited file in Firefox when saving file.
 The mozadd edited file is the file in the last buffer visited in
-`mozadd-mirror-mode'.
+`mozadd-mirror-mode'.  If the current buffer is an html file then
+this file will be refreshed.
 
 You can use this for example when you edit CSS files.
 
@@ -729,38 +747,40 @@ See `mozadd-refresh-edited-on-save-mode' for more information on Mozadd-Refresh-
 \(fn &optional ARG)" t nil)
 
 (nxhtml-autoload 'mozadd-mirror-mode `(lp '(nxhtml-download-root-url nil) "related/mozadd" nxhtml-install-dir) "\
-Mirror content of current file buffer immediately in Firefox.
-When you turn on this mode the file will be opened in Firefox.
-Every change you make in the buffer will trigger a redraw in
-Firefox - regardless of if you save the file or not.
+Mirror content of current file buffer in Firefox.
+When you turn on this mode the html file you are editing will be
+opened in Firefox.
+\\<mozadd-mirror-mode-map>
+Updating of Firefox is made when the buffer is saved and can be
+made any time with \\[mozadd-update-mozilla].
 
-For the mirroring to work the edited file must be shown in
-Firefox and visible.
+This can be done also during `isearch-mode' and from
+`re-builder'.  Tags containing matches are then shown as CSS
+outlines in Firefox.  To show submatches instead use
+\\[mozadd-set-outline-regexp-submatch-num].
 
-If `nxml-where-mode' is on the marks will also be shown in
-Firefox as CSS outline style.  You can customize the style
-through the option `mozadd-xml-path-outline-style'.
+The style for the outlines is `mozadd-matches-outline-style'.
 
-See also `mozadd-refresh-edited-on-save-mode'.
+If `nxml-where-mode' is on its marks will also be shown in
+Firefox as CSS outline style.  These outlines have the style
+`mozadd-xml-path-outline-style'.
 
-\(fn &optional ARG)" t nil)
+If you are editing a file from a web URL you may want to add a
+<base href=... /> tag to get the page looking better in Firefox.
+You can add that with the command \\[mozadd-add-href-base].
 
-(defvar global-mozadd-mirror-mode nil "\
-Non-nil if Global-Mozadd-Mirror mode is enabled.
-See the command `global-mozadd-mirror-mode' for a description of this minor mode.
-Setting this variable directly does not take effect;
-either customize it (see the info node `Easy Customization')
-or call the function `global-mozadd-mirror-mode'.")
+When updating Firefox the hook `mozadd-send-buffer-hook' is run
+first.  (This adds the CSS outlines above.)
 
-(nxhtml-custom-autoload 'global-mozadd-mirror-mode '../related/mozadd nil)
+Updating Firefox can also be done automatically.  In this case
+every change you make in the buffer will trigger a redraw (after
+a short delay) in Firefox - regardless of if you save the file or
+not.  This is maybe slow currently.  However to turn this on use
+`mozadd-auto-update-mirror-mode'.
 
-(nxhtml-autoload 'global-mozadd-mirror-mode `(lp '(nxhtml-download-root-url nil) "related/mozadd" nxhtml-install-dir) "\
-Toggle Mozadd-Mirror mode in every possible buffer.
-With prefix ARG, turn Global-Mozadd-Mirror mode on if and only if
-ARG is positive.
-Mozadd-Mirror mode is enabled in all buffers where
-`(lambda nil (when (mozadd-html-buffer-file-p) (mozadd-mirror-mode 1)))' would do it.
-See `mozadd-mirror-mode' for more information on Mozadd-Mirror mode.
+This mode also turn on `mozadd-refresh-edited-on-save-mode'.
+Note that the latter can be used when you edit CSS files to
+update Firefox when you save the CSS file.
 
 \(fn &optional ARG)" t nil)
 
@@ -1365,7 +1385,7 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 ;;;### (autoloads (web-vcs-investigate-elisp-file web-vcs-url-copy-file
 ;;;;;;  web-vcs-url-retrieve-synch web-vcs-byte-compile-file web-vcs-message-with-face
 ;;;;;;  web-vcs-get-files-from-root web-vcs-log-edit web-vcs-default-download-directory)
-;;;;;;  "../web-vcs" "web-vcs.el" (19459 64864))
+;;;;;;  "../web-vcs" "web-vcs.el" (19471 19834))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1553,7 +1573,7 @@ much about computation time as for entries in the menu bar.
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-el-files
 ;;;;;;  as-external-check-contents as-external-for-mail-mode as-external-for-xhtml
-;;;;;;  as-external) "as-external" "util/as-external.el" (19459 64864))
+;;;;;;  as-external) "as-external" "util/as-external.el" (19470 60532))
 ;;; Generated autoloads from util/as-external.el
 (web-autoload-require 'as-external 'lp '(nxhtml-download-root-url nil) "util/as-external" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2387,7 +2407,7 @@ before applying.
 ;;;***
 
 ;;;### (autoloads (markchars-global-mode markchars-mode markchars)
-;;;;;;  "markchars" "util/markchars.el" (19376 1952))
+;;;;;;  "markchars" "util/markchars.el" (19461 56966))
 ;;; Generated autoloads from util/markchars.el
 (web-autoload-require 'markchars 'lp '(nxhtml-download-root-url nil) "util/markchars" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2835,7 +2855,7 @@ Fix-me: This does not yet take care of inner chunks." t)
 ;;;***
 
 ;;;### (autoloads (mumamo-add-region-from-string mumamo-add-region)
-;;;;;;  "mumamo-regions" "util/mumamo-regions.el" (19459 64864))
+;;;;;;  "mumamo-regions" "util/mumamo-regions.el" (19461 14930))
 ;;; Generated autoloads from util/mumamo-regions.el
 (web-autoload-require 'mumamo-regions 'lp '(nxhtml-download-root-url nil) "util/mumamo-regions" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2953,21 +2973,22 @@ Color up digits three by three.
 ;;;***
 
 ;;;### (autoloads (ourcomments-warning ourcomments-M-x-menu-mode
-;;;;;;  ourcomments-paste-with-convert-mode use-custom-style info-open-file
-;;;;;;  replace-read-files rdir-query-replace ldir-query-replace
-;;;;;;  grep-query-replace emacs-Q-nxhtml emacs-Q emacs--no-desktop
-;;;;;;  emacs--debug-init emacs-buffer-file emacs emacs-restart ourcomments-ido-ctrl-tab
-;;;;;;  ourcomments-ido-buffer-raise-frame ourcomments-ido-buffer-other-frame
-;;;;;;  ourcomments-ido-buffer-other-window describe-symbol describe-defstruct
-;;;;;;  describe-custom-group widen-to-comments-above narrow-to-defun+comments-above
-;;;;;;  narrow-to-comment buffer-narrowed-p describe-command ourcomments-ediff-files
+;;;;;;  ourcomments-paste-with-convert-mode ourcomments-copy-target-region-to-reb
+;;;;;;  use-custom-style info-open-file replace-read-files rdir-query-replace
+;;;;;;  ldir-query-replace grep-query-replace emacs-Q-nxhtml emacs-Q
+;;;;;;  emacs--no-desktop emacs--debug-init emacs-buffer-file emacs
+;;;;;;  emacs-restart ourcomments-ido-ctrl-tab ourcomments-ido-buffer-raise-frame
+;;;;;;  ourcomments-ido-buffer-other-frame ourcomments-ido-buffer-other-window
+;;;;;;  describe-symbol describe-defstruct describe-custom-group
+;;;;;;  widen-to-comments-above narrow-to-defun+comments-above narrow-to-comment
+;;;;;;  buffer-narrowed-p describe-command ourcomments-ediff-files
 ;;;;;;  find-emacs-other-file ediff-emacs-other-file ourcomments-insert-date-and-time
 ;;;;;;  describe-timers ourcomments-copy+paste-set-point better-fringes-mode
 ;;;;;;  describe-key-and-map-briefly ourcomments-move-end-of-line
 ;;;;;;  ourcomments-move-beginning-of-line ourcomments-mark-whole-buffer-or-field
 ;;;;;;  fill-dwim unfill-individual-paragraphs unfill-region unfill-paragraph
 ;;;;;;  define-toggle-old define-toggle popup-menu-at-point ourcomments-indirect-fun)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19459 64864))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19471 17685))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3331,6 +3352,11 @@ Setup like in `Custom-mode', but without things specific to Custom.
 
 \(fn)" nil nil)
 
+(nxhtml-autoload 'ourcomments-copy-target-region-to-reb `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Copy region in re-builder target buffer to reb buffer.
+
+\(fn)" t nil)
+
 (defvar ourcomments-paste-with-convert-mode nil "\
 Non-nil if Ourcomments-Paste-With-Convert mode is enabled.
 See the command `ourcomments-paste-with-convert-mode' for a description of this minor mode.
@@ -3590,6 +3616,33 @@ Major mode for editing RELAX NG Compact Syntax schemas.
 
 ;;;***
 
+;;;### (autoloads (rxx-parse rxx-parse-string) "rxx" "util/rxx.el"
+;;;;;;  (19471 57190))
+;;; Generated autoloads from util/rxx.el
+(web-autoload-require 'rxx 'lp '(nxhtml-download-root-url nil) "util/rxx" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'rxx-parse-string `(lp '(nxhtml-download-root-url nil) "util/rxx" nxhtml-install-dir) "\
+Do like `rxx-parse' but parse STRING instead of current buffer.
+READ-SYNTAX has the same meaning and return value has the same
+format.
+
+\(fn STRING READ-SYNTAX)" nil nil)
+
+(nxhtml-autoload 'rxx-parse `(lp '(nxhtml-download-root-url nil) "util/rxx" nxhtml-install-dir) "\
+Parse current buffer regexp between point min and max.
+Return a cons with car t on success and nil otherwise.  If
+success the cdr is the produced form.  Otherwise it is an
+informative message about what went wrong.
+
+If READ-SYNTAX then Emacs read syntax for strings is used.  This
+meanst that \\ must be doubled and things like \\n are
+recognized.
+
+\(fn READ-SYNTAX)" nil nil)
+
+;;;***
+
 ;;;### (autoloads (search-form) "search-form" "util/search-form.el"
 ;;;;;;  (19275 63380))
 ;;; Generated autoloads from util/search-form.el
@@ -3629,8 +3682,8 @@ ENGINE must be key in `search-net-search-setup-alist'.
 
 ;;;***
 
-;;;### (autoloads (sex-mode sex) "sex-mode" "util/sex-mode.el" (19218
-;;;;;;  42182))
+;;;### (autoloads (sex-mode sex) "sex-mode" "util/sex-mode.el" (19470
+;;;;;;  58532))
 ;;; Generated autoloads from util/sex-mode.el
 (web-autoload-require 'sex-mode 'lp '(nxhtml-download-root-url nil) "util/sex-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3758,31 +3811,6 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (tyda-mode) "tyda" "util/tyda.el" (19275 63380))
-;;; Generated autoloads from util/tyda.el
-(web-autoload-require 'tyda 'lp '(nxhtml-download-root-url nil) "util/tyda" nxhtml-install-dir 'nxhtml-byte-compile-file)
-
-
-(defvar tyda-mode nil "\
-Non-nil if Tyda mode is enabled.
-See the command `tyda-mode' for a description of this minor mode.
-Setting this variable directly does not take effect;
-either customize it (see the info node `Easy Customization')
-or call the function `tyda-mode'.")
-
-(nxhtml-custom-autoload 'tyda-mode 'tyda nil)
-
-(nxhtml-autoload 'tyda-mode `(lp '(nxhtml-download-root-url nil) "util/tyda" nxhtml-install-dir) "\
-Minor mode for key bindings for `tyda-lookup-word'.
-It binds Alt-Mouse-1 just as the Tyda add-on does in Firefox.
-Here are all key bindings
-
-\\{tyda-mode-map}
-
-\(fn &optional ARG)" t nil)
-
-;;;***
-
 ;;;### (autoloads (udev-call-first-step) "udev" "util/udev.el" (19412
 ;;;;;;  30364))
 ;;; Generated autoloads from util/udev.el
@@ -3896,7 +3924,7 @@ Display vertical line mode as globally.
 ;;;***
 
 ;;;### (autoloads (web-vcs-linkpatt-mode) "web-vcs-linkpatt" "util/web-vcs-linkpatt.el"
-;;;;;;  (19447 57410))
+;;;;;;  (19464 25004))
 ;;; Generated autoloads from util/web-vcs-linkpatt.el
 (web-autoload-require 'web-vcs-linkpatt 'lp '(nxhtml-download-root-url nil) "util/web-vcs-linkpatt" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4280,7 +4308,7 @@ quarter clockwise (or counter clockwise with prefix).
 
 ;;;### (autoloads (wrap-to-fill-column-mode wrap-to-fill-left-marg-modes
 ;;;;;;  wrap-to-fill-left-marg wrap-to-fill) "wrap-to-fill" "util/wrap-to-fill.el"
-;;;;;;  (19459 64864))
+;;;;;;  (19461 15796))
 ;;; Generated autoloads from util/wrap-to-fill.el
 (web-autoload-require 'wrap-to-fill 'lp '(nxhtml-download-root-url nil) "util/wrap-to-fill" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4386,8 +4414,8 @@ accept it or skip it.
 ;;;;;;  "util/appmenu-fold.el" "util/css-simple-completion.el" "util/custsets.el"
 ;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/idn.el"
 ;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/org-panel.el"
-;;;;;;  "util/rxi.el" "util/tipframe.el" "util/useful-commands.el"
-;;;;;;  "web-autoload.el") (19460 22461 640000))
+;;;;;;  "util/rxi.el" "util/tipframe.el" "web-autoload.el") (19471
+;;;;;;  58537 0))
 
 ;;;***
 
