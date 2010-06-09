@@ -505,6 +505,10 @@
 
         (define-key mozrepl-map [nxhtml-mozrepl-separator2]
           (list 'menu-item "--" nil))
+        (define-key mozrepl-map [nxhtml-mozrepl-auto-refresh]
+          (list 'menu-item "Refresh Firefox on Edit" 'mozadd-auto-update-mirror-mode
+                :button '(:toggle . (and (boundp 'mozadd-auto-update-mirror-mode)
+                                         mozadd-auto-update-mirror-mode))))
         (define-key mozrepl-map [nxhtml-mozrepl-refresh]
           (list 'menu-item "Refresh Firefox on Save" 'mozadd-refresh-edited-on-save-mode
                 :button '(:toggle . (and (boundp 'mozadd-refresh-edited-on-save-mode)

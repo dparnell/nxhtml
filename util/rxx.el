@@ -81,22 +81,23 @@ recognized."
 
 (defun rxx-parse-1 (what read-syntax end-with)
   (unless (memq what '(and-top
-                       or-top
                        and or
-                       group
                        submatch
                        any))
     (error "internal error, what=%s" what))
   (let* ((this-state (case what
                        (any 'CHARS)
                        (t 'DEFAULT)))
-         (state `(,this-state))
+         (state (list this-state))
+         (is-top (when (eq what 'and-top)
+                   (setq what 'and)
+                   t))
          expr
-        (str-beg (point))
-        str-end
-        result
-        ret-result
-        (want-single-item (not (memq what '(and and-top submatch)))))
+         (str-beg (point))
+         str-end
+         result
+         ret-result
+         (want-single-item (not (memq what '(and submatch)))))
     (while (not (or (eobp)
                     ret-result))
       (setq expr (list (char-after) (car state)))
@@ -287,17 +288,12 @@ recognized."
          (push (buffer-substring-no-properties str-beg (1- (point))) result)
          (setq ret-result result)
          (setq str-beg (point))
+         (assert (= (char-before str-beg) ?\]) t)
          )
        ( (or (equal expr '(??  DEFAULT))
              (equal expr '(?+  DEFAULT))
              (equal expr '(?*  DEFAULT)))
-         (when (< str-beg (point))
-           (when (< str-beg (1- (point)))
-             (push (buffer-substring-no-properties str-beg (- (point) 2))
-                   result))
-           (push (buffer-substring-no-properties (- (point) 2) (1- (point)))
-                 result))
-         (unless result (push "" result))
+         (assert (= str-beg (1- (point))) t)
          (let* ((last (pop result))
                 (non-greedy (when (eq (char-after) ??)
                               (forward-char)
@@ -318,107 +314,115 @@ recognized."
          (setq str-end (1- (point)))
          (push (if read-syntax 'BS1 'BS2) state)
          )
-        ( (equal expr '(?\\ BS1))
-          ;; string syntax:
-          (pop state)
-          (push 'BS2 state)
-          )
-        ( (eq (nth 1 expr) 'BS1)
-          (pop state)
-          (push 'DEFAULT state)
-          )
-        ( (equal expr '(?\( BS2))
-          (pop state)
-          (push (buffer-substring-no-properties str-beg str-end) result)
-          ;; Just look ahead, that is most simple.
-          (if (not (eq (char-after) ??))
-              (progn
-                (push (rxx-parse-1 'submatch read-syntax "\\)") result)
-                (setq str-beg (point)))
-            (forward-char)
-            ;; \(?
-            (if (not (eq (char-after) ?:))
-                ;; (?nn:...) (?24:...)
-                (let ((n-beg (point))
-                      nn)
-                  (skip-chars-forward "0-9")
-                  (setq nn (string-to-number (buffer-substring-no-properties n-beg (1- (point)))))
-                  ;; fix-me: this can't be used until rx knows about it.
-                  (error "Found (?%d:, but can't handle it" nn))
-              ;; \(?:
-              (forward-char)
-              (push (rxx-parse-1 'and read-syntax "\\)") result)
-              (setq str-beg (point))))
-          )
-        ( (equal expr '(?\) BS2))
-          ;; (when (memq what '(and-top or-top))
-          ;;   (throw 'bad-regexp (cons "Trailing \\) in regexp" (- (point) 2))))
-          (if (string= end-with "\\)")
-              (setq end-with nil)
-            (throw 'bad-regexp (cons "Trailing \\) in regexp" (- (point) 2))))
-          (push (buffer-substring-no-properties str-beg str-end) result)
-          (pop state)
-          (setq ret-result result)
-          (setq str-beg (point))
-          )
-        ( (equal expr '(?\| BS2))
-          ;; Fix-me: we only want the last char here. And perhaps there is no string before.
-          (when (> str-end str-beg)
-            (let ((last-string (buffer-substring-no-properties str-beg (1- str-end))))
-              (when (or (not (zerop (length last-string)))
-                        (not result))
-                (push last-string result)))
-            (push (buffer-substring-no-properties (1- str-end) str-end) result))
-          (let ((last (pop result))
-                or-result)
-            ;;(unless last (throw 'bad-regexp (cons "\| without previous element" (point))))
-            (unless last (setq last "")) ;; Will be made an 'opt below.
-            (let ((or (if (eq 'and-top what) 'or 'or)))
-              (setq or-result (cadr (rxx-parse-1 or read-syntax nil))))
-            (pop state)
-            (setq or-result (list last or-result))
-            ;; Rework some degenerate cases to make it easier to test
-            ;; if we have done things right.
-            (when (= 2 (length or-result))
-              (setq or-result (delete "" or-result)))
-            (if (= 1 (length or-result))
-                ;; One side of or is empty so it is an 'opt.
-                (push (cons 'opt or-result) result)
-              (let ((or-chars (catch 'or-chars
-                                (dolist (in or-result)
-                                  (unless (and (stringp in)
-                                               (= 1 (length in)))
-                                    (throw 'or-chars nil)))
-                                (mapconcat 'identity or-result ""))))
-                ;; Only single chars so this is an 'any.
-                (if or-chars
-                    (push (list 'any or-chars) result)
-                  (push (cons 'or or-result) result)))))
-          (setq str-beg (point))
-          )
-        ( (eq (nth 1 expr) 'DEFAULT) ;; Normal char that matches itself
-          (when want-single-item
-            (push (buffer-substring-no-properties str-beg (point)) result)
-            (setq str-beg (point)) ;; why?
-            )
-          )
-        ( (eq (nth 1 expr) 'CHARS)
-          )
-        ( (eq (nth 1 expr) 'BS2)
-          (pop state)
-          ;; \DIGIT
-          (let ((pre (buffer-substring-no-properties str-beg (- (point) 2)))
-                (dstr (buffer-substring (1- (point)) (point)))
-                num)
-            (unless (zerop (length pre))
-              (push pre result))
-            (unless t ;;is-digit?
-              (throw 'bad-regexp (cons "Expected backref digit" (point))))
-            (setq num (string-to-number dstr))
-            (push (list 'backref num) result)
-            (setq str-beg (point)))
-          )
-        ( t (error "expr=(%c %s)" (car expr) (cadr expr))))
+       ( (equal expr '(?\\ BS1))
+         ;; string syntax:
+         (pop state)
+         (push 'BS2 state)
+         )
+       ( (eq (nth 1 expr) 'BS1)
+         (pop state)
+         (push 'DEFAULT state)
+         )
+       ( (equal expr '(?\( BS2))
+         (pop state)
+         (push (buffer-substring-no-properties str-beg str-end) result)
+         ;; Just look ahead, that is most simple.
+         (if (not (eq (char-after) ??))
+             (progn
+               (push (rxx-parse-1 'submatch read-syntax "\\)") result)
+               (setq str-beg (point)))
+           (forward-char)
+           ;; \(?
+           (if (not (eq (char-after) ?:))
+               ;; (?nn:...) (?24:...)
+               (let ((n-beg (point))
+                     nn)
+                 (skip-chars-forward "0-9")
+                 (unless (eq (char-after) ?:)
+                   (error "Expected : after (?nn"))
+                 (setq nn (string-to-number (buffer-substring-no-properties n-beg (point))))
+                 (forward-char)
+                 ;; fix-me: this can't be used until rx knows about it.
+                 ;;(error "Found (?%d:, but can't handle it" nn)
+                 (let ((sm (rxx-parse-1 'submatch read-syntax "\\)")))
+                   (push (cons 'submatch-n (cons nn (cdr sm))) result))
+                 ;;(push (rxx-parse-1 'submatch-n read-syntax "\\)") result)
+                 (setq str-beg (point)))
+             ;; \(?:
+             (forward-char)
+             (push (rxx-parse-1 'and read-syntax "\\)") result)
+             (setq str-beg (point))))
+         )
+       ( (equal expr '(?\) BS2))
+         (if (string= end-with "\\)")
+             (setq end-with nil)
+           (throw 'bad-regexp (cons "Trailing \\) in regexp" (- (point) 2))))
+         (push (buffer-substring-no-properties str-beg str-end) result)
+         (pop state)
+         (setq ret-result result)
+         (setq str-beg (point))
+         )
+       ( (equal expr '(?\| BS2))
+         ;; Fix-me: we only want the last char here. And perhaps there is no string before.
+         (when (> str-end str-beg)
+           (let ((last-string (buffer-substring-no-properties str-beg (1- str-end))))
+             (when (or (not (zerop (length last-string)))
+                       (not result))
+               (push last-string result)))
+           (push (buffer-substring-no-properties (1- str-end) str-end) result))
+         (let ((last (pop result))
+               or-result)
+           ;;(unless last (throw 'bad-regexp (cons "\| without previous element" (point))))
+           (unless last (setq last "")) ;; Will be made an 'opt below.
+           (setq or-result (cdr (rxx-parse-1 'or read-syntax nil)))
+           (pop state)
+           (message "or-result 1=%S" or-result)
+           (setq or-result (push last or-result))
+           (message "or-result 2=%S" or-result)
+           ;; Rework some degenerate cases to make it easier to test
+           ;; if we have done things right.
+           (when (= 2 (length or-result))
+             (setq or-result (delete "" or-result)))
+           (message "or-result 3=%S" or-result)
+           (if (= 1 (length or-result))
+               ;; One side of or is empty so it is an 'opt.
+               (push (cons 'opt or-result) result)
+             (let ((or-chars (catch 'or-chars
+                               (dolist (in or-result)
+                                 (unless (and (stringp in)
+                                              (= 1 (length in)))
+                                   (throw 'or-chars nil)))
+                               (mapconcat 'identity or-result ""))))
+               ;; Only single chars so this is an 'any.
+               (if or-chars
+                   (push (list 'any or-chars) result)
+                 (push (cons 'or or-result) result)))))
+         (setq str-beg (point))
+         )
+       ( (eq (nth 1 expr) 'DEFAULT) ;; Normal char that matches itself
+         (when want-single-item
+           (push (buffer-substring-no-properties str-beg (point)) result)
+           (setq str-beg (point)) ;; why?
+           )
+         )
+       ( (eq (nth 1 expr) 'CHARS)
+         )
+       ( (eq (nth 1 expr) 'BS2)
+         (pop state)
+         ;;(pop state)
+         (let ((cc (nth 0 expr)))
+           (cond
+            ( (and (<= ?0 cc)
+                   (<= cc ?9))
+              (push (list 'backref (- cc ?0)) result))
+            ( (= cc ?n) (push (char-to-string ?\n) result))
+            ( (= cc ?r) (push (char-to-string ?\r) result))
+            ( (= cc ?f) (push (char-to-string ?\f) result))
+            ( (= cc ?d) (push (char-to-string ?\d) result))
+            ( t (push (char-to-string cc) result))))
+         (setq str-beg (point))
+         )
+       ( t (error "expr=(%c %s)" (car expr) (cadr expr))))
       (when want-single-item ;;(eq what 'or)
         ;; We only want one
         (setq ret-result result))
@@ -441,15 +445,21 @@ recognized."
     (setq ret-result result)
 
     ;; Return value:
-    (setq what (case what
-                 (and-top 'and)
-                 (or-top 'or)
-                 (t what)))
     (let ((res-inner (reverse ret-result)))
-      (when (memq what '(and submatch))
-        (setq res-inner (delete "" res-inner)))
+      (when (< 1 (length res-inner))
+        (when (memq what '(and submatch))
+          (setq res-inner (delete "" res-inner))
+          (let ((new-res nil))
+            (dolist (rec res-inner)
+              (if (and (stringp rec)
+                       (stringp (car new-res)))
+                  (push (concat rec (pop new-res))
+                        new-res)
+                (push rec new-res)))
+            (setq res-inner (reverse new-res)))
+          ))
       (cond
-       ( (and (memq what '(and and-top))
+       ( (and (memq what '(and))
               (= 1 (length res-inner)))
          (car res-inner)
          )

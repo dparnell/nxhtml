@@ -105,13 +105,12 @@
   "Customization group for `mozadd-mirror-mode'."
   :group 'moz)
 
-(defvar mozadd-auto-update-mirror nil)
-(put 'mozadd-auto-update-mirror 'permanent-local t)
-(defun mozadd-toggle-auto-update ()
-  "Toggle auto update in `mozadd-mirror-mode'."
-  (interactive)
-  (set (make-local-variable 'mozadd-auto-update-mirror)
-       (not mozadd-auto-update-mirror)))
+;;(defvar mozadd-auto-update-mirror nil)
+(put 'mozadd-auto-update-mirror-mode 'permanent-local t)
+;;(define-minor-mode mozadd-toggle-auto-update ()
+(define-minor-mode mozadd-auto-update-mirror-mode
+  "Auto update after buffer changes in `mozadd-mirror-mode'."
+  :group 'mozadd)
 
 (defcustom mozadd-auto-update-delay 2.0
   "Seconds to delay before auto update Firefox."
@@ -130,7 +129,8 @@
 (define-minor-mode mozadd-refresh-edited-on-save-mode
   "Refresh mozadd edited file in Firefox when saving file.
 The mozadd edited file is the file in the last buffer visited in
-`mozadd-mirror-mode'.
+`mozadd-mirror-mode'.  If the current buffer is an html file then
+this file will be refreshed.
 
 You can use this for example when you edit CSS files.
 
@@ -148,25 +148,6 @@ The mozadd edited file must be shown in Firefox and visible."
     (when (or (derived-mode-p 'css-mode)
               (mozadd-html-buffer-file-p))
       (mozadd-refresh-edited-on-save-mode 1))))
-
-(defun mozadd-queue-reload-mozilla-edited-file ()
-  "Reload edited file."
-  (when (buffer-live-p mozadd-edited-buffer)
-    (if (buffer-modified-p mozadd-edited-buffer)
-        (mozadd-warning "Mozadd: Edited buffer %s is not saved, can't reload browser."
-                          (buffer-name mozadd-edited-buffer))
-      (mozadd-add-queue-get-mirror-location)
-      (mozadd-add-task-1 'mozadd-send-refresh-edited-to-mozilla))))
-
-(defun mozadd-send-refresh-edited-to-mozilla ()
-  "Update the remote mozrepl instance"
-  (with-current-buffer mozadd-edited-buffer
-    (if (not (mozadd-edited-file-is-shown))
-        (mozadd-warn-not-shown "Mozadd: Edited buffer %s is not visible in Firefox, can't reload it."
-                               (buffer-name mozadd-edited-buffer))
-      (comint-send-string (inferior-moz-process)
-                          "setTimeout(BrowserReload(), \"1000\");")))
-  (mozadd-exec-next))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -471,14 +452,14 @@ This runs the hook `mozadd-send-buffer-hook' before sending."
         (menu-map (make-sparse-keymap)))
     (define-key map mozadd-update-key 'mozadd-update-mozilla)
     (define-key map mozadd-submatch-key 'mozadd-set-outline-regexp-submatch-num)
-    (define-key map [(control ?c)(control ?a)] 'mozadd-toggle-auto-update)
+    (define-key map [(control ?c)(control ?a)] 'mozadd-auto-update-mirror-mode)
     (define-key map [(control ?c)(control ?b)] 'mozadd-add-href-base)
     ;; Fix-me: menu
     (define-key map [menu-bar mozadd-mirror-mode]
       `(menu-item "MozMirror" ,menu-map))
     (define-key menu-map [toggle]
-      `(menu-item "Toggle Auto Update of Firefox" mozadd-toggle-auto-update
-                  :button '(:toggle ,mozadd-auto-update-mirror)))
+      `(menu-item "Toggle Auto Update of Firefox" mozadd-auto-update-mirror-mode
+                  :button '(:toggle ,mozadd-auto-update-mirror-mode)))
     (define-key menu-map [base]
       `(menu-item "Set Base URL" mozadd-add-href-base))
     (define-key menu-map [div2] '(menu-item "--"))
@@ -553,7 +534,8 @@ first.  \(This adds the CSS outlines above.)
 Updating Firefox can also be done automatically.  In this case
 every change you make in the buffer will trigger a redraw \(after
 a short delay) in Firefox - regardless of if you save the file or
-not.  This is maybe slow currently.
+not.  This is maybe slow currently.  However to turn this on use
+`mozadd-auto-update-mirror-mode'.
 
 This mode also turn on `mozadd-refresh-edited-on-save-mode'.
 Note that the latter can be used when you edit CSS files to
@@ -620,11 +602,38 @@ update Firefox when you save the CSS file."
   (when mozadd-mirror-mode
     (setq mozadd-edited-buffer (current-buffer))))
 
+(defun mozadd-queue-reload-mozilla-edited-file ()
+  "Reload edited file."
+  ;; Runs in after-save-hook
+  (condition-case err
+      (progn
+        (when (mozadd-html-buffer-file-p)
+          (unless mozadd-mirror-mode
+            (mozadd-mirror-mode 1))
+          (setq mozadd-edited-buffer (current-buffer)))
+        (when (buffer-live-p mozadd-edited-buffer)
+          (if (buffer-modified-p mozadd-edited-buffer)
+              (mozadd-warning "Mozadd: Edited buffer %s is not saved, can't reload browser."
+                              (buffer-name mozadd-edited-buffer))
+            (mozadd-add-queue-get-mirror-location)
+            (mozadd-add-task-1 'mozadd-send-refresh-edited-to-mozilla))))
+    (error (message "mozadd-queue-reload-mozilla-edited-file: %s" (error-message-string err)))))
+
+(defun mozadd-send-refresh-edited-to-mozilla ()
+  "Update the remote mozrepl instance"
+  (with-current-buffer mozadd-edited-buffer
+    (if (not (mozadd-edited-file-is-shown))
+        (mozadd-warn-not-shown "Mozadd: Edited buffer %s not in visible tab in Firefox, can't reload it."
+                               (buffer-name mozadd-edited-buffer))
+      (comint-send-string (inferior-moz-process)
+                          "setTimeout(BrowserReload(), \"1000\");")))
+  (mozadd-exec-next))
+
 
 (defvar mozadd-buffer-content-to-mozilla-timer nil)
 
 (defun mozadd-auto-update-mozilla (&rest ignored)
-  (when mozadd-auto-update-mirror
+  (when mozadd-auto-update-mirror-mode
     (mozadd-update-mozilla mozadd-auto-update-delay)))
 (put 'mozadd-auto-update-mozilla 'permanent-local-hook t)
 
