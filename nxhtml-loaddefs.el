@@ -190,7 +190,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-menu-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp mumamo-switch-to-other-html)
-;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19470 36516))
+;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19471 58658))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -663,7 +663,7 @@ The [code] section, if any, will be in `pascal-mode'." t)
 
 ;;;### (autoloads (inferior-moz-start-process inferior-moz-stop-process
 ;;;;;;  inferior-moz-mode moz-minor-mode) "../related/moz" "related/moz.el"
-;;;;;;  (19470 36862))
+;;;;;;  (19471 58658))
 ;;; Generated autoloads from related/moz.el
 (web-autoload-require 'moz 'lp '(nxhtml-download-root-url nil) "related/moz" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -710,7 +710,7 @@ Note that you have to start the MozRepl server from Firefox.
 
 ;;;### (autoloads (mozadd-mirror-mode global-mozadd-refresh-edited-on-save-mode
 ;;;;;;  mozadd-refresh-edited-on-save-mode) "../related/mozadd" "related/mozadd.el"
-;;;;;;  (19470 36716))
+;;;;;;  (19471 58658))
 ;;; Generated autoloads from related/mozadd.el
 (web-autoload-require 'mozadd 'lp '(nxhtml-download-root-url nil) "related/mozadd" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1385,7 +1385,7 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 ;;;### (autoloads (web-vcs-investigate-elisp-file web-vcs-url-copy-file
 ;;;;;;  web-vcs-url-retrieve-synch web-vcs-byte-compile-file web-vcs-message-with-face
 ;;;;;;  web-vcs-get-files-from-root web-vcs-log-edit web-vcs-default-download-directory)
-;;;;;;  "../web-vcs" "web-vcs.el" (19471 19834))
+;;;;;;  "../web-vcs" "web-vcs.el" (19471 58658))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1573,7 +1573,7 @@ much about computation time as for entries in the menu bar.
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-el-files
 ;;;;;;  as-external-check-contents as-external-for-mail-mode as-external-for-xhtml
-;;;;;;  as-external) "as-external" "util/as-external.el" (19470 60532))
+;;;;;;  as-external) "as-external" "util/as-external.el" (19471 58658))
 ;;; Generated autoloads from util/as-external.el
 (web-autoload-require 'as-external 'lp '(nxhtml-download-root-url nil) "util/as-external" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2988,7 +2988,7 @@ Color up digits three by three.
 ;;;;;;  ourcomments-move-beginning-of-line ourcomments-mark-whole-buffer-or-field
 ;;;;;;  fill-dwim unfill-individual-paragraphs unfill-region unfill-paragraph
 ;;;;;;  define-toggle-old define-toggle popup-menu-at-point ourcomments-indirect-fun)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19471 17685))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19471 58658))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3616,8 +3616,8 @@ Major mode for editing RELAX NG Compact Syntax schemas.
 
 ;;;***
 
-;;;### (autoloads (rxx-parse rxx-parse-string) "rxx" "util/rxx.el"
-;;;;;;  (19471 57190))
+;;;### (autoloads (rxx-parse rxx-simplify-result rxx-parse-string)
+;;;;;;  "rxx" "util/rxx.el" (19472 17959))
 ;;; Generated autoloads from util/rxx.el
 (web-autoload-require 'rxx 'lp '(nxhtml-download-root-url nil) "util/rxx" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3629,15 +3629,29 @@ format.
 
 \(fn STRING READ-SYNTAX)" nil nil)
 
+(nxhtml-autoload 'rxx-simplify-result `(lp '(nxhtml-download-root-url nil) "util/rxx" nxhtml-install-dir) "\
+Simplify result if possible.
+Things to take care of:
+
+  (and a) => a
+  (any a) => a
+  (or a) => a
+  (or a b) => a b ;; single letters
+  (rx (and a b c ...)) => top only: (rx a b c ...)
+
+\(fn RAW)" nil nil)
+
 (nxhtml-autoload 'rxx-parse `(lp '(nxhtml-download-root-url nil) "util/rxx" nxhtml-install-dir) "\
 Parse current buffer regexp between point min and max.
 Return a cons with car t on success and nil otherwise.  If
 success the cdr is the produced form.  Otherwise it is an
 informative message about what went wrong.
 
-If READ-SYNTAX then Emacs read syntax for strings is used.  This
-meanst that \\ must be doubled and things like \\n are
-recognized.
+The produced form includes (rx ...) around it.
+
+Fix-me: Rethink. If READ-SYNTAX then Emacs read syntax for
+strings is used.  This meanst that \\ must be doubled and things
+like \\n are recognized.
 
 \(fn READ-SYNTAX)" nil nil)
 
@@ -3682,8 +3696,8 @@ ENGINE must be key in `search-net-search-setup-alist'.
 
 ;;;***
 
-;;;### (autoloads (sex-mode sex) "sex-mode" "util/sex-mode.el" (19470
-;;;;;;  58532))
+;;;### (autoloads (sex-mode sex) "sex-mode" "util/sex-mode.el" (19471
+;;;;;;  58658))
 ;;; Generated autoloads from util/sex-mode.el
 (web-autoload-require 'sex-mode 'lp '(nxhtml-download-root-url nil) "util/sex-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4410,12 +4424,11 @@ accept it or skip it.
 ;;;;;;  "related/flymake-helpers.el" "related/flymakemsg.el" "related/php-imenu.el"
 ;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
-;;;;;;  "util/appmenu-fold.el" "util/css-simple-completion.el" "util/custsets.el"
-;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/idn.el"
-;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/org-panel.el"
-;;;;;;  "util/rxi.el" "util/tipframe.el" "web-autoload.el") (19471
-;;;;;;  58537 0))
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
+;;;;;;  "util/css-simple-completion.el" "util/custsets.el" "util/ecb-batch-compile.el"
+;;;;;;  "util/fupd.el" "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
+;;;;;;  "util/org-panel.el" "util/rxi.el" "util/tipframe.el" "web-autoload.el")
+;;;;;;  (19472 52120 250000))
 
 ;;;***
 

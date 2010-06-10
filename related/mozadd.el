@@ -714,7 +714,9 @@ outlines."
 Use the style in `mozadd-matches-outline-style' for the
 outlines."
   ;; isearch-lazy-highlight-overlays isearch-overlay
-  (when reb-overlays
+  (when (and (eq (current-buffer) reb-target-buffer)
+             (or (not reb-valid-string)
+                 (zerop (length reb-valid-string))))
     (let ((pattern reb-regexp)
           (is-regexp t)
           (submatch mozadd-outline-regexp-submatch-num)

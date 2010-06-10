@@ -63,7 +63,7 @@
 
 (defconst as-ext-load-time-start (float-time))
 
-(message " as-ext a %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
+;;(message " as-ext a %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'html-write nil t))
 (eval-when-compile (require 'mlinks nil t))
@@ -88,7 +88,7 @@
 ;; (declare-function rng-mark-xmltok-dependent-regions "rng-valid")
 ;; (declare-function rng-cache-state "rng-valid")
 ;; (declare-function rng-process-end-document "rng-valid")
-(message " as-ext b %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
+;;(message " as-ext b %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
 
 ;;;###autoload
 (defgroup as-external nil
@@ -217,7 +217,7 @@ emacsw32-eol."
   (as-external-for-mail-mode)
   t)
 
-(message " as-ext c %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
+;;(message " as-ext c %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
 
 ;;;###autoload
 (define-derived-mode as-external-for-mail-mode text-mode "ExtMail "
@@ -284,7 +284,7 @@ See also `as-external-mode'."
     (mediawiki-mode))
   t)
 
-(message " as-ext d %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
+;;(message " as-ext d %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
 
 ;;;###autoload
 (define-minor-mode as-external-mode
@@ -343,7 +343,7 @@ This is done by checking `as-external-alist'."
           (raise-frame as-external-my-frame)))
     (error (message "%s" (error-message-string err)))))
 
-(message " as-ext e %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
+;;(message " as-ext e %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
 
 (defun as-external-server-window (buffer)
   (setq server-window nil)
@@ -383,7 +383,7 @@ This is done by checking `as-external-alist'."
         ;; Setup to use a new frame
         (setq server-window 'as-external-server-window)))))
 
-(message " as-ext fin %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
+;;(message " as-ext fin %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
 (provide 'as-external)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; as-external.el ends here
