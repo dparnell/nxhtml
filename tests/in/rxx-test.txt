@@ -3,23 +3,25 @@ m
 y?
 y+
 yx*
-a\|b
-a\|bc?
+\|a OK=a?
+a\| OK=a?
+a\|b OK=[ab]
+a\|bc? OK=[ab]c?
 a*
 a*?
 aA?\|b
-\(?:a\|b\)
-\(a\|b\)
-a?A\|bb
+\(?:a\|b\) OK=[ab]
+\(a\|b\) OK=\([ab]\)
+a?A\|bb OK=a?[Ab]b
 [ab]
-\|bc
+\|bc OK=b?c
 \|
-\(a\|bc\)
+\(a\|bc\) OK=\([ab]c\)
 (ab)
 \(ab)
 \(ab\)
 (a\)
-\(ab\|de\)
+\(ab\|de\) OK=\(a[bd]e\)
 \(\(ab\)\|de\)
 cd.a
 .
@@ -31,7 +33,7 @@ cd.a
 \<word\>
 \_<sym\_>
 \_>
-\wsome\W
+\wsome\W OK=
 a[[:word:]]b
 a[[:wordx:]]b
 a\{5\}
