@@ -46,7 +46,7 @@
 ;;; Code:
 
 (defconst ourcomments-load-time-start (float-time))
-(message " ourcomments a %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments a %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 (eval-when-compile (require 'apropos))
 (eval-when-compile (require 'bookmark))
 (eval-when-compile (require 'cl))
@@ -59,7 +59,7 @@
 (declare-function 'ido-mode "ido" '(&optional args) t)
 
 (eval-when-compile (require 'cus-edit))
-(message " ourcomments b %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments b %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 ;; (ourcomments-indirect-fun 'html-mumamo)
 ;; (ourcomments-indirect-fun 'html-mumamo-mode)
@@ -517,7 +517,7 @@ If in a widget field stay in that."
       (goto-char (widget-field-start field)))))
 (put 'ourcomments-move-beginning-of-line 'CUA 'move)
 
-(message " ourcomments c %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments c %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 ;;;###autoload
 (defun ourcomments-move-end-of-line(arg)
@@ -918,7 +918,7 @@ what they will do ;-)."
 (defvar better-bottom-angles-defaults nil)
 (defun better-fringes-bottom-angles (on)
   ;;(bottom bottom-left-angle bottom-right-angle top-right-angle top-left-angle)
-  (message " better-fringes-bottom a %.1f seconds elapsed" (- (float-time) nxhtml-load-time-start))
+  ;;(message " better-fringes-bottom a %.1f seconds elapsed" (- (float-time) nxhtml-load-time-start))
   (if (not on)
       (when better-bottom-angles-defaults
         (set-default 'fringe-indicator-alist better-bottom-angles-defaults))
@@ -933,11 +933,11 @@ what they will do ;-)."
           (indicators (copy-sequence fringe-indicator-alist)))
       (setq indicators (assq-delete-all 'bottom indicators))
       (set-default 'fringe-indicator-alist (cons better indicators))))
-  (message " better-fringes-bottom b %.1f seconds elapsed" (- (float-time) nxhtml-load-time-start))
+  ;;(message " better-fringes-bottom b %.1f seconds elapsed" (- (float-time) nxhtml-load-time-start))
   )
 
 (defun better-fringes-faces (face face-important)
-  (message " better-fringes-faces a %.1f seconds elapsed" (- (float-time) nxhtml-load-time-start))
+  ;;(message " better-fringes-faces a %.1f seconds elapsed" (- (float-time) nxhtml-load-time-start))
   (dolist (bitmap '(bottom-left-angle
                     bottom-right-angle
                     top-left-angle
@@ -951,11 +951,11 @@ what they will do ;-)."
                     left-bracket right-bracket
                     empty-line))
     (set-fringe-bitmap-face bitmap face))
-  (message " better-fringes-faces b %.1f seconds elapsed" (- (float-time) nxhtml-load-time-start))
+  ;;(message " better-fringes-faces b %.1f seconds elapsed" (- (float-time) nxhtml-load-time-start))
   (dolist (bitmap '(right-triangle
                     question-mark))
     (set-fringe-bitmap-face bitmap face-important))
-  (message " better-fringes-faces c %.1f seconds elapsed" (- (float-time) nxhtml-load-time-start))
+  ;;(message " better-fringes-faces c %.1f seconds elapsed" (- (float-time) nxhtml-load-time-start))
   )
 
 (defface better-fringes-bitmap
@@ -991,7 +991,7 @@ what they will do ;-)."
 
 (defvar ourcomments-copy+paste-point nil)
 
-(message " ourcomments d %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments d %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 ;;(global-set-key [(control ?c) ?y] 'ourcomments-copy+paste-set-point)
 ;;;###autoload
@@ -1489,7 +1489,7 @@ The can include 'variable, 'function and variaus 'cl-*."
                 (not (get symbol 'custom-autoload)))
            (get symbol 'custom-group))))
 
-(message " ourcomments e %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments e %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 ;;;###autoload
 (defun describe-custom-group (symbol)
@@ -2004,7 +2004,7 @@ This calls the function `emacs' with added arguments ARGS."
                                        exec-directory))))
     (apply 'emacs-Q "--debug-init" "--load" autostart args)))
 
-(message " ourcomments f %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments f %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Searching
@@ -2103,7 +2103,7 @@ See `tags-query-replace' for DELIMETED and more information."
         (setq files (append files (rdir-get-files subdir file-regexp) nil))))
     files))
 
-(message " ourcomments f1 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments f1 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 (defun dir-replace-read-parameters (has-dir recursive)
   (let* ((common
@@ -2206,7 +2206,7 @@ Return full path if found."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Custom faces and keys
 
-(message " ourcomments f2 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments f2 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 ;;;###autoload
 (defun use-custom-style ()
@@ -2310,7 +2310,7 @@ This is the function is used for `beginning-of-defun-function'."
       ;;(forward-char)
       (outline-forward-same-level (- arg)))))
 
-(message " ourcomments f3 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments f3 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 (defun ourcomments-org-end-of-defun ()
   "Find next header start.
@@ -2408,7 +2408,7 @@ This function is used for `end-of-defun-function'."
 
 ;;(defvar temp-n 0)
 
-(message " ourcomments f4 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments f4 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Re-builder
@@ -2421,7 +2421,7 @@ This function is used for `end-of-defun-function'."
      (define-key reb-mode-map [(control ?c) (control ?f)] 'ourcomments-reb-yank-at-end-word-or-char)
      (define-key reb-mode-map [(control ?c) (control ?b)] 'ourcomments-reb-yank-at-begin-word-or-char)))
 
-(message " ourcomments f5 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments f5 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 ;;;###autoload
 (defun ourcomments-copy-target-region-to-reb ()
@@ -2451,7 +2451,7 @@ Subword is used when `subword-mode' is activated. "
 	   (forward-word 1))
        (forward-char 1)) (point))))
 
-(message " ourcomments f6 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments f6 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 (defun ourcomments-reb-yank-at-begin-word-or-char ()
   "Pull previous character, subword or word from buffer into search string.
@@ -2467,7 +2467,7 @@ Subword is used when `subword-mode' is activated. "
 	   (backward-word 1))
        (backward-char 1)) (point))))
 
-(message " ourcomments f7 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments f7 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 (defun ourcomments-reb-yank-internal (side jumpform)
   "Pull the text from point to the point reached by JUMPFORM.
@@ -2512,7 +2512,7 @@ or it might return the position of the end of the line."
                  (buffer-substring-no-properties stop start)
                (buffer-substring-no-properties start stop)))))))))
 
-(message " ourcomments g %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments g %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 (defun ourcomments-reb-yank-string (side string)
   "Pull STRING into search string."
@@ -2535,7 +2535,7 @@ or it might return the position of the end of the line."
     (error "side=%s" side)))))
 
 
-(message " ourcomments g1 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments g1 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 (defun ourcomments-org-convert-html-links-in-buffer (beg end)
   "Convert html link between BEG and END to org mode links.
@@ -2594,7 +2594,7 @@ variant of such blocks then leave the link as it is."
         (goto-char here)
         nil))))
 
-(message " ourcomments g2 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments g2 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 (defvar ourcomments-paste-with-convert-hook nil
   "Normal hook run after certain paste commands.
@@ -2667,7 +2667,7 @@ Note: This minor mode will defadvice the paste commands."
 ;; (ad-unadvise 'cua-paste)
 
 
-(message " ourcomments g3 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments g3 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Menu commands to M-x history
@@ -2711,7 +2711,7 @@ Only commands that are not already in M-x history are added."
       (add-hook 'pre-command-hook 'ourcomments-M-x-menu-pre)
     (remove-hook 'pre-command-hook 'ourcomments-M-x-menu-pre)))
 
-(message " ourcomments g4 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments g4 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Warnings etc
@@ -2740,7 +2740,7 @@ Only commands that are not already in M-x history are added."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Windmove
 
-(message " ourcomments g5 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments g5 %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 (defcustom ourcomments-windmove-mode-modifier 'meta
   "Modifier for windmove key bindings.
@@ -2771,7 +2771,7 @@ This minor mode therefore instead defines them in a minor mode."
   :group 'windmove)
 
 
-(message " ourcomments fin %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+;;(message " ourcomments fin %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 (provide 'ourcomments-util)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
