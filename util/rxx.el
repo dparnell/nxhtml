@@ -47,19 +47,20 @@
 (eval-when-compile (require 'cl))
 (require 'web-vcs)
 
-(defvar my-rxx-test-details t)
+(defvar my-rxx-test-details nil)
+
 (defun my-message (format &rest args)
   (when my-rxx-test-details
     (apply 'message format args)))
 
 ;;;###autoload
-(defun rxx-parse-string (string read-syntax)
+(defun rxx-parse-string (string)
   "Do like `rxx-parse' but parse STRING instead of current buffer.
-READ-SYNTAX has the same meaning and return value has the same
+has the same meaning and return value has the same
 format."
   (with-temp-buffer
     (insert string)
-    (rxx-parse read-syntax)))
+    (rxx-parse)))
 
 ;;;###autoload
 (defun rxx-simplify-result (raw)
@@ -83,6 +84,16 @@ Things to take care of:
     result
     ))
 
+(defun rxx-escape-ntf (str)
+ "Return string STR with \\n, \\t and \\f quoted."
+ (mapconcat (lambda (cc)
+              (case cc
+                (?\n "\\n")
+                (?\t "\\t")
+                (?\f "\\f")
+                (t (char-to-string cc))))
+            str
+            ""))
 ;; (rxx-simplify-result '(rx (and (and 1) (or 2) (and (or 4)))))
 ;; (rxx-simplify-result '(rx (and 1) (or 2) (and (or 5 6) (or (any b a)))))
 ;; (rxx-simplify-result '(rx "a" (and (or (\? "A") "b"))))
@@ -93,36 +104,39 @@ Things to take care of:
       (let* ((re (car res))
              (what (car-safe re))
              (last (when (listp re) (last re))))
-        (cond ( (and (memq what '(and or))
-                     (= 1 (length (cdr re))))
-                ;; Single element, just take that
-                (setcar res (cadr re))
-                (rxx-simplify-result-1 res)
-                )
-              ( (and (memq what '(any))
-                     (= 1 (length (cdr re)))
-                     ;; This should be a string, check if length of it
-                     ;; is one.
-                     (let ((str (cadr re)))
-                       ;; Could be char class, maybe check better?
-                       (assert (or (stringp str) (symbolp str)) t)
-                       (when (stringp str)
-                         (= 1 (length str)))))
-                )
-              ( (and (memq what '(and or))
-                     ;;(last '(0 1 (3 4)))
-                     (eq what (car-safe last)))
-                ;; Tail is possible to merge logically, to that.
-                (setcar res (cons what (append (butlast res) (cdr last))))
-                ))
-        (setq re (car res)) ;; we have change res
-        (when (listp re)
-          (rxx-simplify-result-1 re)))
+        (if (stringp re)
+            (setcar res (let ((print-escape-newlines t))
+                          (read (prin1-to-string re))))
+          (cond ( (and (memq what '(and or))
+                       (= 1 (length (cdr re))))
+                  ;; Single element, just take that
+                  (setcar res (cadr re))
+                  (rxx-simplify-result-1 res)
+                  )
+                ( (and (memq what '(any))
+                       (= 1 (length (cdr re)))
+                       ;; This should be a string, check if length of it
+                       ;; is one.
+                       (let ((str (cadr re)))
+                         ;; Could be char class, maybe check better?
+                         (assert (or (stringp str) (symbolp str)) t)
+                         (when (stringp str)
+                           (= 1 (length str)))))
+                  )
+                ( (and (memq what '(and or))
+                       ;;(last '(0 1 (3 4)))
+                       (eq what (car-safe last)))
+                  ;; Tail is possible to merge logically, to that.
+                  (setcar res (cons what (append (butlast res) (cdr last))))
+                  ))
+          (setq re (car res)) ;; we have change res
+          (when (listp re)
+            (rxx-simplify-result-1 re))))
       (setq res (cdr res)))
     raw))
 
 ;;;###autoload
-(defun rxx-parse (read-syntax)
+(defun rxx-parse ()
   "Parse current buffer regexp between point min and max.
 Return a cons with car t on success and nil otherwise.  If
 success the cdr is the produced form.  Otherwise it is an
@@ -130,7 +144,7 @@ informative message about what went wrong.
 
 The produced form includes (rx ...) around it.
 
-Fix-me: Rethink. If READ-SYNTAX then Emacs read syntax for
+Fix-me: Rethink. If then Emacs read syntax for
 strings is used.  This meanst that \\ must be doubled and things
 like \\n are recognized."
   (when my-rxx-test-details (web-vcs-message-with-face 'highlight "regexp src=%S" (buffer-string)))
@@ -138,7 +152,7 @@ like \\n are recognized."
   (let* (ok
          (parse-res (catch 'bad-regexp
                       (prog1
-                          (rxx-parse-1 'and-top read-syntax nil)
+                          (rxx-parse-1 'and-top nil)
                         (setq ok t))))
          (ret-rx (if (not ok)
                      parse-res ;; Error
@@ -156,7 +170,7 @@ like \\n are recognized."
     (my-message "rxx-parse => %S" ret)
     ret))
 
-(defun rxx-parse-1 (what read-syntax end-with)
+(defun rxx-parse-1 (what end-with)
   "Parse buffer and return result.
 On top level add \(rx ...) around it."
   (unless (memq what '(and-top
@@ -173,7 +187,7 @@ On top level add \(rx ...) around it."
                    t))
          expr
          (str-beg (point))
-         str-end
+         (str-end 0)
          result
          ret-result
          (want-single-item (not (memq what '(and submatch)))))
@@ -357,7 +371,7 @@ On top level add \(rx ...) around it."
          )
        ( (equal expr '(?\[  DEFAULT))
          (push (buffer-substring-no-properties str-beg (1- (point))) result)
-         (push (rxx-parse-1 'any read-syntax "]") result)
+         (push (rxx-parse-1 'any "]") result)
          (setq str-beg (point))
          )
        ( (equal expr '(?\]  CHARS))
@@ -395,17 +409,12 @@ On top level add \(rx ...) around it."
          (setq str-beg (point))
          )
        ( (equal expr '(?\\ DEFAULT))
-         (setq str-end (1- (point)))
-         (push (if read-syntax 'BS1 'BS2) state)
-         )
-       ( (equal expr '(?\\ BS1))
-         ;; string syntax:
-         (pop state)
+         ;; In a regexp a \ is always quoting
+         (let ((str (buffer-substring-no-properties str-beg (1- (point)))))
+           (unless (zerop (length str))
+             (push str result)))
+         (setq str-beg (point)) ;; Correct for quoting
          (push 'BS2 state)
-         )
-       ( (eq (nth 1 expr) 'BS1)
-         (pop state)
-         (push 'DEFAULT state)
          )
        ( (equal expr '(?\( BS2))
          (pop state)
@@ -413,7 +422,7 @@ On top level add \(rx ...) around it."
          ;; Just look ahead, that is most simple.
          (if (not (eq (char-after) ??))
              (progn
-               (push (rxx-parse-1 'submatch read-syntax "\\)") result)
+               (push (rxx-parse-1 'submatch "\\)") result)
                (setq str-beg (point)))
            (forward-char)
            ;; \(?
@@ -430,16 +439,16 @@ On top level add \(rx ...) around it."
                  ;; it. What to do with old Emacs versions?  Just
                  ;; fail, or? Users will se that submatch-n is not
                  ;; allowed.
-                 (let* ((sm (rxx-parse-1 'submatch read-syntax "\\)"))
+                 (let* ((sm (rxx-parse-1 'submatch "\\)"))
                         (sub-res (if (listp sm)
                                      (cons 'submatch-n (cons nn (cdr sm)))
                                    (cons 'submatch-n (list nn (cdr sm))))))
                    (push sub-res result))
-                 ;;(push (rxx-parse-1 'submatch-n read-syntax "\\)") result)
+                 ;;(push (rxx-parse-1 'submatch-n "\\)") result)
                  (setq str-beg (point)))
              ;; \(?:
              (forward-char)
-             (push (rxx-parse-1 'and read-syntax "\\)") result)
+             (push (rxx-parse-1 'and "\\)") result)
              (setq str-beg (point))))
          )
        ( (equal expr '(?\) BS2))
@@ -463,7 +472,7 @@ On top level add \(rx ...) around it."
                or-result)
            ;;(unless last (throw 'bad-regexp (cons "\| without previous element" (point))))
            (unless last (setq last "")) ;; Will be made an 'opt below.
-           (setq or-result (cdr (rxx-parse-1 'or read-syntax nil)))
+           (setq or-result (cdr (rxx-parse-1 'or nil)))
            (pop state)
            (my-message "or-result 1=%S" or-result)
            (setq or-result (push last or-result))
@@ -498,20 +507,8 @@ On top level add \(rx ...) around it."
          )
        ( (eq (nth 1 expr) 'BS2)
          (pop state)
-         (let ((last (buffer-substring-no-properties str-beg (- (point) 2))))
-           (unless (zerop (length last))
-             (push last result)))
-         (let ((cc (nth 0 expr)))
-           (cond
-            ( (and (<= ?0 cc)
-                   (<= cc ?9))
-              (push (list 'backref (- cc ?0)) result))
-            ( (= cc ?n) (push (char-to-string ?\n) result))
-            ( (= cc ?r) (push (char-to-string ?\r) result))
-            ( (= cc ?f) (push (char-to-string ?\f) result))
-            ( (= cc ?d) (push (char-to-string ?\d) result))
-            ( t (push (char-to-string cc) result))))
-         (setq str-beg (point))
+         ;; This is quoting of a normal char, str-beg is already
+         ;; moved so there is nothing to do.
          )
        ( t (error "expr=(%c %s)" (car expr) (cadr expr))))
       (when want-single-item ;;(eq what 'or)
@@ -544,7 +541,7 @@ On top level add \(rx ...) around it."
             (dolist (rec res-inner)
               (if (and (stringp rec)
                        (stringp (car new-res)))
-                  (push (concat rec (pop new-res))
+                  (push (concat (pop new-res) rec)
                         new-res)
                 (push rec new-res)))
             (setq res-inner (reverse new-res)))
@@ -587,17 +584,17 @@ On top level add \(rx ...) around it."
           (format "%S" my-rxx-result)
           ")"))
 
-(defun my-rxx-parse-all (read-syntax)
+(defun my-rxx-parse-all ()
   "Test all rows in buffer."
   (interactive "P")
   (widen)
   (let ((my-rxx-test-details nil))
     (goto-char (point-min))
     (while (not (eobp))
-      (my-rxx-parse read-syntax)
+      (my-rxx-parse)
       (forward-line 1))))
 
-(defun my-rxx-parse (read-syntax)
+(defun my-rxx-parse ()
   "testing line."
   (interactive "P")
   (save-restriction
@@ -608,7 +605,7 @@ On top level add \(rx ...) around it."
            (end (or (when ok-on-line (match-beginning 0)) (point-at-eol))))
       (narrow-to-region (point-at-bol) end)
       (let* ((src (buffer-substring-no-properties (point-max) (point-min)))
-             (res-rx-rec (rxx-parse read-syntax))
+             (res-rx-rec (rxx-parse))
              (dummy (my-message "res-rx-rec=%S" res-rx-rec))
              (res-rx-ok (car res-rx-rec))
              (res-rx (when res-rx-ok (cdr res-rx-rec)))
@@ -624,7 +621,7 @@ On top level add \(rx ...) around it."
              (res-rx-again-rec (when res-rx-to-string
                                  (with-temp-buffer
                                    (insert res-rx-to-string)
-                                   (rxx-parse read-syntax))))
+                                   (rxx-parse))))
              (res-rx-again-ok (car res-rx-again-rec))
              (res-rx-again (when res-rx-again-ok (cdr res-rx-again-rec)))
              (same-str     (string= src res-rx-to-string))
