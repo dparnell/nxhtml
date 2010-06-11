@@ -448,11 +448,18 @@ In this mode you use double \\ and \"\"."
   "Quit `re-builder' and start `isearch-forward-regexp'.
 Put current regexp in the regexp history."
   (interactive)
-  (unless (eq (current-buffer) reb-buffer)
-    (reb-quit t)
-    (unless isearch-mode
-      (setq isearch-regexp t)
-      (isearch-forward-regexp))))
+  (when (and reb-target-window
+             (window-live-p reb-target-window))
+    (select-window reb-target-window))
+  (reb-quit t)
+  (unless isearch-mode
+    (setq isearch-regexp t)
+    (isearch-forward-regexp)))
+
+(defun reb-isearch-mode-hook-fun ()
+  "Quit to isearch unless in RE buffer."
+  (when (eq (current-buffer) reb-target-buffer)
+    (reb-quit-to-isearch)))
 
 (defun reb-quit-unless-window ()
   (unless (and (buffer-live-p reb-buffer)
@@ -464,7 +471,7 @@ Put current regexp in the regexp history."
 (defun re-builder ()
   "Construct a regexp interactively."
   (interactive)
-  (add-hook 'isearch-mode-hook 'reb-quit-to-isearch)
+  (add-hook 'isearch-mode-hook 'reb-isearch-mode-hook-fun)
   (if (and (eq (current-buffer) reb-buffer)
 	   (reb-mode-buffer-p))
       (message "Already in the RE Builder")
@@ -516,7 +523,7 @@ Put current regexp in the regexp history."
   "Quit the RE Builder mode."
   (interactive "P")
   ;; Fix-me: where should this be? There is some bad interaction now.
-  (remove-hook 'isearch-mode-hook 'reb-quit-to-isearch)
+  (remove-hook 'isearch-mode-hook 'reb-isearch-mode-hook-fun)
   ;; Fix-me: why is re-builder-unload-function separate??
   (re-builder-unload-function)
   ;; Add regexp to regexp ring if there is a visible match now:
