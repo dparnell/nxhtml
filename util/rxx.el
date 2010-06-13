@@ -400,9 +400,9 @@ On top level add \(rx ...) around it."
                 ;; Fix-me: use single chars later
                 (opc (car expr))
                 (op (cond
-                     ((eq opc ??) (if g '\? '\?\?)) ;;(intern-soft "?")
-                     ((eq opc ?+) (if g '+  '+\?))
-                     ((eq opc ?*) (if g '*  '*\?))
+                     ((eq opc ??) (if g '?  '??)) ;;(intern-soft "?")
+                     ((eq opc ?+) (if g '+  '+?))
+                     ((eq opc ?*) (if g '*  '*?))
                      ))
                 (matcher (list op last)))
            (push matcher result))
