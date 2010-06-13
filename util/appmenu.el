@@ -240,7 +240,7 @@ point."
 ;;
 ;;(appmenu-as-help (point))
 (defun appmenu-as-help (this-point)
-  "Show keybindings specific done current point in buffer.
+  "Show keybindings specific to current point in buffer.
 This shows the binding in the help buffer.
 
 Tip: This may be helpful if you are using `css-color-mode'."
@@ -265,6 +265,10 @@ Tip: This may be helpful if you are using `css-color-mode'."
     ;;(describe-variable 'appmenu-funs)
     ;; Fix-me: collect info first in case we are in help-buffer!
     (with-output-to-temp-buffer (help-buffer)
+      ;; Fix-me: this push a new entry on help-xref-stack. Do not do
+      ;; that if we are already there! I.e. remove the old entry
+      ;; first.  Maybe defadvice help-setup-xref to do that? Then we
+      ;; would not be burried somewhere in the middle.
       (help-setup-xref (list #'appmenu-as-help this-point) (interactive-p))
       (with-current-buffer (help-buffer)
         (let ((fmt " %s%15s     %-30s\n"))
