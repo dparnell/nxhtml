@@ -47,12 +47,14 @@
 
 (message "Nxml/Nxhtml Autostart.el loading ...")
 
-(defconst nxhtml-autostart-trace nil)
+(defconst nxhtml-autostart-trace t)
 (when (and nil nxhtml-autostart-trace)
   (setq trace-buffer "*Messages*")
   (trace-function-background 'require))
 (defsubst nxhtml-autostart-trace (format-string &rest args)
   (when nxhtml-autostart-trace
+    (when (fboundp 'gdb-deb-print)
+      (apply 'gdb-deb-print format-string args))
     (apply 'message format-string args)))
 
 (defconst nxhtml-load-time-start (float-time))
