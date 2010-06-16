@@ -11,29 +11,33 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Window creation, basic setters/getters etc
+;;; Window and tree creation, basic setters/getters etc
 
 (defun wa-make-window (name parent size wumin wumax real-window)
-  (list (list 'id name parent (wa-name parent)) ;; Easier debugging + parent
-        (list 'wchild nil)                      ;; Child windows list
-        (list 'wusr-size size wumin wumax)      ;; Current size and restrictions: wumin, wumax
-        (list 'wreq-size nil nil nil)           ;; Slot for computing requirements: wrmin wrmax wfixed
-        (list 'wset-size nil nil)               ;; Slot for new size:
-        ;; result-flag, wset Fix-me: add height - maybe better just to
-        ;; run this two times? Why not
-        real-window
-        ))
+  "Make a new child and add it to its parent.
+Return child."
+  (let ((this
+         (list (list 'id name parent (wa-name parent)) ;; Easier debugging + parent
+               (list 'wchild nil)                      ;; Child windows list
+               (list 'wusr-size size wumin wumax)      ;; Current size and restrictions: wumin, wumax
+               (list 'wreq-size nil nil nil)           ;; Slot for computing requirements: wrmin wrmax wfixed
+               (list 'wset-size nil nil)               ;; Slot for new size: result-flag, wset
+               real-window)))
+    (when parent
+      (wa-set-children parent (cons this (wa-children parent))))
+    this))
 
 ;; Fix-me: Maybe make defmacro to make those getters setters... -
 ;; including checks...
 
-;; Fix-me: add arg for width/height
+;; You can probably make this much easier and fancier with cl.el, but
+;; I find it awful to debug that so I do not want to use it.
 
 ;;; Getters
 (defun wa-name      (window) (nth 1 (nth 0 window))) ;; 'id
 (defun wa-parent    (window) (nth 2 (nth 0 window))) ;; 'id
 ;; Current
-(defun wa-child     (window) (nth 1 (nth 1 window))) ;; 'wchild
+(defun wa-children  (window) (nth 1 (nth 1 window))) ;; 'wchild
 (defun wa-wucur     (window) (nth 1 (nth 2 window))) ;; 'wusr-size
 (defun wa-wumin     (window) (nth 2 (nth 2 window))) ;; 'wusr-size
 (defun wa-wumax     (window) (nth 3 (nth 2 window))) ;; 'wusr-size
@@ -46,35 +50,34 @@
 (defun wa-wset      (window) (nth 2 (nth 4 window))) ;; 'wset-size
 
 ;;; Setters
-(defun wa-set-name      (window name)  (setcar (nthcdr 1 (nth 0 window)) name))  ;; 'id
-(defun wa-set-child     (window child) (setcar (nthcdr 1 (nth 1 window)) child)) ;; 'wchild
+(defun wa-set-name      (window name)     (setcar (nthcdr 1 (nth 0 window)) name))  ;; 'id
+(defun wa-set-children  (window children) (setcar (nthcdr 1 (nth 1 window)) children)) ;; 'wchild
 ;; Current
-(defun wa-set-wucur     (window wucur) (setcar (nthcdr 1 (nth 2 window)) wucur)) ;; 'wusr-size
-(defun wa-set-wumin     (window wumin) (setcar (nthcdr 2 (nth 2 window)) wumin)) ;; 'wusr-size
-(defun wa-set-wumax     (window wumax) (setcar (nthcdr 3 (nth 2 window)) wumax)) ;; 'wusr-size
+(defun wa-set-wucur     (window wucur)    (setcar (nthcdr 1 (nth 2 window)) wucur)) ;; 'wusr-size
+(defun wa-set-wumin     (window wumin)    (setcar (nthcdr 2 (nth 2 window)) wumin)) ;; 'wusr-size
+(defun wa-set-wumax     (window wumax)    (setcar (nthcdr 3 (nth 2 window)) wumax)) ;; 'wusr-size
 ;; Computation
-(defun wa-set-wrmin     (window wrmin) (setcar (nthcdr 1 (nth 3 window)) wrmin)) ;; 'wreq-size
-(defun wa-set-wrmax     (window wrmax) (setcar (nthcdr 2 (nth 3 window)) wrmax)) ;; 'wreq-size
-(defun wa-set-wfixed    (window wrfix) (setcar (nthcdr 3 (nth 3 window)) wrfix)) ;; 'wset-size
+(defun wa-set-wrmin     (window wrmin)    (setcar (nthcdr 1 (nth 3 window)) wrmin)) ;; 'wreq-size
+(defun wa-set-wrmax     (window wrmax)    (setcar (nthcdr 2 (nth 3 window)) wrmax)) ;; 'wreq-size
+(defun wa-set-wfixed    (window wrfix)    (setcar (nthcdr 3 (nth 3 window)) wrfix)) ;; 'wset-size
 ;; Result
 (defun wa-set-wres-flag (window flag)  (setcar (nthcdr 1 (nth 4 window)) flag))  ;; 'wset-size
 (defun wa-set-wset      (window size)  (setcar (nthcdr 2 (nth 4 window)) size))  ;; 'wset-size
 
-(defun wa-set-child-windows (parent vertical &rest sizes)
-  (unless wa-failed (assert (< 1 (length sizes)) t))
-  (let (children
-        (num 0))
-    (setq children (mapcar (lambda (size)
-                             (setq num (1+ num))
-                             (if vertical
-                                 (wa-make-window (format "%s-%d" (wa-name parent) num nil)
-                                                 parent
-                                                 nil
-                                                 (nth 0 size)
-                                                 (nth 1 size))))
-                           sizes))
-    (wa-set-child parent children)
-    parent))
+(defun wa-set-child-windows (parent &rest sizes)
+  "For testing."
+  (unless wa-failed (assert (<= 1 (length sizes)) t))
+  (let ((num 0))
+    (mapc (lambda (size)
+            (setq num (1+ num))
+            (wa-make-window (format "%s-%d" (wa-name parent) num nil)
+                            parent
+                            nil
+                            (nth 0 size)
+                            (nth 1 size)
+                            nil))
+          sizes))
+    parent)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -131,12 +134,12 @@
   (wa-set-wrmin win nil)
   (wa-set-wrmax win nil)
   (wa-set-wset  win nil)
-  (dolist (c (wa-child win))
+  (dolist (c (wa-children win))
     (wa-clear-computed c)))
 
 (defun wa-init-fail-flag (win)
   (wa-set-wres-flag win 'INIT)
-  (dolist (c (wa-child win))
+  (dolist (c (wa-children win))
     (wa-init-fail-flag c)))
 
 (defun wa-compute-required-to-message (win)
@@ -150,7 +153,7 @@
 (defun wa-compute-required (win)
   "Walk up from window WIN collecting needed sizes.
 Throw string message to 'wa-fit-error if does not fit."
-  (let ((childs (wa-child win))
+  (let ((childs (wa-children win))
         (wumin (wa-wumin win))
         (wumax (wa-wumax win))
         (cmin 0)
@@ -205,11 +208,11 @@ Throw string message to 'wa-fit-error if does not fit."
   ;; level. Walk the C structures in parallel with this when applying
   ;; the sizes. (I do not think it is necessary to have this code in
   ;; C.)
-  (when (wa-child win)
+  (when (wa-children win)
     (let ((cmin   (wa-wrmin  win))
           (cmax   (wa-wrmax  win))
           (width  (wa-wset win))
-          (childs (wa-child win)))
+          (childs (wa-children win)))
       (case strategy
         ('eq-sizes
          (let ((rest-width width)
@@ -259,7 +262,7 @@ Throw string message to 'wa-fit-error if does not fit."
 ;;; Example of new implementation resizing functions
 
 (defun wa-siblings (window)
-  (let* ((all (wa-child (wa-parent window)) )
+  (let* ((all (wa-children (wa-parent window)) )
          (me-tail (cdr (member window all)))
          (me-rtail (cdr (member window (reverse all)))))
     (list me-rtail me-tail)))
@@ -324,13 +327,14 @@ Return value?"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;  Accessing the real windows
 
+;; (setq x (wa-get-frame-windows nil t))
 (defun wa-get-frame-windows (frame horflag)
   "Get frame FRAME windows as a WA window tree.
 If HORFLAG get the tree for horizontal dividing, otherwise for
 vertical.
 
 WA trees are those create with `wa-make-window',
-`wa-set-child-windows' and friends.
+`wa-set-children' and friends.
 
 Note 1: One WA can only be used for either horizontal or vertical
 dividing.
@@ -339,16 +343,32 @@ Note 2: The routines for resizing Emacs windows from elisp works
 for either horizontal or vertical dividing.  So WA and those
 routines fits together."
   (setq frame (or frame (selected-frame)))
-  (let ((window-tree (window-tree frame))
-        (root-size (if horflag
-                       (window-height (frame-root-window frame))
-                     (window-width (frame-root-window frame))))
-        (wa-tree (wa-make-window "Root" nil root-size nil nil))i
-        )
+  (let* ((window-tree (window-tree frame))
+         (root (frame-root-window frame))
+         (root-size (if horflag
+                        (window-height root)
+                      (window-width root)))
+         (wa-tree (wa-make-window "Root" nil root-size nil nil root))
+         )
+    (wa-get-tree-windows wa-tree (car window-tree) horflag)
     ))
 
-(defun wa-get-tree-windows (win-subtree horflag)
-  )
+
+(defun wa-get-tree-windows (parent win-subtree horflag)
+  (let* ((dir (nth 0 win-subtree))
+         (size-rec (nth 1 win-subtree))
+         (nn 0))
+    (mapc (lambda (child)
+            (let ((wt (if (windowp child)
+                          child
+                        (wa-get-tree-window parent child horflag)))
+                  (name (if (windowp child)
+                            (format "%S" child)
+                          (format "sub%d" (setq nn (1+ nn)))))
+                  )
+              (wa-make-window name parent nil nil nil wt)))
+          (nthcdr 2 win-subtree)))
+  parent)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Testing part
@@ -356,55 +376,57 @@ routines fits together."
 (defvar wa-root-window nil)
 
 (defun wa-add-test-childs ()
-  (wa-set-child-windows wa-root-window t
+  (wa-set-child-windows wa-root-window
                          '(nil 12)
                          '(14 nil)
                          '(nil nil)
                          '(3 nil)
                          )
-  (wa-set-child-windows (car (wa-child wa-root-window)) t
+  (wa-set-child-windows (car (wa-children wa-root-window))
                         '(nil nil)
                         '(8 15))
   )
 
-;; (wa-child wa-root-window)
+;; (wa-children wa-root-window)
 ;; (wa-wset wa-root-window)
 ;; (wa-wumin wa-root-window)
 ;; (wa-wumax wa-root-window)
 ;; (wa-clear-computed wa-root-window)
 
-;; Setup
-(setq wa-root-window (wa-make-window "Root" nil 80 nil nil  nil))
-(setq wa-root-window (wa-make-window "Root" nil 80 nil 8  nil))
-(setq wa-root-window (wa-make-window "Root" nil 80 nil 6  nil))
-(setq wa-root-window (wa-make-window "Root" nil 43 15 nil))
-(setq wa-root-window (wa-make-window "Root" nil 18 15 nil))
-(setq wa-root-window (wa-make-window "Root" nil 15 15 nil))
-(setq wa-root-window (wa-make-window "Root" nil 80 5 nil))
+(defun wa-temp-test ()
+  ;; Setup
+  (setq wa-root-window (wa-make-window "Root" nil 80 nil nil  nil))
+  (setq wa-root-window (wa-make-window "Root" nil 80 nil 8  nil))
+  (setq wa-root-window (wa-make-window "Root" nil 80 nil 6  nil))
+  (setq wa-root-window (wa-make-window "Root" nil 43 15 nil nil))
+  (setq wa-root-window (wa-make-window "Root" nil 18 15 nil nil))
+  (setq wa-root-window (wa-make-window "Root" nil 15 15 nil nil))
+  (setq wa-root-window (wa-make-window "Root" nil 80 5 nil nil))
 
-(wa-add-test-childs)
-(wa-init-fail-flag     wa-root-window)
-(setq wa-failed nil)
+  (wa-add-test-childs)
+  (wa-init-fail-flag     wa-root-window)
+  (setq wa-failed nil)
 
-;; Show state now in case we want to stop on errors
-(describe-variable    'wa-root-window)
+  ;; Show state now in case we want to stop on errors
+  (describe-variable    'wa-root-window)
 
-;; Compute required, may fail.
-(let ((msg (catch 'wa-fit-error
-             (wa-set-wset wa-root-window (wa-wucur wa-root-window))
-             (wa-compute-required wa-root-window)
-             ;; Now it should not fail
-             (wa-compute-resulting  wa-root-window 'eq-sizes))))
-  (when msg
-    (message "%s" (propertize msg 'face 'secondary-selection))))
+  ;; Compute required, may fail.
+  (let ((msg (catch 'wa-fit-error
+               (wa-set-wset wa-root-window (wa-wucur wa-root-window))
+               (wa-compute-required wa-root-window)
+               ;; Now it should not fail
+               (wa-compute-resulting  wa-root-window 'eq-sizes))))
+    (when msg
+      (message "%s" (propertize msg 'face 'secondary-selection))))
 
-;; Show final state
-(describe-variable    'wa-root-window)
-(with-current-buffer (help-buffer)
-  (hi-lock-face-buffer "\"FAILED.*\"" 'hi-red-b)
-  (hi-lock-face-buffer "OK" 'hi-green)
-  (hi-lock-face-buffer "INIT" 'hi-blue))
+  ;; Show final state
+  (describe-variable    'wa-root-window)
+  (with-current-buffer (help-buffer)
+    (hi-lock-face-buffer "\"FAILED.*\"" 'hi-red-b)
+    (hi-lock-face-buffer "OK" 'hi-green)
+    (hi-lock-face-buffer "INIT" 'hi-blue)))
 
+;;(wa-temp-test)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; win-alg.el ends here
