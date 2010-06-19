@@ -22,10 +22,22 @@ Return child."
                (list 'wusr-size size wumin wumax)      ;; Current size and restrictions: wumin, wumax
                (list 'wreq-size nil nil nil)           ;; Slot for computing requirements: wrmin wrmax wfixed
                (list 'wset-size nil nil)               ;; Slot for new size: result-flag, wset
-               real-window)))
+               (list 'real real-window))))
     (when parent
       (wa-set-children parent (cons this (wa-children parent))))
     this))
+
+(defun wa-node-p (arg)
+  (and (listp arg)
+       (eq 'id (car (nth 0 arg)))
+       ;; Fix-me
+       ))
+
+(defun wa-get-root (node)
+  (assert (wa-node-p node) t)
+  (while (wa-parent node)
+    (setq node (wa-parent node)))
+  node)
 
 ;; Fix-me: Maybe make defmacro to make those getters setters... -
 ;; including checks...
@@ -48,6 +60,8 @@ Return child."
 ;; Result
 (defun wa-wres-flag (window) (nth 1 (nth 4 window))) ;; 'wset-size
 (defun wa-wset      (window) (nth 2 (nth 4 window))) ;; 'wset-size
+;; Real window
+(defun wa-real      (window) (nth 1 (nth 5 window))) ;; 'real
 
 ;;; Setters
 (defun wa-set-name      (window name)     (setcar (nthcdr 1 (nth 0 window)) name))  ;; 'id
@@ -59,10 +73,12 @@ Return child."
 ;; Computation
 (defun wa-set-wrmin     (window wrmin)    (setcar (nthcdr 1 (nth 3 window)) wrmin)) ;; 'wreq-size
 (defun wa-set-wrmax     (window wrmax)    (setcar (nthcdr 2 (nth 3 window)) wrmax)) ;; 'wreq-size
-(defun wa-set-wfixed    (window wrfix)    (setcar (nthcdr 3 (nth 3 window)) wrfix)) ;; 'wset-size
+(defun wa-set-wfixed    (window wrfix)    (setcar (nthcdr 3 (nth 3 window)) wrfix)) ;; 'wreq-size
 ;; Result
-(defun wa-set-wres-flag (window flag)  (setcar (nthcdr 1 (nth 4 window)) flag))  ;; 'wset-size
-(defun wa-set-wset      (window size)  (setcar (nthcdr 2 (nth 4 window)) size))  ;; 'wset-size
+(defun wa-set-wres-flag (window flag)     (setcar (nthcdr 1 (nth 4 window)) flag))  ;; 'wset-size
+(defun wa-set-wset      (window size)     (setcar (nthcdr 2 (nth 4 window)) size))  ;; 'wset-size
+;; Real window
+(defun wa-set-real      (window real)     (setcar (nthcdr 1 (nth 5 window)) real))  ;; 'real
 
 (defun wa-set-child-windows (parent &rest sizes)
   "For testing."
@@ -122,7 +138,7 @@ Return child."
           (wa-win-error win "Window %s too small, min=%d, but can be max=%d" (wa-name win) wrmin wumax)))
       (when (and wrmax wumin)
         (unless (>= wrmax wumin)
-          (wa-win-error win "Window %s's childs too small, max=%d, but can be min=%d" (wa-name win) wrmax wumin)))
+          (wa-win-error win "Window %s's children too small, max=%d, but can be min=%d" (wa-name win) wrmax wumin)))
       (wa-set-wres-flag win 'OK))
     nil))
 
@@ -153,18 +169,18 @@ Return child."
 (defun wa-compute-required (win)
   "Walk up from window WIN collecting needed sizes.
 Throw string message to 'wa-fit-error if does not fit."
-  (let ((childs (wa-children win))
+  (let ((children (wa-children win))
         (wumin (wa-wumin win))
         (wumax (wa-wumax win))
         (cmin 0)
         (cmax -1)
         (can-fit t))
-    (if (not childs)
+    (if (not children)
         (setq cmax nil)
       ;; Clear childes set sizes.
-      (dolist (c childs)
+      (dolist (c children)
         (wa-set-wset c nil))
-      (dolist (c childs)
+      (dolist (c children)
           (let* ((res (wa-compute-required c))
                  (res-min (nth 0 res))
                  (res-max (nth 1 res)))
@@ -186,8 +202,8 @@ Throw string message to 'wa-fit-error if does not fit."
               ;; Hurray, at least one child can grow!
               (setq cmax nil))))
       ;; Sanity. Fix-me: use emacs window min.
-      (unless wa-failed (assert (<= (* 1 (length childs)) cmin) t))
-      (unless wa-failed (assert (or (not cmax) (<= (* 1 (length childs)) cmax)) t)))
+      (unless wa-failed (assert (<= (* 1 (length children)) cmin) t))
+      (unless wa-failed (assert (or (not cmax) (<= (* 1 (length children)) cmax)) t)))
     (when wumin (setq cmin (max wumin (or cmin wumin))))
     (when wumax (setq cmax (min wumax (or cmax wumax))))
     (wa-set-wrmin win cmin)
@@ -212,39 +228,40 @@ Throw string message to 'wa-fit-error if does not fit."
     (let ((cmin   (wa-wrmin  win))
           (cmax   (wa-wrmax  win))
           (width  (wa-wset win))
-          (childs (wa-children win)))
+          (children (wa-children win)))
+      (setq strategy (or strategy 'eq-sizes))
       (case strategy
         ('eq-sizes
          (let ((rest-width width)
-               (goal (/ width (length childs)))
-               (rest-childs (copy-sequence childs)))
+               (goal (/ width (length children)))
+               (rest-children (copy-sequence children)))
            ;; Clear childes
-           (dolist (c childs) (wa-set-wset c nil))
+           (dolist (c children) (wa-set-wset c nil))
            ;; Check child min requirements
-           (dolist (c (copy-sequence rest-childs))
+           (dolist (c (copy-sequence rest-children))
              (let ((wrmin (wa-wrmin c)))
                (when (and wrmin (<= goal wrmin))
                  (wa-set-wset c (wa-wrmin c))
-                 (setq rest-childs (delete c rest-childs))
+                 (setq rest-children (delete c rest-children))
                  (setq rest-width (- rest-width (wa-wrmin c))))))
-           (setq goal (/ rest-width (length childs)))
+           (setq goal (/ rest-width (length children)))
            ;; Check child max requirements
-           (dolist (c (copy-sequence rest-childs))
+           (dolist (c (copy-sequence rest-children))
              (let ((wrmax (wa-wrmax c)))
                (when (and wrmax (>= goal wrmax))
                  (wa-set-wset c (wa-wrmax c))
-                 (setq rest-childs (delete c rest-childs))
+                 (setq rest-children (delete c rest-children))
                  (setq rest-width (- rest-width (wa-wrmax c))))))
-           (setq goal (/ rest-width (length childs)))
+           (setq goal (/ rest-width (length children)))
            ;; Distribute the rest, taking care of rounding
-           (wa-set-wset (car rest-childs)
-                        (- rest-width (* goal (1- (length rest-childs)))))
-           (dolist (c (cdr rest-childs))
+           (wa-set-wset (car rest-children)
+                        (- rest-width (* goal (1- (length rest-children)))))
+           (dolist (c (cdr rest-children))
              (wa-set-wset c goal))))
         (t (wa-error "Unknown strategy: %s" strategy)))
       ;; Check
       (let ((w 0))
-        (dolist (c childs)
+        (dolist (c children)
           (let ((wset (wa-wset c)))
             (unless wa-failed (assert (<= 0 wset) t))
             (setq w (+ w wset))))
@@ -253,7 +270,7 @@ Throw string message to 'wa-fit-error if does not fit."
       ;; Call the suggested C level function here for example.
       ;; .......
       ;; Walk down
-      (dolist (c childs)
+      (dolist (c children)
         (wa-compute-resulting c strategy))))
   nil)
 
@@ -261,11 +278,16 @@ Throw string message to 'wa-fit-error if does not fit."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Example of new implementation resizing functions
 
-(defun wa-siblings (window)
+(eval-when-compile (require 'cl))
+
+(defun wa-siblings (window which)
   (let* ((all (wa-children (wa-parent window)) )
          (me-tail (cdr (member window all)))
          (me-rtail (cdr (member window (reverse all)))))
-    (list me-rtail me-tail)))
+    (case which
+     ((all nil) (list me-rtail me-tail))
+     (lower me-rtail)
+     (upper me-tail))))
 
 (defun wa-resize-window (window size-diff edge)
   "Replacement code for `enlarge-window' and friends.
@@ -328,6 +350,7 @@ Return value?"
 ;;;  Accessing the real windows
 
 ;; (setq x (wa-get-frame-windows nil t))
+;; (setq y (wa-get-window-node (selected-window) x))
 (defun wa-get-frame-windows (frame horflag)
   "Get frame FRAME windows as a WA window tree.
 If HORFLAG get the tree for horizontal dividing, otherwise for
@@ -355,27 +378,97 @@ routines fits together."
 
 
 (defun wa-get-tree-windows (parent win-subtree horflag)
-  (let* ((dir (nth 0 win-subtree))
+  (let* ((hor (nth 0 win-subtree))
          (size-rec (nth 1 win-subtree))
          (nn 0))
     (mapc (lambda (child)
             (let ((wt (if (windowp child)
                           child
-                        (wa-get-tree-window parent child horflag)))
+                        (wa-get-tree-windows parent child horflag)))
                   (name (if (windowp child)
                             (format "%S" child)
                           (format "sub%d" (setq nn (1+ nn)))))
+                  (size (when (windowp child)
+                          ;; Compare `resize-window-apply' and the arg
+                          ;; HORIZONTAL there.
+                          (if horflag (window-width child)
+                            (window-height child))))
                   )
-              (wa-make-window name parent nil nil nil wt)))
+              (wa-make-window name parent size nil nil wt)))
           (nthcdr 2 win-subtree)))
   parent)
+
+(defun wa-get-window-node (window wa-tree)
+  (assert (wa-node-p wa-tree) t)
+  (catch 'found
+    (wa-get-window-node-1 window wa-tree)
+    ))
+
+(defun wa-get-window-node-1 (window wa-tree)
+  (assert (wa-node-p wa-tree) t)
+  (when (eq window (wa-real wa-tree))
+    (throw 'found wa-tree))
+  (dolist (node (wa-children wa-tree))
+    (wa-get-window-node-1 window node)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Rules
+
+;; (wa-set-all-fixed x)
+(defun wa-set-all-fixed (tree)
+  (assert (wa-node-p tree) t)
+  (wa-set-wfixed tree (wa-wucur tree)))
+
+;; (wa-set-node-goal y 100)
+(defun wa-set-node-goal (node goal)
+  (assert (wa-node-p node) t)
+  (wa-set-wfixed node nil)
+  (let* ((curr (wa-wucur node))
+         (grow (< curr goal)))
+    (if grow
+        (progn
+          (wa-set-wumin node curr)
+          (wa-set-wumax node goal))
+      (wa-set-wumin node goal)
+      (wa-set-wumax node curr))))
+
+
+;; (wa-allow-lower-siblings y)
+(defun wa-allow-lower-siblings (node)
+  (let ((siblings (wa-siblings node 'lower)))
+    (dolist (sib siblings)
+      (wa-set-wfixed sib nil)))
+  (catch 'wa-fit-error
+    (wa-compute-required node)
+    nil))
+
+(defun wa-allow-upper-siblings (node)
+  (let ((siblings (wa-siblings node 'upper)))
+    (dolist (sib siblings)
+      (wa-set-wfixed sib nil)))
+  (catch 'wa-fit-error
+    (wa-compute-required node)
+    nil))
+
+;; (setq r '(wa-allow-lower-siblings wa-allow-upper-siblings))
+;; (wa-run-rules-and-set x 100 r nil nil)
+(defun wa-run-rules-and-set (node goal rules strategy tree)
+  (let ((root (wa-get-root node)))
+    (setq tree (or tree root))
+    (wa-set-all-fixed tree)
+    (let ((err (run-hook-with-args-until-failure 'rules node)))
+      (if err
+          (message "%s" err)
+        (wa-compute-resulting root strategy)
+        ))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Testing part
 
 (defvar wa-root-window nil)
 
-(defun wa-add-test-childs ()
+(defun wa-add-test-children ()
   (wa-set-child-windows wa-root-window
                          '(nil 12)
                          '(14 nil)
@@ -403,7 +496,7 @@ routines fits together."
   (setq wa-root-window (wa-make-window "Root" nil 15 15 nil nil))
   (setq wa-root-window (wa-make-window "Root" nil 80 5 nil nil))
 
-  (wa-add-test-childs)
+  (wa-add-test-children)
   (wa-init-fail-flag     wa-root-window)
   (setq wa-failed nil)
 

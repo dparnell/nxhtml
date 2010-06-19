@@ -65,6 +65,8 @@
 
 ;;(message " as-ext a %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
 (eval-when-compile (require 'cl))
+;;(eval-when-compile (require 'edit-server nil t))
+(eval-when-compile (require 'edit-server))
 (eval-when-compile (require 'html-write nil t))
 (eval-when-compile (require 'mlinks nil t))
 (eval-when-compile (require 'mumamo nil t))
@@ -103,20 +105,37 @@
 
 (defcustom as-external-alist
   '(
-    ("" as-external-check-contents)
-    ("/itsalltext/.*\.el'" as-external-for-el-files)
-    ("/itsalltext/.*wiki" as-external-for-wiki)
-    ("/itsalltext/.*mail" as-external-setup-for-mail)
-    ("/itsalltext/"       as-external-for-xhtml)
-   )
+    (as-external-check-contents
+     ((its-all-text "")
+      (google-chrome "")
+      ))
+    (as-external-for-el-files
+     ((its-all-text "/itsalltext/.*\.el'")
+      (google-chrome "\.el'")
+      ))
+    (as-external-for-wiki
+     ((its-all-text "/itsalltext/.*wiki")
+      (google-chrome "wiki")
+      ))
+    (as-external-setup-for-mail
+     ((its-all-text "/itsalltext/.*mail")
+      (google-chrome "mail")
+      ))
+    (as-external-for-xhtml
+     ((its-all-text "/itsalltext/")
+      (google-chrome "")
+      ))
+    )
   "List to determine setup if Emacs is used as an external Editor.
 Element in this list should have the form
 
-  \(FILE-REGEXP BUFFER-SETUP-FUN)
+  \(BUFFER-SETUP-FUN ((APP MATCHER) ...))
 
-where FILE-REGEXP should be a regular expression to match
-`buffer-file-name'.  BUFFER-SETUP-FUN is a function to be called
-in the buffer containting the text to edit for setting up things.
+- BUFFER-SETUP-FUN is a function to be called in the buffer
+  containting the text to edit for setting up things.
+- APP is the external application used.
+- MATCHER should be a regular expression to match something like
+  `buffer-file-name' or whatever APP uses for this.
 
 BUFFER-SETUP-FUN should return non-nil if it can setup for
 editing.  If our special setup for `server-window' should not be
@@ -145,9 +164,10 @@ See also `as-external-mode'.
   http://www.emacswiki.org/ the file name may be something like
   'www.emacswiki.org.283b1y212e.html'."
   :type '(repeat
-          (list (choice (variable :tag "Regexp variable")
+          (list (choice :tag "Match temp file name"
+                        (variable :tag "Regexp variable")
                         regexp)
-                command))
+                function))
   :group 'as-external)
 
 (defcustom as-external-its-all-text-coding 'utf-8
@@ -252,7 +272,8 @@ See also `as-external-mode'."
   (when (fboundp 'mlinks-mode)
     (mlinks-mode 1))
   (when (fboundp 'wrap-to-fill-column-mode)
-    (wrap-to-fill-column-mode 1)))
+    (wrap-to-fill-column-mode 1))
+  t)
 
 ;;;###autoload
 (defun as-external-check-contents ()
@@ -310,10 +331,133 @@ See `as-external-alist' for more information."
     (if as-external-mode
         (progn
           (add-to-list 'file-coding-system-alist coding-entry)
-          (add-hook 'server-visit-hook 'as-external-setup t))
+          (add-hook 'server-visit-hook 'as-external-setup t)
+          (add-hook 'edit-server-buffer-setup-hook 'as-external-setup t))
       (setq file-coding-system-alist
             (delq coding-entry file-coding-system-alist))
-      (remove-hook 'server-visit-hook 'as-external-setup))))
+      (remove-hook 'server-visit-hook 'as-external-setup)
+      (remove-hook 'edit-server-buffer-setup-hook 'as-external-setup))))
+
+(defvar as-external-my-frame nil)
+(make-variable-buffer-local 'as-external-my-frame)
+
+(defvar as-external-last-buffer nil)
+
+(defun as-external-server-window-fix-frames (&optional caller)
+  (condition-case err
+      (with-current-buffer as-external-last-buffer
+        (unless (and (featurep 'pause)
+                     (buffer-live-p pause-buffer)
+                     (not (pause-use-topmost)))
+          (remove-hook 'pause-break-exit-hook 'as-external-server-window-fix-frames)
+          (setq as-external-my-frame (or as-external-my-frame
+                                         (make-frame)))
+          (when (memq caller '(xits-all-text))
+            (dolist (f (frame-list))
+              (unless (eq f as-external-my-frame)
+                (lower-frame f))))
+          (msgtrc "as-external-server-window-fix-frames %s" as-external-my-frame)
+          ;;(select-frame-set-input-focus (window-frame (selected-window)))
+          ;;(select-frame-set-input-focus as-external-my-frame)
+          ;;(run-with-idle-timer 2 nil 'raise-frame as-external-my-frame)
+          ;;(as-external-start-raise-frame-timer buffer)
+          (as-external-start-raise-frame-timer (current-buffer))
+          (raise-frame as-external-my-frame)))
+    (error (message "%s" (error-message-string err)))))
+
+(defun as-external-raise-frame ()
+  (condition-case err
+      (progn
+        (remove-hook 'window-configuration-change-hook 'as-external-raise-frame t)
+        (msgtrc "as-external-raise-frame %S %S" (current-buffer) (selected-window))
+        (raise-frame (window-frame (selected-window))))
+    (error (message "as-external-raise-frame: %s" (error-message-string err)))))
+
+(defun as-external-start-raise-frame-timer (buffer)
+  (run-with-idle-timer 4 nil 'as-external-raise-frame-in-timer buffer))
+
+(defun as-external-raise-frame-in-timer (buffer)
+  (condition-case err
+      (let* ((window (get-buffer-window buffer))
+             (frame (when window (window-frame window))))
+        (setq frame (or frame (with-current-buffer buffer as-external-my-frame)))
+        (msgtrc "as-external-raise-frame-in-timer: buffer=%S window=%S frame=%S" buffer window frame)
+        (if (not (and frame
+                      ;; window
+                      ))
+            (as-external-start-raise-frame-timer buffer)
+          (raise-frame frame)
+          (select-frame-set-input-focus frame)))
+    (error (message "as-external-start-raise-frame-timer: %s" (error-message-string err)))))
+
+;;(message " as-ext e %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
+
+(defvar as-external-caller nil)
+
+(defun as-external-server-window (buffer)
+  (setq server-window nil)
+  (with-current-buffer buffer
+    (add-hook 'window-configuration-change-hook 'as-external-raise-frame nil t)
+    (setq as-external-last-buffer (current-buffer))
+    (run-with-idle-timer 2 nil 'as-external-server-window-fix-frames as-external-caller)
+    (add-hook 'pause-break-exit-hook 'as-external-server-window-fix-frames)
+    (add-hook 'kill-buffer-hook 'as-external-delete-my-frame nil t)))
+
+(defun as-external-delete-my-frame ()
+  (let ((win (and (frame-live-p as-external-my-frame)
+                  (get-buffer-window nil as-external-my-frame))))
+    (when (and win
+               (= 1 (length (window-list as-external-my-frame 'no-mini))))
+      ;; Check if we must lower before deleting frame since this is
+      ;; buffer dependent and buffer will change after delete-frame.
+      (let ((must-lower (memq as-external-caller '(xits-all-text))))
+        (delete-frame as-external-my-frame)
+        (when must-lower (lower-frame))
+        ))))
+
+(defun as-external-get-buffer-setup (caller)
+  "Found buffer setup function and call it."
+  (unless (memq caller '(its-all-text google-chrome))
+    (gdb-deb-print "as-external: unknown caller=%s" caller)
+    (msgtrc "as-external: unknown caller=%s" caller))
+  (catch 'fun
+    (dolist (rec as-external-alist)
+      (msgtrc "as-external-setup-1 rec=%S" rec)
+      (let* ((setup-fun    (nth 0 rec))
+             (matchers     (nth 1 rec))
+             (caller-rec (assoc caller matchers))
+             (regexp     (nth 1 caller-rec)))
+        (when regexp
+          (when (symbolp regexp)
+            (setq regexp (symbol-value regexp)))
+          (when (case caller
+                 (google-chrome (string-match-p regexp edit-server-url))
+                 (its-all-text (string-match regexp (buffer-file-name))))
+            (let ((ret (funcall setup-fun)))
+              (msgtrc "as-external-setup-1: %s => %s" setup-fun ret)
+              (when ret (throw 'fun ret)))))))))
+
+(defun as-external-setup-1 ()
+  ;; Fix-me: How does one know if the file names are case sensitive?
+  (gdb-deb-print "as-external-setup-t start, check thread")
+  (unless (when (boundp 'nowait) nowait) ;; dynamically bound in `server-visit-files'
+    (msgtrc "as-external-setup-t cb=%S" (current-buffer))
+    (gdb-deb-print "as-external-setup-t cb=%S" (current-buffer))
+    (let* ((caller (cond
+                    ((local-variable-p 'edit-server-url) 'google-chrome)
+                    ((string-match-p as-external-its-all-text-regexp
+                                     (buffer-file-name))
+                     'its-all-text)
+                    (t (error "Unknown caller"))))
+           (use-server-window (as-external-get-buffer-setup caller)))
+      (set (make-local-variable 'as-external-caller) caller)
+      ;; Fix-me:
+      (unless (or server-window
+                  (eq use-server-window 'use-default-server-window))
+        ;; `server-goto-toplevel' has been done here.
+        ;; Setup to use a new frame
+        (setq edit-server-window 'as-external-server-window)
+        (setq server-window 'as-external-server-window)))))
 
 (defun as-external-setup ()
   "Check if Emacs is used as an external editor.
@@ -323,65 +467,38 @@ This is done by checking `as-external-alist'."
       (as-external-setup-1)
     (error (message "as-external-setup error: %s" err))))
 
-(defvar as-external-my-frame nil)
-(make-variable-buffer-local 'as-external-my-frame)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Google chrome edit-server.el support
 
-(defvar as-external-last-buffer nil)
+;; (defun as-external-edit-server-setup-1 ()
+;;   ;; Fix-me: How does one know if the file names are case sensitive?
+;;   (unless (when (boundp 'nowait) nowait) ;; dynamically bound in `server-visit-files'
+;;     (msgtrc "as-external-setup-t cb=%S" (current-buffer))
+;;     (let* ((use-server-window
+;;             (catch 'fun
+;;               (dolist (rec as-external-alist)
+;;                 (msgtrc "as-external-setup-1 rec=%S" rec)
+;;                 (let ((file-regexp (car rec))
+;;                       (setup-fun   (cadr rec)))
+;;                   (when (symbolp file-regexp)
+;;                     (setq file-regexp (symbol-value file-regexp)))
+;;                   (when (string-match file-regexp (buffer-file-name))
+;;                     (let ((ret (funcall setup-fun)))
+;;                       (msgtrc "as-external-setup-1: %s => %s" setup-fun ret)
+;;                       (when ret (throw 'fun ret)))))))))
+;;       (unless (or server-window
+;;                  (eq use-server-window 'use-default-server-window))
+;;         ;; `server-goto-toplevel' has been done here.
+;;         ;; Setup to use a new frame
+;;         (setq server-window 'as-external-server-window)))))
 
-(defun as-external-server-window-fix-frames ()
-  (condition-case err
-      (with-current-buffer as-external-last-buffer
-        (unless (and (featurep 'pause)
-                     (buffer-live-p pause-buffer)
-                     (not (pause-use-topmost)))
-          (remove-hook 'pause-break-exit-hook 'as-external-server-window-fix-frames)
-          (setq as-external-my-frame (or as-external-my-frame
-                                         (make-frame)))
-          (dolist (f (frame-list))
-            (unless (eq f as-external-my-frame)
-              (lower-frame f)))
-          (raise-frame as-external-my-frame)))
-    (error (message "%s" (error-message-string err)))))
-
-;;(message " as-ext e %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
-
-(defun as-external-server-window (buffer)
-  (setq server-window nil)
-  (with-current-buffer buffer
-    (setq as-external-last-buffer (current-buffer))
-    (run-with-idle-timer 2 nil 'as-external-server-window-fix-frames)
-    (add-hook 'pause-break-exit-hook 'as-external-server-window-fix-frames)
-    (add-hook 'kill-buffer-hook 'as-external-delete-my-frame nil t)))
-
-(defun as-external-delete-my-frame ()
-  (let ((win (and (frame-live-p as-external-my-frame)
-                  (get-buffer-window nil as-external-my-frame))))
-    (when (and win
-               (= 1 (length (window-list as-external-my-frame 'no-mini))))
-      (delete-frame as-external-my-frame)
-      (lower-frame))))
-
-(defun as-external-setup-1 ()
-  ;; Fix-me: How does one know if the file names are case sensitive?
-  (unless (when (boundp 'nowait) nowait) ;; dynamically bound in `server-visit-files'
-    (msgtrc "as-external-setup-t cb=%S" (current-buffer))
-    (let* ((use-server-window
-            (catch 'fun
-              (dolist (rec as-external-alist)
-                (msgtrc "as-external-setup-1 rec=%S" rec)
-                (let ((file-regexp (car rec))
-                      (setup-fun   (cadr rec)))
-                  (when (symbolp file-regexp)
-                    (setq file-regexp (symbol-value file-regexp)))
-                  (when (string-match file-regexp (buffer-file-name))
-                    (let ((ret (funcall setup-fun)))
-                      (msgtrc "as-external-setup-1: %s => %s" setup-fun ret)
-                      (when ret (throw 'fun ret)))))))))
-      (unless (or server-window
-                 (eq use-server-window 'use-default-server-window))
-        ;; `server-goto-toplevel' has been done here.
-        ;; Setup to use a new frame
-        (setq server-window 'as-external-server-window)))))
+;; (defun as-external-edit-server-setup ()
+;;   "Check if Emacs is used by Google Chrome edit server.
+;; If so then turn on useful major and minor modes.
+;; This is done by checking `as-external-edit-server-alist'."
+;;   (condition-case err
+;;       (as-external-setup-1)
+;;     (error (message "as-external-setup error: %s" err))))
 
 ;;(message " as-ext fin %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
 (provide 'as-external)
