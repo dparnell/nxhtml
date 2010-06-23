@@ -65,8 +65,7 @@
 
 ;;(message " as-ext a %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
 (eval-when-compile (require 'cl))
-;;(eval-when-compile (require 'edit-server nil t))
-(eval-when-compile (require 'edit-server))
+(eval-when-compile (require 'edit-server nil t))
 (eval-when-compile (require 'html-write nil t))
 (eval-when-compile (require 'mlinks nil t))
 (eval-when-compile (require 'mumamo nil t))
@@ -351,18 +350,28 @@ See `as-external-alist' for more information."
                      (not (pause-use-topmost)))
           (remove-hook 'pause-break-exit-hook 'as-external-server-window-fix-frames)
           (setq as-external-my-frame (or as-external-my-frame
-                                         (make-frame)))
-          (when (memq caller '(xits-all-text))
+                                         ;;(make-frame)
+                                         (make-frame-on-display (getenv "DISPLAY"))
+                                         ))
+          (when (and server-raise-frame
+                     (memq caller '(its-all-text)))
             (dolist (f (frame-list))
               (unless (eq f as-external-my-frame)
                 (lower-frame f))))
-          (msgtrc "as-external-server-window-fix-frames %s" as-external-my-frame)
+          (gdb-deb-print "as-external-server-window-fix-frames %s" as-external-my-frame)
           ;;(select-frame-set-input-focus (window-frame (selected-window)))
           ;;(select-frame-set-input-focus as-external-my-frame)
           ;;(run-with-idle-timer 2 nil 'raise-frame as-external-my-frame)
           ;;(as-external-start-raise-frame-timer buffer)
+
+          ;; Fix-me: Without make-frame-visible raise-frame does not work...
+          (make-frame-visible as-external-my-frame)
+          (set-window-buffer (frame-first-window as-external-my-frame) (current-buffer))
+          (redisplay t)
+          (select-frame-set-input-focus as-external-my-frame)
+          ;;(raise-frame as-external-my-frame) ;; Does not work
           (as-external-start-raise-frame-timer (current-buffer))
-          (raise-frame as-external-my-frame)))
+          ))
     (error (message "%s" (error-message-string err)))))
 
 (defun as-external-raise-frame ()
@@ -370,24 +379,29 @@ See `as-external-alist' for more information."
       (progn
         (remove-hook 'window-configuration-change-hook 'as-external-raise-frame t)
         (msgtrc "as-external-raise-frame %S %S" (current-buffer) (selected-window))
-        (raise-frame (window-frame (selected-window))))
+        (raise-frame (window-frame (selected-window)))
+        )
     (error (message "as-external-raise-frame: %s" (error-message-string err)))))
 
 (defun as-external-start-raise-frame-timer (buffer)
-  (run-with-idle-timer 4 nil 'as-external-raise-frame-in-timer buffer))
+  (run-with-idle-timer 2 nil 'as-external-raise-frame-in-timer buffer))
 
 (defun as-external-raise-frame-in-timer (buffer)
   (condition-case err
       (let* ((window (get-buffer-window buffer))
              (frame (when window (window-frame window))))
         (setq frame (or frame (with-current-buffer buffer as-external-my-frame)))
-        (msgtrc "as-external-raise-frame-in-timer: buffer=%S window=%S frame=%S" buffer window frame)
+        (gdb-deb-print "as-external-raise-frame-in-timer: buffer=%S window=%S frame=%S" buffer window frame)
         (if (not (and frame
-                      ;; window
+                      window
                       ))
             (as-external-start-raise-frame-timer buffer)
-          (raise-frame frame)
-          (select-frame-set-input-focus frame)))
+          (select-frame-set-input-focus as-external-my-frame)
+          ;;(make-frame-visible as-external-my-frame)
+          ;;(redisplay t)
+          (gdb-deb-print "as-external-raise-frame-in-timer: RAISE-FRAME")
+          ;;(raise-frame frame)
+          ))
     (error (message "as-external-start-raise-frame-timer: %s" (error-message-string err)))))
 
 ;;(message " as-ext e %.1f seconds elapsed" (- (float-time) as-ext-load-time-start))
@@ -397,7 +411,7 @@ See `as-external-alist' for more information."
 (defun as-external-server-window (buffer)
   (setq server-window nil)
   (with-current-buffer buffer
-    (add-hook 'window-configuration-change-hook 'as-external-raise-frame nil t)
+    ;;(add-hook 'window-configuration-change-hook 'as-external-raise-frame nil t)
     (setq as-external-last-buffer (current-buffer))
     (run-with-idle-timer 2 nil 'as-external-server-window-fix-frames as-external-caller)
     (add-hook 'pause-break-exit-hook 'as-external-server-window-fix-frames)
@@ -410,7 +424,8 @@ See `as-external-alist' for more information."
                (= 1 (length (window-list as-external-my-frame 'no-mini))))
       ;; Check if we must lower before deleting frame since this is
       ;; buffer dependent and buffer will change after delete-frame.
-      (let ((must-lower (memq as-external-caller '(xits-all-text))))
+      (let ((must-lower (and server-raise-frame
+                             (memq as-external-caller '(its-all-text)))))
         (delete-frame as-external-my-frame)
         (when must-lower (lower-frame))
         ))))

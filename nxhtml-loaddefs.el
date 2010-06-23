@@ -710,7 +710,7 @@ Note that you have to start the MozRepl server from Firefox.
 
 ;;;### (autoloads (mozadd-mirror-mode global-mozadd-refresh-edited-on-save-mode
 ;;;;;;  mozadd-refresh-edited-on-save-mode) "../related/mozadd" "related/mozadd.el"
-;;;;;;  (19471 58658))
+;;;;;;  (19472 53489))
 ;;; Generated autoloads from related/mozadd.el
 (web-autoload-require 'mozadd 'lp '(nxhtml-download-root-url nil) "related/mozadd" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1519,7 +1519,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (appmenu-mode appmenu-add appmenu) "appmenu" "util/appmenu.el"
-;;;;;;  (19459 64864))
+;;;;;;  (19474 32037))
 ;;; Generated autoloads from util/appmenu.el
 (web-autoload-require 'appmenu 'lp '(nxhtml-download-root-url nil) "util/appmenu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1573,7 +1573,7 @@ much about computation time as for entries in the menu bar.
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-el-files
 ;;;;;;  as-external-check-contents as-external-for-mail-mode as-external-for-xhtml
-;;;;;;  as-external) "as-external" "util/as-external.el" (19471 58658))
+;;;;;;  as-external) "as-external" "util/as-external.el" (19489 11513))
 ;;; Generated autoloads from util/as-external.el
 (web-autoload-require 'as-external 'lp '(nxhtml-download-root-url nil) "util/as-external" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1961,6 +1961,28 @@ telling the download URL of thise form in the header:
 If not the user is asked for the URL.
 
 \(fn URL)" t nil)
+
+;;;***
+
+;;;### (autoloads (google-chrome-server-mode) "edit-server" "util/edit-server.el"
+;;;;;;  (19482 24344))
+;;; Generated autoloads from util/edit-server.el
+(web-autoload-require 'edit-server 'lp '(nxhtml-download-root-url nil) "util/edit-server" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(defvar google-chrome-server-mode nil "\
+Non-nil if Google-Chrome-Server mode is enabled.
+See the command `google-chrome-server-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `google-chrome-server-mode'.")
+
+(nxhtml-custom-autoload 'google-chrome-server-mode 'edit-server nil)
+
+(nxhtml-autoload 'google-chrome-server-mode `(lp '(nxhtml-download-root-url nil) "util/edit-server" nxhtml-install-dir) "\
+Accept editing requests from Google Chrome.
+
+\(fn &optional ARG)" t nil)
 
 ;;;***
 
@@ -2973,22 +2995,21 @@ Color up digits three by three.
 ;;;***
 
 ;;;### (autoloads (ourcomments-warning ourcomments-M-x-menu-mode
-;;;;;;  ourcomments-paste-with-convert-mode ourcomments-copy-target-region-to-reb
-;;;;;;  use-custom-style info-open-file replace-read-files rdir-query-replace
-;;;;;;  ldir-query-replace grep-query-replace emacs-Q-nxhtml emacs-Q
-;;;;;;  emacs--no-desktop emacs--debug-init emacs-buffer-file emacs
-;;;;;;  emacs-restart ourcomments-ido-ctrl-tab ourcomments-ido-buffer-raise-frame
-;;;;;;  ourcomments-ido-buffer-other-frame ourcomments-ido-buffer-other-window
-;;;;;;  describe-symbol describe-defstruct describe-custom-group
-;;;;;;  widen-to-comments-above narrow-to-defun+comments-above narrow-to-comment
-;;;;;;  buffer-narrowed-p describe-command ourcomments-ediff-files
+;;;;;;  ourcomments-paste-with-convert-mode use-custom-style info-open-file
+;;;;;;  replace-read-files rdir-query-replace ldir-query-replace
+;;;;;;  grep-query-replace emacs-Q-nxhtml emacs-Q emacs--no-desktop
+;;;;;;  emacs--debug-init emacs-buffer-file emacs emacs-restart ourcomments-ido-ctrl-tab
+;;;;;;  ourcomments-ido-buffer-raise-frame ourcomments-ido-buffer-other-frame
+;;;;;;  ourcomments-ido-buffer-other-window describe-symbol describe-defstruct
+;;;;;;  describe-custom-group widen-to-comments-above narrow-to-defun+comments-above
+;;;;;;  narrow-to-comment buffer-narrowed-p describe-command ourcomments-ediff-files
 ;;;;;;  find-emacs-other-file ediff-emacs-other-file ourcomments-insert-date-and-time
 ;;;;;;  describe-timers ourcomments-copy+paste-set-point better-fringes-mode
 ;;;;;;  describe-key-and-map-briefly ourcomments-move-end-of-line
 ;;;;;;  ourcomments-move-beginning-of-line ourcomments-mark-whole-buffer-or-field
 ;;;;;;  fill-dwim unfill-individual-paragraphs unfill-region unfill-paragraph
 ;;;;;;  define-toggle-old define-toggle popup-menu-at-point ourcomments-indirect-fun)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19471 58658))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19473 10040))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3352,11 +3373,6 @@ Setup like in `Custom-mode', but without things specific to Custom.
 
 \(fn)" nil nil)
 
-(nxhtml-autoload 'ourcomments-copy-target-region-to-reb `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
-Copy region in re-builder target buffer to reb buffer.
-
-\(fn)" t nil)
-
 (defvar ourcomments-paste-with-convert-mode nil "\
 Non-nil if Ourcomments-Paste-With-Convert mode is enabled.
 See the command `ourcomments-paste-with-convert-mode' for a description of this minor mode.
@@ -3617,17 +3633,17 @@ Major mode for editing RELAX NG Compact Syntax schemas.
 ;;;***
 
 ;;;### (autoloads (rxx-parse rxx-simplify-result rxx-parse-string)
-;;;;;;  "rxx" "util/rxx.el" (19472 17959))
+;;;;;;  "rxx" "util/rxx.el" (19474 62911))
 ;;; Generated autoloads from util/rxx.el
 (web-autoload-require 'rxx 'lp '(nxhtml-download-root-url nil) "util/rxx" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
 
 (nxhtml-autoload 'rxx-parse-string `(lp '(nxhtml-download-root-url nil) "util/rxx" nxhtml-install-dir) "\
 Do like `rxx-parse' but parse STRING instead of current buffer.
-READ-SYNTAX has the same meaning and return value has the same
+has the same meaning and return value has the same
 format.
 
-\(fn STRING READ-SYNTAX)" nil nil)
+\(fn STRING)" nil nil)
 
 (nxhtml-autoload 'rxx-simplify-result `(lp '(nxhtml-download-root-url nil) "util/rxx" nxhtml-install-dir) "\
 Simplify result if possible.
@@ -3649,11 +3665,11 @@ informative message about what went wrong.
 
 The produced form includes (rx ...) around it.
 
-Fix-me: Rethink. If READ-SYNTAX then Emacs read syntax for
+Fix-me: Rethink. If then Emacs read syntax for
 strings is used.  This meanst that \\ must be doubled and things
 like \\n are recognized.
 
-\(fn READ-SYNTAX)" nil nil)
+\(fn)" nil nil)
 
 ;;;***
 
@@ -3696,8 +3712,8 @@ ENGINE must be key in `search-net-search-setup-alist'.
 
 ;;;***
 
-;;;### (autoloads (sex-mode sex) "sex-mode" "util/sex-mode.el" (19471
-;;;;;;  58658))
+;;;### (autoloads (sex-mode sex) "sex-mode" "util/sex-mode.el" (19472
+;;;;;;  55567))
 ;;; Generated autoloads from util/sex-mode.el
 (web-autoload-require 'sex-mode 'lp '(nxhtml-download-root-url nil) "util/sex-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3766,7 +3782,7 @@ option `scroll-bar-mode'.
 ;;;***
 
 ;;;### (autoloads (tabkey2-emma-without-tabkey2 tabkey2-mode tabkey2)
-;;;;;;  "tabkey2" "util/tabkey2.el" (19459 64864))
+;;;;;;  "tabkey2" "util/tabkey2.el" (19474 56502))
 ;;; Generated autoloads from util/tabkey2.el
 (web-autoload-require 'tabkey2 'lp '(nxhtml-download-root-url nil) "util/tabkey2" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4050,7 +4066,7 @@ See also option `winsav-save-mode' and command
 ;;;;;;  winsize-balance-siblings winsize-fit-frame-width winsize-fitw-and-maxh-frame
 ;;;;;;  winsize-max-frame-height winsize-fit-windows-to-desired-widths
 ;;;;;;  winsize-fit-window-to-desired-width resize-windows) "winsize"
-;;;;;;  "util/winsize.el" (19457 53996))
+;;;;;;  "util/winsize.el" (19477 64020))
 ;;; Generated autoloads from util/winsize.el
 (web-autoload-require 'winsize 'lp '(nxhtml-download-root-url nil) "util/winsize" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4424,11 +4440,12 @@ accept it or skip it.
 ;;;;;;  "related/flymake-helpers.el" "related/flymakemsg.el" "related/php-imenu.el"
 ;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
-;;;;;;  "util/css-simple-completion.el" "util/custsets.el" "util/ecb-batch-compile.el"
-;;;;;;  "util/fupd.el" "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
-;;;;;;  "util/org-panel.el" "util/rxi.el" "util/tipframe.el" "web-autoload.el")
-;;;;;;  (19472 52120 250000))
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
+;;;;;;  "util/appmenu-fold.el" "util/backtr.el" "util/css-simple-completion.el"
+;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/fupd.el"
+;;;;;;  "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
+;;;;;;  "util/org-panel.el" "util/rxi.el" "util/tipframe.el" "util/win-alg.el"
+;;;;;;  "web-autoload.el") (19489 64398 468000))
 
 ;;;***
 
