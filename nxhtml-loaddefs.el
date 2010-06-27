@@ -710,7 +710,7 @@ Note that you have to start the MozRepl server from Firefox.
 
 ;;;### (autoloads (mozadd-mirror-mode global-mozadd-refresh-edited-on-save-mode
 ;;;;;;  mozadd-refresh-edited-on-save-mode) "../related/mozadd" "related/mozadd.el"
-;;;;;;  (19472 53489))
+;;;;;;  (19472 56384))
 ;;; Generated autoloads from related/mozadd.el
 (web-autoload-require 'mozadd 'lp '(nxhtml-download-root-url nil) "related/mozadd" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1519,7 +1519,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (appmenu-mode appmenu-add appmenu) "appmenu" "util/appmenu.el"
-;;;;;;  (19474 32037))
+;;;;;;  (19476 21424))
 ;;; Generated autoloads from util/appmenu.el
 (web-autoload-require 'appmenu 'lp '(nxhtml-download-root-url nil) "util/appmenu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1573,7 +1573,7 @@ much about computation time as for entries in the menu bar.
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-el-files
 ;;;;;;  as-external-check-contents as-external-for-mail-mode as-external-for-xhtml
-;;;;;;  as-external) "as-external" "util/as-external.el" (19489 11513))
+;;;;;;  as-external) "as-external" "util/as-external.el" (19489 64508))
 ;;; Generated autoloads from util/as-external.el
 (web-autoload-require 'as-external 'lp '(nxhtml-download-root-url nil) "util/as-external" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1965,7 +1965,7 @@ If not the user is asked for the URL.
 ;;;***
 
 ;;;### (autoloads (google-chrome-server-mode) "edit-server" "util/edit-server.el"
-;;;;;;  (19482 24344))
+;;;;;;  (19489 64508))
 ;;; Generated autoloads from util/edit-server.el
 (web-autoload-require 'edit-server 'lp '(nxhtml-download-root-url nil) "util/edit-server" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3009,7 +3009,7 @@ Color up digits three by three.
 ;;;;;;  ourcomments-move-beginning-of-line ourcomments-mark-whole-buffer-or-field
 ;;;;;;  fill-dwim unfill-individual-paragraphs unfill-region unfill-paragraph
 ;;;;;;  define-toggle-old define-toggle popup-menu-at-point ourcomments-indirect-fun)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19473 10040))
+;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19473 62556))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3633,7 +3633,7 @@ Major mode for editing RELAX NG Compact Syntax schemas.
 ;;;***
 
 ;;;### (autoloads (rxx-parse rxx-simplify-result rxx-parse-string)
-;;;;;;  "rxx" "util/rxx.el" (19474 62911))
+;;;;;;  "rxx" "util/rxx.el" (19476 21424))
 ;;; Generated autoloads from util/rxx.el
 (web-autoload-require 'rxx 'lp '(nxhtml-download-root-url nil) "util/rxx" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3713,7 +3713,7 @@ ENGINE must be key in `search-net-search-setup-alist'.
 ;;;***
 
 ;;;### (autoloads (sex-mode sex) "sex-mode" "util/sex-mode.el" (19472
-;;;;;;  55567))
+;;;;;;  56384))
 ;;; Generated autoloads from util/sex-mode.el
 (web-autoload-require 'sex-mode 'lp '(nxhtml-download-root-url nil) "util/sex-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3782,7 +3782,7 @@ option `scroll-bar-mode'.
 ;;;***
 
 ;;;### (autoloads (tabkey2-emma-without-tabkey2 tabkey2-mode tabkey2)
-;;;;;;  "tabkey2" "util/tabkey2.el" (19474 56502))
+;;;;;;  "tabkey2" "util/tabkey2.el" (19476 21424))
 ;;; Generated autoloads from util/tabkey2.el
 (web-autoload-require 'tabkey2 'lp '(nxhtml-download-root-url nil) "util/tabkey2" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4066,7 +4066,7 @@ See also option `winsav-save-mode' and command
 ;;;;;;  winsize-balance-siblings winsize-fit-frame-width winsize-fitw-and-maxh-frame
 ;;;;;;  winsize-max-frame-height winsize-fit-windows-to-desired-widths
 ;;;;;;  winsize-fit-window-to-desired-width resize-windows) "winsize"
-;;;;;;  "util/winsize.el" (19477 64020))
+;;;;;;  "util/winsize.el" (19457 53996))
 ;;; Generated autoloads from util/winsize.el
 (web-autoload-require 'winsize 'lp '(nxhtml-download-root-url nil) "util/winsize" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4445,7 +4445,7 @@ accept it or skip it.
 ;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/fupd.el"
 ;;;;;;  "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/org-panel.el" "util/rxi.el" "util/tipframe.el" "util/win-alg.el"
-;;;;;;  "web-autoload.el") (19489 64398 468000))
+;;;;;;  "web-autoload.el") (19490 6782 656000))
 
 ;;;***
 
