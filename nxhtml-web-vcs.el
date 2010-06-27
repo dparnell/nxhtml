@@ -347,7 +347,10 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
          (base-url nxhtml-web-vcs-base-url)
          (files-url (concat base-url "files/"))
          ;;(revs-url  (concat base-url "changes/"))
-         (rev-part (if revision (number-to-string revision) "head%3A/"))
+         (rev-part (if revision (number-to-string revision)
+                     ;; "head%3A/"
+                     "head:/"
+                     ))
          (full-root-url (concat files-url rev-part))
          (web-vcs-folder-cache nil)
          (web-autoload-paranoid nil))
