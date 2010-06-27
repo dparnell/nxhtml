@@ -95,11 +95,6 @@
                                  "href=\""
                                  (submatch (regexp ".*/download/[^\"]*"))
                                  "\""))))
-
-     ;; ,(rx "href=\""
-     ;;      (submatch (regexp ".*/download/[^\"]*"))
-     ;;      "\"")
-
      ;; Dirs URL regexp:
      ,(rx-to-string '(and "href=\""
                           (group (regexp ".*%3A/[^\"]*/"))
@@ -121,7 +116,7 @@
      )
     (lp ;; Id
      ;; Comment:
-     "http://www.launchpad.com/ uses this 2009-11-29 with Loggerhead 1.10 (generic?)"
+     "http://www.launchpad.com/ uses this 2010-06-26 with Loggerhead 1.17 (generic?)"
      ;; Files URL regexp:
      ;;
      ;; Extend this format to catch date/time too.
@@ -131,29 +126,30 @@
      ;;  (url 1)
      ;;  (time 2)
      ;;  (rev 3))
-
      ((time 1)
       (url 2)
       (patt ,(rx-to-string '(and "<td class=\"date\">"
-                                 (submatch (regexp "[^<]*"))
+                                 (submatch
+                                  (*\?
+                                   (not (any "<"))))
                                  "</td>"
-                                 (0+ space)
-                                 "<td class=\"timedate2\">"
-                                 (regexp ".+")
-                                 "</td>"
-                                 (*? (regexp ".\\|\n"))
-                                 "href=\""
-                                 (submatch (regexp ".*/download/[^\"]*"))
-                                 "\""))))
-
-     ;; ,(rx "href=\""
-     ;;      (submatch (regexp ".*/download/[^\"]*"))
-     ;;      "\"")
-
+                                 (*? anything)
+                                 "<a href=\""
+                                 (submatch "/~nxhtml/nxhtml/main/download/"
+                                           (*
+                                            (not (any "\"")))
+                                           )
+                                 "\" title=\"Download"
+                                 )
+                           )))
      ;; Dirs URL regexp:
-     ,(rx-to-string '(and "href=\""
-                          (group (regexp ".*%3A/[^\"]*/"))
-                          "\""))
+     ,(rx-to-string '(and  "<td class=\"autcell\"><a href=\""
+                           (submatch (+? nonl)
+                                     "/files/head:/"
+                                     (+? (not (any "\""))))
+                           "\">")
+                    ;;(and "href=\"" (group (regexp ".*%3A/[^\"]*/")) "\"")
+                    )
      ;; File name URL part regexp:
      "\\([^\/]*\\)$"
      ;; Page revision regexp:
@@ -2129,13 +2125,17 @@ resulting load-history entry."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Specific for nXhtml
 
-(defvar nxhtml-web-vcs-base-url "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/")
+;;(defvar nxhtml-web-vcs-base-url "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/")
+(defvar nxhtml-web-vcs-base-url "http://bazaar.launchpad.net/~nxhtml/nxhtml/main/")
 
 ;; Fix-me: make gen for 'lp etc
 (defun nxhtml-download-root-url (revision)
   (let* ((base-url nxhtml-web-vcs-base-url)
          (files-url (concat base-url "files/"))
-         (rev-part (if revision (number-to-string revision) "head%3A/")))
+         (rev-part (if revision (number-to-string revision)
+                     ;; "head%3A/"
+                     "head:/"
+                     )))
     (concat files-url rev-part)))
 
 (defun web-vcs-nxhtml ()
