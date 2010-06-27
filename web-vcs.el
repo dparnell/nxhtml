@@ -1420,6 +1420,10 @@ If LOAD"
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Temporary helpers, possibly included in Emacs
 
+;; Fix-me: Doing (require 'url-http) in the functions below led to
+;; that url-show-status is void.  So I require it here instead.
+(require 'url-http)
+
 ;; (setq x (web-vcs-url-retrieve-synch "http://emacswiki.org/"))
 ;;;###autoload
 (defun web-vcs-url-retrieve-synch (url)
@@ -1465,6 +1469,7 @@ A prefix arg makes KEEP-TIME non-nil."
   (if (and (file-exists-p newname)
 	   (not ok-if-already-exists))
       (error "Opening output file: File already exists, %s" newname))
+  (require 'url-http)
   (let ((buffer (url-retrieve-synchronously url))
 	(handle nil)
         (ret nil))
@@ -1475,7 +1480,6 @@ A prefix arg makes KEEP-TIME non-nil."
           (progn
             (kill-buffer)
             nil)
-        (require 'url-http)
         (setq ret (url-http-parse-response))
         (setq handle (mm-dissect-buffer t))
         (mm-save-part-to-file handle newname)
