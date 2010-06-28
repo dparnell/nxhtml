@@ -887,6 +887,7 @@
           (define-key style-map [popcmp-popup-completion]
             (list 'menu-item "Popup Style Completion"
                   (lambda () (interactive) (customize-set-variable 'popcmp-completion-style 'popcmp-popup))
+                  :enable 'window-system
                   :button `(:radio . (eq popcmp-completion-style 'popcmp-popup))))
           )
         (define-key cmpl-map [nxhtml-cmpl-separator]
