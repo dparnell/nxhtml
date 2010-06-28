@@ -347,12 +347,16 @@ If value is a number then delay message that number of seconds."
              (appmenu-remove 'tabkey2))))
   :group 'tabkey2)
 
+;; (defun yas/expandable-at-point ()
+;;   "Return non-nil if a snippet can be expanded here."
+;;   (when (and (fboundp 'yas/template-condition-predicate)
+;;              (boundp 'yas/buffer-local-condition))
+;;     (yas/template-condition-predicate
+;;      yas/buffer-local-condition)))
+
 (defun yas/expandable-at-point ()
-  "Return non-nil if a snippet can be expanded here."
-  (when (and (fboundp 'yas/template-condition-predicate)
-             (boundp 'yas/buffer-local-condition))
-    (yas/template-condition-predicate
-     yas/buffer-local-condition)))
+ "Return non-nil if a snippet can be expanded here."
+ (car (yas/current-key)))
 
 (defvar tabkey2-company-backends
   "List of frontends and their backends."
@@ -723,10 +727,10 @@ Otherwise return t if FUN has a key binding at point."
                       (copy-sequence emulation-mode-map-alists)))
                (keys (tabkey2-symbol-keys fun))
                kb-bound)
-          (dolist (key keys)
-            (unless (memq (car (append key nil))
-                          '(menu-bar))
-              (setq kb-bound t)))
+          ;; (dolist (key keys)
+          ;;   (unless (memq (car (append key nil))
+          ;;                 '(menu-bar))
+          ;;     (setq kb-bound t)))
           kb-bound))))
 
 (defun tabkey2-is-active-p (fun)
