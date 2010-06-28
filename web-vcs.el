@@ -1418,12 +1418,13 @@ If LOAD"
 
 ;; Fix-me: Doing (require 'url-http) in the functions below led to
 ;; that url-show-status is void.  So I require it here instead.
-(require 'url-http)
+;;(require 'url-http)
 
 ;; (setq x (web-vcs-url-retrieve-synch "http://emacswiki.org/"))
 ;;;###autoload
 (defun web-vcs-url-retrieve-synch (url)
   "Retrieve URL, return cons with buffer and http status."
+  (require 'url-http)
   (let* ((url-show-status nil) ;; just annoying showing status here
          (buffer (url-retrieve-synchronously url))
          (handle nil)
@@ -1435,7 +1436,6 @@ If LOAD"
           (progn
             (kill-buffer)
             nil)
-        (require 'url-http)
         (setq http-status (url-http-parse-response))
         (if (memq http-status '(200 201))
             (progn
