@@ -365,7 +365,8 @@ If DO-BYTE is non-nil byte compile nXhtml after download."
         (load autostart-file)
         (web-vcs-log-save)
         (web-vcs-message-with-face 'web-vcs-green "==== All files for nXhtml are now installed ====")
-        (nxhtmlmaint-byte-recompile)
+        (when do-byte
+          (nxhtmlmaint-byte-recompile))
         (unless has-nxhtml (nxhtml-add-loading-to-custom-file autostart-file nil))))))
 
 (defun nxhtml-check-convert-to-part-by-part ()

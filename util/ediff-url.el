@@ -107,6 +107,7 @@ URL instead."
     (if (or (not (string-match proj-url-re url))
             (string-match "/download/" url))
         url
+      (require 'url-http)
       (let* ((proj-name (match-string 1 url))
              (url-show-status nil) ;; just annoying showing status here
              buffer
@@ -119,7 +120,6 @@ URL instead."
              file-list-url
              (dl-link-patt (concat "href=\"\\([^\"]*/download/[^\"]*" file-name "\\)\""))
              dl-link)
-        (require 'url-http)
         ;; Get file list page. Unfortunately this requires TLS
         (if t
             ;; No TLS
@@ -176,6 +176,7 @@ URL instead."
   "Check if bazaar list page on Launchpad.
 If URL is a description page for a file get download URL
 instead."
+  (require 'url-http)
   (let* ((bazaar-url "http://bazaar.launchpad.net/")
          (bazaar-len (length bazaar-url)))
     (if (and (< bazaar-len (length url))
@@ -195,7 +196,6 @@ instead."
                 (progn
                   (message "Got empty page for %s" url)
                   (throw 'command-level nil))
-              (require 'url-http)
               (setq http-status (url-http-parse-response))
               (if (memq http-status '(200 201))
                   (progn

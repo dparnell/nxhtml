@@ -1045,6 +1045,7 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
   (pause-start-alpha-100-timer 60))
 
 (defun pause-get-yoga-poses ()
+  (require 'url-vars)
   (let* ((url-show-status nil) ;; do not show download messages
          (buf (url-retrieve-synchronously "http://www.abc-of-yoga.com/yogapractice/mountain.asp")))
     (pause-get-yoga-poses-1 buf)))
