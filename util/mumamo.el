@@ -7684,7 +7684,9 @@ This is in the temporary buffer for indentation."
 (defun mumamo-indent-line-in-mirror (chunk line-beg line-end)
   (let* ((major (mumamo-chunk-major-mode chunk))
          (for-buffer (overlay-buffer chunk))
-         (mirror-buf (mumamo-update-cmirr-buffer major for-buffer (1+ line-end)))
+         (mirror-buf (mumamo-update-cmirr-buffer major for-buffer
+                                                 (min (1+ line-end)
+                                                      (point-max))))
          new-ind
          line-in-mirror
          line-in-mirror-is-blank
@@ -7949,7 +7951,8 @@ out happens on current line.
                            (when prev-template-shift-rec
                              (cdr prev-template-shift-rec))))
          (template-indent-abs (when (and template-shift
-                                         (or (/= 0 template-shift)
+                                         (or t
+                                             (/= 0 template-shift)
                                              ;; prev-prev is template?
                                              (and prev-template-indentor
                                                   this-line-is-indentor)))
