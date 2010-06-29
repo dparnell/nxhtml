@@ -112,6 +112,7 @@ order."
   (add-to-list 'auto-mode-alist '("\\.rhtml\\'"    . eruby-nxhtml-mumamo-mode))
   (add-to-list 'auto-mode-alist '("\\.erb\\'"      . eruby-javascript-mumamo-mode))
   (add-to-list 'auto-mode-alist '("\\.erb.html\\'" . eruby-html-mumamo-mode))
+  (add-to-list 'auto-mode-alist '("\\.html.erb\\'" . eruby-html-mumamo-mode))
   (add-to-list 'auto-mode-alist '("\\.phps\\'"     . smarty-nxhtml-mumamo-mode))
   (add-to-list 'auto-mode-alist '("\\.epl\\'"      . embperl-nxhtml-mumamo-mode))
   (add-to-list 'auto-mode-alist '("\\.ghtml\\'"    . genshi-nxhtml-mumamo-mode))
