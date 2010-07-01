@@ -1110,7 +1110,7 @@ See `mumamo-possible-chunk-forward' for POS and MAX."
 (defun mumamo-chunk-eruby (pos max)
   "Find <% ... %>.  Return range and 'ruby-mode.
 See `mumamo-possible-chunk-forward' for POS and MAX."
-  (let ((chunk (mumamo-quick-chunk-forward pos max "<%" '("-?%>" . t) 'borders 'ruby-mode)))
+  (let ((chunk (mumamo-quick-chunk-forward pos max '("<%-?" . t) '("-?%>" . t) 'borders 'ruby-mode)))
     (when chunk
       ;; Put indentation type on 'mumamo-next-indent on the chunk:
       (setcdr (last chunk) '(mumamo-template-indentor))
