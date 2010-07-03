@@ -1121,8 +1121,9 @@ See `mumamo-possible-chunk-forward' for POS and MAX."
 See `mumamo-possible-chunk-forward' for POS and MAX."
   (let ((chunk (mumamo-quick-chunk-forward pos max "<%=" '("-?%>" . t) 'borders 'ruby-mode)))
     (when chunk
-      ;; Put indentation type on 'mumamo-next-indent on the chunk:
-      ;; (setcdr (last chunk) '(mumamo-template-indentor))
+      ;; Put indentation type on 'mumamo-next-indent on the chunk.
+      ;; See nXhtml bug 579581 for a case where it is needed.
+      (setcdr (last chunk) '(mumamo-template-indentor))
       chunk)))
 
 (defun mumamo-chunk-eruby=quoted (pos max)

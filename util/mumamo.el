@@ -3915,46 +3915,46 @@ see below.
 CHUNK-START-FUN should return a list of the form below if a
 possible chunk is found:
 
-(START CHUNK-MAJOR PARSEABLE-BY)
+\(START CHUNK-MAJOR PARSEABLE-BY)
 
 CHUNK-END-FUN should return the end of the chunk.
 
 "
-;;(msgtrc "possible-chunk-forward %s %s" pos max)
-(let ((here (point))
-      start-rec
-      start
-      end
-      chunk-major
-      parseable-by
-      borders
-      ret
-      )
-  (goto-char pos)
-  ;; Fix-me: check valid. Should this perhaps be done in the
-  ;; function calling this instead?
-  ;;(mumamo-end-in-code syntax-min syntax-max curr-major)
-  (setq start-rec (funcall chunk-start-fun (point) max))
-  (when start-rec
-    (setq start        (nth 0 start-rec))
-    (setq chunk-major  (nth 1 start-rec))
-    (setq parseable-by (nth 2 start-rec))
-    (goto-char start)
-    ;; Fix-me: There should mabye be a check here, calling
-    ;; mumamo-end-in-code, but that is a bit of job.
-    (setq end (funcall chunk-end-fun start max))
-    (when borders-fun
-      (let ((start-border (when start (unless (and (= 1 start)
-                                                   (not chunk-major))
-                                        start)))
-            (end-border   (when end   (unless (and (= (point-max) end)
-                                                   (not chunk-major))
-                                        end))))
-        ;;(msgtrc "poss-fw: %s %s %s %s" borders-fun start-border end-border chunk-major)
-        (setq borders (funcall borders-fun start-border end-border chunk-major))))
-    (setq ret (list start end chunk-major borders parseable-by chunk-end-fun borders-fun)))
-  (goto-char here)
-  ret))
+  ;;(msgtrc "possible-chunk-forward %s %s" pos max)
+  (let ((here (point))
+        start-rec
+        start
+        end
+        chunk-major
+        parseable-by
+        borders
+        ret
+        )
+    (goto-char pos)
+    ;; Fix-me: check valid. Should this perhaps be done in the
+    ;; function calling this instead?
+    ;;(mumamo-end-in-code syntax-min syntax-max curr-major)
+    (setq start-rec (funcall chunk-start-fun (point) max))
+    (when start-rec
+      (setq start        (nth 0 start-rec))
+      (setq chunk-major  (nth 1 start-rec))
+      (setq parseable-by (nth 2 start-rec))
+      (goto-char start)
+      ;; Fix-me: There should mabye be a check here, calling
+      ;; mumamo-end-in-code, but that is a bit of job.
+      (setq end (funcall chunk-end-fun start max))
+      (when borders-fun
+        (let ((start-border (when start (unless (and (= 1 start)
+                                                     (not chunk-major))
+                                          start)))
+              (end-border   (when end   (unless (and (= (point-max) end)
+                                                     (not chunk-major))
+                                          end))))
+          ;;(msgtrc "poss-fw: %s %s %s %s" borders-fun start-border end-border chunk-major)
+          (setq borders (funcall borders-fun start-border end-border chunk-major))))
+      (setq ret (list start end chunk-major borders parseable-by chunk-end-fun borders-fun)))
+    (goto-char here)
+    ret))
 
 ;; Fix-me: This routine has some difficulties. One of the more
 ;; problematic things is that chunk borders may depend on the
@@ -4270,7 +4270,9 @@ after this in the properties below of the now created chunk:
                            (if (= use-this-end 1)
                                (assert (mumamo-fun-eq (mumamo-main-major-mode) this-maj) t)
                              (if this-after-chunk ;; not first
-                                 (assert (not (mumamo-fun-eq (mumamo-main-major-mode) this-maj)) t)
+                                 ;; (assert (not (mumamo-fun-eq (mumamo-main-major-mode) this-maj)) t)
+                                 ;; In some cases (i.e. mako) the sub chunk has the same major mode.
+                                 nil
                                (assert (mumamo-fun-eq (mumamo-main-major-mode) this-maj) t))))
                          ;;(message "Create chunk %s - %s" this-beg use-this-end)
                          ;;(make-overlay this-beg use-this-end nil nil (not this-is-closed))
@@ -4675,7 +4677,10 @@ See also `mumamo-new-create-chunk' for more information."
          (curr-syntax-min (or (car curr-syntax-min-max)
                               (when after-chunk (overlay-end after-chunk))
                               1))
-         (search-from curr-syntax-min)
+         (search-from
+          ;;curr-min
+          curr-syntax-min
+          )
          ;;(dummy (msgtrc "search-from=%s" search-from))
          (main-chunk-funs (let ((chunk-info (cdr mumamo-current-chunk-family)))
                             (cadr chunk-info)))
@@ -5081,19 +5086,20 @@ supposed to have the same syntax as the inner part och the chunk."
                          (if (not ,beg-re)
                              (+ start (length ,beg-mark))
                            (goto-char start)
-                           (looking-at ,beg-mark)
-                           (or (match-end 1) (match-end 0))
+                           (when (looking-at ,beg-mark)
+                             (or (match-end 1) (match-end 0)))
                            )))
                  (when end
                    (setq end-border
                          (if (not ,end-re)
                              (- end (length ,end-mark))
-                           (goto-char start)
-                           (looking-back ,beg-mark)
-                           (or (match-beginning 1) (match-beginning 0)))))
+                           (goto-char end)
+                           (when (looking-back ,end-mark start t)
+                             (msgtrc "(looking-back %s) => %S" ,end-mark (match-data))
+                             (or (match-beginning 1) (match-beginning 0))))))
                  (goto-char here)
                  (when (or start-border end-border)
-                   (mumamo-msgfntfy "quick.start-border/end=%s/%s, start/end=%s/%s exc-mode=%s" start-border end-border start end exc-mode)
+                   (msgtrc "quick.start-border/end=%s/%s, start/end=%s/%s exc-mode=%s" start-border end-border start end exc-mode)
                    (list start-border end-border)))))))
     (mumamo-possible-chunk-forward pos max
                                    search-fw-exc-start
@@ -7689,6 +7695,7 @@ This is in the temporary buffer for indentation."
                                                  (min (1+ line-end)
                                                       (point-max))))
          new-ind
+         new-line-end
          line-in-mirror
          line-in-mirror-is-blank
          line-in-src)
@@ -7704,7 +7711,8 @@ This is in the temporary buffer for indentation."
       (setq new-ind (buffer-substring-no-properties (point-at-bol) (point)))
       ;;(setq line-in-mirror (buffer-substring-no-properties (point-at-bol) (point-at-eol))))
       (setq line-in-mirror-is-blank (eolp))
-      (setq line-in-mirror (buffer-substring-no-properties (point-at-bol) (point-at-eol))))
+      ;;(setq line-in-mirror (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
+      )
     (with-current-buffer for-buffer
       (save-restriction
         (widen)
@@ -7712,7 +7720,12 @@ This is in the temporary buffer for indentation."
         (skip-chars-forward " \t")
         (delete-region line-beg (point))
         (insert new-ind)
-        (setq line-in-src (buffer-substring-no-properties (point-at-bol) (point-at-eol)))))
+        (setq new-line-end (min (overlay-end chunk)
+                                (point-at-eol)))
+        (setq line-in-src (buffer-substring-no-properties (point-at-bol)
+                                                          new-line-end))))
+    (with-current-buffer mirror-buf
+      (setq line-in-mirror (buffer-substring-no-properties line-beg new-line-end)))
     (unless (string= line-in-src line-in-mirror)
       ;; It could have happened that spaces at the end of line where
       ;; trimmed by indentation if the line is blank.
@@ -9516,8 +9529,9 @@ LCON is the lexical context, if any."
 	     ;; tag(s) relative to which we should be indenting.
 	     (if (and (not unclosed) (skip-chars-backward " \t")
 		      (< (skip-chars-backward " \t\n") 0)
+		      (progn
 		      (back-to-indentation)
-		      (> (point) (cdr lcon)))
+                        (> (point) (cdr lcon))))
 		 nil
 	       (goto-char here)
 	       (nreverse (sgml-get-context (if unclosed nil 'empty)))))
@@ -9560,6 +9574,7 @@ LCON is the lexical context, if any."
                                   activate
                                   compile)
   (setq ad-return-value (mumamo-sgml-calculate-indent (ad-get-arg 0))))
+;; (ad-deactivate 'sgml-calculate-indent)
 
 (defadvice python-eldoc-function (around
                                   mumamo-ad-python-eldoc-function
