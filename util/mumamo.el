@@ -7590,52 +7590,65 @@ This is in the temporary buffer for indentation."
               (let* ((chu-min (overlay-start chunk))
                      (chu-max (overlay-end chunk))
                      (chu-len (- chu-max chu-min))
+                     (nl-after-chu-min (with-current-buffer for-buffer
+                                         (eq (char-after chu-min) 10))) ;; new line
                      chu-last-bol
                      part)
                 ;;(msgtrc "[%s] A pm=%s" major (point-max))
                 ;;(msgtrc "[%s] F point-max=%s" major (point-max))
                 (unless (= chu-min (point-max))
                   (msgerr "Mismatch at insert begin [%s], change-beg=%s chu-min=%s, pm=%s" major change-beg chu-min (point-max)))
-                (if (eq major (mumamo-chunk-major-mode chunk))
-                    (let* ((syn-min-max (mumamo-chunk-syntax-min-max chunk t))
-                           (syn-min (car syn-min-max))
-                           (syn-max (cdr syn-min-max))
-                           (syn-min-len (- syn-min chu-min))
-                           (syn-max-len (- chu-max syn-max))
-                           (chu-syn-len (- chu-len syn-min-len syn-max-len)))
-                      (setq part 1)
-                      (insert (make-string syn-min-len 32)
-                              (with-current-buffer for-buffer
-                                (buffer-substring-no-properties syn-min syn-max)))
-                      (when (> syn-max-len 0)
-                        ;; We need a new line here because otherwise
-                        ;; indentation at the end of the chunk can't
-                        ;; be corrected if we are copying indentation
-                        ;; from the main buffer.
-                        (insert "\n"
-                                (make-string (1- syn-max-len) 32))))
-                  (with-current-buffer for-buffer
-                    (goto-char chu-max)
-                    (unless (eolp)
-                      (goto-char chu-min)
-                      (when (and (< (point-at-bol) chu-min)
-                                 (< (point-at-eol) chu-max))
-                        (setq chu-last-bol (point-at-bol))
-                        )))
-                  (if (with-current-buffer for-buffer
-                        (eq (char-after chu-min) 10)) ;; new line
-                      (insert "\n")
-                    (insert " "))
-                  (if chu-last-bol
-                      ;; fix-me: use chu-last-bol
-                      (let* ((len1 (- chu-min chu-last-bol 0))
-                             (len2 (- chu-len len1 2)))
-                        (setq part 2)
-                        (insert "\n"
-                                (make-string len1 32)
-                                (make-string len2 32)))
-                    (setq part 3)
-                    (insert (make-string (1- chu-len) 32))))
+                (let* ((syn-min-max (mumamo-chunk-syntax-min-max chunk t))
+                       (syn-min (car syn-min-max))
+                       (syn-max (cdr syn-min-max))
+                       (syn-min-len (- syn-min chu-min))
+                       (syn-max-len (- chu-max syn-max))
+                       (chu-syn-len (- chu-len syn-min-len syn-max-len)))
+                  (if (eq major (mumamo-chunk-major-mode chunk))
+                      (progn
+                        (setq part 1)
+                        (insert (make-string syn-min-len 32)
+                                (with-current-buffer for-buffer
+                                  (buffer-substring-no-properties syn-min syn-max)))
+                        (when (> syn-max-len 0)
+                          ;; We need a new line here because otherwise
+                          ;; indentation at the end of the chunk can't
+                          ;; be corrected if we are copying indentation
+                          ;; from the main buffer.
+                          (insert "\n"
+                                  (make-string (1- syn-max-len) 32))))
+                    (with-current-buffer for-buffer
+                      (goto-char chu-max)
+                      (unless (eolp)
+                        (goto-char chu-min)
+                        (when (and (< (point-at-bol) chu-min)
+                                   (< (point-at-eol) chu-max))
+                          (setq chu-last-bol (point-at-bol))
+                          )))
+                    ;; (if (with-current-buffer for-buffer
+                    ;;       (eq (char-after chu-min) 10)) ;; new line
+                    ;;     (insert "\n")
+                    ;;   (insert " "))
+                    (when nl-after-chu-min (insert "\n"))
+                    (if chu-last-bol
+                        (let* ((len1 (- chu-min chu-last-bol 0))
+                               (len2 (- chu-len len1 2)))
+                          (setq part 2)
+                          (unless nl-after-chu-min (insert " "))
+                          (insert "\n"
+                                  (make-string len1 32)
+                                  (make-string len2 32)))
+                      (setq part 3)
+                      ;; Fix-me: Take care of template-indentors
+                      ;; here. We can't copy them as just white space
+                      ;; since we sometimes need them for relative
+                      ;; indentation.
+
+                      ;;(insert (make-string (1- chu-len) 32))
+                      (insert ?T
+                              (make-string (- chu-len 2) 32))
+                      (unless nl-after-chu-min (insert " "))
+                      )))
                 (if (= (point-max) chu-max)
                     (progn
                       (message "OK length of text inserted in mirror [%s]: change-beg=%s part=%s, chu=%s-%s, pm=%s %S" major change-beg part chu-min chu-max (point-max) "DUMMY")
@@ -7965,6 +7978,7 @@ out happens on current line.
                            (when prev-template-shift-rec
                              (cdr prev-template-shift-rec))))
          (template-indent-abs (when (and template-shift
+                                         (/= 0 template-shift)
                                          (or t
                                              (/= 0 template-shift)
                                              ;; prev-prev is template?
@@ -8015,6 +8029,10 @@ out happens on current line.
     ;; - clean up after chunk deletion
     ;; - next line after a template-indentor, what happens?
     ;;(setq template-indentor nil) ;; fix-me
+
+    (when template-indent-abs
+      (setq entering-submode nil)
+      (setq leaving-submode nil))
 
     ;; Fix-me: copy back to mirror buffer!!!!
     (cond
@@ -9527,10 +9545,17 @@ LCON is the lexical context, if any."
 	     ;; If possible, align on the previous non-empty text line.
 	     ;; Otherwise, do a more serious parsing to find the
 	     ;; tag(s) relative to which we should be indenting.
-	     (if (and (not unclosed) (skip-chars-backward " \t")
+	     (if (and
+                  ;; (not unclosed) here means just tags that do not
+                  ;; need a closing tag. We can't handle them
+                  ;; specially in multi major files because we need to
+                  ;; do relative indentation to indentor chunks.
+                  (skip-chars-backward " \t")
 		      (< (skip-chars-backward " \t\n") 0)
+                      ;; Emacs bug#6556
+                      (< 1 (point))
 		      (progn
-		      (back-to-indentation)
+                        (back-to-indentation)
                         (> (point) (cdr lcon))))
 		 nil
 	       (goto-char here)
