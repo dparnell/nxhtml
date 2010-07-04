@@ -106,15 +106,21 @@ For `kill-buffer-hook' in main buffer."
         (add-hook 'after-change-functions 'mumamo-cmirr-after-change nil t))
       rec)))
 
+(defvar mumamo-cmirr-no-after-change nil)
+(make-variable-buffer-local 'mumamo-cmirr-no-after-change)
+
 (defun mumamo-cmirr-after-change (beg end len)
   ;; No errors here, please.
-  (when (listp mumamo-cmirr-buffers)
-    (dolist (rec mumamo-cmirr-buffers)
-      (when (listp rec)
-        (let ((val2 (nth 2 rec)))
-          (when (and (integerp val2)
-                     (> val2 beg))
-            (setcar (nthcdr 2 rec) beg)))))))
+    (when (listp mumamo-cmirr-buffers)
+      (dolist (rec mumamo-cmirr-buffers)
+        (when (listp rec)
+          (let ((buf (nth 1 rec))
+                (val2 (nth 2 rec)))
+            (unless (and (boundp 'mumamo-cmirr-no-after-change)
+                         (with-current-buffer buf mumamo-cmirr-no-after-change))
+              (when (and (integerp val2)
+                         (> val2 beg))
+                (setcar (nthcdr 2 rec) beg))))))))
 (put 'mumamo-cmirr-after-change 'permanent-local-hook t)
 
 (provide 'mumamo-cmirr)

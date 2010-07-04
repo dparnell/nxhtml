@@ -7545,7 +7545,7 @@ This is in the temporary buffer for indentation."
          here-for
          part)
     ;; Testing convenience:
-    (msgtrc "update-cmirr-buffer [%s] to-point=%s" major to-point)
+    ;;(msgtrc "update-cmirr-buffer [%s] to-point=%s" major to-point)
     (with-current-buffer mirror-buffer
       (when (and change-beg
                  (> change-beg (point-max)))
@@ -7707,25 +7707,22 @@ This is in the temporary buffer for indentation."
          (mirror-buf (mumamo-update-cmirr-buffer major for-buffer
                                                  (min (1+ line-end)
                                                       (point-max))))
+         ;;(mumamo-cmirr-no-after-change t) ;; Dyn var
          new-ind
          new-line-end
          line-in-mirror
          line-in-mirror-is-blank
          line-in-src)
-    (msgtrc "indent-in-mirror [%s]: %S line-end=%s" major chunk line-end)
+    ;;(msgtrc "indent-in-mirror [%s]: %S line-end=%s" major chunk line-end)
     (with-current-buffer mirror-buf
+      (setq mumamo-cmirr-no-after-change t)
       ;; Overlay may end before line-end
       (goto-char line-beg)
-      ;;(setq line-in-mirror (buffer-substring-no-properties (point-at-bol) (point-at-eol))))
       (funcall indent-line-function)
-      ;;(setq line-in-mirror (buffer-substring-no-properties (point-at-bol) (point-at-eol))))
       (back-to-indentation)
       ;; Copy indentation to take care of tabs - or is that the best???
       (setq new-ind (buffer-substring-no-properties (point-at-bol) (point)))
-      ;;(setq line-in-mirror (buffer-substring-no-properties (point-at-bol) (point-at-eol))))
-      (setq line-in-mirror-is-blank (eolp))
-      ;;(setq line-in-mirror (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
-      )
+      (setq line-in-mirror-is-blank (eolp)))
     (with-current-buffer for-buffer
       (save-restriction
         (widen)
@@ -7760,6 +7757,8 @@ This is in the temporary buffer for indentation."
                           (message "unless t")
                           t)))))
         (msgerr "indent-line-in-mirror error at pos %d, %s, lines not eq after indentation" line-end major)))
+    (with-current-buffer mirror-buf
+      (kill-local-variable 'mumamo-cmirr-no-after-change))
     ))
 
 (defun mumamo-indent-line-function-1 (prev-line-chunks

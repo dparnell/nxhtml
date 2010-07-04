@@ -89,8 +89,24 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define tests using ert.el
 
+(ert-deftest nxhtml-ert-mako-bug600092 ()
+  "Test of mako chunks."
+  (ert-with-temp-buffer-include-file "bug600092.mako"
+    (add-hook 'ert-simulate-command-post-hook
+              'nxhtmltest-should-no-mumamo-errors
+              nil t)
+    (ert-simulate-command '(mako-html-mumamo-mode) t)
+    (nxhtmltest-get-fontification-method)
+    (nxhtmltest-fontify-default-way 2 "trans")
+    (ert-simulate-command `(goto-char ,(1- (point-max))) t)
+    (ert-simulate-self-insert ?%)
+    (ert-should (eq major-mode 'html-mode))
+    (let ((chunk (mumamo-find-chunks (point) "test")))
+      (ert-should (eq 2 (overlay-get chunk 'mumamo-depth))))
+    ))
+
 (ert-deftest nxhtml-ert-indent-bug532759 ()
-  "Test of Genshi indentation."
+  "Test of Django indentation."
   (ert-with-temp-buffer-include-file "bug532759.djhtml"
     (add-hook 'ert-simulate-command-post-hook
               'nxhtmltest-should-no-mumamo-errors
@@ -99,9 +115,8 @@
     (nxhtmltest-get-fontification-method)
     (nxhtmltest-fontify-default-way 2 "trans")
     (ert-simulate-command '(mark-whole-buffer) t)
-    ;; Fix-me:
     (ert-simulate-command '(indent-for-tab-command) t)
-    (nxhtmltest-goto-line 8)  (ert-should (= 0 (current-indentation)))
+    (nxhtmltest-goto-line 8)   (ert-should (= 0 (current-indentation)))
     (nxhtmltest-goto-line 15)  (ert-should (= 2 (current-indentation)))
     (nxhtmltest-goto-line 17)  (ert-should (= 0 (current-indentation)))
     ))
@@ -116,13 +131,12 @@
     (nxhtmltest-get-fontification-method)
     (nxhtmltest-fontify-default-way 2 "trans")
     (ert-simulate-command '(mark-whole-buffer) t)
-    ;; Fix-me:
-    ;;(ert-simulate-command '(indent-for-tab-command) t)
-    ;;(nxhtmltest-goto-line 15)  (ert-should (= 0 (current-indentation)))
+    (ert-simulate-command '(indent-for-tab-command) t)
+    (nxhtmltest-goto-line 15)  (ert-should (= 0 (current-indentation)))
     ))
 
 (ert-deftest nxhtml-ert-indent-bug463136 ()
-  "Test of Genshi indentation."
+  "Test of PHP indentation."
   (ert-with-temp-buffer-include-file "bug463136.php"
     (add-hook 'ert-simulate-command-post-hook
               'nxhtmltest-should-no-mumamo-errors
@@ -136,7 +150,7 @@
     ))
 
 (ert-deftest nxhtml-ert-indent-bug311640 ()
-  "Test of Genshi indentation."
+  "Test of html indentation."
   (ert-with-temp-buffer-include-file "bug-311640-index.html"
     (add-hook 'ert-simulate-command-post-hook
               'nxhtmltest-should-no-mumamo-errors
@@ -150,7 +164,7 @@
     ))
 
 (ert-deftest nxhtml-ert-indent-bug585800 ()
-  "Test of Genshi indentation."
+  "Test of PHP indentation."
   (ert-with-temp-buffer-include-file "bug585800-GoogleMapAPI.class.php"
     (add-hook 'ert-simulate-command-post-hook
               'nxhtmltest-should-no-mumamo-errors
@@ -159,12 +173,12 @@
     (nxhtmltest-get-fontification-method)
     (nxhtmltest-fontify-default-way 2 "trans")
     (ert-simulate-command '(mark-whole-buffer) t)
-    ;; Fix-me:
+    ;; Fix-me: This takes very long time
     ;;(ert-simulate-command '(indent-for-tab-command) t)
     ))
 
 (ert-deftest nxhtml-ert-indent-bug579581 ()
-  "Test of Genshi indentation."
+  "Test of eRuby indentation."
   (ert-with-temp-buffer-include-file "bug579581.erb.html"
     (add-hook 'ert-simulate-command-post-hook
               'nxhtmltest-should-no-mumamo-errors
