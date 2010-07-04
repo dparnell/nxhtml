@@ -169,11 +169,14 @@
     (add-hook 'ert-simulate-command-post-hook
               'nxhtmltest-should-no-mumamo-errors
               nil t)
-    (ert-simulate-command '(html-mumamo-mode) t)
+    (ert-simulate-command '(eruby-html-mumamo-mode) t)
     (nxhtmltest-get-fontification-method)
     (nxhtmltest-fontify-default-way 2 "trans")
     (ert-simulate-command '(mark-whole-buffer) t)
     (ert-simulate-command '(indent-for-tab-command) t)
+    (nxhtmltest-goto-line 4)  (ert-should (= 2 (current-indentation)))
+    (nxhtmltest-goto-line 5)  (ert-should (= 2 (current-indentation)))
+    (nxhtmltest-goto-line 6)  (ert-should (= 4 (current-indentation)))
     (nxhtmltest-goto-line 7)  (ert-should (= 4 (current-indentation)))
     (nxhtmltest-goto-line 8)  (ert-should (= 2 (current-indentation)))
     (nxhtmltest-goto-line 9)  (ert-should (= 0 (current-indentation)))
