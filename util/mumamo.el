@@ -7636,8 +7636,10 @@ This is in the temporary buffer for indentation."
                           (setq part 2)
                           (unless nl-after-chu-min (insert " "))
                           (insert "\n"
-                                  (make-string len1 32)
-                                  (make-string len2 32)))
+                                  ;;(make-string len1 32)
+                                  ;;(make-string len2 32)
+                                  (make-string (+ len1 len2) 32)
+                                  ))
                       (setq part 3)
                       ;; Fix-me: Take care of template-indentors
                       ;; here. We can't copy them as just white space
@@ -7645,9 +7647,11 @@ This is in the temporary buffer for indentation."
                       ;; indentation.
 
                       ;;(insert (make-string (1- chu-len) 32))
-                      (insert ?T
-                              (make-string (- chu-len 2) 32))
-                      (unless nl-after-chu-min (insert " "))
+                      (when (> chu-len 0)
+                        (insert ?T)
+                        (when (> chu-len 1)
+                          (insert (make-string (- chu-len 2) 32))
+                          (unless nl-after-chu-min (insert " "))))
                       )))
                 (if (= (point-max) chu-max)
                     (progn
