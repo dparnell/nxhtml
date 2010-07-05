@@ -45,6 +45,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'mumamo))
+(eval-when-compile (require 'org))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Wrapping
@@ -165,7 +166,7 @@ Key bindings added by this minor mode:
       (set-window-margins win left-margin-width right-margin-width))
     ;; Indentation
     )
-  (visual-indent-mode wrap-to-fill-column-mode))
+  (visual-indent-mode (if wrap-to-fill-column-mode 1 -1)))
 (put 'wrap-to-fill-column-mode 'permanent-local t)
 
 (defcustom wrap-to-fill-major-modes '(org-mode
@@ -309,7 +310,10 @@ See `visual-indent-use-adaptive-fill' for more info.
   :group 'visual-indent
   ;;(visual-indent-font-lock visual-indent-mode)
   (if visual-indent-mode
-      (jit-lock-register 'visual-indent-jit-lock-fun)
+      (progn
+        (set (make-local-variable 'adaptive-fill-function) nil)
+        (jit-lock-register 'visual-indent-jit-lock-fun))
+    (kill-local-variable 'adaptive-fill-function)
     (jit-lock-unregister 'visual-indent-jit-lock-fun)
     (let ((here (point))
           (inhibit-field-text-motion t)
@@ -328,6 +332,7 @@ See `visual-indent-use-adaptive-fill' for more info.
                beg-pos end-pos
                '(wrap-prefix)))
             (forward-line))
+          ;;(remove-list-of-text-properties (point-min) (point-max) '(wrap-prefix))
           (remove-list-of-text-properties
            (point-min) (point-max)
            '(visual-indent-wrap-prefix)))
@@ -383,11 +388,14 @@ See `visual-indent-use-adaptive-fill' for more information."
                                (buffer-substring end-w (match-end 0)))))))
              (first-line-prefix (unless one-line-comment-prefix
                                   (goto-char beg)
-                                  (fill-match-adaptive-prefix)))
+                                  (let ((adaptive-fill-regexp (if (derived-mode-p 'org-mode)
+                                                                  org-adaptive-fill-regexp-backup
+                                                                adaptive-fill-regexp)))
+                                    (fill-match-adaptive-prefix))))
              (second-line-prefix (or first-line-prefix
                                      one-line-comment-prefix))
              (nc 0))
-        ;; (msgtrc "one-line-comment-prefix=%S %s %s %s" one-line-comment-prefix (zerop (length comment-end)) (looking-at comment-start-skip) comment-start-skip )
+        (msgtrc "one-line-comment-prefix=%S %s %s %s" one-line-comment-prefix (zerop (length comment-end)) (looking-at comment-start-skip) comment-start-skip )
         ;; (elt "hej" 1)
         (unless one-line-comment-prefix
           (while (< nc (length second-line-prefix))
@@ -440,6 +448,7 @@ See `visual-indent-use-adaptive-fill' for more information."
         ;;(unless (or (bolp) (eobp)) (forward-line 1))
         (while (and (visual-indent-while 200 'n-while "visual-indent-jit-lock-fun")
                     (< (point) bound)) ;; Max bound = (point-max)
+          (msgtrc "here a")
           (let (ind-str-fill
                 (beg-pos (point))
                 (end-pos (point-at-eol)))
@@ -450,6 +459,7 @@ See `visual-indent-use-adaptive-fill' for more information."
                          (get-text-property beg-pos 'visual-indent-wrap-prefix))
               (setq ind-str-fill
                     (visual-indent-fill-context-prefix beg-pos end-pos))
+              (msgtrc "visual-indent-jit-lock-fun:ind-str-fill=%S" ind-str-fill)
               ;; Fix-me: ind-str-fill could be nil.
               (with-silent-modifications
                 (put-text-property beg-pos end-pos 'wrap-prefix ind-str-fill)
