@@ -104,6 +104,19 @@
     (ert-simulate-command '(js-insert-and-indent "(") t)
     ))
 
+(ert-deftest nxhtml-ert-mako-bug600092-2 ()
+  "Test of mako chunks."
+  (ert-with-temp-buffer-include-file "bug600092-2.mako"
+    (add-hook 'ert-simulate-command-post-hook
+              'nxhtmltest-should-no-mumamo-errors
+              nil t)
+    (ert-simulate-command '(mako-html-mumamo-mode) t)
+    (nxhtmltest-get-fontification-method)
+    (nxhtmltest-fontify-default-way 2 "trans")
+    (ert-simulate-command `(goto-char ,(1- (point-max))) t)
+    (ert-simulate-self-insert ?a)
+    ))
+
 (ert-deftest nxhtml-ert-mako-bug600092 ()
   "Test of mako chunks."
   (ert-with-temp-buffer-include-file "bug600092.mako"

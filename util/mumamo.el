@@ -4679,7 +4679,7 @@ See also `mumamo-new-create-chunk' for more information."
                               1))
          (search-from
           ;;curr-min
-          curr-syntax-min
+          (min (point-max) curr-syntax-min)
           )
          ;;(dummy (msgtrc "search-from=%s" search-from))
          (main-chunk-funs (let ((chunk-info (cdr mumamo-current-chunk-family)))
@@ -5095,11 +5095,11 @@ supposed to have the same syntax as the inner part och the chunk."
                              (- end (length ,end-mark))
                            (goto-char end)
                            (when (looking-back ,end-mark start t)
-                             (msgtrc "(looking-back %s) => %S" ,end-mark (match-data))
+                             ;;(msgtrc "(looking-back %s) => %S" ,end-mark (match-data))
                              (or (match-beginning 1) (match-beginning 0))))))
                  (goto-char here)
                  (when (or start-border end-border)
-                   (msgtrc "quick.start-border/end=%s/%s, start/end=%s/%s exc-mode=%s" start-border end-border start end exc-mode)
+                   ;;(msgtrc "quick.start-border/end=%s/%s, start/end=%s/%s exc-mode=%s" start-border end-border start end exc-mode)
                    (list start-border end-border)))))))
     (mumamo-possible-chunk-forward pos max
                                    search-fw-exc-start
@@ -7655,7 +7655,7 @@ This is in the temporary buffer for indentation."
                       )))
                 (if (= (point-max) chu-max)
                     (progn
-                      (message "OK length of text inserted in mirror [%s]: change-beg=%s part=%s, chu=%s-%s, pm=%s %S" major change-beg part chu-min chu-max (point-max) "DUMMY")
+                      ;;(message "OK length of text inserted in mirror [%s]: change-beg=%s part=%s, chu=%s-%s, pm=%s %S" major change-beg part chu-min chu-max (point-max) "DUMMY")
                       ;;(msgtrc "[%s] 0 point-max=%s" major (point-max))
                       ;;(when (and (eq major 'html-mode) (= (point-max) 1472)) (yes-or-no-p "Break"))
                       ;;(when (and (eq major 'html-mode) (= (point-max) 1521)) (yes-or-no-p "Break"))
