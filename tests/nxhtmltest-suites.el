@@ -89,6 +89,21 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Define tests using ert.el
 
+(ert-deftest nxhtml-ert-bug588459 ()
+  "Test of mako chunks."
+  (ert-with-temp-buffer-include-file "bug588459.php"
+    (add-hook 'ert-simulate-command-post-hook
+              'nxhtmltest-should-no-mumamo-errors
+              nil t)
+    (ert-simulate-command '(html-mumamo-mode) t)
+    (nxhtmltest-get-fontification-method)
+    (nxhtmltest-fontify-default-way 2 "trans")
+    (nxhtmltest-goto-line 1007)
+    (move-end-of-line nil)
+    (insert "\nalert")
+    (ert-simulate-command '(js-insert-and-indent "(") t)
+    ))
+
 (ert-deftest nxhtml-ert-mako-bug600092 ()
   "Test of mako chunks."
   (ert-with-temp-buffer-include-file "bug600092.mako"
@@ -273,7 +288,8 @@
     ))
 
 (ert-deftest nxhtml-ert-indent-bug592009 ()
-  "Test of eRuby indentation."
+  "Test of eRuby indentation.
+Note: This is for the \"easy\" part of this bug."
   (ert-with-temp-buffer-include-file "bug592009-edit.html.erb"
     (add-hook 'ert-simulate-command-post-hook
               'nxhtmltest-should-no-mumamo-errors
