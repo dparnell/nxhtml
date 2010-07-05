@@ -75,6 +75,11 @@ For `kill-buffer-hook' in main buffer."
       (error (message "mumamo-cmirror-kill-mirror-buffers: %s"
                       (error-message-string err))))))
 
+(defvar mumamo-cmirr-nonlisted-buffers t
+  "If non-nil add a space at front of names of mirror buffers.
+This will prevent them from beeing listed by `list-buffers' etc.
+See Info node `Buffer Names'.")
+
 ;; (setq mumamo-cmirr-buffers nil)
 ;; (mumamo-cmirr-get-mirror 'text-mode (current-buffer))
 ;;;###autoload
@@ -88,7 +93,11 @@ For `kill-buffer-hook' in main buffer."
           (setq mumamo-cmirr-buffers (delete rec mumamo-cmirr-buffers))
           (setq buf nil)))
       (unless buf
-        (setq buf (generate-new-buffer (format "%s [%s]" (buffer-name for-buffer) major)))
+        (setq buf (generate-new-buffer
+                   (format "%s%s [%s]"
+                           (if mumamo-cmirr-nonlisted-buffers " " "")
+                           (buffer-name for-buffer)
+                           major)))
         (with-current-buffer buf
           (setq buffer-undo-list t)
           (font-lock-mode -1)
