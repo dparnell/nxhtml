@@ -252,14 +252,60 @@ See also `as-external-mode'."
   ;; (set (make-local-variable 'comment-column) 0)
   ;; (set (make-local-variable 'comment-end)   "") ;; default
   ;; Try to do it similar to mail-mode:
-  (let ((yank-prefix "> "))
-    (set (make-local-variable 'comment-start) yank-prefix)
-    (set (make-local-variable 'comment-start-skip)
-         (concat "^" (regexp-quote yank-prefix) "[ \t]*")))
-  (make-local-variable 'adaptive-fill-regexp)
-  (setq adaptive-fill-regexp
-	(concat "[ \t]*[-[:alnum:]]+>+[ \t]*\\|"
-		adaptive-fill-regexp))
+  (let ((mail-yank-prefix "> ")
+        ;;(fill-regexp "[ \t]*[-[:alnum:]]*>+[ \t]*")
+        (mail-citation-prefix-regexp "\\(?:[ \t]*\\(?:\\w\\|[_.]\\)+>+\\|[ \t]*[]>|}]\\)+")
+        )
+    ;; (set (make-local-variable 'comment-start) yank-prefix)
+    ;; (set (make-local-variable 'comment-start-skip)
+    ;;      (concat "^" (regexp-quote yank-prefix) "[ \t]*"))
+    ;; (make-local-variable 'adaptive-fill-regexp)
+    ;; (setq adaptive-fill-regexp
+    ;;       (concat
+    ;;        "\\(?:"
+    ;;        fill-regexp
+    ;;        "\\)"
+    ;;        "\\|"
+    ;;        "\\(?:"
+    ;;        adaptive-fill-regexp
+    ;;        "\\)"
+    ;;        ))
+    ;; (setq adaptive-fill-regexp fill-regexp)
+
+    ;; From mail-mode:
+    (make-local-variable 'paragraph-separate)
+    ;;(make-local-variable 'fill-paragraph-function)
+    ;;(setq fill-paragraph-function 'mail-mode-fill-paragraph)
+    ;; Allow using comment commands to add/remove quoting (this only does
+    ;; anything if mail-yank-prefix is set to a non-nil value).
+    (set (make-local-variable 'comment-start) mail-yank-prefix)
+    (if mail-yank-prefix
+        (set (make-local-variable 'comment-start-skip)
+             ;;(concat "^" (regexp-quote mail-yank-prefix) "[ \t]*")
+             ;;(concat "^" ">+" "[ \t]*")
+             (concat "^" mail-citation-prefix-regexp "[ \t]*")
+             ))
+    (make-local-variable 'adaptive-fill-regexp)
+    (setq adaptive-fill-regexp
+          (concat "[ \t]*[-[:alnum:]]+>+[ \t]*\\|"
+                  adaptive-fill-regexp))
+    (make-local-variable 'adaptive-fill-first-line-regexp)
+    (setq adaptive-fill-first-line-regexp
+          (concat "[ \t]*[-[:alnum:]]*>+[ \t]*\\|"
+                  adaptive-fill-first-line-regexp))
+    ;; `-- ' precedes the signature.  `-----' appears at the start of the
+    ;; lines that delimit forwarded messages.
+    ;; Lines containing just >= 3 dashes, perhaps after whitespace,
+    ;; are also sometimes used and should be separators.
+    (setq paragraph-separate (concat (regexp-quote mail-header-separator)
+                                     "$\\|\t*\\([-|#;>* ]\\|(?[0-9]+[.)]\\)+$"
+                                     "\\|[ \t]*[[:alnum:]]*>+[ \t]*$\\|[ \t]*$\\|"
+                                     "--\\( \\|-+\\)$\\|"
+                                     page-delimiter))
+    )
+  ;; (require 'sendmail)
+  ;; (set (make-local-variable 'fill-paragraph-function) 'mail-mode-fill-paragraph)
+
   ;; (make-local-variable 'adaptive-fill-first-line-regexp)
   ;; (setq adaptive-fill-first-line-regexp
   ;;       (concat "[ \t]*[-[:alnum:]]*>+[ \t]*\\|"
