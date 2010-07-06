@@ -377,7 +377,7 @@ See `visual-indent-use-adaptive-fill' for more information."
                        (setq end-w (point))
                        (concat (buffer-substring (point-at-bol) beg-w)
                                (propertize
-                                (buffer-substring beg-w end-w)
+                                (buffer-substring-no-properties beg-w end-w)
                                 'face '( ;;
                                         :strike-through t
                                         ;; :slant italic
@@ -385,7 +385,7 @@ See `visual-indent-use-adaptive-fill' for more information."
                                         ;; :weight light
                                         :weight thin
                                         ))
-                               (buffer-substring end-w (match-end 0)))))))
+                               (buffer-substring-no-properties end-w (match-end 0)))))))
              (first-line-prefix (unless one-line-comment-prefix
                                   (goto-char beg)
                                   (let ((adaptive-fill-regexp (if (derived-mode-p 'org-mode)
@@ -442,18 +442,22 @@ See `visual-indent-use-adaptive-fill' for more information."
     (save-restriction
       (widen)
       (let ((n-while 0)
-            (bound end)) ;;(save-excursion (goto-char end) (point-at-eol))))
+            (bound end) ;;(save-excursion (goto-char end) (point-at-eol))))
+            (last-point (1- beg)) ;; Protect against display engine errors.
+            )
         (goto-char beg)
         (goto-char (point-at-bol))
         ;;(unless (or (bolp) (eobp)) (forward-line 1))
         (while (and (visual-indent-while 200 'n-while "visual-indent-jit-lock-fun")
+                    (< last-point (point))
                     (< (point) bound)) ;; Max bound = (point-max)
-          (msgtrc "here a")
           (let (ind-str-fill
                 (beg-pos (point))
                 (end-pos (point-at-eol)))
             (unless (= beg-pos (point-at-bol))
-              (message "visual-indent-fontify internal err: beg-pos /= point-at-bol"))
+              (message "visual-indent-fontify internal err: beg-pos /= point-at-bol")
+              (gdb-deb-print "visual-indent-fontify internal err: beg-pos /= point-at-bol")
+              )
             ;; Fix-me: Why did I check this? Step aside from org-mode or?
             (when (equal (get-text-property beg-pos 'wrap-prefix)
                          (get-text-property beg-pos 'visual-indent-wrap-prefix))
@@ -466,7 +470,11 @@ See `visual-indent-use-adaptive-fill' for more information."
                 (put-text-property beg-pos end-pos 'visual-indent-wrap-prefix ind-str-fill))))
           ;; This moves to the end of line if there is no more lines. That
           ;; means we will not get stuck here.
-          (unless (eobp) (forward-line 1)))))))
+          (unless (eobp) (forward-line 1))
+          (unless (< last-point (point))
+            (message "visual-indent-fontify: display engine error")
+            (gdb-deb-print "visual-indent-fontify: display engine error"))
+          )))))
 
 
 ;;; Code below is obsolete.
