@@ -457,11 +457,15 @@ Please note that it is run in a timer.")
       (goto-char (point-max))
       (insert (propertize "\n\nClick on a link below to continue\n" 'face 'pause-info-text-face))
       ;;(add-text-properties (point-min) (point-max) (list 'keymap (make-sparse-keymap)))
+
+      ;; Show saved exercises (Clear saved exercises)
+      ;; ex1 (done)
       (insert-text-button "I am ready with this break"
                           'mouse-face 'pause-mouse-face
                           'action `(lambda (button)
                                      (condition-case err
                                          (when (pause-check-alpha-on-click)
+                                           (pause-cancel-tell-again-timer)
                                            (pause-break-exit-from-button))
                                        (error (message "pause-button: %s" (error-message-string err))))))
       (insert "\n")
@@ -1029,7 +1033,7 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
           (inhibit-read-only t)
           (pose-url (car pose)))
       (goto-char (point-max))
-      (insert "Link to yoga posture for you: ")
+      (insert "Yoga posture for you: ")
       (insert-text-button
        (cdr pose)
        'mouse-face 'pause-mouse-face
@@ -1039,10 +1043,85 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
                         (pause-cancel-tell-again-timer)
                         (browse-url ,pose-url)
                         (run-with-idle-timer 1 nil 'pause-break-exit-from-button))
-                    (error (message "pause-tell-about-yoga-link: %s" (error-message-string err))))))
-      (insert "\n")
+                    (error (message "pause-tell-about-yoga-link a: %s" (error-message-string err))))))
+      (insert " (")
+      (insert-text-button
+       "Do it later"
+       'mouse-face 'pause-mouse-face
+       'action `(lambda (button)
+                  ;;(condition-case err
+                      (when (pause-check-alpha-on-click)
+                        (pause-cancel-tell-again-timer)
+                        (pause-add-to-later ',pose)
+                        (pause-break-exit-from-button))
+                    ;;(error (message "pause-tell-about-yoga-link b: %s" (error-message-string err))))
+                      ))
+      (insert ")\n")
+      (let* ((later-buf (pause-get-later))
+             (later (car later-buf))
+             (buf   (cdr later-buf)))
+        (when later
+          (insert "\nYou have said you wanted to do these later:\n")
+          ;;(msgtrc "pause-tell-about-yoga-link later=%S" later)
+          (dolist (pose later)
+            ;; Fix-me: 2 times etc
+            (insert "  ")
+            (insert-text-button
+             (cdr pose)
+             'mouse-face 'pause-mouse-face
+             'action `(lambda (button)
+                        (condition-case err
+                            (when (pause-check-alpha-on-click)
+                              (pause-cancel-tell-again-timer)
+                              (browse-url ,(car pose))
+                              (pause-remove-from-later ',pose)
+                              (run-with-idle-timer 1 nil 'pause-break-exit-from-button))
+                          (error (message "pause-tell-about-yoga-link c: %s" (error-message-string err))))))
+            (insert "\n")
+            )))
       (pause-break-message)))
   (pause-start-alpha-100-timer 60))
+
+(defvar pause-later-file "~/.emacs-pause-later")
+(defun pause-get-later ()
+  (let ((buf (find-file-noselect pause-later-file))
+        later)
+    (with-current-buffer buf
+      (widen)
+      (goto-char (point-min))
+      (while (and (not (eobp))
+                  (not (eq (char-after) ?\()))
+        (forward-comment 1)
+        (skip-chars-forward " \t\n"))
+      (unless (eobp)
+        (setq later (read buf))))
+    (cons later buf)))
+
+(defun pause-modify-later (pose add)
+  (let* ((later-buf (pause-get-later))
+         (later (car later-buf))
+         (buf   (cdr later-buf)))
+    (setq later
+          (if add
+              (cons pose later)
+            ;; Fix me: just delete one
+            (delete pose later)))
+    (setq later (sort later (lambda (a b)
+                              (string< (cdr a) (cdr b)))))
+    ;;(msgtrc "pause-modify-later buf=%S later=%S" buf later)
+    (when buf
+      (with-current-buffer buf
+        (erase-buffer)
+        (pp later buf)
+        (basic-save-buffer)
+        ;;(kill-buffer buf)
+        ))))
+
+(defun pause-add-to-later (pose)
+  (pause-modify-later pose t))
+
+(defun pause-remove-from-later (pose)
+  (pause-modify-later pose nil))
 
 (defun pause-get-yoga-poses ()
   (require 'url-vars)
