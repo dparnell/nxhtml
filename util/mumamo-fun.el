@@ -376,7 +376,7 @@ See `mumamo-heredoc-modes' for how to specify heredoc major modes."
 
 ;;;###autoload
 (define-mumamo-multi-major-mode python-heredoc-mumamo-mode
-  "Turn on multiple major modes for Perl heredoc document.
+  "Turn on multiple major modes for Python heredoc document.
 See `mumamo-heredoc-modes' for how to specify heredoc major modes."
   ("Python HereDoc" python-mode
    (mumamo-chunk-python-heredoc

@@ -15,8 +15,8 @@
 ;;           : Kevin Whitefoot <kevin.whitefoot@nopow.abb.no>
 ;;           : Randolph Fritz <rfritz@u.washington.edu>
 ;;           : Vincent Belaiche (VB1) <vincentb1@users.sourceforge.net>
-;; Version: 1.4.9.b (2010-05-19)
-;; Serial Version: %Id: 24%
+;; Version: 1.4.10d (2010-06-23)
+;; Serial Version: %Id: 28%
 ;; Keywords: languages, basic, Evil
 ;; X-URL:  http://www.emacswiki.org/cgi-bin/wiki/visual-basic-mode.el
 
@@ -130,6 +130,12 @@
 ;;           - reword of the `Dim' case in  visual-basic-insert-item
 ;; 1.4.9b Lennart Borgman+VB1: correct abbreviation and support `_' as a valid
 ;;        symbol character
+;; 1.4.10 VB1 - Add punctuation syntax for operators
+;;            - create visual-basic-check-style
+;;            - improve idiom detection
+;; 1.4.10b,c VB1 -improve visual-basic-check-style
+;; 1.4.10d   VB1 -correct font lock keywords for case
+;;               -improve visual-basic-check-style + add highlight overlay 
 
 ;;
 ;; Notes:
@@ -227,6 +233,19 @@
 
 (defcustom visual-basic-allow-single-line-if t
   "*Whether to allow single line if."
+  :type 'boolean
+  :group 'visual-basic)
+
+
+(defcustom visual-basic-auto-check-style-level -1
+  "Tune what style error are automatically corrected by function
+`visual-basic-check-style'. The higher this number, the more
+types of errors are automatically corrected.
+
+* -1 : all errors correction need confirmation by user
+
+*  0 : punctuation errors are automatically corrected"
+  :type 'integer
   :group 'visual-basic)
 
 (defvar visual-basic-defn-templates
@@ -256,9 +275,16 @@
   (modify-syntax-entry ?\n ">" visual-basic-mode-syntax-table)
   (modify-syntax-entry ?\\ "w" visual-basic-mode-syntax-table)
   (modify-syntax-entry ?_ "_" visual-basic-mode-syntax-table)
+  ; Make operators puncutation so that regexp search \_< and \_> works properly
+  (modify-syntax-entry ?+ "." visual-basic-mode-syntax-table)
+  (modify-syntax-entry ?- "." visual-basic-mode-syntax-table)
+  (modify-syntax-entry ?* "." visual-basic-mode-syntax-table)
+  (modify-syntax-entry ?/ "." visual-basic-mode-syntax-table)
+  (modify-syntax-entry ?\\ "." visual-basic-mode-syntax-table)
+  ; Make =, etc., punctuation so that dynamic abbreviations work properly
   (modify-syntax-entry ?\= "." visual-basic-mode-syntax-table)
   (modify-syntax-entry ?\< "." visual-basic-mode-syntax-table)
-  (modify-syntax-entry ?\> "." visual-basic-mode-syntax-table)) ; Make =, etc., punctuation so that dynamic abbreviations work properly
+  (modify-syntax-entry ?\> "." visual-basic-mode-syntax-table))
 
 
 (defvar visual-basic-mode-map nil)
@@ -430,7 +456,7 @@
 
      ;; Case values
      ;; String-valued cases get font-lock-string-face regardless.
-     (list "^[ \t]*case[ \t]+\\([^'\n]+\\)" 1 'font-lock-keyword-face t)
+     (list "^[ \t]*case[ \t]+\\([^:'\n]+\\)" 1 'font-lock-keyword-face t)
 
      ;; Any keywords you like.
      (list (regexp-opt
@@ -567,6 +593,7 @@ Commands:
 
 (defun visual-basic-in-code-context-p ()
   "Predicate true when pointer is in code context."
+  (save-match-data
   (if (fboundp 'buffer-syntactic-context) ; XEmacs function.
       (null (buffer-syntactic-context))
     ;; Attempt to simulate buffer-syntactic-context
@@ -577,8 +604,7 @@ Commands:
            (list
             (parse-partial-sexp beg (point))))
       (and (null (nth 3 list))          ; inside string.
-           (null (nth 4 list))))))      ; inside comment
-
+	     (null (nth 4 list)))))))      ; inside comment
 
 (defun visual-basic-abbrev-expand-function (expand-fun)
   "Expansion of abbreviations.  EXPAND-FUN is called at the end of this function."
@@ -1094,13 +1120,17 @@ In Abbrev mode, any abbrev before point will be expanded."
 (defun visual-basic-detect-idom ()
   "Detects whether this is a VBA or VBS script. Returns symbol
 `vba' if it is VBA, `nil' otherwise."
-  (let (ret)
+  (let (ret
+        (case-fold-search t))
     (save-excursion
       (save-restriction
 	(widen)
 	(goto-char (point-min))
 	(cond
-	 ((looking-at "^[ \t]*Attribute\\s-+VB_Name\\s-+= ") (setq ret 'vba)))
+	 ((looking-at "^\\s-*Attribute\\s-+VB_Name\\s-+= ")
+	  (setq ret 'vba))
+	 ((looking-at "^\\s-*Version\\s-+[^ \t\n\r]+Class\\s-*$")
+	  (setq ret 'vba)))
         ))
     ret))
 
@@ -1269,6 +1299,7 @@ Interting an item means:
 	split-point
 	org-split-point
 	prefix
+	is-const
 	tentative-split-point
 	block-stack (cur-point (point)) previous-line-of-code)
     (save-excursion
@@ -1287,6 +1318,7 @@ Interting an item means:
 			      (point)
 			      (goto-char (setq split-point (match-end 0)
 					       org-split-point split-point)))
+		      is-const (string-match "\\_<Const\\_>" prefix)
 		      item-case ':dim-split-after)
 		;; determine split-point, which is the point at which a new
 		;; Dim item is to be inserted. To that purpose the line is gone through
@@ -1458,6 +1490,184 @@ If FILE is relative then DEFAULT-DIRECTORY provides the path."
         ()
       (find-file-noselect file-absolute ))))
 
+(defun visual-basic-check-style ()
+  "Check coding style of currently open buffer, and make
+corrections under the control of user.
+
+This function is under construction"
+  (interactive)
+  (flet
+      ((insert-space-at-point
+	()
+	(insert " "))
+       ;; avoid to insert space inside a floating point number
+       (check-plus-or-minus-not-preceded-by-space-p
+	()
+	(save-match-data
+	  (and
+	   (visual-basic-in-code-context-p)
+	   (null (looking-back "\\([0-9]\\.\\|[0-9]\\)[eE]")))))
+       (check-plus-or-minus-not-followed-by-space-p
+	()
+	(save-match-data
+	  (and
+	   (visual-basic-in-code-context-p)
+	   (null  (looking-at "\\(\\sw\\|\\s_\\|\\s\(\\|[.0-9]\\)"))
+	   (null (looking-back "\\([0-9]\\.\\|[0-9]\\)[eE]\\|,\\s-*\\(\\|_\\s-*\\)\\|:=\\s-*")))));
+       (check-comparison-sign-not-followed-by-space-p
+	()
+	(save-match-data
+	  (and
+	   (visual-basic-in-code-context-p)
+	   (let ((next-char (match-string 2))
+		 (str--1 (or (= (match-beginning 1) (point-min))
+			     (buffer-substring-no-properties (1- (match-beginning 1))
+							     (1+ (match-beginning 1))))))
+	     (null (or
+		    (and (stringp str--1)
+			 (string= str--1 ":="))
+		    (string-match "[<=>]" next-char ))) ))));
+       (replace-by-&
+	()
+	(goto-char (1- (point)))
+	(let* ((p1 (point))
+	       (p2 (1+ p1)))
+	  (while (looking-back "\\s-")
+	    (goto-char (setq p1 (1- p2))))
+	  (goto-char p2)
+	  (when (looking-at "\\s-+")
+	    (setq p2 (match-end 0)))
+	  (delete-region p1 p2)
+	  (insert " & ")));
+       (check-string-concatenation-by-+
+	()
+	(save-match-data
+	  (and
+	   (visual-basic-in-code-context-p)
+	   (or
+	    (looking-at "\\s-*\\(\\|_\n\\s-*\\)\"")
+	    (looking-back "\"\\(\\|\\s-*_\\s-*\n\\)\\s-*\\+")))));
+       )
+    (let (vb-other-buffers-list
+	  ;; list of found error styles
+	  ;; each element is a list (POSITION PROMPT ERROR-SOLVE-HANDLER)
+	  next-se-list
+	  next-se
+	  case-fold-search
+	  (hl-style-error (make-overlay 1 1)); to be moved
+	  (style-errors
+	   '(
+	     ;; each element is a vector
+	     ;;   0	 1	2	3	  4		      5		    6
+	     ;; [ REGEXP PROMPT GET-POS RE-EXP-NB ERROR-SOLVE-HANDLER ERROR-CONFIRM LEVEL]
+	     [ "\\(\\s\)\\|\\sw\\|\\s_\\)[-+]"
+	       "Plus or minus not preceded by space"
+	       match-end 1
+	       insert-space-at-point
+	       check-plus-or-minus-not-preceded-by-space-p
+	       0 ]
+	     [ "\\(\\s\)\\|\\sw\\|\\s_\\)[/\\*&]"
+	       "Operator not preceded by space"
+	       match-end 1
+	       insert-space-at-point
+	       visual-basic-in-code-context-p
+	       0 ]
+	     [ "[/\\*&]\\(\\s\(\\|\\sw\\|\\s_\\|\\s.\\)"
+	       "Operator not followed by space"
+	       match-beginning 1
+	       insert-space-at-point
+	       visual-basic-in-code-context-p
+	       0 ]
+	     [ "[-+]\\(\\s\(\\|\\sw\\|\\s_\\|\\s.\\)"
+	       "Plus or minus not followed by space"
+	       match-beginning 1
+	       insert-space-at-point
+	       check-plus-or-minus-not-followed-by-space-p
+	       0 ]
+	     [ "\\(\\s\)\\|\\sw\\|\\s_\\)\\(=\\|<\\|>\\)"
+	       "Comparison sign not preceded by space"
+	       match-end 1
+	       insert-space-at-point
+	       visual-basic-in-code-context-p
+	       0 ]
+	     [ "\\(=\\|<\\|>\\)\\(\\s\(\\|\\sw\\|\\s_\\|\\s.\\)"
+	       "Comparison sign not followed by space"
+	       match-end 1
+	       insert-space-at-point
+	       check-comparison-sign-not-followed-by-space-p
+	       0 ]
+	     [ ",\\(\\sw\\|\\s_\\)"
+	       "Comma not followed by space"
+	       match-beginning 1
+	       insert-space-at-point
+	       visual-basic-in-code-context-p
+	       0 ]
+	     [ "\\+"
+	       "String should be concatenated with & rather than with +"
+	       match-end 0
+	       replace-by-&
+	       check-string-concatenation-by-+
+	       0 ]
+	     )); end of style error types
+	  )
+      (condition-case nil 
+	  (progn
+	    (overlay-put hl-style-error 'face hl-line-face)
+	    (overlay-put hl-style-error 'window (selected-window))
+	    (dolist (x (buffer-list))
+	      (if (and (save-excursion
+			 (set-buffer x)
+			 (derived-mode-p 'visual-basic-mode))
+		       (null (eq x (current-buffer))))
+		  (push x vb-other-buffers-list)))
+	    (save-excursion
+	      (save-restriction
+		(widen)
+		(goto-char (point-min))
+		(while
+		    (progn
+		      (setq next-se-list nil)
+		      (dolist (se style-errors)
+			(save-excursion
+			  (when
+			      (and
+			       (re-search-forward (aref se 0) nil t)
+			       (progn
+				 (goto-char  (funcall (aref se 2)
+						      (aref se 3)))
+				 (or (null (aref se 5))
+				     (funcall  (aref se 5))
+				     (let (found)
+				       (while (and
+					       (setq found (re-search-forward (aref se 0) nil t))
+					       (null (progn
+						       (goto-char  (funcall (aref se 2)
+									    (aref se 3)))
+						       (funcall  (aref se 5))))))
+				       found))))
+			    (push (list (point)
+					(match-beginning 0) 
+					(match-end 0)
+					(aref se 1)
+					(and (> (aref se 6) visual-basic-auto-check-style-level)
+					     (aref se 4)))
+				  next-se-list))))
+		      (when next-se-list
+			(setq next-se-list
+			      (sort next-se-list (lambda (x y) (< (car x) (car y))))
+			      next-se (pop next-se-list))
+			(goto-char (pop next-se))
+			(move-overlay hl-style-error (pop next-se) (pop next-se))
+			(when (y-or-n-p (concat (pop next-se)
+						", solve it ? "))
+			  (funcall (pop next-se)))
+			t; loop again
+			))))) )
+	;; error handlers
+	(delete-overlay hl-style-error))
+      (delete-overlay hl-style-error)))
+  (message "Done Visual Basic style check"))
+
 (provide 'visual-basic-mode)
 
 
@@ -1467,4 +1677,4 @@ If FILE is relative then DEFAULT-DIRECTORY provides the path."
 
 ;External Links
 ;* [http://visualbasic.freetutes.com/ Visual Basic tutorials]
-
+;* [http://en.wikibooks.org/wiki/Visual_Basic/Coding_Standards]
