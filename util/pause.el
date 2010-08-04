@@ -1025,6 +1025,24 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
       (when pose
         (pause-tell-about-yoga-link pose)))))
 
+(defun pause-remove-1-from-line (pos-on-line)
+  (let ((here (point-marker))
+        (inhibit-read-only t))
+    (goto-char pos-on-line)
+    (goto-char (point-at-bol))
+    (if (re-search-forward " \\* \\([0-9]+\\)" (point-at-eol) t)
+        (let ((beg (match-beginning 1))
+              (end (match-end 1))
+              (num (1- (string-to-number (match-string 1)))))
+          (if (= num 1)
+              (delete-region (match-beginning 0) (match-end 0))
+            (delete-region beg end)
+            (goto-char beg)
+            (insert (format "%d" num))))
+      (delete-region (1- (point-at-bol)) (point-at-eol))
+      )
+    (goto-char here)))
+
 (defun pause-tell-about-yoga-link (pose)
   (unless (buffer-live-p pause-buffer) (pause-create-pause-buffer))
   (message nil)
@@ -1080,7 +1098,9 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
                               (condition-case err
                                   (when (pause-check-alpha-on-click)
                                     (pause-cancel-tell-again-timer)
-                                    (pause-remove-from-later ',pose))
+                                    (pause-remove-from-later ',prev-pose)
+                                    (pause-remove-1-from-line ,(point))
+                                    )
                                 (error (message "pause-tell-about-yoga-link c: %s" (error-message-string err))))))
                   (insert ")\n"))
                 (when pose
@@ -1095,6 +1115,7 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
                                     (pause-cancel-tell-again-timer)
                                     (browse-url ,(car pose))
                                     (pause-remove-from-later ',pose)
+                                    (pause-remove-1-from-line ,(point))
                                     ;;(run-with-idle-timer 1 nil 'pause-break-exit-from-button)
                                     )
                                 (error (message "pause-tell-about-yoga-link c: %s" (error-message-string err))))))
@@ -1125,14 +1146,24 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
   (let* ((later-buf (pause-get-later))
          (later (car later-buf))
          (buf   (cdr later-buf)))
+    (msgtrc "pause-modify-later pose=%S add=%s later=%S" pose add later)
+    (msgtrc "pause-modify-later 1: (length later)=%d" (length later))
     (setq later
           (if add
               (cons pose later)
             ;; Fix me: just delete one
-            (delete pose later)))
+            ;;(delete pose later)
+            (let ((new-later nil)
+                  )
+              (dolist (p later)
+                (if (equal p pose)
+                    (setq pose nil)
+                  (setq new-later (cons p new-later))))
+              new-later)
+            ))
+    (msgtrc "pause-modify-later 2: (length later)=%d" (length later))
     (setq later (sort later (lambda (a b)
                               (string< (cdr a) (cdr b)))))
-    ;;(msgtrc "pause-modify-later buf=%S later=%S" buf later)
     (when buf
       (with-current-buffer buf
         (erase-buffer)
