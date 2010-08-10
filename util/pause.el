@@ -975,6 +975,11 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
   :type 'directory
   :group 'pause-yoga)
 
+(defcustom pause-later-file "~/.emacs-pause-later"
+  "File for storing pauses to do later."
+  :type 'file
+  :group 'pause-yoga)
+
 ;;(pause-start-get-yoga-poses)
 (defun pause-start-get-yoga-poses ()
   (if (and pause-yoga-poses-use-dir
@@ -1082,6 +1087,7 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
           (insert "\nYou have said you wanted to do these later:\n")
           ;;(msgtrc "pause-tell-about-yoga-link later=%S" later)
           (let ((prev-pose nil)
+                prev-point
                 n-pose)
             (dolist (pose (reverse (cons nil later)))
               ;; Fix-me: 2 times etc
@@ -1099,12 +1105,13 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
                                   (when (pause-check-alpha-on-click)
                                     (pause-cancel-tell-again-timer)
                                     (pause-remove-from-later ',prev-pose)
-                                    (pause-remove-1-from-line ,(point))
+                                    (pause-remove-1-from-line ,prev-point)
                                     )
                                 (error (message "pause-tell-about-yoga-link c: %s" (error-message-string err))))))
                   (insert ")\n"))
                 (when pose
                   (setq n-pose 1)
+                  (setq prev-point (point))
                   (insert "  ")
                   (insert-text-button
                    (cdr pose)
@@ -1127,7 +1134,6 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
   (pause-break-message)
   (pause-start-alpha-100-timer 60))
 
-(defvar pause-later-file "~/.emacs-pause-later")
 (defun pause-get-later ()
   (let ((buf (find-file-noselect pause-later-file))
         later)

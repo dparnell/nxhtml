@@ -395,7 +395,7 @@ See `visual-indent-use-adaptive-fill' for more information."
              (second-line-prefix (or first-line-prefix
                                      one-line-comment-prefix))
              (nc 0))
-        (msgtrc "one-line-comment-prefix=%S %s %s %s" one-line-comment-prefix (zerop (length comment-end)) (looking-at comment-start-skip) comment-start-skip )
+        (msgtrc "one-line-comment-prefix=%S %s %s %s" one-line-comment-prefix (zerop (length comment-end)) (when comment-start-skip (looking-at comment-start-skip)) comment-start-skip )
         ;; (elt "hej" 1)
         (unless one-line-comment-prefix
           (while (< nc (length second-line-prefix))
