@@ -395,7 +395,7 @@ See `visual-indent-use-adaptive-fill' for more information."
              (second-line-prefix (or first-line-prefix
                                      one-line-comment-prefix))
              (nc 0))
-        (msgtrc "one-line-comment-prefix=%S %s %s %s" one-line-comment-prefix (zerop (length comment-end)) (when comment-start-skip (looking-at comment-start-skip)) comment-start-skip )
+        ;;(msgtrc "one-line-comment-prefix=%S %s %s %s" one-line-comment-prefix (zerop (length comment-end)) (when comment-start-skip (looking-at comment-start-skip)) comment-start-skip )
         ;; (elt "hej" 1)
         (unless one-line-comment-prefix
           (while (< nc (length second-line-prefix))
@@ -463,7 +463,7 @@ See `visual-indent-use-adaptive-fill' for more information."
                          (get-text-property beg-pos 'visual-indent-wrap-prefix))
               (setq ind-str-fill
                     (visual-indent-fill-context-prefix beg-pos end-pos))
-              (msgtrc "visual-indent-jit-lock-fun:ind-str-fill=%S" ind-str-fill)
+              ;;(msgtrc "visual-indent-jit-lock-fun:ind-str-fill=%S" ind-str-fill)
               ;; Fix-me: ind-str-fill could be nil.
               (with-silent-modifications
                 (put-text-property beg-pos end-pos 'wrap-prefix ind-str-fill)

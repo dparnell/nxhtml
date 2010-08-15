@@ -75,7 +75,7 @@ For `kill-buffer-hook' in main buffer."
       (error (message "mumamo-cmirror-kill-mirror-buffers: %s"
                       (error-message-string err))))))
 
-(defvar mumamo-cmirr-nonlisted-buffers t
+(defvar mumamo-cmirr-nonlisted-buffers nil
   "If non-nil add a space at front of names of mirror buffers.
 This will prevent them from beeing listed by `list-buffers' etc.
 See Info node `Buffer Names'.")
@@ -125,11 +125,12 @@ See Info node `Buffer Names'.")
         (when (listp rec)
           (let ((buf (nth 1 rec))
                 (val2 (nth 2 rec)))
-            (unless (and (boundp 'mumamo-cmirr-no-after-change)
-                         (with-current-buffer buf mumamo-cmirr-no-after-change))
-              (when (and (integerp val2)
-                         (> val2 beg))
-                (setcar (nthcdr 2 rec) beg))))))))
+            (when (buffer-live-p buf)
+              (unless (and (boundp 'mumamo-cmirr-no-after-change)
+                           (with-current-buffer buf mumamo-cmirr-no-after-change))
+                (when (and (integerp val2)
+                           (> val2 beg))
+                  (setcar (nthcdr 2 rec) beg)))))))))
 (put 'mumamo-cmirr-after-change 'permanent-local-hook t)
 
 (provide 'mumamo-cmirr)

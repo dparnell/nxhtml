@@ -4798,7 +4798,8 @@ See also `mumamo-new-create-chunk' for more information."
                 (unless rmax (setq rmax (point-max)))
                 (unless (and (> rmin 1)
                              rmax
-                             (= rmin rmax))
+                             nil ;;(= rmin rmax)
+                             )
                   ;; comparision have to be done differently if we are in an
                   ;; exception part or not.  since we are doing this from top to
                   ;; bottom the rules are:
