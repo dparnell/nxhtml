@@ -326,6 +326,8 @@ Note: This is for the \"easy\" part of this bug."
     (nxhtmltest-get-fontification-method)
     (nxhtmltest-fontify-default-way 2 "trans")
     (ert-simulate-command '(goto-char 12) t)
+    (ert-should (eq major-mode 'mumamo-border-mode))
+    (ert-simulate-command '(goto-char 13) t)
     (ert-should (eq major-mode 'ruby-mode))
     ))
 
@@ -544,6 +546,7 @@ and the file is invalid then."
     (genshi-nxhtml-mumamo-mode)
     (font-lock-mode 1)
     (mumamo-post-command)
+    (ert-simulate-command '(goto-char 1) t)
     (ert-should (eq font-lock-mode t))
     (ert-should (eq major-mode 'nxhtml-genshi-mode))
     (ert-should

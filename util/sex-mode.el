@@ -106,6 +106,7 @@ See `sex-get-file-open-cmd'."
 (defvar sex-with-temporary-file-apps nil)
 
 (defun sex-get-apps ()
+  (require 'org)
   (or sex-with-temporary-file-apps
       (append sex-file-apps org-file-apps (org-default-apps))))
 
@@ -398,9 +399,6 @@ handled is governed by `sex-keep-dummy-buffer'."
   ;; fix-me: better list handling
   (if sex-mode
       (progn
-        (message " sex-mode before org %.1f seconds elapsed" (- (float-time) sex-mode-load-time-start))
-        (require 'org)
-        (message " sex-mode after  org %.1f seconds elapsed" (- (float-time) sex-mode-load-time-start))
         (dolist (rec (sex-get-apps))
           (let* ((ext (car rec))
                  (app (cdr rec))

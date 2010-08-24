@@ -1152,7 +1152,7 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
   (let* ((later-buf (pause-get-later))
          (later (car later-buf))
          (buf   (cdr later-buf)))
-    (msgtrc "pause-modify-later pose=%S add=%s later=%S" pose add later)
+    ;;(msgtrc "pause-modify-later pose=%S add=%s later=%S" pose add later)
     (msgtrc "pause-modify-later 1: (length later)=%d" (length later))
     (setq later
           (if add
@@ -1167,7 +1167,7 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
                   (setq new-later (cons p new-later))))
               new-later)
             ))
-    (msgtrc "pause-modify-later 2: (length later)=%d" (length later))
+    ;;(msgtrc "pause-modify-later 2: (length later)=%d" (length later))
     (setq later (sort later (lambda (a b)
                               (string< (cdr a) (cdr b)))))
     (when buf

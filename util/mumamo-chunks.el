@@ -69,6 +69,14 @@
   "For comment blocks."
   (set (make-local-variable 'font-lock-defaults) mumamo-comment-font-lock-defaults))
 
+;; See bug nXhtml bug 610648.
+;; The keymap need to be changed in borders.
+(define-derived-mode mumamo-border-mode nil "MuMaMo border"
+  "For MuMaMo borders.
+This is just for the keyboard, not for the fontification."
+  ;;(set (make-local-variable 'font-lock-defaults) mumamo-comment-font-lock-defaults)
+  )
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

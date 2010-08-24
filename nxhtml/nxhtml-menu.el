@@ -944,6 +944,11 @@
               :button '(:toggle . (and (boundp 'inlimg-global-mode)
                                        inlimg-global-mode))))
       (define-key options-map [nxhtml-opt-sep] (list 'menu-item "--"))
+      (define-key options-map [nxhtml-chrome-server]
+        (list 'menu-item "Google Chrome Edit Server" 'google-chrome-server-mode
+              :button '(:toggle . (and (boundp 'google-chrome-server-mode)
+                                       google-chrome-server-mode))))
+      (define-key options-map [nxhtml-server-separator] (list 'menu-item "--" nil))
       (define-key options-map [nxhtml-hl-needed-mode]
         (list 'menu-item "Tell Me Where I Am" 'hl-needed-mode
               :button '(:toggle . (and (boundp 'hl-needed-mode)

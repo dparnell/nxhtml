@@ -484,6 +484,17 @@ See also `mumamo-chunk-value-set-min'."
            )
       (cons actual-min actual-max))))
 
+(defun mumamo-chunk-keyboard-major-mode (chunk pos)
+  (let* ((min-max (mumamo-chunk-syntax-min-max chunk nil))
+         (cmin (car min-max))
+         (cmax (cdr min-max))
+         (major   (mumamo-chunk-major-mode chunk)))
+    ;;(msgtrc "keyboard-major-mode cmin=%s pos=%s cmax=%s" cmin pos cmax)
+    (unless (and (<= cmin pos)
+                 (< pos cmax))
+      (setq major 'mumamo-border-mode))
+    major))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Macros
 
@@ -4798,7 +4809,8 @@ See also `mumamo-new-create-chunk' for more information."
                 (unless rmax (setq rmax (point-max)))
                 (unless (and (> rmin 1)
                              rmax
-                             (= rmin rmax))
+                             nil ;;(= rmin rmax)
+                             )
                   ;; comparision have to be done differently if we are in an
                   ;; exception part or not.  since we are doing this from top to
                   ;; bottom the rules are:
@@ -5257,7 +5269,8 @@ Return the fetched local map."
              ;;(progn (message "here c=%s" mumamo-post-command-chunk) t)
              (>= pos (overlay-start mumamo-post-command-chunk))
              ;;(progn (message "here d=%s" mumamo-post-command-chunk) t)
-             (mumamo-chunk-major-mode mumamo-post-command-chunk)
+             ;;(mumamo-chunk-major-mode mumamo-post-command-chunk)
+             (mumamo-chunk-keyboard-major-mode mumamo-post-command-chunk pos)
              ;;(progn (msgtrc "here e=%s" mumamo-post-command-chunk) t)
              )
         mumamo-post-command-chunk
@@ -5279,7 +5292,8 @@ needed \(and is the default)."
   ;;(msgtrc "set-major-post-command here")
   (let* ((in-pre-hook (memq 'mumamo-set-major-pre-command pre-command-hook))
          (ovl (unless in-pre-hook (mumamo-post-command-get-chunk (point))))
-         (major (when ovl (mumamo-chunk-major-mode ovl)))
+         ;;(major (when ovl (mumamo-chunk-major-mode ovl)))
+         (major (when ovl (mumamo-chunk-keyboard-major-mode ovl (point))))
          (set-it-now (not (or in-pre-hook (mumamo-fun-eq major major-mode)))))
     ;;(msgtrc "set-major-post-command ovl=%s, in-pre-hook=%s" ovl in-pre-hook)
     (if (not set-it-now)
@@ -5316,7 +5330,9 @@ mumamo chunk then set major mode to that for the chunk."
           (mumamo-request-idle-set-major-mode)
         ;;(message "pre point=%s" (point))
         (let* ((ovl (mumamo-find-chunks (point) "mumamo-set-major-pre-command"))
-               (major (mumamo-chunk-major-mode ovl)))
+               ;;(major (mumamo-chunk-major-mode ovl))
+               (major (mumamo-chunk-keyboard-major-mode ovl (point)))
+               )
           ;;(message "pre point=%s" (point))
           (if (not major)
               (lwarn '(mumamo-set-major-pre-command) :error "major=%s" major)
@@ -5352,7 +5368,8 @@ explanation."
         (when (eq buffer (current-buffer))
           (mumamo-condition-case err
               (let* ((ovl (mumamo-find-chunks (point) "mumamo-idle-set-major-mode"))
-                     (major (mumamo-chunk-major-mode ovl))
+                     ;;(major (mumamo-chunk-major-mode ovl))
+                     (major (mumamo-chunk-keyboard-major-mode ovl (point)))
                      (modified (buffer-modified-p)))
                 ;;(message "idle point=%s" (point))
                 (unless (mumamo-fun-eq major major-mode)
@@ -5994,7 +6011,9 @@ Just check the name."
     (longlines-mode-off t)
     global-font-lock-mode-cmhh
     (nxml-cleanup t)
-    (turn-off-hideshow t))
+    (turn-off-hideshow t)
+    ;; linum-delete-overlays
+    )
   "Avoid running these in `change-major-mode-hook'.")
 
 
@@ -6883,7 +6902,8 @@ mode in the chunk family is nil."
     (let ((buffer-windows (get-buffer-window-list (current-buffer))))
       (if (not buffer-windows)
           (let* ((ovl (mumamo-find-chunks (point) "mumamo-turn-on-actions"))
-                 (major (when ovl (mumamo-chunk-major-mode ovl))))
+                 ;;(major (when ovl (mumamo-chunk-major-mode ovl)))
+                 (major (when ovl (mumamo-chunk-keyboard-major-mode ovl (point)))))
             (when major
               (mumamo-set-major major ovl)))
         (dolist (win (get-buffer-window-list (current-buffer) nil t))
@@ -6893,7 +6913,9 @@ mode in the chunk family is nil."
             (mumamo-get-chunk-save-buffer-state wp)
             (when (eq win (selected-window))
               (let* ((ovl (mumamo-find-chunks wp "mumamo-turn-on-actions"))
-                     (major (when ovl (mumamo-chunk-major-mode ovl))))
+                     ;;(major (when ovl (mumamo-chunk-major-mode ovl)))
+                     (major (when ovl (mumamo-chunk-keyboard-major-mode ovl (point))))
+                     )
                 (when major
                   (mumamo-set-major major ovl))))))))
     ;;(msgtrc "mumamo-turn-on-action exit: font-lock-keywords-only =%s in buffer %s, def=%s" font-lock-keywords-only (current-buffer) (default-value 'font-lock-keywords-only))
@@ -8469,7 +8491,7 @@ behaves the same way as there."
 (defun mumamo-flyspell-verify ()
   "Function used for `flyspell-generic-check-word-predicate'."
   (let* ((chunk (when mumamo-multi-major-mode
-                  (mumamo-find-chunks (point) "mumamo-lyspell-verify")))
+                  (mumamo-find-chunks (point) "mumamo-flyspell-verify")))
          (chunk-major (when chunk (mumamo-chunk-major-mode chunk)))
          (mode-predicate (when chunk-major
                            (let ((predicate (get chunk-major
