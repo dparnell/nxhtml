@@ -787,7 +787,7 @@ update Firefox when you save the CSS file.
 ;;;***
 
 ;;;### (autoloads (php-mode php-file-patterns php) "../related/php-mode"
-;;;;;;  "related/php-mode.el" (19218 42180))
+;;;;;;  "related/php-mode.el" (19505 7842))
 ;;; Generated autoloads from related/php-mode.el
 (web-autoload-require 'php-mode 'lp '(nxhtml-download-root-url nil) "related/php-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1309,7 +1309,7 @@ Major mode for editing Template Toolkit files.
 ;;;***
 
 ;;;### (autoloads (visual-basic-mode) "../related/visual-basic-mode"
-;;;;;;  "related/visual-basic-mode.el" (19459 64864))
+;;;;;;  "related/visual-basic-mode.el" (19533 36132))
 ;;; Generated autoloads from related/visual-basic-mode.el
 (web-autoload-require 'visual-basic-mode 'lp '(nxhtml-download-root-url nil) "related/visual-basic-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1358,7 +1358,7 @@ See `nxhtmltest-run' for more information about the tests.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "../tests/nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (19499 62132))
+;;;;;;  "tests/nxhtmltest-suites.el" (19506 13492))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 (web-autoload-require 'nxhtmltest-suites 'lp '(nxhtml-download-root-url nil) "tests/nxhtmltest-suites" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1573,7 +1573,7 @@ much about computation time as for entries in the menu bar.
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-el-files
 ;;;;;;  as-external-check-contents as-external-for-mail-mode as-external-for-xhtml
-;;;;;;  as-external) "as-external" "util/as-external.el" (19489 64508))
+;;;;;;  as-external) "as-external" "util/as-external.el" (19507 20924))
 ;;; Generated autoloads from util/as-external.el
 (web-autoload-require 'as-external 'lp '(nxhtml-download-root-url nil) "util/as-external" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2533,7 +2533,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;;;;  mumamo-list-defined-multi-major-modes mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19499 62132))
+;;;;;;  (19506 13492))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2689,7 +2689,7 @@ Return t if VALUE is a multi major mode function.
 ;;;***
 
 ;;;### (autoloads (mumamo-noweb2 mumamo-define-html-file-wide-keys)
-;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19499 62132))
+;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19502 38502))
 ;;; Generated autoloads from util/mumamo-chunks.el
 (web-autoload-require 'mumamo-chunks 'lp '(nxhtml-download-root-url nil) "util/mumamo-chunks" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2704,7 +2704,7 @@ Define keys in multi major mode keymap for html files.
 ;;;***
 
 ;;;### (autoloads (mumamo-cmirr-get-mirror) "mumamo-cmirr" "util/mumamo-cmirr.el"
-;;;;;;  (19442 42088))
+;;;;;;  (19506 13492))
 ;;; Generated autoloads from util/mumamo-cmirr.el
 (web-autoload-require 'mumamo-cmirr 'lp '(nxhtml-download-root-url nil) "util/mumamo-cmirr" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2727,7 +2727,7 @@ Get the mirror rec.
 ;;;;;;  ssjs-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19459 64864))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19533 36132))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2780,7 +2780,16 @@ This also covers inlined style and javascript." t)
 
 (nxhtml-autoload 'eruby-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for eRuby with main mode `html-mode'.
-This also covers inlined style and javascript." t)
+This also covers inlined style and javascript.
+
+The eRuby chunks handled are:
+
+       <% Ruby code -- inline with output %>
+       <%= Ruby expression -- replace with result %>
+       <%# comment -- ignored -- useful in testing %>
+
+See URL `https://bugs.launchpad.net/nxhtml/+bug/579581' for
+information about <%% ... %%>, % and %%." t)
 
 (nxhtml-autoload 'eruby-javascript-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for eRuby with main mode `javascript-mode'." t)
@@ -2802,7 +2811,7 @@ Turn on multiple major modes for Perl heredoc document.
 See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
 
 (nxhtml-autoload 'python-heredoc-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
-Turn on multiple major modes for Perl heredoc document.
+Turn on multiple major modes for Python heredoc document.
 See `mumamo-heredoc-modes' for how to specify heredoc major modes." t)
 
 (nxhtml-autoload 'ruby-heredoc-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
@@ -3438,7 +3447,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (pause-start-in-new-emacs pause-mode pause) "pause"
-;;;;;;  "util/pause.el" (19496 666))
+;;;;;;  "util/pause.el" (19553 19746))
 ;;; Generated autoloads from util/pause.el
 (web-autoload-require 'pause 'lp '(nxhtml-download-root-url nil) "util/pause" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3957,7 +3966,7 @@ Minor mode helping finding link patt for web-vcs.
 
 ;;;***
 
-;;;### (autoloads (whelp) "whelp" "util/whelp.el" (19277 65356))
+;;;### (autoloads (whelp) "whelp" "util/whelp.el" (19553 19746))
 ;;; Generated autoloads from util/whelp.el
 (web-autoload-require 'whelp 'lp '(nxhtml-download-root-url nil) "util/whelp" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4329,7 +4338,7 @@ quarter clockwise (or counter clockwise with prefix).
 
 ;;;### (autoloads (wrap-to-fill-column-mode wrap-to-fill-left-marg-modes
 ;;;;;;  wrap-to-fill-left-marg wrap-to-fill) "wrap-to-fill" "util/wrap-to-fill.el"
-;;;;;;  (19461 15796))
+;;;;;;  (19553 19746))
 ;;; Generated autoloads from util/wrap-to-fill.el
 (web-autoload-require 'wrap-to-fill 'lp '(nxhtml-download-root-url nil) "util/wrap-to-fill" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4431,12 +4440,13 @@ accept it or skip it.
 ;;;;;;  "related/flymake-helpers.el" "related/flymakemsg.el" "related/php-imenu.el"
 ;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
-;;;;;;  "util/backtr.el" "util/css-simple-completion.el" "util/custsets.el"
-;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/idn.el"
-;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/org-panel.el"
-;;;;;;  "util/ourcomments-widgets.el" "util/rxi.el" "util/tipframe.el"
-;;;;;;  "util/win-alg.el" "web-autoload.el") (19500 46840 750000))
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
+;;;;;;  "util/appmenu-fold.el" "util/backtr.el" "util/css-simple-completion.el"
+;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/fupd.el"
+;;;;;;  "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
+;;;;;;  "util/org-panel.el" "util/ourcomments-widgets.el" "util/rxi.el"
+;;;;;;  "util/tipframe.el" "util/win-alg.el" "web-autoload.el") (19553
+;;;;;;  35893 390000))
 
 ;;;***
 
