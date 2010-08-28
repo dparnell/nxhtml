@@ -1928,11 +1928,12 @@ POS is where to start search and MAX is where to stop."
     (when where
       (let ((exc-mode (let ((here (point)))
                         (goto-char where)
-                        (forward-line -1)
+                        (forward-line 0)
                         (forward-char 12)
                         (prog1
                             (read (current-buffer))
                           (goto-char here)))))
+        (msgtrc "where=%s, exc-mode=%s" where exc-mode)
         (setq exc-mode (mumamo-org-mode-from-spec exc-mode))
         (let ((start where)
               (here (point)))
