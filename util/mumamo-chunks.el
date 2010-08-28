@@ -1922,10 +1922,14 @@ See `mumamo-possible-chunk-forward' for POS and MAX."
 (defun mumamo-search-fw-org-src-start (pos max)
   "Helper for `mumamo-chunk-org-src'.
 POS is where to start search and MAX is where to stop."
-  (let ((where (mumamo-chunk-start-fw-str pos max "#+BEGIN_SRC")))
+  ;;(let ((where (mumamo-chunk-start-fw-str pos max "#+BEGIN_SRC")))
+  (let* ((case-fold-search t)
+         (where (mumamo-chunk-start-fw-re pos max "#\\+BEGIN_SRC[^\n]*")))
     (when where
       (let ((exc-mode (let ((here (point)))
                         (goto-char where)
+                        (forward-line -1)
+                        (forward-char 12)
                         (prog1
                             (read (current-buffer))
                           (goto-char here)))))

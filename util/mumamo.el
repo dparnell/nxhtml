@@ -4468,6 +4468,7 @@ after this in the properties below of the now created chunk:
                (need-update nil))
           (if (not mumamo-margin-info-mode)
               (when old-margin-used
+                (msgtrc "update-buffer-margin-use: old-margin-used => need-update t")
                 (setq need-update t)
                 (setq old-margin-used nil)
                 (if old-is-left
@@ -4475,6 +4476,7 @@ after this in the properties below of the now created chunk:
                   (setq right-margin-width 0)))
             (unless (and (eq old-margin-used margin-used)
                          (= width (if old-is-left left-margin-width right-margin-width)))
+              (msgtrc "update-buffer-margin-use: other => need-update t, old-margin-used=%s margin-used=%s width=%s left-margin-width=%s" old-margin-used margin-used width left-margin-width)
               (setq need-update t)
               (if is-left
                   (setq left-margin-width width)
@@ -4486,7 +4488,12 @@ after this in the properties below of the now created chunk:
           (when need-update
             (mumamo-update-chunks-margin-display buffer)
             (dolist (win (get-buffer-window-list buffer))
-              (set-window-buffer win buffer)))
+              ;; The next line causes nXhtml bug 619587.
+              ;; Why do I do this?
+              (unless nil ;;(eq (window-buffer win) buffer)
+                (set-window-buffer win buffer)
+                )
+              ))
           )
         ;; Note: window update must be before buffer update because it
         ;; uses old-margin from the call to function margin-used.
