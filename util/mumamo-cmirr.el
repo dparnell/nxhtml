@@ -113,7 +113,7 @@ See Info node `Buffer Names'.")
         ;; after-revert-hook is not permanent-local. Just put it globally, it will not harm.
         (add-hook 'after-revert-hook 'mumamo-cmirror-kill-mirror-buffers)
         (add-hook 'after-change-functions 'mumamo-cmirr-after-change nil t))
-      rec)))
+      (cdr rec))))
 
 (defvar mumamo-cmirr-no-after-change nil)
 (make-variable-buffer-local 'mumamo-cmirr-no-after-change)
