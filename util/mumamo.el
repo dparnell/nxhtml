@@ -1904,13 +1904,14 @@ functions, but it is not necessary."
 (defun mumamo-move-to-old-tail (first-check-from)
   "Divide the chunk list.
 Make it two parts. The first, before FIRST-CHECK-FROM is still
-correct but we want to check those after.  Put thosie in
+correct but we want to check those after.  Put those in
 `mumamo-old-tail'."
   (let ((n0-while 0))
     (while (and (mumamo-while 500 'n0-while "mumamo-last-chunk first-check-from")
                 mumamo-last-chunk
                 first-check-from
                 (< first-check-from (overlay-end mumamo-last-chunk)))
+      (unless mumamo-old-tail (msgtrc "move-to-old-tail: put mumamo-last-chunk nil, %s" mumamo-last-chunk))
       (overlay-put mumamo-last-chunk 'mumamo-next-chunk mumamo-old-tail)
       (setq mumamo-old-tail mumamo-last-chunk)
       (overlay-put mumamo-old-tail 'mumamo-is-new nil)
@@ -1927,11 +1928,12 @@ correct but we want to check those after.  Put thosie in
   (let ((n1-while 0))
     (while (and (mumamo-while 500 'n1-while "mumamo-last-chunk del empty chunks")
                 mumamo-last-chunk
-                ;;(= (point-max) (overlay-end mumamo-last-chunk))
+                (= (point-max) (overlay-end mumamo-last-chunk))
                 (= (overlay-end mumamo-last-chunk) (overlay-start mumamo-last-chunk)))
       ;;(msgtrc "delete-overlay at end")
       (delete-overlay mumamo-last-chunk)
       (setq mumamo-last-chunk (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))
+      (when mumamo-last-chunk (msgtrc "delete-empty-chunk-at-end: put mumamo-last-chunk nil, %s" mumamo-last-chunk))
       (when mumamo-last-chunk (overlay-put mumamo-last-chunk 'mumamo-next-chunk nil)))))
 
 
@@ -2126,6 +2128,7 @@ correct but we want to check those after.  Put thosie in
                      (overlay-buffer prev-chunk)
                      (= (overlay-start this-new-chunk) (overlay-end this-new-chunk))
                      (= (overlay-start prev-chunk) (overlay-end prev-chunk)))
+            (msgtrc "find-chunks-1: put mumamo-last-chunk nil, %s" prev-chunk)
             (overlay-put prev-chunk 'mumamo-next-chunk nil)
             (overlay-put prev-chunk 'mumamo-prev-chunk nil)
             ;;(msgtrc "find-chunks:deleting this-new-chunk %s" this-new-chunk)
@@ -4332,6 +4335,7 @@ after this in the properties below of the now created chunk:
         (overlay-put this-chunk 'mumamo-syntax-max-d this-bmax)
         (overlay-put this-chunk 'mumamo-prev-chunk this-after-chunk)
         (overlay-put this-chunk 'mumamo-next-indent next-indent)
+        (when (and this-after-chunk (not this-chunk)) (msgtrc "new-create-chunk: put mumamo-last-chunk nil"))
         (when this-after-chunk (overlay-put this-after-chunk 'mumamo-next-chunk this-chunk))
 
         ;;(msgtrc "\n<<<<<<<<<<<<<<<<< next-depth-diff/depth-diff=%s/%s, this-maj=%s, this-after-chunk=%s" next-depth-diff depth-diff this-maj this-after-chunk)
@@ -5255,7 +5259,11 @@ Return the fetched local map."
       (setq local-map (current-local-map))
       (when local-map (setq local-map (copy-keymap (current-local-map))))
       (add-to-list 'mumamo-major-modes-local-maps
-                   (cons major-mode local-map)))
+                   (cons major-mode local-map))
+      ;; nXhtml bug 626039:
+      (unless (eq major major-mode)
+        (add-to-list 'mumamo-major-modes-local-maps
+                     (cons major local-map))))
     (kill-buffer temp-buf)
     local-map))
 
@@ -7562,24 +7570,22 @@ This is in the temporary buffer for indentation."
 (make-variable-buffer-local 'mumamo-cmirr-last-chunk)
 (put 'mumamo-cmirr-last-chunk 'permanent-local t)
 
-;; (mumamo-update-cmirr-buffer 'text-mode (current-buffer))
 (defun mumamo-update-cmirr-buffer (major for-buffer to-point)
   "Update content of mirror buffer. Return mirror buffer."
   (let* ((rec (mumamo-cmirr-get-mirror major for-buffer))
-         (major (nth 0 rec))
-         (mirror-buffer (nth 1 rec))
-         (change-beg (nth 2 rec))
+         (mirror-buffer (nth 0 rec))
+         (change-beg (nth 1 rec))
          new-change-beg
          chunk first-chunk last-chunk
          here-for
          part)
-    ;; Testing convenience:
     ;;(msgtrc "update-cmirr-buffer [%s] to-point=%s" major to-point)
+    ;; Testing convenience:
     (with-current-buffer mirror-buffer
       (when (and change-beg
                  (> change-beg (point-max)))
         (setq change-beg (point-max))
-        (setcar (nthcdr 2 rec) change-beg)))
+        (setcar (nthcdr 1 rec) change-beg)))
     (when (and change-beg
                (< change-beg to-point))
       (with-current-buffer for-buffer
@@ -7699,7 +7705,7 @@ This is in the temporary buffer for indentation."
                   (msgerr "Wrong length inserted in mirror [%s]: change-beg=%s part=%s, chu-max=%s, pm=%s" major change-beg part chu-max (point-max))
                   )
                 (setq new-change-beg (point-max))
-                (setcar (nthcdr 2 rec) new-change-beg)
+                (setcar (nthcdr 1 rec) new-change-beg)
                 (setq chunk (unless (eq chunk last-chunk)
                               (overlay-get chunk 'mumamo-next-chunk)))
                 ))))

@@ -2600,26 +2600,46 @@ Note: This minor mode will defadvice the paste commands."
 ;; (where-is-internal 'save-buffer nil nil)
 ;; (where-is-internal 'revert-buffer nil nil)
 ;; (setq extended-command-history nil)
+(defvar ourcomments-M-x-menu-timer nil)
+(defvar ourcomments-M-x-menu-this-command nil)
 (defun ourcomments-M-x-menu-pre ()
   "Add menu command to M-x history."
-  ;;(message "M-x-menu-pre: %s" (this-command-keys-vector))
   (let ((is-menu-command (equal '(menu-bar)
                                 (when (< 0 (length (this-command-keys-vector)))
-                                  (elt (this-command-keys-vector) 0))))
-        (pre-len (length extended-command-history)))
+                                  (elt (this-command-keys-vector) 0)))))
     (when (and is-menu-command
                (not (memq this-command '(ourcomments-M-x-menu-mode))))
-      (pushnew (symbol-name this-command) extended-command-history)
-      (when (< pre-len (length extended-command-history))
-        ;; This message is given pre-command and is therefore likely
-        ;; to be overwritten, but that is ok in this case. If the user
-        ;; has seen one of these messages s?he knows.
+      (when (timerp ourcomments-M-x-menu-timer)
+        (cancel-timer ourcomments-M-x-menu-timer))
+      (message "this-command=%s" this-command)
+      (setq ourcomments-M-x-menu-this-command (symbol-name this-command))
+      (setq ourcomments-M-x-menu-timer
+            (run-with-idle-timer 3 nil 'ourcomments-M-x-menu-in-timer)))))
 
-        (let ((msg
-               (format "(Added %s to M-x history so you can run it from there)"
-                       this-command)))
-          (with-temp-message (propertize msg 'face 'file-name-shadow)
-            (sit-for 3)))))))
+(defun ourcomments-M-x-menu-in-timer ()
+  "Add MAYBE-COMMAND to M-x history if it is a command."
+  (condition-case err
+      (ourcomments-M-x-menu-in-timer-1)
+    (error (message "M-x-menu-in-timer ERROR: %s" (error-message-string err)))))
+
+(defun ourcomments-M-x-menu-in-timer-1 ()
+  (setq ourcomments-M-x-menu-timer nil)
+  ;; Fix-me: temporary commands, like from "Org - Hyperlinks - Literal
+  ;; links" are still defined here, why???
+  ;; Using symbol-name + intern-soft helped, but why is it necessary?
+  (let ((maybe-command (intern-soft ourcomments-M-x-menu-this-command)))
+    (message "maybe-command=%s, %s" maybe-command (commandp maybe-command))
+    ;; this-command could have been let bound so check it:
+    (when (commandp maybe-command)
+      (let ((pre-len (length extended-command-history)))
+        (pushnew (symbol-name maybe-command) extended-command-history)
+        (when (< pre-len (length extended-command-history))
+          ;; Give a temporary message
+          (let ((msg
+                 (format "(Added %s to M-x history so you can run it from there)"
+                         maybe-command)))
+            (with-temp-message (propertize msg 'face 'file-name-shadow)
+              (sit-for 3))))))))
 
 ;;;###autoload
 (define-minor-mode ourcomments-M-x-menu-mode

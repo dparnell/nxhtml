@@ -1241,10 +1241,7 @@
                                        html-site-global-mode))))
       (define-key site-map [nxhtml-site-separator] (list 'menu-item "--"))
       (define-key site-map [nxhtml-customize-site-list]
-        (list 'menu-item "Edit Sites" (lambda ()
-                                        "Customize option `html-size-list'."
-                                        (interactive)
-                                        (customize-option-other-window 'html-site-list))))
+        (list 'menu-item "Edit Sites" 'html-site-edit-sites))
       (define-key site-map [nxhtml-set-site]
         (list 'menu-item "Set Current Site" 'html-site-set-site))
       (define-key site-map [nxhtml-site-separator-1] (list 'menu-item "--"))
