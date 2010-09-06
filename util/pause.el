@@ -501,6 +501,9 @@ Please note that it is run in a timer.")
   ;; Fix-me: the alpha timer should be handled by pause-extra-fun.
   (pause-tell-again)
   (when pause-extra-fun (funcall pause-extra-fun))
+  (with-current-buffer pause-buffer
+    (message "Going to point-min in pause-buffer from %s" (point))
+    (goto-char (point-min)))
   ;;(setq pause-break-exit-calls 0)
   (setq pause-break-last-wcfg-change (float-time))
   (pause-tell-again-start-timer))
@@ -531,9 +534,11 @@ Please note that it is run in a timer.")
     (setq pause-break-last-wcfg-change (float-time))
     (with-selected-frame f
       (delete-other-windows (frame-first-window f))
-      (with-selected-window (frame-first-window)
-        (switch-to-buffer pause-buffer)
-        (goto-char (point-max))))))
+      ;; (with-selected-window (frame-first-window)
+      ;;   (switch-to-buffer pause-buffer)
+      ;;   ;;(goto-char (point-max))
+      ;;   )
+      )))
 
 (defvar pause-tell-again-timer nil)
 
@@ -1129,8 +1134,12 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
                   (setq prev-pose pose))))
             )))))
   (dolist (win (get-buffer-window-list pause-buffer nil t))
+    (with-current-buffer pause-buffer
+      (message "to point-min in pause-buffer/win from %s/%s" (window-point) (point))
+      (goto-char (point-min)))
     (set-window-point win (point-min)))
-  (message "pause-tell-about-yoga-link: after set point-min")
+  (with-current-buffer pause-buffer
+    (message "pause-tell-about-yoga-link: after set point-min: %s" (point)))
   (pause-break-message)
   (pause-start-alpha-100-timer 60))
 
