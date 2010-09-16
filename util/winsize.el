@@ -412,6 +412,10 @@ bindings during resizing:\\<winsize-keymap>
  `winsize-fit-windows-to-desired-widths' \\[winsize-fit-windows-to-desired-widths]
  `shrink-window-if-larger-than-buffer'   \\[shrink-window-if-larger-than-buffer]
 
+ `winsize-fit-frame-width'      \\[winsize-fit-frame-width]
+ `winsize-fitw-and-maxh-frame'  \\[winsize-fitw-and-maxh-frame]
+ `winsize-max-frame-height'     \\[winsize-max-frame-height]
+
  `winsav-rotate'  \\[winsav-rotate]
 
  `winsize-move-border-up'      \\[winsize-move-border-up]

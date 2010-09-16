@@ -519,7 +519,7 @@ This also covers inlined style and javascript."
 
     mumamo-chunk-mako-<%def
     ;;mumamo-chunk-mako-<%namesp:name
-    ;;mumamo-chunk-mako-<%call
+    mumamo-chunk-mako-<%call
     ;;mumamo-chunk-mako-<%text
 
     mumamo-chunk-mako-<%

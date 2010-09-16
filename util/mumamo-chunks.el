@@ -2020,6 +2020,10 @@ See `mumamo-possible-chunk-forward' for POS and MAX."
 (defun mumamo-chunk-mako-<%doc (pos max)
   (mumamo-quick-chunk-forward pos max "<%doc>" "</%doc>" 'borders 'mumamo-comment-mode))
 
+;; Fix-me: looks like %call and %def should and several others here
+;; should be treated similar to eRuby since their inner are
+;; html-mode. However I am not sure how to handle it yet. Maybe it is
+;; better rewrite the indenting code to handle this situation?
 (defun mumamo-chunk-mako-<%include (pos max)
   (mumamo-quick-chunk-forward pos max "<%include" "/>" 'borders 'html-mode))
 
@@ -2031,6 +2035,9 @@ See `mumamo-possible-chunk-forward' for POS and MAX."
 
 (defun mumamo-chunk-mako-<%page (pos max)
   (mumamo-quick-chunk-forward pos max "<%page" "/>" 'borders 'html-mode))
+
+(defun mumamo-chunk-mako-<%call (pos max)
+  (mumamo-quick-chunk-forward pos max "<%call" "/%call>" 'borders 'html-mode))
 
 ;; Fix-me: this is not correct
 (defun mumamo-chunk-mako-<%def (pos max)
