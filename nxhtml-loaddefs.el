@@ -2495,7 +2495,7 @@ The hyperlinks can be hilighted when point is over them.  Use
 `mlinks-toggle-hilight' to toggle this feature for the current
 buffer.
 
-All keybindings in this mode are by default done under the prefiÂ§x
+All keybindings in this mode are by default done under the prefi§x
 key
 
   C-c RET
@@ -2539,7 +2539,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;;;;  mumamo-list-defined-multi-major-modes mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19582 62759))
+;;;;;;  (19585 32687))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2695,7 +2695,7 @@ Return t if VALUE is a multi major mode function.
 ;;;***
 
 ;;;### (autoloads (mumamo-noweb2 mumamo-define-html-file-wide-keys)
-;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19577 39673))
+;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19589 37078))
 ;;; Generated autoloads from util/mumamo-chunks.el
 (web-autoload-require 'mumamo-chunks 'lp '(nxhtml-download-root-url nil) "util/mumamo-chunks" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2733,7 +2733,7 @@ Get the mirror rec.
 ;;;;;;  ssjs-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19559 52693))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19589 24000))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3009,15 +3009,17 @@ Color up digits three by three.
 
 ;;;***
 
-;;;### (autoloads (ourcomments-warning ourcomments-M-x-menu-mode
-;;;;;;  ourcomments-paste-with-convert-mode use-custom-style info-open-file
-;;;;;;  replace-read-files rdir-query-replace ldir-query-replace
-;;;;;;  grep-query-replace emacs-Q-nxhtml emacs-Q emacs--no-desktop
-;;;;;;  emacs--debug-init emacs-buffer-file emacs emacs-restart ourcomments-ido-ctrl-tab
-;;;;;;  ourcomments-ido-buffer-raise-frame ourcomments-ido-buffer-other-frame
-;;;;;;  ourcomments-ido-buffer-other-window describe-symbol describe-defstruct
-;;;;;;  describe-custom-group widen-to-comments-above narrow-to-defun+comments-above
-;;;;;;  narrow-to-comment buffer-narrowed-p describe-command ourcomments-ediff-files
+;;;### (autoloads (ourcomments-bounds-of-string-or-comment-at-point
+;;;;;;  ourcomments-bounds-of-comment-at-point ourcomments-bounds-of-string-at-point
+;;;;;;  ourcomments-warning ourcomments-M-x-menu-mode ourcomments-paste-with-convert-mode
+;;;;;;  use-custom-style info-open-file replace-read-files rdir-query-replace
+;;;;;;  ldir-query-replace grep-query-replace emacs-Q-nxhtml emacs-Q
+;;;;;;  emacs--no-desktop emacs--debug-init emacs-buffer-file emacs
+;;;;;;  emacs-restart ourcomments-ido-ctrl-tab ourcomments-ido-buffer-raise-frame
+;;;;;;  ourcomments-ido-buffer-other-frame ourcomments-ido-buffer-other-window
+;;;;;;  describe-symbol describe-defstruct describe-custom-group
+;;;;;;  widen-to-comments-above narrow-to-defun+comments-above narrow-to-comment
+;;;;;;  buffer-narrowed-p describe-command ourcomments-ediff-files
 ;;;;;;  find-emacs-other-file ediff-emacs-other-file ourcomments-insert-date-and-time
 ;;;;;;  describe-timers ourcomments-copy+paste-set-point better-fringes-mode
 ;;;;;;  describe-key-and-map-briefly ourcomments-move-end-of-line
@@ -3025,7 +3027,7 @@ Color up digits three by three.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
 ;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19585 5051))
+;;;;;;  "util/ourcomments-util.el" (19600 9928))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3450,10 +3452,25 @@ Not documented
 
 \(fn FORMAT-STRING &rest ARGS)" nil nil)
 
+(nxhtml-autoload 'ourcomments-bounds-of-string-at-point `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Return bounds of string at point if any.
+
+\(fn)" nil nil)
+
+(nxhtml-autoload 'ourcomments-bounds-of-comment-at-point `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Return bounds of comment at point if any.
+
+\(fn)" nil nil)
+
+(nxhtml-autoload 'ourcomments-bounds-of-string-or-comment-at-point `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Return bounds of string or comment at point if any.
+
+\(fn)" nil nil)
+
 ;;;***
 
 ;;;### (autoloads (pause-start-in-new-emacs pause-mode pause) "pause"
-;;;;;;  "util/pause.el" (19556 9460))
+;;;;;;  "util/pause.el" (19597 32325))
 ;;; Generated autoloads from util/pause.el
 (web-autoload-require 'pause 'lp '(nxhtml-download-root-url nil) "util/pause" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4072,7 +4089,7 @@ See also option `winsav-save-mode' and command
 ;;;;;;  winsize-balance-siblings winsize-fit-frame-width winsize-fitw-and-maxh-frame
 ;;;;;;  winsize-max-frame-height winsize-fit-windows-to-desired-widths
 ;;;;;;  winsize-fit-window-to-desired-width resize-windows) "winsize"
-;;;;;;  "util/winsize.el" (19457 53996))
+;;;;;;  "util/winsize.el" (19596 16360))
 ;;; Generated autoloads from util/winsize.el
 (web-autoload-require 'winsize 'lp '(nxhtml-download-root-url nil) "util/winsize" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4093,6 +4110,10 @@ bindings during resizing:\\<winsize-keymap>
  `winsize-fit-window-to-desired-width'   \\[winsize-fit-window-to-desired-width]
  `winsize-fit-windows-to-desired-widths' \\[winsize-fit-windows-to-desired-widths]
  `shrink-window-if-larger-than-buffer'   \\[shrink-window-if-larger-than-buffer]
+
+ `winsize-fit-frame-width'      \\[winsize-fit-frame-width]
+ `winsize-fitw-and-maxh-frame'  \\[winsize-fitw-and-maxh-frame]
+ `winsize-max-frame-height'     \\[winsize-max-frame-height]
 
  `winsav-rotate'  \\[winsav-rotate]
 
@@ -4451,8 +4472,8 @@ accept it or skip it.
 ;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/fupd.el"
 ;;;;;;  "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/org-panel.el" "util/ourcomments-widgets.el" "util/rxi.el"
-;;;;;;  "util/tipframe.el" "util/win-alg.el" "web-autoload.el") (19585
-;;;;;;  8148 78000))
+;;;;;;  "util/tipframe.el" "util/win-alg.el" "web-autoload.el") (19601
+;;;;;;  26774 328000))
 
 ;;;***
 

@@ -2714,6 +2714,51 @@ This minor mode therefore instead defines them in a minor mode."
   :group 'windmove)
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; thing-at-point
+
+;;;###autoload
+(defun ourcomments-bounds-of-string-at-point ()
+  "Return bounds of string at point if any."
+  (ourcomments-string-or-comments-bounds-1 'string))
+(put 'string 'bounds-of-thing-at-point 'ourcomments-bounds-of-string-at-point)
+
+;;;###autoload
+(defun ourcomments-bounds-of-comment-at-point ()
+  "Return bounds of comment at point if any."
+  (ourcomments-string-or-comments-bounds-1 'comment))
+(put 'comment 'bounds-of-thing-at-point 'ourcomments-bounds-of-comment-at-point)
+
+;;;###autoload
+(defun ourcomments-bounds-of-string-or-comment-at-point ()
+  "Return bounds of string or comment at point if any."
+  (ourcomments-string-or-comments-bounds-1 nil))
+(put 'string-or-comment 'bounds-of-thing-at-point 'ourcomments-bounds-of-string-or-comment-at-point)
+
+(defun ourcomments-string-or-comments-bounds-1 (what)
+  (let* ((here (point))
+         (state (parse-partial-sexp (point-min) (point)))
+         ;;(inside (or (nth 3 state) (nth 4 state)))
+         (type (if (nth 3 state)
+                   'string
+                 (if (nth 4 state)
+                     'comment)))
+         (start (when type (nth 8 state)))
+         end)
+    (unless (or (not what)
+                (eq what type))
+      (setq start nil))
+    (if (not start)
+        (progn
+          (goto-char here)
+          nil)
+      (setq state (parse-partial-sexp (1+ start) (point-max)
+				      nil nil state 'syntax-table))
+      (setq end (point))
+      (goto-char here)
+      (cons start end))))
+
+
 ;;(message " ourcomments fin %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
 (provide 'ourcomments-util)
