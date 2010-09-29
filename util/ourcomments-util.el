@@ -2611,7 +2611,7 @@ Note: This minor mode will defadvice the paste commands."
                (not (memq this-command '(ourcomments-M-x-menu-mode))))
       (when (timerp ourcomments-M-x-menu-timer)
         (cancel-timer ourcomments-M-x-menu-timer))
-      (message "this-command=%s" this-command)
+      ;;(message "this-command=%s" this-command)
       (setq ourcomments-M-x-menu-this-command (symbol-name this-command))
       (setq ourcomments-M-x-menu-timer
             (run-with-idle-timer 3 nil 'ourcomments-M-x-menu-in-timer)))))
@@ -2628,7 +2628,7 @@ Note: This minor mode will defadvice the paste commands."
   ;; links" are still defined here, why???
   ;; Using symbol-name + intern-soft helped, but why is it necessary?
   (let ((maybe-command (intern-soft ourcomments-M-x-menu-this-command)))
-    (message "maybe-command=%s, %s" maybe-command (commandp maybe-command))
+    ;;(message "maybe-command=%s, %s" maybe-command (commandp maybe-command))
     ;; this-command could have been let bound so check it:
     (when (commandp maybe-command)
       (let ((pre-len (length extended-command-history)))
