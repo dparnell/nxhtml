@@ -686,29 +686,31 @@ Please note that it is run in a timer.")
   (message "pause-break-in-timer")
   (save-match-data ;; runs in timer
     (pause-cancel-timer)
-    (if (pause-use-topmost)
-        (condition-case err
-            (pause-break-topmost)
-          (error (error-message-string err)))
-      (if (or (active-minibuffer-window)
-              (and (boundp 'edebug-active)
-                   edebug-active))
-          (let ((pause-idle-delay 5))
-            (pause-pre-break))
-        (let ((there-was-an-error nil))
+    (if (active-minibuffer-window)
+        (pause-pre-break)
+      (if (pause-use-topmost)
           (condition-case err
-              (pause-break-no-topmost)
-            (error
-             (setq there-was-an-error t)))
-          (when there-was-an-error
+              (pause-break-topmost)
+            (error (error-message-string err)))
+        (if (or (active-minibuffer-window)
+                (and (boundp 'edebug-active)
+                     edebug-active))
+            (let ((pause-idle-delay 5))
+              (pause-pre-break))
+          (let ((there-was-an-error nil))
             (condition-case err
-                (progn
-                  (select-frame last-event-frame)
-                  (let ((pause-idle-delay nil))
-                    (pause-pre-break)))
+                (pause-break-no-topmost)
               (error
-               (lwarn 'pause-break-in-timer2 :error "%s" (error-message-string err))
-               ))))))))
+               (setq there-was-an-error t)))
+            (when there-was-an-error
+              (condition-case err
+                  (progn
+                    (select-frame last-event-frame)
+                    (let ((pause-idle-delay nil))
+                      (pause-pre-break)))
+                (error
+                 (lwarn 'pause-break-in-timer2 :error "%s" (error-message-string err))
+                 )))))))))
 
 (defcustom pause-only-when-server-mode t
   "Allow `pause-mode' only in the Emacs that has server-mode enabled.
@@ -990,7 +992,7 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
 (defun pause-start-get-yoga-poses ()
   (if (and pause-yoga-poses-use-dir
            (< 0 (length pause-yoga-poses-dir))
-           (file-directory-p pause-yoga-poses-dir))
+           (file-directory-p (substitute-in-file-name pause-yoga-poses-dir)))
       (pause-tell-about-yoga-link (pause-get-pose-from-yoga-poses-dir))
     (require 'url-vars)
     (let ((url-show-status nil)) ;; do not show download messages
@@ -1002,10 +1004,11 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
 ;;(setq x (pause-get-pose-from-yoga-poses-dir))
 (defun pause-get-pose-from-yoga-poses-dir ()
   "Get a random file name from `pause-yoga-poses-dir'."
-  (let* ((files (directory-files pause-yoga-poses-dir nil "[^.]$"))
+  (let* ((poses-dir (substitute-in-file-name pause-yoga-poses-dir))
+         (files (directory-files poses-dir nil "[^.]$"))
          (num (length files))
          (file (pause-random-yoga-pose files)))
-    (cons (expand-file-name file pause-yoga-poses-dir) file)))
+    (cons (expand-file-name file poses-dir) file)))
 
 (defun pause-callback-get-yoga-poses (status)
   ;;(message "pause get-yoga-poses: status=%S" status) (message nil)
