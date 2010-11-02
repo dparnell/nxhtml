@@ -2497,6 +2497,14 @@ variant of such blocks then leave the link as it is."
             (setq converted t)
             (setq url (match-string-no-properties 1))
             (setq str (match-string-no-properties 2))
+            (save-match-data
+              ;; Decode html entities - see http://lists.gnu.org/archive/html/emacs-devel/2010-10/msg01073.html
+              (require 'mm-url)
+              (let ((mm-url-html-entities (cons '(nbsp . 32) mm-url-html-entities)))
+                (setq str (mm-url-decode-entities-string str)))
+              ;; Check for []
+              (setq str (replace-regexp-in-string "\\[" "(" str t t))
+              (setq str (replace-regexp-in-string "\\]" ")" str t t)))
             ;; Check if the URL is to a local file and absolute. And we
             ;; have a buffer.
             (when (and (buffer-file-name)
@@ -2767,6 +2775,41 @@ This minor mode therefore instead defines them in a minor mode."
         (goto-char here)
         (cons start end)))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Freemind
+
+;;;###autoload
+(defun org-freemind-copy-new-marktree.js (output-dir)
+  "Copy a modified marktree.js, by default to html/javascript exported Freemind.
+OUTPUT-DIR is the directory where you want the file to be copied.
+
+If you call this function interactively and are in an Freemind
+.mm-file buffer then the default output directory will be the
+directory where Freemind exported the html+javascript.
+
+NOTE: I have made some enhancement to marktree.js.  My new
+version has some enhancements for scrolling.
+
+The file marktree.js comes with Freemind and is used when you do
+an export there to html/javascript format."
+;; Fix-me: this is a temporary solution!
+  (interactive (let* ((ext (file-name-extension buffer-file-name))
+                      (name (file-name-sans-extension buffer-file-name))
+                      (def-dir (if (string= "mm" ext)
+                                   (file-name-as-directory (concat name ".html_files"))
+                                 default-directory)))
+                 (list (read-directory-name "Copy to directory: "
+                                            def-dir ;; dir
+                                            nil ;; default-dirname
+                                            t ;; must-match
+                                            ))))
+  (if (not (file-directory-p output-dir))
+      (message "Can't find directory %s" output-dir)
+    (copy-file (expand-file-name "etc/js/marktree.js" nxhtml-install-dir)
+               output-dir
+               t)
+    (message "Copied the new marktree.js to %s" output-dir)))
 
 ;;(message " ourcomments fin %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
 
