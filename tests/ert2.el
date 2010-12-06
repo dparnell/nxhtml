@@ -205,6 +205,7 @@ Run the hook `ert-simulate-command-post-hook' at the very end."
   (message "command=%s" command)
   (ert-should (listp command))
   (ert-should (commandp (car command)))
+  (message "unread-command-events=%S" unread-command-events)
   (ert-should (not unread-command-events))
   (let (return-value
         (font-lock-mode t))

@@ -53,6 +53,7 @@
 (eval-when-compile (require 'grep))
 (eval-when-compile (require 'ido))
 (eval-when-compile (require 'org))
+(eval-when-compile (require 'mm-url))
 (eval-when-compile (require 'recentf))
 (eval-when-compile (require 'uniquify))
 
@@ -1155,6 +1156,15 @@ display it."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Misc.
 
+(defun pling ()
+  "A friendly reminder message.
+Whatever it may mean."
+  (interactive)
+  (let ((str "•*¨*•.¸¸¸¸.•*¨*•♫♪♪♫"))
+    (message (propertize (concat "  " str str str "  ")
+                         'face
+                         '(:foreground "white" :background "deep sky blue")))))
+
 ;;(describe-timers)
 ;;;###autoload
 (defun describe-timers ()
@@ -1734,10 +1744,70 @@ function."
   (call-interactively 'ido-exit-minibuffer))
 
 (defun ourcomments-ido-switch-buffer-or-next-entry ()
+  "Enhanced Ido buffer switching.
+This is an enhanced version of `ido-switch-buffer'.  The
+additions are:
+
+- C-TAB \(and S-C-TAB) can be used for both starting switching
+  buffers and moving among the alternatives.
+
+- C-return shows buffer in other frame.
+- M-return raise frame showing buffer.
+- S-return show frame in other window.
+* Note: The enhancement here is that you do not have to decide
+  where to display the buffer until you choose the buffer.  This
+  means that you can always start buffer switching with the same
+  key \(i.e. probably C-TAB).
+
+- Left and right arrow keys can be used during switching.
+- C-b will call `buffer-menu' with the currently selected
+  alternatives.
+* Note: The above bindings interfere a bit with editing the
+  currently entered match string.  However you can still use
+  <home> and <end> to move in that string \(which is probably
+  short)."
   (interactive)
   (if (active-minibuffer-window)
       (ido-next-match)
     (ido-switch-buffer)))
+
+;; (ourcomments-ido-list-matching-buffers ".el")
+(defvar ourcomments-ido-list-matching-buffers-re nil)
+(defun ourcomments-ido-list-matching-buffers (regexp)
+  "List buffers with name matching regexp REGEXP.
+If called from within ido it takes the current match string as
+REGEXP."
+  (interactive (list (if (active-minibuffer-window)
+                         nil
+                       (if ourcomments-ido-list-matching-buffers-re
+                           ;;(< 0 (length ido-text))
+                           ourcomments-ido-list-matching-buffers-re
+                         ;;(regexp-quote ido-text)
+                         (read-regexp "List Buffers, buffer name regexp")))))
+  (if (not (boundp 'ido-require-match))
+      (progn
+        (setq ourcomments-ido-list-matching-buffers-re nil)
+        (let ((bufs nil)
+              (buffer-list (buffer-list
+                            (when Buffer-menu-use-frame-buffer-list
+                              (selected-frame)))))
+          (dolist (b buffer-list)
+            (let ((name (buffer-name b))
+                  (file (buffer-file-name b)))
+              (unless (or
+                       ;; Don't mention internal buffers.
+                       (and (string= (substring name 0 1) " ")
+                            (null file))
+                       (not (string-match-p regexp name)))
+                (setq bufs (cons b bufs)))))
+          (if (not bufs)
+              (message "No matching buffers")
+            (switch-to-buffer (list-buffers-noselect nil bufs))
+            )))
+    (setq ido-exit 'fallback)
+    (setq ourcomments-ido-list-matching-buffers-re ido-text)
+    (setq fallback 'ourcomments-ido-list-matching-buffers)
+    (throw 'ido nil)))
 
 (defun ourcomments-ido-mode-advice()
   (when (memq ido-mode '(both buffer))
@@ -1752,7 +1822,9 @@ function."
           (define-key map [(control backtab)]   'ido-prev-match)
           (define-key map [(shift return)]   'ourcomments-ido-buffer-other-window)
           (define-key map [(control return)] 'ourcomments-ido-buffer-other-frame)
-          (define-key map [(meta return)]   'ourcomments-ido-buffer-raise-frame))))))
+          (define-key map [(meta return)]   'ourcomments-ido-buffer-raise-frame)
+          (define-key map [(control ?b)]   'ourcomments-ido-list-matching-buffers)
+          )))))
 
 ;; (defun ourcomments-ido-setup-completion-map ()
 ;;   "Set up the keymap for `ido'."
@@ -2322,6 +2394,21 @@ Return full path if found."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Org Mode
 
+;;;###autoload
+(defun org-copy-url ()
+  "Copy `org-mode' URL link at point to clipboard.
+NOTE: This will just call `org-open-at-point' as usual if the
+link is not an URL."
+  (interactive)
+  (if (not (eq 'org-link (get-char-property (point) 'face)))
+      (message "No org-mode link here")
+    (flet ((browse-url (url &rest args)
+                       (kill-new (substring-no-properties url))
+                       (message "Copied link to clipboard")))
+      (org-open-at-point))))
+
+
+
 ;; (define-minor-mode ourcomments-org-where-mode
 ;;   "Shows path in header line."
 ;;   :global nil
@@ -2500,7 +2587,10 @@ variant of such blocks then leave the link as it is."
             (save-match-data
               ;; Decode html entities - see http://lists.gnu.org/archive/html/emacs-devel/2010-10/msg01073.html
               (require 'mm-url)
-              (let ((mm-url-html-entities (cons '(nbsp . 32) mm-url-html-entities)))
+              (let ((mm-url-html-entities
+                     (cons '(apos . 39)
+                           (cons '(nbsp . 32)
+                                 mm-url-html-entities))))
                 (setq str (mm-url-decode-entities-string str)))
               ;; Check for []
               (setq str (replace-regexp-in-string "\\[" "(" str t t))
@@ -2608,6 +2698,11 @@ Note: This minor mode will defadvice the paste commands."
 ;; (where-is-internal 'save-buffer nil nil)
 ;; (where-is-internal 'revert-buffer nil nil)
 ;; (setq extended-command-history nil)
+(defcustom ourcomments-M-x-menu-always-add t
+  "Always add to M-x history if t, otherwise only if new."
+  :type 'boolean
+  :group 'ourcomments-util)
+
 (defvar ourcomments-M-x-menu-timer nil)
 (defvar ourcomments-M-x-menu-this-command nil)
 (defun ourcomments-M-x-menu-pre ()
@@ -2640,7 +2735,9 @@ Note: This minor mode will defadvice the paste commands."
     ;; this-command could have been let bound so check it:
     (when (commandp maybe-command)
       (let ((pre-len (length extended-command-history)))
-        (pushnew (symbol-name maybe-command) extended-command-history)
+        (if ourcomments-M-x-menu-always-add
+            (push (symbol-name maybe-command) extended-command-history)
+          (pushnew (symbol-name maybe-command) extended-command-history))
         (when (< pre-len (length extended-command-history))
           ;; Give a temporary message
           (let ((msg
@@ -2658,6 +2755,7 @@ faster if you know how to do it).
 
 Only commands that are not already in M-x history are added."
   :global t
+  :group 'ourcomments-util
   (if ourcomments-M-x-menu-mode
       (add-hook 'pre-command-hook 'ourcomments-M-x-menu-pre)
     (remove-hook 'pre-command-hook 'ourcomments-M-x-menu-pre)))
@@ -2812,6 +2910,10 @@ an export there to html/javascript format."
     (message "Copied the new marktree.js to %s" output-dir)))
 
 ;;(message " ourcomments fin %.1f seconds elapsed" (- (float-time) ourcomments-load-time-start))
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
 (provide 'ourcomments-util)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

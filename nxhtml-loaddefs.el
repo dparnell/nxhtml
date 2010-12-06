@@ -44,7 +44,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;### (autoloads (html-site-query-replace html-site-rgrep html-site-find-file
 ;;;;;;  html-site-dired-current html-site-set-site html-site-buffer-or-dired-file-name
 ;;;;;;  html-site-edit-sites html-site) "../nxhtml/html-site" "nxhtml/html-site.el"
-;;;;;;  (19585 7848))
+;;;;;;  (19585 33052))
 ;;; Generated autoloads from nxhtml/html-site.el
 (web-autoload-require 'html-site 'lp '(nxhtml-download-root-url nil) "nxhtml/html-site" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -91,7 +91,7 @@ Query replace in current site's files.
 ;;;***
 
 ;;;### (autoloads (html-toc) "../nxhtml/html-toc" "nxhtml/html-toc.el"
-;;;;;;  (19585 6415))
+;;;;;;  (19585 33052))
 ;;; Generated autoloads from nxhtml/html-toc.el
 (web-autoload-require 'html-toc 'lp '(nxhtml-download-root-url nil) "nxhtml/html-toc" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -196,7 +196,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-menu-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp mumamo-switch-to-other-html)
-;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19585 8070))
+;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19585 33052))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1315,7 +1315,7 @@ Major mode for editing Template Toolkit files.
 ;;;***
 
 ;;;### (autoloads (visual-basic-mode) "../related/visual-basic-mode"
-;;;;;;  "related/visual-basic-mode.el" (19533 36132))
+;;;;;;  "related/visual-basic-mode.el" (19621 2592))
 ;;; Generated autoloads from related/visual-basic-mode.el
 (web-autoload-require 'visual-basic-mode 'lp '(nxhtml-download-root-url nil) "related/visual-basic-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1342,6 +1342,8 @@ Define NAME (a symbol) as a test.
 
 \(fn NAME () [:documentation DOCSTRING] [:expected-result TYPE] BODY...)" nil (quote macro))
 
+(put 'ert-deftest 'lisp-indent-function '2)
+
 (nxhtml-autoload 'ert-run-tests-interactively `(lp '(nxhtml-download-root-url nil) "tests/ert" nxhtml-install-dir) "\
 Run the tests specified by SELECTOR and display the results in a buffer.
 
@@ -1364,7 +1366,7 @@ See `nxhtmltest-run' for more information about the tests.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "../tests/nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (19571 3111))
+;;;;;;  "tests/nxhtmltest-suites.el" (19571 7230))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 (web-autoload-require 'nxhtmltest-suites 'lp '(nxhtml-download-root-url nil) "tests/nxhtmltest-suites" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1971,7 +1973,7 @@ If not the user is asked for the URL.
 ;;;***
 
 ;;;### (autoloads (google-chrome-server-mode) "edit-server" "util/edit-server.el"
-;;;;;;  (19556 22263))
+;;;;;;  (19571 7230))
 ;;; Generated autoloads from util/edit-server.el
 (web-autoload-require 'edit-server 'lp '(nxhtml-download-root-url nil) "util/edit-server" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2539,7 +2541,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;;;;  mumamo-list-defined-multi-major-modes mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19585 32687))
+;;;;;;  (19585 33052))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2695,7 +2697,7 @@ Return t if VALUE is a multi major mode function.
 ;;;***
 
 ;;;### (autoloads (mumamo-noweb2 mumamo-define-html-file-wide-keys)
-;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19589 37078))
+;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19601 27026))
 ;;; Generated autoloads from util/mumamo-chunks.el
 (web-autoload-require 'mumamo-chunks 'lp '(nxhtml-download-root-url nil) "util/mumamo-chunks" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2710,7 +2712,7 @@ Define keys in multi major mode keymap for html files.
 ;;;***
 
 ;;;### (autoloads (mumamo-cmirr-get-mirror) "mumamo-cmirr" "util/mumamo-cmirr.el"
-;;;;;;  (19582 62603))
+;;;;;;  (19585 33052))
 ;;; Generated autoloads from util/mumamo-cmirr.el
 (web-autoload-require 'mumamo-cmirr 'lp '(nxhtml-download-root-url nil) "util/mumamo-cmirr" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2733,7 +2735,7 @@ Get the mirror rec.
 ;;;;;;  ssjs-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19589 24000))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19601 27026))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3009,17 +3011,17 @@ Color up digits three by three.
 
 ;;;***
 
-;;;### (autoloads (ourcomments-bounds-of-string-or-comment-at-point
+;;;### (autoloads (org-freemind-copy-new-marktree\.js ourcomments-bounds-of-string-or-comment-at-point
 ;;;;;;  ourcomments-bounds-of-comment-at-point ourcomments-bounds-of-string-at-point
 ;;;;;;  ourcomments-warning ourcomments-M-x-menu-mode ourcomments-paste-with-convert-mode
-;;;;;;  use-custom-style info-open-file replace-read-files rdir-query-replace
-;;;;;;  ldir-query-replace grep-query-replace emacs-Q-nxhtml emacs-Q
-;;;;;;  emacs--no-desktop emacs--debug-init emacs-buffer-file emacs
-;;;;;;  emacs-restart ourcomments-ido-ctrl-tab ourcomments-ido-buffer-raise-frame
-;;;;;;  ourcomments-ido-buffer-other-frame ourcomments-ido-buffer-other-window
-;;;;;;  describe-symbol describe-defstruct describe-custom-group
-;;;;;;  widen-to-comments-above narrow-to-defun+comments-above narrow-to-comment
-;;;;;;  buffer-narrowed-p describe-command ourcomments-ediff-files
+;;;;;;  org-copy-url use-custom-style info-open-file replace-read-files
+;;;;;;  rdir-query-replace ldir-query-replace grep-query-replace
+;;;;;;  emacs-Q-nxhtml emacs-Q emacs--no-desktop emacs--debug-init
+;;;;;;  emacs-buffer-file emacs emacs-restart ourcomments-ido-ctrl-tab
+;;;;;;  ourcomments-ido-buffer-raise-frame ourcomments-ido-buffer-other-frame
+;;;;;;  ourcomments-ido-buffer-other-window describe-symbol describe-defstruct
+;;;;;;  describe-custom-group widen-to-comments-above narrow-to-defun+comments-above
+;;;;;;  narrow-to-comment buffer-narrowed-p describe-command ourcomments-ediff-files
 ;;;;;;  find-emacs-other-file ediff-emacs-other-file ourcomments-insert-date-and-time
 ;;;;;;  describe-timers ourcomments-copy+paste-set-point better-fringes-mode
 ;;;;;;  describe-key-and-map-briefly ourcomments-move-end-of-line
@@ -3027,7 +3029,7 @@ Color up digits three by three.
 ;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
 ;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19600 9928))
+;;;;;;  "util/ourcomments-util.el" (19681 59109))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3071,10 +3073,14 @@ To create a menu item something similar to this can be used:
 
 \(fn SYMBOL VALUE DOC &rest ARGS)" nil (quote macro))
 
+(put 'define-toggle 'doc-string-elt '3)
+
 (nxhtml-autoload 'define-toggle-old `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Not documented
 
 \(fn SYMBOL VALUE DOC &rest ARGS)" nil (quote macro))
+
+(put 'define-toggle-old 'doc-string-elt '3)
 
 (nxhtml-autoload 'unfill-paragraph `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Unfill the current paragraph.
@@ -3401,6 +3407,13 @@ Setup like in `Custom-mode', but without things specific to Custom.
 
 \(fn)" nil nil)
 
+(nxhtml-autoload 'org-copy-url `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Copy `org-mode' URL link at point to clipboard.
+NOTE: This will just call `org-open-at-point' as usual if the
+link is not an URL.
+
+\(fn)" t nil)
+
 (defvar ourcomments-paste-with-convert-mode nil "\
 Non-nil if Ourcomments-Paste-With-Convert mode is enabled.
 See the command `ourcomments-paste-with-convert-mode' for a description of this minor mode.
@@ -3467,10 +3480,26 @@ Return bounds of string or comment at point if any.
 
 \(fn)" nil nil)
 
+(nxhtml-autoload 'org-freemind-copy-new-marktree\.js `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Copy a modified marktree.js, by default to html/javascript exported Freemind.
+OUTPUT-DIR is the directory where you want the file to be copied.
+
+If you call this function interactively and are in an Freemind
+.mm-file buffer then the default output directory will be the
+directory where Freemind exported the html+javascript.
+
+NOTE: I have made some enhancement to marktree.js.  My new
+version has some enhancements for scrolling.
+
+The file marktree.js comes with Freemind and is used when you do
+an export there to html/javascript format.
+
+\(fn OUTPUT-DIR)" t nil)
+
 ;;;***
 
 ;;;### (autoloads (pause-start-in-new-emacs pause-mode pause) "pause"
-;;;;;;  "util/pause.el" (19597 32325))
+;;;;;;  "util/pause.el" (19657 16984))
 ;;; Generated autoloads from util/pause.el
 (web-autoload-require 'pause 'lp '(nxhtml-download-root-url nil) "util/pause" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3612,7 +3641,7 @@ this group.
 ;;;***
 
 ;;;### (autoloads (rebind-keys-mode rebind) "rebind" "util/rebind.el"
-;;;;;;  (19292 11678))
+;;;;;;  (19678 4004))
 ;;; Generated autoloads from util/rebind.el
 (web-autoload-require 'rebind 'lp '(nxhtml-download-root-url nil) "util/rebind" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3735,8 +3764,8 @@ ENGINE must be key in `search-net-search-setup-alist'.
 
 ;;;***
 
-;;;### (autoloads (sex-mode sex) "sex-mode" "util/sex-mode.el" (19566
-;;;;;;  22690))
+;;;### (autoloads (sex-mode sex) "sex-mode" "util/sex-mode.el" (19571
+;;;;;;  7230))
 ;;; Generated autoloads from util/sex-mode.el
 (web-autoload-require 'sex-mode 'lp '(nxhtml-download-root-url nil) "util/sex-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4000,7 +4029,7 @@ Minor mode helping finding link patt for web-vcs.
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
 ;;;;;;  winsav winsav-put-window-tree) "winsav" "util/winsav.el"
-;;;;;;  (19555 49157))
+;;;;;;  (19571 7230))
 ;;; Generated autoloads from util/winsav.el
 (web-autoload-require 'winsav 'lp '(nxhtml-download-root-url nil) "util/winsav" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4089,7 +4118,7 @@ See also option `winsav-save-mode' and command
 ;;;;;;  winsize-balance-siblings winsize-fit-frame-width winsize-fitw-and-maxh-frame
 ;;;;;;  winsize-max-frame-height winsize-fit-windows-to-desired-widths
 ;;;;;;  winsize-fit-window-to-desired-width resize-windows) "winsize"
-;;;;;;  "util/winsize.el" (19596 16360))
+;;;;;;  "util/winsize.el" (19601 27026))
 ;;; Generated autoloads from util/winsize.el
 (web-autoload-require 'winsize 'lp '(nxhtml-download-root-url nil) "util/winsize" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4365,7 +4394,7 @@ quarter clockwise (or counter clockwise with prefix).
 
 ;;;### (autoloads (wrap-to-fill-column-mode wrap-to-fill-left-marg-modes
 ;;;;;;  wrap-to-fill-left-marg wrap-to-fill) "wrap-to-fill" "util/wrap-to-fill.el"
-;;;;;;  (19555 23948))
+;;;;;;  (19571 7230))
 ;;; Generated autoloads from util/wrap-to-fill.el
 (web-autoload-require 'wrap-to-fill 'lp '(nxhtml-download-root-url nil) "util/wrap-to-fill" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4468,12 +4497,12 @@ accept it or skip it.
 ;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
 ;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
-;;;;;;  "util/appmenu-fold.el" "util/backtr.el" "util/css-simple-completion.el"
-;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/fupd.el"
-;;;;;;  "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
-;;;;;;  "util/org-panel.el" "util/ourcomments-widgets.el" "util/rxi.el"
-;;;;;;  "util/tipframe.el" "util/win-alg.el" "web-autoload.el") (19601
-;;;;;;  26774 328000))
+;;;;;;  "util/appmenu-fold.el" "util/backtr.el" "util/biburl.el"
+;;;;;;  "util/css-simple-completion.el" "util/custsets.el" "util/ecb-batch-compile.el"
+;;;;;;  "util/fupd.el" "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
+;;;;;;  "util/org-odt.el" "util/org-panel.el" "util/ourcomments-widgets.el"
+;;;;;;  "util/rxi.el" "util/tipframe.el" "util/win-alg.el" "web-autoload.el")
+;;;;;;  (19700 26139 343000))
 
 ;;;***
 

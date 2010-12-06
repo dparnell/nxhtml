@@ -7636,8 +7636,8 @@ This is in the temporary buffer for indentation."
                 (let* ((syn-min-max (mumamo-chunk-syntax-min-max chunk t))
                        (syn-min (car syn-min-max))
                        (syn-max (cdr syn-min-max))
-                       (syn-min-len (- syn-min chu-min))
-                       (syn-max-len (- chu-max syn-max))
+                       (syn-min-len (- syn-min chu-min)) ;; divider len at begin
+                       (syn-max-len (- chu-max syn-max)) ;; divider len at end
                        (chu-syn-len (- chu-len syn-min-len syn-max-len)))
                   (if (eq major (mumamo-chunk-major-mode chunk))
                       (progn
@@ -7670,11 +7670,12 @@ This is in the temporary buffer for indentation."
                                (len2 (- chu-len len1 2)))
                           (setq part 2)
                           (unless nl-after-chu-min (insert " "))
-                          (insert "\n"
-                                  ;;(make-string len1 32)
-                                  ;;(make-string len2 32)
-                                  (make-string (+ len1 len2) 32)
-                                  ))
+                          (when (<= 0 (+ len1 len2))
+                            (insert "\n"
+                                    ;;(make-string len1 32)
+                                    ;;(make-string len2 32)
+                                    (make-string (+ len1 len2) 32)
+                                    )))
                       (setq part 3)
                       ;; Fix-me: Take care of template-indentors
                       ;; here. We can't copy them as just white space
