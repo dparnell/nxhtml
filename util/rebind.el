@@ -81,6 +81,18 @@
         t
         shift
         ourcomments-mark-whole-buffer-or-field)
+       (
+        [(control ?b)]
+        "C-b is often used to make bold, use this in `org-mode'."
+        t
+        nil
+        org-b)
+       (
+        [(control ?i)]
+        "C-i is often used to make italic, use this in `org-mode'."
+        t
+        nil
+        org-i)
       (
        [(control ?o)]
        "C-o on w32 normally means 'open file'. In Emacs it is `open-line'."
@@ -232,6 +244,36 @@ key bindings we want!"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Interactive functions for the keymap
+
+;; org-mode specials
+
+(defun org-b ()
+  "Toggle bold if in `org-mode'."
+  (interactive)
+  (org-bi "*"))
+
+(defun org-i ()
+  "Toggle italic if in `org-mode'."
+  (interactive)
+  (org-bi "/"))
+
+(defun org-bi (bi)
+  ;; Fix-me: add removing and check if it fits.
+  (if (not (and mark-active
+                (derived-mode-p 'org-mode)))
+      (let* (rebind-keys-mode
+             (binding (key-binding (this-command-keys-vector) t)))
+        (when binding (call-interactively binding)))
+    ;; Fix-me: Maybe adjust region so that it is valid for this op.
+    (let* ((beg (region-beginning))
+           (end (region-end))
+           (here (copy-marker (point))))
+      (goto-char end)
+      (insert bi)
+      (goto-char beg)
+      (insert bi)
+      (goto-char here))))
+
 
 
 
