@@ -273,7 +273,8 @@ This also covers inlined style and javascript."
   "Turn on multiple major modes for JSP with main mode `html-mode'.
 This also covers inlined style and javascript."
     ("JSP HTML Family" html-mode
-     (mumamo-chunk-jsp
+     (mumamo-chunk-jsp-hidden-comment
+      mumamo-chunk-jsp
       mumamo-chunk-inlined-style
       mumamo-chunk-inlined-script
       mumamo-chunk-style=

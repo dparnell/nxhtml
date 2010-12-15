@@ -1130,6 +1130,8 @@
       (define-key edit-map [nxhtml-re-builder]
         (list 'menu-item "Re-Builder" 're-builder))
       (define-key edit-map [nxhtml-edit-sep4] (list 'menu-item "--"))
+      (define-key edit-map [nxhtml-paste-as-new-buffer]
+        (list 'menu-item "Paste as New Buffer" 'paste-as-new-buffer))
       (let ((copy+paste-map (make-sparse-keymap "copy+paste")))
         (define-key edit-map [nxhtml-copy+paste-map]
           (list 'menu-item "Copy+Paste" copy+paste-map))

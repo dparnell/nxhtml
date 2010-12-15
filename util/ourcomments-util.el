@@ -1156,6 +1156,13 @@ display it."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Misc.
 
+;;;###autoload
+(defun paste-as-new-buffer ()
+  "Paste from clipboard to a new buffer."
+  (interactive)
+  (switch-to-buffer (generate-new-buffer "*Pasted from clipboard*"))
+  (yank))
+
 (defun pling ()
   "A friendly reminder message.
 Whatever it may mean."
@@ -1760,12 +1767,12 @@ additions are:
   key \(i.e. probably C-TAB).
 
 - Left and right arrow keys can be used during switching.
-- C-b will call `buffer-menu' with the currently selected
-  alternatives.
 * Note: The above bindings interfere a bit with editing the
   currently entered match string.  However you can still use
   <home> and <end> to move in that string \(which is probably
-  short)."
+  short).
+- TAB will call `buffer-menu' with the currently selected
+  alternatives."
   (interactive)
   (if (active-minibuffer-window)
       (ido-next-match)
@@ -1773,6 +1780,7 @@ additions are:
 
 ;; (ourcomments-ido-list-matching-buffers ".el")
 (defvar ourcomments-ido-list-matching-buffers-re nil)
+(defvar fallback)
 (defun ourcomments-ido-list-matching-buffers (regexp)
   "List buffers with name matching regexp REGEXP.
 If called from within ido it takes the current match string as
@@ -1805,7 +1813,8 @@ REGEXP."
             (switch-to-buffer (list-buffers-noselect nil bufs))
             )))
     (setq ido-exit 'fallback)
-    (setq ourcomments-ido-list-matching-buffers-re ido-text)
+    (setq ourcomments-ido-list-matching-buffers-re (regexp-quote ido-text))
+    ;; Fix-me:
     (setq fallback 'ourcomments-ido-list-matching-buffers)
     (throw 'ido nil)))
 
@@ -1823,7 +1832,9 @@ REGEXP."
           (define-key map [(shift return)]   'ourcomments-ido-buffer-other-window)
           (define-key map [(control return)] 'ourcomments-ido-buffer-other-frame)
           (define-key map [(meta return)]   'ourcomments-ido-buffer-raise-frame)
-          (define-key map [(control ?b)]   'ourcomments-ido-list-matching-buffers)
+          ;; Override TAB, buffer menu is a better completion:
+          (define-key map [tab]   'ourcomments-ido-list-matching-buffers)
+          (define-key map "\t"   'ourcomments-ido-list-matching-buffers)
           )))))
 
 ;; (defun ourcomments-ido-setup-completion-map ()
@@ -2567,9 +2578,15 @@ variant of such blocks then leave the link as it is."
       (let ((here (copy-marker (point)))
             url str converted
             lit-beg lit-end)
-        (goto-char beg)
         (save-restriction
           (widen)
+
+          ;; Fix-me: Remove soft hyphens since Emacs can not handle them yet
+          (goto-char beg) (while (search-forward "­" nil t) (replace-match ""))
+          ;; Thin space, 8201
+          (goto-char beg) (while (search-forward (char-to-string 8201) nil t) (replace-match " "))
+
+          (goto-char beg)
           (setq lit-beg (search-backward "#+BEGIN" nil t))
           (when lit-beg
             (goto-char lit-beg)
@@ -2594,7 +2611,8 @@ variant of such blocks then leave the link as it is."
                 (setq str (mm-url-decode-entities-string str)))
               ;; Check for []
               (setq str (replace-regexp-in-string "\\[" "(" str t t))
-              (setq str (replace-regexp-in-string "\\]" ")" str t t)))
+              (setq str (replace-regexp-in-string "\\]" ")" str t t))
+              )
             ;; Check if the URL is to a local file and absolute. And we
             ;; have a buffer.
             (when (and (buffer-file-name)
