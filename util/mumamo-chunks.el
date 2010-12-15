@@ -1111,6 +1111,10 @@ See `mumamo-possible-chunk-forward' for POS and MAX."
 See `mumamo-possible-chunk-forward' for POS and MAX."
   (mumamo-quick-chunk-forward pos max "<%" "%>" 'borders 'java-mode))
 
+(defun mumamo-chunk-jsp-hidden-comment (pos max)
+  "Find <%-- ... --%>.  Return range and 'mumamo-comment-mode.
+See `mumamo-possible-chunk-forward' for POS and MAX."
+  (mumamo-quick-chunk-forward pos max "<%" "%>" 'borders 'mumamo-comment-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; eruby

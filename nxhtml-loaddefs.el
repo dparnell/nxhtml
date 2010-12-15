@@ -196,7 +196,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-menu-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp mumamo-switch-to-other-html)
-;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19585 33052))
+;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19711 58991))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -461,7 +461,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (tidy-build-menu tidy) "../nxhtml/tidy-xhtml" "nxhtml/tidy-xhtml.el"
-;;;;;;  (19459 64864))
+;;;;;;  (19705 33914))
 ;;; Generated autoloads from nxhtml/tidy-xhtml.el
 (web-autoload-require 'tidy-xhtml 'lp '(nxhtml-download-root-url nil) "nxhtml/tidy-xhtml" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1315,7 +1315,7 @@ Major mode for editing Template Toolkit files.
 ;;;***
 
 ;;;### (autoloads (visual-basic-mode) "../related/visual-basic-mode"
-;;;;;;  "related/visual-basic-mode.el" (19621 2592))
+;;;;;;  "related/visual-basic-mode.el" (19647 7623))
 ;;; Generated autoloads from related/visual-basic-mode.el
 (web-autoload-require 'visual-basic-mode 'lp '(nxhtml-download-root-url nil) "related/visual-basic-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1657,6 +1657,29 @@ on blogs.
 See `as-external-alist' for more information.
 
 \(fn &optional ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads (biburl-apa2elin org-copy-url-ref-at-point biburl-copy-ref)
+;;;;;;  "biburl" "util/biburl.el" (19713 36763))
+;;; Generated autoloads from util/biburl.el
+(web-autoload-require 'biburl 'lp '(nxhtml-download-root-url nil) "util/biburl" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'biburl-copy-ref `(lp '(nxhtml-download-root-url nil) "util/biburl" nxhtml-install-dir) "\
+Not documented
+
+\(fn URL)" t nil)
+
+(nxhtml-autoload 'org-copy-url-ref-at-point `(lp '(nxhtml-download-root-url nil) "util/biburl" nxhtml-install-dir) "\
+Not documented
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'biburl-apa2elin `(lp '(nxhtml-download-root-url nil) "util/biburl" nxhtml-install-dir) "\
+Not documented
+
+\(fn BEG END)" t nil)
 
 ;;;***
 
@@ -2323,6 +2346,31 @@ a web file.
 
 ;;;***
 
+;;;### (autoloads (http-post-simple-multipart http-post-simple) "http-post-simple"
+;;;;;;  "util/http-post-simple.el" (19717 27968))
+;;; Generated autoloads from util/http-post-simple.el
+(web-autoload-require 'http-post-simple 'lp '(nxhtml-download-root-url nil) "util/http-post-simple" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'http-post-simple `(lp '(nxhtml-download-root-url nil) "util/http-post-simple" nxhtml-install-dir) "\
+Send FIELDS to URL as an HTTP POST request, returning the response
+and response headers.
+FIELDS is an alist, eg ((field-name . \"value\")); all values
+need to be strings, and they are encoded using CHARSET,
+which defaults to 'utf-8
+
+\(fn URL FIELDS &optional CHARSET)" nil nil)
+
+(nxhtml-autoload 'http-post-simple-multipart `(lp '(nxhtml-download-root-url nil) "util/http-post-simple" nxhtml-install-dir) "\
+Send FIELDS and FILES to URL as a multipart HTTP POST, returning the
+response and response headers.
+FIELDS is an alist, as for `http-post-simple', FILES is an a list of
+\(fieldname \"filename\" \"file MIME type\" \"file data\")*
+
+\(fn URL FIELDS FILES &optional CHARSET)" nil nil)
+
+;;;***
+
 ;;;### (autoloads (inlimg-toggle-slicing inlimg-toggle-display inlimg-global-mode
 ;;;;;;  inlimg-mode inlimg) "inlimg" "util/inlimg.el" (19459 64864))
 ;;; Generated autoloads from util/inlimg.el
@@ -2541,7 +2589,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;;;;  mumamo-list-defined-multi-major-modes mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19585 33052))
+;;;;;;  (19705 27467))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3023,13 +3071,13 @@ Color up digits three by three.
 ;;;;;;  describe-custom-group widen-to-comments-above narrow-to-defun+comments-above
 ;;;;;;  narrow-to-comment buffer-narrowed-p describe-command ourcomments-ediff-files
 ;;;;;;  find-emacs-other-file ediff-emacs-other-file ourcomments-insert-date-and-time
-;;;;;;  describe-timers ourcomments-copy+paste-set-point better-fringes-mode
-;;;;;;  describe-key-and-map-briefly ourcomments-move-end-of-line
+;;;;;;  describe-timers paste-as-new-buffer ourcomments-copy+paste-set-point
+;;;;;;  better-fringes-mode describe-key-and-map-briefly ourcomments-move-end-of-line
 ;;;;;;  ourcomments-move-beginning-of-line major-modep major-or-multi-majorp
 ;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
 ;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19681 59109))
+;;;;;;  "util/ourcomments-util.el" (19713 65517))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3176,6 +3224,11 @@ The purpose of this command is to make it easy to grab a piece of
 text and paste it at current position.  After this command you
 should select a piece of text to copy and then call the command
 `ourcomments-copy+paste'.
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'paste-as-new-buffer `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Paste from clipboard to a new buffer.
 
 \(fn)" t nil)
 
@@ -4496,13 +4549,13 @@ accept it or skip it.
 ;;;;;;  "related/flymake-helpers.el" "related/flymakemsg.el" "related/php-imenu.el"
 ;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
-;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
-;;;;;;  "util/appmenu-fold.el" "util/backtr.el" "util/biburl.el"
-;;;;;;  "util/css-simple-completion.el" "util/custsets.el" "util/ecb-batch-compile.el"
-;;;;;;  "util/fupd.el" "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
-;;;;;;  "util/org-odt.el" "util/org-panel.el" "util/ourcomments-widgets.el"
-;;;;;;  "util/rxi.el" "util/tipframe.el" "util/win-alg.el" "web-autoload.el")
-;;;;;;  (19700 26139 343000))
+;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "util/appmenu-fold.el"
+;;;;;;  "util/backtr.el" "util/css-simple-completion.el" "util/custsets.el"
+;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/idn.el"
+;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/org-odt.el"
+;;;;;;  "util/org-panel.el" "util/ourcomments-widgets.el" "util/rxi.el"
+;;;;;;  "util/tipframe.el" "util/win-alg.el" "web-autoload.el") (19717
+;;;;;;  28017 484000))
 
 ;;;***
 
