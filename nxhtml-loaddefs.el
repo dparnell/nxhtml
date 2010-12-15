@@ -337,7 +337,7 @@ This mode may be turned on automatically in two ways:
 ;;;;;;  smarty-nxhtml-mumamo-mode mjt-nxhtml-mumamo-mode genshi-nxhtml-mumamo-mode
 ;;;;;;  mason-nxhtml-mumamo-mode django-nxhtml-mumamo-mode embperl-nxhtml-mumamo-mode
 ;;;;;;  nxhtml-mumamo-mode) "../nxhtml/nxhtml-mumamo" "nxhtml/nxhtml-mumamo.el"
-;;;;;;  (19436 5868))
+;;;;;;  (19721 9812))
 ;;; Generated autoloads from nxhtml/nxhtml-mumamo.el
 (web-autoload-require 'nxhtml-mumamo 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1660,6 +1660,41 @@ See `as-external-alist' for more information.
 
 ;;;***
 
+;;;### (autoloads (bibhlp-search-ref-at-point-in-elin bibhlp-goto-citeulike
+;;;;;;  bibhlp) "bibhlp" "util/bibhlp.el" (19718 51140))
+;;; Generated autoloads from util/bibhlp.el
+(web-autoload-require 'bibhlp 'lp '(nxhtml-download-root-url nil) "util/bibhlp" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'bibhlp `(lp '(nxhtml-download-root-url nil) "util/bibhlp" nxhtml-install-dir) "\
+Big Question aka simple entry point.
+Will give you a list of what you can do with the bibl ref or url
+at point.
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'bibhlp-goto-citeulike `(lp '(nxhtml-download-root-url nil) "util/bibhlp" nxhtml-install-dir) "\
+Open CiteULike in a web browser and open the article from ARTICLE-URL.
+If this article have not been added to CiteULike then you can add
+it when the browser opens CitULike.  Othwise the already added
+article will be shown.
+
+See URL `http://www.citeulike.org/' for info about CiteULike.
+
+Note: CiteULike is a privately owned site sponsored by Springer
+and with close source.  However you can have your data private
+and it looks like data can be shared/exported to Zotero later.
+
+\(fn ARTICLE-URL)" t nil)
+
+(nxhtml-autoload 'bibhlp-search-ref-at-point-in-elin `(lp '(nxhtml-download-root-url nil) "util/bibhlp" nxhtml-install-dir) "\
+Try to find bibliographic at point in ELIN@Lund.
+ELIN@Lund is Lunds University Library, URL `http://www.lub.lu.se/en.html'.
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads (biburl-apa2elin org-copy-url-ref-at-point biburl-copy-ref)
 ;;;;;;  "biburl" "util/biburl.el" (19713 36763))
 ;;; Generated autoloads from util/biburl.el
@@ -2745,7 +2780,7 @@ Return t if VALUE is a multi major mode function.
 ;;;***
 
 ;;;### (autoloads (mumamo-noweb2 mumamo-define-html-file-wide-keys)
-;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19601 27026))
+;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19720 62644))
 ;;; Generated autoloads from util/mumamo-chunks.el
 (web-autoload-require 'mumamo-chunks 'lp '(nxhtml-download-root-url nil) "util/mumamo-chunks" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2783,7 +2818,7 @@ Get the mirror rec.
 ;;;;;;  ssjs-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
 ;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
 ;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19601 27026))
+;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19721 9824))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4554,8 +4589,8 @@ accept it or skip it.
 ;;;;;;  "util/ecb-batch-compile.el" "util/fupd.el" "util/idn.el"
 ;;;;;;  "util/mumamo-trace.el" "util/new-key-seq-widget.el" "util/org-odt.el"
 ;;;;;;  "util/org-panel.el" "util/ourcomments-widgets.el" "util/rxi.el"
-;;;;;;  "util/tipframe.el" "util/win-alg.el" "web-autoload.el") (19717
-;;;;;;  28017 484000))
+;;;;;;  "util/tipframe.el" "util/win-alg.el" "web-autoload.el") (19721
+;;;;;;  10065 718000))
 
 ;;;***
 

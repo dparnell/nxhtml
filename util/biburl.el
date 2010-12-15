@@ -1,186 +1,65 @@
-;;; biburl.el --- Get bibiolgraphic references for web pages
-;; 
+;;; biburl.el --- bibiolgraphic references for web pages etc
+;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2010-11-29 Mon
 ;; Version: 0.1
 ;; Last-Updated: 2010-11-30 Tue
-;; URL: 
-;; Keywords: 
-;; Compatibility: 
-;; 
+;; URL:
+;; Keywords:
+;; Compatibility:
+;;
 ;; Features that might be required by this library:
 ;;
 ;;   None
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
-;;; Commentary: 
-;; 
-;; 
-;; 
+;;
+;;; Commentary:
+;;
+;; See `biburl-copy-ref'.
+;; See `biburl-apa2elin'.
+;;
+;; I am not sure this is really useful. It is just a test so far.
+;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
+;;
 ;;; Change Log:
-;; 
-;; 
+;;
+;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
+;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
 ;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;; General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth
 ;; Floor, Boston, MA 02110-1301, USA.
-;; 
+;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
+;;
 ;;; Code:
-
-;; (require 'web-vcs) ;; autoloaded
-
-;; (biburl-get-page "http://www.ncbi.nlm.nih.gov/pubmed/17501969")
-;; (biburl-get-page "doi:10.1186/1744-859X-8-2")
-(defun biburl-get-page (url)
-  (when (string= (substring url 0 4)
-                 "doi:")
-    (setq url (concat "http://dx.doi.org/" url)))
-  (let* ((buf-res (web-vcs-url-retrieve-synch url))
-         (buf (car buf-res))
-         (res (cdr buf-res)))
-    (unless buf
-      (error "status=%S" res))
-    ;;(switch-to-buffer-other-window buf)
-    buf))
-
-;; (biburl-get-data "http://www.ncbi.nlm.nih.gov/pubmed/17501969")
-;; (biburl-get-data "doi:10.1186/1744-859X-8-2")
-(defun biburl-get-data (url)
-  (let ((buf (biburl-get-page url))
-        authors
-        year
-        title
-        journal
-        volume
-        issue
-        firstpage
-        lastpage
-        doi
-        pmid
-        section
-        )
-    (with-current-buffer buf
-      (unless (and authors title journal volume issue firstpage lastpage doi pmid section)
-        (goto-char (point-min))
-        (let ((no-authors (unless authors t)))
-          (while (re-search-forward
-                  "<meta +name *= *\"\\(dc\.[^\"]*\\)\" +content *= *\"\\([^\"]*\\)\"" nil t)
-            (let ((mn (match-string-no-properties 1))
-                  (mc (match-string-no-properties 2)))
-              (cond
-               ((when no-authors (string= mn "dc.creator"))
-                (let* ((mclist (split-string mc " *" t))
-                       (first  (nth 0 mclist))
-                       (last   (nth 1 mclist)))
-                  (setq authors (cons (list first last) authors))))
-               ((string= mn "dc.date") (setq year (substring-no-properties mc 0 4)))
-               ((string= mn "dc.title") (setq title mc))
-               ((string= mn "dc.source")
-                ;; (string-match "\\(.*\\) \\([0-9]\\{4\\}\\) \\([0-9]+\\):\\([0-9]+\\)$" "where 2010 5:87")
-                (when (string-match "\\(.*\\) \\([0-9]\\{4\\}\\) \\([0-9]+\\):\\([0-9]+\\)$" mc)
-                  (setq journal   (match-string 1 mc))
-                  (setq year      (match-string 2 mc))
-                  (setq volume    (match-string 3 mc))
-                  (setq firstpage (match-string 4 mc))))
-               ((string= mn "dc.identifier") (setq doi mc))
-               )))
-          (when no-authors (setq authors (reverse authors)))))
-      (unless (and authors title journal volume issue firstpage lastpage doi pmid section)
-        (goto-char (point-min))
-        (while (re-search-forward "<meta +name *= *\"\\([^\"]*\\)\" +content *= *\"\\([^\"]*\\)\"" nil t)
-          (let ((mn (match-string-no-properties 1))
-                (mc (match-string-no-properties 2)))
-            (cond
-             ((string= mn "citation_authors")
-              (let ((mclist (split-string mc ", *" t)))
-                (setq authors (mapcar (lambda (a)
-                                        (split-string a " +" t))
-                                      mclist))))
-             ((string= mn "citation_year") (setq year mc))
-             ((string= mn "citation_title") (setq title mc))
-             ((string= mn "citation_journal_title") (setq journal mc))
-             ((string= mn "citation_volume") (setq volume mc))
-             ((string= mn "citation_issue") (setq issue mc))
-             ((string= mn "citation_firstpage") (setq firstpage mc))
-             ((string= mn "citation_lastpage") (setq lastpage mc))
-             ((string= mn "citation_doi") (setq doi mc))
-             ))))
-      (unless (and authors title journal volume issue firstpage lastpage doi pmid section)
-        (goto-char (point-min))
-        (setq authors nil) ;; fix-me
-        (when (search-forward "<rdf:RDF " nil t)
-          (let ((beg (point))
-                (end (search-forward "</rdf:RDF>"))
-                (no-authors (unless authors t))
-                )
-            (goto-char beg)
-            (while (re-search-forward "<\\([^/>]+\\)>\\([^<]+\\)<" end t)
-              (let ((rf (match-string-no-properties 1))
-                    (rv (match-string-no-properties 2)))
-                ;;(message "rf=%S, rv=%S" rf rv)
-                (cond
-                 ((string= rf "dc:title") (setq title rv))
-                 ((when no-authors (string= rf "dc:creator"))
-                  (let* ((names (split-string rv ", *"))
-                         (firstname (nth 1 names))
-                         (lastname  (nth 0 names)))
-                    (setq authors (cons (list firstname lastname) authors))))
-                 ((string= rf "dc:identifier")
-                  (cond
-                   ((string= "info:doi/" (substring-no-properties rv 0 9))
-                    (setq doi (substring-no-properties rv 9)))
-                   ((string= "info:pmid/" (substring-no-properties rv 0 10))
-                    (setq pmid (substring-no-properties rv 10)))
-                   (t (error "Unknown dc:identifier=%S" rv))))
-                 ((string= rf "dc:date") (setq year (substring-no-properties rv 0 4)))
-                 ((string= rf "prism:publicationName") (setq journal rv))
-                 ((string= rf "prism:publicationDate") (setq year (substring-no-properties rv 0 4)))
-                 ((string= rf "prism:volume") (setq volume rv))
-                 ((string= rf "prism:number") (setq issue rv)) ;; fix-me: Is this correct?
-                 ((string= rf "prism:startingPage") (setq firstpage rv))
-                 ((string= rf "prism:endingPage") (setq lastpage rv)) ;; Fix-me: Is this correct?
-                 )))
-            (when no-authors (setq authors (reverse authors)))
-            )))
-        ) ;; buf
-    (list
-     :authors authors
-     :year year
-     :title title
-     :journal journal
-     :volume volume
-     :issue issue
-     :firstpage firstpage
-     :lastpage lastpage
-     :doi doi
-     :pmid pmid)
-     ))
 
 ;; fix-me: do not understand where the data is:
 ;;   (biburl-copy-ref "http://www.springerlink.com/content/qh290kr305158620/")
+;; http://www.springerlink.com/export.mpx?code=qh290kr305158620&mode=ris
 ;;   (biburl-copy-ref "http://www.ncbi.nlm.nih.gov/pubmed/17501969")
+;;   http://www.springerlink.com/content/j5r1t50432n8g247/
+;;   http://www.springerlink.com/export.mpx?j5r1t50432n8g247&mode=ris
 ;; These are OK:
 ;;   (biburl-copy-ref "doi:10.1186/1744-859X-8-2")
+
+;;;###autoload
 (defun biburl-copy-ref (url)
   (interactive (list (read-string "URL: ")))
-  (let* ((data (biburl-get-data url))
+  (let* ((data (bibhlp-get-data-from-url url))
          (authors (plist-get data :authors))
          (year (plist-get data :year))
          (title (plist-get data :title))
@@ -250,6 +129,141 @@
     nil
     ))
 
-(provide 'biburl)
+;;;###autoload
+(defun org-copy-url-ref-at-point ()
+  (interactive)
+  (let* ((link (org-copy-url-at-point))
+         )
+    (when link
+      (message "Trying to get reference data...")
+      (biburl-copy-ref link))))
+
+
+(when t ;; fix-me
+  (org-defkey org-mouse-map [(control ?c) ?l] 'org-copy-url-at-point)
+  (org-defkey org-mouse-map [(control ?c) ?r] 'org-copy-url-ref-at-point)
+  (define-key my-keys-mode-map [(control ?c) ?s] 'biburl-apa2elin)
+  )
+
+;;;###autoload
+(defun biburl-apa2elin (beg end)
+  ;; http://refformer.com/
+  (interactive "r")
+  (let (sentence-end-double-space
+        (here (point))
+        (old-mark-active mark-active)
+        (old-beg (region-beginning))
+        (old-end (region-end))
+        beg-yy end-yy yy
+        authors
+        txt
+        )
+    (unless (and mark-active beg end (< beg end))
+      (backward-paragraph)
+      (back-to-indentation)
+      (setq beg (point))
+      (forward-paragraph)
+      (setq end (point)))
+    ;; Find year in slightly different formats.
+    (goto-char beg)
+    (if (re-search-forward "(\\([0-9]\\{4\\}\\))[.:]?" end t)
+        (progn
+          (setq beg-yy (match-beginning 0))
+          (setq end-yy (match-end 0))
+          (setq yy (match-string-no-properties 1)))
+      (setq beg-yy end)
+      (setq end-yy end))
+    (goto-char beg)
+    ;; Get authors. Formats we try to cover are:
+    ;;   Saylam, C., Ucerler, H., Kitis, O., Ozand, E. and Gonul, A.S. (2006)
+    ;;   Cooper P, Murray L, Wilson A, Romaniuk H (2003).
+    ;;   Glezer I, Simard AR, Rivest S (2007):
+    (let ((re-author "\\([^\w]+\\),?[\w]+\\([^,\w]+\\),"))
+      (while ( < (point) beg-yy)
+        (let ((b1 (point))
+              e1
+              who
+              lastname initials)
+          (if (not (re-search-forward re-author beg-yy t))
+              (goto-char beg-yy)
+            (setq lastname (match-string-no-properties 1))
+            (setq initials (match-string-no-properties 2))
+            (setq initials (delete ?. (append initials nil)))
+            (push (cons lastname initials) authors)))))
+    (dolist (author authors)
+      (let ((lastname (car author)))
+        (when txt (setq txt (concat txt " AND ")))
+        (setq txt (concat txt "au:" lastname))))
+    ;;(when txt (setq txt (concat txt " AND ")))
+    ;;(setq who (buffer-substring-no-properties b1 e1))
+    ;;(when (string-match-p " " who)
+    ;;  (setq who (concat "\"" who "\"")))
+    ;;(setq txt (concat txt "au:" who))
+    ;; Get title, journal, volume, issue, pages.
+    ;; Formast we try to cover are:
+    ;;   Controlled trial. I. Impact on maternal mood. British Journal Psychiatry 182, 412–419
+    ;;   Focal gray: A follow-up study. Neuropsychopharmacology 32:2057–2066.
+    ;;   Reduced hippocampal. Surg. Radiolog. Anat., 28: 82–87.
+    ;;   Microglia act: a (R)-[11C]PK11195 study. Biol Psych, 64(9), 820-822.
+    ;;
+    ;; All possibly followed by doi:, pmcid:, pmid: etc.
+    (let ((re-ti-jo-vo-is-pg "[0-9][,:]\w*[0-9]+\\(?:-[0-9]+\\).?$")
+          (re-inds "\b[^:]+:[^\w]+\w+"))
+
+      (unless (eq beg-yy end)
+        (goto-char beg-yy)
+        (goto-char (search-forward ")." end t))
+        (skip-syntax-forward " ")
+        (let ((b1 (point))
+              e1 ti tw)
+          (re-search-forward "[.?!:]" end t)
+          (when (> (point) b1)
+            (setq e1 (point))
+            (setq ti (buffer-substring-no-properties b1 e1))
+            (setq tw (split-string ti "[][ \f\t\n\r\v!.:,()-]" t))
+            (dolist (w tw)
+              (when (< 7 (length w))
+                (when txt (setq txt (concat txt " AND ")))
+                (setq txt (concat txt "ti:" w)))))))
+      (message "txt=%S" txt)
+      (kill-new txt)
+      (browse-url (concat "http://elin.lub.lu.se.ludwig.lub.lu.se/elin?func=advancedSearch&lang=se&query="
+                          (browse-url-encode-url txt)))
+      (goto-char here))))
+
+  ;; GET http://elin.lub.lu.se.ludwig.lub.lu.se/elin
+  ;; fromYear	1900
+  ;; func	advancedSearch
+  ;; lang	se
+  ;; pubYear	allYears
+  ;; query	au:bola and au:lehtinen and au:cullberg
+  ;; submitButtonName	Sök
+  ;; toYear	2011
+  ;; (browse-url-encode-url "?name=val")
+
+  ;; Installing the ParsCit ruby client from http://aye.comp.nus.edu.sg/parsCit/:
+  ;; - The w32 version does not work, cygwin must be used
+  ;;
+  ;; - Installing RubyGems in Cygwin
+  ;;     http://stevenharman.net/blog/archive/2008/11/12/installing-rubygems-in-cygwin.aspx
+  ;;   download the rubygems tarball from ruby forge unpack the tarball
+  ;;   in a bash terminal, navigate to the unpacked directory run the
+  ;;   following command:
+  ;;     - ruby setup.rb install
+  ;;   update rubygems by running the following:
+  ;;     - gem update --system
+  ;;   note: you may need to run the updated command twice if you have
+  ;;   any previously installed gems.
+  ;;
+  ;; - gem install soap4r
+  ;; - gem install rake
+  ;; - gem install libxml-ruby ;; needed?
+  ;; - gem install xmlparser
+
+  ;; Local Variables:
+  ;; coding: utf-8
+  ;; End:
+
+  (provide 'biburl)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; biburl.el ends here
