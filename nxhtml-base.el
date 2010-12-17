@@ -51,8 +51,8 @@
 (eval-when-compile (require 'flymake-java-1 nil t))
 
 (defconst nxhtml-menu:version "beta 2.09")
-(setq message-log-max t)
-(setq debug-on-error t)
+;; (setq message-log-max t)
+;; (setq debug-on-error t)
 
 (defconst nxhtml-install-dir
   (file-name-directory (or load-file-name
