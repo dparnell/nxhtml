@@ -133,6 +133,20 @@
       (ert-should (eq 2 (overlay-get chunk 'mumamo-depth))))
     ))
 
+(ert-deftest nxhtml-ert-mako-indent-bug685749 ()
+  "Test of mako indentation."
+  (ert-with-temp-buffer-include-file "bug685749.djhtml"
+    (add-hook 'ert-simulate-command-post-hook
+              'nxhtmltest-should-no-mumamo-errors
+              nil t)
+    (ert-simulate-command '(django-html-mumamo-mode) t)
+    (nxhtmltest-get-fontification-method)
+    (nxhtmltest-fontify-default-way 2 "trans")
+    (ert-simulate-command '(mark-whole-buffer) t)
+    (ert-simulate-command '(indent-for-tab-command) t)
+    (nxhtmltest-goto-line 5)   (ert-should (= 2 (current-indentation)))
+    ))
+
 (ert-deftest nxhtml-ert-indent-bug532759 ()
   "Test of Django indentation."
   (ert-with-temp-buffer-include-file "bug532759.djhtml"
@@ -557,6 +571,7 @@ and the file is invalid then."
     (rngalt-validate)
     (ert-should (eq rng-validate-mode t))
     (nxhtmltest-should-no-mumamo-errors)
+    (msgtrc "nxhtml-ert-genshi-valid-in-genshi.rng-error-count=%S" rng-error-count)
     (ert-should
       (= 0 rng-error-count))))
 

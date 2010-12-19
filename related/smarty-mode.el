@@ -268,17 +268,17 @@ The directory of the current source file is scanned."
   (message "Scanning directory for source files ...")
   (let ((newmap (current-local-map))
 	(file-list (smarty-get-source-files))
-	menu-list found)
+	menu-list smarty-found)
     ;; Create list for menu
-    (setq found nil)
+    (setq smarty-found nil)
     (while file-list
-      (setq found t)
+      (setq smarty-found t)
       (setq menu-list (cons (vector (car file-list)
 				   (list 'find-file (car file-list)) t)
 			   menu-list))
       (setq file-list (cdr file-list)))
     (setq menu-list (smarty-menu-split menu-list "Sources"))
-    (when found (setq menu-list (cons "--" menu-list)))
+    (when smarty-found (setq menu-list (cons "--" menu-list)))
     (setq menu-list (cons ["*Rescan*" smarty-add-source-files-menu t] menu-list))
     (setq menu-list (cons "Sources" menu-list))
     ;; Create menu
@@ -790,10 +790,10 @@ Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
 
 (defun smarty-in-comment-p ()
   "Check if point is in a comment."
-  (let ((result nil) (here (point-marker)) found)
+  (let ((result nil) (here (point-marker)) smarty-found)
     (save-excursion
-      (setq found (re-search-backward (regexp-quote (concat smarty-left-delimiter "*")) nil t))
-      (when found
+      (setq smarty-found (re-search-backward (regexp-quote (concat smarty-left-delimiter "*")) nil t))
+      (when smarty-found
 	(setq result (re-search-forward (regexp-quote (concat "*" smarty-right-delimiter)) here t))
 	(setq result (not result))))
     result))
@@ -895,7 +895,7 @@ Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
 
 (defvar smarty-end-comment-column 80)
 
-(defvar found) ;; silence compiler, dyn var
+(defvar smarty-found) ;; silence compiler, dyn var
 
 (defun smarty-electric-tab (&optional prefix-arg)
   "If preceding character is part of a word or a paren then hippie-expand,
@@ -961,14 +961,14 @@ else indent `correctly'."
 	   (setq delete-a t)
 	   (if (re-search-backward "|" nil t)
 	       (progn
-		 (setq found (re-search-forward (regexp-quote "B2Smilies") here t))
-		 (if (and found (= here (point-marker)))
+		 (setq smarty-found (re-search-forward (regexp-quote "B2Smilies") here t))
+		 (if (and smarty-found (= here (point-marker)))
 		     (replace-match "btosmilies")
-		   (setq found (re-search-forward (regexp-quote "bbcode2html") here t))
-		   (if (and found (= here (point-marker)))
+		   (setq smarty-found (re-search-forward (regexp-quote "bbcode2html") here t))
+		   (if (and smarty-found (= here (point-marker)))
 		       (replace-match "bbcodetohtml")
-		     (setq found (re-search-forward (regexp-quote "date_format2") here t))
-		     (if (and found (= here (point-marker)))
+		     (setq smarty-found (re-search-forward (regexp-quote "date_format2") here t))
+		     (if (and smarty-found (= here (point-marker)))
 			 (replace-match "date_formatto")
 		       (goto-char here)
 		       (setq delete-a nil)
@@ -1009,12 +1009,12 @@ else indent `correctly'."
 (defun smarty-electric-star (count)
   "After a left delimiter add a right delemiter to close the comment"
   (interactive "p")
-  (let ((here (point-marker)) found)
+  (let ((here (point-marker)) smarty-found)
     (if (and smarty-stutter-mode (= count 1) (not (smarty-in-literal)))
 	(progn
-	  (setq found (re-search-backward (regexp-quote smarty-left-delimiter) nil t))
+	  (setq smarty-found (re-search-backward (regexp-quote smarty-left-delimiter) nil t))
 	  (re-search-forward (regexp-quote smarty-left-delimiter) here t)
-	  (if (not (and (= here (point-marker)) found))
+	  (if (not (and (= here (point-marker)) smarty-found))
 	      (progn (goto-char here)
 		     (self-insert-command count))
 	    (self-insert-command count)
@@ -1968,15 +1968,15 @@ with double-quotes is to be inserted.  DEFAULT specifies a default string."
 (defun smarty-template-generic-function (label close-label field mandatory-count &optional infinite special-field force-var)
   "Generic function template 'label field1= field2=..."
   (interactive)
-  (let ((start (point)) found here result-value elt continue field-count stop prompt)
+  (let ((start (point)) smarty-found here result-value elt continue field-count stop prompt)
     (if smarty-template-invoked-by-hook
-	(setq found (smarty-after-ldelim))
+	(setq smarty-found (smarty-after-ldelim))
       (insert smarty-left-delimiter)
-      (setq found t))
+      (setq smarty-found t))
     (insert label)
     (setq here (point-marker))
     (insert " ")
-    (when found
+    (when smarty-found
       (setq elt field)
       (setq continue t)
       (setq field-count 0)
@@ -2023,12 +2023,12 @@ with double-quotes is to be inserted.  DEFAULT specifies a default string."
 (defun smarty-template-generic-modifier (label field mandatory-count)
   "Generic modifier template '|label:field1:field2..."
   (interactive)
-  (let ((start (point)) found here result-value elt continue field-count stop prompt)
-    (setq found (re-search-backward (concat (regexp-quote smarty-left-delimiter) "\\$\\(\\sw\\|\\s.\\)+" (regexp-quote "|")) nil t))
-    (if found
+  (let ((start (point)) smarty-found here result-value elt continue field-count stop prompt)
+    (setq smarty-found (re-search-backward (concat (regexp-quote smarty-left-delimiter) "\\$\\(\\sw\\|\\s.\\)+" (regexp-quote "|")) nil t))
+    (if smarty-found
 	(progn
-	  (setq found (re-search-forward (regexp-quote smarty-right-delimiter) start t))
-	  (if (not found)
+	  (setq smarty-found (re-search-forward (regexp-quote smarty-right-delimiter) start t))
+	  (if (not smarty-found)
 	      (progn
 		(goto-char start)
 		(insert label)

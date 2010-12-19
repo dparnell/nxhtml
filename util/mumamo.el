@@ -1945,20 +1945,28 @@ correct but we want to check those after.  Put those in
                      (list :background
                            (format "red%d" (overlay-get mumamo-old-tail 'mumamo-depth)))))
       (setq mumamo-last-chunk
-            (overlay-get mumamo-last-chunk 'mumamo-prev-chunk)))))
+            (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))))
+  ;;(msgtrc "move-to-old-tail exit: mumamo-old-tail=%S, mumamo-last-chunk=%S" mumamo-old-tail mumamo-last-chunk)
+  (let ((ch mumamo-old-tail))
+    (while ch
+      ;;(msgtrc "   old-tail ch=%S" ch)
+      (setq ch (overlay-get ch 'mumamo-next-chunk))))
+  )
 
 (defun mumamo-delete-empty-chunks-at-end ()
   ;; fix-me: later? Delete empty chunks at end, will be recreated if really needed
-  (let ((n1-while 0))
-    (while (and (mumamo-while 500 'n1-while "mumamo-last-chunk del empty chunks")
-                mumamo-last-chunk
-                (= (point-max) (overlay-end mumamo-last-chunk))
-                (= (overlay-end mumamo-last-chunk) (overlay-start mumamo-last-chunk)))
-      ;;(msgtrc "delete-overlay at end")
-      (delete-overlay mumamo-last-chunk)
-      (setq mumamo-last-chunk (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))
-      (when mumamo-last-chunk (msgtrc "delete-empty-chunk-at-end: put mumamo-last-chunk nil, %s" mumamo-last-chunk))
-      (when mumamo-last-chunk (overlay-put mumamo-last-chunk 'mumamo-next-chunk nil)))))
+  (save-restriction
+    (widen)
+    (let ((n1-while 0))
+      (while (and (mumamo-while 500 'n1-while "mumamo-last-chunk del empty chunks")
+                  mumamo-last-chunk
+                  (= (point-max) (overlay-end mumamo-last-chunk))
+                  (= (overlay-end mumamo-last-chunk) (overlay-start mumamo-last-chunk)))
+        ;;(msgtrc "delete-empty-chunks-at-end: deleting mumamo-last-chunk=%S" mumamo-last-chunk)
+        (delete-overlay mumamo-last-chunk)
+        (setq mumamo-last-chunk (overlay-get mumamo-last-chunk 'mumamo-prev-chunk))
+        (when mumamo-last-chunk (msgtrc "delete-empty-chunk-at-end: put mumamo-last-chunk nil, %s" mumamo-last-chunk))
+        (when mumamo-last-chunk (overlay-put mumamo-last-chunk 'mumamo-next-chunk nil))))))
 
 
 (defun mumamo-delete-chunks-upto (ok-pos)
@@ -2077,6 +2085,7 @@ correct but we want to check those after.  Put those in
                               (< ok-pos (point-max))
                               (not (setq interrupted (and (not end)
                                                           (input-pending-p)))))
+                    ;;(msgtrc "-- A mumamo-old-tail=%S" mumamo-old-tail)
                     ;; Narrow to speed up. However the chunk divider may be
                     ;; before ok-pos here. Assume that the marker is not
                     ;; longer than 200 chars. fix-me.
@@ -2115,8 +2124,10 @@ correct but we want to check those after.  Put those in
                       ;; With the new organization all chunks are created here.
                       (if (mumamo-old-tail-fits this-new-values)
                           (progn
-                            ;;(msgtrc "old tail fitted")
-                            (mumamo-reuse-old-tail-head))
+                            (mumamo-reuse-old-tail-head)
+                            ;;(msgtrc "fitted mumamo-old-tail=%S" mumamo-old-tail)
+                            )
+                        ;;(msgtrc "delete-chunks-upto %s" ok-pos)
                         (mumamo-delete-chunks-upto ok-pos)
                         ;; Create chunk and chunk links
                         (setq mumamo-last-chunk (mumamo-new-create-chunk this-new-values))
@@ -2153,17 +2164,21 @@ correct but we want to check those after.  Put those in
                      (overlay-buffer prev-chunk)
                      (= (overlay-start this-new-chunk) (overlay-end this-new-chunk))
                      (= (overlay-start prev-chunk) (overlay-end prev-chunk)))
-            (msgtrc "find-chunks-1: put mumamo-last-chunk nil, %s" prev-chunk)
+            ;;(msgtrc "find-chunks-1: put mumamo-last-chunk nil, %s" prev-chunk)
             (overlay-put prev-chunk 'mumamo-next-chunk nil)
             (overlay-put prev-chunk 'mumamo-prev-chunk nil)
             ;;(msgtrc "find-chunks:deleting this-new-chunk %s" this-new-chunk)
             (delete-overlay this-new-chunk)
             (setq this-new-chunk prev-chunk)
             )
+          ;; fix-me: This is not used now, I believe it just belonged
+          ;; to the old chunk dividing. Found when checking bug
+          ;; 685749.
           (let ((n0-while 0))
             (while (and (mumamo-while 1000 'n0-while "old-tail")
                         mumamo-old-tail
                         (overlay-buffer mumamo-old-tail)
+                        nil ;; Fix-me
                         (= (overlay-start mumamo-old-tail) (overlay-end mumamo-old-tail)))
               (assert (not (eq mumamo-old-tail (overlay-get mumamo-old-tail 'mumamo-next-chunk))) t)
               (setq prev-chunk mumamo-old-tail)
@@ -2592,7 +2607,7 @@ fontification."
      (mumamo-display-error 'mumamo-fontify-region-with "%s"
                            (error-message-string err))))
   ;;(msgtrc "mumamo-fontify-region-with exit: font-lock-keywords-only def=%s" (default-value 'font-lock-keywords-only))
-  )
+  nil)
 
 (defun mumamo-unfontify-region-with (start end major)
   "Unfontify from START to END as in major mode MAJOR."
@@ -4519,7 +4534,7 @@ after this in the properties below of the now created chunk:
                (need-update nil))
           (if (not mumamo-margin-info-mode)
               (when old-margin-used
-                (msgtrc "update-buffer-margin-use: old-margin-used => need-update t")
+                ;;(msgtrc "update-buffer-margin-use: old-margin-used => need-update t")
                 (setq need-update t)
                 (setq old-margin-used nil)
                 (if old-is-left
@@ -4527,7 +4542,7 @@ after this in the properties below of the now created chunk:
                   (setq right-margin-width 0)))
             (unless (and (eq old-margin-used margin-used)
                          (= width (if old-is-left left-margin-width right-margin-width)))
-              (msgtrc "update-buffer-margin-use: other => need-update t, old-margin-used=%s margin-used=%s width=%s left-margin-width=%s" old-margin-used margin-used width left-margin-width)
+              ;;(msgtrc "update-buffer-margin-use: other => need-update t, old-margin-used=%s margin-used=%s width=%s left-margin-width=%s" old-margin-used margin-used width left-margin-width)
               (setq need-update t)
               (if is-left
                   (setq left-margin-width width)
@@ -4612,21 +4627,21 @@ after this in the properties below of the now created chunk:
 
          (= chunk-next-chunk-diff     values-next-depth-diff)
          (= chunk-beg values-beg)
-         ;;(progn (msgtrc "eq-c-v: here b") t)
+         (progn (msgtrc "eq-c-v: here b") t)
          ;; (and (equal chunk-is-closed values-is-closed)
          ;;      (or (not chunk-is-closed)
          (and (equal chunk-insertion-type-end values-insertion-type-end)
               (or ;;chunk-insertion-type-end
                (= chunk-end values-end)))
-         ;;(progn (msgtrc "eq-c-v: here c, %s /= %s" chunk-major-mode values-major-mode) t)
+         (progn (msgtrc "eq-c-v: here c, %s /= %s" chunk-major-mode values-major-mode) t)
          (or (= -1 chunk-depth-diff)
              (eq chunk-major-mode values-major-mode))
-         ;;(progn (msgtrc "eq-c-v: here d") t)
+         (progn (msgtrc "eq-c-v: here d") t)
          (equal chunk-pable values-pable)
-         ;;(progn (msgtrc "eq-c-v: here e") t)
+         (progn (msgtrc "eq-c-v: here e") t)
          ;;(eq chunk-is-closed values-is-closed)
          (eq chunk-insertion-type-end values-insertion-type-end)
-         ;;(progn (msgtrc "eq-c-v: here f cbmin=%s vbmin=%s" chunk-bmin values-bmin) t)
+         (progn (msgtrc "eq-c-v: here f cbmin=%s vbmin=%s" chunk-bmin values-bmin) t)
          ;; fix-me: bmin bmax - why?
          ;;(and chunk-bmin values-bmin (= chunk-bmin values-bmin))
          ;;(progn (msgtrc "eq-c-v: here g cbmax=%s vbmax=%s" chunk-bmax values-bmax) t)
@@ -7524,7 +7539,7 @@ This function returns a cons with these two parts.
             (setq next-ind (current-indentation))
             (when prev-ind (setq shift-in (- this-ind prev-ind)))
             (setq shift-out (- next-ind this-ind))
-            (msgtrc "template-indent-get-shunk-shift => (%s . %s)" shift-in shift-out)
+            ;;(msgtrc "template-indent-get-shunk-shift => (%s . %s)" shift-in shift-out)
             (cons shift-in shift-out)))))))
 
 
@@ -7784,7 +7799,7 @@ This is in the temporary buffer for indentation."
       (widen)
       (goto-char line-beg)
       (back-to-indentation)
-      (msgtrc "copy-i-to-m cb=%S, line-beg=%s point=%s" (current-buffer) line-beg (point))
+      ;;(msgtrc "copy-i-to-m cb=%S, line-beg=%s point=%s" (current-buffer) line-beg (point))
       (delete-region line-beg (point))
       (insert indent-in-src)
       ;; Now we can have erased trailing whitespace, put it back:
@@ -8387,7 +8402,7 @@ this may change."
           (let ((close (and (not (buffer-modified-p))
                             (= 1 (point)))))
             ;;(goto-char pos) (eval-defun nil)
-            (msgtrc "mumamo-funcall-evaled %s" (current-buffer))
+            ;;(msgtrc "mumamo-funcall-evaled %s" (current-buffer))
             (eval-buffer)
             (when close (kill-buffer))))
         (put fun 'mumamo-evaled t))))
@@ -9269,7 +9284,8 @@ Do here also other necessary adjustments for this."
                                     activate
                                     compile)
   (if (not (buffer-live-p buffer))
-      (rng-kill-timers)
+      ;;(rng-kill-timers)
+      (cancel-timer timer-event-last)
     ad-do-it))
 
 (defadvice rng-validate-quick-while-idle (around
@@ -9277,7 +9293,8 @@ Do here also other necessary adjustments for this."
                                           activate
                                           compile)
   (if (not (buffer-live-p buffer))
-      (rng-kill-timers)
+      ;;(rng-kill-timers)
+      (cancel-timer timer-event-last)
     ad-do-it))
 
 (defadvice rng-validate-mode (after

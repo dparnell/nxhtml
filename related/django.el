@@ -85,9 +85,9 @@
 Indent like the examples on URL
 `http://docs.djangoproject.com/en/1.1/ref/templates/builtins/'."
   (save-match-data
-    (let* ((indent-re (rx-to-string `(and word-start
+    (let* ((indent-re (rx-to-string `(and (* (any " \t"))
                                           ,(append '(or "else") django-indenting-keywords))))
-           (deindent-re (rx-to-string `(and word-start
+           (deindent-re (rx-to-string `(and (* (any " \t"))
                                             (or "else"
                                                 (seq
                                                  "end"
@@ -101,11 +101,14 @@ Indent like the examples on URL
                                      (point))))
            (prev-indentation (if prev-line-start (current-indentation) 0))
            (shift-in (if (and prev-line-start
-                              (re-search-forward indent-re (point-at-eol) t))
-                         django-indent-width 0))
+                              ;;(re-search-forward indent-re (point-at-eol) t))
+                              (looking-at indent-re))
+                         django-indent-width
+                       0))
            (shift-out (progn
                         (goto-char this-line-start)
-                        (if (re-search-forward deindent-re (point-at-eol) t)
+                        ;;(if (re-search-forward deindent-re (point-at-eol) t)
+                        (if (looking-at deindent-re)
                             (- django-indent-width) 0)))
            (new-indentation (max 0 (+ prev-indentation shift-in shift-out)))
            )

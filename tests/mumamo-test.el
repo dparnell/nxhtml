@@ -92,13 +92,15 @@ When this mode is on the following keys are defined:
   (setq fontification-functions nil)
   (save-excursion
     (mumamo-remove-all-chunk-overlays)
-    (mumamo-save-buffer-state nil
+    ;;(mumamo-save-buffer-state nil
+    (with-silent-modifications
       (remove-text-properties (point-min) (point-max) '(face nil syntax-table nil)))
     (let* ((mumamo-current-chunk-family mumamo-test-current-chunk-family)
            (here (point))
            chunk
            chunk2)
-      (mumamo-save-buffer-state nil
+      ;;(mumamo-save-buffer-state nil
+      (with-silent-modifications
         ;;(setq chunk (mumamo-create-chunk-at here)))
         (setq chunk (mumamo-find-chunks here "test1")))
       ;;(setq chunk2 (mumamo-get-chunk-at here))
@@ -115,7 +117,8 @@ When this mode is on the following keys are defined:
             (end   (overlay-end chunk)))
         ;;(setq syntax-ppss-last (cons 319 (parse-partial-sexp 1 1)))
         ;;(message "mumamo-test-create-chunk-at-point.chunk 2a=%s" chunk)
-        (mumamo-save-buffer-state nil
+        ;;(mumamo-save-buffer-state nil
+        (with-silent-modifications
           (mumamo-fontify-region-1 start end nil)))
       ;;(message "mumamo-test-create-chunk-at-point.chunk 3=%s" chunk)
       (unless mumamo-test-mode (mumamo-test-mode 1))
