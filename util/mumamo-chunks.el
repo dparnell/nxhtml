@@ -662,9 +662,10 @@ just `php-mode' if there is no html code in the file."
               (error "Will not do this because local-write-file-hooks is non-nil"))))
         (remove-hook 'write-contents-functions 'mumamo-alt-php-write-contents t)
         (when write-contents-functions
-          (error "Will not do this because write-contents-functions is non-nil"))
-        (when (delq 'recentf-track-opened-file (copy-sequence write-file-functions))
-          (error "Will not do this because write-file-functions is non-nil"))
+          (error "Will not do this because write-contents-functions is non-nil=%S" write-contents-functions))
+        (let ((wff (delq 'recentf-track-opened-file (copy-sequence write-file-functions))))
+          (when wff
+            (error "Will not do this because write-file-functions is non-nil=%S" wff)))
 
         (add-hook 'write-contents-functions 'mumamo-alt-php-write-contents t t)
         (put 'write-contents-functions 'permanent-local t)
