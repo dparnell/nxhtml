@@ -16,7 +16,7 @@
 ;;
 ;;; Commentary:
 ;;
-;; Simple highlighting for Django for use with mumamo.
+;; Simple highlighting and indenting for Django for use with mumamo.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -127,6 +127,7 @@ Indent like the examples on URL
 (define-derived-mode django-mode nil "Django"
   "Simple Django mode for use with mumamo.
 This mode only provides syntax highlighting."
+  (modify-syntax-entry ?_ "w")
   (set (make-local-variable 'indent-line-function) 'django-indent-line)
   (setq font-lock-defaults '(django-font-lock-keywords)))
 

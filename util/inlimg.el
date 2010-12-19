@@ -88,21 +88,28 @@
 (defvar inlimg-img-regexp-org
   (when image-types
     (rx-to-string
-     ;; Fix-me: "file:" does not have to be prepended.
-     `(and "[[file:"
-           (group (+? (not (any "\]")))
-                  ,(let ((types nil))
-                     (dolist (typ image-types)
-                       (when (image-type-available-p typ)
-                         (dolist (ext (cadr (assoc typ inlimg-assoc-ext)))
-                           (setq types (cons ext types)))))
-                     (cons 'or types)))
-           "]"
-           (optional "["
-                     (+? (not (any "\]")))
-                     "]")
-           "]"
-           ))))
+     (let ((or-types (let ((types nil))
+                       (dolist (typ image-types)
+                         (when (image-type-available-p typ)
+                           (dolist (ext (cadr (assoc typ inlimg-assoc-ext)))
+                             (setq types (cons ext types)))))
+                       (cons 'or types))))
+       `(or (and "[["
+                 (? "file:")
+                 (group (+? (not (any "\]")))
+                        ,or-types)
+                 "]"
+                 (optional "["
+                           (+? (not (any "\]")))
+                           "]")
+                 "]"
+                 )
+            (and word-start
+                 "file:"
+                 (group (+? (not (any "\]")))
+                        ,or-types)
+                 word-end)
+            )))))
 
 (defvar inlimg-modes-img-values
   (when image-types
