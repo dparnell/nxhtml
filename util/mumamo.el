@@ -4016,7 +4016,7 @@ CHUNK-END-FUN should return the end of the chunk.
       (goto-char start)
       ;; Fix-me: There should mabye be a check here, calling
       ;; mumamo-end-in-code, but that is a bit of job.
-      (setq end (funcall chunk-end-fun start max))
+      (setq end (when (< start max) (funcall chunk-end-fun start max)))
       (when borders-fun
         (let ((start-border (when start (unless (and (= 1 start)
                                                      (not chunk-major))
