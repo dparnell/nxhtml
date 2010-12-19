@@ -63,49 +63,53 @@
 (put 'inlimg-img-regexp 'permanent-local t)
 
 (defvar inlimg-img-regexp-html
-  (rx (or (and "<img"
-               (1+ space)
-               (0+ (1+ (not (any " <>")))
-                   (1+ space))
-               "src=\""
-               (group (1+ (not (any "\""))))
-               "\""
-               (*? anything)
-               "/>")
-          (and "url("
-               ?\"
-               (group (1+ (not (any "\)"))))
-               ?\"
-               ")"
-               )
-          (and "url("
-               (group (+? (not (any ")"))))
-               ")"
-               )
-          )))
+  (when image-types
+    (rx (or (and "<img"
+                 (1+ space)
+                 (0+ (1+ (not (any " <>")))
+                     (1+ space))
+                 "src=\""
+                 (group (1+ (not (any "\""))))
+                 "\""
+                 (*? anything)
+                 "/>")
+            (and "url("
+                 ?\"
+                 (group (1+ (not (any "\)"))))
+                 ?\"
+                 ")"
+                 )
+            (and "url("
+                 (group (+? (not (any ")"))))
+                 ")"
+                 )
+            ))))
 
 (defvar inlimg-img-regexp-org
-  (rx-to-string
-   `(and "[[file:"
-         (group (+? (not (any "\]")))
-                ,(let ((types nil))
-                   (dolist (typ image-types)
-                     (when (image-type-available-p typ)
-                       (dolist (ext (cadr (assoc typ inlimg-assoc-ext)))
-                         (setq types (cons ext types)))))
-                   (cons 'or types)))
-         "]"
-         (optional "["
-                   (+? (not (any "\]")))
-                   "]")
-         "]"
-         )))
+  (when image-types
+    (rx-to-string
+     ;; Fix-me: "file:" does not have to be prepended.
+     `(and "[[file:"
+           (group (+? (not (any "\]")))
+                  ,(let ((types nil))
+                     (dolist (typ image-types)
+                       (when (image-type-available-p typ)
+                         (dolist (ext (cadr (assoc typ inlimg-assoc-ext)))
+                           (setq types (cons ext types)))))
+                     (cons 'or types)))
+           "]"
+           (optional "["
+                     (+? (not (any "\]")))
+                     "]")
+           "]"
+           ))))
 
-(defconst inlimg-modes-img-values
-  '(
-    (html-mode inlimg-img-regexp-html)
-    (org-mode  inlimg-img-regexp-org)
-    ))
+(defvar inlimg-modes-img-values
+  (when image-types
+    '(
+      (html-mode inlimg-img-regexp-html)
+      (org-mode  inlimg-img-regexp-org)
+      )))
 
 (defun inlimg-img-spec-p (spec)
   (assoc spec inlimg-modes-img-values))
