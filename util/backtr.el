@@ -60,6 +60,14 @@
 ;;
 ;;; Code:
 
+(require 'help-mode)
+
+(defvar backtr-current-hit nil
+  "Used by `backtr-next-hit' and `backtr-prev-hit'.")
+
+(defvar backtr-hits nil
+  "Number of final hits when trying to find source code.")
+
 (defcustom backtr-stay-in-backtrace t
   "Do not switch to the source code window."
   :type 'boolean
@@ -199,12 +207,6 @@ For the cross-reference format, see `help-make-xrefs'."
               (message "There are %s positions possible, use `backtr-next-hit' for next" (length backtr-hits)))))
         (when backtr-stay-in-backtrace
           (select-window sel-win))))))
-
-(defvar backtr-current-hit nil
-  "Used by `backtr-next-hit' and `backtr-prev-hit'.")
-
-(defvar backtr-hits nil
-  "Number of final hits when trying to find source code.")
 
 (defun backtr-next-hit()
   "Go to next hit in source code."

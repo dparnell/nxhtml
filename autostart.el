@@ -182,23 +182,24 @@
   (unless (featurep 'nxhtml-loaddefs)
     (load (expand-file-name "nxhtml-loaddefs" nxhtml-install-dir) nxhtml-autoload-web)
     (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start)))
+  )
 
-  ;; Turn on `nxhtml-menu-mode' unconditionally
-  (nxhtml-autostart-trace "Turn on `nxhtml-menu-mode' unconditionally")
-  (require 'nxhtml-menu nil t)
-  (if (not (featurep 'nxhtml-menu))
-      (nxhtml-autostart-trace "... Not loaded yet? Downloading?")
-    (nxhtml-menu-mode 1)
-    (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start)))
+;; Turn on `nxhtml-menu-mode' unconditionally
+(nxhtml-autostart-trace "Turn on `nxhtml-menu-mode' unconditionally")
+(require 'nxhtml-menu nil t)
+(if (not (featurep 'nxhtml-menu))
+    (nxhtml-autostart-trace "... Not loaded yet? Downloading?")
+  (nxhtml-menu-mode 1)
+  (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start)))
 
-  ;; Patch the rnc include paths
-  (when (fboundp 'rncpp-patch-xhtml-loader) (rncpp-patch-xhtml-loader))
-  (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
+;; Patch the rnc include paths
+(when (fboundp 'rncpp-patch-xhtml-loader) (rncpp-patch-xhtml-loader))
+(nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 
-  ;; Load nXhtml
-  (unless (featurep 'nxhtml-autoload)
-    (unless (load (expand-file-name "nxhtml/nxhtml-autoload" nxhtml-install-dir) t)
-      (nxhtml-autostart-trace "Could not load nxhtml-autoload. Downloading?"))))
+;; Load nXhtml
+(unless (featurep 'nxhtml-autoload)
+  (unless (load (expand-file-name "nxhtml/nxhtml-autoload" nxhtml-install-dir) t)
+    (nxhtml-autostart-trace "Could not load nxhtml-autoload. Downloading?")))
 
 (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start))
 

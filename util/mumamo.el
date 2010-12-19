@@ -499,24 +499,48 @@ See also `mumamo-chunk-value-set-min'."
 ;;;; Macros
 
 ;; Borrowed from font-lock.el
-(defmacro mumamo-save-buffer-state (varlist &rest body)
-  "Bind variables according to VARLIST and eval BODY restoring buffer state.
-Do not record undo information during evaluation of BODY."
-  (declare (indent 1) (debug let))
+;; (defmacro mumamo-save-buffer-state (varlist &rest body)
+;;   "Bind variables according to VARLIST and eval BODY restoring buffer state.
+;; Do not record undo information during evaluation of BODY."
+;;   (declare (indent 1) (debug let))
+;;   (let ((modified (make-symbol "modified")))
+;;     `(let* ,(append varlist
+;;                     `((,modified (buffer-modified-p))
+;;                       (buffer-undo-list t)
+;;                       (inhibit-read-only t)
+;;                       (inhibit-point-motion-hooks t)
+;;                       (inhibit-modification-hooks t)
+;;                       deactivate-mark
+;;                       buffer-file-name
+;;                       buffer-file-truename))
+;;        (progn
+;;          ,@body)
+;;        (unless ,modified
+;;          (restore-buffer-modified-p nil)))))
+
+;; Fix-me: This macro was added to Emacs trunk 2009-09-08 by Stefan
+(defmacro with-silent-modifications (&rest body)
+  "Execute BODY, pretending it does not modify the buffer.
+If BODY performs real modifications to the buffer's text, other
+than cosmetic ones, undo data may become corrupted.
+Typically used around modifications of text-properties which do not really
+affect the buffer's content."
+  (declare (debug t) (indent 0))
   (let ((modified (make-symbol "modified")))
-    `(let* ,(append varlist
-                    `((,modified (buffer-modified-p))
-                      (buffer-undo-list t)
-                      (inhibit-read-only t)
-                      (inhibit-point-motion-hooks t)
-                      (inhibit-modification-hooks t)
-                      deactivate-mark
-                      buffer-file-name
-                      buffer-file-truename))
-       (progn
-         ,@body)
-       (unless ,modified
-         (restore-buffer-modified-p nil)))))
+    `(let* ((,modified (buffer-modified-p))
+            (buffer-undo-list t)
+            (inhibit-read-only t)
+            (inhibit-modification-hooks t)
+            deactivate-mark
+            ;; Avoid setting and removing file locks and checking
+            ;; buffer's uptodate-ness w.r.t the underlying file.
+            buffer-file-name
+            buffer-file-truename)
+       (unwind-protect
+           (progn
+             ,@body)
+         (unless ,modified
+           (restore-buffer-modified-p nil))))))
 
 ;; From jit-lock.el:
 ;; (defmacro mumamo-jit-with-buffer-unmodified (&rest body)
@@ -2041,7 +2065,8 @@ correct but we want to check those after.  Put those in
             (unless  mumamo-find-chunk-is-active
               ;;(setq  mumamo-find-chunk-is-active t)
               (mumamo-stop-find-chunks-timer)
-              (mumamo-save-buffer-state nil
+              ;;(mumamo-save-buffer-state nil
+              (with-silent-modifications
                 (progn
 
                   ;; Loop forward until end or buffer end ...
@@ -2352,7 +2377,8 @@ With a prefix mark whole chunk."
       (widen)
       (mumamo-msgfntfy "mumamo-mark-for-refontification B min,max=%s,%s point-min,max=%s,%s modified=%s" min max (point-min) (point-max) (buffer-modified-p) )
       ;;(mumamo-with-buffer-prepared-for-jit-lock
-      (mumamo-save-buffer-state nil
+      ;;(mumamo-save-buffer-state nil
+      (with-silent-modifications
         (put-text-property min max 'fontified nil)
         ))))
 
@@ -2708,7 +2734,8 @@ CHUNK-MIN and CHUNK-MAX."
   (overlay-put chunk 'syntax-ppss-last  nil)
   (overlay-put chunk 'syntax-ppss-cache nil)
   (overlay-put chunk 'syntax-ppss-stats nil)
-  (mumamo-save-buffer-state nil
+  ;;(mumamo-save-buffer-state nil
+  (with-silent-modifications
     (remove-list-of-text-properties chunk-min chunk-max '(syntax-table))))
 
 ;; Fix-me: If I open nxhtml-changes.html and then go to the bottom of
@@ -3118,11 +3145,11 @@ The main reasons for doing it this way is:
     ;; font-lock-mode can't be turned on in buffers whose names start
     ;; with a char with white space syntax.  Temp buffer names are
     ;; such and it is not possible to change name of a temp buffer.
-    (setq temp-buf-name (concat "mumamo-fetch-major-mode-setup-" (symbol-name major)))
+    (setq temp-buf-name (generate-new-buffer-name
+                         (concat "mumamo-fetch-major-mode-setup-" (symbol-name major))))
     (setq temp-buf (get-buffer temp-buf-name))
     (when temp-buf (kill-buffer temp-buf))
     (setq temp-buf (get-buffer-create temp-buf-name))
-    ;;(msgtrc "fetch-major-mode-setup in buffer %s, after-chunk=%s, before with-current-buffer" (current-buffer) (when (boundp 'after-chunk) after-chunk))
     (with-current-buffer temp-buf
 
       (mumamo-msgfntfy "mumamo-fetch-major-mode-setup %s" major)
@@ -3213,7 +3240,13 @@ The main reasons for doing it this way is:
                (list 'font-lock-extend-region-functions (custom-quote font-lock-extend-region-functions))
                (list 'font-lock-comment-start-skip (custom-quote font-lock-comment-start-skip))
                (list 'font-lock-comment-end-skip (custom-quote font-lock-comment-end-skip))
-               (list 'font-lock-syntactic-keywords (custom-quote font-lock-syntactic-keywords))
+
+               (if (version<= emacs-version "24.0")
+                   (list 'font-lock-syntactic-keywords
+                         (custom-quote (symbol-value 'font-lock-syntactic-keywords)))
+                 (list 'obsolete-font-lock-syntactic-face-function nil))
+               ;; Replaced by `syntax-propertize-function':
+               (list 'syntax-propertize-function (custom-quote syntax-propertize-function))
 
                (list 'font-lock-keywords (custom-quote font-lock-keywords))
                ;;(list 'font-lock-keywords-alist (custom-quote font-lock-keywords-alist))
@@ -3231,7 +3264,11 @@ The main reasons for doing it this way is:
                (list 'font-lock-defaults (custom-quote (copy-tree font-lock-defaults)))
                ;; Syntactic Font Lock
                (list 'font-lock-syntax-table (custom-quote font-lock-syntax-table)) ;; See nXhtml bug 400415
-               (list 'font-lock-beginning-of-syntax-function (custom-quote font-lock-beginning-of-syntax-function))
+               (if (version< emacs-version "23.3")
+                   (list 'font-lock-beginning-of-syntax-function
+                         ;;(msgtrc "font-lock-beginning-of-syntax-function A")
+                         (custom-quote (symbol-value 'font-lock-beginning-of-syntax-function)))
+                 (list 'obsolete-font-lock-beginning-of-syntax-function nil))
                (list 'font-lock-syntactic-face-function (custom-quote font-lock-syntactic-face-function))
 
                ;; Other Font Lock Variables
@@ -3309,7 +3346,14 @@ The main reasons for doing it this way is:
           (set-default func-def-sym fetch-func-definition) ;; Will be used as default
           (assert (functionp (symbol-value func-sym)) t)
           (funcall (symbol-value func-sym) nil)
-          )))
+          ))
+      ;; Fix-me: Trying to get rid of the strange error with a
+      ;; backtrace saying (error "Selecting deleted buffer") which is
+      ;; maybe related to set-syntax-table which occurs in the
+      ;; backtrace.
+      (fundamental-mode)
+      (font-lock-mode -1)
+      )
     (kill-buffer temp-buf)
     ;; Use the new value in current buffer.
     (when  mu-keywords
@@ -3656,7 +3700,8 @@ This just considers existing chunks."
   "Return major mode used when there are no chunks."
   (let ((mm (cadr mumamo-current-chunk-family)))
     (if mm mm
-      (msgtrc "main-major-mode => nil, mumamo-current-chunk-family=%s" mumamo-current-chunk-family))))
+      (msgtrc "main-major-mode => nil, mumamo-current-chunk-family=%s" mumamo-current-chunk-family)
+      nil)))
 ;;;   (let ((main (cadr mumamo-current-chunk-family)))
 ;;;     (if main
 ;;;         main
@@ -3984,24 +4029,27 @@ CHUNK-END-FUN should return the end of the chunk.
                                    fw-exc-start-fun
                                    fw-exc-end-fun
                                    &optional find-borders-fun)
-  (mumamo-find-possible-chunk-new pos
-                                  ;;min
-                                  max
-                                  bw-exc-start-fun
-                                  ;;bw-exc-end-fun
-                                  fw-exc-start-fun
-                                  fw-exc-end-fun
-                                  find-borders-fun))
+  (mumamo-find-possible-chunk-new-1 pos
+                                    max
+                                    bw-exc-start-fun
+                                    fw-exc-start-fun
+                                    fw-exc-end-fun
+                                    find-borders-fun))
 
 (make-obsolete 'mumamo-find-possible-chunk-new 'mumamo-possible-chunk-forward "nXhtml ver 2.09")
 (defun mumamo-find-possible-chunk-new (pos
-                                       ;;min
                                        max
                                        bw-exc-start-fun
-                                       ;;bw-exc-end-fun
                                        fw-exc-start-fun
                                        fw-exc-end-fun
                                        &optional find-borders-fun)
+  (mumamo-find-possible-chunk-new-1 pos max bw-exc-start-fun fw-exc-start-fun fw-exc-end-fun find-borders-fun))
+(defun mumamo-find-possible-chunk-new-1 (pos
+                                         max
+                                         bw-exc-start-fun
+                                         fw-exc-start-fun
+                                         fw-exc-end-fun
+                                         &optional find-borders-fun)
   ;; This should return no end value!
   "Return list describing a possible chunk that starts after POS.
 No notice is taken about existing chunks and no chunks are
@@ -4372,11 +4420,10 @@ after this in the properties below of the now created chunk:
                   '(if syntax-begin-function
                        (progn
                          syntax-begin-function)
-                     (when (and (not syntax-begin-function)
-                                ;; fix-me: How to handle boundp here?
-                                (boundp 'font-lock-beginning-of-syntax-function)
-                                font-lock-beginning-of-syntax-function)
-                       font-lock-beginning-of-syntax-function)))))
+                     (and (not syntax-begin-function)
+                          (version< emacs-version "23.3")
+                          ;; (progn (msgtrc "font-lock-beginning-of-syntax-function B") t)
+                          font-lock-beginning-of-syntax-function)))))
           (mumamo-msgfntfy "Got syntax-begin-function, modified=%s" (buffer-modified-p))
           (overlay-put this-chunk 'syntax-begin-function syntax-begin-function))
         )
@@ -6274,6 +6321,7 @@ non-nil."
     font-lock-multiline
     font-lock-set-defaults
     font-lock-syntactic-keywords
+    syntax-propertize-function ;; replaces the above function in Emacs 24.1
     font-lock-syntactically-fontified
     font-lock-syntax-table
     font-lock-unfontify-buffer-function
@@ -6748,7 +6796,8 @@ Buffer must be narrowed to chunk when this function is called."
         (setq mumamo-just-changed-major t)
       (mumamo-msgfntfy "mumamo-set-major: ----- removing 'fontified")
       ;; Set up to fontify buffer
-      (mumamo-save-buffer-state nil
+      ;;(mumamo-save-buffer-state nil
+      (with-silent-modifications
         (remove-list-of-text-properties (point-min) (point-max) '(fontified)))
       (setq mumamo-done-first-set-major t))
 
@@ -6895,7 +6944,8 @@ mode in the chunk family is nil."
       ;; Init fontification
       (mumamo-initialize-state)
       (mumamo-set-fontification-functions)
-      (mumamo-save-buffer-state nil
+      ;;(mumamo-save-buffer-state nil
+      (with-silent-modifications
         (remove-list-of-text-properties (point-min) (point-max)
                                         (list 'fontified)))
       ;; For validation header etc:
@@ -7001,7 +7051,8 @@ mode in the chunk family is nil."
   (when (fboundp 'mumamo-clear-all-regions) (mumamo-clear-all-regions))
   (save-restriction
     (widen)
-    (mumamo-save-buffer-state nil
+    ;;(mumamo-save-buffer-state nil
+    (with-silent-modifications
       (set-text-properties (point-min) (point-max) nil)))
   (setq mumamo-current-chunk-family nil)
   (setq mumamo-major-mode nil)

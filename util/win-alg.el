@@ -80,13 +80,16 @@ Return child."
 ;; Real window
 (defun wa-set-real      (window real)     (setcar (nthcdr 1 (nth 5 window)) real))  ;; 'real
 
+;; Fix-me: remove this...
+(defvar wa-failed nil)
+
 (defun wa-set-child-windows (parent &rest sizes)
   "For testing."
   (unless wa-failed (assert (<= 1 (length sizes)) t))
   (let ((num 0))
     (mapc (lambda (size)
             (setq num (1+ num))
-            (wa-make-window (format "%s-%d" (wa-name parent) num nil)
+            (wa-make-window (format "%s-%d" (wa-name parent) num)
                             parent
                             nil
                             (nth 0 size)
@@ -98,9 +101,6 @@ Return child."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Errors
-
-;; Fix-me: remove this...
-(defvar wa-failed nil)
 
 (defun wa-error (format-string &rest args)
   (setq wa-failed t)

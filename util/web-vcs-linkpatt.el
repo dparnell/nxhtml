@@ -274,7 +274,7 @@ You can select a region to include more or less in the patterns."
                mozadd-mirror-mode)
     (mozadd-mirror-mode 1))
   (message "Sending to mozilla...")
-  (mozadd-update-mozilla))
+  (mozadd-update-mozilla 0))
 
 (provide 'web-vcs-linkpatt)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

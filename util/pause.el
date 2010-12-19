@@ -1165,7 +1165,7 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
          (later (car later-buf))
          (buf   (cdr later-buf)))
     ;;(msgtrc "pause-modify-later pose=%S add=%s later=%S" pose add later)
-    (msgtrc "pause-modify-later 1: (length later)=%d" (length later))
+    ;;(msgtrc "pause-modify-later 1: (length later)=%d" (length later))
     (setq later
           (if add
               (cons pose later)

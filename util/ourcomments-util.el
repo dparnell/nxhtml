@@ -1157,6 +1157,11 @@ display it."
 ;;;; Misc.
 
 ;;;###autoload
+(defun ourcomments-is-obsolete (symbol)
+  "Return non-nil if SYMBOL is obsolete in current Emacs."
+  )
+
+;;;###autoload
 (defun paste-as-new-buffer ()
   "Paste from clipboard to a new buffer."
   (interactive)
@@ -2894,6 +2899,8 @@ This minor mode therefore instead defines them in a minor mode."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Freemind
+
+(eval-when-compile (require 'nxhtml-base))
 
 ;;;###autoload
 (defun org-freemind-copy-new-marktree.js (output-dir)

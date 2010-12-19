@@ -50,9 +50,12 @@
 (eval-when-compile (require 'flymake-css nil t))
 (eval-when-compile (require 'flymake-java-1 nil t))
 
-(defconst nxhtml-menu:version "beta 2.09")
-;; (setq message-log-max t)
-;; (setq debug-on-error t)
+;; (version< "2.09beta" "2.08")
+;; (version< "2.09beta" "2.09")
+(defconst nxhtml-menu:version "2.09beta")
+(when (and t (file-directory-p "c:/EmacsW32/"))
+  (setq message-log-max t)
+  (setq debug-on-error t))
 
 (defconst nxhtml-install-dir
   (file-name-directory (or load-file-name
@@ -75,6 +78,7 @@ Note that files are not updated automatically.  You have to use
   :lighter " nX"
   :group 'nxhtml)
 
+(declare-function web-autoload "web-autoload")
 (defun nxhtml-autoload (fun src &optional docstring interactive type)
   "Generalized `autoload'. May setup autoload from the web.
 If `nxhtml-autoload-web' is t then setup autoloading from the web.

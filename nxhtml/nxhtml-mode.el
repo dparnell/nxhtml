@@ -88,13 +88,14 @@
 
 (require 'button)
 (require 'loadhist)
+(require 'rng-valid nil t)
 (require 'nxml-mode nil t)
 (require 'rng-nxml nil t)
-(require 'rng-valid nil t)
 
 ;; Require nxml things conditionally to silence byte compiler under
 ;; Emacs 22.
-(eval-and-compile (require 'rngalt nil t))
+(when (version< emacs-version "23")
+  (eval-and-compile (require 'rngalt nil t)))
 
 (require 'url-parse)
 (require 'url-expand)
