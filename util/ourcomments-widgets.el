@@ -45,6 +45,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'mumamo nil t))
+(eval-when-compile (require 'ourcomments-util nil t))
 
 (define-widget 'command 'restricted-sexp
   "A command function."

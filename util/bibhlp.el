@@ -56,6 +56,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Heuristic parsing of bibliographic entries
 
+;; .bib = BibTex
+;; .env = EndNote
+;; .ris = Reference Manager
+
 ;;; RIS
 ;; TY  - JOUR
 ;; T1  - Training and plasticity of working memory

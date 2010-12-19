@@ -47,6 +47,7 @@
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'nxhtml-base nil t))
 ;;(eval-when-compile (require 'nxhtmlmaint nil t))
+(declare-function nxhtmlmaint-byte-recompile "nxhtmlmaint")
 (eval-when-compile (require 'web-vcs nil t))
 
 (defvar nxhtml-web-vcs-file (or load-file-name
@@ -68,6 +69,7 @@
 
 ;;(nxhtml-default-download-directory)
 (defun nxhtml-default-download-directory ()
+  (require 'web-vcs))
   (let* ((ur (expand-file-name "" "~"))
          (ur-len (length ur))
          (full (if (and (boundp 'nxhtml-install-dir)

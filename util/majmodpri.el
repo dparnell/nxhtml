@@ -112,6 +112,8 @@ prevent use of them."
   :type 'boolean
   :group 'majmodpri)
 
+(defvar majmodpri-mode-priorities)
+
 ;; (majmodpri-priority 'html-mumamo-mode)
 ;; (majmodpri-priority 'nxhtml-mumamo-mode)
 (defsubst majmodpri-priority (mode)
@@ -198,6 +200,8 @@ Comparision:
                       (cond
                        ((/= pri1 pri2) (> pri1 pri2))
                        (t (> ord1 ord2))))))))))
+
+(defvar majmodpri-lists-to-sort)
 
 ;;;###autoload
 (defun majmodpri-sort-lists ()
