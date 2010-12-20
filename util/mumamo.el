@@ -1935,7 +1935,7 @@ correct but we want to check those after.  Put those in
                 mumamo-last-chunk
                 first-check-from
                 (< first-check-from (overlay-end mumamo-last-chunk)))
-      (unless mumamo-old-tail (msgtrc "move-to-old-tail: put mumamo-last-chunk nil, %s" mumamo-last-chunk))
+      ;;(unless mumamo-old-tail (msgtrc "move-to-old-tail: put mumamo-last-chunk nil, %s" mumamo-last-chunk))
       (overlay-put mumamo-last-chunk 'mumamo-next-chunk mumamo-old-tail)
       (setq mumamo-old-tail mumamo-last-chunk)
       (overlay-put mumamo-old-tail 'mumamo-is-new nil)
@@ -3326,7 +3326,9 @@ The main reasons for doing it this way is:
             (setq relevant-buffer-locals (assq-delete-all fvar relevant-buffer-locals))))
         (setq fetch-func-definition
               (append fetch-func-definition
-                      `((let ,(append fetch-func-definition-let
+                      `(
+                        (make-local-variable 'parse-sexp-lookup-properties)
+                        (let ,(append fetch-func-definition-let
                                       relevant-buffer-locals)
                           (with-syntax-table ,(if syntax-sym
                                                   syntax-sym
@@ -4627,21 +4629,21 @@ after this in the properties below of the now created chunk:
 
          (= chunk-next-chunk-diff     values-next-depth-diff)
          (= chunk-beg values-beg)
-         (progn (msgtrc "eq-c-v: here b") t)
+         ;;(progn (msgtrc "eq-c-v: here b") t)
          ;; (and (equal chunk-is-closed values-is-closed)
          ;;      (or (not chunk-is-closed)
          (and (equal chunk-insertion-type-end values-insertion-type-end)
               (or ;;chunk-insertion-type-end
                (= chunk-end values-end)))
-         (progn (msgtrc "eq-c-v: here c, %s /= %s" chunk-major-mode values-major-mode) t)
+         ;;(progn (msgtrc "eq-c-v: here c, %s /= %s" chunk-major-mode values-major-mode) t)
          (or (= -1 chunk-depth-diff)
              (eq chunk-major-mode values-major-mode))
-         (progn (msgtrc "eq-c-v: here d") t)
+         ;;(progn (msgtrc "eq-c-v: here d") t)
          (equal chunk-pable values-pable)
-         (progn (msgtrc "eq-c-v: here e") t)
+         ;;(progn (msgtrc "eq-c-v: here e") t)
          ;;(eq chunk-is-closed values-is-closed)
          (eq chunk-insertion-type-end values-insertion-type-end)
-         (progn (msgtrc "eq-c-v: here f cbmin=%s vbmin=%s" chunk-bmin values-bmin) t)
+         ;;(progn (msgtrc "eq-c-v: here f cbmin=%s vbmin=%s" chunk-bmin values-bmin) t)
          ;; fix-me: bmin bmax - why?
          ;;(and chunk-bmin values-bmin (= chunk-bmin values-bmin))
          ;;(progn (msgtrc "eq-c-v: here g cbmax=%s vbmax=%s" chunk-bmax values-bmax) t)
