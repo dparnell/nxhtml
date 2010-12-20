@@ -1,5 +1,0 @@
-
-{% block content %}
-  <script type="text/javascript" src="{{ STATIC_URL }}1.js" ></script>
-{% endblock %}
-<img src="{{ STATIC_FILE }}1.jpg" />
