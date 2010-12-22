@@ -369,6 +369,9 @@ Tip: This may be helpful if you are using `css-color-mode'."
                        (memq 'down  mod)
                        (memq 'drag  mod))))
     (when is-mouse
+      (let ((win (posn-window (event-start last-input-event))))
+        (unless (eq (selected-window) win)
+          (select-window win)))
       (goto-char (posn-point (event-start last-input-event)))
       (sit-for 0.01))
     (let ((menu (appmenu-map)))
