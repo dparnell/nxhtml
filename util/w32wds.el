@@ -1,4 +1,4 @@
-;;; w32wsd.el --- Windows Desktop Search integration
+;;; w32wds.el --- Windows Desktop Search integration
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2010-12-21 Tue
@@ -17,7 +17,7 @@
 ;;; Commentary:
 ;;
 ;; Integration with Windows Search.
-;; For more information see `w32wsd-search'.
+;; For more information see `w32wds-search'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -45,30 +45,73 @@
 ;;
 ;;; Code:
 
-(defvar w32wsd-search-patt-hist nil)
+(eval-when-compile (require 'compile))
+(require 'powershell-mode)
+(require 'nxhtml-base)
 
-(defvar w32wsd-search-script "DesktopSearch.ps1")
+(defvar w32wds-search-patt-hist nil)
 
-;; (w32wsd-search '("cullberg") '("c"))
+(defvar w32wds-search-script (expand-file-name "etc/wds/DesktopSearch.ps1" nxhtml-install-dir))
+
+;; (w32wds-search '("cullberg") '("c"))
 ;;;###autoload
-(defun w32wsd-search (search-patts file-patts)
+(defun w32wds-search (search-patts file-patts)
   "Search using Windows Search.
 This searches all the content you have indexed there.
 
-In interactive use you are prompted for a search strings and a
-root directory.
-"
+In interactive use you are prompted for a search string and a
+single root directory.
+
+The search string should consist of single word and phrases
+\"enclosed like this\".  All words and phrases must match for a
+file to match.
+
+If the file is a text file it will be searched for all words and
+phrases so you get direct links into it.
+
+----
+For non-interactive use SEARCH-PATTS and FILE-PATTS should be
+list of strings.  In this case the strings are given as they are
+to the SQL statements for searching Windows Search.
+
+The strings in SEARCH-PATT should just be strings to match.  If
+they contain spaces they are considered to be a sequence of
+words, otherwise just single words.  All strings must match a
+file for a match in that file.
+
+The strings in FILE-PATTS are matched with the SQL keyword
+'like'.  A '%' char is appended to each strings.  Any of this
+strings should match.  This way you can easily search in
+different root locations at once."
   (interactive
    (let ((dir (read-directory-name "In directory tree: "))
-         (srch (read-string "Search patterns: " nil 'w32wsd-search-patt-hist)))
+         ;; Fix-me: split out the reading of search patterns.
+         (str (read-string "Search patterns: " nil 'w32wds-search-patt-hist))
+         (item-patt (rx (or (and "\""
+                                 (submatch (* (not (any "\""))))
+                                 "\"")
+                            (submatch (and word-start
+                                           (+ (not space))
+                                           word-end)))))
+         (start 0)
+         strs)
+     (while (setq start (string-match item-patt str start))
+       (let ((y (or (match-string 1 str)
+                    (match-string 2 str))))
+         (setq start (+ start (length y)))
+         (setq strs (cons y strs))))
+
      ;; (setq dir (replace-regexp-in-string "/" "\\" dir t t))
-     (list (list srch)
+     (list strs
            (list dir))))
-  (let ((command (concat "DesktopSearch.ps1"
+  (let ((command (concat w32wds-search-script
                          " "
                          (mapconcat 'identity file-patts ", ")
                          " "
-                         (mapconcat 'identity search-patts ", ")))
+                         "\""
+                         (mapconcat 'identity search-patts ", ")
+                         "\""
+                         ))
         (dir default-directory))
     (let ((default-directory dir)
           ;; Fix-me: coding system
@@ -77,10 +120,10 @@ root directory.
              (".*DesktopSearch.ps1.*" . utf-8)
              (".*powershell.exe.*" . utf-8)
              )))
-      (compilation-start command 'w32wsd-mode)
+      (compilation-start command 'w32wds-mode)
       )))
 
-(defconst w32wsd-error-regexp-alist
+(defconst w32wds-error-regexp-alist
   '(("^ \\(.+?\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2"
      1 3)
     ("^ y\\(\\(.+?\\):\\([0-9]+\\):\\).*?\
@@ -99,7 +142,7 @@ root directory.
     )
   "Regexp used to match search hits.  See `compilation-error-regexp-alist'.")
 
-(defvar w32wsd-mode-font-lock-keywords
+(defvar w32wds-mode-font-lock-keywords
    '(;; configure output lines.
      ;; ("^[Cc]hecking \\(?:[Ff]or \\|[Ii]f \\|[Ww]hether \\(?:to \\)?\\)?\\(.+\\)\\.\\.\\. *\\(?:(cached) *\\)?\\(\\(yes\\(?: .+\\)?\\)\\|no\\|\\(.*\\)\\)$"
      ;;  (1 font-lock-variable-name-face)
@@ -115,13 +158,13 @@ root directory.
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
       (1 compilation-error-face)
       (2 compilation-error-face nil t)))
-   "Additional things to highlight in w32wsd mode.
+   "Additional things to highlight in w32wds mode.
 This gets tacked on the end of the generated expressions.")
 
-(defvar w32wsd-hit-face	compilation-info-face
+(defvar w32wds-hit-face	compilation-info-face
   "Face name to use for search hits.")
 
-(defun w32wsd-next-error-function (n &optional reset)
+(defun w32wds-next-error-function (n &optional reset)
   (let ((here (point)))
     (goto-char (point-at-bol))
     (if (not (looking-at "  :\\([0-9]+\\):"))
@@ -147,17 +190,16 @@ This gets tacked on the end of the generated expressions.")
           ;;(goto-line line)
           )))))
 
-(define-compilation-mode w32wsd-mode "Search"
-  "Mode for `w32wsd-search' output."
-  (setq next-error-function 'w32wsd-next-error-function)
-  (set (make-local-variable 'compilation-error-face) w32wsd-hit-face)
-  ;;(set (make-local-variable 'compilation-error-regexp-alist) w32wsd-regexp-alist)
+(define-compilation-mode w32wds-mode "Search"
+  "Mode for `w32wds-search' output."
+  (setq next-error-function 'w32wds-next-error-function)
+  (set (make-local-variable 'compilation-error-face) w32wds-hit-face)
+  ;;(set (make-local-variable 'compilation-error-regexp-alist) w32wds-regexp-alist)
   ;;(set (make-local-variable 'compilation-process-setup-function) 'grep-process-setup)
   (message "flkw=%S" compilation-mode-font-lock-keywords)
   )
 
-(defun w32wsd-add-powershell-kw ()
-  (require 'powershell-mode)
+(defun w32wds-add-powershell-kw ()
   (let ((kw `((,(cadr powershell-compilation-error-regexp-alist)
               (1 compilation-error-face)
               (2 compilation-line-face nil t)
@@ -165,9 +207,9 @@ This gets tacked on the end of the generated expressions.")
                (compilation-error-properties '1 2 nil nil nil '2 'nil)
                append))))
         )
-    (font-lock-add-keywords 'w32wsd-mode kw)))
-(add-hook 'w32wsd-mode-hook 'w32wsd-add-powershell-kw)
+    (font-lock-add-keywords 'w32wds-mode kw)))
+(add-hook 'w32wds-mode-hook 'w32wds-add-powershell-kw)
 
-(provide 'w32wsd)
+(provide 'w32wds)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; w32wsd.el ends here
+;;; w32wds.el ends here
