@@ -259,7 +259,7 @@ Show a HTML page with an overview of nXhtml.
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
 ;;;;;;  nxhtml-mode) "../nxhtml/nxhtml-mode" "nxhtml/nxhtml-mode.el"
-;;;;;;  (19459 64864))
+;;;;;;  (19725 21177))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 (web-autoload-require 'nxhtml-mode 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -587,7 +587,7 @@ Key bindings:
 ;;;***
 
 ;;;### (autoloads (django-mode) "../related/django" "related/django.el"
-;;;;;;  (19411 8710))
+;;;;;;  (19726 33620))
 ;;; Generated autoloads from related/django.el
 (web-autoload-require 'django 'lp '(nxhtml-download-root-url nil) "related/django" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1366,7 +1366,7 @@ See `nxhtmltest-run' for more information about the tests.
 ;;;***
 
 ;;;### (autoloads (nxhtmltest-run nxhtmltest-run-indent) "../tests/nxhtmltest-suites"
-;;;;;;  "tests/nxhtmltest-suites.el" (19571 7230))
+;;;;;;  "tests/nxhtmltest-suites.el" (19725 27764))
 ;;; Generated autoloads from tests/nxhtmltest-suites.el
 (web-autoload-require 'nxhtmltest-suites 'lp '(nxhtml-download-root-url nil) "tests/nxhtmltest-suites" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1527,7 +1527,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (appmenu-mode appmenu-add appmenu) "appmenu" "util/appmenu.el"
-;;;;;;  (19476 21424))
+;;;;;;  (19727 62222))
 ;;; Generated autoloads from util/appmenu.el
 (web-autoload-require 'appmenu 'lp '(nxhtml-download-root-url nil) "util/appmenu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2384,7 +2384,7 @@ FIELDS is an alist, as for `http-post-simple', FILES is an a list of
 ;;;***
 
 ;;;### (autoloads (inlimg-toggle-slicing inlimg-toggle-display inlimg-global-mode
-;;;;;;  inlimg-mode inlimg) "inlimg" "util/inlimg.el" (19459 64864))
+;;;;;;  inlimg-mode inlimg) "inlimg" "util/inlimg.el" (19725 48718))
 ;;; Generated autoloads from util/inlimg.el
 (web-autoload-require 'inlimg 'lp '(nxhtml-download-root-url nil) "util/inlimg" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2601,7 +2601,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;;;;  mumamo-list-defined-multi-major-modes mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19725 5747))
+;;;;;;  (19727 24805))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2757,7 +2757,7 @@ Return t if VALUE is a multi major mode function.
 ;;;***
 
 ;;;### (autoloads (mumamo-noweb2 mumamo-define-html-file-wide-keys)
-;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19721 17739))
+;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19725 44457))
 ;;; Generated autoloads from util/mumamo-chunks.el
 (web-autoload-require 'mumamo-chunks 'lp '(nxhtml-download-root-url nil) "util/mumamo-chunks" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3068,6 +3068,31 @@ Edit the current schema in another window.
 Color up digits three by three.
 
 \(fn &optional ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads (orgfl-find-links-in-org-files orgfl-find-links-in-org-buffers)
+;;;;;;  "org-find-links" "util/org-find-links.el" (19730 55874))
+;;; Generated autoloads from util/org-find-links.el
+(web-autoload-require 'org-find-links 'lp '(nxhtml-download-root-url nil) "util/org-find-links" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'orgfl-find-links-in-org-buffers `(lp '(nxhtml-download-root-url nil) "util/org-find-links" nxhtml-install-dir) "\
+Find links to URL in all `org-mode' buffers.
+URL should be an absolute org link.
+
+NLINES are lines to show around matches.  For more info see
+`occur'.
+
+\(fn URL &optional NLINES)" t nil)
+
+(nxhtml-autoload 'orgfl-find-links-in-org-files `(lp '(nxhtml-download-root-url nil) "util/org-find-links" nxhtml-install-dir) "\
+Find links to URL in all .org files.
+URL should be an absolute org link.
+DIR is the directory to search.
+Search subdirs if RECURSE is non-nil.
+
+\(fn URL DIR RECURSE)" t nil)
 
 ;;;***
 
@@ -4075,6 +4100,45 @@ Display vertical line mode as globally.
 
 ;;;***
 
+;;;### (autoloads (w32wds-search) "w32wds" "util/w32wds.el" (19729
+;;;;;;  57676))
+;;; Generated autoloads from util/w32wds.el
+(web-autoload-require 'w32wds 'lp '(nxhtml-download-root-url nil) "util/w32wds" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'w32wds-search `(lp '(nxhtml-download-root-url nil) "util/w32wds" nxhtml-install-dir) "\
+Search using Windows Search.
+This searches all the content you have indexed there.
+
+In interactive use you are prompted for a search string and a
+single root directory.
+
+The search string should consist of single word and phrases
+\"enclosed like this\".  All words and phrases must match for a
+file to match.
+
+If the file is a text file it will be searched for all words and
+phrases so you get direct links into it.
+
+----
+For non-interactive use SEARCH-PATTS and FILE-PATTS should be
+list of strings.  In this case the strings are given as they are
+to the SQL statements for searching Windows Search.
+
+The strings in SEARCH-PATT should just be strings to match.  If
+they contain spaces they are considered to be a sequence of
+words, otherwise just single words.  All strings must match a
+file for a match in that file.
+
+The strings in FILE-PATTS are matched with the SQL keyword
+'like'.  A '%' char is appended to each strings.  Any of this
+strings should match.  This way you can easily search in
+different root locations at once.
+
+\(fn SEARCH-PATTS FILE-PATTS)" t nil)
+
+;;;***
+
 ;;;### (autoloads (web-vcs-linkpatt-mode) "web-vcs-linkpatt" "util/web-vcs-linkpatt.el"
 ;;;;;;  (19725 18674))
 ;;; Generated autoloads from util/web-vcs-linkpatt.el
@@ -4571,15 +4635,16 @@ accept it or skip it.
 ;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/fupd.el"
 ;;;;;;  "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/org-odt.el" "util/org-panel.el" "util/ourcomments-widgets.el"
-;;;;;;  "util/rxi.el" "util/temp-mapcan.el" "util/tipframe.el" "util/win-alg.el"
-;;;;;;  "web-autoload.el") (19725 19961 812000))
+;;;;;;  "util/powershell-mode.el" "util/rxi.el" "util/temp-declare-fun-test.el"
+;;;;;;  "util/temp-declare-fun.el" "util/tipframe.el" "util/win-alg.el"
+;;;;;;  "web-autoload.el") (19730 56005 46000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtml-byte-recompile-file nxhtml-byte-compile-file
 ;;;;;;  nxhtml-get-missing-files nxhtml-update-existing-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install) "../nxhtml-web-vcs"
-;;;;;;  "nxhtml-web-vcs.el" (19725 14729))
+;;;;;;  "nxhtml-web-vcs.el" (19725 20733))
 ;;; Generated autoloads from nxhtml-web-vcs.el
 (web-autoload-require 'nxhtml-web-vcs 'lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 

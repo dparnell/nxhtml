@@ -49,9 +49,10 @@
   :group 'powershell
   :type 'integer)
 
-(defvar powershell-continued-regexp  ".*\\(|[\\t ]*\\|`\\)$"
-  "Regexp matching a continued line (ending either with an
-explicit backtick, or with a pipe).")
+(defvar powershell-continued-regexp  ".*\\(|[\\t ]*\\|`\\|,\\)$"
+  "Regexp matching a continued line.
+Those ends either with an explicit backtick, a comma, or a
+pipe).")
 
 (defun powershell-continuation-line-p ()
   "Returns t is the current line is a continuation line (i.e. the
