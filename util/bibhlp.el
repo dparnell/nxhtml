@@ -1092,6 +1092,8 @@ Return a list \(BEG END)."
 What do you want to do with the url at point?
 
   g - Just show in web browser
+  e - Find in org mode buffers
+  E - Find in org mode files
   c - Goto CiteULike, add or show
   p - Get page and try to parse it for bibl data
   f - Show in Firefox (so you can add it to Zotero)
@@ -1104,6 +1106,10 @@ What do you want to do with the url at point?
       (cond
        ((eq cc ?g)
         (browse-url url))
+       ((eq cc ?e)
+        (orgfl-find-links-in-org-buffers url))
+       ((eq cc ?E)
+        (orgfl-find-links-in-org-files url nil nil))
        ((eq cc ?c)
         (bibhlp-goto-citeulike url))
        ((eq cc ?p)
