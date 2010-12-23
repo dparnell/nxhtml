@@ -55,6 +55,7 @@ class WdsServer
     @connection.Open(connection_string)
   end
 
+  # fix-me: Split:
   def query(sql)
     # Create an instance of an ADO Recordset
     recordset = WIN32OLE.new('ADODB.Recordset')
@@ -111,7 +112,7 @@ def search_textfile (filename, re)
         show = line
         part = "c"
       end
-      row_col = ":"+row.to_s()+":"+col.to_s()+":"
+      row_col = "L:"+row.to_s()+":"+col.to_s()+":"
       space = "     "[row_col.length-5..-1]
       print "  ", row_col, space, "'", show, "'\n"
       raise "Too wide!: "+part+", "+ show.length.to_s() if show.length > maxw
@@ -119,83 +120,98 @@ def search_textfile (filename, re)
   end
 end
 
-### Field names. See for example this:
-# - System (Windows)
-#   http://msdn.microsoft.com/en-us/library/ff521735(VS.85).aspx
-# - Desktop Search
-#   http://technet.microsoft.com/en-us/library/ff402341.aspx
-# - Scripting Windows Desktop Search 3.0
-#   http://technet.microsoft.com/en-us/library/ff404224.aspx
-used_fields = []
-used_fields.push("System.Author")
-# used_fields.push("System.ContentType")
-# used_fields.push("System.CopyRight")
-used_fields.push("System.DateCreated")
-used_fields.push("System.DateCompleted")
-used_fields.push("System.FileName")
-used_fields.push("System.FileDescription")
-used_fields.push("System.FileExtension")
-used_fields.push("System.ItemAuthors")
-used_fields.push("System.ItemDate")
-# used_fields.push("System.ItemFolderPathDisplay")
-# used_fields.push("System.ItemName")
-used_fields.push("System.ItemUrl")
-used_fields.push("System.Keywords")
-used_fields.push("System.MIMEType")
-used_fields.push("System.Title")
-# print used_fields, "\n"
+def query_wds (root, comma_sep_query)
+  ### Field names. See for example this:
+  # - System (Windows)
+  #   http://msdn.microsoft.com/en-us/library/ff521735(VS.85).aspx
+  # - Desktop Search
+  #   http://technet.microsoft.com/en-us/library/ff402341.aspx
+  # - Scripting Windows Desktop Search 3.0
+  #   http://technet.microsoft.com/en-us/library/ff404224.aspx
+  used_fields = []
+  used_fields.push("System.Author")
+  # used_fields.push("System.ContentType")
+  # used_fields.push("System.CopyRight")
+  used_fields.push("System.DateCreated")
+  used_fields.push("System.DateCompleted")
+  used_fields.push("System.FileName")
+  used_fields.push("System.FileDescription")
+  used_fields.push("System.FileExtension")
+  used_fields.push("System.ItemAuthors")
+  used_fields.push("System.ItemDate")
+  # used_fields.push("System.ItemFolderPathDisplay")
+  # used_fields.push("System.ItemName")
+  used_fields.push("System.ItemUrl")
+  used_fields.push("System.Keywords")
+  used_fields.push("System.MIMEType")
+  used_fields.push("System.Title")
+  # print used_fields, "\n"
 
-query_strings = [ "cullberg", "lewis" ]
-query_contains = []
-query_strings.each { |i| query_contains.push("Contains('\""+i+"\"')") }
+  # comma_sep_query = "cullberg,lewis"
+  # query_strings = [ "cullberg", "lewis" ]
+  query_strings = comma_sep_query.split(",")
+  
+  query_contains = []
+  query_strings.each { |i| query_contains.push("Contains('\""+i+"\"')") }
 
-fields = used_fields.join(", ")
-filter = "WHERE "
-filter << query_contains.join(" AND ")
-query = "SELECT " + fields + " FROM SYSTEMINDEX " + filter
-# print "\nQuery: ", query, "\n\n"
-print filter, "\n\n"
+  fields = used_fields.join(", ")
+  filter = "WHERE "
+  filter << query_contains.join(" AND ")
+  query = "SELECT " + fields + " FROM SYSTEMINDEX " + filter
+  # print "\nQuery: ", query, "\n\n"
+  print filter, "\n\n"
 
-db = WdsServer.new
-db.open
-db.query(query)
-field_names = db.fields
-rec = WdsRecord.new(db.fields, "c:/dropbox3719833/my dropbox/psych/")
-hits = db.data
-db.close
+  db = WdsServer.new
+  db.open
+  db.query(query)
+  field_names = db.fields
+  rec = WdsRecord.new(db.fields, root)
+  hits = db.data
+  db.close
 
-# print field_names, "\n"
-# print field_names.index("SYSTEM.FILEEXTENSION"), "\n"
-re = Regexp.new(/schizophrenia/)
-hits.each {
-  |hit|
-  print "--------\n"
-  istxt = rec.istxt(hit)
-  relurl = rec.relurl(hit)
-  if istxt
-    print "Text file ", relurl, " matches:\n"
-    fullurl = rec.fullurl(hit)
-    search_textfile(fullurl, re)
-  else
-    print "Binary file ", relurl, " matches\n"
-  end
-  if nil
-    for fn in 0..field_names.length-1
-      val = hit[fn]
-      if val
-        print "  ", field_names[fn], "=", val, "\n"
+  # print field_names, "\n"
+  # print field_names.index("SYSTEM.FILEEXTENSION"), "\n"
+  re_str = "("+query_strings.join("|")+")"
+  re = Regexp.new(re_str, 1)
+  hits.each {
+    |hit|
+    print "--------\n"
+    istxt = rec.istxt(hit)
+    relurl = rec.relurl(hit)
+    if istxt
+      print "Text file ", relurl, " matches:\n"
+      fullurl = rec.fullurl(hit)
+      search_textfile(fullurl, re)
+    else
+      print "Binary file ", relurl, " matches\n"
+    end
+    if nil
+      for fn in 0..field_names.length-1
+        val = hit[fn]
+        if val
+          print "  ", field_names[fn], "=", val, "\n"
+        end
       end
     end
-  end
-  title = rec.title(hit)
-  if title
-    print "  Title: ", title, "\n"
-  end
-  authors = rec.authors(hit)
-  if authors
-    print "  Authors: ", authors.join(", "), "\n"
-  end
-}
+    title = rec.title(hit)
+    if title
+      print "  Title: ", title, "\n"
+    end
+    authors = rec.authors(hit)
+    if authors
+      print "  Authors: ", authors.join(", "), "\n"
+    end
+  }
+end
+
+if __FILE__ == $0
+  root = ARGV[0]
+  query = ARGV[1]
+
+  print "root=", root, "\n"
+  print "query=", query, "\n"
+  query_wds(root, query)
+end
 
 # Local variables:
 # coding: utf-8

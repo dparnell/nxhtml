@@ -55,7 +55,7 @@ URL should be an absolute org link.
 
 NLINES are lines to show around matches.  For more info see
 `occur'."
-  (interactive (list url
+  (interactive (list nil
                      (when current-prefix-arg
                        (prefix-numeric-value current-prefix-arg))))
   (orgfl-find-links-1 url (or nlines 0) nil nil))
@@ -65,10 +65,10 @@ NLINES are lines to show around matches.  For more info see
   "Find links to URL in all .org files.
 URL should be an absolute org link.
 DIR is the directory to search.
-Search subdirs if RECURSE is non-nil."
-  (interactive (list nil
-                     (read-directory-name "Directory to search: " nil nil t)
-                     (y-or-n-p "Recurse subdirs? ")))
+Search subdirs if RECURSE is 'yes, don't if it is 'no."
+  (interactive (list nil nil nil))
+  (setq dir (or dir (read-directory-name "Directory to search: " nil nil t)))
+  (setq recurse (or recurse (if (y-or-n-p "Recurse subdirs? ") 'yes 'no)))
   (orgfl-find-links-1 url nil dir recurse))
 
 (defun orgfl-link-at-point ()
@@ -88,16 +88,19 @@ Search subdirs if RECURSE is non-nil."
     (list raw-link raw-title type url-at-point fullfile-at-point)))
 
 (defun orgfl-find-links-1 (url nlines dir recurse)
-  (let* ((link-at-point (unless url (orgfl-link-at-point)))
+  (let* ((link-at-point (orgfl-link-at-point))
          (raw-link  (nth 0 link-at-point))
          (title     (nth 1 link-at-point))
          (link-type (nth 2 link-at-point))
          (url-link  (nth 3 link-at-point))
          (file-link (nth 4 link-at-point))
+         ;; Fix-me: to prompt or not to prompt?
          (trans-link (or url-link file-link
                          (read-file-name "File name or web url: " buffer-file-name)))
          bufs
          regexp)
+    (when (and url url-link) (unless (string= url url-link)
+                               (error "Uh? url=%S, url-link=%S" url url-link)))
     (setq raw-link (or raw-link trans-link))
     (setq link-type (or link-type
                         (let ((urlobj (url-generic-parse-url trans-link)))
@@ -108,8 +111,9 @@ Search subdirs if RECURSE is non-nil."
                               `(and "[[" ,raw-link "][")
                             `(and word-start ,raw-link word-end))
                          (and "[[" ,link-type ":" ,trans-link "][")
-                         (and word-start ,trans-link word-end)))))
-    (setq x regexp)
+                         (and word-start ,trans-link word-end)))
+                  t))
+    ;; (setq x regexp)
     (if (not dir)
         (progn
           (dolist (buf (buffer-list))
@@ -118,7 +122,7 @@ Search subdirs if RECURSE is non-nil."
                 (setq bufs (cons buf bufs)))))
           (occur-1 regexp nlines bufs))
       (setq regexp (replace-regexp-in-string "?:" "" regexp t t))
-      (if recurse
+      (if (eq recurse 'yes)
           (rgrep regexp "*.org" dir)
         (lgrep regexp "*.org" dir)))))
 

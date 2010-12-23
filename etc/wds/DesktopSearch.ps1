@@ -222,7 +222,6 @@ if ($strings) {
     }}
 
 # process {"Checking pipe, got: $_" }
-# some error here
 
 # "at the end of desktopsearch.ps1"
 # exit

@@ -51,7 +51,8 @@
 
 (defvar w32wds-search-patt-hist nil)
 
-(defvar w32wds-search-script (expand-file-name "etc/wds/DesktopSearch.ps1" nxhtml-install-dir))
+;;(defvar w32wds-search-script (expand-file-name "etc/wds/DesktopSearch.ps1" nxhtml-install-dir))
+(defvar w32wds-search-script (expand-file-name "etc/wds/DesktopSearch.rb" nxhtml-install-dir))
 
 ;; (w32wds-search '("cullberg") '("c"))
 ;;;###autoload
@@ -111,13 +112,11 @@ different root locations at once."
      ;; (setq dir (replace-regexp-in-string "/" "\\" dir t t))
      (list strs
            (list dir))))
-  (let ((command (concat w32wds-search-script
+  (let ((command (concat (shell-quote-argument w32wds-search-script)
                          " "
-                         (mapconcat 'identity file-patts ", ")
+                         (shell-quote-argument (mapconcat 'identity file-patts ", "))
                          " "
-                         "\""
-                         (mapconcat 'identity search-patts ", ")
-                         "\""
+                         (shell-quote-argument (mapconcat 'identity search-patts ", "))
                          ))
         (dir default-directory))
     (let ((default-directory dir)
@@ -133,7 +132,7 @@ different root locations at once."
 (defconst w32wds-error-regexp-alist
   '(("^ \\(.+?\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2"
      1 3)
-    ("^ y\\(\\(.+?\\):\\([0-9]+\\):\\).*?\
+    ("^ \\(\\(.+?\\):\\([0-9]+\\):\\).*?\
 \\(\033\\[01;31m\\(?:\033\\[K\\)?\\)\\(.*?\\)\\(\033\\[[0-9]*m\\)"
      2 3
      ;; Calculate column positions (beg . end) of first grep match on a line
