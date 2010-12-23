@@ -53,6 +53,7 @@ function Search-WindowsDesktop-2 ($fields, $filter, $strings)
     $ofs = ","
     $query = "SELECT $fields"
     $query += " FROM SYSTEMINDEX $filter"
+    myout "query=$query\n"
     $null = $recordSet.Open($query, $connection)
 
     if ($recordSet.EOF) { return }
@@ -60,16 +61,31 @@ function Search-WindowsDesktop-2 ($fields, $filter, $strings)
 
     $textfiles = ".org",".txt"
 
+    $numitems = 0
     while (-not $recordSet.EOF) {
+        $numitems += 1
         #$result = New-Object Object
         $file = ""
+        # foreach ($field in $fields) {
+        #     #$result | Add-Member NoteProperty $field $recordSet.Fields.Item($field).Value
+        #     $field
+        #     $val = $recordSet.Fields.Item($field).Value
+        #     #$v = "-----"+$val
+        #     #$v
+        #     if ($file.Equals("")) { $val = "\" + $val }
+        #     $file = $val + $file
+        # }
+        $filefolder = $recordSet.Fields.Item("System.ItemFolderPathDisplay").Value
+        $filename   = $recordSet.Fields.Item("System.FileName").Value
+        $file = $filefolder + "\" + $filename
+        $itemname = $recordSet.Fields.Item("System.ItemName").Value
+        $title = $recordSet.Fields.Item("System.Title").Value
+        myout ""
         foreach ($field in $fields) {
-            #$result | Add-Member NoteProperty $field $recordSet.Fields.Item($field).Value
             $val = $recordSet.Fields.Item($field).Value
-            #$v = "-----"+$val
-            #$v
-            if ($file.Equals("")) { $val = "\" + $val }
-            $file = $val + $file
+            if ($val -and ($val.Length -gt 0)) {
+                myout ("  * " + $field + "=" + $recordSet.Fields.Item($field).Value)
+            }
         }
         $v = "-----"+$file
         #$v
@@ -82,17 +98,17 @@ function Search-WindowsDesktop-2 ($fields, $filter, $strings)
             #$res = "text file "+ $file
             #out-host -inputobject $file
             $res = ""
-            foreach ($s in $strings) {
-                #Select-String -Path $file.ToString() -Pattern $s
-                $r = Select-String -Path $file -Pattern $s
+            $re = $strings -join "|"
+            $re = "\b(" + $re + ")\b"
+            # myout ("re=" + $re)
+            $r = Select-String -Path $file -Pattern $re
+            # if ($r) {
+            if (False) {
                 $max = 100
                 foreach ($row in $r) {
-                    myout $row
                     $row = $row.ToString()
                     $row = "  " + $row.Substring($file.Length)
-                    # "========== length: " + $row.Length
                     if ($row.Length -gt $max) {
-                        #"++++++++++ too long: " + $row.Length
                         $row = $row.Substring(0, $max)
                     }
                     myout $row
@@ -104,6 +120,9 @@ function Search-WindowsDesktop-2 ($fields, $filter, $strings)
         #$result
         $recordSet.MoveNext()
     }
+    
+    myout "----"
+    myout "Found $numitems items"
 
     $null = $recordSet.Close()
     $null = $connection.Close()
@@ -113,7 +132,27 @@ function Search-WindowsDesktop-2 ($fields, $filter, $strings)
 }
 function Search-WindowsDesktop-1 ($filter, $strings)
 {
-    Search-WindowsDesktop-2 "System.FileName", "System.ItemFolderPathDisplay" $filter $strings
+    # See for example this:
+    # - System (Windows)
+    #   http://msdn.microsoft.com/en-us/library/ff521735(VS.85).aspx
+    # - Desktop Search
+    #   http://technet.microsoft.com/en-us/library/ff402341.aspx
+    # - Scripting Windows Desktop Search 3.0
+    #   http://technet.microsoft.com/en-us/library/ff404224.aspx
+    Search-WindowsDesktop-2 `
+      "System.Author",
+    "System.ContentType",
+    "System.CopyRight",
+    "System.FileName",
+    "System.FileDescription",
+    "System.FileExtension",
+    "System.ItemAuthors",
+    "System.ItemFolderPathDisplay",
+    "System.ItemName",
+    "System.ItemUrl",
+    "System.Keywords",
+    "System.Title" `
+      $filter $strings
 }
 function Search-WindowsDesktop ($roots, $strings)
 {
@@ -130,6 +169,7 @@ function Search-WindowsDesktop ($roots, $strings)
         }
         $filter += " AND (" + ( $ffs -join " OR ") + ")"
     }
+    myout ""
     myout $filter
     myout ""
     Search-WindowsDesktop-1 $filter $strings
@@ -144,8 +184,8 @@ function Search-WindowsDesktop ($roots, $strings)
 # $strings
 #if ($Args.Length -gt 0) {
 
-myout $roots
-myout $strings
+# myout $roots
+# myout $strings
 if ($strings) {
     #Search-WindowsDesktop $Args[0] $Args[1]
     if ($Args[2]) {
@@ -156,16 +196,16 @@ if ($strings) {
         # slot.  Test for this and split if it looks like this is the
         # best.  This procedure means that a "," itself can not be
         # included in the search.
-        myout ("strings=" + $strings)
+        #myout ("strings=" + $strings)
         if ($strings.Length -eq 1) {
-            myout "l=1!"
+            #myout "l=1!"
             $strings = $strings[0].Split(",")
             # $strings.Trim()
             #[string[]]$newstr = []
             foreach ($s in $strings) {
                 [string[]]$newstr += $s.Trim()
             }
-            myout $newstr
+            #myout $newstr
             # myout $strings
         }
         # Sending \ in filenames fails sometimes so let us assume that

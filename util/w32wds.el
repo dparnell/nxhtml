@@ -84,15 +84,22 @@ The strings in FILE-PATTS are matched with the SQL keyword
 strings should match.  This way you can easily search in
 different root locations at once."
   (interactive
-   (let ((dir (read-directory-name "In directory tree: "))
-         ;; Fix-me: split out the reading of search patterns.
-         (str (read-string "Search patterns: " nil 'w32wds-search-patt-hist))
-         (item-patt (rx (or (and "\""
-                                 (submatch (* (not (any "\""))))
-                                 "\"")
-                            (submatch (and word-start
-                                           (+ (not space))
-                                           word-end)))))
+   (let* ((dir (read-directory-name "In directory tree: "))
+          ;; Fix-me: split out the reading of search patterns.
+          (def-str (if (region-active-p)
+                       (concat "\""
+                               (buffer-substring-no-properties (region-beginning) (region-end))
+                               "\"")
+                     (or (let ((w (word-at-point)))
+                           (when w (substring-no-properties w)))
+                         "")))
+          (str (read-string "Search patterns: " def-str 'w32wds-search-patt-hist))
+          (item-patt (rx (or (and "\""
+                                  (submatch (* (not (any "\""))))
+                                  "\"")
+                             (submatch (and word-start
+                                            (+ (not space))
+                                            word-end)))))
          (start 0)
          strs)
      (while (setq start (string-match item-patt str start))
@@ -201,7 +208,7 @@ This gets tacked on the end of the generated expressions.")
 
 (defun w32wds-add-powershell-kw ()
   (let ((kw `((,(cadr powershell-compilation-error-regexp-alist)
-              (1 compilation-error-face)
+              (1 'compilation-error)
               (2 compilation-line-face nil t)
               (0
                (compilation-error-properties '1 2 nil nil nil '2 'nil)
