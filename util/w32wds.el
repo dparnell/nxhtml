@@ -51,8 +51,17 @@
 
 (defvar w32wds-search-patt-hist nil)
 
-;;(defvar w32wds-search-script (expand-file-name "etc/wds/DesktopSearch.ps1" nxhtml-install-dir))
 (defvar w32wds-search-script (expand-file-name "etc/wds/DesktopSearch.rb" nxhtml-install-dir))
+;; Fix-me: maybe. I am unable to get the ps1 version to work nicely
+;; from within Emacs. It works but you can't have spaces in the script
+;; file name, it is slower than the ruby version and there are more
+;; chars not displayed correctly (since it works through cmd.exe
+;; perhaps, but that is the only way to get it working currently,
+;; i.e. Powershell 2.0, WinXP).
+;;
+;; Therefor I did not finish all details in this script.
+;;
+;;(setq w32wds-search-script (expand-file-name "etc/wds/DesktopSearch.ps1" nxhtml-install-dir))
 
 ;; (w32wds-search '("cullberg") '("c"))
 ;;;###autoload
@@ -87,13 +96,14 @@ different root locations at once."
   (interactive
    (let* ((dir (read-directory-name "In directory tree: "))
           ;; Fix-me: split out the reading of search patterns.
-          (def-str (if (region-active-p)
-                       (concat "\""
-                               (buffer-substring-no-properties (region-beginning) (region-end))
-                               "\"")
-                     (or (let ((w (word-at-point)))
-                           (when w (substring-no-properties w)))
-                         "")))
+          ;; (def-str (if (region-active-p)
+          ;;              (concat "\""
+          ;;                      (buffer-substring-no-properties (region-beginning) (region-end))
+          ;;                      "\"")
+          ;;            (or (let ((w (word-at-point)))
+          ;;                  (when w (substring-no-properties w)))
+          ;;                "")))
+          (def-str (grep-tag-default))
           (str (read-string "Search patterns: " def-str 'w32wds-search-patt-hist))
           (item-patt (rx (or (and "\""
                                   (submatch (* (not (any "\""))))
@@ -112,27 +122,50 @@ different root locations at once."
      ;; (setq dir (replace-regexp-in-string "/" "\\" dir t t))
      (list strs
            (list dir))))
-  (let ((command (concat (shell-quote-argument w32wds-search-script)
-                         " "
-                         (shell-quote-argument (mapconcat 'identity file-patts ", "))
-                         " "
+  (let* ((script-ext (file-name-extension w32wds-search-script))
+         (script-type (cond
+                       ((string= "ps1" script-ext) 'powershell)
+                       ((string= "rb"  script-ext) 'ruby)
+                       (t 'unknown)))
+         (command (concat (cond
+                           ((eq script-type 'ruby) "ruby.exe -v ")
+                           ((eq script-type 'powershell) ""))
+                          ;;(shell-quote-argument (convert-standard-filename w32wds-search-script))
+                          (convert-standard-filename w32wds-search-script)
+                          " "
+                          (shell-quote-argument (mapconcat 'identity file-patts ", "))
+                          " "
                          (shell-quote-argument (mapconcat 'identity search-patts ", "))
                          ))
-        (dir default-directory))
-    (let ((default-directory dir)
+         (command-list (append (cond
+                                ((eq script-type 'ruby) '("ruby.exe" "-v"))
+                                ((eq script-type 'powershell) '("cmd" "/c" "powershell.exe" "/command")))
+                               (list
+                                ;;(convert-standard-filename w32wds-search-script)
+                                w32wds-search-script
+                                (mapconcat 'identity file-patts ", ")
+                                (mapconcat 'identity search-patts ", "))))
+         )
+    (let ((default-directory (car file-patts))
           ;; Fix-me: coding system
           (process-coding-system-alist
            '(
              (".*DesktopSearch.ps1.*" . utf-8)
              (".*powershell.exe.*" . utf-8)
              )))
-      (compilation-start command 'w32wds-mode)
+      (when (and (get 'compilation-start 'command-can-be-list)
+                 (not (eq script-type 'powershell))
+                 )
+        (setq command command-list))
+      (with-current-buffer (compilation-start command 'w32wds-mode)
+        (visual-line-mode 1)
+        (setq wrap-prefix "           "))
       )))
 
 (defconst w32wds-error-regexp-alist
-  '(("^ \\(.+?\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2"
+  '(("^\\(.+?\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2"
      1 3)
-    ("^ \\(\\(.+?\\):\\([0-9]+\\):\\).*?\
+    ("^\\(\\(.+?\\):\\([0-9]+\\):\\).*?\
 \\(\033\\[01;31m\\(?:\033\\[K\\)?\\)\\(.*?\\)\\(\033\\[[0-9]*m\\)"
      2 3
      ;; Calculate column positions (beg . end) of first grep match on a line
@@ -163,12 +196,52 @@ different root locations at once."
      ("^Compilation \\(exited abnormally\\|interrupt\\|killed\\|terminated\\|segmentation fault\\)\\(?:.*with code \\([0-9]+\\)\\)?.*"
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
       (1 compilation-error-face)
-      (2 compilation-error-face nil t)))
+      (2 compilation-error-face nil t))
+     (w32wds-hit-marker)
+     )
    "Additional things to highlight in w32wds mode.
 This gets tacked on the end of the generated expressions.")
 
+(defun w32wds-hit-marker (bound)
+  (while (and (< (point) bound)
+              (re-search-forward "\\[\\[\\(.*?\\)\\]\\[\\(.*?\\)\\]" bound t))
+    (let ((b0 (match-beginning 0))
+          (e0 (match-end 0))
+          (m1 (match-string 1))
+          (b2 (match-beginning 2))
+          (e2 (match-end 2)))
+      (put-text-property b0 (- b2 0) 'invisible t)
+      (put-text-property (- e0 1) (+ e0 1) 'invisible t)
+      (put-text-property b2 e2 'help-echo m1)
+      (put-text-property b2 e2 'keymap w32wds-link-keymap)
+      (put-text-property b2 e2 'mouse-face 'highlight)
+      (put-text-property b2 e2 'font-lock-face 'link)
+      ))
+  nil)
+
+(defun w32wds-org-open-at-point ()
+  (interactive)
+  (let* ((file (w32wds-find-filename))
+         (full (expand-file-name file))
+         (default-directory (file-name-directory full)))
+    (org-open-at-point)))
+
+(defvar w32wds-link-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(control ?m)] 'w32wds-org-open-at-point)
+    map))
+
 (defvar w32wds-hit-face	compilation-info-face
   "Face name to use for search hits.")
+
+(defun w32wds-find-filename ()
+  (let ((here (point)))
+    (unless (re-search-backward "Text file " nil t)
+      (error "Expected to find line beginning with 'Text file' above"))
+    (forward-char 12)
+    (let ((file-msg (get-text-property (point) 'message)))
+      (goto-char here)
+      (caar (nth 2 (nth 0 file-msg))))))
 
 (defun w32wds-next-error-function (n &optional reset)
   (let ((here (point)))
@@ -180,21 +253,16 @@ This gets tacked on the end of the generated expressions.")
       (let ((line (string-to-number (match-string-no-properties 1)))
             (msg-pt (point))
             (msg (get-text-property (point) 'message))
-            file-msg
             file)
         (setq compilation-current-error (point-marker))
-        (if (not (re-search-backward "Text file " nil t))
-            (error "Expected to find line beginning with 'Text file' above")
-          (forward-char 12)
-          (setq file-msg (get-text-property (point) 'message))
-          (setq file (caar (nth 2 (nth 0 file-msg))))
-          (setcar (car (nth 2 (nth 0 msg))) file)
-          (goto-char msg-pt)
-          (let ((inhibit-read-only t))
-            (put-text-property (point) (1+ (point)) 'message msg))
-          (compilation-next-error-function n reset)
-          ;;(goto-line line)
-          )))))
+        (setq file (w32wds-find-filename))
+        (setcar (car (nth 2 (nth 0 msg))) file)
+        (goto-char msg-pt)
+        (let ((inhibit-read-only t))
+          (put-text-property (point) (1+ (point)) 'message msg))
+        (compilation-next-error-function n reset)
+        ;;(goto-line line)
+        ))))
 
 (define-compilation-mode w32wds-mode "Search"
   "Mode for `w32wds-search' output."
@@ -202,7 +270,7 @@ This gets tacked on the end of the generated expressions.")
   (set (make-local-variable 'compilation-error-face) w32wds-hit-face)
   ;;(set (make-local-variable 'compilation-error-regexp-alist) w32wds-regexp-alist)
   ;;(set (make-local-variable 'compilation-process-setup-function) 'grep-process-setup)
-  (message "flkw=%S" compilation-mode-font-lock-keywords)
+  ;; (message "flkw=%S" compilation-mode-font-lock-keywords)
   )
 
 (defun w32wds-add-powershell-kw ()

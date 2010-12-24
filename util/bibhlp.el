@@ -1087,6 +1087,37 @@ Return a list \(BEG END)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Commands
 
+(defun bibhlp-prompt ()
+  (let ((cwcfg (current-window-configuration))
+        (buf (get-buffer-create "*BIBHLP Promp*"))
+        ev
+        to-msg
+        done)
+    (unwind-protect
+        (progn
+          (display-buffer buf)
+          (with-current-buffer buf
+            (insert "hej")
+            )
+          (while (not done)
+            (setq ev (read-event))
+            (message "ev=%S" ev)
+            (cond
+             ((eq ev ?g)
+              (message "rec g")
+              (setq done t))
+             (t
+              (if (eq (lookup-key global-map (vector ev)) 'self-insert-command)
+                  (message "There is no alternative '%c'" ev)
+                (setq unread-command-events (list ev))
+                (setq done t)
+                )
+              )
+             )
+            ))
+      (set-window-configuration cwcfg)
+      (kill-buffer buf))))
+
 (defun bibhlp-alternatives-for-url (url)
   (let ((prompt (concat "
 What do you want to do with the url at point?

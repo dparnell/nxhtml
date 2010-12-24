@@ -455,8 +455,8 @@ See `visual-indent-use-adaptive-fill' for more information."
                 (beg-pos (point))
                 (end-pos (point-at-eol)))
             (unless (= beg-pos (point-at-bol))
-              (message "visual-indent-fontify internal err: beg-pos /= point-at-bol")
-              (gdb-deb-print "visual-indent-fontify internal err: beg-pos /= point-at-bol")
+              (message "visual-indent-jit-lock-fun internal err: beg-pos /= point-at-bol")
+              (gdb-deb-print "visual-indent-jit-lock-fun internal err: beg-pos /= point-at-bol")
               )
             ;; Fix-me: Why did I check this? Step aside from org-mode or?
             (when (equal (get-text-property beg-pos 'wrap-prefix)
@@ -472,8 +472,8 @@ See `visual-indent-use-adaptive-fill' for more information."
           ;; means we will not get stuck here.
           (unless (eobp) (forward-line 1))
           (unless (< last-point (point))
-            (message "visual-indent-fontify: display engine error")
-            (gdb-deb-print "visual-indent-fontify: display engine error"))
+            (message "visual-indent-jit-lock-fun display engine error")
+            (gdb-deb-print "visual-indent-jit-lock-fun display engine error"))
           )))))
 
 
