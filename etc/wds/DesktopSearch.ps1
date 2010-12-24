@@ -81,10 +81,12 @@ function Search-WindowsDesktop-2 ($fields, $filter, $strings)
         $itemname = $recordSet.Fields.Item("System.ItemName").Value
         $title = $recordSet.Fields.Item("System.Title").Value
         myout ""
-        foreach ($field in $fields) {
-            $val = $recordSet.Fields.Item($field).Value
-            if ($val -and ($val.Length -gt 0)) {
-                myout ("  * " + $field + "=" + $recordSet.Fields.Item($field).Value)
+        if ($False) {
+            foreach ($field in $fields) {
+                $val = $recordSet.Fields.Item($field).Value
+                if ($val -and ($val.Length -gt 0)) {
+                    myout ("  * " + $field + "=" + $recordSet.Fields.Item($field).Value)
+                }
             }
         }
         $v = "-----"+$file
@@ -102,12 +104,11 @@ function Search-WindowsDesktop-2 ($fields, $filter, $strings)
             $re = "\b(" + $re + ")\b"
             # myout ("re=" + $re)
             $r = Select-String -Path $file -Pattern $re
-            # if ($r) {
-            if (False) {
+            if ($r) {
                 $max = 100
                 foreach ($row in $r) {
                     $row = $row.ToString()
-                    $row = "  " + $row.Substring($file.Length)
+                    $row = "L" + $row.Substring($file.Length)
                     if ($row.Length -gt $max) {
                         $row = $row.Substring(0, $max)
                     }
@@ -116,6 +117,17 @@ function Search-WindowsDesktop-2 ($fields, $filter, $strings)
             }
         } else {
             myout ("Binary file " + $file + " matches")
+        }
+        $title = $recordset.Fields.Item("System.Title").Value
+        if ($title -and ($title.Length -gt 0)) {
+            myout ("  Title: "+$title)
+        }
+        $author = $recordset.Fields.Item("System.Author").Value
+        if (-not ($author -and ($author.Length -gt 0))) {
+            $author = $recordset.Fields.Item("System.Itemauthors").Value
+        }
+        if ($author -and ($author.Length -gt 0)) {
+            myout ("  Authors: "+$author)
         }
         #$result
         $recordSet.MoveNext()
