@@ -1121,6 +1121,16 @@
       (define-key edit-map [nxhtml-ldir-replace]
         (list 'menu-item "Replace in Files in Directory" 'ldir-query-replace))
 
+      (define-key edit-map [nxhtml-edit-sepgrep] (list 'menu-item "--"))
+      (define-key edit-map [nxhtml-lgrep]
+        (list 'menu-item "Search in Files in Directory" 'lgrep))
+      (define-key edit-map [nxhtml-rgrep]
+        (list 'menu-item "Search in Files in Tree" 'rgrep))
+
+      (define-key edit-map [nxhtml-edit-sepidx] (list 'menu-item "--"))
+      (define-key edit-map [nxhtml-idxsearch]
+        (list 'menu-item "Indexed Search" 'idxsearch))
+
       (define-key edit-map [nxhtml-edit-sep2] (list 'menu-item "--"))
       (define-key edit-map [nxhtml-multi-occur]
         (list 'menu-item "Occur in File Buffers" 'multi-occur-in-matching-buffers))

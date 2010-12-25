@@ -1,23 +1,25 @@
-;;; w32wds.el --- Windows Desktop Search integration
+;;; idxsearch.el --- Windows Desktop Search integration
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2010-12-21 Tue
 ;; Version:
 ;; Last-Updated:
 ;; URL:
-;; Keywords:
+;; Keywords:  matching
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   None
+;;   `backquote', `bytecomp', `comint', `compile', `flymake',
+;;   `flymake-css', `flymake-java-1', `flymake-js', `nxhtml-base',
+;;   `powershell-mode', `ring', `tool-bar', `warnings'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
 ;;
 ;; Integration with Windows Search.
-;; For more information see `w32wds-search'.
+;; For more information see `idxsearch'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -45,13 +47,19 @@
 ;;
 ;;; Code:
 
+;; Fix-me: rename to for example idxsearch.el
 (eval-when-compile (require 'compile))
+(eval-when-compile (require 'grep))
+(eval-when-compile (require 'org))
 (require 'powershell-mode)
 (require 'nxhtml-base)
+;; Fix-me: The byte compiler should not complain about these:
+(declare-function orgstruct-mode "orgstruct-mode")
+(declare-function outline-minor-mode "outline")
 
-(defvar w32wds-search-patt-hist nil)
+(defvar idxsearch-patt-hist nil)
 
-(defvar w32wds-search-script (expand-file-name "etc/wds/DesktopSearch.rb" nxhtml-install-dir))
+(defvar idxsearch-search-script (expand-file-name "etc/wds/idxsearch.rb" nxhtml-install-dir))
 ;; Fix-me: maybe. I am unable to get the ps1 version to work nicely
 ;; from within Emacs. It works but you can't have spaces in the script
 ;; file name, it is slower than the ruby version and there are more
@@ -59,13 +67,15 @@
 ;; perhaps, but that is the only way to get it working currently,
 ;; i.e. Powershell 2.0, WinXP).
 ;;
-;; Therefor I did not finish all details in this script.
+;; Therefor I did not finish all details in the ps1 script and it is
+;; currently not usable with idxsearch.el. (Though it should be easy
+;; to fix, it is just output formatting that differs.)
 ;;
-;;(setq w32wds-search-script (expand-file-name "etc/wds/DesktopSearch.ps1" nxhtml-install-dir))
+;;(setq idxsearch-search-script (expand-file-name "etc/wds/idxsearch.ps1" nxhtml-install-dir))
 
-;; (w32wds-search '("cullberg") '("c"))
+;; (idxsearch '("cullberg") '("c:/") nil)
 ;;;###autoload
-(defun w32wds-search (search-patts file-patts params)
+(defun idxsearch (search-patts file-patts params)
   "Search using Windows Search.
 This searches all the content you have indexed there.
 
@@ -80,9 +90,10 @@ If the file is a text file it will be searched for all words and
 phrases so you get direct links into it.
 
 ----
-For non-interactive use SEARCH-PATTS and FILE-PATTS should be
-list of strings.  In this case the strings are given as they are
-to the SQL statements for searching Windows Search.
+
+When called from elisp SEARCH-PATTS and FILE-PATTS should be list
+of strings.  In this case the strings are given as they are to
+the SQL statements for searching Windows Search.
 
 The strings in SEARCH-PATT should just be strings to match.  If
 they contain spaces they are considered to be a sequence of
@@ -93,7 +104,13 @@ The strings in FILE-PATTS are matched with the SQL keyword
 'like'.  A '%' char is appended to each strings.  Any of this
 strings should match.  This way you can easily search in
 different root locations at once."
+
+;; Fix-me: option for matching long lines with all patterns, instead
+;; of any.
   (interactive
+   ;; Fix-me: Extract this and use as a loop for new queries. Allow
+   ;; things like TAB cycle visibility in the output buffer. Add a
+   ;; "reenter query command".
    (let* ((dir (read-directory-name "In directory tree: "))
           ;; Fix-me: split out the reading of search patterns.
           ;; (def-str (if (region-active-p)
@@ -104,7 +121,7 @@ different root locations at once."
           ;;                  (when w (substring-no-properties w)))
           ;;                "")))
           (def-str (grep-tag-default))
-          (str (read-string "Search patterns: " def-str 'w32wds-search-patt-hist))
+          (str (read-string "Search patterns: " def-str 'idxsearch-patt-hist))
           (item-patt (rx (or (and "\""
                                   (submatch (* (not (any "\""))))
                                   "\"")
@@ -123,35 +140,35 @@ different root locations at once."
      (list strs
            (list dir)
            "")))
-  (w32wds-search-1 (list
+  (idxsearch-1 (list
                     "--root"   (mapconcat 'identity file-patts ",")
                     ;; "--locate" "grep"
                     "--query"  (mapconcat 'identity search-patts ","))))
 
-;; (setq locate-make-command-line 'w32wds-locate-make-command-line)
-;; (w32wds-locate-make-command-line "some.fil")
-(defun w32wds-locate-make-command-line (search)
-  (let* ((cmd (car (w32wds-make-command
+;; (setq locate-make-command-line 'idxsearch-locate-make-command-line)
+;; (idxsearch-locate-make-command-line "some.fil")
+(defun idxsearch-locate-make-command-line (search)
+  (let* ((cmd (car (idxsearch-make-command
                     (list
                      "--root"   default-directory
                      "--locate" "locate"
                      "--query"  search)))))
     cmd))
 
-(defun w32wds-make-command (options)
-  (let* ((script-ext (file-name-extension w32wds-search-script))
+(defun idxsearch-make-command (options)
+  (let* ((script-ext (file-name-extension idxsearch-search-script))
          (script-type (cond
                        ((string= "ps1" script-ext) 'powershell)
                        ((string= "rb"  script-ext) 'ruby)
                        (t 'unknown)))
-         (command-list (append `(,(convert-standard-filename w32wds-search-script))
+         (command-list (append `(,(convert-standard-filename idxsearch-search-script))
                                options)))
     (when (eq script-type 'ruby)
       (setq command-list (append '("ruby.exe") command-list)))
     (list command-list script-type)))
 
-(defun w32wds-search-1 (options)
-  (let* ((cmds (w32wds-make-command options))
+(defun idxsearch-1 (options)
+  (let* ((cmds (idxsearch-make-command options))
          (cmd (car cmds))
          (script-type (cadr cmds))
          (default-directory (car (split-string (cadr (member "--root" options)) ",")))
@@ -166,12 +183,30 @@ different root locations at once."
       ;; Fix-me: Or rather hope that my patch to compilation-start is
       ;; accepted soon...
       (setq cmd (mapconcat 'identity cmd " ")))
-    (with-current-buffer (compilation-start cmd 'w32wds-mode)
+    (with-current-buffer (compilation-start cmd 'idxsearch-mode)
       (visual-line-mode 1)
-      (setq wrap-prefix "           "))
-    ))
+      (setq wrap-prefix "           ")
+      (outline-minor-mode)
+      ;; Fix-me: This prevents tab from beeing used outside header
+      ;; lines, otherwise it is very nice. Sigh. Try to make Carsten
+      ;; change this.
 
-(defconst w32wds-error-regexp-alist
+      ;; fix-me: Maybe add some highlighting to show that there headerlines
+      ;; are handled by org?
+
+      ;; Fix-me: Display just file names first? How is that setup?
+      ;; Does org use jit-lock for this or should I fix that? Can
+      ;; jit-lock handle things like this? Did Stefan suggest
+      ;; something like it? Could it be handled by just request
+      ;; refontification of "*" or does that trigger refontification
+      ;; of the whole tail of the buffer? Is there any big
+      ;; disadvantage with whole buffer refontification? Could it be
+      ;; handled by post-command-hook instead? Is that even better
+      ;; since this is not a head -> tail op?
+      (orgstruct-mode)
+      )))
+
+(defconst idxsearch-error-regexp-alist
   '(("^\\(.+?\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2"
      1 3)
     ("^\\(\\(.+?\\):\\([0-9]+\\):\\).*?\
@@ -185,12 +220,12 @@ different root locations at once."
       (lambda () (- (match-end 5) (match-end 1)
 		    (- (match-end 4) (match-beginning 4)))))
      nil 1)
-    ("^File \\(.+\\) matches$" 1 nil nil 0 1)
+    ("^\* File \\(.+\\) matches$" 1 nil nil 0 1)
     ;;("^File \\(.+\\) matches$" 1 nil nil 0 1)
     )
   "Regexp used to match search hits.  See `compilation-error-regexp-alist'.")
 
-(defvar w32wds-mode-font-lock-keywords
+(defvar idxsearch-mode-font-lock-keywords
    '(;; configure output lines.
      ;; ("^[Cc]hecking \\(?:[Ff]or \\|[Ii]f \\|[Ww]hether \\(?:to \\)?\\)?\\(.+\\)\\.\\.\\. *\\(?:(cached) *\\)?\\(\\(yes\\(?: .+\\)?\\)\\|no\\|\\(.*\\)\\)$"
      ;;  (1 font-lock-variable-name-face)
@@ -206,17 +241,17 @@ different root locations at once."
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
       (1 compilation-error-face)
       (2 compilation-error-face nil t))
-     (w32wds-hit-marker)
+     (idxsearch-hit-marker)
      )
-   "Additional things to highlight in w32wds mode.
+   "Additional things to highlight in idxsearch mode.
 This gets tacked on the end of the generated expressions.")
 
-(defvar w32wds-link-keymap
+(defvar idxsearch-link-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map [(control ?m)] 'w32wds-org-open-at-point)
+    (define-key map [(control ?m)] 'idxsearch-org-open-at-point)
     map))
 
-(defun w32wds-hit-marker (bound)
+(defun idxsearch-hit-marker (bound)
   (let ((here (point)))
     (while (and (< (point) bound)
                 (re-search-forward "\\[\\[\\(.*?\\)\\]\\[\\(.*?\\)\\]" bound t))
@@ -229,7 +264,7 @@ This gets tacked on the end of the generated expressions.")
           (put-text-property b0 b2 'invisible t)
           (put-text-property (- e0 1) (+ e0 1) 'invisible t)
           (put-text-property b2 e2 'help-echo m1)
-          (put-text-property b2 e2 'keymap w32wds-link-keymap)
+          (put-text-property b2 e2 'keymap idxsearch-link-keymap)
           (put-text-property b2 e2 'mouse-face 'highlight)
           (put-text-property b2 e2 'font-lock-face 'font-lock-function-name-face)
           )))
@@ -247,17 +282,17 @@ This gets tacked on the end of the generated expressions.")
           )))
     nil))
 
-(defun w32wds-org-open-at-point ()
+(defun idxsearch-org-open-at-point ()
   (interactive)
-  (let* ((file (w32wds-find-filename))
+  (let* ((file (idxsearch-find-filename))
          (full (expand-file-name file))
          (default-directory (file-name-directory full)))
     (org-open-at-point)))
 
-(defvar w32wds-hit-face	compilation-info-face
+(defvar idxsearch-hit-face	compilation-info-face
   "Face name to use for search hits.")
 
-(defun w32wds-find-filename ()
+(defun idxsearch-find-filename ()
   (let ((here (point))
         (file-loc-patt "^File .* matches$"))
     (unless (re-search-backward file-loc-patt nil t)
@@ -267,7 +302,7 @@ This gets tacked on the end of the generated expressions.")
       (goto-char here)
       (caar (nth 2 (nth 0 file-msg))))))
 
-(defun w32wds-next-error-function (n &optional reset)
+(defun idxsearch-next-error-function (n &optional reset)
   (let ((here (point)))
     (goto-char (point-at-bol))
     (if (not (looking-at "[a-z]:\\([0-9]+\\):"))
@@ -279,7 +314,7 @@ This gets tacked on the end of the generated expressions.")
             (msg (get-text-property (point) 'message))
             file)
         (setq compilation-current-error (point-marker))
-        (setq file (w32wds-find-filename))
+        (setq file (idxsearch-find-filename))
         (setcar (car (nth 2 (nth 0 msg))) file)
         (goto-char msg-pt)
         (let ((inhibit-read-only t))
@@ -288,16 +323,16 @@ This gets tacked on the end of the generated expressions.")
         ;;(goto-line line)
         ))))
 
-(define-compilation-mode w32wds-mode "Search"
-  "Mode for `w32wds-search' output."
-  (setq next-error-function 'w32wds-next-error-function)
-  (set (make-local-variable 'compilation-error-face) w32wds-hit-face)
-  ;;(set (make-local-variable 'compilation-error-regexp-alist) w32wds-regexp-alist)
+(define-compilation-mode idxsearch-mode "Search"
+  "Mode for `idxsearch' output."
+  (setq next-error-function 'idxsearch-next-error-function)
+  (set (make-local-variable 'compilation-error-face) idxsearch-hit-face)
+  ;;(set (make-local-variable 'compilation-error-regexp-alist) idxsearch-regexp-alist)
   ;;(set (make-local-variable 'compilation-process-setup-function) 'grep-process-setup)
   ;; (message "flkw=%S" compilation-mode-font-lock-keywords)
   )
 
-(defun w32wds-add-powershell-kw ()
+(defun idxsearch-add-powershell-kw ()
   (let ((kw `((,(cadr powershell-compilation-error-regexp-alist)
               (1 'compilation-error)
               (2 compilation-line-face nil t)
@@ -305,9 +340,9 @@ This gets tacked on the end of the generated expressions.")
                (compilation-error-properties '1 2 nil nil nil '2 'nil)
                append))))
         )
-    (font-lock-add-keywords 'w32wds-mode kw)))
-(add-hook 'w32wds-mode-hook 'w32wds-add-powershell-kw)
+    (font-lock-add-keywords 'idxsearch-mode kw)))
+(add-hook 'idxsearch-mode-hook 'idxsearch-add-powershell-kw)
 
-(provide 'w32wds)
+(provide 'idxsearch)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; w32wds.el ends here
+;;; idxsearch.el ends here

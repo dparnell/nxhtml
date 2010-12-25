@@ -211,6 +211,10 @@
   ;; Tell what have been loaded of nXhtml:
   (when nxhtml-autostart-trace (nxhtml-list-loaded-features nil))
 
+  ;; Should be moved to Emacs some day:
+  (unless (lookup-key global-map [(meta ?s) ?x])
+    (define-key global-map [(meta ?s) ?x] 'idxsearch))
+
   ;; How long time did it all take?
   (message "Nxml/Nxhtml Autostart.el loaded in %.1f seconds" (- (float-time) nxhtml-load-time-start)))
 
