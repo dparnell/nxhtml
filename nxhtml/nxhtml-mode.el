@@ -71,6 +71,22 @@
 (eval-and-compile (require 'typesetter nil t))
 (eval-when-compile (require 'xhtml-help nil t))
 (eval-when-compile (require 'popcmp nil t))
+
+;; Fix-me: The byte compile complaints about these autoloaded functions.
+;; Warning: the following functions might not be defined at
+;;     runtime:
+(declare-function rng-validate-mode "rng-valid")
+(declare-function rng-clear-overlays "rng-valid")
+(declare-function rng-process-encoding-name "rng-valid")
+(declare-function rng-clear-conditional-region "rng-valid")
+(declare-function rng-forward "rng-valid")
+(declare-function rng-state-matches-current "rng-valid")
+(declare-function rng-clear-cached-state "rng-valid")
+(declare-function rng-mark-xmltok-errors "rng-valid")
+(declare-function rng-mark-xmltok-dependent-regions "rng-valid")
+(declare-function rng-cache-state "rng-valid")
+(declare-function rng-process-end-document "rng-valid")
+
 ;; (eval-when-compile
 ;;   (unless (or (< emacs-major-version 23)
 ;;               (boundp 'nxhtml-menu:version)

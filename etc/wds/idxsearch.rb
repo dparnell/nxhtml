@@ -56,14 +56,21 @@ end
 class WdsResult
   # This class holds result data
   def initialize(rootpath, maxw=0)
-    @root_path = Pathname.new(rootpath)
+    @roots = rootpath.split(",")
+    @current_dir = Pathname.new(Dir.pwd)
     if maxw == 0
       emacs_w = ENV["EMACS-COMPILE-WINDOW-WIDTH"]
       if emacs_w; maxw = emacs_w.to_i(); else; maxw = 100; end
     end
     @maxw = maxw
     fields = @used_fields.join(", ")
-    sql = "SELECT " + fields + " FROM SYSTEMINDEX " + filter
+    filters = []
+    filters.push scope_filter if scope_filter
+    filters.push filter       if filter
+    filters.push file_filter  if file_filter
+    used_filters = filters.join(" AND ")
+    sql = "Select #{fields} From SYSTEMINDEX Where #{used_filters}"
+    print used_filters, "\n"
     db = WdsServer.new
     db.open
     db.query(sql)
@@ -71,7 +78,35 @@ class WdsResult
     @hits = db.data
     db.close
   end
+  def scope_filter
+    scope = []
+    @roots.each { |i| scope.push "Scope='file:#{i}'" }
+    "("+scope.join(" Or ")+")"
+  end
 end
+
+# Fix-me:
+# http://www.i-programmer.info/projects/38-windows/609-windows-search-wds-4.html?start=6
+#
+# If you use the SCOPE or the DIRECTORY predicates you can control
+# where the search is performed. The difference between the two is
+# that SCOPE does a deep search, i.e. including all subfolders, but
+# DIRECTORY does a shallow search, i.e. just the folder you
+# specify. For example:
+
+#  @"WHERE SCOPE='file:C:\Files\Reports'"
+
+# searches C:/Files/Reports and all the subfolders it contains
+# whereas:
+
+#  @"WHERE DIRECTORY=
+#         'file:C:\Files\Reports'"
+
+# searches just C:\Files\Reports.
+
+# Notice that SCOPE and DIRECTORY don't work as described in the
+# documentation. There is no need to put "//" after "file:" and you
+# can use either "/" or "\" in the path specification.
 
 class WdsLocateResult < WdsResult
   # This class holds and handles locate results
@@ -85,19 +120,14 @@ class WdsLocateResult < WdsResult
     @itemurl_num = @fields.index("SYSTEM.ITEMURL")
     @filename_num = @fields.index("SYSTEM.FILENAME")
   end
-  def filter
+  def file_filter
+    return $null if -1 == @filename
     fns = @filename.split(",")
     fns_like = []
     fns.each { |i|
-      if @for_locate
-        fns_like.push("Like '%#{i}%'")
-      else
-        fns_like.push("Like '#{i}%'")
-      end
+      fns_like.push("SYSTEM.FILENAME LIKE '%#{i}%'")
     }
-    filter = "WHERE SYSTEM.ITEMURL "
-    filter << fns_like.join(" OR ")
-    filter
+    "("+fns_like.join(" OR ")+")"
   end
   def fullurl (hit)
     url = hit[@itemurl_num]
@@ -107,7 +137,7 @@ class WdsLocateResult < WdsResult
     url = hit[@itemurl_num]
     url = url[5..-1]
     this_path = Pathname.new(url)
-    relurl = this_path.relative_path_from(@root_path)
+    relurl = this_path.relative_path_from(@current_dir)
     return relurl
   end
   def output
@@ -146,8 +176,10 @@ class WdsSearchResult < WdsLocateResult
   def filter
     query_contains = []
     @query_strings.each { |i| query_contains.push("Contains('\""+i+"\"')") }
-    filter = "WHERE "
+    # filter = "WHERE "
+    filter = ""
     filter << query_contains.join(" AND ")
+    "(#{filter})"
   end
   def title (hit)
     return hit[@tit_num]
@@ -192,13 +224,13 @@ class WdsSearchResult < WdsLocateResult
 end
 
 
-  ### For field names see for example these:
-  # - System (Windows)
-  #   http://msdn.microsoft.com/en-us/library/ff521735(VS.85).aspx
-  # - Desktop Search
-  #   http://technet.microsoft.com/en-us/library/ff402341.aspx
-  # - Scripting Windows Desktop Search 3.0
-  #   http://technet.microsoft.com/en-us/library/ff404224.aspx
+### For field names see for example these:
+# - System (Windows)
+#   http://msdn.microsoft.com/en-us/library/ff521735(VS.85).aspx
+# - Desktop Search
+#   http://technet.microsoft.com/en-us/library/ff402341.aspx
+# - Scripting Windows Desktop Search 3.0
+#   http://technet.microsoft.com/en-us/library/ff404224.aspx
 
 ### Optional nearly named method params:
 # http://devlicio.us/blogs/sergio_pereira/archive/2008/12/31/playing-with-ruby-1-9-name-parameters-sort-of.aspx

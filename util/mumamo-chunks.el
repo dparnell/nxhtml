@@ -95,12 +95,42 @@ This is just for the keyboard, not for the fontification."
 (defun mumamo-define-html-file-wide-keys ()
   "Define keys in multi major mode keymap for html files."
   (let ((map (mumamo-multi-mode-map)))
-    (define-key map [(control ?c) (control ?h) ?b] 'nxhtml-browse-file)
-    ))
+    (when map
+      (define-key map [(control ?c) (control ?h) ?b] 'nxhtml-browse-file)
+      )))
 ;; (defun mumamo-add-html-file-wide-keys (hook)
 ;;   (add-hook hook 'mumamo-define-html-file-wide-keys)
 ;;   )
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; No mumamo?
+
+;; Fix-me: Generalize etc.
+(add-hook 'nxhtml-mumamo-mode-hook 'mumamo-php-if-all-php)
+(add-hook 'html-mumamo-mode-hook 'mumamo-php-if-all-php)
+(defun mumamo-php-if-all-php ()
+  "Switch to php mode if beginning with <?php and no ?> found.
+This function can be added to `nxhtml-mumamo-mode-hook' and
+`html-mumamo-mode-hook'.
+
+Note: This is in response to bug #610470, see URL
+`https://bugs.launchpad.net/nxhtml/+bug/610470'.  I am not sure
+this is a good thing, but let us test it."
+  (message "Checking if all php...")
+  (let ((here (point))
+        all-php)
+    (save-restriction
+      (widen)
+      (when (string= (buffer-substring 1 6)
+                     "<?php")
+        (goto-char (point-min))
+        (unless (search-forward "?>" nil t)
+          (setq all-php t)
+          (php-mode))
+        (message (if all-php "... switching to php-mode" "... multi major mode"))
+        (goto-char here)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
