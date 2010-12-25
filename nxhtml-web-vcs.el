@@ -69,7 +69,7 @@
 
 ;;(nxhtml-default-download-directory)
 (defun nxhtml-default-download-directory ()
-  (require 'web-vcs))
+  (require 'web-vcs)
   (let* ((ur (expand-file-name "" "~"))
          (ur-len (length ur))
          (full (if (and (boundp 'nxhtml-install-dir)

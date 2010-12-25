@@ -3,41 +3,6 @@ require 'win32ole'
 require 'pathname'
 
 
-class WdsRecord
-  # This class extracts record data
-  def initialize(fields, rootpath)
-    @fields = fields
-    @tit_num = @fields.index("SYSTEM.TITLE")
-    @auth_num = @fields.index("SYSTEM.AUTHOR")
-    @itemauth_num = @fields.index("SYSTEM.ITEMAUTHORS")
-    @filext_num = @fields.index("SYSTEM.FILEEXTENSION")
-    @itemurl_num = @fields.index("SYSTEM.ITEMURL")
-    @txt_ext = [".txt", ".org"]
-    @root_path = Pathname.new(rootpath)
-  end
-  def fullurl (hit)
-    url = hit[@itemurl_num]
-    return url[5..-1]
-  end
-  def relurl (hit)
-    url = hit[@itemurl_num]
-    url = url[5..-1]
-    this_path = Pathname.new(url)
-    relurl = this_path.relative_path_from(@root_path)
-    return relurl
-  end
-  def title (hit)
-    return hit[@tit_num]
-  end
-  def authors (hit)
-    return hit[@auth_num] || hit[@itemauth_num]
-  end
-  def istxt (hit)
-    ext = hit[@filext_num]
-    return ext && @txt_ext.index(ext)
-  end
-end
-
 class WdsServer
   # This class manages database connection and queries
   attr_accessor :connection, :data, :fields
@@ -59,8 +24,8 @@ class WdsServer
   def query(sql)
     # Create an instance of an ADO Recordset
     recordset = WIN32OLE.new('ADODB.Recordset')
-    # Open the recordset, using an SQL statement and the
-    # existing ADO connection
+    # Open the recordset, using an SQL statement and the existing ADO
+    # connection
     recordset.Open(sql, @connection)
     # Create and populate an array of field names
     @fields = []
@@ -76,16 +41,161 @@ class WdsServer
       @data = []
     end
     recordset.Close
-    # An ADO Recordset's GetRows method returns an array 
-    # of columns, so we'll use the transpose method to 
-    # convert it to an array of rows
+    # An ADO Recordset's GetRows method returns an array of columns,
+    # so we'll use the transpose method to convert it to an array of
+    # rows
     @data = @data.transpose
   end
 
   def close
     @connection.Close
   end
+
 end
+
+class WdsResult
+  # This class holds result data
+  def initialize(rootpath, maxw=0)
+    @root_path = Pathname.new(rootpath)
+    if maxw == 0
+      emacs_w = ENV["EMACS-COMPILE-WINDOW-WIDTH"]
+      if emacs_w; maxw = emacs_w.to_i(); else; maxw = 100; end
+    end
+    @maxw = maxw
+    fields = @used_fields.join(", ")
+    sql = "SELECT " + fields + " FROM SYSTEMINDEX " + filter
+    db = WdsServer.new
+    db.open
+    db.query(sql)
+    @fields = db.fields
+    @hits = db.data
+    db.close
+  end
+end
+
+class WdsLocateResult < WdsResult
+  # This class holds and handles locate results
+  def initialize(rootpath, filename, options)
+    @for_locate = options[:for_locate]
+    @filename = filename
+    @used_fields ||= []
+    @used_fields.push("SYSTEM.ITEMURL")
+    @used_fields.push("SYSTEM.FILENAME")
+    super(rootpath)
+    @itemurl_num = @fields.index("SYSTEM.ITEMURL")
+    @filename_num = @fields.index("SYSTEM.FILENAME")
+  end
+  def filter
+    fns = @filename.split(",")
+    fns_like = []
+    fns.each { |i| fns_like.push("Like '%#{i}%'") }
+    filter = "WHERE SYSTEM.ITEMURL "
+    filter << fns_like.join(" OR ")
+    filter
+  end
+  def fullurl (hit)
+    url = hit[@itemurl_num]
+    return url[5..-1]
+  end
+  def relurl (hit)
+    url = hit[@itemurl_num]
+    url = url[5..-1]
+    this_path = Pathname.new(url)
+    relurl = this_path.relative_path_from(@root_path)
+    return relurl
+  end
+  def output
+    print "\n"
+    @hits.each { |hit|
+      if @for_locate
+        print "#{fullurl(hit)}\n"
+      else
+        print "File #{fullurl(hit)} matches\n"
+      end
+    }
+    print "\n"
+    print "----\n"
+    print "Found ", @hits.length.to_s(), " matching files\n"
+  end
+end
+
+class WdsSearchResult < WdsLocateResult
+  # This class holds and handles search results
+  def initialize(rootpath, comma_sep_query, options)
+    txt_ext = options[:txtexts] || [".txt", ".org"]
+    maxw    = options[:maxw]    || 0
+    @query_strings = comma_sep_query.split(",")
+    @used_fields ||= []
+    @used_fields.push("SYSTEM.AUTHOR")
+    @used_fields.push("SYSTEM.ITEMAUTHORS")
+    @used_fields.push("SYSTEM.FILEEXTENSION")
+    @used_fields.push("SYSTEM.TITLE")
+    super(rootpath, maxw, options)
+    @auth_num = @fields.index("SYSTEM.AUTHOR")
+    @itemauth_num = @fields.index("SYSTEM.ITEMAUTHORS")
+    @filext_num = @fields.index("SYSTEM.FILEEXTENSION")
+    @tit_num = @fields.index("SYSTEM.TITLE")
+    @txt_ext = txt_ext
+  end
+  def filter
+    query_contains = []
+    @query_strings.each { |i| query_contains.push("Contains('\""+i+"\"')") }
+    filter = "WHERE "
+    filter << query_contains.join(" AND ")
+  end
+  def title (hit)
+    return hit[@tit_num]
+  end
+  def authors (hit)
+    return hit[@auth_num] || hit[@itemauth_num]
+  end
+  def istxt (hit)
+    ext = hit[@filext_num]
+    return ext && @txt_ext.index(ext)
+  end
+  def output
+    @hits.each {
+      |hit|
+      print "\n"
+      print "File ", relurl(hit), " matches\n"
+      if istxt(hit)
+        re_str = "("+@query_strings.join("|")+")"
+        re = Regexp.new(re_str, 1)
+        search_textfile(fullurl(hit), re, @maxw)
+      end
+      if nil
+        for fn in 0..field_names.length-1
+          val = hit[fn]
+          if val
+            print "  ", field_names[fn], "=", val, "\n"
+          end
+        end
+      end
+      title = title(hit)
+      if title
+        print "- Title:   ", title, "\n"
+      end
+      authors = authors(hit)
+      if authors
+        print "- Authors: ", authors.join(", "), "\n"
+      end
+    }
+    print "----\n"
+    print "Found ", @hits.length.to_s(), " mating files"
+  end
+end
+
+
+  ### For field names see for example these:
+  # - System (Windows)
+  #   http://msdn.microsoft.com/en-us/library/ff521735(VS.85).aspx
+  # - Desktop Search
+  #   http://technet.microsoft.com/en-us/library/ff402341.aspx
+  # - Scripting Windows Desktop Search 3.0
+  #   http://technet.microsoft.com/en-us/library/ff404224.aspx
+
+### Optional nearly named method params:
+# http://devlicio.us/blogs/sergio_pereira/archive/2008/12/31/playing-with-ruby-1-9-name-parameters-sort-of.aspx
 
 def search_textfile (filename, re, maxw)
   # See this blog posts about char encoding:
@@ -101,7 +211,7 @@ def search_textfile (filename, re, maxw)
     if matchdata
       col = matchdata.begin(0)
       cnd = matchdata.end(0)
-      if line.length > maxw
+      if (maxw > 0) && (line.length > maxw)
         len = cnd - col
         if len > maxw
           show = "_"+line[col, maxw-3]+"_"
@@ -118,125 +228,46 @@ def search_textfile (filename, re, maxw)
         show = line
         part = "c"
       end
+      mshow = ""
+      while md = re.match(show)
+        b0 = md.begin(0)
+        e0 = md.end(0)
+        mshow += show[0..b0-1]+
+          "{{{"+
+          show[b0..e0-1]+
+          "}}}"
+        show = show[e0..-1]
+      end
+      mshow += show
       #row_col = "L:"+row.to_s()+":"+col.to_s()+":"
       row_col = part+":"+row.to_s()+":"+col.to_s()+":"
       space = "     "[row_col.length-6..-1]
-      print "", row_col, space, " ", show, "\n"
-      raise "Too wide!: "+part+", "+ show.length.to_s() if show.length > maxw
+      print "", row_col, space, " ", mshow, "\n"
+      raise "Too wide!: "+part+", "+ mshow.length.to_s() if (show.length > maxw && maxw > 0)
     end
   end
 end
-
-class QueryWds
-  # This class answers queries
-  def initialize(rootpath)
-    @rootpath = rootpath
-    ### Field names. See for example this:
-    # - System (Windows)
-    #   http://msdn.microsoft.com/en-us/library/ff521735(VS.85).aspx
-    # - Desktop Search
-    #   http://technet.microsoft.com/en-us/library/ff402341.aspx
-    # - Scripting Windows Desktop Search 3.0
-    #   http://technet.microsoft.com/en-us/library/ff404224.aspx
-    @used_fields = []
-    @used_fields.push("System.Author")
-    # @used_fields.push("System.ContentType")
-    # @used_fields.push("System.CopyRight")
-    @used_fields.push("System.DateCreated")
-    @used_fields.push("System.DateCompleted")
-    @used_fields.push("System.FileName")
-    @used_fields.push("System.FileDescription")
-    @used_fields.push("System.FileExtension")
-
-    # Fix-me: fulltext gives error, maybe need to not fetch all at once?
-    # The error happens on this line.
-    #
-    # recordset.Open(sql, @connection)
-    #
-    # @used_fields.push("System.FullText")
-
-    @used_fields.push("System.ItemAuthors")
-    @used_fields.push("System.ItemDate")
-    # @used_fields.push("System.ItemFolderPathDisplay")
-    # @used_fields.push("System.ItemName")
-    @used_fields.push("System.ItemUrl")
-    @used_fields.push("System.Keywords")
-    @used_fields.push("System.MIMEType")
-    @used_fields.push("System.Title")
-    # print used_fields, "\n"
-  end
-
-  def query_wds(comma_sep_query)
-    query_strings = comma_sep_query.split(",")
-
-    query_contains = []
-    query_strings.each { |i| query_contains.push("Contains('\""+i+"\"')") }
-
-    fields = @used_fields.join(", ")
-    filter = "WHERE "
-    filter << query_contains.join(" AND ")
-    query = "SELECT " + fields + " FROM SYSTEMINDEX " + filter
-    # print "\nQuery: ", query, "\n\n"
-    print filter, "\n\n"
-
-    db = WdsServer.new
-    db.open
-    db.query(query)
-    field_names = db.fields
-    rec = WdsRecord.new(db.fields, @rootpath)
-    hits = db.data
-    db.close
-
-    # print field_names, "\n"
-    # print field_names.index("SYSTEM.FILEEXTENSION"), "\n"
-    re_str = "("+query_strings.join("|")+")"
-    re = Regexp.new(re_str, 1)
-    maxw = 100 # fix-me
-    emacs_w = ENV["EMACS-COMPILE-WINDOW-WIDTH"]
-    maxw = emacs_w.to_i() if emacs_w
-    hits.each {
-      |hit|
-      print "\n"
-      istxt = rec.istxt(hit)
-      relurl = rec.relurl(hit)
-      if istxt
-        print "Text file ", relurl, " matches:\n"
-        fullurl = rec.fullurl(hit)
-        search_textfile(fullurl, re, maxw)
-      else
-        print "Binary file ", relurl, " matches\n"
-      end
-      if nil
-        for fn in 0..field_names.length-1
-          val = hit[fn]
-          if val
-            print "  ", field_names[fn], "=", val, "\n"
-          end
-        end
-      end
-      title = rec.title(hit)
-      if title
-        print "  Title:   ", title, "\n"
-      end
-      authors = rec.authors(hit)
-      if authors
-        print "  Authors: ", authors.join(", "), "\n"
-      end
-    }
-    print "----\n"
-    print "Found ", hits.length.to_s(), " items"
-  end
-end
-
 if __FILE__ == $0
-  root = ARGV[0]
-  query = ARGV[1]
-
-  # print "root=", root, "\n"
-  # print "query=", query, "\n"
-  query_wds = QueryWds.new(root)
-  query_wds.query_wds(query)
+  $LOAD_PATH.push File.expand_path(File.dirname(__FILE__))
+  require 'trollop'
+  opts = Trollop::options do
+    opt :root,   "The root dir", :type => :string
+    opt :query,  "The query", :type => :string
+    opt :locate, "Locate files", :type => :string
+  end
+  Trollop::die :root, "must be specified" unless opts[:root]
+  Trollop::die :query, "must be specified" unless opts[:query]
+  if opts[:locate]
+    WdsLocateResult.new(opts[:root], opts[:query], maxw: -1,
+                        for_locate: opts[:locate] == "locate"
+                        ).output
+  else
+    WdsSearchResult.new(opts[:root], opts[:query], maxw: -1).output
+  end
 end
+
+### Sweat tutorial:
+# http://www.fincher.org/tips/Languages/Ruby/
 
 # Local variables:
 # coding: utf-8

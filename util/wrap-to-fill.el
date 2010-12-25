@@ -465,9 +465,10 @@ See `visual-indent-use-adaptive-fill' for more information."
                     (visual-indent-fill-context-prefix beg-pos end-pos))
               ;;(msgtrc "visual-indent-jit-lock-fun:ind-str-fill=%S" ind-str-fill)
               ;; Fix-me: ind-str-fill could be nil.
-              (with-silent-modifications
-                (put-text-property beg-pos end-pos 'wrap-prefix ind-str-fill)
-                (put-text-property beg-pos end-pos 'visual-indent-wrap-prefix ind-str-fill))))
+              (when (< 0 (length ind-str-fill))
+                (with-silent-modifications
+                  (put-text-property beg-pos end-pos 'wrap-prefix ind-str-fill)
+                  (put-text-property beg-pos end-pos 'visual-indent-wrap-prefix ind-str-fill)))))
           ;; This moves to the end of line if there is no more lines. That
           ;; means we will not get stuck here.
           (unless (eobp) (forward-line 1))

@@ -65,7 +65,7 @@
 
 ;; (w32wds-search '("cullberg") '("c"))
 ;;;###autoload
-(defun w32wds-search (search-patts file-patts)
+(defun w32wds-search (search-patts file-patts params)
   "Search using Windows Search.
 This searches all the content you have indexed there.
 
@@ -121,46 +121,55 @@ different root locations at once."
 
      ;; (setq dir (replace-regexp-in-string "/" "\\" dir t t))
      (list strs
-           (list dir))))
+           (list dir)
+           "")))
+  (w32wds-search-1 (list
+                    "--root"   (mapconcat 'identity file-patts ",")
+                    ;; "--locate" "grep"
+                    "--query"  (mapconcat 'identity search-patts ","))))
+
+;; (setq locate-make-command-line 'w32wds-locate-make-command-line)
+;; (w32wds-locate-make-command-line "some.fil")
+(defun w32wds-locate-make-command-line (search)
+  (let* ((cmd (car (w32wds-make-command
+                    (list
+                     "--root"   default-directory
+                     "--locate" "locate"
+                     "--query"  search)))))
+    cmd))
+
+(defun w32wds-make-command (options)
   (let* ((script-ext (file-name-extension w32wds-search-script))
          (script-type (cond
                        ((string= "ps1" script-ext) 'powershell)
                        ((string= "rb"  script-ext) 'ruby)
                        (t 'unknown)))
-         (command (concat (cond
-                           ((eq script-type 'ruby) "ruby.exe -v ")
-                           ((eq script-type 'powershell) ""))
-                          ;;(shell-quote-argument (convert-standard-filename w32wds-search-script))
-                          (convert-standard-filename w32wds-search-script)
-                          " "
-                          (shell-quote-argument (mapconcat 'identity file-patts ", "))
-                          " "
-                         (shell-quote-argument (mapconcat 'identity search-patts ", "))
-                         ))
-         (command-list (append (cond
-                                ((eq script-type 'ruby) '("ruby.exe" "-v"))
-                                ((eq script-type 'powershell) '("cmd" "/c" "powershell.exe" "/command")))
-                               (list
-                                ;;(convert-standard-filename w32wds-search-script)
-                                w32wds-search-script
-                                (mapconcat 'identity file-patts ", ")
-                                (mapconcat 'identity search-patts ", "))))
-         )
-    (let ((default-directory (car file-patts))
-          ;; Fix-me: coding system
-          (process-coding-system-alist
-           '(
-             (".*DesktopSearch.ps1.*" . utf-8)
-             (".*powershell.exe.*" . utf-8)
-             )))
-      (when (and (get 'compilation-start 'command-can-be-list)
-                 (not (eq script-type 'powershell))
-                 )
-        (setq command command-list))
-      (with-current-buffer (compilation-start command 'w32wds-mode)
-        (visual-line-mode 1)
-        (setq wrap-prefix "           "))
-      )))
+         (command-list (append `(,(convert-standard-filename w32wds-search-script))
+                               options)))
+    (when (eq script-type 'ruby)
+      (setq command-list (append '("ruby.exe") command-list)))
+    (list command-list script-type)))
+
+(defun w32wds-search-1 (options)
+  (let* ((cmds (w32wds-make-command options))
+         (cmd (car cmds))
+         (script-type (cadr cmds))
+         (default-directory (car (split-string (cadr (member "--root" options)) ",")))
+         ;; Coding systems. To my surprise this seems to work for ruby at least!
+         (process-coding-system-alist
+          '((".*DesktopSearch.ps1.*" . utf-8)
+            (".*powershell.exe.*" . utf-8)
+            (".*ruby.exe" . utf-8)
+            )))
+    (unless (and (get 'compilation-start 'command-can-be-list)
+               (not (eq script-type 'powershell)))
+      ;; Fix-me: Or rather hope that my patch to compilation-start is
+      ;; accepted soon...
+      (setq cmd (mapconcat 'identity cmd " ")))
+    (with-current-buffer (compilation-start cmd 'w32wds-mode)
+      (visual-line-mode 1)
+      (setq wrap-prefix "           "))
+    ))
 
 (defconst w32wds-error-regexp-alist
   '(("^\\(.+?\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2"
@@ -176,8 +185,8 @@ different root locations at once."
       (lambda () (- (match-end 5) (match-end 1)
 		    (- (match-end 4) (match-beginning 4)))))
      nil 1)
-    ("^Binary file \\(.+\\) matches$" 1 nil nil 0 1)
-    ("^Text file \\(.+\\) matches:$" 1 nil nil 0 1)
+    ("^File \\(.+\\) matches$" 1 nil nil 0 1)
+    ;;("^File \\(.+\\) matches$" 1 nil nil 0 1)
     )
   "Regexp used to match search hits.  See `compilation-error-regexp-alist'.")
 
@@ -202,22 +211,41 @@ different root locations at once."
    "Additional things to highlight in w32wds mode.
 This gets tacked on the end of the generated expressions.")
 
+(defvar w32wds-link-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(control ?m)] 'w32wds-org-open-at-point)
+    map))
+
 (defun w32wds-hit-marker (bound)
-  (while (and (< (point) bound)
-              (re-search-forward "\\[\\[\\(.*?\\)\\]\\[\\(.*?\\)\\]" bound t))
-    (let ((b0 (match-beginning 0))
-          (e0 (match-end 0))
-          (m1 (match-string 1))
-          (b2 (match-beginning 2))
-          (e2 (match-end 2)))
-      (put-text-property b0 (- b2 0) 'invisible t)
-      (put-text-property (- e0 1) (+ e0 1) 'invisible t)
-      (put-text-property b2 e2 'help-echo m1)
-      (put-text-property b2 e2 'keymap w32wds-link-keymap)
-      (put-text-property b2 e2 'mouse-face 'highlight)
-      (put-text-property b2 e2 'font-lock-face 'link)
-      ))
-  nil)
+  (let ((here (point)))
+    (while (and (< (point) bound)
+                (re-search-forward "\\[\\[\\(.*?\\)\\]\\[\\(.*?\\)\\]" bound t))
+      (let ((b0 (match-beginning 0))
+            (e0 (match-end 0))
+            (m1 (match-string 1))
+            (b2 (match-beginning 2))
+            (e2 (match-end 2)))
+        (with-silent-modifications
+          (put-text-property b0 b2 'invisible t)
+          (put-text-property (- e0 1) (+ e0 1) 'invisible t)
+          (put-text-property b2 e2 'help-echo m1)
+          (put-text-property b2 e2 'keymap w32wds-link-keymap)
+          (put-text-property b2 e2 'mouse-face 'highlight)
+          (put-text-property b2 e2 'font-lock-face 'font-lock-function-name-face)
+          )))
+    (goto-char here)
+    (while (and (< (point) bound)
+                (re-search-forward "{{{\\(.*?\\)}}}" bound t))
+      (let ((b0 (match-beginning 0))
+            (e0 (match-end 0))
+            (b1 (match-beginning 1))
+            (e1 (match-end 1)))
+        (with-silent-modifications
+          (put-text-property b0 (- b1 0) 'invisible t)
+          (put-text-property e1 (- e0 0) 'invisible t)
+          (put-text-property b1 e1 'font-lock-face 'font-lock-keyword-face)
+          )))
+    nil))
 
 (defun w32wds-org-open-at-point ()
   (interactive)
@@ -226,18 +254,14 @@ This gets tacked on the end of the generated expressions.")
          (default-directory (file-name-directory full)))
     (org-open-at-point)))
 
-(defvar w32wds-link-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(control ?m)] 'w32wds-org-open-at-point)
-    map))
-
 (defvar w32wds-hit-face	compilation-info-face
   "Face name to use for search hits.")
 
 (defun w32wds-find-filename ()
-  (let ((here (point)))
-    (unless (re-search-backward "Text file " nil t)
-      (error "Expected to find line beginning with 'Text file' above"))
+  (let ((here (point))
+        (file-loc-patt "^File .* matches$"))
+    (unless (re-search-backward file-loc-patt nil t)
+      (error "Expected to find line matching %S above" file-loc-patt))
     (forward-char 12)
     (let ((file-msg (get-text-property (point) 'message)))
       (goto-char here)
@@ -246,7 +270,7 @@ This gets tacked on the end of the generated expressions.")
 (defun w32wds-next-error-function (n &optional reset)
   (let ((here (point)))
     (goto-char (point-at-bol))
-    (if (not (looking-at "  :\\([0-9]+\\):"))
+    (if (not (looking-at "[a-z]:\\([0-9]+\\):"))
         (progn
           (goto-char here)
           (compilation-next-error-function n reset))
