@@ -88,7 +88,13 @@ class WdsLocateResult < WdsResult
   def filter
     fns = @filename.split(",")
     fns_like = []
-    fns.each { |i| fns_like.push("Like '%#{i}%'") }
+    fns.each { |i|
+      if @for_locate
+        fns_like.push("Like '%#{i}%'")
+      else
+        fns_like.push("Like '#{i}%'")
+      end
+    }
     filter = "WHERE SYSTEM.ITEMURL "
     filter << fns_like.join(" OR ")
     filter
@@ -110,7 +116,7 @@ class WdsLocateResult < WdsResult
       if @for_locate
         print "#{fullurl(hit)}\n"
       else
-        print "File #{fullurl(hit)} matches\n"
+        print "* File #{fullurl(hit)} matches\n"
       end
     }
     print "\n"
@@ -157,7 +163,7 @@ class WdsSearchResult < WdsLocateResult
     @hits.each {
       |hit|
       print "\n"
-      print "File ", relurl(hit), " matches\n"
+      print "* File ", relurl(hit), " matches\n"
       if istxt(hit)
         re_str = "("+@query_strings.join("|")+")"
         re = Regexp.new(re_str, 1)

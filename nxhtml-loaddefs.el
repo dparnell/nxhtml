@@ -196,7 +196,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-menu-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp mumamo-switch-to-other-html)
-;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19711 58991))
+;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19734 5140))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1661,7 +1661,7 @@ See `as-external-alist' for more information.
 ;;;***
 
 ;;;### (autoloads (bibhlp-search-ref-at-point-in-elin bibhlp-goto-citeulike
-;;;;;;  bibhlp) "bibhlp" "util/bibhlp.el" (19724 3854))
+;;;;;;  bibhlp) "bibhlp" "util/bibhlp.el" (19731 46391))
 ;;; Generated autoloads from util/bibhlp.el
 (web-autoload-require 'bibhlp 'lp '(nxhtml-download-root-url nil) "util/bibhlp" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2383,6 +2383,46 @@ FIELDS is an alist, as for `http-post-simple', FILES is an a list of
 
 ;;;***
 
+;;;### (autoloads (idxsearch) "idxsearch" "util/idxsearch.el" (19734
+;;;;;;  5951))
+;;; Generated autoloads from util/idxsearch.el
+(web-autoload-require 'idxsearch 'lp '(nxhtml-download-root-url nil) "util/idxsearch" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'idxsearch `(lp '(nxhtml-download-root-url nil) "util/idxsearch" nxhtml-install-dir) "\
+Search using Windows Search.
+This searches all the content you have indexed there.
+
+In interactive use you are prompted for a search string and a
+single root directory.
+
+The search string should consist of single word and phrases
+\"enclosed like this\".  All words and phrases must match for a
+file to match.
+
+If the file is a text file it will be searched for all words and
+phrases so you get direct links into it.
+
+----
+
+When called from elisp SEARCH-PATTS and FILE-PATTS should be list
+of strings.  In this case the strings are given as they are to
+the SQL statements for searching Windows Search.
+
+The strings in SEARCH-PATT should just be strings to match.  If
+they contain spaces they are considered to be a sequence of
+words, otherwise just single words.  All strings must match a
+file for a match in that file.
+
+The strings in FILE-PATTS are matched with the SQL keyword
+'like'.  A '%' char is appended to each strings.  Any of this
+strings should match.  This way you can easily search in
+different root locations at once.
+
+\(fn SEARCH-PATTS FILE-PATTS PARAMS)" t nil)
+
+;;;***
+
 ;;;### (autoloads (inlimg-toggle-slicing inlimg-toggle-display inlimg-global-mode
 ;;;;;;  inlimg-mode inlimg) "inlimg" "util/inlimg.el" (19725 48718))
 ;;; Generated autoloads from util/inlimg.el
@@ -2601,7 +2641,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;;;;  mumamo-list-defined-multi-major-modes mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19727 24805))
+;;;;;;  (19734 3867))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3072,7 +3112,7 @@ Color up digits three by three.
 ;;;***
 
 ;;;### (autoloads (orgfl-find-links-in-org-files orgfl-find-links-in-org-buffers)
-;;;;;;  "org-find-links" "util/org-find-links.el" (19730 55874))
+;;;;;;  "org-find-links" "util/org-find-links.el" (19730 58625))
 ;;; Generated autoloads from util/org-find-links.el
 (web-autoload-require 'org-find-links 'lp '(nxhtml-download-root-url nil) "util/org-find-links" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3090,7 +3130,7 @@ NLINES are lines to show around matches.  For more info see
 Find links to URL in all .org files.
 URL should be an absolute org link.
 DIR is the directory to search.
-Search subdirs if RECURSE is non-nil.
+Search subdirs if RECURSE is 'yes, don't if it is 'no.
 
 \(fn URL DIR RECURSE)" t nil)
 
@@ -4100,45 +4140,6 @@ Display vertical line mode as globally.
 
 ;;;***
 
-;;;### (autoloads (w32wds-search) "w32wds" "util/w32wds.el" (19729
-;;;;;;  57676))
-;;; Generated autoloads from util/w32wds.el
-(web-autoload-require 'w32wds 'lp '(nxhtml-download-root-url nil) "util/w32wds" nxhtml-install-dir 'nxhtml-byte-compile-file)
-
-
-(nxhtml-autoload 'w32wds-search `(lp '(nxhtml-download-root-url nil) "util/w32wds" nxhtml-install-dir) "\
-Search using Windows Search.
-This searches all the content you have indexed there.
-
-In interactive use you are prompted for a search string and a
-single root directory.
-
-The search string should consist of single word and phrases
-\"enclosed like this\".  All words and phrases must match for a
-file to match.
-
-If the file is a text file it will be searched for all words and
-phrases so you get direct links into it.
-
-----
-For non-interactive use SEARCH-PATTS and FILE-PATTS should be
-list of strings.  In this case the strings are given as they are
-to the SQL statements for searching Windows Search.
-
-The strings in SEARCH-PATT should just be strings to match.  If
-they contain spaces they are considered to be a sequence of
-words, otherwise just single words.  All strings must match a
-file for a match in that file.
-
-The strings in FILE-PATTS are matched with the SQL keyword
-'like'.  A '%' char is appended to each strings.  Any of this
-strings should match.  This way you can easily search in
-different root locations at once.
-
-\(fn SEARCH-PATTS FILE-PATTS)" t nil)
-
-;;;***
-
 ;;;### (autoloads (web-vcs-linkpatt-mode) "web-vcs-linkpatt" "util/web-vcs-linkpatt.el"
 ;;;;;;  (19725 18674))
 ;;; Generated autoloads from util/web-vcs-linkpatt.el
@@ -4528,7 +4529,7 @@ quarter clockwise (or counter clockwise with prefix).
 
 ;;;### (autoloads (wrap-to-fill-column-mode wrap-to-fill-left-marg-modes
 ;;;;;;  wrap-to-fill-left-marg wrap-to-fill) "wrap-to-fill" "util/wrap-to-fill.el"
-;;;;;;  (19571 7230))
+;;;;;;  (19732 34936))
 ;;; Generated autoloads from util/wrap-to-fill.el
 (web-autoload-require 'wrap-to-fill 'lp '(nxhtml-download-root-url nil) "util/wrap-to-fill" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4637,14 +4638,14 @@ accept it or skip it.
 ;;;;;;  "util/org-odt.el" "util/org-panel.el" "util/ourcomments-widgets.el"
 ;;;;;;  "util/powershell-mode.el" "util/rxi.el" "util/temp-declare-fun-test.el"
 ;;;;;;  "util/temp-declare-fun.el" "util/tipframe.el" "util/win-alg.el"
-;;;;;;  "web-autoload.el") (19730 56005 46000))
+;;;;;;  "web-autoload.el") (19734 6036 375000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtml-byte-recompile-file nxhtml-byte-compile-file
 ;;;;;;  nxhtml-get-missing-files nxhtml-update-existing-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install) "../nxhtml-web-vcs"
-;;;;;;  "nxhtml-web-vcs.el" (19725 20733))
+;;;;;;  "nxhtml-web-vcs.el" (19732 37127))
 ;;; Generated autoloads from nxhtml-web-vcs.el
 (web-autoload-require 'nxhtml-web-vcs 'lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
