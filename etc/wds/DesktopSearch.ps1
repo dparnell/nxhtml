@@ -16,6 +16,9 @@
 # Available from http://EmacsWiki.org/NxhtmlMode/
 
 param (
+    # Parameter. (Ignored.)
+    $params,
+
     # Where to search.
     $roots,
 
