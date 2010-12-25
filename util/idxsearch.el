@@ -111,7 +111,7 @@ different root locations at once."
    ;; Fix-me: Extract this and use as a loop for new queries. Allow
    ;; things like TAB cycle visibility in the output buffer. Add a
    ;; "reenter query command".
-   (let* ((dir (read-directory-name "In directory tree: "))
+   (let* ((dir (read-directory-name "Indexed search in directory tree: "))
           ;; Fix-me: split out the reading of search patterns.
           ;; (def-str (if (region-active-p)
           ;;              (concat "\""
@@ -172,9 +172,10 @@ different root locations at once."
          (cmd (car cmds))
          (script-type (cadr cmds))
          (default-directory (car (split-string (cadr (member "--root" options)) ",")))
-         ;; Coding systems. To my surprise this seems to work for ruby at least!
+         ;; Coding systems. To my surprise this seems to work for ruby
+         ;; at least!
          (process-coding-system-alist
-          '((".*DesktopSearch.ps1.*" . utf-8)
+          '((".*idxsearch.ps1.*" . utf-8)
             (".*powershell.exe.*" . utf-8)
             (".*ruby.exe" . utf-8)
             )))
@@ -220,7 +221,7 @@ different root locations at once."
       (lambda () (- (match-end 5) (match-end 1)
 		    (- (match-end 4) (match-beginning 4)))))
      nil 1)
-    ("^\* File \\(.+\\) matches$" 1 nil nil 0 1)
+    ("^\\* File \\(.+\\) matches$" 1 nil nil 0 1)
     ;;("^File \\(.+\\) matches$" 1 nil nil 0 1)
     )
   "Regexp used to match search hits.  See `compilation-error-regexp-alist'.")
@@ -294,7 +295,7 @@ This gets tacked on the end of the generated expressions.")
 
 (defun idxsearch-find-filename ()
   (let ((here (point))
-        (file-loc-patt "^File .* matches$"))
+        (file-loc-patt "^\\* File .* matches$"))
     (unless (re-search-backward file-loc-patt nil t)
       (error "Expected to find line matching %S above" file-loc-patt))
     (forward-char 12)
