@@ -3261,7 +3261,7 @@ The main reasons for doing it this way is:
                          (custom-quote (symbol-value 'font-lock-syntactic-keywords)))
                  (list 'obsolete-font-lock-syntactic-face-function nil))
                ;; Replaced by `syntax-propertize-function':
-               (if (intern-soft "syntax-propertize-function")
+               (if (boundp 'syntax-propertize-function)
                    (list 'syntax-propertize-function
                          (custom-quote (symbol-value 'syntax-propertize-function)))
                  (list 'future-syntax-propertize-function nil))
