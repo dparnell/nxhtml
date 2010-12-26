@@ -176,10 +176,13 @@ On top level add \(rx ...) around it."
   (unless (memq what '(and-top
                        and or
                        submatch
-                       any))
+                       any
+                       notany
+                       ))
     (error "internal error, what=%s" what))
   (let* ((this-state (case what
                        (any 'CHARS)
+                       (notany 'NOTCHARS)
                        (t 'DEFAULT)))
          (state (list this-state))
          (is-top (when (eq what 'and-top)
@@ -190,7 +193,7 @@ On top level add \(rx ...) around it."
          (str-end 0)
          result
          ret-result
-         (want-single-item (not (memq what '(and submatch)))))
+         (want-single-item (not (memq what '(and or submatch)))))
     (while (not (or (eobp)
                     ret-result))
       (setq expr (list (char-after) (car state)))
@@ -198,7 +201,8 @@ On top level add \(rx ...) around it."
       (cond
        ;; Fix-me: \sCODE \SCODE
        ;; Fix-me: \cC \CC
-       ( (equal expr '(?\[ CHARS))
+       ( (or (equal expr '(?\[ CHARS))
+             (equal expr '(?\[ NOTCHARS)))
          (unless (eq (char-after) ?:)
            (throw 'bad-regexp (cons "[ inside a char alt must start a char class, [:" (point))))
          (let ((pre (buffer-substring-no-properties str-beg (1- (point)))))
@@ -371,10 +375,17 @@ On top level add \(rx ...) around it."
          )
        ( (equal expr '(?\[  DEFAULT))
          (push (buffer-substring-no-properties str-beg (1- (point))) result)
-         (push (rxx-parse-1 'any "]") result)
-         (setq str-beg (point))
+         (if (eq ?^ (char-after))
+             (progn
+               (forward-char)
+               ;; (push (rxx-parse-1 'notany "]") result)
+               (push `(not ,(rxx-parse-1 'any "]")) result)
+               (setq str-beg (point)))
+           (push (rxx-parse-1 'any "]") result)
+           (setq str-beg (point)))
          )
-       ( (equal expr '(?\]  CHARS))
+       ( (or (equal expr '(?\]  CHARS))
+             (equal expr '(?\]  NOTCHARS)))
          (if (string= end-with "]")
              (setq end-with nil)
            (throw 'bad-regexp (list "Trailing ]" (1- (point)))))
@@ -463,17 +474,16 @@ On top level add \(rx ...) around it."
          (setq str-beg (point))
          )
        ( (equal expr '(?\| BS2))
-         ;; Fix-me: we only want the last char here. And perhaps there is no string before.
-         (when (> str-end str-beg)
-           (let ((last-string (buffer-substring-no-properties str-beg (1- str-end))))
-             (when (or (not (zerop (length last-string)))
-                       (not result))
-               (push last-string result)))
-           (push (buffer-substring-no-properties (1- str-end) str-end) result))
+         (error "Uh: %S" expr))
+       ( (equal expr '(?\| DEFAULT))
+         (let ((str (buffer-substring-no-properties str-beg (1- (point)))))
+           (unless (= 0 (length str))
+             (push str result)))
          (let ((last (pop result))
                or-result)
            ;;(unless last (throw 'bad-regexp (cons "\| without previous element" (point))))
            (unless last (setq last "")) ;; Will be made an 'opt below.
+           (push 'OR state)
            (setq or-result (cdr (rxx-parse-1 'or nil)))
            (pop state)
            (my-message "or-result 1=%S" or-result)
@@ -507,6 +517,8 @@ On top level add \(rx ...) around it."
          )
        ( (eq (nth 1 expr) 'CHARS)
          )
+       ( (eq (nth 1 expr) 'NOTCHARS)
+         )
        ( (eq (nth 1 expr) 'BS2)
          (pop state)
          ;; This is quoting of a normal char, str-beg is already
@@ -528,7 +540,7 @@ On top level add \(rx ...) around it."
     (when (eobp)
       (if end-with
           (throw 'bad-regexp (cons (format "Unfinished regexp, missing %s, what=%s" end-with what) (point)))
-        (let ((tail (buffer-substring-no-properties str-beg (point))))
+        (let ((tail (buffer-substring-no-properties str-beg (point-max))))
           (when (or (not result)
                     (not (zerop (length tail))))
             (push tail result)))))

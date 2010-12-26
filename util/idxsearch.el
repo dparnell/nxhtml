@@ -73,6 +73,8 @@
 ;;
 ;;(setq idxsearch-search-script (expand-file-name "etc/wds/idxsearch.ps1" nxhtml-install-dir))
 
+;; Fix-me: file-patts => root-patts, add file-patts.
+
 ;; (idxsearch '("cullberg") '("c:/") nil)
 ;;;###autoload
 (defun idxsearch (search-patts file-patts params)

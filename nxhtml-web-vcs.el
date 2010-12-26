@@ -50,6 +50,7 @@
 (declare-function nxhtmlmaint-byte-recompile "nxhtmlmaint")
 (eval-when-compile (require 'web-vcs nil t))
 
+
 (defvar nxhtml-web-vcs-file (or load-file-name
                                 (when (boundp 'bytecomp-filename) bytecomp-filename)
                                 buffer-file-name)
