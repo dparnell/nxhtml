@@ -72,7 +72,7 @@
 ;; (customize-option-other-window 'rebind-keys)
 ;; (Fetched key bindings from http://www.davidco.com/tips_tools/tip45.html)
 (defcustom rebind-keys
-  '(
+  `(
     ("MS Windows - often used key bindings" t
       (
        (
@@ -147,6 +147,13 @@
        t
        shift
        text-scale-adjust)
+      ;; Fix-me: Keyboard adjustment for different languages
+      (
+       [(control ?x) ?,]
+       "C-x ` for `next-error' is unusable on for example a Swedish keyboard."
+       t
+       nil
+       next-error)
        )))
   "Normal Emacs keys that are remapped to follow some other standard.
 The purpose of this variable is to make it easy to switch between
@@ -160,7 +167,9 @@ on.
         this way.
 *Note:* To get CUA keys you should turn on option `cua-mode'.
 *Note:* To get vi key bindings call function `viper-mode'.
-*Note:* `text-scale-adjust' already have default key bindings."
+*Note:* `text-scale-adjust' already have default key bindings.
+*Note:* I think this could be used for keyboard layout
+        adjustments as well."
   :type '(repeat
           (list
            (string :tag "For what")
