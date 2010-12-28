@@ -540,9 +540,14 @@
                                        flymake-mode))
               :enable '(and buffer-file-name
                             (require 'flymake)
-                            (fboundp 'flymake-get-init-function)
-                            (flymake-get-init-function buffer-file-name)
+                            (or (flymake-get-init-function buffer-file-name)
+                                (require 'flymake-files)
+                                (flymake-get-init-function buffer-file-name))
                             )))
+      (define-key tools-map [nxhtml-flymake-global]
+        (list 'menu-item "Flymake Global Mode" 'flymake-global-mode
+              :button '(:toggle . flymake-global-mode)))
+
       (let ((flyspell-map (make-sparse-keymap)))
         (define-key tools-map [nxhtml-flyspell-map]
           (list 'menu-item "Flyspell" flyspell-map))

@@ -218,5 +218,28 @@
   ;; How long time did it all take?
   (message "Nxml/Nxhtml Autostart.el loaded in %.1f seconds" (- (float-time) nxhtml-load-time-start)))
 
+(defcustom nxhtml-flymake-setup t
+  "Let nXhtml add some addtions to flymake.
+This adds support for some new file types.
+
+There is a new function `flymake-global-mode' which turn on
+flymake when you enter a buffer where it can be supported.
+
+It also adds showing the flymake message in minibuffer when point
+is on the flymake marking.  \(This is in addition to mouse over
+which works as before.)
+
+This global minor mode exists just for the convinient loading of
+the features above.  If you turn this global minor mode off you
+must restart Emacs for it to take effect."
+  :group 'nxhtml
+  :group 'flymake
+  :set (lambda (sym val)
+         (set-default sym val)
+         (when val
+           (message "trace: loading flymake-files")
+           (require 'flymake-files))))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; autostart.el ends here
