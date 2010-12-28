@@ -196,7 +196,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-menu-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp mumamo-switch-to-other-html)
-;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19734 5140))
+;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19738 13608))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -259,7 +259,7 @@ Show a HTML page with an overview of nXhtml.
 
 ;;;### (autoloads (nxhtml-validation-header-mode nxhtml-short-tag-help
 ;;;;;;  nxhtml-mode) "../nxhtml/nxhtml-mode" "nxhtml/nxhtml-mode.el"
-;;;;;;  (19725 21177))
+;;;;;;  (19734 8266))
 ;;; Generated autoloads from nxhtml/nxhtml-mode.el
 (web-autoload-require 'nxhtml-mode 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -600,44 +600,40 @@ This mode only provides syntax highlighting.
 
 ;;;***
 
-;;;### (autoloads (flymake-css-load) "../related/flymake-css" "related/flymake-css.el"
-;;;;;;  (19451 8556))
-;;; Generated autoloads from related/flymake-css.el
-(web-autoload-require 'flymake-css 'lp '(nxhtml-download-root-url nil) "related/flymake-css" nxhtml-install-dir 'nxhtml-byte-compile-file)
+;;;### (autoloads (flymake-global-mode) "../related/flymake-files"
+;;;;;;  "related/flymake-files.el" (19738 13413))
+;;; Generated autoloads from related/flymake-files.el
+(web-autoload-require 'flymake-files 'lp '(nxhtml-download-root-url nil) "related/flymake-files" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
 
-(nxhtml-autoload 'flymake-css-load `(lp '(nxhtml-download-root-url nil) "related/flymake-css" nxhtml-install-dir) "\
-Not documented
+(defvar flymake-global-mode nil "\
+Non-nil if Flymake-Global mode is enabled.
+See the command `flymake-global-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `flymake-global-mode'.")
 
-\(fn)" nil nil)
+(nxhtml-custom-autoload 'flymake-global-mode '../related/flymake-files nil)
+
+(nxhtml-autoload 'flymake-global-mode `(lp '(nxhtml-download-root-url nil) "related/flymake-files" nxhtml-install-dir) "\
+Toggle Flymake mode in every possible buffer.
+With prefix ARG, turn Flymake-Global mode on if and only if
+ARG is positive.
+Flymake mode is enabled in all buffers where
+`flymake-turn-on-support-for-buffer' would do it.
+See `flymake-mode' for more information on Flymake mode.
+
+\(fn &optional ARG)" t nil)
 
 ;;;***
 
-;;;### (autoloads (flymake-java-1-load) "../related/flymake-java-1"
-;;;;;;  "related/flymake-java-1.el" (19264 27004))
-;;; Generated autoloads from related/flymake-java-1.el
-(web-autoload-require 'flymake-java-1 'lp '(nxhtml-download-root-url nil) "related/flymake-java-1" nxhtml-install-dir 'nxhtml-byte-compile-file)
+;;;### (autoloads (flymake-for-js) "../related/flymake-for-js" "related/flymake-for-js.el"
+;;;;;;  (19738 12704))
+;;; Generated autoloads from related/flymake-for-js.el
+(web-autoload-require 'flymake-for-js 'lp '(nxhtml-download-root-url nil) "related/flymake-for-js" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
 
-(nxhtml-autoload 'flymake-java-1-load `(lp '(nxhtml-download-root-url nil) "related/flymake-java-1" nxhtml-install-dir) "\
-Not documented
-
-\(fn)" nil nil)
-
-;;;***
-
-;;;### (autoloads (flymake-js-load flymake-js) "../related/flymake-js"
-;;;;;;  "related/flymake-js.el" (19218 42180))
-;;; Generated autoloads from related/flymake-js.el
-(web-autoload-require 'flymake-js 'lp '(nxhtml-download-root-url nil) "related/flymake-js" nxhtml-install-dir 'nxhtml-byte-compile-file)
-
-
-(let ((loads (get 'flymake-js 'custom-loads))) (if (member '"../related/flymake-js" loads) nil (put 'flymake-js 'custom-loads (cons '"../related/flymake-js" loads))))
-
-(nxhtml-autoload 'flymake-js-load `(lp '(nxhtml-download-root-url nil) "related/flymake-js" nxhtml-install-dir) "\
-Not documented
-
-\(fn)" nil nil)
+(let ((loads (get 'flymake-for-js 'custom-loads))) (if (member '"../related/flymake-for-js" loads) nil (put 'flymake-for-js 'custom-loads (cons '"../related/flymake-for-js" loads))))
 
 ;;;***
 
@@ -1965,7 +1961,7 @@ See `css-palette-mode' for more information on Css-Palette mode.
 ;;;***
 
 ;;;### (autoloads (cusnu-export-my-skin-options customize-for-new-user)
-;;;;;;  "cus-new-user" "util/cus-new-user.el" (19173 56140))
+;;;;;;  "cus-new-user" "util/cus-new-user.el" (19735 32565))
 ;;; Generated autoloads from util/cus-new-user.el
 (web-autoload-require 'cus-new-user 'lp '(nxhtml-download-root-url nil) "util/cus-new-user" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2384,7 +2380,7 @@ FIELDS is an alist, as for `http-post-simple', FILES is an a list of
 ;;;***
 
 ;;;### (autoloads (idxsearch) "idxsearch" "util/idxsearch.el" (19734
-;;;;;;  5951))
+;;;;;;  24544))
 ;;; Generated autoloads from util/idxsearch.el
 (web-autoload-require 'idxsearch 'lp '(nxhtml-download-root-url nil) "util/idxsearch" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2797,7 +2793,7 @@ Return t if VALUE is a multi major mode function.
 ;;;***
 
 ;;;### (autoloads (mumamo-noweb2 mumamo-define-html-file-wide-keys)
-;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19725 44457))
+;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19734 21163))
 ;;; Generated autoloads from util/mumamo-chunks.el
 (web-autoload-require 'mumamo-chunks 'lp '(nxhtml-download-root-url nil) "util/mumamo-chunks" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3776,7 +3772,7 @@ this group.
 ;;;***
 
 ;;;### (autoloads (rebind-keys-mode rebind) "rebind" "util/rebind.el"
-;;;;;;  (19678 4004))
+;;;;;;  (19736 14109))
 ;;; Generated autoloads from util/rebind.el
 (web-autoload-require 'rebind 'lp '(nxhtml-download-root-url nil) "util/rebind" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3820,7 +3816,7 @@ Major mode for editing RELAX NG Compact Syntax schemas.
 ;;;***
 
 ;;;### (autoloads (rxx-parse rxx-simplify-result rxx-parse-string)
-;;;;;;  "rxx" "util/rxx.el" (19476 21424))
+;;;;;;  "rxx" "util/rxx.el" (19736 17855))
 ;;; Generated autoloads from util/rxx.el
 (web-autoload-require 'rxx 'lp '(nxhtml-download-root-url nil) "util/rxx" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4628,24 +4624,26 @@ accept it or skip it.
 ;;;;;;  "nxhtml-base.el" "nxhtml/html-imenu.el" "nxhtml/html-move.el"
 ;;;;;;  "nxhtml/html-quote.el" "nxhtml/nxhtml-autoload.el" "nxhtml/nxhtml-strval.el"
 ;;;;;;  "nxhtml/nxhtmljs.el" "nxhtml/outline-magic.el" "nxhtml/wtest.el"
+;;;;;;  "related/flymake-for-css.el" "related/flymake-for-el.el"
+;;;;;;  "related/flymake-for-java.el" "related/flymake-for-rb.el"
 ;;;;;;  "related/flymake-helpers.el" "related/flymakemsg.el" "related/php-imenu.el"
-;;;;;;  "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
+;;;;;;  "related/temp.el" "tests/angus77-setup-jde.el" "tests/emacstest-suites.el"
 ;;;;;;  "tests/ert2.el" "tests/hfy-test.el" "tests/inemacs/bug1013.el"
 ;;;;;;  "tests/mumamo-test.el" "tests/nxhtmltest-helpers.el" "tests/temp-test.el"
-;;;;;;  "util/appmenu-fold.el" "util/backtr.el" "util/css-simple-completion.el"
+;;;;;;  "util/ack.el" "util/appmenu-fold.el" "util/backtr.el" "util/css-simple-completion.el"
 ;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/fupd.el"
 ;;;;;;  "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/org-odt.el" "util/org-panel.el" "util/ourcomments-widgets.el"
 ;;;;;;  "util/powershell-mode.el" "util/rxi.el" "util/temp-declare-fun-test.el"
-;;;;;;  "util/temp-declare-fun.el" "util/tipframe.el" "util/win-alg.el"
-;;;;;;  "web-autoload.el") (19734 6036 375000))
+;;;;;;  "util/temp-declare-fun.el" "util/temp.el" "util/tipframe.el"
+;;;;;;  "util/win-alg.el" "web-autoload.el") (19738 13644 781000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtml-byte-recompile-file nxhtml-byte-compile-file
 ;;;;;;  nxhtml-get-missing-files nxhtml-update-existing-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install) "../nxhtml-web-vcs"
-;;;;;;  "nxhtml-web-vcs.el" (19732 37127))
+;;;;;;  "nxhtml-web-vcs.el" (19734 7809))
 ;;; Generated autoloads from nxhtml-web-vcs.el
 (web-autoload-require 'nxhtml-web-vcs 'lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 

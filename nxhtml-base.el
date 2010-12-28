@@ -46,9 +46,6 @@
 ;;; Code:
 
 ;;(eval-when-compile (require 'web-vcs nil t))
-(eval-when-compile (require 'flymake-js nil t))
-(eval-when-compile (require 'flymake-css nil t))
-(eval-when-compile (require 'flymake-java-1 nil t))
 
 ;; (version< "2.09beta" "2.08")
 ;; (version< "2.09beta" "2.09")
@@ -128,25 +125,6 @@ Otherwise setup for normal local autoloading."
       (funcall set symbol (car saved))
       (custom-load-symbol symbol))))
 
-(defun flymake-init-load-flymakemsg ()
-  (require 'flymakemsg))
-
-(define-minor-mode nxhtml-flymake-setup
-  "Let nXhtml add some addtions to flymake.
-This adds support for CSS and JavaScript files.
-
-It also adds showing errors in minibuffer when point is on
-them.
-
-If you turn this off you must restart Emacs for it to take
-effect."
-  :group 'nxhtml
-  :group 'flymake
-  (when nxhtml-flymake-setup
-    (flymake-js-load)
-    (flymake-css-load)
-    (flymake-java-1-load)
-    (add-hook 'flymake-mode-hook 'flymake-init-load-flymakemsg)))
 
 
 (provide 'nxhtml-base)
