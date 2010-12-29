@@ -46,8 +46,15 @@
 
 (require 'flymake)
 
-(defvar flymake-for-el-allowed-file-name-masks '((".+\\.el$"   flymake-for-el-init)
-                                                 ("^\\.emacs$" flymake-for-el-init)))
+(defcustom flymake-for-el-allowed-file-name-masks '((".+\\.el$"   flymake-for-el-init)
+                                                 ("^\\.emacs$" flymake-for-el-init))
+  "Filename extensions that switch on elisp syntax checks."
+  :type '(repeat (list (regexp :tag "File name regexp")
+                       (function :tag "Init function")
+                       (choice (const :tag "No cleanup function" nil)
+                               (function :tag "Cleanup function"))))
+  :group 'flymake-files)
+
 (defun flymake-for-el-init ()
   ;; Fix-me: We should set the allowed error masks here.
   (if (string-match "^ " (buffer-name))

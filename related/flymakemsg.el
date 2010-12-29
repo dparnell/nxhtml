@@ -23,11 +23,9 @@
 ;;
 ;;   (require 'flymakemsg)
 ;;
-;; This file run `defadvice' on some functions in `flymake-mode'.
+;;
 ;; This code started from an idea in a paste.
 ;;
-;; Note: This code breaks Emacs conventions since it does the
-;; defadvising when you just loads this file.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -57,9 +55,6 @@
 
 (eval-when-compile (require 'flymake))
 
-;; Fix-me: move this into flymake.el and send a patch. It will anyway
-;; not work without a patched flymake.
-
 (defun flymakemsg-show-err-at-point ()
   "If point is on a flymake error, show it in echo area.
 Protected to run in timers and hooks."
@@ -73,25 +68,35 @@ Protected to run in timers and hooks."
 (defun flymakemsg-show-err-at-point-1 ()
   "If point is on a flymake error, show it in echo area."
   (interactive)
-  (when flymake-mode
-    (let ((flyovl (flymakemsg-get-overlay (point))))
-      (unless (eq flyovl flymakemsg-last-overlay)
-        (setq flymakemsg-last-overlay flyovl)
-        (when flyovl
-          (message "%s" (propertize (overlay-get flyovl 'help-echo)
-                                    'face (overlay-get flyovl 'face))))))))
+  (and (boundp 'flymake-mode)
+       flymake-mode
+       (let ((flyovl (flymakemsg-get-overlay (point))))
+         (unless (eq flyovl flymakemsg-last-overlay)
+           (setq flymakemsg-last-overlay flyovl)
+           (when (overlayp flyovl)
+             (message "%s" (propertize (overlay-get flyovl 'help-echo)
+                                       'face (overlay-get flyovl 'face))))))))
 
 (defun flymakemsg-get-overlay (pos)
+  ;; Fix-me: If the flymake-overlay prop does not get it into Emacs.
   (get-char-property pos 'flymake-overlay))
 
-(defadvice flymake-mode (after
-                         flymakemsg-ad-flymake-mode
-                         activate compile)
-  "Turn on showing of flymake errors then point is on them.
-This shows the error in the echo area."
-  (if flymake-mode
-      (add-hook 'post-command-hook 'flymakemsg-post-command t t)
-    (remove-hook 'post-command-hook 'flymakemsg-post-command t)))
+(defgroup flymakemsg nil
+  "Customization group for `flymakemsg-mode'."
+  :group 'flymake)
+
+(define-minor-mode flymakemsg-mode
+  "Show flymake message then point is on them.
+Show the flymake message of a fly mark mark at point in the echo
+area.
+
+Note: This works only if flymake overlays has a flymake-overlay
+property that point to themselves."
+  :global t
+  :group 'flymakemsg
+  (if flymakemsg-mode
+      (add-hook 'post-command-hook 'flymakemsg-post-command)
+    (remove-hook 'post-command-hook 'flymakemsg-post-command)))
 
 
 (defcustom flymakemsg-delay 0.3
@@ -99,11 +104,12 @@ This shows the error in the echo area."
 This delay avoids that the messsage disappear if the user enters
 into the overlay by for example holding down an arrow key."
   :type 'number
-  :group 'flymake)
+  :group 'flymakemsg)
 
 (defun flymakemsg-post-command ()
   ;; Wait to not disturb to much.
-  (flymakemsg-start-msg-timer flymakemsg-delay))
+  (when flymake-mode
+    (flymakemsg-start-msg-timer flymakemsg-delay)))
 
 (defvar flymakemsg-msg-timer nil)
 
