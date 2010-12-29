@@ -111,7 +111,12 @@ This is just for the keyboard, not for the fontification."
 (add-hook 'nxhtml-mumamo-mode-hook 'mumamo-php-if-all-php)
 (add-hook 'html-mumamo-mode-hook 'mumamo-php-if-all-php)
 (defun mumamo-php-if-all-php ()
-  "Switch to php mode if beginning with <?php and no ?> found.
+  "Switch to php mode if the whole buffer suits `php-mode'.
+These conditions must be fullfilled:
+- The buffer must begin with '<?php'.
+- There should not be any '?>'.
+- There should not be any '<<<'.
+
 This function can be added to `nxhtml-mumamo-mode-hook' and
 `html-mumamo-mode-hook'.
 
@@ -126,7 +131,8 @@ this is a good thing, but let us test it."
       (when (string= (buffer-substring 1 6)
                      "<?php")
         (goto-char (point-min))
-        (unless (search-forward "?>" nil t)
+        (unless (or (search-forward "?>" nil t)
+                    (search-forward "<<<" nil t))
           (setq all-php t)
           (php-mode))
         (message (if all-php "... switching to php-mode" "... multi major mode"))

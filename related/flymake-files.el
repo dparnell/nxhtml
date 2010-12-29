@@ -158,7 +158,6 @@ turning off."
 Also remove this function from buffer local `post-command-hook'
 then."
   (with-current-buffer (window-buffer (selected-window))
-    (message "wb sw=%S, cb=%S" (window-buffer (selected-window)) (current-buffer))
     (remove-hook 'post-command-hook 'flymake-turn-on-when-selected t)
     (when flymake-global-mode
       (flymake-log 3 "flymake-global-mode turned ON flymake mode")

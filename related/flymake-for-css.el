@@ -57,13 +57,13 @@
                        (function :tag "Init function")
                        (choice (const :tag "No cleanup function" nil)
                                (function :tag "Cleanup function"))))
-  :group 'flymake)
+  :group 'flymake-files)
 
 
 (defvar flymake-for-css-err-line-pattern-re '(("^file:\\([^:]+\\):\\([^:]+\\):\\(.*\\)" 1 2 nil 3))
   "Regexp matching CSS error messages")
 
-(defcustom flymake-for-css-validator-jar "~/bin/css-validator.jar"
+(defcustom flymake-for-css-validator-jar "~/.emacs.d/css-validator/css-validator.jar"
   "Full path to css-validor.jar file.
 You need the css-validator.jar and some other files for flymake
 for CSS to work. The instructions below tell you how to get and
