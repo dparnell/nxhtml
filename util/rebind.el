@@ -88,7 +88,9 @@
         nil
         org-b)
        (
-        [(control ?i)]
+        [(control ?i)] ;; Does not work for TAB if orgstruct-mode is on
+        ;; [tab] ;; Does not work for TAB if orgstruct-mode is off
+        ;; "\t" ;; Does not work for TAB is orgstruct-mode is on
         "C-i is often used to make italic, use this in `org-mode'."
         t
         nil
@@ -194,6 +196,21 @@ on.
 	   (rebind-update-keymap)))
   :group 'rebind)
 
+;; fix-me:
+(defun temp-rebind-test-key ()
+  (interactive)
+  (let* (rebind-keys-mode
+         (binding (key-binding (this-command-keys-vector) t)))
+	(message "* org-bi.binding=%S, keys-vector=%S" binding (this-command-keys-vector))
+        ;; Raw can not be used for tab:
+        ;; (setq binding (key-binding (this-single-command-raw-keys) t))
+	;; (message "org-bi.binding=%S, keys.single-raw=%S" binding (this-single-command-raw-keys))
+        (setq binding (key-binding (this-command-keys) t))
+	(message "  org-bi.binding=%S, keys=%S" binding (this-command-keys))
+        (setq binding (key-binding (this-single-command-keys) t))
+	(message "  org-bi.binding=%S, keys.single=%S" binding (this-single-command-keys))
+  ))
+
 (defvar rebind-keys-mode-map nil)
 
 (defvar rebind--emul-keymap-alist nil)
@@ -272,6 +289,14 @@ key bindings we want!"
                 (derived-mode-p 'org-mode)))
       (let* (rebind-keys-mode
              (binding (key-binding (this-command-keys-vector) t)))
+	(message "* org-bi.binding=%S, keys-vector=%S" binding (this-command-keys-vector))
+        ;; Raw can not be used for tab:
+        ;; (setq binding (key-binding (this-single-command-raw-keys) t))
+	;; (message "org-bi.binding=%S, keys.single-raw=%S" binding (this-single-command-raw-keys))
+        (setq binding (key-binding (this-command-keys) t))
+	(message "  org-bi.binding=%S, keys=%S" binding (this-command-keys))
+        (setq binding (key-binding (this-single-command-keys) t))
+	(message "  org-bi.binding=%S, keys.single=%S" binding (this-single-command-keys))
         (when binding (call-interactively binding)))
     ;; Fix-me: Maybe adjust region so that it is valid for this op.
     (let* ((beg (region-beginning))

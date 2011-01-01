@@ -383,6 +383,35 @@ You can add additional elisp code for completing to
   :type 'regexp
   :group 'nxhtml)
 
+
+(defvar nxhtml-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Replace the Insert End Tag function:
+    (define-key map [(control ?c) (control ?f)] 'rngalt-finish-element)
+
+    ;; Put completion on the normal key?
+    (define-key map [(meta tab)] 'nxml-complete)
+    ;; Paragraphs (C-p mnemonic for paragraph)
+    (define-key map [(control ?c) (control ?p) ?l] 'longlines-mode)
+    (define-key map [(control ?c) (control ?p) ?f] 'fill-paragraph)
+    (define-key map [(control ?c) (control ?p) ?u] 'unfill-paragraph)
+    ;; Html related (C-h mnemonic for html)
+    (define-key map [(control ?c) (control ?h) ?c] 'nxhtml-save-link-to-here)
+    (define-key map [(control ?c) (control ?h) ?v] 'nxhtml-paste-link-as-a-tag)
+    (define-key map [(control ?c) (control ?h) ?b] 'nxhtml-browse-file)
+    (define-key map [(control ?c) ?<] 'nxml-untag-element)
+    (when (featurep 'html-quote)
+      (define-key map [(control ?c) (control ?q)] 'nxhtml-quote-html)
+      )
+
+    ;; Fix-me: Is pagetoc really that important to have its own keybindings?
+    (when (featurep 'html-pagetoc)
+      (define-key map [(control ?c) (control ?h) ?t ?i] 'html-pagetoc-insert-toc)
+      (define-key map [(control ?c) (control ?h) ?t ?r] 'html-pagetoc-rebuild-toc)
+      (define-key map [(control ?c) (control ?h) ?t ?s] 'html-pagetoc-insert-style-guide)
+      )
+    map))
+
 ;; Fix-me: Put this is a separate file and load it only if nxml is
 ;; availabe.
 (put 'nxhtml-mode 'flyspell-mode-predicate 'sgml-mode-flyspell-verify)
@@ -450,33 +479,6 @@ point in the mumamo chunk you want to know the key bindings in."
     (set (make-local-variable 'rngalt-complete-first-try) 'nxhtml-complete-first-try)
     (set (make-local-variable 'rngalt-complete-last-try) 'nxhtml-complete-last-try)
     ))
-
-;; Fix-me: The nxhtml-mode-map is define by define-derived-mode, but
-;; how should keys be added?
-
-;; Replace the Insert End Tag function:
-(define-key nxhtml-mode-map [(control ?c) (control ?f)] 'rngalt-finish-element)
-
-;; Put completion on the normal key?
-(define-key nxhtml-mode-map [(meta tab)] 'nxml-complete)
-;; Paragraphs (C-p mnemonic for paragraph)
-(define-key nxhtml-mode-map [(control ?c) (control ?p) ?l] 'longlines-mode)
-(define-key nxhtml-mode-map [(control ?c) (control ?p) ?f] 'fill-paragraph)
-(define-key nxhtml-mode-map [(control ?c) (control ?p) ?u] 'unfill-paragraph)
-;; Html related (C-h mnemonic for html)
-(define-key nxhtml-mode-map [(control ?c) (control ?h) ?c] 'nxhtml-save-link-to-here)
-(define-key nxhtml-mode-map [(control ?c) (control ?h) ?v] 'nxhtml-paste-link-as-a-tag)
-(define-key nxhtml-mode-map [(control ?c) (control ?h) ?b] 'nxhtml-browse-file)
-(define-key nxhtml-mode-map [(control ?c) ?<] 'nxml-untag-element)
-(when (featurep 'html-quote)
-  (define-key nxhtml-mode-map [(control ?c) (control ?q)] 'nxhtml-quote-html)
-  )
-;; Fix-me: Is pagetoc really that important to have its own keybindings?
-(when (featurep 'html-pagetoc)
-  (define-key nxhtml-mode-map [(control ?c) (control ?h) ?t ?i] 'html-pagetoc-insert-toc)
-  (define-key nxhtml-mode-map [(control ?c) (control ?h) ?t ?r] 'html-pagetoc-rebuild-toc)
-  (define-key nxhtml-mode-map [(control ?c) (control ?h) ?t ?s] 'html-pagetoc-insert-style-guide)
-  )
 
 (defun nxhtml-quote-html()
   "Quote character(s) unsafe in html text parts.

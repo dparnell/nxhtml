@@ -189,7 +189,7 @@ different root locations at once."
     (with-current-buffer (compilation-start cmd 'idxsearch-mode)
       (visual-line-mode 1)
       (setq wrap-prefix "           ")
-      (outline-minor-mode)
+      ;;(outline-minor-mode)
       ;; Fix-me: This prevents tab from beeing used outside header
       ;; lines, otherwise it is very nice. Sigh. Try to make Carsten
       ;; change this.
@@ -208,46 +208,6 @@ different root locations at once."
       ;; since this is not a head -> tail op?
       (orgstruct-mode)
       )))
-
-(defconst idxsearch-error-regexp-alist
-  '(("^\\(.+?\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2"
-     1 3)
-    ("^\\(\\(.+?\\):\\([0-9]+\\):\\).*?\
-\\(\033\\[01;31m\\(?:\033\\[K\\)?\\)\\(.*?\\)\\(\033\\[[0-9]*m\\)"
-     2 3
-     ;; Calculate column positions (beg . end) of first grep match on a line
-     ((lambda ()
-	(setq compilation-error-screen-columns nil)
-        (- (match-beginning 4) (match-end 1)))
-      .
-      (lambda () (- (match-end 5) (match-end 1)
-		    (- (match-end 4) (match-beginning 4)))))
-     nil 1)
-    ("^\\* File \\(.+\\) matches$" 1 nil nil 0 1)
-    ;;("^File \\(.+\\) matches$" 1 nil nil 0 1)
-    )
-  "Regexp used to match search hits.  See `compilation-error-regexp-alist'.")
-
-(defvar idxsearch-mode-font-lock-keywords
-   '(;; configure output lines.
-     ;; ("^[Cc]hecking \\(?:[Ff]or \\|[Ii]f \\|[Ww]hether \\(?:to \\)?\\)?\\(.+\\)\\.\\.\\. *\\(?:(cached) *\\)?\\(\\(yes\\(?: .+\\)?\\)\\|no\\|\\(.*\\)\\)$"
-     ;;  (1 font-lock-variable-name-face)
-     ;;  (2 (compilation-face '(4 . 3))))
-     ;; Command output lines.  Recognize `make[n]:' lines too.
-     ;; ("^\\([[:alnum:]_/.+-]+\\)\\(\\[\\([0-9]+\\)\\]\\)?[ \t]*:"
-     ;;  (1 font-lock-function-name-face) (3 compilation-line-face nil t))
-     ;; (" --?o\\(?:utfile\\|utput\\)?[= ]?\\(\\S +\\)" . 1)
-     ("^\\(Search finished\\).*"
-      (0 '(face nil message nil help-echo nil mouse-face nil) t)
-      (1 compilation-info-face))
-     ("^Compilation \\(exited abnormally\\|interrupt\\|killed\\|terminated\\|segmentation fault\\)\\(?:.*with code \\([0-9]+\\)\\)?.*"
-      (0 '(face nil message nil help-echo nil mouse-face nil) t)
-      (1 compilation-error-face)
-      (2 compilation-error-face nil t))
-     (idxsearch-hit-marker)
-     )
-   "Additional things to highlight in idxsearch mode.
-This gets tacked on the end of the generated expressions.")
 
 (defvar idxsearch-link-keymap
   (let ((map (make-sparse-keymap)))
@@ -292,49 +252,47 @@ This gets tacked on the end of the generated expressions.")
          (default-directory (file-name-directory full)))
     (org-open-at-point)))
 
-(defvar idxsearch-hit-face	compilation-info-face
+(defvar idxsearch-hit-face compilation-info-face
   "Face name to use for search hits.")
 
 (defun idxsearch-find-filename ()
-  (let ((here (point))
-        (file-loc-patt "^\\* File .* matches$"))
-    (unless (re-search-backward file-loc-patt nil t)
-      (error "Expected to find line matching %S above" file-loc-patt))
-    (forward-char 12)
-    (let ((file-msg (get-text-property (point) 'message)))
-      (goto-char here)
-      (caar (nth 2 (nth 0 file-msg))))))
-
-(defun idxsearch-next-error-function (n &optional reset)
-  (let ((here (point)))
-    (goto-char (point-at-bol))
-    (if (not (looking-at "[a-z]:\\([0-9]+\\):"))
-        (progn
-          (goto-char here)
-          (compilation-next-error-function n reset))
-      (let ((line (string-to-number (match-string-no-properties 1)))
-            (msg-pt (point))
-            (msg (get-text-property (point) 'message))
-            file)
-        (setq compilation-current-error (point-marker))
-        (setq file (idxsearch-find-filename))
-        (setcar (car (nth 2 (nth 0 msg))) file)
-        (goto-char msg-pt)
-        (let ((inhibit-read-only t))
-          (put-text-property (point) (1+ (point)) 'message msg))
-        (compilation-next-error-function n reset)
-        ;;(goto-line line)
+  (save-match-data
+    (let ((here (point))
+          (file-loc-patt "^\\* File \\(.*\\) matches$"))
+      (unless (re-search-backward file-loc-patt nil t)
+        (error "Expected to find line matching %S above" file-loc-patt))
+      (let* ((file-name (match-string-no-properties 1))
+             (full-file (expand-file-name file-name)))
+        (goto-char here)
+        ;;(caar (nth 2 (nth 0 file-msg)))
+        `(,full-file)
         ))))
+
+;; (REGEXP FILE [LINE COLUMN TYPE HYPERLINK HIGHLIGHT...])
+(defconst idxsearch-error-regexp-alist
+  '(("^c:\\([0-9]+\\):\\([0-9]+\\):" idxsearch-find-filename 1 2)
+    ("^\\* File \\(.+\\) matches$" 1 nil nil 0 1))
+  "Regexp used to match search hits.  See `compilation-error-regexp-alist'.")
+
+(defvar idxsearch-mode-font-lock-keywords
+   '(;; configure output lines.
+     ("^\\(Search \\(?:started\\|finished\\)\\).*"
+      (0 '(face nil message nil help-echo nil mouse-face nil) t)
+      (1 compilation-info-face))
+     ("^Compilation \\(exited abnormally\\|interrupt\\|killed\\|terminated\\|segmentation fault\\)\\(?:.*with code \\([0-9]+\\)\\)?.*"
+      (0 '(face nil message nil help-echo nil mouse-face nil) t)
+      (1 compilation-error-face)
+      (2 compilation-error-face nil t))
+     (idxsearch-hit-marker)
+     )
+   "Additional things to highlight in idxsearch mode.
+This gets tacked on the end of the generated expressions.")
 
 (define-compilation-mode idxsearch-mode "Search"
   "Mode for `idxsearch' output."
-  (setq next-error-function 'idxsearch-next-error-function)
-  (set (make-local-variable 'compilation-error-face) idxsearch-hit-face)
-  ;;(set (make-local-variable 'compilation-error-regexp-alist) idxsearch-regexp-alist)
-  ;;(set (make-local-variable 'compilation-process-setup-function) 'grep-process-setup)
-  ;; (message "flkw=%S" compilation-mode-font-lock-keywords)
-  )
+  (set (make-local-variable 'compilation-error-face) idxsearch-hit-face))
 
+;; Fix-me: ruby instead
 (defun idxsearch-add-powershell-kw ()
   (let ((kw `((,(cadr powershell-compilation-error-regexp-alist)
               (1 'compilation-error)
