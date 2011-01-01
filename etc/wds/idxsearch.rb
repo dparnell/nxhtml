@@ -297,6 +297,7 @@ def search_textfile_1 (filename, re, maxw, openflags)
       end
       mshow += show
       #row_col = "L:"+row.to_s()+":"+col.to_s()+":"
+      col += 1
       row_col = part+":"+row.to_s()+":"+col.to_s()+":"
       space = "     "[row_col.length-6..-1]
       print "", row_col, space, " ", mshow, "\n"
