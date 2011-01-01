@@ -1662,6 +1662,41 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
     (list errtype advised file-name string)
     ))
 
+;; (setq next-error-function 'web-vcs-investigate-next-error)
+;; fix-me:
+;; (defvar web-vcs-investigate-header-str "Found these possible problems when reading the file:\n")
+;; (defun web-vcs-investigate-next-error (argp reset)
+;;   (interactive "p")
+;;   ;; Search from within the investigate output buffer
+;;   (with-current-buffer
+;;       ;; Choose the buffer and make it current.
+;;       (if (next-error-buffer-p (current-buffer))
+;; 	  (current-buffer)
+;; 	(next-error-find-buffer nil nil
+;; 				(lambda ()
+;;                                   (let ((here (point)))
+;;                                     (save-restriction
+;;                                       (widen)
+;;                                       (goto-char (point-min))
+;;                                       (string= (buffer-substring-no-properties
+;;                                                 0 (length web-vcs-investigate-header-str))
+;;                                                web-vcs-investigate-header-str))))))
+
+;;     (goto-char (cond (reset (point-min))
+;; 		     ((< argp 0) (line-beginning-position))
+;; 		     ((> argp 0) (line-end-position))
+;; 		     ((point))))
+;;     (occur-find-match
+;;      (abs argp)
+;;      (if (> 0 argp)
+;; 	 #'previous-single-property-change
+;;        #'next-single-property-change)
+;;      "No more matches")
+;;     ;; In case the *Occur* buffer is visible in a nonselected window.
+;;     (let ((win (get-buffer-window (current-buffer) t)))
+;;       (if win (set-window-point win (point))))
+;;     (occur-mode-goto-occurrence)))
+
 ;;(web-vcs-investigate-read "c:/emacsw32/nxhtml/nxhtml/nxhtml-autoload.el" "*Messages*")
 (defun web-vcs-investigate-read (elisp out-buf)
   "Check forms in buffer by reading it."
@@ -1694,7 +1729,8 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
                                 (functionp sym)
                                 (symbol-function sym)))
                  (form-var (boundp sym))
-                 (safe-forms '( defun defmacro defsubst
+                 (safe-forms '( declare-function
+                                defun defmacro defsubst
                                 define-minor-mode define-globalized-minor-mode
                                 defvar defconst
                                 defcustom
@@ -1733,7 +1769,7 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
         (goto-char (point-max))
         (unless (bobp) (insert "\n\n"))
         (insert (propertize "Found these possible problems when reading the file:\n"
-                            'face '(:height 1.5)))
+                            'font-lock-face '(:height 1.5)))
         (or unsafe-eval
             re-fun
             (insert "\n"
@@ -1742,29 +1778,34 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
 
         ;; Fix-me: Link
         (when unsafe-eval
-          (insert (propertize
-                   (format "\n* Forms that are executed when loading the file (found %s):\n\n"
+          (insert "\n"
+                  (propertize
+                   (format "* Forms that are executed when loading the file (found %s):"
                           (length unsafe-eval))
-                   'face '(:height 1.2)))
-          (dolist (u unsafe-eval)
-            (insert-text-button "Go to form below"
-                                'action
-                                `(lambda (button)
-                                   (let* ((marker ,(nth 1 u))
-                                          (buf (marker-buffer marker)))
-                                     (switch-to-buffer-other-window buf)
-                                     (unless (and (< marker (point-max))
-                                                  (> marker (point-min)))
-                                       (widen))
-                                     (goto-char marker))))
-            (insert "\n")
+                   'font-lock-face '(:background "yellow" :height 1.2))
+                  "\n\n")
+          (dolist (u (reverse unsafe-eval))
+            (insert (format "Line %s\n"
+                            (with-current-buffer elisp
+                              (line-number-at-pos (marker-position (nth 1 u))))))
+            ;; (insert-text-button (format "Go to form below, line %s" (marker-position (nth 1 u)))
+            ;;                     'font-lock-face '(compilation-info underline)
+            ;;                     'action
+            ;;                     `(lambda (button)
+            ;;                        (let* ((marker ,(nth 1 u))
+            ;;                               (buf (marker-buffer marker)))
+            ;;                          (switch-to-buffer-other-window buf)
+            ;;                          (unless (and (< marker (point-max))
+            ;;                                       (> marker (point-min)))
+            ;;                            (widen))
+            ;;                          (goto-char marker))))
             (insert (nth 2 u) "\n\n"))
           (insert "\n"))
         (when re-fun
           (insert (propertize
-                   (format "\n* The file will possibly redefine these functions that are currently defined (%s):\n"
+                   (format "\n* The file perhaps redefine these functions that are currently defined (%s):\n"
                           (length re-fun))
-                   'face '(:height 1.2)))
+                   'font-lock-face '(:background "yellow" :height 1.2)))
           (setq re-fun (sort re-fun (lambda (a b) (string< (symbol-name (car a)) (symbol-name (car b))))))
           (let ((row 0)
                 (re-fun-with-info (mapcar (lambda (fun)
@@ -1789,7 +1830,7 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
             (when (< 0 n-same)
               (insert "\n  "
                       (propertize (format "%s functions alreay defined by this file (which seems ok)" n-same)
-                                  'face 'web-vcs-green)
+                                  'font-lock-face 'web-vcs-green)
                       "\n"))
 
             (dolist (info re-fun-other-files)
@@ -1819,25 +1860,25 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
                                          ;; Fix-me: maybe a bit more informative ... ;-)
                                          (message "%S" ',fun-web-auto))))
                 (insert ")")
-                (when advised (insert ", " (propertize "adviced" 'face 'font-lock-warning-face)))
+                (when advised (insert ", " (propertize "adviced" 'font-lock-face 'font-lock-warning-face)))
                 (insert ", "
                         (cond
                          ((funcall is-same-file file-name)
-                          (propertize "defined in this file" 'face 'web-vcs-green)
+                          (propertize "defined in this file" 'font-lock-face 'web-vcs-green)
                           )
                          (fun-web-auto
                           (if (not (web-autoload-acvtive))
-                              (propertize "web download not active" 'face 'web-vcs-yellow)
+                              (propertize "web download not active" 'font-lock-face 'web-vcs-yellow)
                             ;; See if file matches
                             (let ((active-sub-url web-autoload-active-file-sub-url)
                                   (fun-sub-url (nth 2 fun-web-auto)))
                               (setq active-sub-url (file-name-sans-extension active-sub-url))
                               (if (string-match-p fun-sub-url active-sub-url)
-                                  (propertize "web download, matches" 'face 'web-vcs-yellow)
-                                (propertize "web download, doesn't matches" 'face 'web-vcs-red)
+                                  (propertize "web download, matches" 'font-lock-face 'web-vcs-yellow)
+                                (propertize "web download, doesn't matches" 'font-lock-face 'web-vcs-red)
                                 ))))
                          (t
-                          (propertize "defined in other file" 'face 'web-vcs-red))))
+                          (propertize "defined in other file" 'font-lock-face 'web-vcs-red))))
                 (unless (funcall is-same-file file-name)
                   (insert " (")
                   (insert-text-button "go to new definition"
@@ -1850,7 +1891,64 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
                                            (goto-char m-pos))))
                   (insert ")"))
                 (insert "\n")
-                ))))))))
+                )))))
+      (web-vcs-investigate-output-mode)
+      )))
+
+(defvar web-vcs-investigate-current-file nil)
+(make-variable-buffer-local 'web-vcs-investigate-current-file)
+(put 'web-vcs-investigate-current-file 'permanent-local t)
+
+(defun web-vcs-investigate-current-file ()
+  `(,web-vcs-investigate-current-file))
+
+;; (defun web-vcs-investigate-fontification-fun (bound)
+;;   ;;(compilation-error-properties (file line end-line col end-col type fmt)
+;;   (while (re-search-forward "^Line \\([0-9]+\\)$" bound t)
+;;     (put-text-property (match-beginning 1) (match-end 1)
+;;                        'face 'highlight)
+;;     (let ((line (string-to-number (match-string-no-properties 1))))
+;;       (compilation-error-properties 'web-vcs-investigate-current-file line line nil nil nil nil))
+;;     )
+;;   nil)
+
+
+;; (defvar web-vcs-investigate-output-font-lock-keywords
+;;   ;; '(("^\\*\\*\\* \\(.+\\.el\\): \\([^ \n]+\\)"
+;;   ;; '(("^\\*\\*\\* \\(.+\\.el\\): \\([^ \n]+\\)"
+;;   ;;    (1 font-lock-function-name-face)
+;;   ;;    (2 font-lock-comment-face)))
+;;   ;; "Keywords used to highlight a checkdoc diagnostic buffer.")
+;;   nil)
+;;   ;;'(("^\\(Line\\) \\([0-9]+\\)$" 1 2)))
+;;   ;;'(web-vcs-investigate-fontification-fun))
+
+(defvar web-vcs-investigate-output-error-regex-alist
+  '(
+    ("^Line \\([0-9]+\\)$" web-vcs-investigate-current-file 1
+     ;; column type
+     nil 0)
+    ;; Fix-me: This is just a terrible hack making the hit into a
+    ;; compilation error point with # as the link and the rest as the
+    ;; action for that line. And it even does not work... - Only the
+    ;; first line becomes an error line. No idea why at the moment.
+    ("\\(#\\)Eval the file with all" web-vcs-investigate-current-file nil nil nil 1)
+    ("\\(#\\)Eval the file with just" web-vcs-investigate-current-file nil nil nil 1)
+    ("\\(#\\)Eval the file with no" web-vcs-investigate-current-file nil nil nil 1)
+    ))
+
+;; (defvar checkdoc-pending-errors nil
+;;   "Non-nil when there are errors that have not been displayed yet.")
+
+(define-derived-mode web-vcs-investigate-output-mode compilation-mode "Investigate Elisp"
+  "Set up the major mode for the buffer containing the list of errors."
+  (set (make-local-variable 'compilation-error-regexp-alist)
+       web-vcs-investigate-output-error-regex-alist)
+  (set (make-local-variable 'compilation-error-face)
+       grep-hit-face)
+  ;; (set (make-local-variable 'compilation-mode-font-lock-keywords)
+  ;;      web-vcs-investigate-output-font-lock-keywords)
+  )
 
 ;; I am quite tired of doing this over and over again. Why is this not
 ;; in Emacs?
@@ -1864,8 +1962,11 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
   :lighter nil)
 
 (defvar web-vcs-eval-output-start nil)
+(make-variable-buffer-local 'web-vcs-eval-output-start)
+(defvar web-vcs-eval-output-end   nil)
+(make-variable-buffer-local 'web-vcs-eval-output-end)
 
-;;(web-vcs-investigate-file)
+;;(web-vcs-investigate-elisp-file)
 ;;;###autoload
 (defun web-vcs-investigate-elisp-file (file-or-buffer)
   (interactive (list
@@ -1876,33 +1977,22 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
                     file-or-buffer
                   (find-file-noselect file-or-buffer)))
          (elisp-file (with-current-buffer elisp (buffer-file-name)))
-         (out-buf (get-buffer-create "Web VCS Sec Inv")))
+         (out-buf-name "Web VCS Sec Inv")
+         (out-buf (let ((old-buf (get-buffer out-buf-name)))
+                    (when old-buf (kill-buffer old-buf))
+                    (get-buffer-create out-buf-name))))
     (if (not (with-current-buffer elisp (derived-mode-p 'emacs-lisp-mode)))
         (progn
           (unless (eq (current-buffer) elisp)
             (display-buffer elisp))
           (message "Buffer %s is not in emacs-lisp-mode" (buffer-name elisp)))
       (switch-to-buffer-other-window out-buf)
+      (setq web-vcs-investigate-current-file elisp-file)
       (let ((inhibit-read-only t))
         (erase-buffer)
         (setq buffer-read-only t)
         (web-vcs-button-mode 1)
-        (insert "A quick look for problems in ")
-        (if elisp-file
-            (progn
-              (insert "file\n    ")
-              (insert-text-button elisp-file
-                                  'action
-                                  `(lambda (button)
-                                     (interactive)
-                                     (find-file-other-window ,elisp-file))))
-          (insert "buffer ")
-          (insert-text-button (buffer-name elisp)
-                              'action
-                              `(lambda (button)
-                                 (interactive)
-                                 (switch-to-buffer-other-window ,elisp))))
-        (insert "\n")
+        (insert (propertize "A quick look for problems" 'font-lock-face '(:height 1.5)))
         (let ((here (point)))
           (insert
            "\n"
@@ -1912,52 +2002,84 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
                     " (or be sure someone else has done it for you)."
                     " The following are checked for here:"
                     "\n")
-            'face font-lock-comment-face))
+            'font-lock-face font-lock-comment-face))
           (fill-region here (point)))
         (insert
          (propertize
           (concat
            "- Top level forms that might be executed when loading the file.\n"
            "- Redefinition of functions.\n")
-          'face font-lock-comment-face))
+          'font-lock-face font-lock-comment-face))
+
+        (insert "\n")
+        (if elisp-file
+            (progn
+              (insert "File ")
+              (insert-text-button elisp-file
+                                  'action
+                                  `(lambda (button)
+                                     (interactive)
+                                     (find-file-other-window ,elisp-file))))
+          (insert "Buffer ")
+          (insert-text-button (buffer-name elisp)
+                              'action
+                              `(lambda (button)
+                                 (interactive)
+                                 (switch-to-buffer-other-window ,elisp))))
+
         (web-vcs-investigate-read elisp out-buf)
         (when elisp-file
           (insert "\n\n\n")
+          (insert (propertize "* Investigate what the file loads and redefines\n"
+                              'font-lock-face '(:background "yellow" :height 1.2)))
           (let ((here (point)))
-            (insert "If you want to see what will actually be added to `load-history'"
-                    " and which functions will be defined you can\n")
-            (insert-text-button "click here to try to eval the file"
-                                'action `(lambda (button) (interactive)
-                                           (if (y-or-n-p "Load the file in a batch Emacs session? ")
-                                               (web-vcs-investigate-eval ,elisp-file ,out-buf)
-                                             (message "Aborted"))))
-            (insert ".\n\nThis will load the file in a batch Emacs"
-                    " which runs the same init files as you have run now"
-                    (cond
-                     ((not init-file-user) " (with -Q, ie no init files will run)")
-                     ((not site-run-file) " (with -q, ie .emacs will not furn)")
-                     (t " (your normal setup files will be run)"
-                      ))
-                    " and send back that information."
-                    " The variable `load-path' is set to match the downloading"
-                    " to make the loading possible before your setup is ready."
-                    "\n\nYour current Emacs will not be affected by the loading,"
+            (insert "\nIf you want to see what will actually be added to `load-history'"
+                    " and which functions will be defined you can"
+                    " click below to try to eval the file in a batch Emacs session"
+                    " and show the result here:\n\n")
+            (fill-region here (point))
+            (when t ;init-file-user
+              (insert "  ")
+              (insert-text-button "#Eval the file with all your current init files"
+                                  'action `(lambda (button) (interactive)
+                                             (web-vcs-investigate-eval ,elisp-file ,out-buf "--debug-init")))
+              (insert "\n"))
+            (when t ;(and site-run-file (not init-file-user))
+              (insert "  ")
+              (insert-text-button "#Eval the file with just your site init file (i.e. -q)"
+                                  'action `(lambda (button) (interactive)
+                                             (web-vcs-investigate-eval ,elisp-file ,out-buf "-q")))
+              (insert "\n"))
+            (when t ;(not site-run-file)
+              (insert "  ")
+              (insert-text-button "#Eval the file with no init file (i.e. -Q)"
+                                  'action `(lambda (button) (interactive)
+                                             (web-vcs-investigate-eval ,elisp-file ,out-buf "-Q")))
+              (insert "\n"))
+
+            (setq here (point))
+            (insert (propertize "  Note: Click the part after #.\n\n" 'font-lock-face 'italic))
+            (insert "Your current Emacs will not be affected by the loading,"
                     " but please be aware that this does not mean your computer can not be."
-                    " So please look at the file first.")
+                    " So please look at the file first."
+                    "\n\n"
+                    "(Note: The variable `load-path' is set to your current value in the batch session so that the"
+                    " required libraries may be found.)"
+                    )
             (fill-region here (point))
             (setq web-vcs-eval-output-start (point))
+            (setq web-vcs-eval-output-end (point-max))
             ))
         (set-buffer-modified-p nil)
         (goto-char (point-min))))))
 
-(make-variable-buffer-local 'web-vcs-eval-output-start)
 
 ;;(web-vcs-investigate-eval "c:/emacsw32/nxhtml/nxhtml/nxhtml-autoload.el" "*Messages*")
 ;;(web-vcs-investigate-eval "c:/emacsw32/nxhtml/autostart.el" "*Messages*")
-(defun web-vcs-investigate-eval (elisp-file out-buf)
+(defun web-vcs-investigate-eval (elisp-file out-buf init)
   "Get compile loads when evaling buffer.
-For security reasons do this in a fresh Emacs and return the
-resulting load-history entry."
+Eval the buffer in a fresh Emacs and return the resulting
+load-history entries with comments about what is new etc."
   (let* ((emacs-exe (locate-file invocation-name
                                  (list invocation-directory)
                                  exec-suffixes))
@@ -1990,13 +2112,14 @@ resulting load-history entry."
          batch-error
          result)
     (with-current-buffer out-buf
-      (let ((here (point))
-            (inhibit-read-only t))
-        (save-restriction
-          (widen)
-          (goto-char (point-max))
-          (delete-region web-vcs-eval-output-start (point)))
-        (goto-char here)))
+      (when web-vcs-eval-output-start
+        (let ((here (point))
+              (inhibit-read-only t))
+          (save-restriction
+            (widen)
+            ;;(goto-char web-vcs-eval-output-start)
+            (delete-region web-vcs-eval-output-start web-vcs-eval-output-end))
+          (goto-char here))))
     ;; Fix-me: do not use temp buffer so we can check errors
     (with-temp-buffer
       (let ((old-loadpath (getenv "EMACSLOADPATH"))
@@ -2012,10 +2135,14 @@ resulting load-history entry."
                             ;; fix-me: "-Q" - should be run in the users current environment.
                             ;; init-file-user nil => -Q
                             ;; site-run-file nil => -q
-                            (cond
-                             ((not init-file-user) "-Q")
-                             ((not site-run-file) "-q")
-                             (t "--debug-init")) ;; have to have something here...
+
+                            ;; (cond
+                            ;;  ((not init-file-user) "-Q")
+                            ;;  ((not site-run-file) "-q")
+                            ;;  (t "--debug-init")) ;; have to have something here...
+                            init
+
+                            "-eval" (format "(setq load-path '%S)" load-path)
                             "-l" elisp-file
                             elisp-file
                             "-eval" (format "%S" get-lhe)))
@@ -2047,13 +2174,14 @@ resulting load-history entry."
             (inhibit-read-only t))
         (save-restriction
           (widen)
-          (goto-char (point-max))
+          ;;(goto-char (point-max))
+          (goto-char web-vcs-eval-output-start)
           (if batch-error
               (progn
                 (insert "\n\n")
-                (insert (propertize batch-error 'face 'web-vcs-red)))
-          (insert (propertize "\n\nThis file added the following to `load-history':\n\n"
-                              'face '(:height 1.5)))
+                (insert (propertize batch-error 'font-lock-face 'web-vcs-red)))
+          (insert (propertize (format "\n\nLoading file (%s) added to `load-history':\n\n" init)
+                              'font-lock-face '(:height 1.5)))
           (insert "   (\"" (car result) "\"\n")
           (dolist (e (cdr result))
             (insert (format "    %S" e))
@@ -2062,18 +2190,18 @@ resulting load-history entry."
                   ((symbolp e)
                    (insert "  - ")
                    (insert (if (not (boundp e))
-                               (propertize "New" 'face 'web-vcs-yellow)
+                               (propertize "New" 'font-lock-face 'web-vcs-yellow)
                              (let ((e-file (symbol-file e)))
                                (if (funcall is-same-file e-file)
-                                   (propertize "Same file now" 'face 'web-vcs-green)
+                                   (propertize "Same file now" 'font-lock-face 'web-vcs-green)
                                  (let* ((fun-web-auto (get e 'web-autoload))
                                         (fun-sub-url (nth 2 fun-web-auto)))
                                    (if (and fun-sub-url
                                             (string= fun-sub-url active-sub-url))
                                        (propertize "Web download, matches current download"
-                                                   'face 'web-vcs-yellow)
+                                                   'font-lock-face 'web-vcs-yellow)
                                      (propertize (format "Loaded from %S now" e-file)
-                                                 'face 'web-vcs-red))))))))
+                                                 'font-lock-face 'web-vcs-red))))))))
                   ;; provide
                   ((eq (car e) 'provide)
                    (insert "  - ")
@@ -2083,21 +2211,21 @@ resulting load-history entry."
                               ((not (featurep feat))
                                (if (or (string= elisp-feature-name
                                                 (symbol-name (cdr e))))
-                                   (propertize "Web download, matches file name" 'face 'web-vcs-green)
-                                 (propertize "Does not match file name" 'face 'web-vcs-red)))
+                                   (propertize "Web download, matches file name" 'font-lock-face 'web-vcs-green)
+                                 (propertize "Does not match file name" 'font-lock-face 'web-vcs-red)))
                               (t
                                ;; symbol-file will be where it is loaded
                                ;; so check load-path instead.
                                (let ((file (locate-library feat-name)))
                                  (if (funcall is-same-file file)
-                                     (propertize "Probably loaded from same file now" 'face 'web-vcs-yellow)
+                                     (propertize "Probably loaded from same file now" 'font-lock-face 'web-vcs-yellow)
                                    (propertize (format "Probably loaded from %S now" file)
-                                               'face 'web-vcs-yellow))))))))
+                                               'font-lock-face 'web-vcs-yellow))))))))
                   ;; require
                   ((eq (car e) 'require)
                    (if (featurep (cdr e))
-                       (insert "  - " (propertize "Loaded now" 'face 'web-vcs-green))
-                     (insert "  - " (propertize "Not loaded now" 'face 'web-vcs-yellow))))
+                       (insert "  - " (propertize "Loaded now" 'font-lock-face 'web-vcs-green))
+                     (insert "  - " (propertize "Not loaded now" 'font-lock-face 'web-vcs-yellow))))
                   ;; Functions
                   ((memq (car e) '( defun macro))
                    (insert "  - ")
@@ -2105,19 +2233,20 @@ resulting load-history entry."
                      (insert (if (functionp fun)
                                  (let ((e-file (symbol-file e)))
                                    (if (funcall is-same-file e-file)
-                                       (propertize "Same file now" 'face 'web-vcs-green)
+                                       (propertize "Same file now" 'font-lock-face 'web-vcs-green)
                                      (let* ((fun-web-auto (get fun 'web-autoload))
                                             (fun-sub-url (nth 2 fun-web-auto)))
                                        ;; Fix-me: check for temp download file.
                                        (if (string= fun-sub-url active-sub-url)
                                            (propertize "Web download, matches current download"
-                                                       'face 'web-vcs-yellow)
+                                                       'font-lock-face 'web-vcs-yellow)
                                          (propertize (format "Loaded from %S now" e-file)
-                                                     'face 'web-vcs-yellow)))))
+                                                     'font-lock-face 'web-vcs-yellow)))))
                                ;; Note that web autoloaded functions are already defined.
-                               (propertize "New" 'face 'web-vcs-yellow))))))
+                               (propertize "New" 'font-lock-face 'web-vcs-yellow))))))
             (insert "\n"))
           (insert "    )\n")
+          (setq web-vcs-eval-output-end (point-max))
           (goto-char here))))
       (set-buffer-modified-p nil))))
 

@@ -480,32 +480,32 @@ See `visual-indent-use-adaptive-fill' for more information."
 
 ;;; Code below is obsolete.
 
-(defun visual-indent-fontify (bound)
-  "During fontification mark lines for indentation.
-This is called as a matcher in `font-lock-keywords' in
-`visual-indent-mode'.  BOUND is the limit of fontification.
+;; (defun visual-indent-fontify (bound)
+;;   "During fontification mark lines for indentation.
+;; This is called as a matcher in `font-lock-keywords' in
+;; `visual-indent-mode'.  BOUND is the limit of fontification.
 
-Put the property 'wrap-prefix on lines whose continuation lines
-\(see `visual-line-mode') should be indented.  Only do this if
-`visual-line-mode' and `word-wrap' is on.
+;; Put the property 'wrap-prefix on lines whose continuation lines
+;; \(see `visual-line-mode') should be indented.  Only do this if
+;; `visual-line-mode' and `word-wrap' is on.
 
-Return nil."
-  ;; Fix-me: break up for `jit-lock-register': two args, beg end, no rules for return value.
-  ;; See (require 'glasses)
-  (visual-indent-jit-lock-fun (point) bound)
-  ;; Do not set match-data, there is none, just return nil.
-  nil)
+;; Return nil."
+;;   ;; Fix-me: break up for `jit-lock-register': two args, beg end, no rules for return value.
+;;   ;; See (require 'glasses)
+;;   (visual-indent-jit-lock-fun (point) bound)
+;;   ;; Do not set match-data, there is none, just return nil.
+;;   nil)
 
-(defun visual-indent-font-lock (on)
-  ;; See mlinks.el
-  (let* ((add-or-remove (if on 'font-lock-add-keywords 'font-lock-remove-keywords))
-         (fontify-fun 'visual-indent-fontify)
-         (args (list nil `(( ,fontify-fun ( 0 'font-lock-warning-face t ))))))
-    (when fontify-fun
-      (when on (setq args (append args (list t))))
-      (apply add-or-remove args)
-      (font-lock-mode -1)
-      (font-lock-mode 1))))
+;; (defun visual-indent-font-lock (on)
+;;   ;; See mlinks.el
+;;   (let* ((add-or-remove (if on 'font-lock-add-keywords 'font-lock-remove-keywords))
+;;          (fontify-fun 'visual-indent-fontify)
+;;          (args (list nil `(( ,fontify-fun ( 0 'font-lock-warning-face t ))))))
+;;     (when fontify-fun
+;;       (when on (setq args (append args (list t))))
+;;       (apply add-or-remove args)
+;;       (font-lock-mode -1)
+;;       (font-lock-mode 1))))
 
 (provide 'wrap-to-fill)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

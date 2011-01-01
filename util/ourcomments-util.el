@@ -2728,6 +2728,7 @@ Note: This minor mode will defadvice the paste commands."
 
 (defvar ourcomments-M-x-menu-timer nil)
 (defvar ourcomments-M-x-menu-this-command nil)
+;; Fix-me: split adding and message
 (defun ourcomments-M-x-menu-pre ()
   "Add menu command to M-x history."
   (let ((is-menu-command (equal '(menu-bar)
@@ -2757,10 +2758,12 @@ Note: This minor mode will defadvice the paste commands."
     ;;(message "maybe-command=%s, %s" maybe-command (commandp maybe-command))
     ;; this-command could have been let bound so check it:
     (when (commandp maybe-command)
-      (let ((pre-len (length extended-command-history)))
+      (let ((pre-len (length extended-command-history))
+            (maybe-str (symbol-name maybe-command)))
         (if ourcomments-M-x-menu-always-add
-            (push (symbol-name maybe-command) extended-command-history)
-          (pushnew (symbol-name maybe-command) extended-command-history))
+            (unless (equal maybe-str (car extended-command-history))
+              (push maybe-str extended-command-history))
+          (pushnew maybe-str extended-command-history))
         (when (< pre-len (length extended-command-history))
           ;; Give a temporary message
           (let ((msg

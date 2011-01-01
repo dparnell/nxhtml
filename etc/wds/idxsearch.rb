@@ -158,7 +158,7 @@ end
 class WdsSearchResult < WdsLocateResult
   # This class holds and handles search results
   def initialize(rootpath, comma_sep_query, options)
-    txt_ext = options[:txtexts] || [".txt", ".org"]
+    txt_ext = options[:txtexts] || [".txt", ".org", ".el"]
     maxw    = options[:maxw]    || 0
     @query_strings = comma_sep_query.split(",")
     @used_fields ||= []
@@ -198,6 +198,11 @@ class WdsSearchResult < WdsLocateResult
       print "* File ", relurl(hit), " matches\n"
       if istxt(hit)
         re_str = "("+@query_strings.join("|")+")"
+        # Translate to regexp
+        wild = re_str.split("%")
+        # Fix-me: avoiding ruby-mode string fontification bug when ?
+        # comes before ending ":
+        re_str = wild.join(".*? "[0,-1])
         re = Regexp.new(re_str, 1)
         search_textfile(fullurl(hit), re, @maxw)
       end
@@ -238,14 +243,28 @@ end
 def search_textfile (filename, re, maxw)
   # See this blog posts about char encoding:
   #   http://blog.grayproductions.net/articles/ruby_19s_three_default_encodings
-  file = File.open(filename, "r:UTF-8")
+  #
+  # Let ruby decide input, let output be UTF-8
+  search_textfile_1(filename, re, maxw, "r:UTF-8")
+end
+def search_textfile_1 (filename, re, maxw, openflags)
+  # p filename
+  file = File.open(filename, openflags)
   row = 0
   maxw = maxw - 12
   # print "maxw=", maxw.to_s(), "\n"
+  #file.each_line do |line|; end
   file.each_line do |line|
+    p [line.encoding.name, line] unless "UTF-8" == line.encoding.name
     row += 1
     line.chomp!
-    matchdata = re.match(line)
+    begin
+      matchdata = re.match(line)
+    rescue
+      matchdata = $null
+      print "Problem matching line below, #{$!}:\n"
+      p line
+    end
     if matchdata
       col = matchdata.begin(0)
       cnd = matchdata.end(0)
