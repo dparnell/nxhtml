@@ -1927,7 +1927,7 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
   '(
     ("^Line \\([0-9]+\\)$" web-vcs-investigate-current-file 1
      ;; column type
-     nil 0)
+     nil 1)
     ;; Fix-me: This is just a terrible hack making the hit into a
     ;; compilation error point with # as the link and the rest as the
     ;; action for that line. And it even does not work... - Only the
@@ -1940,7 +1940,7 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
 ;; (defvar checkdoc-pending-errors nil
 ;;   "Non-nil when there are errors that have not been displayed yet.")
 
-(define-derived-mode web-vcs-investigate-output-mode compilation-mode "Investigate Elisp"
+(define-compilation-mode web-vcs-investigate-output-mode "Investigate Elisp"
   "Set up the major mode for the buffer containing the list of errors."
   (set (make-local-variable 'compilation-error-regexp-alist)
        web-vcs-investigate-output-error-regex-alist)

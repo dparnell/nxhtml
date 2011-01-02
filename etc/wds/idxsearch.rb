@@ -224,7 +224,7 @@ class WdsSearchResult < WdsLocateResult
       end
     }
     print "----\n"
-    print "Found ", @hits.length.to_s(), " mating files"
+    print "Found ", @hits.length.to_s(), " matching files"
   end
 end
 
