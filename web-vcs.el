@@ -51,6 +51,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'compile))
 (eval-and-compile  (require 'cus-edit))
 (eval-and-compile  (require 'mm-decode))
 (eval-when-compile (require 'url-http))
@@ -1803,7 +1804,7 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
           (insert "\n"))
         (when re-fun
           (insert (propertize
-                   (format "\n* The file perhaps redefine these functions that are currently defined (%s):\n"
+                   (format "\n* The file perhaps redefines these functions that are defined now (%s):\n"
                           (length re-fun))
                    'font-lock-face '(:background "yellow" :height 1.2)))
           (setq re-fun (sort re-fun (lambda (a b) (string< (symbol-name (car a)) (symbol-name (car b))))))
@@ -1944,8 +1945,7 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
   "Set up the major mode for the buffer containing the list of errors."
   (set (make-local-variable 'compilation-error-regexp-alist)
        web-vcs-investigate-output-error-regex-alist)
-  (set (make-local-variable 'compilation-error-face)
-       grep-hit-face)
+  ;;(set (make-local-variable 'compilation-error-face) grep-hit-face)
   ;; (set (make-local-variable 'compilation-mode-font-lock-keywords)
   ;;      web-vcs-investigate-output-font-lock-keywords)
   )
@@ -2035,38 +2035,40 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
           (let ((here (point)))
             (insert "\nIf you want to see what will actually be added to `load-history'"
                     " and which functions will be defined you can"
-                    " click below to try to eval the file in a batch Emacs session"
-                    " and show the result here:\n\n")
+                    " load the file in a batch Emacs session"
+                    " and show the result here."
+                    " (`load-path' will be set to your current value for the loading.)"
+                    "\n"
+                    )
             (fill-region here (point))
+
+            (setq here (point))
+            (insert "\nYour current Emacs will not be affected by the loading,"
+                    " but please be aware that this does not mean your computer can not be."
+                    "\n"
+                    )
+            (fill-region here (point))
+
+            (insert (propertize "\n  Note: Click the part after #.\n" 'font-lock-face 'italic))
             (when t ;init-file-user
               (insert "  ")
-              (insert-text-button "#Eval the file with all your current init files"
+              (insert-text-button "#Load the file with all your current init files"
                                   'action `(lambda (button) (interactive)
                                              (web-vcs-investigate-eval ,elisp-file ,out-buf "--debug-init")))
               (insert "\n"))
             (when t ;(and site-run-file (not init-file-user))
               (insert "  ")
-              (insert-text-button "#Eval the file with just your site init file (i.e. -q)"
+              (insert-text-button "#Load the file with just your site init file (i.e. -q)"
                                   'action `(lambda (button) (interactive)
                                              (web-vcs-investigate-eval ,elisp-file ,out-buf "-q")))
               (insert "\n"))
             (when t ;(not site-run-file)
               (insert "  ")
-              (insert-text-button "#Eval the file with no init file (i.e. -Q)"
+              (insert-text-button "#Load the file with no init file (i.e. -Q)"
                                   'action `(lambda (button) (interactive)
                                              (web-vcs-investigate-eval ,elisp-file ,out-buf "-Q")))
               (insert "\n"))
 
-            (setq here (point))
-            (insert (propertize "  Note: Click the part after #.\n\n" 'font-lock-face 'italic))
-            (insert "Your current Emacs will not be affected by the loading,"
-                    " but please be aware that this does not mean your computer can not be."
-                    " So please look at the file first."
-                    "\n\n"
-                    "(Note: The variable `load-path' is set to your current value in the batch session so that the"
-                    " required libraries may be found.)"
-                    )
-            (fill-region here (point))
             (setq web-vcs-eval-output-start (point))
             (setq web-vcs-eval-output-end (point-max))
             ))

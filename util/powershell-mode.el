@@ -237,7 +237,7 @@ differently from the other variables.")
 
 ;; (let ((b (get-buffer-create "TEST"))) (display-buffer b) (start-process "NAME" b "cmd.exe" "/c" "c:\\u\\ps1.cmd" "c:\\u\\DesktopSearch.ps1" "yyy")) <---------------
 
-;; (let ((b (get-buffer-create "TEST"))) (display-buffer b) (start-process "NAME" b "cmd.exe" "/c" "c:\\u\\DesktopSearch.ps1" "c" "cullberg")) <====================
+;; (let ((b (get-buffer-create "TEST"))) (display-buffer b) (start-process "NAME" b "cmd.exe" "/c" "c:\\u\\DesktopSearch.ps1" "c" "abstract")) <====================
 
 ;; (let ((b (get-buffer-create "TEST"))) (display-buffer b) (start-process "NAME" b "powershell.exe" "-nologo" "-noninteractive" "-file" "c:\\u\\DesktopSearch.ps1"))
 

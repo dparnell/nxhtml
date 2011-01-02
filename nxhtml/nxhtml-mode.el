@@ -110,8 +110,9 @@
 
 ;; Require nxml things conditionally to silence byte compiler under
 ;; Emacs 22.
-(when (version< emacs-version "23")
-  (eval-and-compile (require 'rngalt nil t)))
+(eval-and-compile
+  (when (version< emacs-version "23")
+    (require 'rngalt nil t)))
 
 (require 'url-parse)
 (require 'url-expand)
@@ -344,8 +345,7 @@ You can add additional elisp code for completing to
 
 
 ;; FIX-ME: When should this be done? Get tidy-menu-symbol:
-(when (featurep 'tidy-xhtml)
-  (tidy-build-menu))
+;; (when (featurep 'tidy-xhtml) (tidy-build-menu))
 
 
 ;; (eval-after-load 'css-mode
@@ -364,19 +364,20 @@ You can add additional elisp code for completing to
 ;;   (when (fboundp 'mlinks-mode)
 ;;     (mlinks-mode 0)))
 
-(when (< emacs-major-version 23)
-  (defun nxml-change-mode ()
-    ;; Remove overlays used by nxml-mode.
-    (save-excursion
-      (save-restriction
-        (widen)
-        (rng-validate-mode -1)
-        (let ((inhibit-read-only t)
-              (buffer-undo-list t)
-              (modified (buffer-modified-p)))
-          (nxml-with-invisible-motion
-            (remove-text-properties (point-min) (point-max) '(face nil)))
-          (set-buffer-modified-p modified))))))
+(eval-and-compile
+  (when (< emacs-major-version 23)
+    (defun nxml-change-mode ()
+      ;; Remove overlays used by nxml-mode.
+      (save-excursion
+        (save-restriction
+          (widen)
+          (rng-validate-mode -1)
+          (let ((inhibit-read-only t)
+                (buffer-undo-list t)
+                (modified (buffer-modified-p)))
+            (nxml-with-invisible-motion
+              (remove-text-properties (point-min) (point-max) '(face nil)))
+            (set-buffer-modified-p modified)))))))
 
 (defcustom nxhtml-heading-element-name-regexp "[a-z]*"
   "Used for `nxml-heading-element-name-regexp."
@@ -1946,11 +1947,12 @@ This mode may be turned on automatically in two ways:
   )
 
 
-(when (featurep 'typesetter)
-  (defun typesetter-init-nxhtml-mode ()
-    (when (fboundp 'typesetter-init-html-mode)
-      (typesetter-init-html-mode)))
-  )
+(eval-and-compile
+  (when (featurep 'typesetter)
+    (defun typesetter-init-nxhtml-mode ()
+      (when (fboundp 'typesetter-init-html-mode)
+        (typesetter-init-html-mode)))
+    ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Validation start state
