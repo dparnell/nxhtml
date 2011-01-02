@@ -47,7 +47,6 @@
 ;;
 ;;; Code:
 
-;; Fix-me: rename to for example idxsearch.el
 (eval-when-compile (require 'compile))
 (eval-when-compile (require 'grep))
 (eval-when-compile (require 'org))
@@ -55,7 +54,7 @@
 (require 'nxhtml-base)
 ;; Fix-me: The byte compiler should not complain about these:
 (declare-function orgstruct-mode "orgstruct-mode")
-(declare-function outline-minor-mode "outline")
+;;(declare-function outline-minor-mode "outline")
 
 (defvar idxsearch-patt-hist nil)
 
@@ -270,8 +269,13 @@ different root locations at once."
 
 ;; (REGEXP FILE [LINE COLUMN TYPE HYPERLINK HIGHLIGHT...])
 (defconst idxsearch-error-regexp-alist
-  '(("^c:\\([0-9]+\\):\\([0-9]+\\):" idxsearch-find-filename 1 2)
-    ("^\\* File \\(.+\\) matches$" 1 nil nil 0 1))
+  `(
+    ;; For ruby errors etc (this must be first here):
+    ,(cdr (assoc 'gnu compilation-error-regexp-alist-alist))
+    ;; Fix-me: Remove debugging [abc]
+    ("^[abc]\\([0-9]+\\):\\([0-9]+\\):" idxsearch-find-filename 1 2)
+    ("^\\* File \\(.+\\) matches$" 1 nil nil 0 1)
+    )
   "Regexp used to match search hits.  See `compilation-error-regexp-alist'.")
 
 (defvar idxsearch-mode-font-lock-keywords
@@ -293,16 +297,16 @@ This gets tacked on the end of the generated expressions.")
   (set (make-local-variable 'compilation-error-face) idxsearch-hit-face))
 
 ;; Fix-me: ruby instead
-(defun idxsearch-add-powershell-kw ()
-  (let ((kw `((,(cadr powershell-compilation-error-regexp-alist)
-              (1 'compilation-error)
-              (2 compilation-line-face nil t)
-              (0
-               (compilation-error-properties '1 2 nil nil nil '2 'nil)
-               append))))
-        )
-    (font-lock-add-keywords 'idxsearch-mode kw)))
-(add-hook 'idxsearch-mode-hook 'idxsearch-add-powershell-kw)
+;; (defun idxsearch-add-powershell-kw ()
+;;   (let ((kw `((,(cadr powershell-compilation-error-regexp-alist)
+;;               (1 'compilation-error)
+;;               (2 compilation-line-face nil t)
+;;               (0
+;;                (compilation-error-properties '1 2 nil nil nil '2 'nil)
+;;                append))))
+;;         )
+;;     (font-lock-add-keywords 'idxsearch-mode kw)))
+;; (add-hook 'idxsearch-mode-hook 'idxsearch-add-powershell-kw)
 
 (provide 'idxsearch)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

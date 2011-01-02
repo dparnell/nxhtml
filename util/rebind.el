@@ -197,19 +197,19 @@ on.
   :group 'rebind)
 
 ;; fix-me:
-(defun temp-rebind-test-key ()
-  (interactive)
-  (let* (rebind-keys-mode
-         (binding (key-binding (this-command-keys-vector) t)))
-	(message "* org-bi.binding=%S, keys-vector=%S" binding (this-command-keys-vector))
-        ;; Raw can not be used for tab:
-        ;; (setq binding (key-binding (this-single-command-raw-keys) t))
-	;; (message "org-bi.binding=%S, keys.single-raw=%S" binding (this-single-command-raw-keys))
-        (setq binding (key-binding (this-command-keys) t))
-	(message "  org-bi.binding=%S, keys=%S" binding (this-command-keys))
-        (setq binding (key-binding (this-single-command-keys) t))
-	(message "  org-bi.binding=%S, keys.single=%S" binding (this-single-command-keys))
-  ))
+;; (defun temp-rebind-test-key ()
+;;   (interactive)
+;;   (let* (rebind-keys-mode
+;;          (binding (key-binding (this-command-keys-vector) t)))
+;; 	(message "* org-bi.binding=%S, keys-vector=%S" binding (this-command-keys-vector))
+;;         ;; Raw can not be used for tab:
+;;         ;; (setq binding (key-binding (this-single-command-raw-keys) t))
+;; 	;; (message "org-bi.binding=%S, keys.single-raw=%S" binding (this-single-command-raw-keys))
+;;         (setq binding (key-binding (this-command-keys) t))
+;; 	(message "  org-bi.binding=%S, keys=%S" binding (this-command-keys))
+;;         (setq binding (key-binding (this-single-command-keys) t))
+;; 	(message "  org-bi.binding=%S, keys.single=%S" binding (this-single-command-keys))
+;;   ))
 
 (defvar rebind-keys-mode-map nil)
 
@@ -289,14 +289,14 @@ key bindings we want!"
                 (derived-mode-p 'org-mode)))
       (let* (rebind-keys-mode
              (binding (key-binding (this-command-keys-vector) t)))
-	(message "* org-bi.binding=%S, keys-vector=%S" binding (this-command-keys-vector))
-        ;; Raw can not be used for tab:
-        ;; (setq binding (key-binding (this-single-command-raw-keys) t))
-	;; (message "org-bi.binding=%S, keys.single-raw=%S" binding (this-single-command-raw-keys))
-        (setq binding (key-binding (this-command-keys) t))
-	(message "  org-bi.binding=%S, keys=%S" binding (this-command-keys))
-        (setq binding (key-binding (this-single-command-keys) t))
-	(message "  org-bi.binding=%S, keys.single=%S" binding (this-single-command-keys))
+	;; (message "* org-bi.binding=%S, keys-vector=%S" binding (this-command-keys-vector))
+        ;; ;; Raw can not be used for tab:
+        ;; ;; (setq binding (key-binding (this-single-command-raw-keys) t))
+	;; ;; (message "org-bi.binding=%S, keys.single-raw=%S" binding (this-single-command-raw-keys))
+        ;; (setq binding (key-binding (this-command-keys) t))
+	;; (message "  org-bi.binding=%S, keys=%S" binding (this-command-keys))
+        ;; (setq binding (key-binding (this-single-command-keys) t))
+	;; (message "  org-bi.binding=%S, keys.single=%S" binding (this-single-command-keys))
         (when binding (call-interactively binding)))
     ;; Fix-me: Maybe adjust region so that it is valid for this op.
     (let* ((beg (region-beginning))

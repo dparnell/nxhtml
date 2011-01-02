@@ -148,6 +148,8 @@ Fix-me: Rethink. If then Emacs read syntax for
 strings is used.  This meanst that \\ must be doubled and things
 like \\n are recognized."
   (when my-rxx-test-details (web-vcs-message-with-face 'highlight "regexp src=%S" (buffer-string)))
+
+  (string-match (buffer-substring-no-properties (point-min) (point-max)) "")
   (rxx-tokenize)
   (let* (ok
          state
@@ -193,13 +195,28 @@ like \\n are recognized."
     (while (setq cc (char-after))
       (forward-char)
       (when (eq cc ?\\)
-        ;; Fix-me: implement rest of backslash syntax, at least what
-        ;; is currently in rx.
         (let ((c2 (char-after)))
           (when c2 (forward-char))
           (setq cc
                 (cond
-                 ((memq c2 (append "|()<>{}" nil))
+                 ((memq c2 (append (concat "|"  ;; Alternatives
+                                           "{}" ;; Repeating
+                                           "()" ;; Grouping
+                                           "0123456789" ;; Backref
+                                           "w"  ;; Word char
+                                           "W"  ;; Non-word char
+                                           "s"  ;; Syntax NEXT
+                                           "S"  ;; Syntax not NEXT
+                                           "c"  ;; Category NEXT
+                                           "C"  ;; Category not NEXT
+                                           "`'" ;; Empty buffer boundary
+                                           "="  ;; Empty at point
+                                           "b"  ;; Empty at word boundary
+                                           "B"  ;; Empty not at word boundary
+                                           "<>" ;; Empty beg/end word
+                                           "_"  ;; Empty beg/end symbol (if followed by <>)
+                                           )
+                                           nil))
                   (list 'BS c2))
                  ((memq c2 (append "nrft" nil))
                   (case cc
@@ -262,7 +279,7 @@ like \\n are recognized."
   (when (and (equal '(BS ?\()
                     (rxx-next-token))
              (eq ?\? (rxx-next-token 1))
-             ;; Fix-me: numbered.
+             ;; Fix-me: numbered. Not in rx yet.
              (eq ?\: (rxx-next-token 2)))
     (rxx-pop-token) (rxx-pop-token) (rxx-pop-token)
     (rxx-dump-tokens)
@@ -297,7 +314,6 @@ like \\n are recognized."
 (defun rxx-parse-str ()
   (when (characterp (rxx-next-token))
     (rxx-dump-tokens)
-    ;; Fix-me: . ^ $
     (let (result (more t))
       (while (and rxx-tokens more)
         (let ((token (rxx-pop-token)))
@@ -321,6 +337,9 @@ like \\n are recognized."
 
 (defun rxx-parse-brackets ()
   ;; Fix-me: implement char classes
+  ;; (rx (any digit))
+  ;; (rx (any digit "ac"))
+  ;; (rx (any digit) (any "abc"))
   (when (equal '(STATE ?\[)
                (rxx-next-token))
     (rxx-pop-token)
@@ -343,20 +362,43 @@ like \\n are recognized."
                              (?\] (if is-first cc
                                     (rxx-pop-token)
                                     nil))
+                             (?\[ (rxx-parse-char-class))
                              ;; Fix-me:
                              (t (rxx-pop-token) cc))))
                         (t (rxx-error)))))
           (when more (push more result))
           (setq is-first nil)))
+      ;; Fix-me: Clean up first, sort, remove duplicates
       (setq result (concat (append (reverse result))))
       (setq result (append '(any) `(,result)))
       (when is-not (setq result `(not ,result)))
       result)))
 
 (defun rxx-parse-braces (single)
-  (if (not (equal '(BS ?\{)
-                  (rxx-next-token)))
-      single
+  "Handle repeating constructs.
+Return SINGLE enclosed in them or by itself if no repeating
+construct is found.
+
+Repeating constructs are braces and ? * + *? +? ??."
+  (cond
+   ((eq ?? (rxx-next-token))
+    (rxx-pop-token)
+    (case (rxx-next-token)
+      (?? (rxx-pop-token)
+          `(?? ,single))
+      (t `(? ,single))))
+   ((eq ?* (rxx-next-token))
+    (case (rxx-next-token)
+      (?? (rxx-pop-token)
+          `(*? ,single))
+      (t `(* ,single))))
+   ((eq ?+ (rxx-next-token))
+    (case (rxx-next-token)
+      (?? (rxx-pop-token)
+          `(+? ,single))
+      (t `(+ ,single))))
+   ((equal '(BS ?\{)
+           (rxx-next-token))
     (rxx-pop-token)
     (let ((more t)
           minr maxr comma)
@@ -388,7 +430,8 @@ like \\n are recognized."
         `( >= ,minr ,single))
        (t
         (setq minr (or minr 0))
-        `(** ,minr ,maxr ,single))))))
+        `(** ,minr ,maxr ,single)))))
+   (t single)))
 
 (defun rxx-parse-single-item ()
   (when (and rxx-tokens
@@ -399,15 +442,126 @@ like \\n are recognized."
                             ))))
     (rxx-dump-tokens)
     (let ((single (or (rxx-parse-str)
+                      (rxx-parse-single-backslash-item)
                       (rxx-parse-group)
                       (rxx-parse-brackets)
                       (rxx-error))))
       (when single
-        ;; Fix-me: ? * + *? +? ??
         (rxx-parse-braces single)))))
 
+(defun rxx-parse-single-backslash-item ()
+  (let* ((next-token (rxx-next-token))
+         (is-bs (and (listp next-token)
+                     (eq 'BS (car next-token))))
+         (bs-val (nth 1 next-token)))
+    (when is-bs
+      (prog1
+          (cond
+           ((memq bs-val (append "0123456789" nil)) `(backref (string-to-number (string bs-val))))
+           ((eq bs-val ?w) 'wordchar)
+           ((eq bs-val ?W) 'not-wordchar)
+           ((or (eq bs-val ?s)
+                (eq bs-val ?S))
+            (rxx-pop-token)
+            (let* ((next-token (rxx-next-token))
+                   syntax)
+              (when (consp next-token)
+                (unless (eq 'STATE (car next-token))
+                  ;; Fix-me: return string instead
+                  (rxx-error))
+                (setq next-token (nth 1 next-token)))
+              (setq syntax (case next-token
+                             (?- 'whitespace)
+                             (?. 'punctuation)
+                             (?w 'word)
+                             (?_ 'symbol)
+                             (?\( 'open-parenthesis)
+                             (?\) 'close-parenthesis)
+                             (?' 'expression-prefix)
+                             (?\" 'string-quote)
+                             (?$ 'paired-delimiter)
+                             (?\\ 'escape)
+                             (?/ 'character-quote)
+                             (?< 'comment-start)
+                             (?> 'comment-end)
+                             (?| 'string-delimiter)
+                             (?! 'comment-delimiter)
+                             (t (rxx-error))))
+              (if (eq bs-val ?s)
+                  `(syntax ,syntax)
+                `(not (syntax ,syntax)))))
+           ((or (eq bs-val ?c)
+                (eq bs-val ?C))
+            (rxx-pop-token)
+            (let* ((next-token (rxx-next-token))
+                   category)
+              (when (consp next-token)
+                (unless (eq 'STATE (car next-token))
+                  ;; Fix-me: return string instead
+                  (rxx-error))
+                (setq next-token (nth 1 next-token)))
+              (setq category
+                      (case next-token
+                        (?0 'consonant)
+                        (?1 'base-vowel)
+                        (?2 'upper-diacritical-mark)
+                        (?3 'lower-diacritical-mark)
+                        (?4 'tone-mark)
+                        (?5 'symbol)
+                        (?6 'digit)
+                        (?7 'vowel-modifying-diacritical-mark)
+                        (?8 'vowel-sign)
+                        (?9 'semivowel-lower)
+                        (?< 'not-at-end-of-line)
+                        (?> 'not-at-beginning-of-line)
+                        (?A 'alpha-numeric-two-byte)
+                        (?C 'chinese-two-byte)
+                        (?G 'greek-two-byte)
+                        (?H 'japanese-hiragana-two-byte)
+                        (?I 'indian-two-byte)
+                        (?K 'japanese-katakana-two-byte)
+                        (?N 'korean-hangul-two-byte)
+                        (?Y 'cyrrilian-two-byte)
+                        (?^ 'combining-diacritic)
+                        (?a 'ascii)
+                        (?b 'arabic)
+                        (?c 'chinese)
+                        (?e 'ethiopic)
+                        (?g 'greek)
+                        (?h 'korean)
+                        (?i 'indian)
+                        (?j 'japanese)
+                        (?k 'japanese-katakana)
+                        (?l 'latin)
+                        (?o 'lao)
+                        (?q 'tibetanian)
+                        (?v 'vietnamese)
+                        (?w 'hebrew)
+                        (?y 'cyrrilic)
+                        (?| 'can-break)
+                        (t (rxx-error))))
+              (if (eq bs-val ?c)
+                  `(category ,category)
+                `(not (category ,category)))))
 
-;; Fix-me: This became too complicated. Rewriting standard way with a tokenizer etc.
+           ((eq bs-val ?`) 'buffer-start)
+           ((eq bs-val ?') 'buffer-end)
+           ((eq bs-val ?=) 'point)
+           ((eq bs-val ?b) 'word-boundary)
+           ((eq bs-val ?B) 'not-word-boundary)
+           ((eq bs-val ?<) 'word-start)
+           ((eq bs-val ?>) 'word-end)
+           ((eq bs-val ?_)
+            (rxx-pop-token)
+            (let* ((next-token (rxx-next-token)))
+              (case next-token
+                (?< 'symbol-start)
+                (?> 'symbol-end)
+                (t (rxx-error)))))
+           (t (rxx-error)))
+        (rxx-pop-token)))))
+
+;; This became too complicated. Rewriting standard way with a tokenizer etc.
 ;; (defun rxx-parse-1 (what end-with)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
