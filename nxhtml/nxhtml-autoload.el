@@ -54,7 +54,8 @@
 
 ;;; Convenient moving by tags:
 (eval-after-load 'nxml-mode
-  '(progn
+  ;; Fix-me: Emacs bug #7769
+  '(when (boundp 'nxml-mode-map)
      (define-key nxml-mode-map [C-M-left]  'nxml-backward-element)
      (define-key nxml-mode-map [C-M-right] 'nxml-forward-element)
      (define-key nxml-mode-map [C-M-up]    'nxml-backward-up-element)
