@@ -297,6 +297,7 @@ key bindings we want!"
 	;; (message "  org-bi.binding=%S, keys=%S" binding (this-command-keys))
         ;; (setq binding (key-binding (this-single-command-keys) t))
 	;; (message "  org-bi.binding=%S, keys.single=%S" binding (this-single-command-keys))
+	;; (message "org-bi.single-raw=%S" (this-single-command-raw-keys))
         (when binding (call-interactively binding)))
     ;; Fix-me: Maybe adjust region so that it is valid for this op.
     (let* ((beg (region-beginning))

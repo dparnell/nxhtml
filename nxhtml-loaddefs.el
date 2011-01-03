@@ -6,7 +6,7 @@
 (eval-when-compile (require 'web-vcs))
 
 ;;;### (autoloads (html-chklnk) "../nxhtml/html-chklnk" "nxhtml/html-chklnk.el"
-;;;;;;  (19364 56215))
+;;;;;;  (19364 56214))
 ;;; Generated autoloads from nxhtml/html-chklnk.el
 (web-autoload-require 'html-chklnk 'lp '(nxhtml-download-root-url nil) "nxhtml/html-chklnk" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -17,7 +17,7 @@
 
 ;;;### (autoloads (html-pagetoc-rebuild-toc html-pagetoc-insert-toc
 ;;;;;;  html-pagetoc) "../nxhtml/html-pagetoc" "nxhtml/html-pagetoc.el"
-;;;;;;  (19364 56215))
+;;;;;;  (19364 56214))
 ;;; Generated autoloads from nxhtml/html-pagetoc.el
 (web-autoload-require 'html-pagetoc 'lp '(nxhtml-download-root-url nil) "nxhtml/html-pagetoc" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -44,7 +44,7 @@ Update the table of contents inserted by `html-pagetoc-insert-toc'.
 ;;;### (autoloads (html-site-query-replace html-site-rgrep html-site-find-file
 ;;;;;;  html-site-dired-current html-site-set-site html-site-buffer-or-dired-file-name
 ;;;;;;  html-site-edit-sites html-site) "../nxhtml/html-site" "nxhtml/html-site.el"
-;;;;;;  (19585 33053))
+;;;;;;  (19585 33052))
 ;;; Generated autoloads from nxhtml/html-site.el
 (web-autoload-require 'html-site 'lp '(nxhtml-download-root-url nil) "nxhtml/html-site" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -91,7 +91,7 @@ Query replace in current site's files.
 ;;;***
 
 ;;;### (autoloads (html-toc) "../nxhtml/html-toc" "nxhtml/html-toc.el"
-;;;;;;  (19585 33053))
+;;;;;;  (19585 33052))
 ;;; Generated autoloads from nxhtml/html-toc.el
 (web-autoload-require 'html-toc 'lp '(nxhtml-download-root-url nil) "nxhtml/html-toc" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -105,7 +105,7 @@ Query replace in current site's files.
 ;;;### (autoloads (html-upl-ediff-file html-upl-edit-remote-file-with-toc
 ;;;;;;  html-upl-edit-remote-file html-upl-upload-file html-upl-remote-dired
 ;;;;;;  html-upl-upload-site html-upl-upload-site-with-toc html-upl)
-;;;;;;  "../nxhtml/html-upl" "nxhtml/html-upl.el" (19364 56215))
+;;;;;;  "../nxhtml/html-upl" "nxhtml/html-upl.el" (19364 56214))
 ;;; Generated autoloads from nxhtml/html-upl.el
 (web-autoload-require 'html-upl 'lp '(nxhtml-download-root-url nil) "nxhtml/html-upl" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -152,7 +152,7 @@ FILENAME could be either the remote or the local file.
 ;;;***
 
 ;;;### (autoloads (html-wtoc) "../nxhtml/html-wtoc" "nxhtml/html-wtoc.el"
-;;;;;;  (19364 56215))
+;;;;;;  (19364 56214))
 ;;; Generated autoloads from nxhtml/html-wtoc.el
 (web-autoload-require 'html-wtoc 'lp '(nxhtml-download-root-url nil) "nxhtml/html-wtoc" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -429,7 +429,7 @@ See `nxml-where-mode' for more information on Nxml-Where mode.
 ;;;***
 
 ;;;### (autoloads (rncdl-update-html5) "../nxhtml/rncdl" "nxhtml/rncdl.el"
-;;;;;;  (19432 12409))
+;;;;;;  (19432 12408))
 ;;; Generated autoloads from nxhtml/rncdl.el
 (web-autoload-require 'rncdl 'lp '(nxhtml-download-root-url nil) "nxhtml/rncdl" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -478,7 +478,7 @@ Used to set up a Tidy menu in your favourite mode.
 
 ;;;### (autoloads (xhtml-help xhtml-help-show-tag-ref xhtml-help-tag-at-point
 ;;;;;;  xhtml-help-show-css-ref) "../nxhtml/xhtml-help" "nxhtml/xhtml-help.el"
-;;;;;;  (19364 56215))
+;;;;;;  (19364 56214))
 ;;; Generated autoloads from nxhtml/xhtml-help.el
 (web-autoload-require 'xhtml-help 'lp '(nxhtml-download-root-url nil) "nxhtml/xhtml-help" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -504,7 +504,7 @@ Show xhtml reference for tag name at or before point.
 
 ;;;### (autoloads (nxhtmlmaint-byte-uncompile-all nxhtmlmaint-byte-recompile
 ;;;;;;  nxhtmlmaint-start-byte-compilation) "../nxhtmlmaint" "nxhtmlmaint.el"
-;;;;;;  (19494 46625))
+;;;;;;  (19494 46624))
 ;;; Generated autoloads from nxhtmlmaint.el
 (web-autoload-require 'nxhtmlmaint 'lp '(nxhtml-download-root-url nil) "nxhtmlmaint" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -665,7 +665,7 @@ The [code] section, if any, will be in `pascal-mode'." t)
 
 ;;;### (autoloads (inferior-moz-start-process inferior-moz-stop-process
 ;;;;;;  inferior-moz-mode moz-minor-mode) "../related/moz" "related/moz.el"
-;;;;;;  (19471 58659))
+;;;;;;  (19471 58658))
 ;;; Generated autoloads from related/moz.el
 (web-autoload-require 'moz 'lp '(nxhtml-download-root-url nil) "related/moz" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -789,7 +789,7 @@ update Firefox when you save the CSS file.
 ;;;***
 
 ;;;### (autoloads (php-mode php-file-patterns php) "../related/php-mode"
-;;;;;;  "related/php-mode.el" (19505 7843))
+;;;;;;  "related/php-mode.el" (19505 7842))
 ;;; Generated autoloads from related/php-mode.el
 (web-autoload-require 'php-mode 'lp '(nxhtml-download-root-url nil) "related/php-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1298,7 +1298,7 @@ For Smarty functions, see PDF or HTML documentation.
 ;;;***
 
 ;;;### (autoloads (tt-mode) "../related/tt-mode" "related/tt-mode.el"
-;;;;;;  (18603 15793))
+;;;;;;  (18603 15792))
 ;;; Generated autoloads from related/tt-mode.el
 (web-autoload-require 'tt-mode 'lp '(nxhtml-download-root-url nil) "related/tt-mode" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1577,7 +1577,7 @@ much about computation time as for entries in the menu bar.
 
 ;;;### (autoloads (as-external-mode as-external-for-wiki as-external-for-el-files
 ;;;;;;  as-external-check-contents as-external-for-mail-mode as-external-for-xhtml
-;;;;;;  as-external) "as-external" "util/as-external.el" (19507 20925))
+;;;;;;  as-external) "as-external" "util/as-external.el" (19507 20924))
 ;;; Generated autoloads from util/as-external.el
 (web-autoload-require 'as-external 'lp '(nxhtml-download-root-url nil) "util/as-external" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1692,7 +1692,7 @@ ELIN@Lund is Lunds University Library, URL `http://www.lub.lu.se/en.html'.
 ;;;***
 
 ;;;### (autoloads (buffer-bg-set-color) "buffer-bg" "util/buffer-bg.el"
-;;;;;;  (19254 64105))
+;;;;;;  (19254 64104))
 ;;; Generated autoloads from util/buffer-bg.el
 (web-autoload-require 'buffer-bg 'lp '(nxhtml-download-root-url nil) "util/buffer-bg" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1706,7 +1706,7 @@ If COLOR is nil remove previously added overlay.
 ;;;***
 
 ;;;### (autoloads (chartg-make-chart chartg-complete) "chartg" "util/chartg.el"
-;;;;;;  (19278 15747))
+;;;;;;  (19278 15746))
 ;;; Generated autoloads from util/chartg.el
 (web-autoload-require 'chartg 'lp '(nxhtml-download-root-url nil) "util/chartg" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1864,7 +1864,7 @@ colors as any viable css color.  Example:
 ;;;***
 
 ;;;### (autoloads (css-palette-global-mode css-palette css-palette-mode)
-;;;;;;  "css-palette" "util/css-palette.el" (19235 1651))
+;;;;;;  "css-palette" "util/css-palette.el" (19235 1650))
 ;;; Generated autoloads from util/css-palette.el
 (web-autoload-require 'css-palette 'lp '(nxhtml-download-root-url nil) "util/css-palette" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1983,7 +1983,7 @@ For more information about this see `cusnu-export-cust-group'.
 ;;;***
 
 ;;;### (autoloads (ediff-url) "ediff-url" "util/ediff-url.el" (19496
-;;;;;;  667))
+;;;;;;  666))
 ;;; Generated autoloads from util/ediff-url.el
 (web-autoload-require 'ediff-url 'lp '(nxhtml-download-root-url nil) "util/ediff-url" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2189,7 +2189,7 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (gpl-mode) "gpl" "util/gpl.el" (19437 26803))
+;;;### (autoloads (gpl-mode) "gpl" "util/gpl.el" (19437 26802))
 ;;; Generated autoloads from util/gpl.el
 (web-autoload-require 'gpl 'lp '(nxhtml-download-root-url nil) "util/gpl" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2379,20 +2379,30 @@ FIELDS is an alist, as for `http-post-simple', FILES is an a list of
 
 ;;;***
 
-;;;### (autoloads (idxsearch) "idxsearch" "util/idxsearch.el" (19743
-;;;;;;  35210))
+;;;### (autoloads (idxgds-search) "idxgds" "util/idxgds.el" (19745
+;;;;;;  16767))
+;;; Generated autoloads from util/idxgds.el
+(web-autoload-require 'idxgds 'lp '(nxhtml-download-root-url nil) "util/idxgds" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'idxgds-search `(lp '(nxhtml-download-root-url nil) "util/idxgds" nxhtml-install-dir) "\
+Not documented
+
+\(fn SEARCH-PATT FILE-PATT ROOT)" nil nil)
+
+;;;***
+
+;;;### (autoloads (idxsearch) "idxsearch" "util/idxsearch.el" (19745
+;;;;;;  16393))
 ;;; Generated autoloads from util/idxsearch.el
 (web-autoload-require 'idxsearch 'lp '(nxhtml-download-root-url nil) "util/idxsearch" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
 
 (nxhtml-autoload 'idxsearch `(lp '(nxhtml-download-root-url nil) "util/idxsearch" nxhtml-install-dir) "\
-Search using Windows Search.
+Search using an indexed search engine on your pc.
 This searches all the content you have indexed there.
 
-In interactive use you are prompted for a search string and a
-single root directory.
-
-The search string should consist of single word and phrases
+The string SEARCH-PATT may consist of single words or phrases
 \"enclosed like this\".  All words and phrases must match for a
 file to match.
 
@@ -2415,7 +2425,7 @@ The strings in FILE-PATTS are matched with the SQL keyword
 strings should match.  This way you can easily search in
 different root locations at once.
 
-\(fn SEARCH-PATTS FILE-PATTS PARAMS)" t nil)
+\(fn SEARCH-PATT FILE-PATT ROOT PARAMS)" t nil)
 
 ;;;***
 
@@ -2533,7 +2543,7 @@ before applying.
 ;;;***
 
 ;;;### (autoloads (markchars-global-mode markchars-mode markchars)
-;;;;;;  "markchars" "util/markchars.el" (19461 56967))
+;;;;;;  "markchars" "util/markchars.el" (19461 56966))
 ;;; Generated autoloads from util/markchars.el
 (web-autoload-require 'markchars 'lp '(nxhtml-download-root-url nil) "util/markchars" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2808,7 +2818,7 @@ Define keys in multi major mode keymap for html files.
 ;;;***
 
 ;;;### (autoloads (mumamo-cmirr-get-mirror) "mumamo-cmirr" "util/mumamo-cmirr.el"
-;;;;;;  (19585 33053))
+;;;;;;  (19585 33052))
 ;;; Generated autoloads from util/mumamo-cmirr.el
 (web-autoload-require 'mumamo-cmirr 'lp '(nxhtml-download-root-url nil) "util/mumamo-cmirr" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3022,7 +3032,7 @@ Buffer must be fontified.
 ;;;***
 
 ;;;### (autoloads (n-back-game n-back) "n-back" "util/n-back.el"
-;;;;;;  (19278 15747))
+;;;;;;  (19278 15746))
 ;;; Generated autoloads from util/n-back.el
 (web-autoload-require 'n-back 'lp '(nxhtml-download-root-url nil) "util/n-back" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3072,7 +3082,7 @@ new are maybe ... - and you have it available here in Emacs.
 
 ;;;### (autoloads (rng-find-schema-file-other-window rng-find-schema-file-other-frame
 ;;;;;;  rng-find-schema-file) "nxml-mode-os-additions" "util/nxml-mode-os-additions.el"
-;;;;;;  (19440 795))
+;;;;;;  (19440 794))
 ;;; Generated autoloads from util/nxml-mode-os-additions.el
 (web-autoload-require 'nxml-mode-os-additions 'lp '(nxhtml-download-root-url nil) "util/nxml-mode-os-additions" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3772,7 +3782,7 @@ this group.
 ;;;***
 
 ;;;### (autoloads (rebind-keys-mode rebind) "rebind" "util/rebind.el"
-;;;;;;  (19743 34125))
+;;;;;;  (19745 16825))
 ;;; Generated autoloads from util/rebind.el
 (web-autoload-require 'rebind 'lp '(nxhtml-download-root-url nil) "util/rebind" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3857,7 +3867,7 @@ like \\n are recognized.
 ;;;***
 
 ;;;### (autoloads (search-form) "search-form" "util/search-form.el"
-;;;;;;  (19275 63381))
+;;;;;;  (19275 63380))
 ;;; Generated autoloads from util/search-form.el
 (web-autoload-require 'search-form 'lp '(nxhtml-download-root-url nil) "util/search-form" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3870,7 +3880,7 @@ Display a form for search and replace.
 ;;;***
 
 ;;;### (autoloads (search-net search-net-dwim) "search-net" "util/search-net.el"
-;;;;;;  (19457 53997))
+;;;;;;  (19457 53996))
 ;;; Generated autoloads from util/search-net.el
 (web-autoload-require 'search-net 'lp '(nxhtml-download-root-url nil) "util/search-net" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4137,7 +4147,7 @@ Display vertical line mode as globally.
 ;;;***
 
 ;;;### (autoloads (web-vcs-linkpatt-mode) "web-vcs-linkpatt" "util/web-vcs-linkpatt.el"
-;;;;;;  (19725 18674))
+;;;;;;  (19744 12851))
 ;;; Generated autoloads from util/web-vcs-linkpatt.el
 (web-autoload-require 'web-vcs-linkpatt 'lp '(nxhtml-download-root-url nil) "util/web-vcs-linkpatt" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4249,7 +4259,7 @@ See also option `winsav-save-mode' and command
 ;;;;;;  winsize-balance-siblings winsize-fit-frame-width winsize-fitw-and-maxh-frame
 ;;;;;;  winsize-max-frame-height winsize-fit-windows-to-desired-widths
 ;;;;;;  winsize-fit-window-to-desired-width resize-windows) "winsize"
-;;;;;;  "util/winsize.el" (19601 27027))
+;;;;;;  "util/winsize.el" (19601 27026))
 ;;; Generated autoloads from util/winsize.el
 (web-autoload-require 'winsize 'lp '(nxhtml-download-root-url nil) "util/winsize" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4634,8 +4644,9 @@ accept it or skip it.
 ;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/fupd.el"
 ;;;;;;  "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/org-odt.el" "util/org-panel.el" "util/ourcomments-widgets.el"
-;;;;;;  "util/powershell-mode.el" "util/rxi.el" "util/tipframe.el"
-;;;;;;  "util/win-alg.el" "web-autoload.el") (19744 27005 500000))
+;;;;;;  "util/powershell-mode.el" "util/rxi.el" "util/temp-declare-fun-test.el"
+;;;;;;  "util/temp-declare-fun.el" "util/temp.el" "util/tipframe.el"
+;;;;;;  "util/win-alg.el" "web-autoload.el") (19745 16848 390000))
 
 ;;;***
 

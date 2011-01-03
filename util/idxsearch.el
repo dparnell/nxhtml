@@ -1,4 +1,4 @@
-;;; idxsearch.el --- Windows Desktop Search integration
+;;; idxsearch.el --- Integration with indexed search engines
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2010-12-21 Tue
@@ -18,7 +18,7 @@
 ;;
 ;;; Commentary:
 ;;
-;; Integration with Windows Search.
+;; Integration with indexed search engines.
 ;; For more information see `idxsearch'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -52,11 +52,12 @@
 (eval-when-compile (require 'org))
 (require 'powershell-mode)
 (require 'nxhtml-base)
+
 ;; Fix-me: The byte compiler should not complain about these:
 (declare-function orgstruct-mode "orgstruct-mode")
-;;(declare-function outline-minor-mode "outline")
 
-(defvar idxsearch-patt-hist nil)
+(defvar idxsearch-search-patt-hist nil)
+(defvar idxsearch-file-patt-hist nil)
 
 (defvar idxsearch-search-script (expand-file-name "etc/wds/idxsearch.rb" nxhtml-install-dir))
 ;; Fix-me: maybe. I am unable to get the ps1 version to work nicely
@@ -75,15 +76,33 @@
 ;; Fix-me: file-patts => root-patts, add file-patts.
 
 ;; (idxsearch '("cullberg") '("c:/") nil)
+
+;; Fix-me: option for matching long lines with all patterns, instead
+;; of any.
+
+;; Fix-me: Extract this and use as a loop for new queries. Allow
+;; things like TAB cycle visibility in the output buffer. Add a
+;; "reenter query command".
+
+;;(setq idxsearch-engine 'gds)
+;;(setq idxsearch-engine 'wds)
+(defcustom idxsearch-engine 'gds
+  "Desktop search engine.
+This is used by the command `idxsearch'.  The parameters to that
+command are handled a little, little bit differently for
+different search engines since they have different capabilities.
+"
+  :type '(choice :tag "Select search engine:"
+                 (const :tag "Google Desktop Search" gds)
+                 (const :tag "Windows Desktop Search" wds))
+  :group 'idxsearch)
+
 ;;;###autoload
-(defun idxsearch (search-patts file-patts params)
-  "Search using Windows Search.
+(defun idxsearch (search-patt file-patt root params)
+  "Search using an indexed search engine on your pc.
 This searches all the content you have indexed there.
 
-In interactive use you are prompted for a search string and a
-single root directory.
-
-The search string should consist of single word and phrases
+The string SEARCH-PATT may consist of single words or phrases
 \"enclosed like this\".  All words and phrases must match for a
 file to match.
 
@@ -104,47 +123,35 @@ file for a match in that file.
 The strings in FILE-PATTS are matched with the SQL keyword
 'like'.  A '%' char is appended to each strings.  Any of this
 strings should match.  This way you can easily search in
-different root locations at once."
-
-;; Fix-me: option for matching long lines with all patterns, instead
-;; of any.
+different root locations at once.
+"
   (interactive
-   ;; Fix-me: Extract this and use as a loop for new queries. Allow
-   ;; things like TAB cycle visibility in the output buffer. Add a
-   ;; "reenter query command".
-   (let* ((dir (read-directory-name "Indexed search in directory tree: "))
-          ;; Fix-me: split out the reading of search patterns.
-          ;; (def-str (if (region-active-p)
-          ;;              (concat "\""
-          ;;                      (buffer-substring-no-properties (region-beginning) (region-end))
-          ;;                      "\"")
-          ;;            (or (let ((w (word-at-point)))
-          ;;                  (when w (substring-no-properties w)))
-          ;;                "")))
-          (def-str (grep-tag-default))
-          (str (read-string "Search patterns: " def-str 'idxsearch-patt-hist))
-          (item-patt (rx (or (and "\""
-                                  (submatch (* (not (any "\""))))
-                                  "\"")
-                             (submatch (and word-start
-                                            (+ (not space))
-                                            word-end)))))
-         (start 0)
-         strs)
-     (while (setq start (string-match item-patt str start))
-       (let ((y (or (match-string 1 str)
-                    (match-string 2 str))))
-         (setq start (+ start (length y)))
-         (setq strs (cons y strs))))
-
-     ;; (setq dir (replace-regexp-in-string "/" "\\" dir t t))
-     (list strs
-           (list dir)
-           "")))
-  (idxsearch-1 (list
-                    "--root"   (mapconcat 'identity file-patts ",")
-                    ;; "--locate" "grep"
-                    "--query"  (mapconcat 'identity search-patts ","))))
+   (let* ((def-str (grep-tag-default))
+          (str (read-string "Search pattern: " def-str 'idxsearch-search-patt-hist))
+          (fil (read-string "File name pattern: " "" 'idxsearch-file-patt-hist))
+          (dir (read-directory-name "Indexed search in directory tree: ")))
+     (list str fil dir nil)))
+  (let ((item-patt (rx (or (and "\""
+                                (submatch (* (not (any "\""))))
+                                "\"")
+                           (submatch (and word-start
+                                          (+ (not space))
+                                          word-end)))))
+        (start 0)
+        strs)
+    (while (setq start (string-match item-patt search-patt start))
+      (let ((y (or (match-string 1 search-patt)
+                   (match-string 2 search-patt))))
+        (setq start (+ start (length y)))
+        (setq strs (cons y strs))))
+    (case idxsearch-engine
+      (gds (idxgds-search search-patt file-patt root))
+      (wds
+       (idxsearch-1 (list
+                     "--root"   root
+                     ;; "--files"  file-patt
+                     ;; "--locate" "grep"
+                     "--query"  (mapconcat 'identity strs ",")))))))
 
 ;; (setq locate-make-command-line 'idxsearch-locate-make-command-line)
 ;; (idxsearch-locate-make-command-line "some.fil")
@@ -181,10 +188,11 @@ different root locations at once."
             (".*ruby.exe" . utf-8)
             )))
     (unless (and (get 'compilation-start 'command-can-be-list)
-               (not (eq script-type 'powershell)))
+                 (not (eq script-type 'powershell)))
       ;; Fix-me: Or rather hope that my patch to compilation-start is
       ;; accepted soon...
       (setq cmd (mapconcat 'identity cmd " ")))
+    (message "cmd=%S" cmd)
     (with-current-buffer (compilation-start cmd 'idxsearch-mode)
       (visual-line-mode 1)
       (setq wrap-prefix "           ")
@@ -279,17 +287,17 @@ different root locations at once."
   "Regexp used to match search hits.  See `compilation-error-regexp-alist'.")
 
 (defvar idxsearch-mode-font-lock-keywords
-   '(;; configure output lines.
-     ("^\\(Search \\(?:started\\|finished\\)\\).*"
-      (0 '(face nil message nil help-echo nil mouse-face nil) t)
-      (1 compilation-info-face))
-     ("^Compilation \\(exited abnormally\\|interrupt\\|killed\\|terminated\\|segmentation fault\\)\\(?:.*with code \\([0-9]+\\)\\)?.*"
-      (0 '(face nil message nil help-echo nil mouse-face nil) t)
-      (1 compilation-error-face)
-      (2 compilation-error-face nil t))
-     (idxsearch-hit-marker)
-     )
-   "Additional things to highlight in idxsearch mode.
+  '(;; configure output lines.
+    ("^\\(Search \\(?:started\\|finished\\)\\).*"
+     (0 '(face nil message nil help-echo nil mouse-face nil) t)
+     (1 compilation-info-face))
+    ("^Compilation \\(exited abnormally\\|interrupt\\|killed\\|terminated\\|segmentation fault\\)\\(?:.*with code \\([0-9]+\\)\\)?.*"
+     (0 '(face nil message nil help-echo nil mouse-face nil) t)
+     (1 compilation-error-face)
+     (2 compilation-error-face nil t))
+    (idxsearch-hit-marker)
+    )
+  "Additional things to highlight in idxsearch mode.
 This gets tacked on the end of the generated expressions.")
 
 (define-compilation-mode idxsearch-mode "Search"
