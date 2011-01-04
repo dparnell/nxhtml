@@ -1657,7 +1657,7 @@ See `as-external-alist' for more information.
 ;;;***
 
 ;;;### (autoloads (bibhlp-search-ref-at-point-in-elin bibhlp-goto-citeulike
-;;;;;;  bibhlp) "bibhlp" "util/bibhlp.el" (19731 46391))
+;;;;;;  bibhlp) "bibhlp" "util/bibhlp.el" (19746 8885))
 ;;; Generated autoloads from util/bibhlp.el
 (web-autoload-require 'bibhlp 'lp '(nxhtml-download-root-url nil) "util/bibhlp" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2379,8 +2379,21 @@ FIELDS is an alist, as for `http-post-simple', FILES is an a list of
 
 ;;;***
 
-;;;### (autoloads (idxgds-search) "idxgds" "util/idxgds.el" (19745
-;;;;;;  16767))
+;;;### (autoloads (idxdocindex-search) "idxdocindex" "util/idxdocindex.el"
+;;;;;;  (19746 21600))
+;;; Generated autoloads from util/idxdocindex.el
+(web-autoload-require 'idxdocindex 'lp '(nxhtml-download-root-url nil) "util/idxdocindex" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'idxdocindex-search `(lp '(nxhtml-download-root-url nil) "util/idxdocindex" nxhtml-install-dir) "\
+Not documented
+
+\(fn SEARCH-PATT FILE-PATT ROOT)" nil nil)
+
+;;;***
+
+;;;### (autoloads (idxgds-search) "idxgds" "util/idxgds.el" (19746
+;;;;;;  36522))
 ;;; Generated autoloads from util/idxgds.el
 (web-autoload-require 'idxgds 'lp '(nxhtml-download-root-url nil) "util/idxgds" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2392,8 +2405,8 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (idxsearch) "idxsearch" "util/idxsearch.el" (19745
-;;;;;;  16393))
+;;;### (autoloads (idxsearch) "idxsearch" "util/idxsearch.el" (19746
+;;;;;;  36655))
 ;;; Generated autoloads from util/idxsearch.el
 (web-autoload-require 'idxsearch 'lp '(nxhtml-download-root-url nil) "util/idxsearch" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4646,7 +4659,7 @@ accept it or skip it.
 ;;;;;;  "util/org-odt.el" "util/org-panel.el" "util/ourcomments-widgets.el"
 ;;;;;;  "util/powershell-mode.el" "util/rxi.el" "util/temp-declare-fun-test.el"
 ;;;;;;  "util/temp-declare-fun.el" "util/temp.el" "util/tipframe.el"
-;;;;;;  "util/win-alg.el" "web-autoload.el") (19745 16848 390000))
+;;;;;;  "util/win-alg.el" "web-autoload.el") (19746 36815 0))
 
 ;;;***
 

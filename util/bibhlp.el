@@ -379,7 +379,16 @@ users in San Francisco. Clin Infect Dis. 2000;
       ;;   Cooper P, Murray L, Wilson A, Romaniuk H (2003).
       ;;   Glezer I, Simard AR, Rivest S (2007):
       (let (;;(re-author "\\([^,]+\\),?[\w]+\\([^,\w]+\\),")
-            (re-author "[ \t\n]*\\([^,]*\\),[ \t\n]*\\([^,]*\\),"))
+            ;;(re-author "[ \t\n]*\\([^,]*\\),[ \t\n]*\\([^,]*\\),")
+            (re-author (rx (* whitespace)
+                           (submatch (+ (not (any ","))))
+                           ","
+                           (* whitespace)
+                           (submatch (+ (not (any ","))))
+                           (or ","
+                               (* whitespace)
+                               "(")))
+            )
         (while ( < (point) beg-yy)
           (let ((b1 (point))
                 e1
@@ -991,7 +1000,7 @@ REC should be a bibliographic record in the format returned from
     (let ((url (concat "http://elin.lub.lu.se.ludwig.lub.lu.se/elin?func=advancedSearch&lang=se&query="
                        (browse-url-encode-url txt))))
       ;; Fix-me: Using Opera at the moment due to Chrome bug when displaying pdf:
-      (if nil
+      (if t
           (browse-url url)
         (if (eq system-type 'windows-nt)
             (w32-shell-execute nil "C:/Program Files/Opera/opera.exe" url)
