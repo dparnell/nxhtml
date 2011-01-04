@@ -86,6 +86,7 @@
 
 ;;(setq idxsearch-engine 'gds)
 ;;(setq idxsearch-engine 'wds)
+;;(setq idxsearch-engine 'docindexer)
 (defcustom idxsearch-engine 'gds
   "Desktop search engine.
 This is used by the command `idxsearch'.  The parameters to that
@@ -94,7 +95,9 @@ different search engines since they have different capabilities.
 "
   :type '(choice :tag "Select search engine:"
                  (const :tag "Google Desktop Search" gds)
-                 (const :tag "Windows Desktop Search" wds))
+                 (const :tag "Windows Desktop Search" wds)
+                 (const :tag "DocIndexer" docindexer)
+                 )
   :group 'idxsearch)
 
 ;;;###autoload
@@ -146,12 +149,13 @@ different root locations at once.
         (setq strs (cons y strs))))
     (case idxsearch-engine
       (gds (idxgds-search search-patt file-patt root))
-      (wds
-       (idxsearch-1 (list
-                     "--root"   root
-                     ;; "--files"  file-patt
-                     ;; "--locate" "grep"
-                     "--query"  (mapconcat 'identity strs ",")))))))
+      (wds (idxsearch-1 (list
+                         "--root"   root
+                         ;; "--files"  file-patt
+                         ;; "--locate" "grep"
+                         "--query"  (mapconcat 'identity strs ","))))
+      (docindexer (idxdocindex-search search-patt file-patt root))
+      (t (error "Ops!")))))
 
 ;; (setq locate-make-command-line 'idxsearch-locate-make-command-line)
 ;; (idxsearch-locate-make-command-line "some.fil")
@@ -295,6 +299,9 @@ different root locations at once.
      (0 '(face nil message nil help-echo nil mouse-face nil) t)
      (1 compilation-error-face)
      (2 compilation-error-face nil t))
+    ("^  Snippet:\\|Title:\\|Authors:"
+     ;;(0 font-lock-type-face))
+     (0 'shadow))
     (idxsearch-hit-marker)
     )
   "Additional things to highlight in idxsearch mode.
@@ -315,6 +322,126 @@ This gets tacked on the end of the generated expressions.")
 ;;         )
 ;;     (font-lock-add-keywords 'idxsearch-mode kw)))
 ;; (add-hook 'idxsearch-mode-hook 'idxsearch-add-powershell-kw)
+
+;;(idxsearch-text-p "a.org")
+;;(idxsearch-text-p "a.el")
+;;(idxsearch-text-p "a.rb")
+;;(idxsearch-text-p "a.png")
+;;(idxsearch-text-p "a.pdf")
+;;(idxsearch-text-p "a.cmd")
+;;(idxsearch-text-p "a")
+(defvar idxsearch-non-text "\.\\(pdf\\|doc\\)\\'")
+(defun idxsearch-text-p (file)
+  (catch 'result
+    ;; Look at extensions first because it is quicker!
+    (let ((case-fold-search (memq system-type '(windows-nt cygwin)))
+          (file (file-name-sans-versions file)))
+      ;; Known non-text?
+      (when (string-match idxsearch-non-text file)
+        (throw 'result nil))
+      ;; Auto mode?
+      ;; Image file?
+      (when (assoc-default file image-type-file-name-regexps 'string-match)
+        (throw 'result nil))
+      ;; Auto mode?
+      (let ((name file)
+            mode)
+        ;; fix-me: stolen from set-auto-mode, but there must be
+        ;; something wrong here!
+        (while name
+          (setq mode (assoc-default file auto-mode-alist 'string-match))
+          (if (and mode
+                   (consp mode)
+                   (cadr mode))
+              (setq mode (car mode)
+                    name (substring name 0 (match-beginning 0)))
+            (setq name)))
+        (when mode
+          (throw 'result t))))
+    ;; Content specific?
+    (when (file-readable-p file)
+      (with-temp-buffer
+        (insert-file-contents file nil  200)
+        (goto-char (point-min))
+        (let ((done (or
+                     (when (looking-at auto-mode-interpreter-regexp)
+                       (let ((mode (match-string 2)))
+                         (assoc (file-name-nondirectory mode) interpreter-mode-alist)))
+                     (progn
+                       (narrow-to-region (point-min) (min (point-max)
+                                                          (+ (point-min)
+                                                             magic-mode-regexp-match-limit)))
+                       (assoc-default nil magic-mode-alist
+                                      (lambda (re dummy)
+                                        (if (functionp re)
+                                            (funcall re)
+                                          (looking-at re))))))))
+          (when done (throw 'result done)))))
+    nil))
+
+
+(defun idxsearch-grep (file pattern maxw)
+  (let* ((old-buf (find-buffer-visiting file))
+         (buf (or old-buf
+                  (find-file-noselect file)))
+         (curbuf (current-buffer))
+         here
+         (format-w 10)
+         (row-format (format "%%-%ds" format-w))
+         (num-lines 0))
+    (setq maxw (or maxw 80))
+    (setq maxw (- maxw format-w 2))
+    (with-current-buffer buf
+      (setq here (point))
+      (save-restriction
+        (widen)
+        (goto-char (point-min))
+        (while (re-search-forward pattern nil t)
+          (setq num-lines (1+ num-lines))
+          (let* ((beg (match-beginning 0))
+                 (end (match-end       0))
+                 (row (line-number-at-pos beg))
+                 (col (- beg (point-at-bol)))
+                 (cnd (- end (point-at-bol)))
+                 (len (- cnd col))
+                 (line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
+                 show
+                 (part "e"))
+            (setq line
+                  (with-temp-buffer
+                    (insert line)
+                    (untabify (point-min) (point-max))
+                    (buffer-substring (point-min) (point-max))))
+            ;; (with-current-buffer curbuf (insert line "\n"))
+            (if (< (length line) maxw)
+                (progn
+                  (setq part "a")
+                  (setq show line))
+              (if (< len maxw)
+                  (let* ((pad (/ (- maxw len) 2))
+                         (start (max 0 (- col pad)))
+                         (stop (+ start (- maxw 3)))
+                         (over (- stop (length line))))
+                    (setq part "b")
+                    ;; (with-current-buffer curbuf (insert (format "%d %d %d\n" start stop over)))
+                    (when (< 0 over)
+                      (setq part "d")
+                      (setq start (- start over))
+                      (setq stop  (- stop  over)))
+                    (setq show (concat "_" (substring line start stop) "_")))
+                (setq part "c")
+                (setq show (concat "_" (substring line col (+ col (- maxw 3))) "_"))))
+            (setq show (replace-regexp-in-string pattern
+                                                 (lambda (rep)
+                                                   (concat "{{{" rep "}}}"))
+                                                 show))
+            (with-current-buffer curbuf
+              (insert part (format row-format
+                                   (format ":%d:%d:" row col))
+                      show "\n")))))
+      (goto-char here))
+    (when (< 0 num-lines) (insert "\n"))
+    (unless old-buf (kill-buffer buf))))
 
 (provide 'idxsearch)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
