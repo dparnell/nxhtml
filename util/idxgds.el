@@ -55,7 +55,10 @@ See URL `http://code.google.com/apis/desktop/docs/queryapi.html'
 for how to get it."
   :type 'string
   :group 'idxgds)
-(setq idxgds-query-url "http://127.0.0.1:4664/search&s=mjU-QRNbp1ylzIxOMyYbx4HGodo?q=")
+
+;;;###autoload
+(defun idxgds-query-url-p ()
+  (< 0 (length idxgds-query-url)))
 
 ;; (idxgds-raw-query "cullberg" "" "c:/" 2 0)
 (defun idxgds-raw-query (query file-patt root num start)
@@ -65,15 +68,21 @@ START is 0-based."
          (start-s (number-to-string start))
          (url (concat idxgds-query-url query "&format=xml&num=" num-s "&start=" start-s))
          (buffer (url-retrieve-synchronously url))
-         num-hits hits)
-    ;;(display-buffer buffer)
+         num-hits hits
+         (debug nil))
+    (when debug (display-buffer buffer))
+    (message "url=%s" url)
     (with-current-buffer buffer
       (mm-enable-multibyte) ;; Fix-me: How should this be done, the data is utf8, xml.
+      (goto-char (point-min))
+      (message "buffer.size=%d" (buffer-size buffer))
       (re-search-forward "^<results count=\"\\([0-9]+\\)\">$")
+      (message "buffer.point 1=%s" (point))
       (setq num-hits (string-to-number (match-string 1)))
       ;; (rx anything)
       (backward-char)
       (while (re-search-forward (concat "^<result>" (rx (submatch (*? anything))) "</result>$") nil t)
+        (message "buffer.point 2=%s" (point))
         (let ((rec (match-string 1))
               orig-url orig-snippet hit (m t))
           (dolist (what '("category" "url" "snippet" "title" "icon"))
@@ -87,6 +96,7 @@ START is 0-based."
                  ((string= "snippet" what)
                   (setq orig-snippet str))
                  ((string= "url" what)
+                  (message "url str=%s" str)
                   (if (not (or (= 0 (length file-patt))
                                (string-match file-patt str)))
                       (setq m nil)
@@ -131,7 +141,7 @@ START is 0-based."
                   (push str hit)))))
           (when hit
             (push (reverse hit) hits)))))
-    (kill-buffer buffer)
+    ;;(unless debug (kill-buffer buffer))
     (list num-hits (reverse hits))))
 
 (require 'browse-url)
@@ -139,8 +149,25 @@ START is 0-based."
 ;; (idxgds-search "cullberg" nil "c:/")
 ;;;###autoload
 (defun idxgds-search (search-patt file-patt root)
+  (let* ((words-or-phrases (idxsearch-ggl-split search-patt))
+         (or+and (idxsearch-mk-and-grep words-or-phrases))
+         (grep-or-patt   (nth 0 or+and))
+         (grep-and-patts (nth 1 or+and))
+         (index-patts (mapcar (lambda (w-or-p)
+                                (if (or t (string-match "[^a-z0-9]" w-or-p))
+                                    (concat "\"" w-or-p "\"")
+                                  w-or-p))
+                              words-or-phrases))
+         (index-patt (mapconcat 'identity index-patts " ")))
+    (idxgds-search-adv index-patt grep-or-patt grep-and-patts file-patt root)))
+
+;;;###autoload
+(defun idxgds-search-adv (index-patt grep-or-patt grep-and-patts file-patt root)
   ;; (when (eq system-type 'windows-nt) (setq root (downcase root)))
-  (let* ((query (browse-url-encode-url search-patt))
+  (let* (
+         (query (replace-regexp-in-string " " "+"
+                                          (browse-url-url-encode-chars index-patt "[)$]")))
+         (query (browse-url-encode-url index-patt))
          (more t)
          (num 50)
          (start 0)
@@ -149,6 +176,7 @@ START is 0-based."
          (cnt-hits 0)
          win
          maxw)
+    ;;(setq query (replace-regexp-in-string "\"" "" query))
     (when buffer (kill-buffer buffer))
     (setq buffer (get-buffer-create buffer-name))
     (setq win (display-buffer buffer))
@@ -161,6 +189,8 @@ START is 0-based."
       (orgstruct-mode)
       (let ((inhibit-read-only t))
         (insert "-*- mode: idxsearch; default-directory: \"" root "\" -*-\n")
+        (insert (format " idx:  %s\ngrep:  %s %S\nfile:  %s\n\n"
+                        index-patt grep-or-patt grep-and-patts file-patt))
         (insert "Search started at " (format-time-string "%Y-%m-%d %T\n\n"))
         (while (and more
                     (setq more (idxgds-raw-query query file-patt root num start)))
@@ -183,12 +213,14 @@ START is 0-based."
                 (when title   (insert "  Title:   " title "\n"))
                 (when snippet (insert "  Snippet: " snippet "\n"))
                 (when (idxsearch-text-p url)
-                  (idxsearch-grep url search-patt maxw))
+                  (idxsearch-grep url grep-or-patt grep-and-patts maxw))
+                (sit-for 0)
                 ))
             (when (> start num-hits) (setq more nil))
             ))
         (insert (format "\nMatched %d files.\n" cnt-hits))
         (insert "Search finished at " (format-time-string "%Y-%m-%d %T"))
+        (message "Search finished at %s" (format-time-string "%Y-%m-%d %T"))
         ))))
 
 (provide 'idxgds)

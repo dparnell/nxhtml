@@ -2380,7 +2380,7 @@ FIELDS is an alist, as for `http-post-simple', FILES is an a list of
 ;;;***
 
 ;;;### (autoloads (idxdocindex-search) "idxdocindex" "util/idxdocindex.el"
-;;;;;;  (19746 21600))
+;;;;;;  (19746 39798))
 ;;; Generated autoloads from util/idxdocindex.el
 (web-autoload-require 'idxdocindex 'lp '(nxhtml-download-root-url nil) "util/idxdocindex" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2392,21 +2392,31 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (idxgds-search) "idxgds" "util/idxgds.el" (19746
-;;;;;;  36522))
+;;;### (autoloads (idxgds-search-adv idxgds-search idxgds-query-url-p)
+;;;;;;  "idxgds" "util/idxgds.el" (19747 6157))
 ;;; Generated autoloads from util/idxgds.el
 (web-autoload-require 'idxgds 'lp '(nxhtml-download-root-url nil) "util/idxgds" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
+
+(nxhtml-autoload 'idxgds-query-url-p `(lp '(nxhtml-download-root-url nil) "util/idxgds" nxhtml-install-dir) "\
+Not documented
+
+\(fn)" nil nil)
 
 (nxhtml-autoload 'idxgds-search `(lp '(nxhtml-download-root-url nil) "util/idxgds" nxhtml-install-dir) "\
 Not documented
 
 \(fn SEARCH-PATT FILE-PATT ROOT)" nil nil)
 
+(nxhtml-autoload 'idxgds-search-adv `(lp '(nxhtml-download-root-url nil) "util/idxgds" nxhtml-install-dir) "\
+Not documented
+
+\(fn INDEX-PATT GREP-OR-PATT GREP-AND-PATTS FILE-PATT ROOT)" nil nil)
+
 ;;;***
 
-;;;### (autoloads (idxsearch) "idxsearch" "util/idxsearch.el" (19746
-;;;;;;  36655))
+;;;### (autoloads (idxsearch) "idxsearch" "util/idxsearch.el" (19747
+;;;;;;  44266))
 ;;; Generated autoloads from util/idxsearch.el
 (web-autoload-require 'idxsearch 'lp '(nxhtml-download-root-url nil) "util/idxsearch" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2439,6 +2449,19 @@ strings should match.  This way you can easily search in
 different root locations at once.
 
 \(fn SEARCH-PATT FILE-PATT ROOT PARAMS)" t nil)
+
+;;;***
+
+;;;### (autoloads (idxwds-search) "idxsql" "util/idxsql.el" (19747
+;;;;;;  46541))
+;;; Generated autoloads from util/idxsql.el
+(web-autoload-require 'idxsql 'lp '(nxhtml-download-root-url nil) "util/idxsql" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(nxhtml-autoload 'idxwds-search `(lp '(nxhtml-download-root-url nil) "util/idxsql" nxhtml-install-dir) "\
+Not documented
+
+\(fn SEARCH-PATT FILE-PATT ROOT)" nil nil)
 
 ;;;***
 
@@ -3795,7 +3818,7 @@ this group.
 ;;;***
 
 ;;;### (autoloads (rebind-keys-mode rebind) "rebind" "util/rebind.el"
-;;;;;;  (19745 16825))
+;;;;;;  (19746 55646))
 ;;; Generated autoloads from util/rebind.el
 (web-autoload-require 'rebind 'lp '(nxhtml-download-root-url nil) "util/rebind" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4659,7 +4682,7 @@ accept it or skip it.
 ;;;;;;  "util/org-odt.el" "util/org-panel.el" "util/ourcomments-widgets.el"
 ;;;;;;  "util/powershell-mode.el" "util/rxi.el" "util/temp-declare-fun-test.el"
 ;;;;;;  "util/temp-declare-fun.el" "util/temp.el" "util/tipframe.el"
-;;;;;;  "util/win-alg.el" "web-autoload.el") (19746 36815 0))
+;;;;;;  "util/win-alg.el" "web-autoload.el") (19747 51197 968000))
 
 ;;;***
 

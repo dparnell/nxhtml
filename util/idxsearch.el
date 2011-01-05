@@ -47,14 +47,21 @@
 ;;
 ;;; Code:
 
+;; Fix-me: option for matching long lines with all patterns, instead
+;; of any.
+
+;; Fix-me: Extract this and use as a loop for new queries. Allow
+;; things like TAB cycle visibility in the output buffer. Add a
+;; "reenter query command".
+
 (eval-when-compile (require 'compile))
-(eval-when-compile (require 'grep))
-(eval-when-compile (require 'org))
-(require 'powershell-mode)
+(eval-when-compile (require 'cl))
+(require 'org)
 (require 'nxhtml-base)
 
 ;; Fix-me: The byte compiler should not complain about these:
 (declare-function orgstruct-mode "orgstruct-mode")
+
 
 (defvar idxsearch-search-patt-hist nil)
 (defvar idxsearch-file-patt-hist nil)
@@ -73,21 +80,14 @@
 ;;
 ;;(setq idxsearch-search-script (expand-file-name "etc/wds/idxsearch.ps1" nxhtml-install-dir))
 
-;; Fix-me: file-patts => root-patts, add file-patts.
-
-;; (idxsearch '("cullberg") '("c:/") nil)
-
-;; Fix-me: option for matching long lines with all patterns, instead
-;; of any.
-
-;; Fix-me: Extract this and use as a loop for new queries. Allow
-;; things like TAB cycle visibility in the output buffer. Add a
-;; "reenter query command".
-
 ;;(setq idxsearch-engine 'gds)
 ;;(setq idxsearch-engine 'wds)
 ;;(setq idxsearch-engine 'docindexer)
-(defcustom idxsearch-engine 'gds
+(defcustom idxsearch-engine (cond
+                             ((idxgds-query-url-p) 'gds)
+                             (t (if (eq system-type 'windows-nt)
+                                    'wds
+                                  'docindexer)))
   "Desktop search engine.
 This is used by the command `idxsearch'.  The parameters to that
 command are handled a little, little bit differently for
@@ -149,13 +149,46 @@ different root locations at once.
         (setq strs (cons y strs))))
     (case idxsearch-engine
       (gds (idxgds-search search-patt file-patt root))
-      (wds (idxsearch-1 (list
-                         "--root"   root
-                         ;; "--files"  file-patt
-                         ;; "--locate" "grep"
-                         "--query"  (mapconcat 'identity strs ","))))
+      (wds (idxwds-search search-patt file-patt root))
+            ;; (list
+            ;;  "--root"   root
+            ;;  ;; "--files"  file-patt
+            ;;  ;; "--locate" "grep"
+            ;;  "--query"  (mapconcat 'identity strs ","))
+            ;;))
       (docindexer (idxdocindex-search search-patt file-patt root))
       (t (error "Ops!")))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Pattern building helpers
+
+;; (idxsearch-ggl-split "\"hi there\" some other where")
+(defun idxsearch-ggl-split (search-patt)
+  (let ((item-patt (rx (or (and "\""
+                                (submatch (* (not (any "\""))))
+                                "\"")
+                           (submatch (and word-start
+                                          (+ (not space))
+                                          word-end)))))
+        (start 0)
+        strs)
+    (while (setq start (string-match item-patt search-patt start))
+      (let ((y (or (match-string 1 search-patt)
+                   (match-string 2 search-patt))))
+        (setq start (+ start (length y)))
+        (setq strs (cons y strs))))
+    strs))
+
+(defun idxsearch-mk-and-grep (grep-patts)
+  (let ((patterns (mapcar (lambda (pat)
+                            (concat "\\<" pat "\\>"))
+                          grep-patts))
+        (or-pattern (regexp-opt grep-patts)))
+    (list or-pattern patterns)))
+
+
+
 
 ;; (setq locate-make-command-line 'idxsearch-locate-make-command-line)
 ;; (idxsearch-locate-make-command-line "some.fil")
@@ -179,46 +212,9 @@ different root locations at once.
       (setq command-list (append '("ruby.exe") command-list)))
     (list command-list script-type)))
 
-(defun idxsearch-1 (options)
-  (let* ((cmds (idxsearch-make-command options))
-         (cmd (car cmds))
-         (script-type (cadr cmds))
-         (default-directory (car (split-string (cadr (member "--root" options)) ",")))
-         ;; Coding systems. To my surprise this seems to work for ruby
-         ;; at least!
-         (process-coding-system-alist
-          '((".*idxsearch.ps1.*" . utf-8)
-            (".*powershell.exe.*" . utf-8)
-            (".*ruby.exe" . utf-8)
-            )))
-    (unless (and (get 'compilation-start 'command-can-be-list)
-                 (not (eq script-type 'powershell)))
-      ;; Fix-me: Or rather hope that my patch to compilation-start is
-      ;; accepted soon...
-      (setq cmd (mapconcat 'identity cmd " ")))
-    (message "cmd=%S" cmd)
-    (with-current-buffer (compilation-start cmd 'idxsearch-mode)
-      (visual-line-mode 1)
-      (setq wrap-prefix "           ")
-      ;;(outline-minor-mode)
-      ;; Fix-me: This prevents tab from beeing used outside header
-      ;; lines, otherwise it is very nice. Sigh. Try to make Carsten
-      ;; change this.
 
-      ;; fix-me: Maybe add some highlighting to show that there headerlines
-      ;; are handled by org?
-
-      ;; Fix-me: Display just file names first? How is that setup?
-      ;; Does org use jit-lock for this or should I fix that? Can
-      ;; jit-lock handle things like this? Did Stefan suggest
-      ;; something like it? Could it be handled by just request
-      ;; refontification of "*" or does that trigger refontification
-      ;; of the whole tail of the buffer? Is there any big
-      ;; disadvantage with whole buffer refontification? Could it be
-      ;; handled by post-command-hook instead? Is that even better
-      ;; since this is not a head -> tail op?
-      (orgstruct-mode)
-      )))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Output buffer font lock etc
 
 (defvar idxsearch-link-keymap
   (let ((map (make-sparse-keymap)))
@@ -290,6 +286,8 @@ different root locations at once.
     )
   "Regexp used to match search hits.  See `compilation-error-regexp-alist'.")
 
+;; fix-me: Maybe add some highlighting to show that there headerlines
+;; are handled by org?
 (defvar idxsearch-mode-font-lock-keywords
   '(;; configure output lines.
     ("^\\(Search \\(?:started\\|finished\\)\\).*"
@@ -339,7 +337,6 @@ This gets tacked on the end of the generated expressions.")
       ;; Known non-text?
       (when (string-match idxsearch-non-text file)
         (throw 'result nil))
-      ;; Auto mode?
       ;; Image file?
       (when (assoc-default file image-type-file-name-regexps 'string-match)
         (throw 'result nil))
@@ -347,7 +344,7 @@ This gets tacked on the end of the generated expressions.")
       (let ((name file)
             mode)
         ;; fix-me: stolen from set-auto-mode, but there must be
-        ;; something wrong here!
+        ;; something wrong there! The "(when mode" is inside the loop.
         (while name
           (setq mode (assoc-default file auto-mode-alist 'string-match))
           (if (and mode
@@ -380,10 +377,19 @@ This gets tacked on the end of the generated expressions.")
     nil))
 
 
-(defun idxsearch-grep (file pattern maxw)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Searching in text files
+
+;; Fix-me: split pattern, match ALL
+;; each pattern a word
+(defun idxsearch-grep (file or-pattern and-patterns maxw)
   (let* ((old-buf (find-buffer-visiting file))
          (buf (or old-buf
-                  (find-file-noselect file)))
+                  ;;(find-file-noselect file)
+                  (with-current-buffer (generate-new-buffer "idxsearch-grep")
+                    (insert-file-contents file)
+                    (current-buffer))
+                  ))
          (curbuf (current-buffer))
          here
          (format-w 10)
@@ -396,7 +402,7 @@ This gets tacked on the end of the generated expressions.")
       (save-restriction
         (widen)
         (goto-char (point-min))
-        (while (re-search-forward pattern nil t)
+        (while (re-search-forward or-pattern nil t)
           (setq num-lines (1+ num-lines))
           (let* ((beg (match-beginning 0))
                  (end (match-end       0))
@@ -406,39 +412,47 @@ This gets tacked on the end of the generated expressions.")
                  (len (- cnd col))
                  (line (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
                  show
+                 (line-matches t)
                  (part "e"))
-            (setq line
-                  (with-temp-buffer
-                    (insert line)
-                    (untabify (point-min) (point-max))
-                    (buffer-substring (point-min) (point-max))))
-            ;; (with-current-buffer curbuf (insert line "\n"))
-            (if (< (length line) maxw)
-                (progn
-                  (setq part "a")
-                  (setq show line))
-              (if (< len maxw)
-                  (let* ((pad (/ (- maxw len) 2))
-                         (start (max 0 (- col pad)))
-                         (stop (+ start (- maxw 3)))
-                         (over (- stop (length line))))
-                    (setq part "b")
-                    ;; (with-current-buffer curbuf (insert (format "%d %d %d\n" start stop over)))
-                    (when (< 0 over)
-                      (setq part "d")
-                      (setq start (- start over))
-                      (setq stop  (- stop  over)))
-                    (setq show (concat "_" (substring line start stop) "_")))
-                (setq part "c")
-                (setq show (concat "_" (substring line col (+ col (- maxw 3))) "_"))))
-            (setq show (replace-regexp-in-string pattern
-                                                 (lambda (rep)
-                                                   (concat "{{{" rep "}}}"))
-                                                 show))
-            (with-current-buffer curbuf
-              (insert part (format row-format
-                                   (format ":%d:%d:" row col))
-                      show "\n")))))
+            (when (< 1 (length and-patterns))
+              (dolist (pat and-patterns)
+                (when line-matches
+                  (unless (string-match pat line)
+                    (setq line-matches nil)))))
+            (goto-char (point-at-eol))
+            (when line-matches
+              (setq line
+                    (with-temp-buffer
+                      (insert line)
+                      (untabify (point-min) (point-max))
+                      (buffer-substring (point-min) (point-max))))
+              ;; (with-current-buffer curbuf (insert line "\n"))
+              (if (< (length line) maxw)
+                  (progn
+                    (setq part "a")
+                    (setq show line))
+                (if (< len maxw)
+                    (let* ((pad (/ (- maxw len) 2))
+                           (start (max 0 (- col pad)))
+                           (stop (+ start (- maxw 3)))
+                           (over (- stop (length line))))
+                      (setq part "b")
+                      ;; (with-current-buffer curbuf (insert (format "%d %d %d\n" start stop over)))
+                      (when (< 0 over)
+                        (setq part "d")
+                        (setq start (- start over))
+                        (setq stop  (- stop  over)))
+                      (setq show (concat "_" (substring line start stop) "_")))
+                  (setq part "c")
+                  (setq show (concat "_" (substring line col (+ col (- maxw 3))) "_"))))
+              (setq show (replace-regexp-in-string or-pattern
+                                                   (lambda (rep)
+                                                     (concat "{{{" rep "}}}"))
+                                                   show))
+              (with-current-buffer curbuf
+                (insert part (format row-format
+                                     (format "%d:%d:" row col))
+                        show "\n"))))))
       (goto-char here))
     (when (< 0 num-lines) (insert "\n"))
     (unless old-buf (kill-buffer buf))))

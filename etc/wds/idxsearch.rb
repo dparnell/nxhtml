@@ -125,7 +125,7 @@ class WdsLocateResult < WdsResult
     fns = @filename.split(",")
     fns_like = []
     fns.each { |i|
-      fns_like.push("SYSTEM.FILENAME LIKE '%#{i}%'")
+      fns_like.push("SYSTEM.FILENAME LIKE '#{i}'")
     }
     "("+fns_like.join(" OR ")+")"
   end
@@ -157,7 +157,7 @@ end
 
 class WdsSearchResult < WdsLocateResult
   # This class holds and handles search results
-  def initialize(rootpath, comma_sep_query, options)
+  def initialize(rootpath, file_patt, comma_sep_query, options)
     txt_ext = options[:txtexts] || [".txt", ".org", ".el"]
     maxw    = options[:maxw]    || 0
     @query_strings = comma_sep_query.split(",")
@@ -166,7 +166,7 @@ class WdsSearchResult < WdsLocateResult
     @used_fields.push("SYSTEM.ITEMAUTHORS")
     @used_fields.push("SYSTEM.FILEEXTENSION")
     @used_fields.push("SYSTEM.TITLE")
-    super(rootpath, maxw, options)
+    super(rootpath, file_patt, options)
     @auth_num = @fields.index("SYSTEM.AUTHOR")
     @itemauth_num = @fields.index("SYSTEM.ITEMAUTHORS")
     @filext_num = @fields.index("SYSTEM.FILEEXTENSION")
@@ -216,11 +216,11 @@ class WdsSearchResult < WdsLocateResult
       end
       title = title(hit)
       if title
-        print "- Title:   ", title, "\n"
+        print "  Title:   ", title, "\n"
       end
       authors = authors(hit)
       if authors
-        print "- Authors: ", authors.join(", "), "\n"
+        print "  Authors: ", authors.join(", "), "\n"
       end
     }
     print "----\n"
@@ -298,7 +298,7 @@ def search_textfile_1 (filename, re, maxw, openflags)
       mshow += show
       #row_col = "L:"+row.to_s()+":"+col.to_s()+":"
       col += 1
-      row_col = part+":"+row.to_s()+":"+col.to_s()+":"
+      row_col = part+""+row.to_s()+":"+col.to_s()+":"
       space = "     "[row_col.length-6..-1]
       print "", row_col, space, " ", mshow, "\n"
       raise "Too wide!: "+part+", "+ mshow.length.to_s() if (show.length > maxw && maxw > 0)
@@ -312,15 +312,16 @@ if __FILE__ == $0
     opt :root,   "The root dir", :type => :string
     opt :query,  "The query", :type => :string
     opt :locate, "Locate files", :type => :string
+    opt :filepatt, "Match file names", :type => :string
   end
   Trollop::die :root, "must be specified" unless opts[:root]
-  Trollop::die :query, "must be specified" unless opts[:query]
-  if opts[:locate]
-    WdsLocateResult.new(opts[:root], opts[:query], maxw: -1,
+  # Trollop::die :query, "must be specified" unless opts[:query]
+  if opts[:query]
+    WdsSearchResult.new(opts[:root], opts[:filepatt], opts[:query], maxw: -1).output
+  else
+    WdsLocateResult.new(opts[:root], opts[:filepatt], 
                         for_locate: opts[:locate] == "locate"
                         ).output
-  else
-    WdsSearchResult.new(opts[:root], opts[:query], maxw: -1).output
   end
 end
 
