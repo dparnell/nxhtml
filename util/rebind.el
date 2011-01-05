@@ -150,6 +150,8 @@
        shift
        text-scale-adjust)
       ;; Fix-me: Keyboard adjustment for different languages
+
+      ;; This stopped cua-mode C-x from working when this keymap was first!
       (
        [(control ?x) ?,]
        "C-x ` for `next-error' is unusable on for example a Swedish keyboard."
@@ -259,13 +261,14 @@ field). There are some predifined keybindings for this."
     (setq emulation-mode-map-alists (delq 'rebind--emul-keymap-alist emulation-mode-map-alists))))
 
 (defun rebind-keys-post-command ()
-  "Make sure we are first in the list when turned on.
+  "Make sure we are last in the list when turned on.
 This is reasonable since we are using this mode to really get the
-key bindings we want!"
+key bindings we want, but we do not want to override emulations!"
   (unless (eq 'rebind--emul-keymap-alist (car emulation-mode-map-alists))
     (setq emulation-mode-map-alists (delq 'rebind--emul-keymap-alist emulation-mode-map-alists))
     (when rebind-keys-mode
-      (add-to-list 'emulation-mode-map-alists 'rebind--emul-keymap-alist))))
+      ;; Fix-me: last! update doc!
+      (add-to-list 'emulation-mode-map-alists 'rebind--emul-keymap-alist t))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
