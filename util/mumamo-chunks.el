@@ -123,24 +123,26 @@ This function can be added to `nxhtml-mumamo-mode-hook' and
 Note: This is in response to bug #610470, see URL
 `https://bugs.launchpad.net/nxhtml/+bug/610470'.  I am not sure
 this is a good thing, but let us test it."
-  (message "Checking if all php...")
-  (let ((here (point))
-        all-php)
-    (save-restriction
-      (widen)
-      (cond
-       ((> 6 (buffer-size))
-        (setq all-php t))
-       ((string= (buffer-substring 1 6)
-                 "<?php")
-        (goto-char (point-min))
-        (unless (or (search-forward "?>" nil t)
-                    (search-forward "<<<" nil t))
-          (setq all-php t)
-          (goto-char here)))))
-    (when all-php
-      (php-mode))
-    (message (if all-php "... switching to php-mode" "... multi major mode"))))
+  (when (and buffer-file-name
+             (string= "php" (file-name-extension buffer-file-name)))
+    (message "Checking if all php...")
+    (let ((here (point))
+          all-php)
+      (save-restriction
+        (widen)
+        (cond
+         ((> 6 (buffer-size))
+          (setq all-php t))
+         ((string= (buffer-substring 1 6)
+                   "<?php")
+          (goto-char (point-min))
+          (unless (or (search-forward "?>" nil t)
+                      (search-forward "<<<" nil t))
+            (setq all-php t)
+            (goto-char here)))))
+      (when all-php
+        (php-mode))
+      (message (if all-php "... switching to php-mode" "... multi major mode")))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
