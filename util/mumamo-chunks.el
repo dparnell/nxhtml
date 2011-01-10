@@ -128,15 +128,19 @@ this is a good thing, but let us test it."
         all-php)
     (save-restriction
       (widen)
-      (when (string= (buffer-substring 1 6)
-                     "<?php")
+      (cond
+       ((> 6 (buffer-size))
+        (setq all-php t))
+       ((string= (buffer-substring 1 6)
+                 "<?php")
         (goto-char (point-min))
         (unless (or (search-forward "?>" nil t)
                     (search-forward "<<<" nil t))
           (setq all-php t)
-          (php-mode))
-        (message (if all-php "... switching to php-mode" "... multi major mode"))
-        (goto-char here)))))
+          (goto-char here)))))
+    (when all-php
+      (php-mode))
+    (message (if all-php "... switching to php-mode" "... multi major mode"))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

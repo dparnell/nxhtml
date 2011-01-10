@@ -586,8 +586,8 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads (django-mode) "../related/django" "related/django.el"
-;;;;;;  (19726 33620))
+;;;### (autoloads (django-variable-mode django-mode) "../related/django"
+;;;;;;  "related/django.el" (19754 29856))
 ;;; Generated autoloads from related/django.el
 (web-autoload-require 'django 'lp '(nxhtml-download-root-url nil) "related/django" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -595,6 +595,11 @@ Key bindings:
 (nxhtml-autoload 'django-mode `(lp '(nxhtml-download-root-url nil) "related/django" nxhtml-install-dir) "\
 Simple Django mode for use with mumamo.
 This mode only provides syntax highlighting.
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'django-variable-mode `(lp '(nxhtml-download-root-url nil) "related/django" nxhtml-install-dir) "\
+For django comment blocks.
 
 \(fn)" t nil)
 
@@ -2839,7 +2844,7 @@ Return t if VALUE is a multi major mode function.
 ;;;***
 
 ;;;### (autoloads (mumamo-noweb2 mumamo-define-html-file-wide-keys)
-;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19738 39838))
+;;;;;;  "mumamo-chunks" "util/mumamo-chunks.el" (19754 28135))
 ;;; Generated autoloads from util/mumamo-chunks.el
 (web-autoload-require 'mumamo-chunks 'lp '(nxhtml-download-root-url nil) "util/mumamo-chunks" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4682,7 +4687,7 @@ accept it or skip it.
 ;;;;;;  "util/org-odt.el" "util/org-panel.el" "util/ourcomments-widgets.el"
 ;;;;;;  "util/powershell-mode.el" "util/rxi.el" "util/temp-declare-fun-test.el"
 ;;;;;;  "util/temp-declare-fun.el" "util/temp.el" "util/tipframe.el"
-;;;;;;  "util/win-alg.el" "web-autoload.el") (19747 51197 968000))
+;;;;;;  "util/win-alg.el" "web-autoload.el") (19754 29878 953000))
 
 ;;;***
 

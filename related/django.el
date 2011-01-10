@@ -197,6 +197,7 @@ This mode only provides syntax highlighting."
     ((?| . ". "))
     ))
 
+;;;###autoload
 (define-derived-mode django-variable-mode nil "Django variable"
   "For django comment blocks."
   ;;(modify-syntax-entry ?| ?.)
