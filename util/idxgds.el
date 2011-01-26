@@ -67,9 +67,11 @@ START is 0-based."
   (let* ((num-s   (number-to-string num))
          (start-s (number-to-string start))
          (url (concat idxgds-query-url query "&format=xml&num=" num-s "&start=" start-s))
-         (buffer (url-retrieve-synchronously url))
+         ;;(buffer (url-retrieve-synchronously url))
+         (buffer (generate-new-buffer "idxgds-url"))
          num-hits hits
          (debug nil))
+    (with-current-buffer buffer (url-insert-file-contents url))
     (when debug (display-buffer buffer))
     (message "url=%s" url)
     (with-current-buffer buffer
