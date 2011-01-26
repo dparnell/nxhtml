@@ -1122,7 +1122,11 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
                   (setq prev-point (point))
                   (insert "  ")
                   (insert-text-button
-                   (cdr pose)
+                   (let ((tit (cdr pose)))
+                     (save-match-data
+                       (when (string-match "\\(.*\\)\.[a-z0-9]+$" tit)
+                         (setq tit (match-string 1 tit))))
+                     tit)
                    'mouse-face 'pause-mouse-face
                    'action `(lambda (button)
                               (condition-case err

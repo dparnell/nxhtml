@@ -381,23 +381,33 @@ users in San Francisco. Clin Infect Dis. 2000;
       (let (;;(re-author "\\([^,]+\\),?[\w]+\\([^,\w]+\\),")
             ;;(re-author "[ \t\n]*\\([^,]*\\),[ \t\n]*\\([^,]*\\),")
             (re-author (rx (* whitespace)
-                           (submatch (+ (not (any ","))))
-                           ","
-                           (* whitespace)
-                           (submatch (+ (not (any ","))))
-                           (or ","
-                               (* whitespace)
-                               "(")))
+                           (or (and (submatch (+ (not (any ","))))
+                                    (+ whitespace)
+                                    "et al."
+                                    (+ whitespace)
+                                    "(")
+                               (and (submatch (+ (not (any ",&"))))
+                                    ","
+                                    (* whitespace)
+                                    (? (and "&" (+ whitespace)))
+                                    (submatch (+ (not (any ",&"))))
+                                    (or ","
+                                        (* whitespace)
+                                        "(")))))
             )
         (while ( < (point) beg-yy)
           (let ((b1 (point))
                 e1
                 who
                 lastname initials)
-            (if (not (re-search-forward re-author beg-yy t))
+            (if (not (re-search-forward re-author (1+ beg-yy) t))
                 (goto-char beg-yy)
-              (setq lastname (match-string-no-properties 1))
-              (setq initials (match-string-no-properties 2))
+              (if (match-string-no-properties 3)
+                  (progn
+                    (setq lastname (match-string-no-properties 2))
+                    (setq initials (match-string-no-properties 3)))
+                (setq lastname (match-string-no-properties 1))
+                (setq initials nil))
               (setq initials (delete ?. (append initials nil)))
               (setq initials (concat initials))
               (push (list lastname nil initials) auths)))))
@@ -1000,7 +1010,7 @@ REC should be a bibliographic record in the format returned from
     (let ((url (concat "http://elin.lub.lu.se.ludwig.lub.lu.se/elin?func=advancedSearch&lang=se&query="
                        (browse-url-encode-url txt))))
       ;; Fix-me: Using Opera at the moment due to Chrome bug when displaying pdf:
-      (if t
+      (if nil
           (browse-url url)
         (if (eq system-type 'windows-nt)
             (w32-shell-execute nil "C:/Program Files/Opera/opera.exe" url)

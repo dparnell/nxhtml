@@ -129,9 +129,12 @@ strings should match.  This way you can easily search in
 different root locations at once.
 "
   (interactive
+   ;; Fix-me: Different search engines have different pattern
+   ;; styles. Use different hist vars? Different prompts?
    (let* ((def-str (grep-tag-default))
           (str (read-string "Search pattern: " def-str 'idxsearch-search-patt-hist))
-          (fil (read-string "File name pattern: " "" 'idxsearch-file-patt-hist))
+          (def-fil "")
+          (fil (read-string "File name pattern: " def-fil 'idxsearch-file-patt-hist))
           (dir (read-directory-name "Indexed search in directory tree: ")))
      (list str fil dir nil)))
   (let ((item-patt (rx (or (and "\""

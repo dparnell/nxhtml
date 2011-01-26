@@ -716,6 +716,132 @@ DESIRED-WIDTH."
 (defvar winsize-windows-desired-width nil
   "Internal use in `winsize-fit-windows-to-desired-widths'.")
 
+;;;###autoload
+(defun winsize-fit-window-to-buffer (&optional window max-height min-height)
+  "A more complete `fit-window-to-buffer'. Fix-me: not ready, bug# 7822.
+Find through an iterative search minimal height to display whole
+buffer \(narrowed part if narrowed) and set window height to that
+height.  Or, if that can not be done then set the height to the
+best possible height for fit.
+
+Try first to adjust window below and if that is not enough window
+above.
+"
+  (let* ((window (or window (selected-window)))
+         (frm (window-frame window))
+         (frm-height (frame-height frm))
+         here
+         (above (windmove-find-other-window 'up   nil window))
+         (below (windmove-find-other-window 'down nil window))
+         ;;(wcfg (current-window-configuration frm))
+         window-configuration-change-hook
+         (eob-in-win (= (window-end window t) (point-max)))
+         (curh (window-height window))
+         (minh (if (not eob-in-win)
+                   curh
+                 (or min-height window-min-height)))
+         (orig-minh minh)
+         (maxh (if eob-in-win
+                   curh
+                 (or max-height frm-height)))
+         (orig-maxh maxh)
+         midh
+         done)
+    (when (window-minibuffer-p below)
+      (setq below nil))
+
+    (when (or above below)
+      (with-current-buffer (window-buffer window)
+        (setq here (point))
+
+        ;; First try resizing window below.
+        (when below
+          (while (and (not done) (> maxh minh))
+            (setq midh (+ minh (/ (- maxh minh) 2)))
+            (let* ((winh (window-height window))
+                   (delta (- midh winh))
+                   did-it)
+              (condition-case err
+                  (progn
+                    (adjust-window-trailing-edge window delta nil)
+                    (setq did-it t))
+                (error
+                 (message "%S" err)))
+              (if did-it
+                  (progn
+                    (goto-char (point-min))
+                    ;; Fix-me: This unfortunately returns t even if
+                    ;; the last line is partly hidden (test example
+                    ;; help for posn-at-x-y):
+                    (setq eob-in-win (= (window-end window t) (point-max)))
+                    ;; So let us try another way to check if eob is in window:
+                    (let* ((edges (window-inside-pixel-edges))
+                           (left (1+ (nth 0 edges)))
+                           (bottom (1- (nth 3 edges))))
+                      (setq eob-in-win
+                            (= (point-max)
+                               (posn-point (posn-at-x-y left bottom frm)))))
+                    (if eob-in-win
+                        ;; Fix-me: This assumes that posn-at-point is
+                        ;; relative to window text area.
+                        (let* ((loc (event-end (posn-at-point (point-max) window)))
+                               (loc-bottom (cdr loc))
+                               (edges (window-inside-pixel-edges window))
+                               (win-top (nth 1 edges))
+                               (win-bottom (nth 3 edges))
+                               (win-rel-bottom (- win-bottom win-top))
+                               ;; Fix-me: This returns nil even though
+                               ;; we have updated above with
+                               ;; (window-end window t) and also after
+                               ;; (redisplay t) or (sit-for 0).
+                               (dummy (redisplay t))
+                               (dummy2 (sit-for 0))
+                               (bottom-line-height (window-line-height
+                                                    (line-number-at-pos (1- (point-max)))
+                                                    window)))
+                          ;; Make a guess if we are ready.
+                          (when (> bottom-line-height
+                                   (- win-rel-bottom loc-bottom))
+                            (setq done t))
+                          (setq maxh midh))
+                      (setq minh midh)))
+                (if (< 0 delta)
+                    (setq maxh (1- maxh))
+                  (setq minh (1+ minh))))
+              )))
+
+        ;; If we are not done try window above.
+        (when above
+          (while (and (not done) (> maxh minh))
+            (setq midh (+ minh (/ (- maxh minh) 2)))
+            (let* ((winh (window-height window))
+                   (delta (- winh midh))
+                   did-it)
+              ;; (when (> 0 delta) ;; Check window above min height
+              ;;   (setq delta (max delta
+              ;;                    (- window-min-height
+              ;;                       (window-height above))))
+              ;;   (setq midh (- delta winh)))
+              (condition-case err
+                  (progn
+                    (adjust-window-trailing-edge above delta nil)
+                    (setq did-it t))
+                (error
+                 (message "%S" err)))
+              (if did-it
+                  (progn
+                    (goto-char (point-min))
+                    (setq eob-in-win (= (window-end window t) (point-max)))
+                    (if eob-in-win
+                        (setq maxh midh)
+                      (setq minh midh)))
+                (if (> 0 delta)
+                    (setq maxh (1- maxh))
+                  (setq minh (1+ minh))))
+              )))
+        (goto-char here))
+      )))
+
 ;;(winsize-fit-windows-to-desired-widths)
 ;;;###autoload
 (defun winsize-fit-windows-to-desired-widths ()
