@@ -71,6 +71,7 @@ START is 0-based."
          (buffer (generate-new-buffer "idxgds-url"))
          num-hits hits
          (debug nil))
+    (message "QUERY url=%S" url)
     (with-current-buffer buffer (url-insert-file-contents url))
     (when debug (display-buffer buffer))
     (message "url=%s" url)

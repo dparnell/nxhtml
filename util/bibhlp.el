@@ -982,6 +982,29 @@ FROM should be either \"pubmed\" or \"pmc\"."
       (match-string-no-properties 1 decoded-page))))
 
 
+;; Fix-me: maybe finish these converters? The info in pubmed seems incomplete so I do not know if it is worth it.
+(defun bibhlp-pmid2doi (pmid)
+  (let ((url (concat "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?"
+                     "db=PubMed"
+                     ""
+                     ))
+        )
+    ))
+
+;; (bibhlp-doi2pmid "19042775")
+(defun bibhlp-doi2pmid (doi)
+  ;; http://lists.ccs.neu.edu/pipermail/bionlp/2010-May/001950.html
+  (let* ((url (concat "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?term="
+                     doi
+                     ;; "&email=maximilianh@gmail.com"
+                     ))
+         (buf (generate-new-buffer "bibhlp-doi2pmid"))
+         )
+    (with-current-buffer buf
+      (url-insert-file-contents url))
+    (display-buffer buf)
+    ))
+
 ;;; ELIN at lu.se
 
 (defun bibhlp-make-elin-search-string (rec)
