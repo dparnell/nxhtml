@@ -424,6 +424,11 @@ This is was done due to the problem reported here:
   "Major mode for editing PHP code.\n\n\\{php-mode-map}"
   (c-add-language 'php-mode 'c-mode)
 
+  ;; fix-me: testing, adding these for nXhtml bug#336041
+  (c-initialize-cc-mode t)
+  (c-init-language-vars php-mode)
+  (c-common-init 'php-mode)
+
 ;; PHP doesn't have C-style macros.
 ;; HACK: Overwrite this syntax with rules to match <?php and others.
 ;;   (c-lang-defconst c-opt-cpp-start php php-tags-key)
