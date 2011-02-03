@@ -383,8 +383,8 @@ users in San Francisco. Clin Infect Dis. 2000;
             (re-author (rx (* whitespace)
                            (or (and (submatch (+ (not (any ","))))
                                     (+ whitespace)
-                                    "et al."
-                                    (+ whitespace)
+                                    (? (and "et al."
+                                            (+ whitespace)))
                                     "(")
                                (and (submatch (+ (not (any ",&"))))
                                     ","
