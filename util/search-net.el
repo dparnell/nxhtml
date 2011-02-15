@@ -261,7 +261,7 @@ supposed to enhance the search string if they can.")
 (defun search-net-read-search-string (engine search-default)
   (setq search-default
         (or search-default
-            (if (region-active-p)
+            (if (use-region-p)
                 (concat "\""
                         (buffer-substring-no-properties (region-beginning) (region-end))
                         "\"")

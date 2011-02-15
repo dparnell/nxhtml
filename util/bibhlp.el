@@ -362,10 +362,18 @@ users in San Francisco. Clin Infect Dis. 2000;
 
 (defun bibhlp-parse-apa-like (beg end)
   "Parse reference similar to APA style between BEG and END."
-  (let (auths beg-yy end-yy yy ti doi pmid pmcid)
+  (let ((re-yy (rx "("
+                   (submatch (or (repeat 4 (any digit))
+                                 "in press"))
+                   ")"
+                   (*? anything)
+                   (? (any ".:"))
+                   ))
+        auths beg-yy end-yy yy ti doi pmid pmcid)
     ;; Find year in slightly different formats.
     (goto-char beg)
-    (if (re-search-forward "(\\([0-9]\\{4\\}\\).*?)[.:]?" end t)
+    ;;(if (re-search-forward "(\\([0-9]\\{4\\}\\).*?)[.:]?" end t)
+    (if (re-search-forward re-yy end t)
         (progn
           (setq beg-yy (match-beginning 0))
           (setq end-yy (match-end 0))
@@ -381,19 +389,24 @@ users in San Francisco. Clin Infect Dis. 2000;
       (let (;;(re-author "\\([^,]+\\),?[\w]+\\([^,\w]+\\),")
             ;;(re-author "[ \t\n]*\\([^,]*\\),[ \t\n]*\\([^,]*\\),")
             (re-author (rx (* whitespace)
-                           (or (and (submatch (+ (not (any ","))))
+                           (or (and (submatch (+? (not (any ","))))
                                     (+ whitespace)
                                     (? (and "et al."
                                             (+ whitespace)))
                                     "(")
                                (and (submatch (+ (not (any ",&"))))
-                                    ","
-                                    (* whitespace)
-                                    (? (and "&" (+ whitespace)))
-                                    (submatch (+ (not (any ",&"))))
-                                    (or ","
-                                        (* whitespace)
-                                        "(")))))
+                                    (? (and ","
+                                            (* whitespace)
+                                            (submatch (+ (and (not (any ",&"))
+                                                              ".")
+                                                         ))))
+                                    (or (and ","
+                                             (* whitespace)
+                                             (? (and "&" (+ whitespace)))
+                                             (* whitespace))
+                                        (and
+                                         (* whitespace)
+                                         "("))))))
             )
         (while ( < (point) beg-yy)
           (let ((b1 (point))
@@ -406,7 +419,8 @@ users in San Francisco. Clin Infect Dis. 2000;
                   (progn
                     (setq lastname (match-string-no-properties 2))
                     (setq initials (match-string-no-properties 3)))
-                (setq lastname (match-string-no-properties 1))
+                (setq lastname (or (match-string-no-properties 2)
+                                   (match-string-no-properties 1)))
                 (setq initials nil))
               (setq initials (delete ?. (append initials nil)))
               (setq initials (concat initials))
