@@ -152,8 +152,8 @@ This will be part of the pattern as
       (progn
         (web-vcs-message-with-face 'font-lock-warning-face "Please find a link first with `web-vcs-linkpatt-find'")
         nil)
-    (let ((beg (if (region-active-p) (region-beginning) (overlay-start web-vcs-hit-ovl)))
-          (end (if (region-active-p) (region-end) (overlay-end web-vcs-hit-ovl)))
+    (let ((beg (if (use-region-p) (region-beginning) (overlay-start web-vcs-hit-ovl)))
+          (end (if (use-region-p) (region-end) (overlay-end web-vcs-hit-ovl)))
           (link-beg (overlay-start web-vcs-link-ovl))
           (link-end (overlay-end   web-vcs-link-ovl))
           (label-beg (overlay-start web-vcs-label-ovl))
