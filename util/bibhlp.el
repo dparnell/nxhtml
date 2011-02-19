@@ -386,6 +386,7 @@ users in San Francisco. Clin Infect Dis. 2000;
       ;;   Saylam, C., Ucerler, H., Kitis, O., Ozand, E. and Gonul, A.S. (2006)
       ;;   Cooper P, Murray L, Wilson A, Romaniuk H (2003).
       ;;   Glezer I, Simard AR, Rivest S (2007):
+      ;;   Glezer, Simard, Rivest (2007):
       (let (;;(re-author "\\([^,]+\\),?[\w]+\\([^,\w]+\\),")
             ;;(re-author "[ \t\n]*\\([^,]*\\),[ \t\n]*\\([^,]*\\),")
             (re-author (rx (* whitespace)
@@ -398,8 +399,7 @@ users in San Francisco. Clin Infect Dis. 2000;
                                     (? (and ","
                                             (* whitespace)
                                             (submatch (+ (and (not (any ",&"))
-                                                              ".")
-                                                         ))))
+                                                              (? "."))))))
                                     (or (and ","
                                              (* whitespace)
                                              (? (and "&" (+ whitespace)))
@@ -1019,10 +1019,10 @@ FROM should be either \"pubmed\" or \"pmc\"."
     (display-buffer buf)
     ))
 
-;;; ELIN at lu.se
+;;; LibHub at lu.se
 
-(defun bibhlp-make-elin-search-string (rec)
-  "Make a search string for ELIN from REC."
+(defun bibhlp-make-libhub-search-string (rec)
+  "Make a search string for LibHub from REC."
   (let ((txt nil))
     (dolist (auth (plist-get rec :authors))
       (let ((lastname (car auth)))
@@ -1039,13 +1039,30 @@ FROM should be either \"pubmed\" or \"pmc\"."
     (kill-new txt)
     txt))
 
-(defun bibhlp-search-rec-in-elin (rec)
-  "Go to ELIN@Lund and look for REC.
+(defcustom bibhlp-libhub-search-url
+  "http://libhub.sempertool.dk.ludwig.lub.lu.se/libhub?func=search&libhubSearch=1&query="
+  "Base url for searching LibHub.
+Used by `bibhlp-search-in-libhub'.  The query in LibHub
+format is added at the end of this, url-encoded.
+
+The default value is for Lund University."
+  :type 'string
+  :group 'bibhlp)
+
+(defun bibhlp-search-in-libhub (rec)
+  "Go to LibHub and look for REC.
 REC should be a bibliographic record in the format returned from
-`bibhlp-parse-entry'."
-  (let ((txt (bibhlp-make-elin-search-string rec)))
-    (let ((url (concat "http://elin.lub.lu.se.ludwig.lub.lu.se/elin?func=advancedSearch&lang=se&query="
-                       (browse-url-encode-url txt))))
+`bibhlp-parse-entry'.
+
+You must customize `bibhlp-libhub-search-url' to use this
+\(unless you are at Lund University)."
+  (let ((txt (bibhlp-make-libhub-search-string rec)))
+    (message "LibHub search: %S" txt)
+    (let ((url (concat
+                ;; "http://elin.lub.lu.se.ludwig.lub.lu.se/elin?func=advancedSearch&lang=se&query="
+                ;; "http://libhub.sempertool.dk.ludwig.lub.lu.se/libhub?func=search&libhubSearch=1&query="
+                bibhlp-libhub-search-url
+                (browse-url-encode-url txt))))
       ;; Fix-me: Using Opera at the moment due to Chrome bug when displaying pdf:
       (if nil
           (browse-url url)
@@ -1227,7 +1244,7 @@ What do you want to do with the marked entry?
   p - Parse
   c - ParsCit
   x - CrossRef
-  e - ELIN@Lund
+  l - LibHub
 "
                           ))
           done cc
@@ -1253,10 +1270,10 @@ What do you want to do with the marked entry?
                       (insert (format "%s:%s\n" k v))))
                   (display-buffer (current-buffer)))))
              ((eq cc ?e)
-              ;;(bibhlp-search-ref-at-point-in-elin)
+              ;;(bibhlp-search-ref-at-point-in-libhub)
               (let ((rec (bibhlp-parse-entry beg end)))
-                (bibhlp-search-rec-in-elin rec)))
-             ;;(bibhlp-search-rec-in-elin rec)
+                (bibhlp-search-in-libhub rec)))
+             ;;(bibhlp-search-in-libhub rec)
              ((eq cc ?a)
               (let* ((rec (bibhlp-parse-entry beg end))
                      (str (bibhlp-make-apa rec nil)))
@@ -1312,12 +1329,13 @@ and it looks like data can be shared/exported to Zotero later."
     (browse-url citeurl)))
 
 ;;;###autoload
-(defun bibhlp-search-ref-at-point-in-elin ()
-  "Try to find bibliographic at point in ELIN@Lund.
-ELIN@Lund is Lunds University Library, URL `http://www.lub.lu.se/en.html'."
+(defun bibhlp-search-ref-at-point-in-libhub ()
+  "Try to find bibliographic at point in LibHub.
+LibHub is a library gateway used by some universities to let
+students and staff access scientific journals etc."
   (interactive)
   (let ((rec (bibhlp-parse-entry nil nil)))
-    (bibhlp-search-rec-in-elin rec)))
+    (bibhlp-search-in-libhub rec)))
 
 
 (provide 'bibhlp)
