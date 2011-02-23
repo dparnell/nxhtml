@@ -1096,7 +1096,9 @@ You must customize `bibhlp-libhub-search-url' to use this
 ;; &hl=en
 (defcustom bibhlp-google-scholar-extra "&as_subj=bio&as_subj=med&as_subj=soc"
   "Additions to search string.
-Default is to include only journals covering bio, med and soc."
+Default is to include only articles etc covering bio, med and
+soc. \(This reflects my personal choice ... ;-) - just set it to
+\"\" if it disturbs.)"
   :type 'string
   :group 'bibhlp)
 
