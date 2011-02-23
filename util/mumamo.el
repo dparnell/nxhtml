@@ -3551,6 +3551,8 @@ fontification and speeds up fontification significantly."
     (setq fun-var-sym (nth 0 fun-list))
     (setq fun-var-def-sym (nth 1 fun-list))
     (setq fun-var-kw-sym (nth 2 fun-list))
+    (unless (functionp (symbol-value fun-var-sym))
+      (error "fun-var-sym=%S, use-major-entry=%S" fun-var-sym use-major-entry))
     (assert (functionp (symbol-value fun-var-sym)) t)
     (assert (eq 'lambda (car (symbol-value fun-var-def-sym))) t)
     (assert (boundp fun-var-kw-sym) t)
