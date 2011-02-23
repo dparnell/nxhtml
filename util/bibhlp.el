@@ -237,6 +237,7 @@ APA reference."
              ((string= mark "SN")
               ;; Fix-me: what is it? Looks like page numbers, but much bigger.
               )
+             ((string= mark "DO") (setq doi val))
              ((string= mark "M3")
               ;; M3  - doi: DOI: 10.1016/j.tics.2010.05.002
               (when (string-match "doi: +.*? \\(10\..*\\)" val)
@@ -1071,6 +1072,77 @@ You must customize `bibhlp-libhub-search-url' to use this
           (start-process "Opera" nil "C:/Program Files/Opera/opera.exe" url))
         ))))
 
+;;; Google Scholar
+
+;; http://scholar.google.se/scholar?as_q=mindfulness+training&num=10&as_epq=&as_oq=&as_eq=&as_occt=any&as_sauthors=Chiesa+Calati+Serretti&as_publication=&as_ylo=&as_yhi=&as_sdt=1&as_subj=bio&as_subj=med&as_subj=soc&as_sdtf=&as_sdts=5&btnG=Search+Scholar&hl=en
+
+;; ?as_q=mindfulness+training
+;; &num=10
+;; &as_epq=
+;; &as_oq=
+;; &as_eq=
+;; &as_occt=any
+;; &as_sauthors=Chiesa+Calati+Serretti
+;; &as_publication=
+;; &as_ylo=
+;; &as_yhi=
+;; &as_sdt=1
+;; &as_subj=bio
+;; &as_subj=med
+;; &as_subj=soc
+;; &as_sdtf=
+;; &as_sdts=5
+;; &btnG=Search+Scholar
+;; &hl=en
+(defcustom bibhlp-google-scholar-extra "&as_subj=bio&as_subj=med&as_subj=soc"
+  "Additions to search string.
+Default is to include only journals covering bio, med and soc."
+  :type 'string
+  :group 'bibhlp)
+
+(defun bibhlp-make-google-scholar-search-string (rec)
+  "Make a search string for Google Scholar from REC."
+  (let ((txt nil))
+    (let ((ti (plist-get rec :title)))
+      (when ti
+        ;; (dolist (tw (split-string ti "[][ \f\t\n\r\v!.:,()-]" t))
+        ;;   (when (< 7 (length tw))
+        ;;     (when txt (setq txt (concat txt " ")))
+        ;;     (setq txt (concat txt tw))))
+        (when txt (setq txt (concat txt " ")))
+        (setq txt (concat txt "\"" ti "\""))
+        ))
+    (dolist (auth (plist-get rec :authors))
+      (let ((lastname (car auth)))
+        (when txt (setq txt (concat txt " AND ")))
+        (when (string-match-p " " lastname)
+          (setq lastname (concat "\"" lastname "\"")))
+        (setq txt (concat txt "author:" lastname))))
+    (kill-new txt)
+    txt))
+
+(defun bibhlp-search-in-google-scholar (rec)
+  "Go to Google Scholar and look for REC.
+REC should be a bibliographic record in the format returned from
+`bibhlp-parse-entry'."
+  (let ((txt (bibhlp-make-google-scholar-search-string rec)))
+    (message "G Scholar search: %S" txt)
+    (let ((url (concat
+                ;; "http://elin.lub.lu.se.ludwig.lub.lu.se/elin?func=advancedSearch&lang=se&query="
+                ;; "http://libhub.sempertool.dk.ludwig.lub.lu.se/libhub?func=search&libhubSearch=1&query="
+                ;;bibhlp-libhub-search-url
+                "http://scholar.google.se/scholar?as_q="
+                ;; mindfulness+training&num=10&btnG=Search+Scholar&as_epq=&as_oq=&as_eq=&as_occt=any&as_sauthors=Chiesa+Calati+Serretti&as_publication=&as_ylo=&as_yhi=&as_sdt=1.&as_sdtp=on&as_sdtf=&as_sdts=5&hl=en"
+                (browse-url-encode-url (concat txt
+                                               bibhlp-google-scholar-extra)))))
+      ;; Fix-me: Using Opera at the moment due to Chrome bug when displaying pdf:
+      (if nil
+          (browse-url url)
+        (if (eq system-type 'windows-nt)
+            (w32-shell-execute nil "C:/Program Files/Opera/opera.exe" url)
+          (start-process "Opera" nil "C:/Program Files/Opera/opera.exe" url))
+        ))))
+
 (defun bibhlp-open-in-firefox (url)
   (if (eq system-type 'windows-nt)
       (w32-shell-execute nil "C:/Program Files/Mozilla Firefox/firefox.exe" url)
@@ -1121,13 +1193,13 @@ You must customize `bibhlp-libhub-search-url' to use this
         (setq str (concat str "."))))
     (let ((doi (plist-get rec :doi)))
       (when doi
-        (setq str (concat str " doi:" doi))))
+        (setq str (concat str "\ndoi:" doi))))
     (let ((pmid (plist-get rec :pmid)))
       (when pmid
-        (setq str (concat str " pmid:" pmid))))
+        (setq str (concat str "\npmid:" pmid))))
     (let ((pmcid (plist-get rec :pmcid)))
       (when pmcid
-        (setq str (concat str " pmid:" pmcid))))
+        (setq str (concat str "\npmid:" pmcid))))
     str))
 
 (defvar bibhlp-marking-ovl nil)
@@ -1147,7 +1219,7 @@ Return a list \(BEG END)."
                 (backward-paragraph)
                 (skip-chars-forward " \t\n\f")
                 (point))))
-    (unless include-doi-etc
+    (unless t ;; include-doi-etc ;; Fix-me
       (when (re-search-forward "\\(?:\\[\\[\\|https?://\\)" end t)
         (goto-char (match-beginning 0))
         (setq end (point))))
@@ -1245,6 +1317,7 @@ What do you want to do with the marked entry?
   c - ParsCit
   x - CrossRef
   l - LibHub
+  g - Google Scholar
 "
                           ))
           done cc
@@ -1259,8 +1332,7 @@ What do you want to do with the marked entry?
              ((eq cc ?c)
               (bibhlp-show-rec (parscit-post-reference str)))
              ((eq cc ?x)
-              (let ((ret (bibhlp-get-ids-from-crossref str))
-                    )
+              (let ((ret (bibhlp-get-ids-from-crossref str)))
                 (with-current-buffer (get-buffer-create "*BIBHLP*")
                   (erase-buffer)
                   (org-mode)
@@ -1269,11 +1341,12 @@ What do you want to do with the marked entry?
                           (v (cdr r)))
                       (insert (format "%s:%s\n" k v))))
                   (display-buffer (current-buffer)))))
-             ((eq cc ?e)
-              ;;(bibhlp-search-ref-at-point-in-libhub)
+             ((eq cc ?l)
               (let ((rec (bibhlp-parse-entry beg end)))
                 (bibhlp-search-in-libhub rec)))
-             ;;(bibhlp-search-in-libhub rec)
+             ((eq cc ?g)
+              (let ((rec (bibhlp-parse-entry beg end)))
+                (bibhlp-search-in-google-scholar rec)))
              ((eq cc ?a)
               (let* ((rec (bibhlp-parse-entry beg end))
                      (str (bibhlp-make-apa rec nil)))
