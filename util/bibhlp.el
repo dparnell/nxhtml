@@ -227,6 +227,7 @@ APA reference."
              ((string= mark "JO") (setq journal val))
              ((string= mark "JF") (setq journal val)) ;; Zotero
              ((string= mark "JT") (setq journal val))
+             ((string= mark "JA") (setq journal val))
              ((string= mark "VL") (setq volume val))
              ((string= mark "VI") (setq volume val))
              ((string= mark "IS") (setq issue val))
@@ -251,6 +252,9 @@ APA reference."
               ;; Fix-me: what is it? Looks like page numbers, but much bigger.
               )
              ((string= mark "DO") (setq doi val))
+             ((string= mark "UR") ;; Some journals
+              (cond ((string-match "http://dx.doi.org/\\(10\..*\\)" val)
+                     (setq doi (match-string 1 val)))))
              ((string= mark "M3")
               ;; M3  - doi: DOI: 10.1016/j.tics.2010.05.002
               (cond ((string-match "doi: +.*? \\(10\..*\\)" val)

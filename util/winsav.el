@@ -318,7 +318,7 @@ debugging by tells how far down we are in the call chain."
             (misbuf  " *Winsav information: Buffer is gone*"))
         (or (windowp ovlwin)
             (not ovlwin)
-          (error "Parameter mismatch, ovlwin not window: %s" ovlwin))
+            (error "Parameter mismatch, ovlwin not window: %s" ovlwin))
         (when first-call
           (add-to-list 'winsav-put-return (list ovlwin window))
           (when (eq 'buffer buffer)
@@ -374,7 +374,7 @@ debugging by tells how far down we are in the call chain."
             (goto-char point))
           (set-window-point window point)
           ;;(unless (buffer-live-p buffer) (setq point 1) (setq start 1))
-          (set-window-start window start)
+          (when start (set-window-start window start))
           ;; Maybe point got off screen?
           (when (/= point (window-point window))
             (set-window-point window point)))
