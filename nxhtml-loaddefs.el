@@ -196,7 +196,7 @@ Report a bug in nXhtml.
 
 ;;;### (autoloads (nxhtml-overview nxhtml-menu-mode nxhtml-browse-region
 ;;;;;;  nxhtml-browse-file nxhtml-edit-with-gimp mumamo-switch-to-other-html)
-;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19738 15910))
+;;;;;;  "../nxhtml/nxhtml-menu" "nxhtml/nxhtml-menu.el" (19820 61971))
 ;;; Generated autoloads from nxhtml/nxhtml-menu.el
 (web-autoload-require 'nxhtml-menu 'lp '(nxhtml-download-root-url nil) "nxhtml/nxhtml-menu" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1661,8 +1661,8 @@ See `as-external-alist' for more information.
 
 ;;;***
 
-;;;### (autoloads (bibhlp-search-ref-at-point-in-elin bibhlp-goto-citeulike
-;;;;;;  bibhlp) "bibhlp" "util/bibhlp.el" (19778 7528))
+;;;### (autoloads (bibhlp-search-ref-at-point-in-libhub bibhlp-goto-citeulike
+;;;;;;  bibhlp) "bibhlp" "util/bibhlp.el" (19820 60591))
 ;;; Generated autoloads from util/bibhlp.el
 (web-autoload-require 'bibhlp 'lp '(nxhtml-download-root-url nil) "util/bibhlp" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1688,9 +1688,10 @@ and it looks like data can be shared/exported to Zotero later.
 
 \(fn ARTICLE-URL)" t nil)
 
-(nxhtml-autoload 'bibhlp-search-ref-at-point-in-elin `(lp '(nxhtml-download-root-url nil) "util/bibhlp" nxhtml-install-dir) "\
-Try to find bibliographic at point in ELIN@Lund.
-ELIN@Lund is Lunds University Library, URL `http://www.lub.lu.se/en.html'.
+(nxhtml-autoload 'bibhlp-search-ref-at-point-in-libhub `(lp '(nxhtml-download-root-url nil) "util/bibhlp" nxhtml-install-dir) "\
+Try to find bibliographic at point in LibHub.
+LibHub is a library gateway used by some universities to let
+students and staff access scientific journals etc.
 
 \(fn)" t nil)
 
@@ -2688,7 +2689,7 @@ See `mlinks-mode' for more information on Mlinks mode.
 ;;;;;;  mumamo-list-defined-multi-major-modes mumamo-mark-for-refontification
 ;;;;;;  mumamo-hi-lock-faces mumamo mumamo-add-to-defined-multi-major-modes
 ;;;;;;  define-mumamo-multi-major-mode) "mumamo" "util/mumamo.el"
-;;;;;;  (19734 3866))
+;;;;;;  (19812 27313))
 ;;; Generated autoloads from util/mumamo.el
 (web-autoload-require 'mumamo 'lp '(nxhtml-download-root-url nil) "util/mumamo" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3921,7 +3922,7 @@ Display a form for search and replace.
 ;;;***
 
 ;;;### (autoloads (search-net search-net-dwim) "search-net" "util/search-net.el"
-;;;;;;  (19457 53996))
+;;;;;;  (19796 15328))
 ;;; Generated autoloads from util/search-net.el
 (web-autoload-require 'search-net 'lp '(nxhtml-download-root-url nil) "util/search-net" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4188,7 +4189,7 @@ Display vertical line mode as globally.
 ;;;***
 
 ;;;### (autoloads (web-vcs-linkpatt-mode) "web-vcs-linkpatt" "util/web-vcs-linkpatt.el"
-;;;;;;  (19725 18674))
+;;;;;;  (19796 15422))
 ;;; Generated autoloads from util/web-vcs-linkpatt.el
 (web-autoload-require 'web-vcs-linkpatt 'lp '(nxhtml-download-root-url nil) "util/web-vcs-linkpatt" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4211,7 +4212,7 @@ Minor mode helping finding link patt for web-vcs.
 
 ;;;### (autoloads (winsav-switch-config winsav-save-full-config winsav-save-mode
 ;;;;;;  winsav winsav-put-window-tree) "winsav" "util/winsav.el"
-;;;;;;  (19571 7230))
+;;;;;;  (19819 63836))
 ;;; Generated autoloads from util/winsav.el
 (web-autoload-require 'winsav 'lp '(nxhtml-download-root-url nil) "util/winsav" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4698,7 +4699,7 @@ accept it or skip it.
 ;;;;;;  "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/org-odt.el" "util/org-panel.el" "util/ourcomments-widgets.el"
 ;;;;;;  "util/powershell-mode.el" "util/rxi.el" "util/tipframe.el"
-;;;;;;  "util/win-alg.el" "web-autoload.el") (19785 30395 625000))
+;;;;;;  "util/win-alg.el" "web-autoload.el") (19820 61998 250000))
 
 ;;;***
 
