@@ -54,6 +54,38 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Zotero in Firefox
+
+(defun bibhlp-open-in-firefox (url)
+  "Open URL in Firefox (for Zotero)."
+  (if (eq system-type 'windows-nt)
+      (w32-shell-execute nil "C:/Program Files/Mozilla Firefox/firefox.exe" url)
+    (start-process "Firefox" nil "firefox.exe" url)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Problem downloading PDF
+
+;; Fix-me: Using Opera at the moment due to Chrome and Firefox bug when displaying pdf:
+(defvar bibhlp-browse-url-for-pdf-exe
+  (if (eq system-type 'windows-nt)
+      "C:/Program Files/Opera/opera.exe"
+    "C:/Program Files/Opera/opera.exe"))
+
+(defun bibhlp-browse-url-for-pdf (url)
+  "Show URL in a web browser, capable of downloading PDF."
+  (if nil
+      (browse-url url)
+    (if (eq system-type 'windows-nt)
+        (w32-shell-execute nil
+                           ;;"C:/Program Files/Opera/opera.exe"
+                           bibhlp-browse-url-for-pdf-exe
+                           url)
+      (start-process "PDF-browser" nil
+                     ;;"C:/Program Files/Opera/opera.exe"
+                     bibhlp-browse-url-for-pdf-exe
+                     url))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Heuristic parsing of bibliographic entries
 
 ;; .bib = BibTex
@@ -77,7 +109,8 @@
 ;; UR  - http://www.sciencedirect.com/science/article/B6VH9-50B0K3D-1/2/962202c56e58dd3c877f2d485c1a0900
 ;; ER  -
 
-(defun bibhlp-show-rec (rec)
+(defun bibhlp-make-ris (rec)
+  "Make a RIS record."
   (if (not rec)
       (message "No data to show")
     (with-current-buffer (get-buffer-create "*BIBHLP*")
@@ -388,7 +421,8 @@ users in San Francisco. Clin Infect Dis. 2000;
                                     (? (and ","
                                             (* whitespace)
                                             (submatch (+ (and (any "A-Z")
-                                                              (? "."))))))
+                                                              (? ".")
+                                                              (* whitespace))))))
                                     (or (and (or ","
                                                  (and (+ whitespace)
                                                       "&"))
@@ -745,6 +779,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
       (bibhlp-parse-from-html nil nil))))
 
 ;;; CrossRef
+;; fix-me: stopped working
 
 (defvar bibhlp-crossref-post-url "http://www.crossref.org/SimpleTextQuery/")
 (defvar bibhlp-crossref-form-url "http://www.crossref.org/SimpleTextQuery")
@@ -943,6 +978,7 @@ Does not take care of browser reload functions."
 
 
 ;;; ParsCit
+;; fix-me: stopped working
 
 (defvar bibhlp-parscit-post-url "http://aye.comp.nus.edu.sg/parsCit/parsCit.cgi")
 
@@ -1051,6 +1087,43 @@ This is html encoded, but looks like this after decoding:
 
 ;;; PMID, PMC, Pubmed, PubmedCentral
 
+(defun bibhlp-make-pubmed-search-string (rec)
+  "Make a search string for PubMed from REC."
+  (let ((txt nil))
+    (dolist (auth (plist-get rec :authors))
+      (let ((lastname (car auth)))
+        (when txt (setq txt (concat txt " AND ")))
+        (when (string-match-p " " lastname)
+          (setq lastname (concat "\"" lastname "\"")))
+        (setq txt (concat txt lastname "[Author]"))))
+    (let ((ti (plist-get rec :title)))
+      (when ti
+        (dolist (tw (split-string ti "[][ \f\t\n\r\v!.:,()-]" t))
+          (when (< 7 (length tw))
+            (when txt (setq txt (concat txt " AND ")))
+            (setq txt (concat txt tw "[Title]"))))))
+    (kill-new txt)
+    txt))
+
+(defun bibhlp-search-in-pubmed (rec)
+  "Go to PubMed and look for REC.
+REC should be a bibliographic record in the format returned from
+`bibhlp-parse-entry'."
+  (let ((txt (bibhlp-make-pubmed-search-string rec)))
+    (message "pubmed search: %S" txt)
+    (let ((url (concat
+                "http://www.ncbi.nlm.nih.gov/pubmed?term="
+                ;; http://www.ncbi.nlm.nih.gov/pubmed?term=Biological[title]%20AND%20clinical[title]%20AND%20ethical[title]%20AND%20advances[title]
+                (browse-url-encode-url txt))))
+      (bibhlp-browse-url-for-pdf url)
+      ;; (if nil
+      ;;     (browse-url url)
+      ;;   (if (eq system-type 'windows-nt)
+      ;;       (w32-shell-execute nil "C:/Program Files/Opera/opera.exe" url)
+      ;;     (start-process "Opera" nil "C:/Program Files/Opera/opera.exe" url))
+      ;;   )
+      )))
+
 ;; (bibhlp-pmid2pmcid "19877500" "pubmed")
 ;; (bibhlp-pmid2pmcid "2804881" "pmc")
 (defun bibhlp-pmid2pmcid (id from)
@@ -1152,13 +1225,14 @@ You must customize `bibhlp-libhub-search-url' to use this
                 ;; "http://libhub.sempertool.dk.ludwig.lub.lu.se/libhub?func=search&libhubSearch=1&query="
                 bibhlp-libhub-search-url
                 (browse-url-encode-url txt))))
-      ;; Fix-me: Using Opera at the moment due to Chrome bug when displaying pdf:
-      (if nil
-          (browse-url url)
-        (if (eq system-type 'windows-nt)
-            (w32-shell-execute nil "C:/Program Files/Opera/opera.exe" url)
-          (start-process "Opera" nil "C:/Program Files/Opera/opera.exe" url))
-        ))))
+      (bibhlp-browse-url-for-pdf url)
+      ;; (if nil
+      ;;     (browse-url url)
+      ;;   (if (eq system-type 'windows-nt)
+      ;;       (w32-shell-execute nil "C:/Program Files/Opera/opera.exe" url)
+      ;;     (start-process "Opera" nil "C:/Program Files/Opera/opera.exe" url))
+      ;;   )
+      )))
 
 ;;; Google Scholar
 
@@ -1225,19 +1299,14 @@ REC should be a bibliographic record in the format returned from
                 ;; mindfulness+training&num=10&btnG=Search+Scholar&as_epq=&as_oq=&as_eq=&as_occt=any&as_sauthors=Chiesa+Calati+Serretti&as_publication=&as_ylo=&as_yhi=&as_sdt=1.&as_sdtp=on&as_sdtf=&as_sdts=5&hl=en"
                 (browse-url-encode-url (concat txt
                                                bibhlp-google-scholar-extra)))))
-      ;; Fix-me: Using Opera at the moment due to Chrome bug when displaying pdf:
-      (if nil
-          (browse-url url)
-        (if (eq system-type 'windows-nt)
-            (w32-shell-execute nil "C:/Program Files/Opera/opera.exe" url)
-          (start-process "Opera" nil "C:/Program Files/Opera/opera.exe" url))
-        ))))
-
-(defun bibhlp-open-in-firefox (url)
-  (if (eq system-type 'windows-nt)
-      (w32-shell-execute nil "C:/Program Files/Mozilla Firefox/firefox.exe" url)
-    (start-process "Opera" nil "C:/Program Files/Opera/opera.exe" url))
-  )
+      (bibhlp-browse-url-for-pdf url)
+      ;; (if nil
+      ;;     (browse-url url)
+      ;;   (if (eq system-type 'windows-nt)
+      ;;       (w32-shell-execute nil "C:/Program Files/Opera/opera.exe" url)
+      ;;     (start-process "Opera" nil "C:/Program Files/Opera/opera.exe" url))
+      ;;   )
+      )))
 
 (defun bibhlp-make-apa (rec no-empty)
   "Make an APA style ref from REC."
@@ -1395,7 +1464,7 @@ What do you want to do with the url at point?
         (bibhlp-goto-citeulike url))
        ((eq cc ?p)
         (let ((rec (bibhlp-get-data-from-url url)))
-          (bibhlp-show-rec rec)))
+          (bibhlp-make-ris rec)))
        ((eq cc ?f)
         (bibhlp-open-in-firefox url))
        (t (setq done nil))))
@@ -1415,15 +1484,16 @@ What do you want to do with the url at point?
         (setq bibhlp-marking-ovl (make-overlay beg end))
         (overlay-put bibhlp-marking-ovl 'face 'secondary-selection)))
     (let ((prompt (concat "
-What do you want to do with the marked entry?
+What do you want to do with the marked bibliographic entry?
 
-  a - APA style
-  p - Parse
-  c - ParsCit
-  x - CrossRef
-  l - LibHub
-  g - Google Scholar
+Search:   g - Google Scholar
+          l - LibHub
+          p - PubMed
+Convert:  a - APA style
+          r - Reference Manager style
 "
+  ;; x - CrossRef
+  ;; c - ParsCit
                           ))
           done cc
           (str (buffer-substring-no-properties beg end)))
@@ -1432,11 +1502,12 @@ What do you want to do with the marked entry?
             (setq cc (read-char-exclusive prompt))
             (setq done t)
             (cond
-             ((eq cc ?p)
-              (bibhlp-show-rec (bibhlp-parse-entry beg end)))
-             ((eq cc ?c)
-              (bibhlp-show-rec (parscit-post-reference str)))
-             ((eq cc ?x)
+             ((eq cc ?q) nil)
+             ((eq cc ?r)
+              (bibhlp-make-ris (bibhlp-parse-entry beg end)))
+             (nil ;;(eq cc ?c)
+              (bibhlp-make-ris (parscit-post-reference str)))
+             (nil ;;(eq cc ?x)
               (let ((ret (bibhlp-get-ids-from-crossref str)))
                 (with-current-buffer (get-buffer-create "*BIBHLP*")
                   (erase-buffer)
@@ -1452,6 +1523,10 @@ What do you want to do with the marked entry?
              ((eq cc ?g)
               (let ((rec (bibhlp-parse-entry beg end)))
                 (bibhlp-search-in-google-scholar rec)))
+             ((eq cc ?p)
+              (let ((rec (bibhlp-parse-entry beg end)))
+                (bibhlp-search-in-pubmed rec)))
+
              ((eq cc ?a)
               (let* ((rec (bibhlp-parse-entry beg end))
                      (str (bibhlp-make-apa rec nil)))
