@@ -162,6 +162,7 @@ APA reference."
         doi
         url
         pmid
+        pmcid
         section
         keywords
         abstract
@@ -211,72 +212,9 @@ APA reference."
           (setq doi (match-string 1))))
 
        ((re-search-forward "^\\(?:AU\\|A1\\) +- " nil t)
-        ;; .ris - MedLine, Zotero etc
-        (goto-char (point-min))
-        (while (re-search-forward "^\\([A-Z0-9]+\\) *- \\(.*\\)" nil t)
-          (let ((mark (match-string 1))
-                (val  (match-string 2)))
-            (cond
-             ((string= mark "TY")
-              (cond
-               ((string= val "JOUR") (setq type 'journal-article))
-               ((string= val "BOOK") (setq type 'book))
-               (t (error "Unknown type: %S" val))))
-             ((string= mark "T1") (setq title val))
-             ((string= mark "TI") (setq title val))
-             ((string= mark "JO") (setq journal val))
-             ((string= mark "JF") (setq journal val)) ;; Zotero
-             ((string= mark "JT") (setq journal val))
-             ((string= mark "JA") (setq journal val))
-             ((string= mark "VL") (setq volume val))
-             ((string= mark "VI") (setq volume val))
-             ((string= mark "IS") (setq issue val))
-             ((string= mark "IP") (setq issue val))
-             ((string= mark "SP") (setq firstpage val))
-             ((string= mark "EP") (setq lastpage val))
-             ((string= mark "PG")
-              (string-match "\\([0-9]+\\)-\\([0-9]+\\)" val)
-              (setq firstpage (match-string 1 val))
-              (setq lastpage
-                    (number-to-string (+
-                                       (string-to-number firstpage)
-                                       (string-to-number (match-string 2 val))))))
-             ((string= mark "PY") (setq year val))
-             ((string= mark "DP") (setq year (substring val 0 4)))
-             ((string= mark "DEP") (setq year (substring val 0 4)))
-             ((string= mark "Y1") (setq year (substring val 0 4))) ;; zotero
-             ((string= mark "AU") (setq raw-authors (cons val raw-authors)))
-             ((string= mark "A1") (setq raw-authors (cons val raw-authors))) ;; zotero
-             ((string= mark "PB") (setq publisher val))
-             ((string= mark "SN")
-              ;; Fix-me: what is it? Looks like page numbers, but much bigger.
-              )
-             ((string= mark "DO") (setq doi val))
-             ((string= mark "UR") ;; Some journals
-              (cond ((string-match "http://dx.doi.org/\\(10\..*\\)" val)
-                     (setq doi (match-string 1 val)))))
-             ((string= mark "M3")
-              ;; M3  - doi: DOI: 10.1016/j.tics.2010.05.002
-              (cond ((string-match "doi: +.*? \\(10\..*\\)" val)
-                     (setq doi (match-string 1 val)))
-                    (t (setq doi val))))
-             ((string= mark "UR") (setq url val))
-             ((string= mark "AB") (setq abstract val))
-
-             ;; Used by pubmed at least:
-             ((string= mark "AID")
-              (when (string-match "^10\..* [doi]" val)
-                (setq doi (match-string 1 val))))
-             ((string= mark "PMID") (setq pmid val))
-             ((string= mark "AD")
-              (require 'thingatpt)
-              (when (string-match thing-at-point-email-regexp val)
-                (setq mail (match-string 1 val))))
-
-             ;; There are a lot additions in for example pubmed so
-             ;; just continue if we do not want it.
-             (t nil)))))
-
+        ;; .ris - Reference Manager, MedLine, Zotero etc
+        (setq return-value (bibhlp-parse-ris-like beg end))
+        nil)
        ((when (looking-at "[ \t\n]*<")
           (setq return-value (bibhlp-parse-from-html beg end)))
         nil)
@@ -291,40 +229,58 @@ APA reference."
         (setq mail (substring mail 1 (- (length mail) 2))))
       ;; Lastname etc
       ;; fix-me: more to do here, initials
-      (dolist (val raw-authors)
-        (let (last first inits auth)
-          (if (not (string-match "\\(.+\\), +\\(.+\\)" val))
-              ;; Medline format perhaps:
-              (if (not (string-match "\\(.+\\) +\\(.+\\)" val))
-                  (setq auth (list val))
-                (setq last  (match-string 1 val))
-                (setq inits (match-string 2 val))
-                (setq auth (list last nil inits)))
-            (setq last (match-string 1 val))
-            (setq first (match-string 2 val))
-            (setq auth (list last first)))
-          (setq authors (cons auth authors))))
+      (setq type        (plist-get return-value :type))
+      (setq raw-authors (plist-get return-value :authors))
+      (setq mail        (plist-get return-value :mail))
+      (setq keywords    (plist-get return-value :keywords))
+      (setq year        (plist-get return-value :year))
+      (setq publisher   (plist-get return-value :publisher))
+      (setq title       (plist-get return-value :title))
+      (setq journal     (plist-get return-value :journal))
+      (setq volume      (plist-get return-value :volume))
+      (setq issue       (plist-get return-value :issue))
+      (setq firstpage   (plist-get return-value :firstpage))
+      (setq lastpage    (plist-get return-value :lastpage))
+      (setq doi         (plist-get return-value :doi))
+      (setq url         (plist-get return-value :url))
+      (setq pmid        (plist-get return-value :pmid))
+      (setq pmcid       (plist-get return-value :pmcid))
+      (if (not (stringp (car raw-authors)))
+          (setq authors raw-authors)
+        (dolist (val raw-authors)
+          (let (last first inits auth)
+            (if (not (string-match "\\(.+\\), +\\(.+\\)" val))
+                ;; Medline format perhaps:
+                (if (not (string-match "\\(.+\\) +\\(.+\\)" val))
+                    (setq auth (list val))
+                  (setq last  (match-string 1 val))
+                  (setq inits (match-string 2 val))
+                  (setq auth (list last nil inits)))
+              (setq last (match-string 1 val))
+              (setq first (match-string 2 val))
+              (setq auth (list last first)))
+            (setq authors (cons auth authors)))))
       (when (and journal
                  (null type))
         (setq type 'journal-article))
-      (or return-value
-          (list
-           :type type
-           :authors authors
-           :mail mail
-           :keywords keywords
-           :year year
-           :publisher publisher
-           :title title
-           :journal journal
-           :volume volume
-           :issue issue
-           :firstpage firstpage
-           :lastpage lastpage
-           :doi doi
-           :url url
-           :pmid pmid)
-          ))))
+      (or ;;return-value
+       (list
+        :type type
+        :authors authors
+        :mail mail
+        :keywords keywords
+        :year year
+        :publisher publisher
+        :title title
+        :journal journal
+        :volume volume
+        :issue issue
+        :firstpage firstpage
+        :lastpage lastpage
+        :doi doi
+        :url url
+        :pmid pmid
+        :pmcid pmcid)))))
 
 (defun bibhlp-parse-unkown1 (beg end)
   "Unknown. Catch formats used by NCBI etc.
@@ -504,6 +460,101 @@ users in San Francisco. Clin Infect Dis. 2000;
        :doi doi
        :pmid pmid
        :pmcid pmcid))))
+
+(defun bibhlp-parse-ris-like (beg end)
+  "Parse reference manager record in buffer between BEG and END.
+They default to current min and max.
+
+.ris files have this format and it is used by MedLine, Zotero etc
+with some variations.
+
+Return a plist with found info, see `bibhlp-parse-entry'."
+  (setq beg (or beg (point-min)))
+  (setq end (or end (point-max)))
+  (let (type authors year title publisher journal volume issue firstpage lastpage doi pmid section url abstract mail)
+    (goto-char beg)
+    (while (re-search-forward "^\\([A-Z0-9]+\\) *-  *\\(.*?\\) *$" end t)
+      (let ((mark (match-string 1))
+            (val  (match-string 2)))
+        (cond
+         ((string= mark "TY")
+          (cond
+           ((string= val "JOUR") (setq type 'journal-article))
+           ((string= val "BOOK") (setq type 'book))
+           (t (error "Unknown type: %S" val))))
+         ((string= mark "T1") (setq title val))
+         ((string= mark "TI") (setq title val))
+         ((string= mark "JO") (setq journal val))
+         ((string= mark "JF") (setq journal val)) ;; Zotero
+         ((string= mark "JT") (setq journal val))
+         ((string= mark "JA") (setq journal val))
+         ((string= mark "VL") (setq volume val))
+         ((string= mark "VI") (setq volume val))
+         ((string= mark "IS") (setq issue val))
+         ((string= mark "IP") (setq issue val))
+         ((string= mark "SP") (setq firstpage val))
+         ((string= mark "EP") (setq lastpage val))
+         ((string= mark "PG")
+          (string-match "\\([0-9]+\\)-\\([0-9]+\\)" val)
+          (setq firstpage (match-string 1 val))
+          (setq lastpage
+                (number-to-string (+
+                                   (string-to-number firstpage)
+                                   (string-to-number (match-string 2 val))))))
+         ((string= mark "PY") (setq year val))
+         ((string= mark "DP") (setq year (substring val 0 4)))
+         ((string= mark "DEP") (setq year (substring val 0 4)))
+         ((string= mark "Y1") (setq year (substring val 0 4))) ;; zotero
+         ((string= mark "AU") (setq authors (cons val authors)))
+         ((string= mark "A1") (setq authors (cons val authors))) ;; zotero
+         ((string= mark "PB") (setq publisher val))
+         ((string= mark "SN")
+          ;; Fix-me: what is it? Looks like page numbers, but much bigger.
+          )
+         ((string= mark "DO") (setq doi val))
+         ((string= mark "UR") ;; Some journals
+          (cond ((string-match "http://dx.doi.org/\\(10\..*\\)" val)
+                 (setq doi (match-string 1 val)))))
+         ((string= mark "M3")
+          ;; M3  - doi: DOI: 10.1016/j.tics.2010.05.002
+          (cond ((string-match "doi: +.*? \\(10\..*\\)" val)
+                 (setq doi (match-string 1 val)))
+                (t (setq doi val))))
+         ((string= mark "UR") (setq url val))
+         ((string= mark "AB") (setq abstract val))
+
+         ;; Used by pubmed at least:
+         ((string= mark "AID")
+          (when (string-match "^10\..* [doi]" val)
+            (setq doi (match-string 1 val))))
+         ((string= mark "PMID") (setq pmid val))
+         ((string= mark "AD")
+          (require 'thingatpt)
+          (when (string-match thing-at-point-email-regexp val)
+            (setq mail (match-string 1 val))))
+
+         ;; There are a lot additions in for example pubmed so
+         ;; just continue if we do not want it.
+         (t nil))))
+    (setq authors (reverse authors))
+    (when (or authors title doi pmid)
+      (list
+       :authors authors
+       :year year
+       :title title
+       :journal journal
+       :volume volume
+       :issue issue
+       :firstpage firstpage
+       :lastpage lastpage
+       :doi doi
+       :pmid pmid
+       :pmcid pmid
+       :publisher publisher
+       :mail mail
+       :url url
+       :doi doi
+       ))))
 
 (defun bibhlp-parse-from-html (beg end)
   "Parse html in buffer between BEG and END.
@@ -1417,7 +1468,7 @@ What do you want to do with the marked entry?
 ;;;###autoload
 (defun bibhlp ()
   "Big Question aka simple entry point.
-Will give you a list of what you can do with the bibl ref or url
+Will give you a list of what you can do with the bibliograchic ref or url
 at point.
 
 "
@@ -1425,7 +1476,12 @@ at point.
   (catch 'top-level
     (let ((url (or (when (derived-mode-p 'org-mode)
                      (org-url-at-point))
-                   (url-get-url-at-point))))
+                   (progn
+                     (require 'url-util)
+                     (url-get-url-at-point)))))
+      (when url
+        (unless (string-match (rx string-start (or "http" "https") ":") url)
+          (setq url nil)))
       (if url
           (bibhlp-alternatives-for-url url)
         (bibhlp-alternatives-for-entry)))))

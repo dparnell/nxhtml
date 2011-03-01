@@ -371,6 +371,10 @@
         (list 'menu-item "Last Resort" 'n-back-game))
       (define-key tools-map [nxhtml-pause]
         (list 'menu-item "Life Reminder" 'pause-start-in-new-emacs))
+      (define-key tools-map [nxhtml-bib-separator]
+        (list 'menu-item "--" nil))
+      (define-key tools-map [nxhtml-bibhlp]
+        (list 'menu-item "Bibliographic Tool" 'bibhlp))
       (define-key tools-map [nxhtml-last-resort-separator]
         (list 'menu-item "--" nil))
       (define-key tools-map [nxhtml-viper-tut]
