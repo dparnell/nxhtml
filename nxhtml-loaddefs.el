@@ -1662,15 +1662,29 @@ See `as-external-alist' for more information.
 ;;;***
 
 ;;;### (autoloads (bibhlp-search-ref-at-point-in-libhub bibhlp-goto-citeulike
-;;;;;;  bibhlp) "bibhlp" "util/bibhlp.el" (19820 60591))
+;;;;;;  bibhlp) "bibhlp" "util/bibhlp.el" (19821 4617))
 ;;; Generated autoloads from util/bibhlp.el
 (web-autoload-require 'bibhlp 'lp '(nxhtml-download-root-url nil) "util/bibhlp" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
 
 (nxhtml-autoload 'bibhlp `(lp '(nxhtml-download-root-url nil) "util/bibhlp" nxhtml-install-dir) "\
-Big Question aka simple entry point.
-Will give you a list of what you can do with the bibl ref or url
-at point.
+Big Question for handling of bibliographic related things.
+Will give you a choice list with what you can do with the
+bibliograchic referencce or the url at point.
+
+For a recognized bibliographic reference at point you can:
+  - look it up on the web
+  - can convert it to a different format
+
+  The currently recognized reference formats are End Note
+  (.enw), Reference Manager (.ris) and APA style.
+
+For an URL at point you can:
+  - of course show it in a browser
+  - search for it in org mode buffers and files
+  - There is also a chance that you can get bliograchic data on
+    the page url, but this does not work well.
+  - add it to CitULike
 
 \(fn)" t nil)
 
@@ -4699,7 +4713,7 @@ accept it or skip it.
 ;;;;;;  "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/org-odt.el" "util/org-panel.el" "util/ourcomments-widgets.el"
 ;;;;;;  "util/powershell-mode.el" "util/rxi.el" "util/tipframe.el"
-;;;;;;  "util/win-alg.el" "web-autoload.el") (19820 61998 250000))
+;;;;;;  "util/win-alg.el" "web-autoload.el") (19821 5143 312000))
 
 ;;;***
 

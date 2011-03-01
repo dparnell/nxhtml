@@ -1542,10 +1542,23 @@ Convert:  a - APA style
 
 ;;;###autoload
 (defun bibhlp ()
-  "Big Question aka simple entry point.
-Will give you a list of what you can do with the bibliograchic ref or url
-at point.
+  "Big Question for handling of bibliographic related things.
+Will give you a choice list with what you can do with the
+bibliograchic referencce or the url at point.
 
+For a recognized bibliographic reference at point you can:
+  - look it up on the web
+  - can convert it to a different format
+
+  The currently recognized reference formats are End Note
+  \(.enw), Reference Manager \(.ris) and APA style.
+
+For an URL at point you can:
+  - of course show it in a browser
+  - search for it in org mode buffers and files
+  - There is also a chance that you can get bliograchic data on
+    the page url, but this does not work well.
+  - add it to CitULike
 "
   (interactive)
   (catch 'top-level
