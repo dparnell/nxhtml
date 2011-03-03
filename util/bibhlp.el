@@ -180,26 +180,9 @@ If that fails tro try to parse it like something similar to an
 APA reference."
   (setq beg (or beg (point-min)))
   (setq end (or end (point-max)))
-  (let ((here (point))
-        type
-        authors
-        mail
-        raw-authors
-        year
-        title
-        journal
-        volume
-        issue
-        firstpage
-        lastpage
-        doi
-        url
-        pmid
-        pmcid
-        section
-        keywords
-        abstract
-        publisher
+  (let ((here (point)) type authors mail raw-authors year title
+        journal volume issue firstpage lastpage doi isbn url pmid
+        pmcid section keywords abstract location publisher
         return-value)
     (save-restriction
       (narrow-to-region beg end)
@@ -230,12 +213,15 @@ APA reference."
       (setq year        (plist-get return-value :year))
       (setq publisher   (plist-get return-value :publisher))
       (setq title       (plist-get return-value :title))
+      (setq location    (plist-get return-value :location))
+      (setq publisher   (plist-get return-value :publisher))
       (setq journal     (plist-get return-value :journal))
       (setq volume      (plist-get return-value :volume))
       (setq issue       (plist-get return-value :issue))
       (setq firstpage   (plist-get return-value :firstpage))
       (setq lastpage    (plist-get return-value :lastpage))
       (setq doi         (plist-get return-value :doi))
+      (setq isbn        (plist-get return-value :isbn))
       (setq url         (plist-get return-value :url))
       (setq pmid        (plist-get return-value :pmid))
       (setq pmcid       (plist-get return-value :pmcid))
@@ -265,6 +251,7 @@ APA reference."
         :mail mail
         :keywords keywords
         :year year
+        :location location
         :publisher publisher
         :title title
         :journal journal
@@ -273,6 +260,7 @@ APA reference."
         :firstpage firstpage
         :lastpage lastpage
         :doi doi
+        :isbn isbn
         :url url
         :pmid pmid
         :pmcid pmcid)))))
@@ -289,7 +277,7 @@ cellulitis among community-recruited injection drug
 users in San Francisco. Clin Infect Dis. 2000;
 30:579–91"
   (let ((auths nil)
-        beg-yy end-yy yy ti jo is pf pl vo doi pmid pmcid pos
+        beg-yy end-yy yy ti jo is pf pl vo doi isbn pmid pmcid pos
         (yy-patt (rx whitespace
                      (submatch (or "19" "20")
                                (any "0-9")
@@ -343,8 +331,11 @@ users in San Francisco. Clin Infect Dis. 2000;
                :issue is
                :firstpage pf
                :lastpage pl
-               :doi doi)
-              )))))))
+               :doi doi
+               :isbn isbn
+               :pmid pmid
+               :pmcid pmcid
+               ))))))))
 
 (defun bibhlp-parse-apa-like (beg end)
   "Parse reference similar to APA style between BEG and END."
@@ -355,8 +346,8 @@ users in San Francisco. Clin Infect Dis. 2000;
                    (*? anything)
                    (? (any ".:"))
                    ))
-        auths beg-yy end-yy yy ti doi pmid pmcid
-        journal volume issue pf pe)
+        auths beg-yy end-yy yy ti doi isbn pmid pmcid
+        type location publisher journal volume issue pf pe)
     ;; Find year in slightly different formats.
     (goto-char beg)
     ;;(if (re-search-forward "(\\([0-9]\\{4\\}\\).*?)[.:]?" end t)
@@ -450,48 +441,69 @@ users in San Francisco. Clin Infect Dis. 2000;
         (skip-chars-forward "^.?!" end)
         (setq ti (buffer-substring-no-properties ti-beg (point))))
       (unless (eobp) (forward-char))
-      (when (re-search-forward (rx (* whitespace)
-                                   (submatch (* (not (any ","))))
-                                   (* whitespace)
-                                   ",")
-                               end t)
-        (setq journal (match-string 1))
+      (if (re-search-forward (rx (* whitespace)
+                                 (submatch (* (not (any ":"))))
+                                 (* whitespace)
+                                 ":")
+                             end t)
+          (progn
+            (setq type 'book)
+            (setq location (match-string 1))
+            (when (re-search-forward (rx (* whitespace)
+                                         (submatch (* (not (any "."))))
+                                         (* whitespace)
+                                         ".")
+                                     end t)
+              (setq publisher (match-string 1))))
         (when (re-search-forward (rx (* whitespace)
-                                     (submatch (+ (any digit)))
+                                     (submatch (* (not (any ","))))
                                      (* whitespace)
-                                     (? "(" (submatch (+ (any digit))) ")")
-                                     (* whitespace)
-                                     ","))
-          (setq volume (match-string 1))
-          (setq issue  (match-string 2))
+                                     ",")
+                                 end t)
+          (setq journal (match-string 1))
           (when (re-search-forward (rx (* whitespace)
                                        (submatch (+ (any digit)))
                                        (* whitespace)
-                                       (? "-" (* whitespace)
-                                          (submatch (+ (any digit))))))
-            (setq pf (match-string 1))
-            (setq pe (match-string 2)))))
+                                       (? "(" (submatch (+ (any digit))) ")")
+                                       (* whitespace)
+                                       ","))
+            (setq volume (match-string 1))
+            (setq issue  (match-string 2))
+            (when (re-search-forward (rx (* whitespace)
+                                         (submatch (+ (any digit)))
+                                         (* whitespace)
+                                         (? "-" (* whitespace)
+                                            (submatch (+ (any digit))))))
+              (setq pf (match-string 1))
+              (setq pe (match-string 2))))))
       ;; doi etc
       (goto-char beg)
-      (when (re-search-forward "\bdoi:\\([^ \t\n]*\\)" end t)
-        (setq doi (match-string 1)))
+      (when (re-search-forward "\\bdoi:\\([^ \t\n]*\\)" end t)
+        (setq doi (match-string-no-properties 1)))
       (goto-char beg)
-      (when (re-search-forward "\bpmid:\\([^ \t\n]*\\)" end t)
-        (setq pmid (match-string 1)))
+      (when (re-search-forward "\\bisbn:\\([^ \t\n]*\\)" end t)
+        (setq isbn (match-string-no-properties 1)))
       (goto-char beg)
-      (when (re-search-forward "\bpmcid:\\([^ \t\n]*\\)" end t)
-        (setq pmcid (match-string 1)))
+      (when (re-search-forward "\\bpmid:\\([^ \t\n]*\\)" end t)
+        (setq pmid (match-string-no-properties 1)))
+      (goto-char beg)
+      (when (re-search-forward "\\bpmcid:\\([^ \t\n]*\\)" end t)
+        (setq pmcid (match-string-no-properties 1)))
       (setq auths (reverse auths))
       (list
        :year yy
        :authors auths
        :title ti
+       :type type
+       :location location
+       :publisher publisher
        :journal journal
        :volume volume
        :issue issue
        :firstpage pf
        :lastpage pe
        :doi doi
+       :isbn isbn
        :pmid pmid
        :pmcid pmcid))))
 
@@ -504,7 +516,9 @@ BEG and END defaults to current min and max.
 Return a plist with found info, see `bibhlp-parse-entry'."
   (setq beg (or beg (point-min)))
   (setq end (or end (point-max)))
-  (let (type authors year title publisher journal volume issue firstpage lastpage doi pmid section url abstract mail keywords)
+  (let (type authors year title location publisher journal volume
+        issue firstpage lastpage doi pmid section url abstract
+        mail keywords)
     (goto-char beg)
     (when (re-search-forward "^%\\(.\\) " end t)
       (goto-char beg)
@@ -556,6 +570,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
          :doi doi
          :pmid pmid
          :pmcid pmid
+         :location location
          :publisher publisher
          :mail mail
          :url url
@@ -1438,8 +1453,14 @@ REC should be a bibliographic record in the format returned from
               (setq str (concat str "-" pe)))))
         (setq str (concat str "."))))
     (when (memq type '(book))
-      (let ((publisher (plist-get rec :publisher)))
-        (setq str (concat str " " publisher "."))))
+      (let ((location  (or (plist-get rec :location)  "NO-LOCATION"))
+            (publisher (or (plist-get rec :publisher) "NO-PUBLISHER"))
+            (isbn (or (plist-get rec :isbn)
+                      (plist-get rec :isbn13)
+                      (plist-get rec :isbn10))))
+        (setq str (concat str " " location ":" publisher "."))
+        (when isbn
+          (setq str (concat str "\nisbn:" isbn)))))
     (let ((doi (plist-get rec :doi)))
       (when doi
         (setq str (concat str "\ndoi:" doi))))
@@ -1523,12 +1544,17 @@ Return a list \(BEG END)."
   (let ((prompt (concat "
 What do you want to do with the url at point?
 
-  g - Just show in web browser
-  e - Find in org mode buffers
-  E - Find in org mode files
-  c - Goto CiteULike, add or show
-  p - Get page and try to parse it for bibl data
-  f - Show in Firefox (so you can add it to Zotero)
+Show:   g - Just show in web browser
+        p - Open in a browser cabable of pdf download
+        f - Show in Firefox (so you can add it to Zotero)
+
+Find:   e - Find in org mode buffers
+        E - Find in org mode files
+
+Other:  c - Goto CiteULike, add or show
+        d - Get bibliography data from URL (works just sometimes)
+
+        m - More alternatives
 "
                         ))
         done cc)
@@ -1544,11 +1570,16 @@ What do you want to do with the url at point?
         (orgfl-find-links-in-org-files url nil nil))
        ((eq cc ?c)
         (bibhlp-goto-citeulike url))
-       ((eq cc ?p)
+       ((eq cc ?d)
         (let ((rec (bibhlp-get-data-from-url url)))
           (bibhlp-make-ris rec)))
        ((eq cc ?f)
         (bibhlp-open-in-firefox url))
+       ((eq cc ?p)
+        (bibhlp-browse-url-for-pdf url))
+       ((eq cc ?m)
+        (bibhlp-alternatives-for-entry))
+       ((eq cc ?q) nil)
        (t (setq done nil))))
     ))
 
