@@ -897,7 +897,6 @@ Used by bibhlp-get-ids-from-crossref.
 Get it from for example URL `http://www.whatismyipaddress.com/'."
   :type 'string
   :group 'bibhlp)
-(setq bibhlp-my-ip "213.113.116.23")
 
 (defvar bibhlp-ip2 "172.20.1.78"
   "Used by bibhlp-get-ids-from-crossref.
@@ -1547,14 +1546,11 @@ What do you want to do with the url at point?
 Show:   g - Just show in web browser
         p - Open in a browser cabable of pdf download
         f - Show in Firefox (so you can add it to Zotero)
-
 Find:   e - Find in org mode buffers
         E - Find in org mode files
-
 Other:  c - Goto CiteULike, add or show
         d - Get bibliography data from URL (works just sometimes)
-
-        m - More alternatives
+More:   m - More alternatives
 "
                         ))
         done cc)
@@ -1603,6 +1599,7 @@ What do you want to do with the marked bibliographic entry?
 Search:   g - Google Scholar
           l - LibHub
           p - PubMed
+          x - Get ids from CrossRef
 Convert:  a - APA style
           r - Reference Manager style
 "
@@ -1621,7 +1618,7 @@ Convert:  a - APA style
                 (bibhlp-make-ris (bibhlp-parse-entry beg end)))
                (nil ;;(eq cc ?c)
                 (bibhlp-make-ris (parscit-post-reference str)))
-               (nil ;;(eq cc ?x)
+               ((eq cc ?x)
                 (let ((ret (bibhlp-get-ids-from-crossref str)))
                   (with-current-buffer (get-buffer-create "*BIBHLP*")
                     (erase-buffer)
