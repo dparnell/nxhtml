@@ -205,57 +205,18 @@ APA reference."
       (narrow-to-region beg end)
       ;; Find out format
       (goto-char (point-min))
-      (cond
-
-       ((re-search-forward "^%\\(.\\) " nil t)
-        ;; .enw - EndNote
-        (goto-char (point-min))
-        (while (re-search-forward "^%\\(.\\) \\(.*\\)" nil t)
-          (let ((mark (match-string 1))
-                (val  (match-string 2)))
-            (cond
-             ((string= mark "0")
-              (cond
-               ((string= val "Journal Article") (setq type 'journal-article))
-               ((string= val "Book")            (setq type 'book))
-               (t (error "Unknown type: %S" val))))
-             ((string= mark "T") (setq title val))
-             ((string= mark "A") (setq raw-authors (cons val raw-authors)))
-             ((string= mark "K") (setq keywords (cons val keywords)))
-             ((string= mark "J") (setq journal val))
-             ((string= mark "V") (setq volume val))
-             ((string= mark "N") (setq issue val))
-             ((string= mark "P")
-              ;; Fix me: not sure of format
-              (string-match "\\([0-9]+\\)\\(?:-\\([0-9]\\)\\)?" val)
-              (setq firstpage (match-string 1 val))
-              (setq lastpage (match-string 2 val))
-              )
-             ((string= mark "@")
-              ;; Fix-me: what is it? Looks like page numbers, but much bigger.
-              )
-             ((string= mark "D") (setq year val))
-             ((string= mark "I") (setq publisher val))
-             ((string= mark "K") (setq keywords (cons val keywords)))
-             ((string= mark "X") (setq abstract val))
-             ((string= mark "U") (setq url val))
-             )))
-        (goto-char (point-min))
-        (when (re-search-forward "^ \\([^/].*/.*\\)" nil t)
-          (setq doi (match-string 1))))
-
-       ((re-search-forward "^\\(?:AU\\|A1\\) +- " nil t)
-        ;; .ris - Reference Manager, MedLine, Zotero etc
-        (setq return-value (bibhlp-parse-ris-like beg end))
-        nil)
-       ((when (looking-at "[ \t\n]*<")
-          (setq return-value (bibhlp-parse-from-html beg end)))
-        nil)
-       ((setq return-value (bibhlp-parse-apa-like beg end))
-        nil)
-       ((setq return-value (bibhlp-parse-unkown1 beg end))
-        nil)
-       (t (error "Unrecognized format in buffer")))
+      (setq return-value
+            (or
+             (bibhlp-parse-endnote beg end)  ;; .enw, citmgr - EndNote
+             (bibhlp-parse-ris-like beg end) ;; .ris - Reference Manager, MedLine, Zotero etc
+             (bibhlp-parse-from-html beg end)
+             (bibhlp-parse-apa-like beg end)
+             (bibhlp-parse-jama-like beg end)
+             (progn
+               (message "%s" (propertize "bibhlp: Unrecognized reference format, can't parse it"
+                                    'face 'secondary-selection))
+               (throw 'top-level nil)
+               nil)))
       (goto-char here)
       ;; thing-at-point pattern may catch <> around mail:
       (when (and mail (eq ?< (string-to-char mail)))
@@ -292,7 +253,8 @@ APA reference."
               (setq last (match-string 1 val))
               (setq first (match-string 2 val))
               (setq auth (list last first)))
-            (setq authors (cons auth authors)))))
+            (setq authors (cons auth authors))))
+        (setq authors (reverse authors)))
       (when (and journal
                  (null type))
         (setq type 'journal-article))
@@ -315,8 +277,10 @@ APA reference."
         :pmid pmid
         :pmcid pmcid)))))
 
-(defun bibhlp-parse-unkown1 (beg end)
+(defun bibhlp-parse-jama-like (beg end)
   "Unknown. Catch formats used by NCBI etc.
+This should cover JAMA.
+
 Example:
 
 Binswanger IA, Kral AH, Bluthenthal RN, Rybold
@@ -326,11 +290,11 @@ users in San Francisco. Clin Infect Dis. 2000;
 30:579–91"
   (let ((auths nil)
         beg-yy end-yy yy ti jo is pf pl vo doi pmid pmcid pos
-        (yy-patt (rx " "
+        (yy-patt (rx whitespace
                      (submatch (or "19" "20")
                                (any "0-9")
                                (any "0-9"))
-                     (? " " (or "Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec") ";"))))
+                     (? whitespace (or "Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec") ";"))))
     (goto-char beg)
     (when (re-search-forward yy-patt end t)
       (setq yy (match-string-no-properties 1))
@@ -345,6 +309,7 @@ users in San Francisco. Clin Infect Dis. 2000;
                   (lastname (nth 0 li))
                   (initials (nth 1 li)))
               (setq auths (cons (list lastname nil initials) auths)))))
+        (setq auths (reverse auths))
         (skip-chars-forward " \t\n")
         (setq pos (point))
         (when (re-search-forward "[.?!]" beg-yy t)
@@ -390,7 +355,8 @@ users in San Francisco. Clin Infect Dis. 2000;
                    (*? anything)
                    (? (any ".:"))
                    ))
-        auths beg-yy end-yy yy ti doi pmid pmcid)
+        auths beg-yy end-yy yy ti doi pmid pmcid
+        journal volume issue pf pe)
     ;; Find year in slightly different formats.
     (goto-char beg)
     ;;(if (re-search-forward "(\\([0-9]\\{4\\}\\).*?)[.:]?" end t)
@@ -459,23 +425,52 @@ users in San Francisco. Clin Infect Dis. 2000;
       ;;   Microglia act: a (R)-[11C]PK11195 study. Biol Psych, 64(9), 820-822.
       ;;
       ;; All possibly followed by doi:, pmcid:, pmid: etc.
-      (let ((re-ti-jo-vo-is-pg "[0-9][,:]\w*[0-9]+\\(?:-[0-9]+\\).?$")
-            (re-inds "\b[^:]+:[^\w]+\w+"))
-        (unless (eq beg-yy end)
-          (goto-char beg-yy)
-          (goto-char (re-search-forward ")[.]?" end t))
-          (skip-syntax-forward " ")
-          (let ((b1 (point))
-                e1)
-            (re-search-forward "[.?!:]" end t)
-            (when (> (point) b1)
-              (setq e1 (1- (point)))
-              (setq ti (buffer-substring-no-properties b1 e1))
-              (setq ti (replace-regexp-in-string "[ \t\n]+" " " ti))
-              )))))
+
+      ;; (let ((re-ti-jo-vo-is-pg "[0-9][,:]\w*[0-9]+\\(?:-[0-9]+\\).?$")
+      ;;       (re-inds "\b[^:]+:[^\w]+\w+"))
+      ;;   (unless (eq beg-yy end)
+      ;;     (goto-char beg-yy)
+      ;;     (goto-char (re-search-forward ")[.]?" end t))
+      ;;     (skip-syntax-forward " ")
+      ;;     (let ((b1 (point))
+      ;;           e1)
+      ;;       (re-search-forward "[.?!:]" end t)
+      ;;       (when (> (point) b1)
+      ;;         (setq e1 (1- (point)))
+      ;;         (setq ti (buffer-substring-no-properties b1 e1))
+      ;;         (setq ti (replace-regexp-in-string "[ \t\n]+" " " ti))
+      ;;         ))))
+      )
     ;; Sanity check
     (unless auths (setq yy nil))
     (when yy
+      (goto-char end-yy)
+      (skip-chars-forward " \t\n" end)
+      (let ((ti-beg (point)))
+        (skip-chars-forward "^.?!" end)
+        (setq ti (buffer-substring-no-properties ti-beg (point))))
+      (unless (eobp) (forward-char))
+      (when (re-search-forward (rx (* whitespace)
+                                   (submatch (* (not (any ","))))
+                                   (* whitespace)
+                                   ",")
+                               end t)
+        (setq journal (match-string 1))
+        (when (re-search-forward (rx (* whitespace)
+                                     (submatch (+ (any digit)))
+                                     (* whitespace)
+                                     (? "(" (submatch (+ (any digit))) ")")
+                                     (* whitespace)
+                                     ","))
+          (setq volume (match-string 1))
+          (setq issue  (match-string 2))
+          (when (re-search-forward (rx (* whitespace)
+                                       (submatch (+ (any digit)))
+                                       (* whitespace)
+                                       (? "-" (* whitespace)
+                                          (submatch (+ (any digit))))))
+            (setq pf (match-string 1))
+            (setq pe (match-string 2)))))
       ;; doi etc
       (goto-char beg)
       (when (re-search-forward "\bdoi:\\([^ \t\n]*\\)" end t)
@@ -491,13 +486,90 @@ users in San Francisco. Clin Infect Dis. 2000;
        :year yy
        :authors auths
        :title ti
+       :journal journal
+       :volume volume
+       :issue issue
+       :firstpage pf
+       :lastpage pe
        :doi doi
        :pmid pmid
        :pmcid pmcid))))
 
+(defun bibhlp-parse-endnote (beg end)
+  "Parse EndNote record in buffer between BEG and END.
+BEG and END defaults to current min and max.
+
+.enw and citmgr files have this format.
+
+Return a plist with found info, see `bibhlp-parse-entry'."
+  (setq beg (or beg (point-min)))
+  (setq end (or end (point-max)))
+  (let (type authors year title publisher journal volume issue firstpage lastpage doi pmid section url abstract mail keywords)
+    (goto-char beg)
+    (when (re-search-forward "^%\\(.\\) " end t)
+      (while (re-search-forward "^%\\(.\\) \\(.+\\)" end t)
+        (let ((mark (match-string 1))
+              (val  (match-string 2)))
+          (cond
+           ((string= mark "0")
+            (cond
+             ((string= val "Journal Article") (setq type 'journal-article))
+             ((string= val "Book")            (setq type 'book))
+             (t (error "Unknown type: %S" val))))
+           ((string= mark "T") (setq title val))
+           ((string= mark "A") (setq authors (cons val authors)))
+           ((string= mark "K") (setq keywords (cons val keywords)))
+           ((string= mark "J") (setq journal val))
+           ((string= mark "V") (setq volume val))
+           ((string= mark "N") (setq issue val))
+           ((string= mark "P")
+            ;; Fix me: not sure of format
+            (string-match "\\([0-9]+\\)\\(?:-\\([0-9]\\)\\)?" val)
+            (setq firstpage (match-string 1 val))
+            (setq lastpage (match-string 2 val))
+            )
+           ((string= mark "@")
+            ;; Fix-me: what is it? Looks like page numbers, but much bigger.
+            )
+           ((string= mark "D") (setq year val))
+           ((string= mark "I") (setq publisher val))
+           ((string= mark "K") (setq keywords (cons val keywords)))
+           ((string= mark "X") (setq abstract val))
+           ((string= mark "U") (setq url val))
+           ((string= mark "R") (setq doi val))
+           )))
+      (goto-char (point-min))
+      (when (re-search-forward "^ \\([^/].*/.*\\)" nil t)
+        (setq doi (match-string 1)))
+      (setq authors (reverse authors))
+      (when (or authors title doi pmid)
+        (list
+         :authors authors
+         :year year
+         :title title
+         :journal journal
+         :volume volume
+         :issue issue
+         :firstpage firstpage
+         :lastpage lastpage
+         :doi doi
+         :pmid pmid
+         :pmcid pmid
+         :publisher publisher
+         :mail mail
+         :url url
+         :doi doi
+         :keywords keywords
+         :abstract abstract
+         )))))
+
 (defun bibhlp-parse-ris-like (beg end)
   "Parse reference manager record in buffer between BEG and END.
-They default to current min and max.
+BEG and END defaults to current min and max.
+
+See URL `http://www.refman.com/support/risformat_intro.asp'.
+
+This also covers RefWorks, Zotero, MedLine etc.
 
 .ris files have this format and it is used by MedLine, Zotero etc
 with some variations.
@@ -505,90 +577,97 @@ with some variations.
 Return a plist with found info, see `bibhlp-parse-entry'."
   (setq beg (or beg (point-min)))
   (setq end (or end (point-max)))
-  (let (type authors year title publisher journal volume issue firstpage lastpage doi pmid section url abstract mail)
+  (let (type authors year title publisher journal volume issue firstpage lastpage doi pmid pmcid section url abstract mail)
     (goto-char beg)
-    (while (re-search-forward "^\\([A-Z0-9]+\\) *-  *\\(.*?\\) *$" end t)
-      (let ((mark (match-string 1))
-            (val  (match-string 2)))
-        (cond
-         ((string= mark "TY")
+    (when (re-search-forward "^\\(?:AU\\|A1\\)\\(?: +-\\)? " end t)
+      ;; RefWorks: RT Journal
+      (while (re-search-forward "^\\([A-Z0-9]+\\)\\(?: *-  *\\| \\)\\(.*?\\) *$" end t)
+        (let ((mark (match-string 1))
+              (val  (match-string 2)))
           (cond
-           ((string= val "JOUR") (setq type 'journal-article))
-           ((string= val "BOOK") (setq type 'book))
-           (t (error "Unknown type: %S" val))))
-         ((string= mark "T1") (setq title val))
-         ((string= mark "TI") (setq title val))
-         ((string= mark "JO") (setq journal val))
-         ((string= mark "JF") (setq journal val)) ;; Zotero
-         ((string= mark "JT") (setq journal val))
-         ((string= mark "JA") (setq journal val))
-         ((string= mark "VL") (setq volume val))
-         ((string= mark "VI") (setq volume val))
-         ((string= mark "IS") (setq issue val))
-         ((string= mark "IP") (setq issue val))
-         ((string= mark "SP") (setq firstpage val))
-         ((string= mark "EP") (setq lastpage val))
-         ((string= mark "PG")
-          (string-match "\\([0-9]+\\)-\\([0-9]+\\)" val)
-          (setq firstpage (match-string 1 val))
-          (setq lastpage
-                (number-to-string (+
-                                   (string-to-number firstpage)
-                                   (string-to-number (match-string 2 val))))))
-         ((string= mark "PY") (setq year val))
-         ((string= mark "DP") (setq year (substring val 0 4)))
-         ((string= mark "DEP") (setq year (substring val 0 4)))
-         ((string= mark "Y1") (setq year (substring val 0 4))) ;; zotero
-         ((string= mark "AU") (setq authors (cons val authors)))
-         ((string= mark "A1") (setq authors (cons val authors))) ;; zotero
-         ((string= mark "PB") (setq publisher val))
-         ((string= mark "SN")
-          ;; Fix-me: what is it? Looks like page numbers, but much bigger.
-          )
-         ((string= mark "DO") (setq doi val))
-         ((string= mark "UR") ;; Some journals
-          (cond ((string-match "http://dx.doi.org/\\(10\..*\\)" val)
-                 (setq doi (match-string 1 val)))))
-         ((string= mark "M3")
-          ;; M3  - doi: DOI: 10.1016/j.tics.2010.05.002
-          (cond ((string-match "doi: +.*? \\(10\..*\\)" val)
-                 (setq doi (match-string 1 val)))
-                (t (setq doi val))))
-         ((string= mark "UR") (setq url val))
-         ((string= mark "AB") (setq abstract val))
+           ((string= mark "RT") (setq type 'journal-article))
+           ((string= mark "TY")
+            (cond
+             ((string= val "JOUR") (setq type 'journal-article))
+             ((string= val "BOOK") (setq type 'book))
+             (t (error "Unknown type: %S" val))))
+           ((string= mark "T1") (setq title val))
+           ((string= mark "TI") (setq title val))
+           ((string= mark "JO") (setq journal val))
+           ((string= mark "JF") (setq journal val)) ;; Zotero
+           ((string= mark "JT") (setq journal val))
+           ((string= mark "JA") (setq journal val))
+           ((string= mark "VL") (setq volume val))
+           ((string= mark "VI") (setq volume val))
+           ((string= mark "VO") (setq volume val))
+           ((string= mark "IS") (setq issue val))
+           ((string= mark "IP") (setq issue val))
+           ((string= mark "SP") (setq firstpage val))
+           ((string= mark "EP") (setq lastpage val))
+           ((string= mark "PG")
+            (string-match "\\([0-9]+\\)-\\([0-9]+\\)" val)
+            (setq firstpage (match-string 1 val))
+            (setq lastpage
+                  (number-to-string (+
+                                     (string-to-number firstpage)
+                                     (string-to-number (match-string 2 val))))))
+           ((string= mark "PY") (setq year val))
+           ((string= mark "DP") (setq year (substring val 0 4)))
+           ((string= mark "DEP") (setq year (substring val 0 4)))
+           ((string= mark "Y1") (setq year (substring val 0 4))) ;; zotero
+           ((string= mark "AU") (setq authors (cons val authors)))
+           ((string= mark "A1") (setq authors (cons val authors))) ;; zotero
+           ((string= mark "PB") (setq publisher val))
+           ((string= mark "SN")
+            ;; Fix-me: what is it? Looks like page numbers, but much bigger.
+            )
+           ((string= mark "DO") (setq doi val))
+           ((string= mark "AID")
+            (cond ((string-match " ?\\([^ ]+\\) +\\[doi] *$" val)
+                   (setq doi (match-string 1 val)))))
+           ((string= mark "UR") ;; Some journals
+            (cond ((string-match "http://dx.doi.org/\\(10\..*\\)" val)
+                   (setq doi (match-string 1 val)))))
+           ((string= mark "M3")
+            ;; M3  - doi: DOI: 10.1016/j.tics.2010.05.002
+            (cond ((string-match "doi: +.*? \\(10\..*\\)" val)
+                   (setq doi (match-string 1 val)))
+                  (t (setq doi val))))
+           ((string= mark "UR") (setq url val))
+           ((string= mark "AB") (setq abstract val))
 
-         ;; Used by pubmed at least:
-         ((string= mark "AID")
-          (when (string-match "^10\..* [doi]" val)
-            (setq doi (match-string 1 val))))
-         ((string= mark "PMID") (setq pmid val))
-         ((string= mark "AD")
-          (require 'thingatpt)
-          (when (string-match thing-at-point-email-regexp val)
-            (setq mail (match-string 1 val))))
+           ;; Used by pubmed at least:
+           ((string= mark "AID")
+            (when (string-match "^10\..* [doi]" val)
+              (setq doi (match-string 1 val))))
+           ((string= mark "PMID") (setq pmid val))
+           ((string= mark "AD")
+            (require 'thingatpt)
+            (when (string-match thing-at-point-email-regexp val)
+              (setq mail (match-string 1 val))))
 
-         ;; There are a lot additions in for example pubmed so
-         ;; just continue if we do not want it.
-         (t nil))))
-    (setq authors (reverse authors))
-    (when (or authors title doi pmid)
-      (list
-       :authors authors
-       :year year
-       :title title
-       :journal journal
-       :volume volume
-       :issue issue
-       :firstpage firstpage
-       :lastpage lastpage
-       :doi doi
-       :pmid pmid
-       :pmcid pmid
-       :publisher publisher
-       :mail mail
-       :url url
-       :doi doi
-       ))))
+           ;; There are a lot additions in for example pubmed so
+           ;; just continue if we do not want it.
+           (t nil))))
+      (setq authors (reverse authors))
+      (when (or authors title doi pmid)
+        (list
+         :authors authors
+         :year year
+         :title title
+         :journal journal
+         :volume volume
+         :issue issue
+         :firstpage firstpage
+         :lastpage lastpage
+         :doi doi
+         :pmid pmid
+         :pmcid pmcid
+         :publisher publisher
+         :mail mail
+         :url url
+         :doi doi
+         )))))
 
 (defun bibhlp-parse-from-html (beg end)
   "Parse html in buffer between BEG and END.
@@ -600,147 +679,148 @@ Return a plist with found info, see `bibhlp-parse-entry'."
   (let (authors year title journal volume issue firstpage lastpage doi pmid section)
     (unless (and authors title journal volume issue firstpage lastpage doi pmid section)
       (goto-char beg)
-      ;; RDFa
-      ;; Mediterranean Ceramics: RDFa Document Metadata: Authors in PLOS One
-      ;; http://mediterraneanceramics.blogspot.com/2010/05/rdfa-document-metadata-authors-in-plos.html
-      (let ((no-authors (unless authors t))
-            ;; Fix-me: This pattern can't handle nested tags to get
-            ;; the value. That case needs some kind of a parser. It
-            ;; can probably be handled by splitting the regexp and
-            ;; the search for start/end tags.
-            (rdfa-re (concat "<[^<>]* property *= *\"\\(?1:[^\"]*\\)\"[^<>]*?"
-                             "\\(?: content *= *\"\\(?2:[^\"]*\\)\""
-                             "\\|"
-                             ">\\(?3:[^<]*\\)<\\)"))
-            )
-        (while (re-search-forward rdfa-re end t)
-          (let ((pro (match-string 1))
-                (val (or (match-string 2)
-                         (match-string 3)))
-                (dummy (match-string 0)))
-            (cond
-             ;; fix-me: mostly guesses below:
-             ((when no-authors (string= pro "foaf:name"))
-              (let* ((mclist (split-string val " *" t))
-                     (first  (nth 0 mclist))
-                     (last   (nth 1 mclist)))
-                (setq authors (cons (list first last) authors))))
-             ((string= pro "dc:date") (setq year (substring-no-properties val 0 4)))
-             ((string= pro "dc:title") (setq title val))
-             ((string= pro "dc:source")
-              ;; (string-match "\\(.*\\) \\([0-9]\\{4\\}\\) \\([0-9]+\\):\\([0-9]+\\)$" "where 2010 5:87")
-              (when (string-match "\\(.*\\) \\([0-9]\\{4\\}\\) \\([0-9]+\\):\\([0-9]+\\)$" val)
-                (setq journal   (match-string 1 val))
-                (setq year      (match-string 2 val))
-                (setq volume    (match-string 3 val))
-                (setq firstpage (match-string 4 val))))
-             ((string= pro "dc:identifier") (setq doi val))
-             )))))
-    (unless (and authors title journal volume issue firstpage lastpage doi pmid section)
-      (goto-char beg)
-      (let ((no-authors (unless authors t)))
-        (while (re-search-forward
-                ;; "<meta +name *= *\"\\(dc\.[^\"]*\\)\" +content *= *\"\\([^\"]*\\)\""
-                "<meta .*?>"
-                end t)
-          (let ((str (match-string-no-properties 0)))
-            (save-match-data
-              ;; "<meta +name *= *\"\\(dc\.[^\"]*\\)\" +content *= *\"\\([^\"]*\\)\""
-              (let ((mn
-                     (when (string-match " +name *= *\"\\(dc\.[^\"]*\\)\"" str)
-                       (match-string-no-properties 1)))
-                    (mc (when (string-match " +content *= *\"\\([^\"]*\\)\"" str)
-                          (match-string-no-properties 1))))
-                (when (and mn mc)
-                  (cond
-                   ((when no-authors (string= mn "dc.creator"))
-                    (let* ((mclist (split-string mc " *" t))
-                           (first  (nth 0 mclist))
-                           (last   (nth 1 mclist)))
-                      (setq authors (cons (list first last) authors))))
-                   ((string= mn "dc.date") (setq year (substring-no-properties mc 0 4)))
-                   ((string= mn "dc.title") (setq title mc))
-                   ((string= mn "dc.source")
-                    ;; (string-match "\\(.*\\) \\([0-9]\\{4\\}\\) \\([0-9]+\\):\\([0-9]+\\)$" "where 2010 5:87")
-                    (when (string-match "\\(.*\\) \\([0-9]\\{4\\}\\) \\([0-9]+\\):\\([0-9]+\\)$" mc)
-                      (setq journal   (match-string 1 mc))
-                      (setq year      (match-string 2 mc))
-                      (setq volume    (match-string 3 mc))
-                      (setq firstpage (match-string 4 mc))))
-                   ((string= mn "dc.identifier") (setq doi mc))
-                   ))))))
-        (when no-authors (setq authors (reverse authors)))))
-    (unless (and authors title journal volume issue firstpage lastpage doi pmid section)
-      (goto-char beg)
-      (while (re-search-forward "<meta +name *= *\"\\([^\"]*\\)\" +content *= *\"\\([^\"]*\\)\"" end t)
-        (let ((mn (match-string-no-properties 1))
-              (mc (match-string-no-properties 2)))
-          (cond
-           ((string= mn "citation_authors")
-            (let ((mclist (split-string mc ", *" t)))
-              (setq authors (mapcar (lambda (a)
-                                      (split-string a " +" t))
-                                    mclist))))
-           ((string= mn "citation_year") (setq year mc))
-           ((string= mn "citation_title") (setq title mc))
-           ((string= mn "citation_journal_title") (setq journal mc))
-           ((string= mn "citation_volume") (setq volume mc))
-           ((string= mn "citation_issue") (setq issue mc))
-           ((string= mn "citation_firstpage") (setq firstpage mc))
-           ((string= mn "citation_lastpage") (setq lastpage mc))
-           ((string= mn "citation_doi") (setq doi mc))
-           ))))
-    (unless (and authors title journal volume issue firstpage lastpage doi pmid section)
-      (goto-char beg)
-      (setq authors nil) ;; fix-me
-      (when (search-forward "<rdf:RDF " end t)
-        (let ((beg-rdf (point))
-              (end-rdf (search-forward "</rdf:RDF>"))
-              (no-authors (unless authors t))
+      (when (looking-at "[ \t\n]*<")
+        ;; RDFa
+        ;; Mediterranean Ceramics: RDFa Document Metadata: Authors in PLOS One
+        ;; http://mediterraneanceramics.blogspot.com/2010/05/rdfa-document-metadata-authors-in-plos.html
+        (let ((no-authors (unless authors t))
+              ;; Fix-me: This pattern can't handle nested tags to get
+              ;; the value. That case needs some kind of a parser. It
+              ;; can probably be handled by splitting the regexp and
+              ;; the search for start/end tags.
+              (rdfa-re (concat "<[^<>]* property *= *\"\\(?1:[^\"]*\\)\"[^<>]*?"
+                               "\\(?: content *= *\"\\(?2:[^\"]*\\)\""
+                               "\\|"
+                               ">\\(?3:[^<]*\\)<\\)"))
               )
-          (goto-char beg-rdf)
-          (while (re-search-forward "<\\([^/>]+\\)>\\([^<]+\\)<" end-rdf t)
-            (let ((rf (match-string-no-properties 1))
-                  (rv (match-string-no-properties 2)))
-              ;;(message "rf=%S, rv=%S" rf rv)
+          (while (re-search-forward rdfa-re end t)
+            (let ((pro (match-string 1))
+                  (val (or (match-string 2)
+                           (match-string 3)))
+                  (dummy (match-string 0)))
               (cond
-               ((string= rf "dc:title") (setq title rv))
-               ((when no-authors (string= rf "dc:creator"))
-                (let* ((names (split-string rv ", *"))
-                       (firstname (nth 1 names))
-                       (lastname  (nth 0 names)))
-                  (setq authors (cons (list firstname lastname) authors))))
-               ((string= rf "dc:identifier")
+               ;; fix-me: mostly guesses below:
+               ((when no-authors (string= pro "foaf:name"))
+                (let* ((mclist (split-string val " *" t))
+                       (first  (nth 0 mclist))
+                       (last   (nth 1 mclist)))
+                  (setq authors (cons (list first last) authors))))
+               ((string= pro "dc:date") (setq year (substring-no-properties val 0 4)))
+               ((string= pro "dc:title") (setq title val))
+               ((string= pro "dc:source")
+                ;; (string-match "\\(.*\\) \\([0-9]\\{4\\}\\) \\([0-9]+\\):\\([0-9]+\\)$" "where 2010 5:87")
+                (when (string-match "\\(.*\\) \\([0-9]\\{4\\}\\) \\([0-9]+\\):\\([0-9]+\\)$" val)
+                  (setq journal   (match-string 1 val))
+                  (setq year      (match-string 2 val))
+                  (setq volume    (match-string 3 val))
+                  (setq firstpage (match-string 4 val))))
+               ((string= pro "dc:identifier") (setq doi val))
+               )))))
+      (unless (and authors title journal volume issue firstpage lastpage doi pmid section)
+        (goto-char beg)
+        (let ((no-authors (unless authors t)))
+          (while (re-search-forward
+                  ;; "<meta +name *= *\"\\(dc\.[^\"]*\\)\" +content *= *\"\\([^\"]*\\)\""
+                  "<meta .*?>"
+                  end t)
+            (let ((str (match-string-no-properties 0)))
+              (save-match-data
+                ;; "<meta +name *= *\"\\(dc\.[^\"]*\\)\" +content *= *\"\\([^\"]*\\)\""
+                (let ((mn
+                       (when (string-match " +name *= *\"\\(dc\.[^\"]*\\)\"" str)
+                         (match-string-no-properties 1)))
+                      (mc (when (string-match " +content *= *\"\\([^\"]*\\)\"" str)
+                            (match-string-no-properties 1))))
+                  (when (and mn mc)
+                    (cond
+                     ((when no-authors (string= mn "dc.creator"))
+                      (let* ((mclist (split-string mc " *" t))
+                             (first  (nth 0 mclist))
+                             (last   (nth 1 mclist)))
+                        (setq authors (cons (list first last) authors))))
+                     ((string= mn "dc.date") (setq year (substring-no-properties mc 0 4)))
+                     ((string= mn "dc.title") (setq title mc))
+                     ((string= mn "dc.source")
+                      ;; (string-match "\\(.*\\) \\([0-9]\\{4\\}\\) \\([0-9]+\\):\\([0-9]+\\)$" "where 2010 5:87")
+                      (when (string-match "\\(.*\\) \\([0-9]\\{4\\}\\) \\([0-9]+\\):\\([0-9]+\\)$" mc)
+                        (setq journal   (match-string 1 mc))
+                        (setq year      (match-string 2 mc))
+                        (setq volume    (match-string 3 mc))
+                        (setq firstpage (match-string 4 mc))))
+                     ((string= mn "dc.identifier") (setq doi mc))
+                     ))))))
+          (when no-authors (setq authors (reverse authors)))))
+      (unless (and authors title journal volume issue firstpage lastpage doi pmid section)
+        (goto-char beg)
+        (while (re-search-forward "<meta +name *= *\"\\([^\"]*\\)\" +content *= *\"\\([^\"]*\\)\"" end t)
+          (let ((mn (match-string-no-properties 1))
+                (mc (match-string-no-properties 2)))
+            (cond
+             ((string= mn "citation_authors")
+              (let ((mclist (split-string mc ", *" t)))
+                (setq authors (mapcar (lambda (a)
+                                        (split-string a " +" t))
+                                      mclist))))
+             ((string= mn "citation_year") (setq year mc))
+             ((string= mn "citation_title") (setq title mc))
+             ((string= mn "citation_journal_title") (setq journal mc))
+             ((string= mn "citation_volume") (setq volume mc))
+             ((string= mn "citation_issue") (setq issue mc))
+             ((string= mn "citation_firstpage") (setq firstpage mc))
+             ((string= mn "citation_lastpage") (setq lastpage mc))
+             ((string= mn "citation_doi") (setq doi mc))
+             ))))
+      (unless (and authors title journal volume issue firstpage lastpage doi pmid section)
+        (goto-char beg)
+        (setq authors nil) ;; fix-me
+        (when (search-forward "<rdf:RDF " end t)
+          (let ((beg-rdf (point))
+                (end-rdf (search-forward "</rdf:RDF>"))
+                (no-authors (unless authors t))
+                )
+            (goto-char beg-rdf)
+            (while (re-search-forward "<\\([^/>]+\\)>\\([^<]+\\)<" end-rdf t)
+              (let ((rf (match-string-no-properties 1))
+                    (rv (match-string-no-properties 2)))
+                ;;(message "rf=%S, rv=%S" rf rv)
                 (cond
-                 ((string= "info:doi/" (substring-no-properties rv 0 9))
-                  (setq doi (substring-no-properties rv 9)))
-                 ((string= "info:pmid/" (substring-no-properties rv 0 10))
-                  (setq pmid (substring-no-properties rv 10)))
-                 (t (error "Unknown dc:identifier=%S" rv))))
-               ((string= rf "dc:date") (setq year (substring-no-properties rv 0 4)))
-               ((string= rf "prism:publicationName") (setq journal rv))
-               ((string= rf "prism:publicationDate") (setq year (substring-no-properties rv 0 4)))
-               ((string= rf "prism:volume") (setq volume rv))
-               ((string= rf "prism:number") (setq issue rv)) ;; fix-me: Is this correct?
-               ((string= rf "prism:startingPage") (setq firstpage rv))
-               ((string= rf "prism:endingPage") (setq lastpage rv)) ;; Fix-me: Is this correct?
-               )))
-          (when no-authors (setq authors (reverse authors)))
-          )))
-    (setq authors (reverse authors))
-    (when (or authors title doi pmid)
-      (list
-       :authors authors
-       :year year
-       :title title
-       :journal journal
-       :volume volume
-       :issue issue
-       :firstpage firstpage
-       :lastpage lastpage
-       :doi doi
-       :pmid pmid)
-      )))
+                 ((string= rf "dc:title") (setq title rv))
+                 ((when no-authors (string= rf "dc:creator"))
+                  (let* ((names (split-string rv ", *"))
+                         (firstname (nth 1 names))
+                         (lastname  (nth 0 names)))
+                    (setq authors (cons (list firstname lastname) authors))))
+                 ((string= rf "dc:identifier")
+                  (cond
+                   ((string= "info:doi/" (substring-no-properties rv 0 9))
+                    (setq doi (substring-no-properties rv 9)))
+                   ((string= "info:pmid/" (substring-no-properties rv 0 10))
+                    (setq pmid (substring-no-properties rv 10)))
+                   (t (error "Unknown dc:identifier=%S" rv))))
+                 ((string= rf "dc:date") (setq year (substring-no-properties rv 0 4)))
+                 ((string= rf "prism:publicationName") (setq journal rv))
+                 ((string= rf "prism:publicationDate") (setq year (substring-no-properties rv 0 4)))
+                 ((string= rf "prism:volume") (setq volume rv))
+                 ((string= rf "prism:number") (setq issue rv)) ;; fix-me: Is this correct?
+                 ((string= rf "prism:startingPage") (setq firstpage rv))
+                 ((string= rf "prism:endingPage") (setq lastpage rv)) ;; Fix-me: Is this correct?
+                 )))
+            (when no-authors (setq authors (reverse authors)))
+            )))
+      (setq authors (reverse authors))
+      (when (or authors title doi pmid)
+        (list
+         :authors authors
+         :year year
+         :title title
+         :journal journal
+         :volume volume
+         :issue issue
+         :firstpage firstpage
+         :lastpage lastpage
+         :doi doi
+         :pmid pmid)
+        ))))
 
 
 
@@ -1366,7 +1446,7 @@ REC should be a bibliographic record in the format returned from
         (setq str (concat str "\npmid:" pmid))))
     (let ((pmcid (plist-get rec :pmcid)))
       (when pmcid
-        (setq str (concat str "\npmid:" pmcid))))
+        (setq str (concat str "\npmcid:" pmcid))))
     str))
 
 (defvar bibhlp-marking-ovl nil)
@@ -1471,19 +1551,20 @@ What do you want to do with the url at point?
     ))
 
 (defun bibhlp-alternatives-for-entry ()
-  (let (beg end)
-    (if mark-active
-        (progn
-          (setq beg (region-beginning))
-          (setq end (region-end)))
-      (let ((be (bibhlp-find-reftext-at (point) nil)))
-        (setq beg (nth 0 be))
-        (setq end (nth 1 be)))
-      (if bibhlp-marking-ovl
-          (move-overlay bibhlp-marking-ovl beg end)
-        (setq bibhlp-marking-ovl (make-overlay beg end))
-        (overlay-put bibhlp-marking-ovl 'face 'secondary-selection)))
-    (let ((prompt (concat "
+  (catch 'top-level
+    (let (beg end)
+      (if mark-active
+          (progn
+            (setq beg (region-beginning))
+            (setq end (region-end)))
+        (let ((be (bibhlp-find-reftext-at (point) nil)))
+          (setq beg (nth 0 be))
+          (setq end (nth 1 be)))
+        (if bibhlp-marking-ovl
+            (move-overlay bibhlp-marking-ovl beg end)
+          (setq bibhlp-marking-ovl (make-overlay beg end))
+          (overlay-put bibhlp-marking-ovl 'face 'secondary-selection)))
+      (let ((prompt (concat "
 What do you want to do with the marked bibliographic entry?
 
 Search:   g - Google Scholar
@@ -1492,53 +1573,53 @@ Search:   g - Google Scholar
 Convert:  a - APA style
           r - Reference Manager style
 "
-  ;; x - CrossRef
-  ;; c - ParsCit
-                          ))
-          done cc
-          (str (buffer-substring-no-properties beg end)))
-      (unwind-protect
-          (while (not done)
-            (setq cc (read-char-exclusive prompt))
-            (setq done t)
-            (cond
-             ((eq cc ?q) nil)
-             ((eq cc ?r)
-              (bibhlp-make-ris (bibhlp-parse-entry beg end)))
-             (nil ;;(eq cc ?c)
-              (bibhlp-make-ris (parscit-post-reference str)))
-             (nil ;;(eq cc ?x)
-              (let ((ret (bibhlp-get-ids-from-crossref str)))
-                (with-current-buffer (get-buffer-create "*BIBHLP*")
-                  (erase-buffer)
-                  (unless (derived-mode-p 'org-mode) (org-mode))
-                  (dolist (r ret)
-                    (let ((k (car r))
-                          (v (cdr r)))
-                      (insert (format "%s:%s\n" k v))))
-                  (switch-to-buffer-other-window (current-buffer)))))
-             ((eq cc ?l)
-              (let ((rec (bibhlp-parse-entry beg end)))
-                (bibhlp-search-in-libhub rec)))
-             ((eq cc ?g)
-              (let ((rec (bibhlp-parse-entry beg end)))
-                (bibhlp-search-in-google-scholar rec)))
-             ((eq cc ?p)
-              (let ((rec (bibhlp-parse-entry beg end)))
-                (bibhlp-search-in-pubmed rec)))
+                            ;; x - CrossRef
+                            ;; c - ParsCit
+                            ))
+            done cc
+            (str (buffer-substring-no-properties beg end)))
+        (unwind-protect
+            (while (not done)
+              (setq cc (read-char-exclusive prompt))
+              (setq done t)
+              (cond
+               ((eq cc ?q) nil)
+               ((eq cc ?r)
+                (bibhlp-make-ris (bibhlp-parse-entry beg end)))
+               (nil ;;(eq cc ?c)
+                (bibhlp-make-ris (parscit-post-reference str)))
+               (nil ;;(eq cc ?x)
+                (let ((ret (bibhlp-get-ids-from-crossref str)))
+                  (with-current-buffer (get-buffer-create "*BIBHLP*")
+                    (erase-buffer)
+                    (unless (derived-mode-p 'org-mode) (org-mode))
+                    (dolist (r ret)
+                      (let ((k (car r))
+                            (v (cdr r)))
+                        (insert (format "%s:%s\n" k v))))
+                    (switch-to-buffer-other-window (current-buffer)))))
+               ((eq cc ?l)
+                (let ((rec (bibhlp-parse-entry beg end)))
+                  (bibhlp-search-in-libhub rec)))
+               ((eq cc ?g)
+                (let ((rec (bibhlp-parse-entry beg end)))
+                  (bibhlp-search-in-google-scholar rec)))
+               ((eq cc ?p)
+                (let ((rec (bibhlp-parse-entry beg end)))
+                  (bibhlp-search-in-pubmed rec)))
 
-             ((eq cc ?a)
-              (let* ((rec (bibhlp-parse-entry beg end))
-                     (str (bibhlp-make-apa rec nil)))
-                (with-current-buffer (get-buffer-create "*BIBHLP*")
-                  (erase-buffer)
-                  (unless (derived-mode-p 'org-mode) (org-mode))
-                  (insert str)
-                  (switch-to-buffer-other-window (current-buffer)))))
-             (t (setq done nil))))
-        (when (and bibhlp-marking-ovl
-                   (overlay-buffer bibhlp-marking-ovl))
-          (delete-overlay bibhlp-marking-ovl))))))
+               ((eq cc ?a)
+                (let* ((rec (bibhlp-parse-entry beg end))
+                       (str (bibhlp-make-apa rec nil)))
+                  (with-current-buffer (get-buffer-create "*BIBHLP*")
+                    (erase-buffer)
+                    (unless (derived-mode-p 'org-mode) (org-mode))
+                    (insert str)
+                    (switch-to-buffer-other-window (current-buffer)))))
+               (t (setq done nil))))
+          (when (and bibhlp-marking-ovl
+                     (overlay-buffer bibhlp-marking-ovl))
+            (delete-overlay bibhlp-marking-ovl)))))))
 
 ;;;###autoload
 (defun bibhlp ()
@@ -1605,8 +1686,9 @@ and it looks like data can be shared/exported to Zotero later."
 LibHub is a library gateway used by some universities to let
 students and staff access scientific journals etc."
   (interactive)
-  (let ((rec (bibhlp-parse-entry nil nil)))
-    (bibhlp-search-in-libhub rec)))
+  (catch 'top-level
+    (let ((rec (bibhlp-parse-entry nil nil)))
+      (bibhlp-search-in-libhub rec))))
 
 
 (provide 'bibhlp)
