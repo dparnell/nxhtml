@@ -507,6 +507,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
   (let (type authors year title publisher journal volume issue firstpage lastpage doi pmid section url abstract mail keywords)
     (goto-char beg)
     (when (re-search-forward "^%\\(.\\) " end t)
+      (goto-char beg)
       (while (re-search-forward "^%\\(.\\) \\(.+\\)" end t)
         (let ((mark (match-string 1))
               (val  (match-string 2)))
@@ -580,6 +581,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
   (let (type authors year title publisher journal volume issue firstpage lastpage doi pmid pmcid section url abstract mail)
     (goto-char beg)
     (when (re-search-forward "^\\(?:AU\\|A1\\)\\(?: +-\\)? " end t)
+      (goto-char beg)
       ;; RefWorks: RT Journal
       (while (re-search-forward "^\\([A-Z0-9]+\\)\\(?: *-  *\\| \\)\\(.*?\\) *$" end t)
         (let ((mark (match-string 1))
