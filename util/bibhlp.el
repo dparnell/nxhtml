@@ -48,7 +48,7 @@
 
 
 (eval-when-compile (require 'mm-url))
-(eval-when-compile (require 'web-vcs)) ;; autoloaded
+;;(eval-when-compile (require 'web-vcs)) ;; autoloaded
 
 (require 'browse-url)
 
@@ -180,7 +180,7 @@ If that fails tro try to parse it like something similar to an
 APA reference."
   (setq beg (or beg (point-min)))
   (setq end (or end (point-max)))
-  (let ((here (point)) type authors mail raw-authors year title
+  (let ((here (point)) type authors raw-authors et-al mail year title
         journal volume issue firstpage lastpage doi isbn url pmid
         pmcid section keywords abstract location publisher
         return-value)
@@ -208,6 +208,7 @@ APA reference."
       ;; fix-me: more to do here, initials
       (setq type        (plist-get return-value :type))
       (setq raw-authors (plist-get return-value :authors))
+      (setq et-al       (plist-get return-value :et-al))
       (setq mail        (plist-get return-value :mail))
       (setq keywords    (plist-get return-value :keywords))
       (setq year        (plist-get return-value :year))
@@ -233,11 +234,11 @@ APA reference."
                 ;; Medline format perhaps:
                 (if (not (string-match "\\(.+\\) +\\(.+\\)" val))
                     (setq auth (list val))
-                  (setq last  (match-string 1 val))
-                  (setq inits (match-string 2 val))
+                  (setq last  (match-string-no-properties 1 val))
+                  (setq inits (match-string-no-properties 2 val))
                   (setq auth (list last nil inits)))
-              (setq last (match-string 1 val))
-              (setq first (match-string 2 val))
+              (setq last (match-string-no-properties 1 val))
+              (setq first (match-string-no-properties 2 val))
               (setq auth (list last first)))
             (setq authors (cons auth authors))))
         (setq authors (reverse authors)))
@@ -248,6 +249,7 @@ APA reference."
        (list
         :type type
         :authors authors
+        :et-al et-al
         :mail mail
         :keywords keywords
         :year year
@@ -315,12 +317,12 @@ users in San Francisco. Clin Infect Dis. 2000;
                                              "\\(?:[-–]\\(?4:[0-9]+\\)\\)?"
                                              )
                                      end t)
-              (setq vo (match-string 1))
-              (setq is (match-string 2))
-              (setq pf (match-string 3))
-              (setq pl (match-string 4))
+              (setq vo (match-string-no-properties 1))
+              (setq is (match-string-no-properties 2))
+              (setq pf (match-string-no-properties 3))
+              (setq pl (match-string-no-properties 4))
               (when (re-search-forward "\bdoi:\\(.*\\)\." end t)
-                (setq doi (match-string 1)))
+                (setq doi (match-string-no-properties 1)))
               (list
                :type 'journal-article ;; fix-me
                :authors auths
@@ -346,7 +348,7 @@ users in San Francisco. Clin Infect Dis. 2000;
                    (*? anything)
                    (? (any ".:"))
                    ))
-        auths beg-yy end-yy yy ti doi isbn pmid pmcid
+        auths et-al beg-yy end-yy yy ti doi isbn pmid pmcid
         type location publisher journal volume issue pf pe)
     ;; Find year in slightly different formats.
     (goto-char beg)
@@ -404,6 +406,17 @@ users in San Francisco. Clin Infect Dis. 2000;
                     (setq initials (match-string-no-properties 3)))
                 (setq lastname (or (match-string-no-properties 2)
                                    (match-string-no-properties 1)))
+                (when (match-string 1)
+                  (let ((ms0 (match-string-no-properties 0)))
+                    (setq et-al (string-match (rx (+ whitespace)
+                                                  "et al"
+                                                  (? ".")
+                                                  (+ whitespace)
+                                                  "(")
+                                              ms0)
+                          )
+                    (when et-al (message "ET AL FOUND"))
+                    ))
                 (setq initials nil))
               (setq initials (delete ?. (append initials nil)))
               (setq initials (concat initials))
@@ -441,41 +454,46 @@ users in San Francisco. Clin Infect Dis. 2000;
         (skip-chars-forward "^.?!" end)
         (setq ti (buffer-substring-no-properties ti-beg (point))))
       (unless (eobp) (forward-char))
+
       (if (re-search-forward (rx (* whitespace)
-                                 (submatch (* (not (any ":"))))
+                                 (submatch (* (not (any ","))))
                                  (* whitespace)
-                                 ":")
+                                 ",")
                              end t)
           (progn
+            (setq type 'journal-article)
+            (setq journal (match-string-no-properties 1))
+            (when (re-search-forward (rx (* whitespace)
+                                         (submatch (+ (any digit)))
+                                         (* whitespace)
+                                         (? "(" (submatch (+ (any digit))) ")")
+                                         (* whitespace)
+                                         ","))
+              (setq volume (match-string-no-properties 1))
+              (setq issue  (match-string-no-properties 2))
+              (when (re-search-forward (rx (* whitespace)
+                                           (submatch (+ (any digit)))
+                                           (* whitespace)
+                                           (? "-" (* whitespace)
+                                              (submatch (+ (any digit))))))
+                (setq pf (match-string-no-properties 1))
+                (setq pe (match-string-no-properties 2)))))
+        (when (re-search-forward (rx (* whitespace)
+                                     (submatch (* (not (any ":"))))
+                                     (* whitespace)
+                                     ":")
+                                 end t)
+          (setq location (match-string-no-properties 1))
+          (when (member location '("doi" "isbn" "pmid" "pmcid"))
+            (setq location nil))
+          (when location
             (setq type 'book)
-            (setq location (match-string 1))
             (when (re-search-forward (rx (* whitespace)
                                          (submatch (* (not (any "."))))
                                          (* whitespace)
                                          ".")
                                      end t)
-              (setq publisher (match-string 1))))
-        (when (re-search-forward (rx (* whitespace)
-                                     (submatch (* (not (any ","))))
-                                     (* whitespace)
-                                     ",")
-                                 end t)
-          (setq journal (match-string 1))
-          (when (re-search-forward (rx (* whitespace)
-                                       (submatch (+ (any digit)))
-                                       (* whitespace)
-                                       (? "(" (submatch (+ (any digit))) ")")
-                                       (* whitespace)
-                                       ","))
-            (setq volume (match-string 1))
-            (setq issue  (match-string 2))
-            (when (re-search-forward (rx (* whitespace)
-                                         (submatch (+ (any digit)))
-                                         (* whitespace)
-                                         (? "-" (* whitespace)
-                                            (submatch (+ (any digit))))))
-              (setq pf (match-string 1))
-              (setq pe (match-string 2))))))
+              (setq publisher (match-string-no-properties 1))))))
       ;; doi etc
       (goto-char beg)
       (when (re-search-forward "\\bdoi:\\([^ \t\n]*\\)" end t)
@@ -493,6 +511,7 @@ users in San Francisco. Clin Infect Dis. 2000;
       (list
        :year yy
        :authors auths
+       :et-al et-al
        :title ti
        :type type
        :location location
@@ -516,15 +535,15 @@ BEG and END defaults to current min and max.
 Return a plist with found info, see `bibhlp-parse-entry'."
   (setq beg (or beg (point-min)))
   (setq end (or end (point-max)))
-  (let (type authors year title location publisher journal volume
+  (let (type authors et-al year title location publisher journal volume
         issue firstpage lastpage doi pmid section url abstract
         mail keywords)
     (goto-char beg)
     (when (re-search-forward "^%\\(.\\) " end t)
       (goto-char beg)
       (while (re-search-forward "^%\\(.\\) \\(.+\\)" end t)
-        (let ((mark (match-string 1))
-              (val  (match-string 2)))
+        (let ((mark (match-string-no-properties 1))
+              (val  (match-string-no-properties 2)))
           (cond
            ((string= mark "0")
             (cond
@@ -540,8 +559,8 @@ Return a plist with found info, see `bibhlp-parse-entry'."
            ((string= mark "P")
             ;; Fix me: not sure of format
             (string-match "\\([0-9]+\\)\\(?:-\\([0-9]\\)\\)?" val)
-            (setq firstpage (match-string 1 val))
-            (setq lastpage (match-string 2 val))
+            (setq firstpage (match-string-no-properties 1 val))
+            (setq lastpage (match-string-no-properties 2 val))
             )
            ((string= mark "@")
             ;; Fix-me: what is it? Looks like page numbers, but much bigger.
@@ -555,11 +574,12 @@ Return a plist with found info, see `bibhlp-parse-entry'."
            )))
       (goto-char (point-min))
       (when (re-search-forward "^ \\([^/].*/.*\\)" nil t)
-        (setq doi (match-string 1)))
+        (setq doi (match-string-no-properties 1)))
       (setq authors (reverse authors))
       (when (or authors title doi pmid)
         (list
          :authors authors
+         :et-al et-al
          :year year
          :title title
          :journal journal
@@ -593,14 +613,16 @@ with some variations.
 Return a plist with found info, see `bibhlp-parse-entry'."
   (setq beg (or beg (point-min)))
   (setq end (or end (point-max)))
-  (let (type authors year title publisher journal volume issue firstpage lastpage doi pmid pmcid section url abstract mail)
+  (let (type authors et-al year title publisher journal volume
+        issue firstpage lastpage doi pmid pmcid section url
+        abstract mail)
     (goto-char beg)
     (when (re-search-forward "^\\(?:AU\\|A1\\)\\(?: +-\\)? " end t)
       (goto-char beg)
       ;; RefWorks: RT Journal
       (while (re-search-forward "^\\([A-Z0-9]+\\)\\(?: *-  *\\| \\)\\(.*?\\) *$" end t)
-        (let ((mark (match-string 1))
-              (val  (match-string 2)))
+        (let ((mark (match-string-no-properties 1))
+              (val  (match-string-no-properties 2)))
           (cond
            ((string= mark "RT") (setq type 'journal-article))
            ((string= mark "TY")
@@ -623,11 +645,11 @@ Return a plist with found info, see `bibhlp-parse-entry'."
            ((string= mark "EP") (setq lastpage val))
            ((string= mark "PG")
             (string-match "\\([0-9]+\\)-\\([0-9]+\\)" val)
-            (setq firstpage (match-string 1 val))
+            (setq firstpage (match-string-no-properties 1 val))
             (setq lastpage
                   (number-to-string (+
                                      (string-to-number firstpage)
-                                     (string-to-number (match-string 2 val))))))
+                                     (string-to-number (match-string-no-properties 2 val))))))
            ((string= mark "PY") (setq year val))
            ((string= mark "DP") (setq year (substring val 0 4)))
            ((string= mark "DEP") (setq year (substring val 0 4)))
@@ -641,14 +663,14 @@ Return a plist with found info, see `bibhlp-parse-entry'."
            ((string= mark "DO") (setq doi val))
            ((string= mark "AID")
             (cond ((string-match " ?\\([^ ]+\\) +\\[doi] *$" val)
-                   (setq doi (match-string 1 val)))))
+                   (setq doi (match-string-no-properties 1 val)))))
            ((string= mark "UR") ;; Some journals
             (cond ((string-match "http://dx.doi.org/\\(10\..*\\)" val)
-                   (setq doi (match-string 1 val)))))
+                   (setq doi (match-string-no-properties 1 val)))))
            ((string= mark "M3")
             ;; M3  - doi: DOI: 10.1016/j.tics.2010.05.002
             (cond ((string-match "doi: +.*? \\(10\..*\\)" val)
-                   (setq doi (match-string 1 val)))
+                   (setq doi (match-string-no-properties 1 val)))
                   (t (setq doi val))))
            ((string= mark "UR") (setq url val))
            ((string= mark "AB") (setq abstract val))
@@ -656,12 +678,12 @@ Return a plist with found info, see `bibhlp-parse-entry'."
            ;; Used by pubmed at least:
            ((string= mark "AID")
             (when (string-match "^10\..* [doi]" val)
-              (setq doi (match-string 1 val))))
+              (setq doi (match-string-no-properties 1 val))))
            ((string= mark "PMID") (setq pmid val))
            ((string= mark "AD")
             (require 'thingatpt)
             (when (string-match thing-at-point-email-regexp val)
-              (setq mail (match-string 1 val))))
+              (setq mail (match-string-no-properties 1 val))))
 
            ;; There are a lot additions in for example pubmed so
            ;; just continue if we do not want it.
@@ -670,6 +692,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
       (when (or authors title doi pmid)
         (list
          :authors authors
+         :et-al et-al
          :year year
          :title title
          :journal journal
@@ -693,7 +716,7 @@ They default to current min and max.
 Return a plist with found info, see `bibhlp-parse-entry'."
   (setq beg (or beg (point-min)))
   (setq end (or end (point-max)))
-  (let (authors year title journal volume issue firstpage lastpage doi pmid section)
+  (let (authors et-al year title journal volume issue firstpage lastpage doi pmid section)
     (unless (and authors title journal volume issue firstpage lastpage doi pmid section)
       (goto-char beg)
       (when (looking-at "[ \t\n]*<")
@@ -711,10 +734,10 @@ Return a plist with found info, see `bibhlp-parse-entry'."
                                ">\\(?3:[^<]*\\)<\\)"))
               )
           (while (re-search-forward rdfa-re end t)
-            (let ((pro (match-string 1))
-                  (val (or (match-string 2)
-                           (match-string 3)))
-                  (dummy (match-string 0)))
+            (let ((pro (match-string-no-properties 1))
+                  (val (or (match-string-no-properties 2)
+                           (match-string-no-properties 3)))
+                  (dummy (match-string-no-properties 0)))
               (cond
                ;; fix-me: mostly guesses below:
                ((when no-authors (string= pro "foaf:name"))
@@ -727,10 +750,10 @@ Return a plist with found info, see `bibhlp-parse-entry'."
                ((string= pro "dc:source")
                 ;; (string-match "\\(.*\\) \\([0-9]\\{4\\}\\) \\([0-9]+\\):\\([0-9]+\\)$" "where 2010 5:87")
                 (when (string-match "\\(.*\\) \\([0-9]\\{4\\}\\) \\([0-9]+\\):\\([0-9]+\\)$" val)
-                  (setq journal   (match-string 1 val))
-                  (setq year      (match-string 2 val))
-                  (setq volume    (match-string 3 val))
-                  (setq firstpage (match-string 4 val))))
+                  (setq journal   (match-string-no-properties 1 val))
+                  (setq year      (match-string-no-properties 2 val))
+                  (setq volume    (match-string-no-properties 3 val))
+                  (setq firstpage (match-string-no-properties 4 val))))
                ((string= pro "dc:identifier") (setq doi val))
                )))))
       (unless (and authors title journal volume issue firstpage lastpage doi pmid section)
@@ -760,10 +783,10 @@ Return a plist with found info, see `bibhlp-parse-entry'."
                      ((string= mn "dc.source")
                       ;; (string-match "\\(.*\\) \\([0-9]\\{4\\}\\) \\([0-9]+\\):\\([0-9]+\\)$" "where 2010 5:87")
                       (when (string-match "\\(.*\\) \\([0-9]\\{4\\}\\) \\([0-9]+\\):\\([0-9]+\\)$" mc)
-                        (setq journal   (match-string 1 mc))
-                        (setq year      (match-string 2 mc))
-                        (setq volume    (match-string 3 mc))
-                        (setq firstpage (match-string 4 mc))))
+                        (setq journal   (match-string-no-properties 1 mc))
+                        (setq year      (match-string-no-properties 2 mc))
+                        (setq volume    (match-string-no-properties 3 mc))
+                        (setq firstpage (match-string-no-properties 4 mc))))
                      ((string= mn "dc.identifier") (setq doi mc))
                      ))))))
           (when no-authors (setq authors (reverse authors)))))
@@ -828,6 +851,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
       (when (or authors title doi pmid)
         (list
          :authors authors
+         :et-al et-al
          :year year
          :title title
          :journal journal
@@ -876,7 +900,6 @@ Return a plist with found info, see `bibhlp-parse-entry'."
       (bibhlp-parse-from-html nil nil))))
 
 ;;; CrossRef
-;; fix-me: stopped working
 
 (defvar bibhlp-crossref-post-url "http://www.crossref.org/SimpleTextQuery/")
 (defvar bibhlp-crossref-form-url "http://www.crossref.org/SimpleTextQuery")
@@ -894,9 +917,22 @@ See also `crossref-form-url'."
   "Your pc:s ip as seen from outside.
 Used by bibhlp-get-ids-from-crossref.
 
-Get it from for example URL `http://www.whatismyipaddress.com/'."
+Get it from for example URL `http://www.showmyip.com/'."
   :type 'string
   :group 'bibhlp)
+
+;; (bibhlp-get-my-ip)
+(defun bibhlp-get-my-ip ()
+  (declare (special url-http-response-status))
+  (message "Getting your external IP address...")
+  (with-current-buffer
+        (url-retrieve-synchronously "http://www.showmyip.com/")
+      (let ((status url-http-response-status))
+        (unless (= 200 status) (error "Error trying to get IP: status=%S, please set `bibhlp-my-ip'" status)))
+      (goto-char (point-min))
+      (unless (re-search-forward "displaycopy('\\([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\\)')" nil t)
+        (error "Could not find external IP address, please set `bibhlp-my-ip'"))
+      (match-string 1)))
 
 (defvar bibhlp-ip2 "172.20.1.78"
   "Used by bibhlp-get-ids-from-crossref.
@@ -904,8 +940,8 @@ No idea what this is for address, DomainTools says it is private??")
 
 ;; (setq y (bibhlp-get-ids-from-crossref crossref-1))
 ;; (setq y (bibhlp-get-ids-from-crossref crossref-2))
-(defun bibhlp-get-ids-from-crossref (ref)
-  "Return an assoc list with DOI, PMID and PMCID for REF.
+(defun bibhlp-get-ids-from-crossref (apa-ref)
+  "Return an assoc list with DOI, PMID and PMCID for APA-REF.
 REF should be an item in a reference lists for something that
 might have an DOI id.
 
@@ -914,12 +950,16 @@ get those identifiers.  You must get an account there \(free for
 non-commercial use) to be able to use it.  Enter the mail address
 you use there in `cross-ref-user-email'.
 
+You may also need set `bibhlp-my-ip' correctly for this to work,
+but it should be fetched automatically.
+
 Note: crossref.org is currently mainly for looking up DOI, but
 will give you PMID and PMCID too if they are available."
   (declare (special url-http-response-status))
-  (when (string-match "\\b[a-zA-Z]+:" ref)
-    (setq ref (substring ref 0 (1- (match-beginning 0)))))
-  ;;(message "ref=%S" ref)
+  (when (string-match "\\b[a-zA-Z]+:" apa-ref)
+    (setq apa-ref (substring apa-ref 0 (1- (match-beginning 0)))))
+  ;;(message "apa-ref=%S" apa-ref)
+  (setq bibhlp-my-ip (or bibhlp-my-ip (bibhlp-get-my-ip)))
   (unless bibhlp-my-ip
     (error "Please set `bibhlp-my-ip' first"))
   (let (status key1 key doi pmid pmcid)
@@ -960,13 +1000,14 @@ will give you PMID and PMCID too if they are available."
       ;; (message "\n\n\nCalling for translation, key=%S\n\n\n" key)
       ;; (message "Form page:\n%s\n\n\n" page)
       )
+    (message "crossref.apa-ref=%S" apa-ref)
     (message "Getting CrossRef.org DOI output ...")
     (let* ((ret (http-post-simple bibhlp-crossref-post-url
                                   (list (cons 'command "Submit")
                                         (cons 'doiField "")
                                         (cons 'email bibhlp-crossref-user-email)
                                         (cons 'emailField "")
-                                        (cons 'freetext ref)
+                                        (cons 'freetext apa-ref)
                                         (cons 'key key)
                                         (cons 'password "")
                                         (cons 'username "")
@@ -1126,7 +1167,7 @@ This is html encoded, but looks like this after decoding:
          (page (nth 0 ret))
          (res  (nth 2 ret))
          str-rec
-         authors title date journal volume issue pages)
+         authors et-al title date journal volume issue pages)
     (if (/= 200 res)
         (message "Could not get rec")
       (setq str-rec
@@ -1135,14 +1176,14 @@ This is html encoded, but looks like this after decoding:
       (message "\n\n\nstr-rec:\n%s\n\n\n" str-rec)
       (setq str-rec (split-string str-rec "[\n]" t))
       (dolist (str str-rec)
-        (when (string-match "<author>\\([^<]*\\)<" str)  (setq authors (cons (match-string 1 str) authors)))
-        (when (string-match "<title>\\([^<]*\\)<" str)   (setq title (match-string 1 str)))
-        (when (string-match "<date>\\([^<]*\\)<" str)    (setq date (match-string 1 str)))
-        (when (string-match "<journal>\\([^<]*\\)<" str) (setq journal (match-string 1 str)))
-        (when (string-match "<volume>\\([^<]*\\)<" str)  (setq volume (match-string 1 str)))
-        (when (string-match "<issue>\\([^<]*\\)<" str)   (setq issue (match-string 1 str)))
-        (when (string-match "<number>\\([^<]*\\)<" str)   (setq issue (match-string 1 str)))
-        (when (string-match "<pages>\\([^<]*\\)<" str)   (setq pages (match-string 1 str)))
+        (when (string-match "<author>\\([^<]*\\)<" str)  (setq authors (cons (match-string-no-properties 1 str) authors)))
+        (when (string-match "<title>\\([^<]*\\)<" str)   (setq title (match-string-no-properties 1 str)))
+        (when (string-match "<date>\\([^<]*\\)<" str)    (setq date (match-string-no-properties 1 str)))
+        (when (string-match "<journal>\\([^<]*\\)<" str) (setq journal (match-string-no-properties 1 str)))
+        (when (string-match "<volume>\\([^<]*\\)<" str)  (setq volume (match-string-no-properties 1 str)))
+        (when (string-match "<issue>\\([^<]*\\)<" str)   (setq issue (match-string-no-properties 1 str)))
+        (when (string-match "<number>\\([^<]*\\)<" str)   (setq issue (match-string-no-properties 1 str)))
+        (when (string-match "<pages>\\([^<]*\\)<" str)   (setq pages (match-string-no-properties 1 str)))
         ))
     ;; Fix-me: try to normalize authors, making it three components: last, first, initials.
     (let ((norm-authors nil))
@@ -1157,9 +1198,9 @@ This is html encoded, but looks like this after decoding:
         (let (last first inits temp)
           (cond
            ((string-match "^\\([^\w]+?\\),? +\\([^\w]+?\\)\\(?:[.]? +\\(.*\\)\\)?$" author)
-            (setq last  (match-string 1 author))
-            (setq first (match-string 2 author))
-            (setq inits (match-string 3 author))
+            (setq last  (match-string-no-properties 1 author))
+            (setq first (match-string-no-properties 2 author))
+            (setq inits (match-string-no-properties 3 author))
             (when inits
               (setq inits (replace-regexp-in-string "[.\w]" "" inits)))
             (setq last  (capitalize last))
@@ -1173,6 +1214,7 @@ This is html encoded, but looks like this after decoding:
     ;;(setq authors (reverse authors))
     (list
      :authors  authors
+     :et-al et-al
      :title  title
      :date  date
      :journal  journal
@@ -1408,7 +1450,8 @@ REC should be a bibliographic record in the format returned from
   "Make an APA style ref from REC."
   (let ((str nil)
         (type (plist-get rec :type)))
-    (let ((authors (plist-get rec :authors)))
+    (let ((authors (plist-get rec :authors))
+          (et-al   (plist-get rec :et-al)))
       (setq str (concat str
                         ;; Fix-me:
                         (let ((auth-strs (mapcar (lambda (a)
@@ -1418,12 +1461,14 @@ REC should be a bibliographic record in the format returned from
                                                           (inits (split-string (concat
                                                                                 (when f (substring f 0 1))
                                                                                 i))))
-                                                     (concat l ", "
+                                                     (concat l (if inits ", " " ")
                                                              (mapconcat 'identity inits ".")
                                                              (when inits (concat ".")))))
                                                  authors)))
                           (if (= 1 (length auth-strs))
-                              (car auth-strs)
+                              (concat
+                               (car auth-strs)
+                               (when et-al "et al."))
                             (concat (mapconcat 'identity (butlast auth-strs) ", ")
                                     (when (cdr authors) (concat " & "
                                                                 (car (last auth-strs))))))))))
@@ -1543,13 +1588,11 @@ Return a list \(BEG END)."
   (let ((prompt (concat "
 What do you want to do with the url at point?
 
-Show:   g - Just show in web browser
-        p - Open in a browser cabable of pdf download
+Show:   p - Open in a browser cabable of pdf download
         f - Show in Firefox (so you can add it to Zotero)
 Find:   e - Find in org mode buffers
         E - Find in org mode files
 Other:  c - Goto CiteULike, add or show
-        d - Get bibliography data from URL (works just sometimes)
 More:   m - More alternatives
 "
                         ))
@@ -1558,7 +1601,7 @@ More:   m - More alternatives
       (setq cc (read-char-exclusive prompt))
       (setq done t)
       (cond
-       ((eq cc ?g)
+       ((eq cc ?b)
         (browse-url url))
        ((eq cc ?e)
         (orgfl-find-links-in-org-buffers url))
@@ -1619,7 +1662,9 @@ Convert:  a - APA style
                (nil ;;(eq cc ?c)
                 (bibhlp-make-ris (parscit-post-reference str)))
                ((eq cc ?x)
-                (let ((ret (bibhlp-get-ids-from-crossref str)))
+                (let* ((rec (bibhlp-parse-entry beg end))
+                       (apa-ref (bibhlp-make-apa rec t))
+                       (ret (bibhlp-get-ids-from-crossref apa-ref)))
                   (with-current-buffer (get-buffer-create "*BIBHLP*")
                     (erase-buffer)
                     (unless (derived-mode-p 'org-mode) (org-mode))
@@ -1627,7 +1672,8 @@ Convert:  a - APA style
                       (let ((k (car r))
                             (v (cdr r)))
                         (insert (format "%s:%s\n" k v))))
-                    (switch-to-buffer-other-window (current-buffer)))))
+                    (switch-to-buffer-other-window (current-buffer)))
+                  (message "Answer from CrossRef shown in *BIBHLP*")))
                ((eq cc ?l)
                 (let ((rec (bibhlp-parse-entry beg end)))
                   (bibhlp-search-in-libhub rec)))
@@ -1640,7 +1686,7 @@ Convert:  a - APA style
 
                ((eq cc ?a)
                 (let* ((rec (bibhlp-parse-entry beg end))
-                       (str (bibhlp-make-apa rec nil)))
+                       (str (bibhlp-make-apa rec t)))
                   (with-current-buffer (get-buffer-create "*BIBHLP*")
                     (erase-buffer)
                     (unless (derived-mode-p 'org-mode) (org-mode))
