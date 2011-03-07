@@ -1156,6 +1156,22 @@ display it."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Misc.
 
+;; (ourcomments-tr "i öa ä e å" "åäö" "aa")
+;;;###autoload
+(defun ourcomments-tr (str from to)
+  "Replace all characters in STR listed in FROM
+with characters listed in TO. If1 FROM is longer
+than TO, then the excess characters are deleted.
+
+\(tr \"abcdefg\" \"abcd\" \"ABC\"\) => \"ABCefg\""
+  (dotimes (i (length from))
+    (let* ((c1 (char-to-string (aref from i)))
+	   (c2 (if (< i (length to))
+                   (char-to-string (aref to i))
+                 "")))
+      (setq str (replace-regexp-in-string c1 c2 str t t))))
+  str)
+
 ;;;###autoload
 (defun ourcomments-is-obsolete (symbol)
   "Return non-nil if SYMBOL is obsolete in current Emacs."

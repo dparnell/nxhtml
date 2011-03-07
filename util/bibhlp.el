@@ -955,9 +955,10 @@ but it should be fetched automatically.
 
 Note: crossref.org is currently mainly for looking up DOI, but
 will give you PMID and PMCID too if they are available."
+  ;; Fix-me: ":" and bottom border, just do as in other cases
   (declare (special url-http-response-status))
-  (when (string-match "\\b[a-zA-Z]+:" apa-ref)
-    (setq apa-ref (substring apa-ref 0 (1- (match-beginning 0)))))
+  ;; (when (string-match "\\b[a-zA-Z]+:" apa-ref)
+  ;;   (setq apa-ref (substring apa-ref 0 (1- (match-beginning 0)))))
   ;;(message "apa-ref=%S" apa-ref)
   (setq bibhlp-my-ip (or bibhlp-my-ip (bibhlp-get-my-ip)))
   (unless bibhlp-my-ip
@@ -1028,6 +1029,13 @@ will give you PMID and PMCID too if they are available."
               (setq pmid (match-string-no-properties 1 page)))
             (when (string-match "\\bPMCid:\\([0-9]+\\)" page)
               (setq pmcid (match-string-no-properties 1 page)))
+            (unless (or doi pmid pmcid)
+              ;;<td class=\\\"resultA\\\" colspan=\\\"4\\\" height=\\\"100%\\\" width=\\\"100%\\\" valign=\\\"top\\\">Crossref Query servlet failed to respond to your query
+              ;; </td>
+              (if (string-match "<td class=\"resultA\"[^>]*>\\([^<]+\\)</td>" page)
+                  (setq doi (match-string-no-properties 1 page))
+                (error "\n\nStatus 200 but Crossref final output was:\n%s" page)
+                ))
             )
         (message "\n\nCrossref final output was:\n%s" page)
         (error "Status=%S when trying to get final result" status)))
@@ -1420,6 +1428,10 @@ soc. \(This reflects my personal choice ... ;-) - just set it to
         (when (string-match-p " " lastname)
           (setq lastname (concat "\"" lastname "\"")))
         (setq txt (concat txt "author:" lastname))))
+    ;; Characters like åäö needs to be changed, otherwise google (at
+    ;; least in Opera) will see them as blanks.
+    (when (fboundp 'ourcomments-tr)
+      (setq txt (ourcomments-tr txt "éüåäö" "euaao")))
     (kill-new txt)
     txt))
 
@@ -1437,6 +1449,7 @@ REC should be a bibliographic record in the format returned from
                 ;; mindfulness+training&num=10&btnG=Search+Scholar&as_epq=&as_oq=&as_eq=&as_occt=any&as_sauthors=Chiesa+Calati+Serretti&as_publication=&as_ylo=&as_yhi=&as_sdt=1.&as_sdtp=on&as_sdtf=&as_sdts=5&hl=en"
                 (browse-url-encode-url (concat txt
                                                bibhlp-google-scholar-extra)))))
+      (message "G url(%d)=%S" (length url) url)
       (bibhlp-browse-url-for-pdf url)
       ;; (if nil
       ;;     (browse-url url)
@@ -1446,7 +1459,11 @@ REC should be a bibliographic record in the format returned from
       ;;   )
       )))
 
-(defun bibhlp-make-apa (rec no-empty)
+(defun bibhlp-make-link-text (rec)
+  ;; Fix-me
+  )
+
+(defun bibhlp-make-apa (rec no-empty links)
   "Make an APA style ref from REC."
   (let ((str nil)
         (type (plist-get rec :type)))
@@ -1480,14 +1497,18 @@ REC should be a bibliographic record in the format returned from
     (when (eq type 'journal-article)
       (let ((jo (plist-get rec :journal)))
         (when (or jo (not no-empty))
-          (setq str (concat str " /" (or jo "NO-JO")
-                            "/,"))))
+          (setq str (concat str
+                            ;;" /"
+                            (or jo "NO-JO")
+                            ;;"/"
+                            ","))))
       (let ((vl (plist-get rec :volume)))
         (when (or vl (not no-empty))
-          (setq str (concat str " " (or vl "NO-VL")))))
-      (let ((is (plist-get rec :issue)))
-        (when (or is (not no-empty))
-          (setq str (concat str "(" (or is "NO-IS") "),")))))
+          (setq str (concat str " " (or vl "NO-VL")))
+          (let ((is (plist-get rec :issue)))
+            (when (or is (not no-empty))
+              (setq str (concat str "(" (or is "NO-IS") ")"))))
+          (setq str (concat str ",")))))
     (unless (eq type 'book)
       (let ((pf (plist-get rec :firstpage)))
         (when (or pf (not no-empty))
@@ -1496,34 +1517,38 @@ REC should be a bibliographic record in the format returned from
             (when pe
               (setq str (concat str "-" pe)))))
         (setq str (concat str "."))))
-    (when (memq type '(book))
-      (let ((location  (or (plist-get rec :location)  "NO-LOCATION"))
-            (publisher (or (plist-get rec :publisher) "NO-PUBLISHER"))
-            (isbn (or (plist-get rec :isbn)
-                      (plist-get rec :isbn13)
-                      (plist-get rec :isbn10))))
-        (setq str (concat str " " location ":" publisher "."))
-        (when isbn
-          (setq str (concat str "\nisbn:" isbn)))))
-    (let ((doi (plist-get rec :doi)))
-      (when doi
-        (setq str (concat str "\ndoi:" doi))))
-    (let ((pmid (plist-get rec :pmid)))
-      (when pmid
-        (setq str (concat str "\npmid:" pmid))))
-    (let ((pmcid (plist-get rec :pmcid)))
-      (when pmcid
-        (setq str (concat str "\npmcid:" pmcid))))
+    (when links
+      ;; fix-me: use function above
+      (when (memq type '(book))
+        (let ((location  (or (plist-get rec :location)  "NO-LOCATION"))
+              (publisher (or (plist-get rec :publisher) "NO-PUBLISHER"))
+              (isbn (or (plist-get rec :isbn)
+                        (plist-get rec :isbn13)
+                        (plist-get rec :isbn10))))
+          (setq str (concat str " " location ":" publisher "."))
+          (when isbn
+            (setq str (concat str "\nisbn:" isbn)))))
+      (let ((doi (plist-get rec :doi)))
+        (when doi
+          (setq str (concat str "\ndoi:" doi))))
+      (let ((pmid (plist-get rec :pmid)))
+        (when pmid
+          (setq str (concat str "\npmid:" pmid))))
+      (let ((pmcid (plist-get rec :pmcid)))
+        (when pmcid
+          (setq str (concat str "\npmcid:" pmcid)))))
     str))
 
 (defvar bibhlp-marking-ovl nil)
 (make-variable-buffer-local 'bibhlp-marking-ovl)
 
-(defun bibhlp-find-reftext-at (point include-doi-etc)
+;; fix-me: return 3 values instead
+;; fix-me: maybe take care of blank lines in some formats.
+(defun bibhlp-find-reftext-at (point)
   "Found boundary for possible bibl ref at POINT.
 If INCLUDE-DOI-ETC then include those \(they are supposed to be at the end).
 
-Return a list \(BEG END)."
+Return a list \(BEG MID END)."
   (let* ((here (point))
          (end (progn
                 (forward-paragraph)
@@ -1532,20 +1557,24 @@ Return a list \(BEG END)."
          (beg (progn
                 (backward-paragraph)
                 (skip-chars-forward " \t\n\f")
-                (point))))
+                (point)))
+         mid)
     (goto-char end)
     (skip-chars-forward " \t\n\f")
     (while (looking-at "^[A-Z0-9]\\{2\\} +-")
       (forward-paragraph)
       (skip-chars-backward " \t\n\f")
       (setq end (point)))
-    (unless t ;; include-doi-etc ;; Fix-me
-      (goto-char beg)
-      (when (re-search-forward "\\(?:\\[\\[\\|https?://\\)" end t)
-        (goto-char (match-beginning 0))
-        (setq end (point))))
+    (goto-char beg)
+    (when (re-search-forward (rx whitespace
+                                 (or "[["
+                                     "http://" "https://" "ftp:" "mailto:"
+                                     "doi:" "pmid:" "pmcid:"))
+                             end t)
+      (goto-char (match-beginning 0))
+      (setq mid (point)))
     (goto-char here)
-    (list beg end)))
+    (list beg mid end)))
 
 
 
@@ -1629,9 +1658,10 @@ More:   m - More alternatives
           (progn
             (setq beg (region-beginning))
             (setq end (region-end)))
-        (let ((be (bibhlp-find-reftext-at (point) nil)))
-          (setq beg (nth 0 be))
-          (setq end (nth 1 be)))
+        (let ((bme (bibhlp-find-reftext-at (point))))
+          (setq beg (nth 0 bme))
+          (setq mid (nth 1 bme))
+          (setq end (nth 2 bme)))
         (if bibhlp-marking-ovl
             (move-overlay bibhlp-marking-ovl beg end)
           (setq bibhlp-marking-ovl (make-overlay beg end))
@@ -1663,7 +1693,7 @@ Convert:  a - APA style
                 (bibhlp-make-ris (parscit-post-reference str)))
                ((eq cc ?x)
                 (let* ((rec (bibhlp-parse-entry beg end))
-                       (apa-ref (bibhlp-make-apa rec t))
+                       (apa-ref (bibhlp-make-apa rec t nil))
                        (ret (bibhlp-get-ids-from-crossref apa-ref)))
                   (with-current-buffer (get-buffer-create "*BIBHLP*")
                     (erase-buffer)
@@ -1673,7 +1703,8 @@ Convert:  a - APA style
                             (v (cdr r)))
                         (insert (format "%s:%s\n" k v))))
                     (switch-to-buffer-other-window (current-buffer)))
-                  (message "Answer from CrossRef shown in *BIBHLP*")))
+                  (message "Answer from CrossRef shown in *BIBHLP*")
+                  ))
                ((eq cc ?l)
                 (let ((rec (bibhlp-parse-entry beg end)))
                   (bibhlp-search-in-libhub rec)))
@@ -1686,7 +1717,7 @@ Convert:  a - APA style
 
                ((eq cc ?a)
                 (let* ((rec (bibhlp-parse-entry beg end))
-                       (str (bibhlp-make-apa rec t)))
+                       (str (bibhlp-make-apa rec t t)))
                   (with-current-buffer (get-buffer-create "*BIBHLP*")
                     (erase-buffer)
                     (unless (derived-mode-p 'org-mode) (org-mode))
