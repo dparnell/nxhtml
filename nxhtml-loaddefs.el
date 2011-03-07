@@ -1662,7 +1662,7 @@ See `as-external-alist' for more information.
 ;;;***
 
 ;;;### (autoloads (bibhlp-search-ref-at-point-in-libhub bibhlp-goto-citeulike
-;;;;;;  bibhlp) "bibhlp" "util/bibhlp.el" (19821 4617))
+;;;;;;  bibhlp) "bibhlp" "util/bibhlp.el" (19828 54511))
 ;;; Generated autoloads from util/bibhlp.el
 (web-autoload-require 'bibhlp 'lp '(nxhtml-download-root-url nil) "util/bibhlp" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3211,12 +3211,13 @@ Search subdirs if RECURSE is 'yes, don't if it is 'no.
 ;;;;;;  narrow-to-comment buffer-narrowed-p describe-command ourcomments-ediff-files
 ;;;;;;  find-emacs-other-file ediff-emacs-other-file ourcomments-insert-date-and-time
 ;;;;;;  describe-timers paste-as-new-buffer ourcomments-is-obsolete
-;;;;;;  ourcomments-copy+paste-set-point better-fringes-mode describe-key-and-map-briefly
-;;;;;;  ourcomments-move-end-of-line ourcomments-move-beginning-of-line
-;;;;;;  major-modep major-or-multi-majorp ourcomments-mark-whole-buffer-or-field
-;;;;;;  fill-dwim unfill-individual-paragraphs unfill-region unfill-paragraph
-;;;;;;  define-toggle-old define-toggle popup-menu-at-point ourcomments-indirect-fun)
-;;;;;;  "ourcomments-util" "util/ourcomments-util.el" (19742 45082))
+;;;;;;  ourcomments-tr ourcomments-copy+paste-set-point better-fringes-mode
+;;;;;;  describe-key-and-map-briefly ourcomments-move-end-of-line
+;;;;;;  ourcomments-move-beginning-of-line major-modep major-or-multi-majorp
+;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
+;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
+;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
+;;;;;;  "util/ourcomments-util.el" (19828 54312))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3365,6 +3366,15 @@ should select a piece of text to copy and then call the command
 `ourcomments-copy+paste'.
 
 \(fn)" t nil)
+
+(nxhtml-autoload 'ourcomments-tr `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Replace all characters in STR listed in FROM
+with characters listed in TO. If1 FROM is longer
+than TO, then the excess characters are deleted.
+
+\(tr \"abcdefg\" \"abcd\" \"ABC\") => \"ABCefg\"
+
+\(fn STR FROM TO)" nil nil)
 
 (nxhtml-autoload 'ourcomments-is-obsolete `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Return non-nil if SYMBOL is obsolete in current Emacs.
@@ -4315,7 +4325,7 @@ See also option `winsav-save-mode' and command
 ;;;;;;  winsize-balance-siblings winsize-fit-frame-width winsize-fitw-and-maxh-frame
 ;;;;;;  winsize-max-frame-height winsize-fit-windows-to-desired-widths
 ;;;;;;  winsize-fit-window-to-buffer winsize-fit-window-to-desired-width
-;;;;;;  resize-windows) "winsize" "util/winsize.el" (19757 3506))
+;;;;;;  resize-windows) "winsize" "util/winsize.el" (19821 38943))
 ;;; Generated autoloads from util/winsize.el
 (web-autoload-require 'winsize 'lp '(nxhtml-download-root-url nil) "util/winsize" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4713,7 +4723,7 @@ accept it or skip it.
 ;;;;;;  "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/org-odt.el" "util/org-panel.el" "util/ourcomments-widgets.el"
 ;;;;;;  "util/powershell-mode.el" "util/rxi.el" "util/tipframe.el"
-;;;;;;  "util/win-alg.el" "web-autoload.el") (19821 5143 312000))
+;;;;;;  "util/win-alg.el" "web-autoload.el") (19828 54671 937000))
 
 ;;;***
 
