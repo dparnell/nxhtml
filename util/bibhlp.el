@@ -54,7 +54,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Zotero in Firefox
+;;; Zotero lives currently in Firefox
 
 (defun bibhlp-open-in-firefox (url)
   "Open URL in Firefox (for Zotero)."
@@ -69,6 +69,7 @@
 (defvar bibhlp-browse-url-for-pdf-exe
   (if (eq system-type 'windows-nt)
       "C:/Program Files/Opera/opera.exe"
+    ;; Fix-me:
     "C:/Program Files/Opera/opera.exe"))
 
 (defun bibhlp-browse-url-for-pdf (url)
@@ -77,11 +78,9 @@
       (browse-url url)
     (if (eq system-type 'windows-nt)
         (w32-shell-execute nil
-                           ;;"C:/Program Files/Opera/opera.exe"
                            bibhlp-browse-url-for-pdf-exe
                            url)
       (start-process "PDF-browser" nil
-                     ;;"C:/Program Files/Opera/opera.exe"
                      bibhlp-browse-url-for-pdf-exe
                      url))))
 
@@ -148,12 +147,13 @@
       (display-buffer (current-buffer))
       )))
 
-(defun bibhlp-parse-entry (beg end)
+(defun bibhlp-parse-entry (beg mid end)
   "Try to parse a bibiographic entry between BEG and END.
 These defaults to (point-min) and (point-max).
+If MID is given this is the position where links begin.
 
 Return as plist with keys
-
+fix-me
      :authors
      :mail
      :year
@@ -165,6 +165,7 @@ Return as plist with keys
      :lastpage
      :doi
      :pmid
+     :pmcid
 
 This is an adhoc routine to be used for convenience from
 interactive functions.  Be aware that it may fail or give wrong
@@ -180,26 +181,34 @@ If that fails tro try to parse it like something similar to an
 APA reference."
   (setq beg (or beg (point-min)))
   (setq end (or end (point-max)))
-  (let ((here (point)) type authors raw-authors et-al mail year title
+  (let ((here (point))
+        (ref-end (or mid end))
+        type authors raw-authors et-al mail year title
         journal volume issue firstpage lastpage doi isbn url pmid
         pmcid section keywords abstract location publisher
-        return-value)
+        return-value
+        links)
     (save-restriction
       (narrow-to-region beg end)
       ;; Find out format
       (goto-char (point-min))
       (setq return-value
             (or
-             (bibhlp-parse-endnote beg end)  ;; .enw, citmgr - EndNote
-             (bibhlp-parse-ris-like beg end) ;; .ris - Reference Manager, MedLine, Zotero etc
-             (bibhlp-parse-from-html beg end)
-             (bibhlp-parse-apa-like beg end)
-             (bibhlp-parse-jama-like beg end)
+             (bibhlp-parse-endnote   beg ref-end) ;; .enw, citmgr - EndNote
+             (bibhlp-parse-ris-like  beg ref-end) ;; .ris - Reference Manager, MedLine, Zotero etc
+             (bibhlp-parse-from-html beg ref-end)
+             (bibhlp-parse-apa-like  beg ref-end)
+             (bibhlp-parse-jama-like beg ref-end)
              (progn
                (message "%s" (propertize "bibhlp: Unrecognized reference format, can't parse it"
                                     'face 'secondary-selection))
                (throw 'top-level nil)
                nil)))
+      (when mid
+        (goto-char mid)
+        (setq links (bibhlp-parse-link-text mid end))
+        (setq return-value (append return-value links nil))
+        )
       (goto-char here)
       ;; thing-at-point pattern may catch <> around mail:
       (when (and mail (eq ?< (string-to-char mail)))
@@ -346,7 +355,7 @@ users in San Francisco. Clin Infect Dis. 2000;
                                  "in press"))
                    ")"
                    (*? anything)
-                   (? (any ".:"))
+                   (? (any ".,:")) ;; Should be "."
                    ))
         auths et-al beg-yy end-yy yy ti doi isbn pmid pmcid
         type location publisher journal volume issue pf pe)
@@ -452,6 +461,7 @@ users in San Francisco. Clin Infect Dis. 2000;
       (skip-chars-forward " \t\n" end)
       (let ((ti-beg (point)))
         (skip-chars-forward "^.?!" end)
+        (unless (>= (point) end) (forward-char 1))
         (setq ti (buffer-substring-no-properties ti-beg (point))))
       (unless (eobp) (forward-char))
 
@@ -541,7 +551,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
     (goto-char beg)
     (when (re-search-forward "^%\\(.\\) " end t)
       (goto-char beg)
-      (while (re-search-forward "^%\\(.\\) \\(.+\\)" end t)
+      (while (re-search-forward "^%\\(.\\) \\(.+?\\) *$" end t)
         (let ((mark (match-string-no-properties 1))
               (val  (match-string-no-properties 2)))
           (cond
@@ -963,7 +973,7 @@ will give you PMID and PMCID too if they are available."
   (setq bibhlp-my-ip (or bibhlp-my-ip (bibhlp-get-my-ip)))
   (unless bibhlp-my-ip
     (error "Please set `bibhlp-my-ip' first"))
-  (let (status key1 key doi pmid pmcid)
+  (let (status key1 key doi pmid pmcid other-result)
     (message "Getting CrossRef.org fake input form...")
     (with-current-buffer
         (url-retrieve-synchronously bibhlp-crossref-post-url)
@@ -1032,13 +1042,17 @@ will give you PMID and PMCID too if they are available."
             (unless (or doi pmid pmcid)
               ;;<td class=\\\"resultA\\\" colspan=\\\"4\\\" height=\\\"100%\\\" width=\\\"100%\\\" valign=\\\"top\\\">Crossref Query servlet failed to respond to your query
               ;; </td>
-              (if (string-match "<td class=\"resultA\"[^>]*>\\([^<]+\\)</td>" page)
-                  (setq doi (match-string-no-properties 1 page))
-                (error "\n\nStatus 200 but Crossref final output was:\n%s" page)
+              (if (string-match "<td class=\"result[AB]\"[^>]*>\\(\\(?:.\\|\n\\)+?\\)</td>" page)
+                  (setq other-result (list 'org-mode
+                                           (concat (propertize "Crossref returned no ids, just this:\n\n" 'font-lock-face 'font-lock-warning-face)
+                                                   (match-string-no-properties 1 page))))
+                (setq other-result (list 'html-mode
+                                         (concat "<!-- Status 200 but Crossref final output was: -->\n\n" page)))
                 ))
             )
-        (message "\n\nCrossref final output was:\n%s" page)
-        (error "Status=%S when trying to get final result" status)))
+        (setq other-result
+              (list 'html-mode
+                    (format "<!-- Crossref return status=%S and final output was: -->\n\n%s" status page)))))
     (let (ret)
       (when pmcid
         (push (cons 'pmcid pmcid) ret))
@@ -1046,6 +1060,8 @@ will give you PMID and PMCID too if they are available."
         (push (cons 'pmid pmid) ret))
       (when doi
         (push (cons 'doi doi) ret))
+      (when other-result
+        (push (cons 'other-result other-result) ret))
       ret)))
 
 
@@ -1261,14 +1277,7 @@ REC should be a bibliographic record in the format returned from
                 "http://www.ncbi.nlm.nih.gov/pubmed?term="
                 ;; http://www.ncbi.nlm.nih.gov/pubmed?term=Biological[title]%20AND%20clinical[title]%20AND%20ethical[title]%20AND%20advances[title]
                 (browse-url-encode-url txt))))
-      (bibhlp-browse-url-for-pdf url)
-      ;; (if nil
-      ;;     (browse-url url)
-      ;;   (if (eq system-type 'windows-nt)
-      ;;       (w32-shell-execute nil "C:/Program Files/Opera/opera.exe" url)
-      ;;     (start-process "Opera" nil "C:/Program Files/Opera/opera.exe" url))
-      ;;   )
-      )))
+      (bibhlp-browse-url-for-pdf url))))
 
 ;; (bibhlp-pmid2pmcid "19877500" "pubmed")
 ;; (bibhlp-pmid2pmcid "2804881" "pmc")
@@ -1371,14 +1380,7 @@ You must customize `bibhlp-libhub-search-url' to use this
                 ;; "http://libhub.sempertool.dk.ludwig.lub.lu.se/libhub?func=search&libhubSearch=1&query="
                 bibhlp-libhub-search-url
                 (browse-url-encode-url txt))))
-      (bibhlp-browse-url-for-pdf url)
-      ;; (if nil
-      ;;     (browse-url url)
-      ;;   (if (eq system-type 'windows-nt)
-      ;;       (w32-shell-execute nil "C:/Program Files/Opera/opera.exe" url)
-      ;;     (start-process "Opera" nil "C:/Program Files/Opera/opera.exe" url))
-      ;;   )
-      )))
+      (bibhlp-browse-url-for-pdf url))))
 
 ;;; Google Scholar
 
@@ -1428,8 +1430,9 @@ soc. \(This reflects my personal choice ... ;-) - just set it to
         (when (string-match-p " " lastname)
           (setq lastname (concat "\"" lastname "\"")))
         (setq txt (concat txt "author:" lastname))))
-    ;; Characters like åäö needs to be changed, otherwise google (at
-    ;; least in Opera) will see them as blanks.
+    ;; Characters like åäö needs to be changed to some ascii char,
+    ;; otherwise google (at least in Opera) will see them as blanks.
+    ;; Google will then handle it correctly.
     (when (fboundp 'ourcomments-tr)
       (setq txt (ourcomments-tr txt "éüåäö" "euaao")))
     (kill-new txt)
@@ -1450,14 +1453,29 @@ REC should be a bibliographic record in the format returned from
                 (browse-url-encode-url (concat txt
                                                bibhlp-google-scholar-extra)))))
       (message "G url(%d)=%S" (length url) url)
-      (bibhlp-browse-url-for-pdf url)
-      ;; (if nil
-      ;;     (browse-url url)
-      ;;   (if (eq system-type 'windows-nt)
-      ;;       (w32-shell-execute nil "C:/Program Files/Opera/opera.exe" url)
-      ;;     (start-process "Opera" nil "C:/Program Files/Opera/opera.exe" url))
-      ;;   )
-      )))
+      (bibhlp-browse-url-for-pdf url))))
+
+(defun bibhlp-parse-link-text (beg end)
+  ;; Fix-me
+  (let ((here (point))
+        (re-link (rx whitespace
+                     (submatch
+                      (or "doi:" "pmid:" "pmcid:")
+                      (+ (not (any whitespace))))))
+        links doi pmid pmcid)
+    (goto-char beg)
+    (while (re-search-forward re-link end t)
+      (push (match-string-no-properties 1) links))
+    (goto-char here)
+    (dolist (lnk links)
+      (cond
+       ((string-match "^doi:" lnk) (setq doi lnk))
+       ((string-match "^pmid:" lnk) (setq pmid lnk))
+       ((string-match "^pmcid:" lnk) (setq pmcid lnk))
+       ))
+    (list :doi doi
+          :pmid pmid
+          :pmcid pmcid)))
 
 (defun bibhlp-make-link-text (rec)
   ;; Fix-me
@@ -1478,7 +1496,7 @@ REC should be a bibliographic record in the format returned from
                                                           (inits (split-string (concat
                                                                                 (when f (substring f 0 1))
                                                                                 i))))
-                                                     (concat l (if inits ", " " ")
+                                                     (concat l (if inits ", " "")
                                                              (mapconcat 'identity inits ".")
                                                              (when inits (concat ".")))))
                                                  authors)))
@@ -1493,12 +1511,17 @@ REC should be a bibliographic record in the format returned from
                       " (" (or (plist-get rec :year) "n.d.") ")."))
     (let ((ti   (plist-get rec :title)))
       (when (or ti (not no-empty))
-        (setq str (concat str " " (or ti "NO-TI") "."))))
+        (setq str (concat str " " (or ti "NO-TI")))
+        (unless (memq (aref str (1- (length str)))
+                      (append ".!?" nil))
+          (setq str (concat str ".")))
+        ))
     (when (eq type 'journal-article)
       (let ((jo (plist-get rec :journal)))
         (when (or jo (not no-empty))
           (setq str (concat str
                             ;;" /"
+                            " "
                             (or jo "NO-JO")
                             ;;"/"
                             ","))))
@@ -1653,7 +1676,7 @@ More:   m - More alternatives
 
 (defun bibhlp-alternatives-for-entry ()
   (catch 'top-level
-    (let (beg end)
+    (let (beg mid end)
       (if mark-active
           (progn
             (setq beg (region-beginning))
@@ -1688,35 +1711,50 @@ Convert:  a - APA style
               (cond
                ((eq cc ?q) nil)
                ((eq cc ?r)
-                (bibhlp-make-ris (bibhlp-parse-entry beg end)))
+                (bibhlp-make-ris (bibhlp-parse-entry beg mid end)))
                (nil ;;(eq cc ?c)
                 (bibhlp-make-ris (parscit-post-reference str)))
                ((eq cc ?x)
-                (let* ((rec (bibhlp-parse-entry beg end))
+                (let* ((rec (bibhlp-parse-entry beg mid end))
                        (apa-ref (bibhlp-make-apa rec t nil))
-                       (ret (bibhlp-get-ids-from-crossref apa-ref)))
-                  (with-current-buffer (get-buffer-create "*BIBHLP*")
-                    (erase-buffer)
-                    (unless (derived-mode-p 'org-mode) (org-mode))
+                       (ret (bibhlp-get-ids-from-crossref apa-ref))
+                       (other-result (assoc 'other-result ret)))
+                  (if other-result
+                      (with-current-buffer (get-buffer-create "*BIBHLP*")
+                        (erase-buffer)
+                        (if other-result
+                            (let* ((mode   (nth 1 other-result))
+                                   (msg    (nth 2 other-result)))
+                              (unless (derived-mode-p mode) (funcall mode))
+                              (insert msg))
+                          (unless (derived-mode-p 'org-mode) (org-mode))
+                          (dolist (r ret)
+                            (let ((k (car r))
+                                  (v (cdr r)))
+                              (insert (format "%s:%s\n" k v)))))
+                        (switch-to-buffer-other-window (current-buffer))
+                        (message "Answer from CrossRef shown in *BIBHLP*"))
+                    (goto-char (or mid end))
+                    (insert "\n")
                     (dolist (r ret)
                       (let ((k (car r))
                             (v (cdr r)))
                         (insert (format "%s:%s\n" k v))))
-                    (switch-to-buffer-other-window (current-buffer)))
-                  (message "Answer from CrossRef shown in *BIBHLP*")
-                  ))
+                    (when mid (insert "--- old values:\n"))
+                    (message "Inserted answer from CrossRef")
+                    )))
                ((eq cc ?l)
-                (let ((rec (bibhlp-parse-entry beg end)))
+                (let ((rec (bibhlp-parse-entry beg mid end)))
                   (bibhlp-search-in-libhub rec)))
                ((eq cc ?g)
-                (let ((rec (bibhlp-parse-entry beg end)))
+                (let ((rec (bibhlp-parse-entry beg mid end)))
                   (bibhlp-search-in-google-scholar rec)))
                ((eq cc ?p)
-                (let ((rec (bibhlp-parse-entry beg end)))
+                (let ((rec (bibhlp-parse-entry beg mid end)))
                   (bibhlp-search-in-pubmed rec)))
 
                ((eq cc ?a)
-                (let* ((rec (bibhlp-parse-entry beg end))
+                (let* ((rec (bibhlp-parse-entry beg mid end))
                        (str (bibhlp-make-apa rec t t)))
                   (with-current-buffer (get-buffer-create "*BIBHLP*")
                     (erase-buffer)
@@ -1787,15 +1825,15 @@ and it looks like data can be shared/exported to Zotero later."
                           article-url)))
     (browse-url citeurl)))
 
-;;;###autoload
-(defun bibhlp-search-ref-at-point-in-libhub ()
-  "Try to find bibliographic at point in LibHub.
-LibHub is a library gateway used by some universities to let
-students and staff access scientific journals etc."
-  (interactive)
-  (catch 'top-level
-    (let ((rec (bibhlp-parse-entry nil nil)))
-      (bibhlp-search-in-libhub rec))))
+;; ;;;###autoload
+;; (defun bibhlp-search-ref-at-point-in-libhub ()
+;;   "Try to find bibliographic at point in LibHub.
+;; LibHub is a library gateway used by some universities to let
+;; students and staff access scientific journals etc."
+;;   (interactive)
+;;   (catch 'top-level
+;;     (let ((rec (bibhlp-parse-entry nil nil nil)))
+;;       (bibhlp-search-in-libhub rec))))
 
 
 (provide 'bibhlp)
