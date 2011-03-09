@@ -370,7 +370,6 @@ users in San Francisco. Clin Infect Dis. 2000;
       (setq beg-yy end)
       (setq end-yy end))
     (when yy
-      (goto-char beg)
       ;; Get authors. Formats we try to cover are:
       ;;   Saylam, C., Ucerler, H., Kitis, O., Ozand, E. and Gonul, A.S. (2006)
       ;;   Cooper P, Murray L, Wilson A, Romaniuk H (2003).
@@ -402,6 +401,8 @@ users in San Francisco. Clin Infect Dis. 2000;
                                          "("))))))
             (case-fold-search nil)
             )
+        (goto-char beg)
+        (goto-char beg)
         (while ( < (point) beg-yy)
           (let ((b1 (point))
                 e1
@@ -438,21 +439,6 @@ users in San Francisco. Clin Infect Dis. 2000;
       ;;   Microglia act: a (R)-[11C]PK11195 study. Biol Psych, 64(9), 820-822.
       ;;
       ;; All possibly followed by doi:, pmcid:, pmid: etc.
-
-      ;; (let ((re-ti-jo-vo-is-pg "[0-9][,:]\w*[0-9]+\\(?:-[0-9]+\\).?$")
-      ;;       (re-inds "\b[^:]+:[^\w]+\w+"))
-      ;;   (unless (eq beg-yy end)
-      ;;     (goto-char beg-yy)
-      ;;     (goto-char (re-search-forward ")[.]?" end t))
-      ;;     (skip-syntax-forward " ")
-      ;;     (let ((b1 (point))
-      ;;           e1)
-      ;;       (re-search-forward "[.?!:]" end t)
-      ;;       (when (> (point) b1)
-      ;;         (setq e1 (1- (point)))
-      ;;         (setq ti (buffer-substring-no-properties b1 e1))
-      ;;         (setq ti (replace-regexp-in-string "[ \t\n]+" " " ti))
-      ;;         ))))
       )
     ;; Sanity check
     (unless auths (setq yy nil))
@@ -466,21 +452,22 @@ users in San Francisco. Clin Infect Dis. 2000;
       (unless (eobp) (forward-char))
 
       (if (re-search-forward (rx (* whitespace)
-                                 (submatch (* (not (any ","))))
+                                 (submatch (*? anything))
                                  (* whitespace)
-                                 ",")
+                                 ","
+                                 (* whitespace)
+                                 (submatch (+ digit))
+                                 )
                              end t)
           (progn
             (setq type 'journal-article)
             (setq journal (match-string-no-properties 1))
+            (setq volume  (match-string-no-properties 2))
             (when (re-search-forward (rx (* whitespace)
-                                         (submatch (+ (any digit)))
-                                         (* whitespace)
                                          (? "(" (submatch (+ (any digit))) ")")
                                          (* whitespace)
                                          ","))
-              (setq volume (match-string-no-properties 1))
-              (setq issue  (match-string-no-properties 2))
+              (setq issue  (match-string-no-properties 1))
               (when (re-search-forward (rx (* whitespace)
                                            (submatch (+ (any digit)))
                                            (* whitespace)
@@ -1496,7 +1483,8 @@ REC should be a bibliographic record in the format returned from
                                                           (inits (split-string (concat
                                                                                 (when f (substring f 0 1))
                                                                                 i))))
-                                                     (concat l (if inits ", " "")
+                                                     (concat l
+                                                             (when inits ", ")
                                                              (mapconcat 'identity inits ".")
                                                              (when inits (concat ".")))))
                                                  authors)))
