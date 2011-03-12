@@ -886,7 +886,7 @@ This is used after inspecting downloaded elisp files."
                    (funcall kf-desc 'web-vcs-log-edit)
                    "\n"))
           (message "")
-          (let ((msg-win (get-buffer-window-list "*Messages*" nil nil)))
+          (let ((msg-win (car (get-buffer-window-list "*Messages*" nil nil))))
             (when msg-win (set-window-start msg-win ws)))
           (while (not proceed)
             (condition-case err
