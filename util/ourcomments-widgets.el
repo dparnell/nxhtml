@@ -66,6 +66,7 @@
   :value 'ignore
   :tag "Command")
 
+;;;###autoload
 (define-widget 'major-mode-function 'function
   "A major mode lisp function."
   :complete-function (lambda ()

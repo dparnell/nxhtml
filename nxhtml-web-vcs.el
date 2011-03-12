@@ -329,7 +329,7 @@ For more information about auto download of nXhtml files see
         (error "Aborted by user"))))
   (make-directory dl-dir t)
   (let ((msg (concat "Downloading nXhtml through Launchpad web interface will take rather long\n"
-                     "time (5-15 minutes) so you may want to do it in a separate Emacs session.\n\n"
+                     "time (10-25 minutes) so you may want to do it in a separate Emacs session.\n\n"
                      "Do you want to download using this Emacs session? "
                      )))
     (if (not (y-or-n-p msg))
