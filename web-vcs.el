@@ -869,8 +869,7 @@ This is used after inspecting downloaded elisp files."
           (goto-char (point-max)))
         (let ((proceed nil)
               (web-autoload-active-file-sub-url file-sub-url) ;; Dyn var, active during file download check
-              (ws (with-current-buffer "*Messages*" (point-marker)))
-              (msg-win (get-buffer-window-list "*Messages*" nil nil)))
+              (ws (with-current-buffer "*Messages*" (point-marker))))
           (web-vcs-paranoid-state-mode 1)
           (web-vcs-message-with-face
            'secondary-selection
@@ -887,7 +886,8 @@ This is used after inspecting downloaded elisp files."
                    (funcall kf-desc 'web-vcs-log-edit)
                    "\n"))
           (message "")
-          (when msg-win (set-window-start msg-win ws))
+          (let ((msg-win (get-buffer-window-list "*Messages*" nil nil)))
+            (when msg-win (set-window-start msg-win ws)))
           (while (not proceed)
             (condition-case err
                 (when (eq 'web-autoload-stop
