@@ -3,7 +3,7 @@
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2010-05-18 Tue
 ;; Version:
-;; Last-Updated:
+;; Last-Updated: x
 ;; URL:
 ;; Keywords:
 ;; Compatibility:

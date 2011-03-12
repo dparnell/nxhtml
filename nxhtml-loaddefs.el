@@ -1394,7 +1394,7 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 ;;;### (autoloads (web-vcs-investigate-elisp-file web-vcs-url-copy-file
 ;;;;;;  web-vcs-url-retrieve-synch web-vcs-byte-compile-file web-vcs-message-with-face
 ;;;;;;  web-vcs-get-files-from-root web-vcs-log-edit web-vcs-default-download-directory)
-;;;;;;  "../web-vcs" "web-vcs.el" (19744 13062))
+;;;;;;  "../web-vcs" "web-vcs.el" (19835 49478))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1661,8 +1661,8 @@ See `as-external-alist' for more information.
 
 ;;;***
 
-;;;### (autoloads (bibhlp-search-ref-at-point-in-libhub bibhlp-goto-citeulike
-;;;;;;  bibhlp) "bibhlp" "util/bibhlp.el" (19828 54511))
+;;;### (autoloads (bibhlp-goto-citeulike bibhlp) "bibhlp" "util/bibhlp.el"
+;;;;;;  (19832 5872))
 ;;; Generated autoloads from util/bibhlp.el
 (web-autoload-require 'bibhlp 'lp '(nxhtml-download-root-url nil) "util/bibhlp" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1701,13 +1701,6 @@ and with close source.  However you can have your data private
 and it looks like data can be shared/exported to Zotero later.
 
 \(fn ARTICLE-URL)" t nil)
-
-(nxhtml-autoload 'bibhlp-search-ref-at-point-in-libhub `(lp '(nxhtml-download-root-url nil) "util/bibhlp" nxhtml-install-dir) "\
-Try to find bibliographic at point in LibHub.
-LibHub is a library gateway used by some universities to let
-students and staff access scientific journals etc.
-
-\(fn)" t nil)
 
 ;;;***
 
@@ -2889,15 +2882,16 @@ Get the mirror rec.
 ;;;### (autoloads (amrita-mumamo-mode python-rst-mumamo-mode latex-haskell-mumamo-mode
 ;;;;;;  latex-clojure-mumamo-mode markdown-html-mumamo-mode xsl-sgml-mumamo-mode
 ;;;;;;  xsl-nxml-mumamo-mode mako-html-mumamo-mode org-mumamo-mode
-;;;;;;  asp-html-mumamo-mode noweb2-mumamo-mode csound-sgml-mumamo-mode
-;;;;;;  laszlo-nxml-mumamo-mode metapost-mumamo-mode ruby-heredoc-mumamo-mode
-;;;;;;  python-heredoc-mumamo-mode cperl-heredoc-mumamo-mode perl-heredoc-mumamo-mode
-;;;;;;  php-heredoc-mumamo-mode sh-heredoc-mumamo-mode eruby-javascript-mumamo-mode
-;;;;;;  eruby-html-mumamo-mode jsp-html-mumamo-mode gsp-html-mumamo-mode
-;;;;;;  ssjs-html-mumamo-mode smarty-html-mumamo-mode mjt-html-mumamo-mode
-;;;;;;  genshi-html-mumamo-mode django-html-mumamo-mode embperl-html-mumamo-mode
-;;;;;;  mason-html-mumamo-mode nxml-mumamo-mode html-mumamo-mode)
-;;;;;;  "mumamo-fun" "util/mumamo-fun.el" (19721 9824))
+;;;;;;  asp-html-mumamo-mode tt-html-mumamo-mode noweb2-mumamo-mode
+;;;;;;  csound-sgml-mumamo-mode laszlo-nxml-mumamo-mode metapost-mumamo-mode
+;;;;;;  ruby-heredoc-mumamo-mode python-heredoc-mumamo-mode cperl-heredoc-mumamo-mode
+;;;;;;  perl-heredoc-mumamo-mode php-heredoc-mumamo-mode sh-heredoc-mumamo-mode
+;;;;;;  eruby-javascript-mumamo-mode eruby-html-mumamo-mode jsp-html-mumamo-mode
+;;;;;;  gsp-html-mumamo-mode ssjs-html-mumamo-mode smarty-html-mumamo-mode
+;;;;;;  mjt-html-mumamo-mode genshi-html-mumamo-mode django-html-mumamo-mode
+;;;;;;  embperl-html-mumamo-mode mason-html-mumamo-mode nxml-mumamo-mode
+;;;;;;  html-mumamo-mode) "mumamo-fun" "util/mumamo-fun.el" (19835
+;;;;;;  26909))
 ;;; Generated autoloads from util/mumamo-fun.el
 (web-autoload-require 'mumamo-fun 'lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2999,6 +2993,12 @@ Turn on mutiple major modes for CSound orc/sco Modes." t)
 
 (nxhtml-autoload 'noweb2-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Multi major mode for noweb files." t)
+
+(nxhtml-autoload 'tt-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
+Turn on multiple major modes for TT files with main mode `nxhtml-mode'.
+TT = Template-Toolkit.
+
+This also covers inlined style and javascript." t)
 
 (nxhtml-autoload 'asp-html-mumamo-mode `(lp '(nxhtml-download-root-url nil) "util/mumamo-fun" nxhtml-install-dir) "\
 Turn on multiple major modes for ASP with main mode `html-mode'.
@@ -3705,6 +3705,17 @@ an export there to html/javascript format.
 
 ;;;***
 
+;;;### (autoloads nil "ourcomments-widgets" "util/ourcomments-widgets.el"
+;;;;;;  (19835 50770))
+;;; Generated autoloads from util/ourcomments-widgets.el
+(web-autoload-require 'ourcomments-widgets 'lp '(nxhtml-download-root-url nil) "util/ourcomments-widgets" nxhtml-install-dir 'nxhtml-byte-compile-file)
+
+
+(define-widget 'major-mode-function 'function "\
+A major mode lisp function." :complete-function (lambda nil (interactive) (lisp-complete-symbol (quote major-or-multi-majorp))) :prompt-match (quote major-or-multi-majorp) :prompt-history (quote widget-function-prompt-value-history) :match-alternatives (quote (major-or-multi-majorp)) :validate (lambda (widget) (unless (major-or-multi-majorp (widget-value widget)) (widget-put widget :error (format "Invalid function: %S" (widget-value widget))) widget)) :value (quote fundamental-mode) :tag "Major mode function")
+
+;;;***
+
 ;;;### (autoloads (pause-start-in-new-emacs pause-mode pause) "pause"
 ;;;;;;  "util/pause.el" (19765 54962))
 ;;; Generated autoloads from util/pause.el
@@ -4213,7 +4224,7 @@ Display vertical line mode as globally.
 ;;;***
 
 ;;;### (autoloads (web-vcs-linkpatt-mode) "web-vcs-linkpatt" "util/web-vcs-linkpatt.el"
-;;;;;;  (19796 15422))
+;;;;;;  (19835 49540))
 ;;; Generated autoloads from util/web-vcs-linkpatt.el
 (web-autoload-require 'web-vcs-linkpatt 'lp '(nxhtml-download-root-url nil) "util/web-vcs-linkpatt" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4721,16 +4732,16 @@ accept it or skip it.
 ;;;;;;  "util/ack.el" "util/appmenu-fold.el" "util/backtr.el" "util/css-simple-completion.el"
 ;;;;;;  "util/custsets.el" "util/ecb-batch-compile.el" "util/fupd.el"
 ;;;;;;  "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
-;;;;;;  "util/org-odt.el" "util/org-panel.el" "util/ourcomments-widgets.el"
-;;;;;;  "util/powershell-mode.el" "util/rxi.el" "util/tipframe.el"
-;;;;;;  "util/win-alg.el" "web-autoload.el") (19828 54671 937000))
+;;;;;;  "util/org-odt.el" "util/org-panel.el" "util/powershell-mode.el"
+;;;;;;  "util/rxi.el" "util/tipframe.el" "util/win-alg.el" "web-autoload.el")
+;;;;;;  (19835 50904 578000))
 
 ;;;***
 
 ;;;### (autoloads (nxhtml-byte-recompile-file nxhtml-byte-compile-file
 ;;;;;;  nxhtml-get-missing-files nxhtml-update-existing-files nxhtml-setup-download-all
 ;;;;;;  nxhtml-setup-auto-download nxhtml-setup-install) "../nxhtml-web-vcs"
-;;;;;;  "nxhtml-web-vcs.el" (19734 7808))
+;;;;;;  "nxhtml-web-vcs.el" (19835 50096))
 ;;; Generated autoloads from nxhtml-web-vcs.el
 (web-autoload-require 'nxhtml-web-vcs 'lp '(nxhtml-download-root-url nil) "nxhtml-web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 

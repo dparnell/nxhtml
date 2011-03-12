@@ -162,9 +162,11 @@
   ;;   (nxhtml-setup-auto-download nxhtml-install-dir))
 
   (unless (featurep 'ourcomments-widgets)
-    (nxhtml-autostart-trace "... loading web-autoload")
-    (load (expand-file-name "ourcomments-widgets" util-dir))
-    (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start)))
+    (nxhtml-autostart-trace "... trying to load ourcomments-widgets")
+    (let ((ow-file (expand-file-name "ourcomments-widgets" util-dir)))
+      (when (file-exists-p ow-file)
+        (load ow-file)
+        (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start)))))
 
   (unless (featurep 'web-autoload)
     (nxhtml-autostart-trace "... loading web-autoload")

@@ -2,15 +2,19 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2009-11-26 Thu
-(defconst web-vcs:version "0.61") ;; Version:
-;; Last-Updated: 2009-12-11 Fri
+(defconst web-vcs:version "0.62") ;; Version:
+;; Last-Updated: 2011-03-12 Sat
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   None
+;;   `advice', `advice-preload', `backquote', `bytecomp', `cus-edit',
+;;   `cus-face', `cus-load', `cus-start', `help-fns', `ietf-drums',
+;;   `mail-parse', `mail-prsvr', `mm-bodies', `mm-decode',
+;;   `mm-encode', `mm-util', `rfc2045', `rfc2047', `rfc2231',
+;;   `timer', `web-autoload', `wid-edit'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;

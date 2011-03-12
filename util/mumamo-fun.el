@@ -449,6 +449,7 @@ See `mumamo-heredoc-modes' for how to specify heredoc major modes."
 ;;       (append '(("\\.tt2?$" . tt-mode))  auto-mode-alist ))
 ;;(require 'tt-mode)
 
+;;;###autoload
 (define-mumamo-multi-major-mode tt-html-mumamo-mode
   "Turn on multiple major modes for TT files with main mode `nxhtml-mode'.
 TT = Template-Toolkit.

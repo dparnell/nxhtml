@@ -375,6 +375,8 @@ users in San Francisco. Clin Infect Dis. 2000;
       ;;   Cooper P, Murray L, Wilson A, Romaniuk H (2003).
       ;;   Glezer I, Simard AR, Rivest S (2007):
       ;;   Glezer, Simard, Rivest (2007):
+      ;;
+      ;; fix-me: rewrite author part as a state machine. The model below fails on "& karlsson, hans (2000)" etc.
       (let (;;(re-author "\\([^,]+\\),?[\w]+\\([^,\w]+\\),")
             ;;(re-author "[ \t\n]*\\([^,]*\\),[ \t\n]*\\([^,]*\\),")
             (re-author (rx (* whitespace)
@@ -637,7 +639,10 @@ Return a plist with found info, see `bibhlp-parse-entry'."
            ((string= mark "VI") (setq volume val))
            ((string= mark "VO") (setq volume val))
            ((string= mark "IS") (setq issue val))
-           ((string= mark "IP") (setq issue val))
+           ((string= mark "IP")
+            ;; Sometimes it is something like "4 Pt 1" whatever that means.
+            (string-match "^\\([0-9]+\\)" val)
+            (setq issue (match-string-no-properties 1 val)))
            ((string= mark "SP") (setq firstpage val))
            ((string= mark "EP") (setq lastpage val))
            ((string= mark "PG")
