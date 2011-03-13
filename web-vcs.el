@@ -531,15 +531,19 @@ If TEST is non-nil then do not download, just list the files"
     (unless temp-list-buf
       ;;(setq temp-list-buf (generate-new-buffer "web-wcs-folder"))
       ;;(web-vcs-url-copy-file-and-check page-url temp-list-file nil)
-      (setq folder-res (web-vcs-url-retrieve-synch page-url))
-      ;; (with-current-buffer temp-list-buf
-      ;;   (insert-file-contents temp-list-file))
-      (unless (memq (cdr folder-res) '(200 201))
-        (web-vcs-message-with-face 'web-vcs-red "Could not get %S" page-url)
-        (web-vcs-display-messages t)
-        (when (y-or-n-p (format "Could not get %S, visit page to see what is wrong? " page-url))
-          (browse-url page-url))
-        (throw 'command-level nil)))
+      (let ((ready nil))
+        (while (not ready)
+          (setq folder-res (web-vcs-url-retrieve-synch page-url))
+          ;; (with-current-buffer temp-list-buf
+          ;;   (insert-file-contents temp-list-file))
+          (if (memq (cdr folder-res) '(200 201))
+              (setq ready t)
+            (web-vcs-message-with-face 'web-vcs-red "Could not get %S" page-url)
+            (web-vcs-display-messages t)
+            (when (y-or-n-p (format "Could not get %S, visit page to see what is wrong? " page-url))
+              (browse-url page-url))
+            (unless (y-or-n-p "Try again? (It is safe to break here and try again later.) ")
+              (throw 'command-level nil))))))
     ;;(with-current-buffer temp-list-buf
     (with-current-buffer (car folder-res)
       ;;(delete-file temp-list-file)

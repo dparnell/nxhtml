@@ -3,7 +3,7 @@
 ;; Author: By: Lennart Borgman
 ;; Created: Fri Dec 15 2006
 ;; Version:
-;; Last-Updated: 2009-04-30 Thu
+;; Last-Updated: 2011-03-12 Sat
 ;; Keywords:
 ;; Compatibility:
 ;;
@@ -11,7 +11,8 @@
 ;;
 ;;; Commentary:
 ;;
-;;
+;; This file loads nXhtml, i.e. it loads some basic files and set up
+;; to autoload the rest.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -164,27 +165,31 @@
   (unless (featurep 'ourcomments-widgets)
     (nxhtml-autostart-trace "... trying to load ourcomments-widgets")
     (let ((ow-file (expand-file-name "ourcomments-widgets" util-dir)))
+      ;; This may not be there yet when loading part by part from the web.
       (when (file-exists-p ow-file)
         (load ow-file)
-        (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start)))))
+        (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..."
+                                (- (float-time) nxhtml-load-time-start)))))
 
   (unless (featurep 'web-autoload)
     (nxhtml-autostart-trace "... loading web-autoload")
     (load (expand-file-name "web-autoload" nxhtml-install-dir) (not nxhtml-autoload-web))
-    (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start)))
+    (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..."
+                            (- (float-time) nxhtml-load-time-start)))
 
   (when nxhtml-autoload-web
     (nxhtml-autostart-trace "... advicing require")
     (ad-activate 'require t)
-    (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start)))
+    (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..."
+                            (- (float-time) nxhtml-load-time-start)))
 
   ;; Fix-me: Why must as-external be loaded? Why doesn't it work in batch?
   ;;(unless noninteractive (require 'as-external))
 
   (unless (featurep 'nxhtml-loaddefs)
     (load (expand-file-name "nxhtml-loaddefs" nxhtml-install-dir) nxhtml-autoload-web)
-    (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..." (- (float-time) nxhtml-load-time-start)))
-  )
+    (nxhtml-autostart-trace "... nXhtml loading %.1f seconds elapsed ..."
+                            (- (float-time) nxhtml-load-time-start))))
 
 ;; Turn on `nxhtml-menu-mode' unconditionally
 (nxhtml-autostart-trace "Turn on `nxhtml-menu-mode' unconditionally")
