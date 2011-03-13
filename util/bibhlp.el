@@ -57,6 +57,10 @@
 
 (require 'browse-url)
 
+(defgroup bibhlp nil
+  "Customization group for bibhlp."
+  :group 'external
+  :group 'communications)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Zotero lives currently in Firefox
@@ -914,17 +918,18 @@ Return a plist with found info, see `bibhlp-parse-entry'."
   ;;nil
   "lennart.borgman@gmail.com"
   "Mail address to use for access of CrossRef.org simple query form.
-This is used by `bibhlp-get-ids-from-crossref'.
-
-See also `crossref-form-url'."
+This is used by `bibhlp-get-ids-from-crossref'."
   :type 'string
   :group 'bibhlp)
 
 (defcustom bibhlp-my-ip nil
   "Your pc:s ip as seen from outside.
-Used by bibhlp-get-ids-from-crossref.
+Used by `bibhlp-get-ids-from-crossref'.
 
-Get it from for example URL `http://www.showmyip.com/'."
+Get it from for example URL `http://www.showmyip.com/'.
+
+If you do not set this then it will be fetched each time needed
+\(i.e. once per session) by `bibhlp-get-my-ip'."
   :type 'string
   :group 'bibhlp)
 
@@ -955,7 +960,7 @@ might have an DOI id.
 This routine calls crossref.org \(URL `http://crossref.org') to
 get those identifiers.  You must get an account there \(free for
 non-commercial use) to be able to use it.  Enter the mail address
-you use there in `cross-ref-user-email'.
+you use there in `bibhlp-crossref-user-email'.
 
 You may also need set `bibhlp-my-ip' correctly for this to work,
 but it should be fetched automatically.
