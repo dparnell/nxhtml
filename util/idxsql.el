@@ -54,8 +54,11 @@
 ;;; Code:
 
 ;;;###autoload
-(defun idxwds-search (search-patt file-patt root)
+(defun idxwds-search (search-patt file-patts root)
   (let* ((search-patts (idxsearch-ggl-split search-patt))
+         (file-patt (mapconcat (lambda (fp) (replace-regexp-in-string "*" "%" fp t t))
+                               file-patts
+                               ","))
          (options (list "--root" root
                         "--filepatt" file-patt
                         "--query" (mapconcat 'identity search-patts ",")))
