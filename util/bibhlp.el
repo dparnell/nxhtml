@@ -47,7 +47,12 @@
 ;;; Code:
 
 
+(eval-when-compile (require 'cl))
+(eval-when-compile (require 'http-post-simple))
 (eval-when-compile (require 'mm-url))
+(eval-when-compile (require 'org-find-links))
+(eval-when-compile (require 'thingatpt))
+(eval-when-compile (require 'web-vcs))
 ;;(eval-when-compile (require 'web-vcs)) ;; autoloaded
 
 (require 'browse-url)
@@ -1330,49 +1335,49 @@ FROM should be either \"pubmed\" or \"pmc\"."
 
 ;;; LibHub at lu.se
 
-(defun bibhlp-make-libhub-search-string (rec)
-  "Make a search string for LibHub from REC."
-  (let ((txt nil))
-    (dolist (auth (plist-get rec :authors))
-      (let ((lastname (car auth)))
-        (when txt (setq txt (concat txt " AND ")))
-        (when (string-match-p " " lastname)
-          (setq lastname (concat "\"" lastname "\"")))
-        (setq txt (concat txt "au:" lastname))))
-    (let ((ti (plist-get rec :title)))
-      (when ti
-        (dolist (tw (split-string ti "[][ \f\t\n\r\v!.:,()-]" t))
-          (when (< 7 (length tw))
-            (when txt (setq txt (concat txt " AND ")))
-            (setq txt (concat txt "ti:" tw))))))
-    (kill-new txt)
-    txt))
+;; (defun bibhlp-make-libhub-search-string (rec)
+;;   "Make a search string for LibHub from REC."
+;;   (let ((txt nil))
+;;     (dolist (auth (plist-get rec :authors))
+;;       (let ((lastname (car auth)))
+;;         (when txt (setq txt (concat txt " AND ")))
+;;         (when (string-match-p " " lastname)
+;;           (setq lastname (concat "\"" lastname "\"")))
+;;         (setq txt (concat txt "au:" lastname))))
+;;     (let ((ti (plist-get rec :title)))
+;;       (when ti
+;;         (dolist (tw (split-string ti "[][ \f\t\n\r\v!.:,()-]" t))
+;;           (when (< 7 (length tw))
+;;             (when txt (setq txt (concat txt " AND ")))
+;;             (setq txt (concat txt "ti:" tw))))))
+;;     (kill-new txt)
+;;     txt))
 
-(defcustom bibhlp-libhub-search-url
-  "http://libhub.sempertool.dk.ludwig.lub.lu.se/libhub?func=search&libhubSearch=1&query="
-  "Base url for searching LibHub.
-Used by `bibhlp-search-in-libhub'.  The query in LibHub
-format is added at the end of this, url-encoded.
+;; (defcustom bibhlp-libhub-search-url
+;;   "http://libhub.sempertool.dk.ludwig.lub.lu.se/libhub?func=search&libhubSearch=1&query="
+;;   "Base url for searching LibHub.
+;; Used by `bibhlp-search-in-libhub'.  The query in LibHub
+;; format is added at the end of this, url-encoded.
 
-The default value is for Lund University."
-  :type 'string
-  :group 'bibhlp)
+;; The default value is for Lund University."
+;;   :type 'string
+;;   :group 'bibhlp)
 
-(defun bibhlp-search-in-libhub (rec)
-  "Go to LibHub and look for REC.
-REC should be a bibliographic record in the format returned from
-`bibhlp-parse-entry'.
+;; (defun bibhlp-search-in-libhub (rec)
+;;   "Go to LibHub and look for REC.
+;; REC should be a bibliographic record in the format returned from
+;; `bibhlp-parse-entry'.
 
-You must customize `bibhlp-libhub-search-url' to use this
-\(unless you are at Lund University)."
-  (let ((txt (bibhlp-make-libhub-search-string rec)))
-    (message "LibHub search: %S" txt)
-    (let ((url (concat
-                ;; "http://elin.lub.lu.se.ludwig.lub.lu.se/elin?func=advancedSearch&lang=se&query="
-                ;; "http://libhub.sempertool.dk.ludwig.lub.lu.se/libhub?func=search&libhubSearch=1&query="
-                bibhlp-libhub-search-url
-                (browse-url-encode-url txt))))
-      (bibhlp-browse-url-for-pdf url))))
+;; You must customize `bibhlp-libhub-search-url' to use this
+;; \(unless you are at Lund University)."
+;;   (let ((txt (bibhlp-make-libhub-search-string rec)))
+;;     (message "LibHub search: %S" txt)
+;;     (let ((url (concat
+;;                 ;; "http://elin.lub.lu.se.ludwig.lub.lu.se/elin?func=advancedSearch&lang=se&query="
+;;                 ;; "http://libhub.sempertool.dk.ludwig.lub.lu.se/libhub?func=search&libhubSearch=1&query="
+;;                 bibhlp-libhub-search-url
+;;                 (browse-url-encode-url txt))))
+;;       (bibhlp-browse-url-for-pdf url))))
 
 ;;; Google Scholar
 
@@ -1487,7 +1492,8 @@ REC should be a bibliographic record in the format returned from
                                                           (i (nth 2 a))
                                                           (inits (split-string (concat
                                                                                 (when f (substring f 0 1))
-                                                                                i))))
+                                                                                i)
+                                                                               "" t)))
                                                      (concat l
                                                              (when inits ", ")
                                                              (mapconcat 'identity inits ".")
@@ -1635,9 +1641,8 @@ What do you want to do with the url at point?
 
 Show:   p - Open in a browser cabable of pdf download
         f - Show in Firefox (so you can add it to Zotero)
-Find:   e - Find in org mode buffers
-        E - Find in org mode files
-Other:  c - Goto CiteULike, add or show
+Find:   e - Find in org-mode buffers
+        E - Find in org-mode files
 More:   m - More alternatives
 "
                         ))
@@ -1685,13 +1690,13 @@ More:   m - More alternatives
       (let ((prompt (concat "
 What do you want to do with the marked bibliographic entry?
 
-Search:   g - Google Scholar
-          l - LibHub
-          p - PubMed
+Search:   g - Google Scholar (which you can connect to your library)
           x - Get ids from CrossRef
 Convert:  a - APA style
           r - Reference Manager style
 "
+                            ;; l - LibHub
+                            ;; p - PubMed
                             ;; x - CrossRef
                             ;; c - ParsCit
                             ))
@@ -1736,9 +1741,9 @@ Convert:  a - APA style
                     (when mid (insert "--- old values:\n"))
                     (message "Inserted answer from CrossRef")
                     )))
-               ((eq cc ?l)
-                (let ((rec (bibhlp-parse-entry beg mid end)))
-                  (bibhlp-search-in-libhub rec)))
+               ;; ((eq cc ?l)
+               ;;  (let ((rec (bibhlp-parse-entry beg mid end)))
+               ;;    (bibhlp-search-in-libhub rec)))
                ((eq cc ?g)
                 (let ((rec (bibhlp-parse-entry beg mid end)))
                   (bibhlp-search-in-google-scholar rec)))
@@ -1763,22 +1768,24 @@ Convert:  a - APA style
 (defun bibhlp ()
   "Big Question for handling of bibliographic related things.
 Will give you a choice list with what you can do with the
-bibliograchic referencce or the url at point.
+bibliographic reference or the url at point.
 
 For a recognized bibliographic reference at point you can:
-  - look it up on the web
-  - can convert it to a different format
+  - look it up in Google Scholar (which you can link to your
+    university library)
+  - get DOI, PMID and PMCID from CrossRef
+  - convert it to a different format (only APA and Ref Man)
 
   The currently recognized reference formats are End Note
-  \(.enw), Reference Manager \(.ris) and APA style.
+  \(.enw), Reference Manager \(.ris), APA style and the style
+  JAMA etc use \(whatever that is called, not sure).
 
 For an URL at point you can:
-  - of course show it in a browser
+  - show it in a specific browser (f ex Firefox/Zotero)
   - search for it in org mode buffers and files
-  - There is also a chance that you can get bliograchic data on
-    the page url, but this does not work well.
-  - add it to CitULike
 "
+  ;; - There is also a chance that you can get bliograchic data on
+  ;;   the page url, but this does not work well.
   (interactive)
   (catch 'top-level
     (let ((url (or (when (derived-mode-p 'org-mode)

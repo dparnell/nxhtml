@@ -1156,6 +1156,12 @@ display it."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Misc.
 
+;;;###autoload
+(defun ourcomments-browse-bug (emacs-bug)
+  "Display emacs bug number EMACS-BUG in browser."
+  (interactive "nEmacs bug number: ")
+  (browse-url (format "http://debbugs.gnu.org/cgi/bugreport.cgi?bug=%d" emacs-bug)))
+
 ;; (ourcomments-tr "i öa ä e å" "åäö" "aa")
 ;;;###autoload
 (defun ourcomments-tr (str from to)
