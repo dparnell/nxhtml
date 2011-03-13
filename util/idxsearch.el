@@ -100,6 +100,13 @@ different search engines since they have different capabilities.
                  )
   :group 'idxsearch)
 
+(defcustom idxsearch-dflt-file-pattern "*.org, *.pdf"
+  "Default file pattern for `idxsearch'.
+Comma-separated list.  Each part corresponds to the end of a file
+name.  '*' may be used as a wildcard."
+  :type 'string
+  :group 'idxsearch)
+
 ;;;###autoload
 (defun idxsearch (search-patt file-patt root params)
   "Search using an indexed search engine on your pc.
@@ -110,30 +117,13 @@ The string SEARCH-PATT may consist of single words or phrases
 file to match.
 
 If the file is a text file it will be searched for all words and
-phrases so you get direct links into it.
-
-----
-
-When called from elisp SEARCH-PATTS and FILE-PATTS should be list
-of strings.  In this case the strings are given as they are to
-the SQL statements for searching Windows Search.
-
-The strings in SEARCH-PATT should just be strings to match.  If
-they contain spaces they are considered to be a sequence of
-words, otherwise just single words.  All strings must match a
-file for a match in that file.
-
-The strings in FILE-PATTS are matched with the SQL keyword
-'like'.  A '%' char is appended to each strings.  Any of this
-strings should match.  This way you can easily search in
-different root locations at once.
-"
+phrases so you get direct links into it."
   (interactive
    ;; Fix-me: Different search engines have different pattern
    ;; styles. Use different hist vars? Different prompts?
    (let* ((def-str (grep-tag-default))
           (str (read-string "Search pattern: " def-str 'idxsearch-search-patt-hist))
-          (def-fil "")
+          (def-fil idxsearch-dflt-file-pattern)
           (fil (read-string "File name pattern: " def-fil 'idxsearch-file-patt-hist))
           (dir (read-directory-name "Indexed search in directory tree: ")))
      (list str fil dir nil)))
@@ -144,15 +134,16 @@ different root locations at once.
                                           (+ (not space))
                                           word-end)))))
         (start 0)
-        strs)
+        strs
+        (file-patts (split-string file-patt (rx (* whitespace) "," (* whitespace)))))
     (while (setq start (string-match item-patt search-patt start))
       (let ((y (or (match-string 1 search-patt)
                    (match-string 2 search-patt))))
         (setq start (+ start (length y)))
         (setq strs (cons y strs))))
     (case idxsearch-engine
-      (gds (idxgds-search search-patt file-patt root))
-      (wds (idxwds-search search-patt file-patt root))
+      (gds (idxgds-search search-patt file-patts root))
+      (wds (idxwds-search search-patt file-patts root))
             ;; (list
             ;;  "--root"   root
             ;;  ;; "--files"  file-patt

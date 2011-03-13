@@ -400,7 +400,7 @@ users in San Francisco. Clin Infect Dis. 2000;
                                             (* whitespace)
                                             (submatch (+ (and (any "A-Z")
                                                               (? ".")
-                                                              (* whitespace))))))
+                                                              (*? whitespace))))))
                                     (or (and (or ","
                                                  (and (+ whitespace)
                                                       "&"))
@@ -638,12 +638,22 @@ Return a plist with found info, see `bibhlp-parse-entry'."
              ((string= val "JOUR") (setq type 'journal-article))
              ((string= val "BOOK") (setq type 'book))
              (t (error "Unknown type: %S" val))))
-           ((string= mark "T1") (setq title val))
-           ((string= mark "TI") (setq title val))
+           ((member mark '("T1" "TI"))
+            ;; Title may span several lines, but probably just 2.
+            (setq title val)
+            (let ((after-title (point)))
+              (forward-line 1)
+              (back-to-indentation)
+              (if (= 0 (current-column))
+                  (goto-char after-title)
+                (setq title (concat title " "
+                                    (buffer-substring-no-properties (point) (point-at-eol))))
+                (goto-char (point-at-eol)))))
            ((string= mark "JO") (setq journal val))
            ((string= mark "JF") (setq journal val)) ;; Zotero
-           ((string= mark "JT") (setq journal val))
+           ((string= mark "JT") (unless journal (setq journal val))) ;; Seems to be a long variant sometimes
            ((string= mark "JA") (setq journal val))
+           ((string= mark "TA") (setq journal val)) ;; Medline
            ((string= mark "VL") (setq volume val))
            ((string= mark "VI") (setq volume val))
            ((string= mark "VO") (setq volume val))
@@ -1788,7 +1798,12 @@ For a recognized bibliographic reference at point you can:
 For an URL at point you can:
   - show it in a specific browser (f ex Firefox/Zotero)
   - search for it in org mode buffers and files
-"
+
+
+Note: `idxsearch', indexed search, may be a good tool to use
+together with this one.  It allows you to use some common pc
+index search engines from within Emacs.  It should make it easy
+to handle both hits in .org files and .pdf files."
   ;; - There is also a chance that you can get bliograchic data on
   ;;   the page url, but this does not work well.
   (interactive)
