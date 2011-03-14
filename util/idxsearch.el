@@ -144,7 +144,7 @@ phrases so you get direct links into it."
     (case idxsearch-engine
       (gds        (idxgds-search      search-patt file-patts root))
       (wds        (idxwds-search      search-patt file-patts root))
-      (docindexer (idxdocindex-search search-patt file-patts root))
+      (docindexer (idxdocidxer-search search-patt file-patts root))
       (t (error "Ops!")))))
 
 
