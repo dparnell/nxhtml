@@ -142,15 +142,9 @@ phrases so you get direct links into it."
         (setq start (+ start (length y)))
         (setq strs (cons y strs))))
     (case idxsearch-engine
-      (gds (idxgds-search search-patt file-patts root))
-      (wds (idxwds-search search-patt file-patts root))
-            ;; (list
-            ;;  "--root"   root
-            ;;  ;; "--files"  file-patt
-            ;;  ;; "--locate" "grep"
-            ;;  "--query"  (mapconcat 'identity strs ","))
-            ;;))
-      (docindexer (idxdocindex-search search-patt file-patt root))
+      (gds        (idxgds-search      search-patt file-patts root))
+      (wds        (idxwds-search      search-patt file-patts root))
+      (docindexer (idxdocindex-search search-patt file-patts root))
       (t (error "Ops!")))))
 
 

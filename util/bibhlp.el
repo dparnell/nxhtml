@@ -1424,9 +1424,12 @@ soc. \(This reflects my personal choice ... ;-) - just set it to
   :type 'string
   :group 'bibhlp)
 
+(defvar bibhlp-google-scholar-pre "http://scholar.google.se/scholar?as_q=")
 (defun bibhlp-make-google-scholar-search-string (rec)
   "Make a search string for Google Scholar from REC."
-  (let ((txt nil))
+  (let ((txt nil)
+        (add-len (+ (length bibhlp-google-scholar-pre)
+                    (length bibhlp-google-scholar-extra))))
     (let ((ti (plist-get rec :title)))
       (when ti
         ;; (dolist (tw (split-string ti "[][ \f\t\n\r\v!.:,()-]" t))
@@ -1437,11 +1440,17 @@ soc. \(This reflects my personal choice ... ;-) - just set it to
         (setq txt (concat txt "\"" ti "\""))
         ))
     (dolist (auth (plist-get rec :authors))
-      (let ((lastname (car auth)))
-        (when txt (setq txt (concat txt " AND ")))
+      (let ((lastname (car auth))
+            (add ""))
+        (when txt (setq add " AND "))
         (when (string-match-p " " lastname)
           (setq lastname (concat "\"" lastname "\"")))
-        (setq txt (concat txt "author:" lastname))))
+        (setq add (concat add "author:" lastname))
+        ;; There seem to be some kind of cut of a bit above 290 at
+        ;; least for Opera.
+        (when (> 290 (+ add-len (length txt) (length add)))
+          (setq txt (concat txt add)))
+        ))
     ;; Characters like åäö needs to be changed to some ascii char,
     ;; otherwise google (at least in Opera) will see them as blanks.
     ;; Google will then handle it correctly.
@@ -1457,11 +1466,7 @@ REC should be a bibliographic record in the format returned from
   (let ((txt (bibhlp-make-google-scholar-search-string rec)))
     (message "G Scholar search: %S" txt)
     (let ((url (concat
-                ;; "http://elin.lub.lu.se.ludwig.lub.lu.se/elin?func=advancedSearch&lang=se&query="
-                ;; "http://libhub.sempertool.dk.ludwig.lub.lu.se/libhub?func=search&libhubSearch=1&query="
-                ;;bibhlp-libhub-search-url
-                "http://scholar.google.se/scholar?as_q="
-                ;; mindfulness+training&num=10&btnG=Search+Scholar&as_epq=&as_oq=&as_eq=&as_occt=any&as_sauthors=Chiesa+Calati+Serretti&as_publication=&as_ylo=&as_yhi=&as_sdt=1.&as_sdtp=on&as_sdtf=&as_sdts=5&hl=en"
+                bibhlp-google-scholar-pre
                 (browse-url-encode-url (concat txt
                                                bibhlp-google-scholar-extra)))))
       (message "G url(%d)=%S" (length url) url)
