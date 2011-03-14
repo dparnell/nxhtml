@@ -203,9 +203,9 @@ APA reference."
       (goto-char (point-min))
       (setq return-value
             (or
-             (bibhlp-parse-endnote   beg ref-end) ;; .enw, citmgr - EndNote
-             (bibhlp-parse-ris-like  beg ref-end) ;; .ris - Reference Manager, MedLine, Zotero etc
-             (bibhlp-parse-from-html beg ref-end)
+             (bibhlp-parse-endnote   beg end) ;; .enw, citmgr - EndNote
+             (bibhlp-parse-ris-like  beg end) ;; .ris - Reference Manager, MedLine, Zotero etc
+             (bibhlp-parse-from-html beg end)
              (bibhlp-parse-apa-like  beg ref-end)
              (bibhlp-parse-jama-like beg ref-end)
              (progn
@@ -566,7 +566,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
            ((string= mark "N") (setq issue val))
            ((string= mark "P")
             ;; Fix me: not sure of format
-            (string-match "\\([0-9]+\\)\\(?:-\\([0-9]\\)\\)?" val)
+            (string-match "\\([0-9]+\\)\\(?:-\\([0-9]+\\)\\)?" val)
             (setq firstpage (match-string-no-properties 1 val))
             (setq lastpage (match-string-no-properties 2 val))
             )
@@ -578,7 +578,10 @@ Return a plist with found info, see `bibhlp-parse-entry'."
            ((string= mark "K") (setq keywords (cons val keywords)))
            ((string= mark "X") (setq abstract val))
            ((string= mark "U") (setq url val))
-           ((string= mark "R") (setq doi val))
+           ((string= mark "R")
+            (cond ((string-match "doi:.*?\\(10\..*\\)" val)
+                   (setq doi (match-string-no-properties 1 val)))
+                  (t (setq doi val))))
            )))
       (goto-char (point-min))
       (when (re-search-forward "^ \\([^/].*/.*\\)" nil t)
@@ -672,9 +675,9 @@ Return a plist with found info, see `bibhlp-parse-entry'."
                                      (string-to-number firstpage)
                                      (string-to-number (match-string-no-properties 2 val))))))
            ((string= mark "PY") (setq year val))
-           ((string= mark "DP") (setq year (substring val 0 4)))
-           ((string= mark "DEP") (setq year (substring val 0 4)))
-           ((string= mark "Y1") (setq year (substring val 0 4))) ;; zotero
+           ((string= mark "DP") (setq year val))
+           ((string= mark "DEP") (setq year val))
+           ((string= mark "Y1") (setq year val)) ;; zotero
            ((string= mark "AU") (setq authors (cons val authors)))
            ((string= mark "A1") (setq authors (cons val authors))) ;; zotero
            ((string= mark "PB") (setq publisher val))
@@ -690,7 +693,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
                    (setq doi (match-string-no-properties 1 val)))))
            ((string= mark "M3")
             ;; M3  - doi: DOI: 10.1016/j.tics.2010.05.002
-            (cond ((string-match "doi: +.*? \\(10\..*\\)" val)
+            (cond ((string-match "doi:.*?\\(10\..*\\)" val)
                    (setq doi (match-string-no-properties 1 val)))
                   (t (setq doi val))))
            ((string= mark "UR") (setq url val))
@@ -710,6 +713,8 @@ Return a plist with found info, see `bibhlp-parse-entry'."
            ;; just continue if we do not want it.
            (t nil))))
       (setq authors (reverse authors))
+      (when year
+        (setq year (substring year 0 4)))
       (when (or authors title doi pmid)
         (list
          :authors authors

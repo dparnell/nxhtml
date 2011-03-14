@@ -723,7 +723,7 @@ This is to prevent multiple Emacs with `pause-mode'."
 (defvar pause-is-deleting-pause-frame nil)
 (defun pause-delete-pause-frame ()
   (let ((pause-is-deleting-pause-frame t))
-    (delete-frame pause-frame))
+    (when (frame-live-p pause-frame) (delete-frame pause-frame)))
   (setq pause-frame nil))
 
 (defun pause-stop-on-frame-delete (frame)
