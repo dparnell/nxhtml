@@ -61,8 +61,18 @@
   :type 'directory
   :group 'idxdocindex)
 
+(defcustom idxdocindex-include-files "*.pdf|*.org"
+  "Value for docindex -i switch when indexing."
+  :type 'string
+  :group 'idxdocindex)
+
+(defun idxdocindex-index-files ()
+  ;; docindex.exe" -r root -i "*.pdf|*.org|*.html|*.htm"
+  )
+
 ;;;###autoload
-(defun idxdocindex-search (search-patt file-patt root)
+(defun idxdocindex-search (search-patt file-patts root)
+  ;; Fix-me copy parameter handling from idxgds-search
   (let* ((index-root (catch 'root
                       (dolist (dir idxdocindex-dirs)
                         (let ((rel (file-relative-name root dir)))
@@ -72,7 +82,24 @@
          (buffer-name "*idxsearch docindex*")
          (buffer (get-buffer buffer-name))
          (cnt-hits 0)
-         win maxw)
+         win maxw
+         exts not-exts)
+    (dolist (fp file-patts)
+      (if (and (string-match (rx "*." (submatch (+ (not (any ".*")))) eos)
+                             fp)
+               (> 6 (length (match-string 1 fp)))
+               nil ;; fix-me: bug in docsearch, can only handle one ext:?
+               )
+          ;; We have probably got an extension
+          (setq exts (cons (match-string-no-properties 1 fp) exts))
+        ;; This was something else, just convert it to a regexp:
+        (let* ((fp1 (replace-regexp-in-string "\\." "\\." fp t t))
+               (fp2 (replace-regexp-in-string "*" ".*" fp1 t t)))
+          (setq not-exts (cons fp2 not-exts)))))
+    (when exts
+      (setq exts (mapconcat 'identity exts " ")))
+    (when not-exts
+      (setq not-exts (mapconcat 'identity not-exts "\\|")))
     (when buffer (kill-buffer buffer))
     (setq buffer (get-buffer-create buffer-name))
     (setq win (display-buffer buffer))
@@ -117,7 +144,9 @@
             (insert " idxdocindex-dirs."))
 
          (t
+          ;; docsearch "ext:(org pdf)" "something wrong" AND good
           (let* ((cmd (concat docsearch
+                              (when exts (concat " \"ext:(" exts ")\""))
                               " -a "
                               " "
                               search-patt
@@ -126,7 +155,8 @@
                  (buf (get-buffer-create "docsearch-out"))
                  (num-hits 0)
                  (debug nil))
-            (when debug (message "cmd=%s" cmd))
+            ;;(when debug (message "cmd=%s" cmd))
+            (message "cmd=%s" cmd)
             (with-current-buffer buf
               (erase-buffer)
               (when debug (display-buffer buf))
@@ -138,14 +168,14 @@
               (goto-char (point-min))
               (while (not (eobp))
                 (let ((file (buffer-substring (point-at-bol) (point-at-eol))))
-                  (when (or (= 0 (length file-patt))
-                            (string-match file-patt file))
+                  (when (or (not not-exts)
+                            (string-match not-exts file))
                     (with-current-buffer buffer
                       (setq num-hits (1+ num-hits))
                       (setq file (file-relative-name file))
                       (insert "* File " file " matches\n")
                       (when (idxsearch-text-p file)
-                        (idxsearch-grep file search-patt maxw))
+                        (idxsearch-grep file search-patt nil maxw))
                       (sit-for 0)
                       )))
                 (forward-line)))
