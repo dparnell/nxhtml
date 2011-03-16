@@ -1394,7 +1394,7 @@ fail (they corresponds to known errors in nXhtml/Emacs):
 ;;;### (autoloads (web-vcs-investigate-elisp-file web-vcs-url-copy-file
 ;;;;;;  web-vcs-url-retrieve-synch web-vcs-byte-compile-file web-vcs-message-with-face
 ;;;;;;  web-vcs-get-files-from-root web-vcs-log-edit web-vcs-default-download-directory)
-;;;;;;  "../web-vcs" "web-vcs.el" (19835 49478))
+;;;;;;  "../web-vcs" "web-vcs.el" (19836 4450))
 ;;; Generated autoloads from web-vcs.el
 (web-autoload-require 'web-vcs 'lp '(nxhtml-download-root-url nil) "web-vcs" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1662,7 +1662,7 @@ See `as-external-alist' for more information.
 ;;;***
 
 ;;;### (autoloads (bibhlp-goto-citeulike bibhlp) "bibhlp" "util/bibhlp.el"
-;;;;;;  (19832 5872))
+;;;;;;  (19838 26182))
 ;;; Generated autoloads from util/bibhlp.el
 (web-autoload-require 'bibhlp 'lp '(nxhtml-download-root-url nil) "util/bibhlp" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -1670,21 +1670,27 @@ See `as-external-alist' for more information.
 (nxhtml-autoload 'bibhlp `(lp '(nxhtml-download-root-url nil) "util/bibhlp" nxhtml-install-dir) "\
 Big Question for handling of bibliographic related things.
 Will give you a choice list with what you can do with the
-bibliograchic referencce or the url at point.
+bibliographic reference or the url at point.
 
 For a recognized bibliographic reference at point you can:
-  - look it up on the web
-  - can convert it to a different format
+  - look it up in Google Scholar (which you can link to your
+    university library)
+  - get DOI, PMID and PMCID from CrossRef
+  - convert it to a different format (only APA and Ref Man)
 
   The currently recognized reference formats are End Note
-  (.enw), Reference Manager (.ris) and APA style.
+  (.enw), Reference Manager (.ris), APA style and the style
+  JAMA etc use (whatever that is called, not sure).
 
 For an URL at point you can:
-  - of course show it in a browser
+  - show it in a specific browser (f ex Firefox/Zotero)
   - search for it in org mode buffers and files
-  - There is also a chance that you can get bliograchic data on
-    the page url, but this does not work well.
-  - add it to CitULike
+
+
+Note: `idxsearch', indexed search, may be a good tool to use
+together with this one.  It allows you to use some common pc
+index search engines from within Emacs.  It should make it easy
+to handle both hits in .org files and .pdf files.
 
 \(fn)" t nil)
 
@@ -2392,21 +2398,21 @@ FIELDS is an alist, as for `http-post-simple', FILES is an a list of
 
 ;;;***
 
-;;;### (autoloads (idxdocindex-search) "idxdocindex" "util/idxdocindex.el"
-;;;;;;  (19746 39798))
-;;; Generated autoloads from util/idxdocindex.el
-(web-autoload-require 'idxdocindex 'lp '(nxhtml-download-root-url nil) "util/idxdocindex" nxhtml-install-dir 'nxhtml-byte-compile-file)
+;;;### (autoloads (idxdocidxer-search) "idxdocidxer" "util/idxdocidxer.el"
+;;;;;;  (19839 22597))
+;;; Generated autoloads from util/idxdocidxer.el
+(web-autoload-require 'idxdocidxer 'lp '(nxhtml-download-root-url nil) "util/idxdocidxer" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
 
-(nxhtml-autoload 'idxdocindex-search `(lp '(nxhtml-download-root-url nil) "util/idxdocindex" nxhtml-install-dir) "\
+(nxhtml-autoload 'idxdocidxer-search `(lp '(nxhtml-download-root-url nil) "util/idxdocidxer" nxhtml-install-dir) "\
 Not documented
 
-\(fn SEARCH-PATT FILE-PATT ROOT)" nil nil)
+\(fn SEARCH-PATT FILE-PATTS ROOT)" nil nil)
 
 ;;;***
 
 ;;;### (autoloads (idxgds-search-adv idxgds-search idxgds-query-url-p)
-;;;;;;  "idxgds" "util/idxgds.el" (19776 40126))
+;;;;;;  "idxgds" "util/idxgds.el" (19836 60619))
 ;;; Generated autoloads from util/idxgds.el
 (web-autoload-require 'idxgds 'lp '(nxhtml-download-root-url nil) "util/idxgds" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2419,7 +2425,7 @@ Not documented
 (nxhtml-autoload 'idxgds-search `(lp '(nxhtml-download-root-url nil) "util/idxgds" nxhtml-install-dir) "\
 Not documented
 
-\(fn SEARCH-PATT FILE-PATT ROOT)" nil nil)
+\(fn SEARCH-PATT FILE-PATTS ROOT)" nil nil)
 
 (nxhtml-autoload 'idxgds-search-adv `(lp '(nxhtml-download-root-url nil) "util/idxgds" nxhtml-install-dir) "\
 Not documented
@@ -2428,8 +2434,8 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (idxsearch) "idxsearch" "util/idxsearch.el" (19774
-;;;;;;  13248))
+;;;### (autoloads (idxsearch) "idxsearch" "util/idxsearch.el" (19838
+;;;;;;  39440))
 ;;; Generated autoloads from util/idxsearch.el
 (web-autoload-require 'idxsearch 'lp '(nxhtml-download-root-url nil) "util/idxsearch" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2445,28 +2451,12 @@ file to match.
 If the file is a text file it will be searched for all words and
 phrases so you get direct links into it.
 
-----
-
-When called from elisp SEARCH-PATTS and FILE-PATTS should be list
-of strings.  In this case the strings are given as they are to
-the SQL statements for searching Windows Search.
-
-The strings in SEARCH-PATT should just be strings to match.  If
-they contain spaces they are considered to be a sequence of
-words, otherwise just single words.  All strings must match a
-file for a match in that file.
-
-The strings in FILE-PATTS are matched with the SQL keyword
-'like'.  A '%' char is appended to each strings.  Any of this
-strings should match.  This way you can easily search in
-different root locations at once.
-
 \(fn SEARCH-PATT FILE-PATT ROOT PARAMS)" t nil)
 
 ;;;***
 
-;;;### (autoloads (idxwds-search) "idxsql" "util/idxsql.el" (19747
-;;;;;;  46540))
+;;;### (autoloads (idxwds-search) "idxsql" "util/idxsql.el" (19836
+;;;;;;  56483))
 ;;; Generated autoloads from util/idxsql.el
 (web-autoload-require 'idxsql 'lp '(nxhtml-download-root-url nil) "util/idxsql" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2474,7 +2464,7 @@ different root locations at once.
 (nxhtml-autoload 'idxwds-search `(lp '(nxhtml-download-root-url nil) "util/idxsql" nxhtml-install-dir) "\
 Not documented
 
-\(fn SEARCH-PATT FILE-PATT ROOT)" nil nil)
+\(fn SEARCH-PATT FILE-PATTS ROOT)" nil nil)
 
 ;;;***
 
@@ -3211,13 +3201,13 @@ Search subdirs if RECURSE is 'yes, don't if it is 'no.
 ;;;;;;  narrow-to-comment buffer-narrowed-p describe-command ourcomments-ediff-files
 ;;;;;;  find-emacs-other-file ediff-emacs-other-file ourcomments-insert-date-and-time
 ;;;;;;  describe-timers paste-as-new-buffer ourcomments-is-obsolete
-;;;;;;  ourcomments-tr ourcomments-copy+paste-set-point better-fringes-mode
-;;;;;;  describe-key-and-map-briefly ourcomments-move-end-of-line
+;;;;;;  ourcomments-tr ourcomments-browse-bug ourcomments-copy+paste-set-point
+;;;;;;  better-fringes-mode describe-key-and-map-briefly ourcomments-move-end-of-line
 ;;;;;;  ourcomments-move-beginning-of-line major-modep major-or-multi-majorp
 ;;;;;;  ourcomments-mark-whole-buffer-or-field fill-dwim unfill-individual-paragraphs
 ;;;;;;  unfill-region unfill-paragraph define-toggle-old define-toggle
 ;;;;;;  popup-menu-at-point ourcomments-indirect-fun) "ourcomments-util"
-;;;;;;  "util/ourcomments-util.el" (19828 54312))
+;;;;;;  "util/ourcomments-util.el" (19838 35859))
 ;;; Generated autoloads from util/ourcomments-util.el
 (web-autoload-require 'ourcomments-util 'lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -3366,6 +3356,11 @@ should select a piece of text to copy and then call the command
 `ourcomments-copy+paste'.
 
 \(fn)" t nil)
+
+(nxhtml-autoload 'ourcomments-browse-bug `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
+Display emacs bug number EMACS-BUG in browser.
+
+\(fn EMACS-BUG)" t nil)
 
 (nxhtml-autoload 'ourcomments-tr `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
 Replace all characters in STR listed in FROM
@@ -3579,6 +3574,8 @@ Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue].
 
+Must be called from a `grep-mode' buffer.
+
 \(fn FROM TO &optional DELIMITED)" t nil)
 
 (nxhtml-autoload 'ldir-query-replace `(lp '(nxhtml-download-root-url nil) "util/ourcomments-util" nxhtml-install-dir) "\
@@ -3717,7 +3714,7 @@ A major mode lisp function." :complete-function (lambda nil (interactive) (lisp-
 ;;;***
 
 ;;;### (autoloads (pause-start-in-new-emacs pause-mode pause) "pause"
-;;;;;;  "util/pause.el" (19765 54962))
+;;;;;;  "util/pause.el" (19838 28440))
 ;;; Generated autoloads from util/pause.el
 (web-autoload-require 'pause 'lp '(nxhtml-download-root-url nil) "util/pause" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4224,7 +4221,7 @@ Display vertical line mode as globally.
 ;;;***
 
 ;;;### (autoloads (web-vcs-linkpatt-mode) "web-vcs-linkpatt" "util/web-vcs-linkpatt.el"
-;;;;;;  (19835 49540))
+;;;;;;  (19836 5014))
 ;;; Generated autoloads from util/web-vcs-linkpatt.el
 (web-autoload-require 'web-vcs-linkpatt 'lp '(nxhtml-download-root-url nil) "util/web-vcs-linkpatt" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4734,7 +4731,7 @@ accept it or skip it.
 ;;;;;;  "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/org-odt.el" "util/org-panel.el" "util/powershell-mode.el"
 ;;;;;;  "util/rxi.el" "util/tipframe.el" "util/win-alg.el" "web-autoload.el")
-;;;;;;  (19835 50904 578000))
+;;;;;;  (19839 43938 203000))
 
 ;;;***
 

@@ -80,6 +80,10 @@
 ;;
 ;;(setq idxsearch-search-script (expand-file-name "etc/wds/idxsearch.ps1" nxhtml-install-dir))
 
+(defgroup idxsearch nil
+  "Customization group for `idxsearch'."
+  :group 'matching)
+
 ;;(setq idxsearch-engine 'gds)
 ;;(setq idxsearch-engine 'wds)
 ;;(setq idxsearch-engine 'docindexer)
@@ -88,15 +92,18 @@
                              (t (if (eq system-type 'windows-nt)
                                     'wds
                                   'docindexer)))
-  "Desktop search engine.
-This is used by the command `idxsearch'.  The parameters to that
-command are handled a little, little bit differently for
-different search engines since they have different capabilities.
+  "Desktop search engine for `idxsearch' to use.
+The currently supported search engines are:
+
+* DocIndexer, see `idxdocidxer-search'.
+* Google Desktop Search
+  You need to set `idxgds-query-url' to use it.
+* Windows Desktop Search
 "
   :type '(choice :tag "Select search engine:"
+                 (const :tag "DocIndexer" docindexer)
                  (const :tag "Google Desktop Search" gds)
                  (const :tag "Windows Desktop Search" wds)
-                 (const :tag "DocIndexer" docindexer)
                  )
   :group 'idxsearch)
 
@@ -108,7 +115,7 @@ name.  '*' may be used as a wildcard."
   :group 'idxsearch)
 
 ;;;###autoload
-(defun idxsearch (search-patt file-patt root params)
+(defun idxsearch (search-patt file-patt root)
   "Search using an indexed search engine on your pc.
 This searches all the content you have indexed there.
 
@@ -117,7 +124,16 @@ The string SEARCH-PATT may consist of single words or phrases
 file to match.
 
 If the file is a text file it will be searched for all words and
-phrases so you get direct links into it."
+phrases so you get direct links into it.
+
+FILE-PATT is a comma-separated list of filenames with '*' as a
+wildcard.  It defaults to `idxsearch-dflt-file-pattern'.
+
+ROOT is the root directory containing files to search.
+
+
+To do the search an indexed search engine is used.  You choose
+which one by customizing `idxsearch-engine'."
   (interactive
    ;; Fix-me: Different search engines have different pattern
    ;; styles. Use different hist vars? Different prompts?
