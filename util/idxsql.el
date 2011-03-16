@@ -25,7 +25,7 @@
 ;; SQL-querying and send backs the result to Emacs.
 ;;
 ;; At the moment there are support for these search engines:
-;; - Windows Desktop Search
+;; - Windows Desktop Search, see `idxwds-search'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -55,6 +55,9 @@
 
 ;;;###autoload
 (defun idxwds-search (search-patt file-patts root)
+  (idxsql-search search-patt file-patts root))
+
+(defun idxsql-search (search-patt file-patts root)
   (let* ((search-patts (idxsearch-ggl-split search-patt))
          (file-patt (mapconcat (lambda (fp) (replace-regexp-in-string "*" "%" fp t t))
                                file-patts

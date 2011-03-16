@@ -49,6 +49,10 @@
 
 (require 'mm-url)
 
+(defgroup idxgds nil
+  "Customization group for `idxgds'."
+  :group 'idxsearch)
+
 (defcustom idxgds-query-url ""
   "Stored query URL.
 See URL `http://code.google.com/apis/desktop/docs/queryapi.html'
