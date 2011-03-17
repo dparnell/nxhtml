@@ -2398,21 +2398,37 @@ FIELDS is an alist, as for `http-post-simple', FILES is an a list of
 
 ;;;***
 
-;;;### (autoloads (idxdocidxer-search) "idxdocidxer" "util/idxdocidxer.el"
-;;;;;;  (19839 22597))
-;;; Generated autoloads from util/idxdocidxer.el
-(web-autoload-require 'idxdocidxer 'lp '(nxhtml-download-root-url nil) "util/idxdocidxer" nxhtml-install-dir 'nxhtml-byte-compile-file)
+;;;### (autoloads (idxdoc-search idxdoc-index-files) "idxdoc" "util/idxdoc.el"
+;;;;;;  (19841 19595))
+;;; Generated autoloads from util/idxdoc.el
+(web-autoload-require 'idxdoc 'lp '(nxhtml-download-root-url nil) "util/idxdoc" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
 
-(nxhtml-autoload 'idxdocidxer-search `(lp '(nxhtml-download-root-url nil) "util/idxdocidxer" nxhtml-install-dir) "\
-Not documented
+(nxhtml-autoload 'idxdoc-index-files `(lp '(nxhtml-download-root-url nil) "util/idxdoc" nxhtml-install-dir) "\
+Index files.
+Look for a docindexer index file and offer to reindex if found.
+Otherwise offer to index current directory.
+
+\(fn)" t nil)
+
+(nxhtml-autoload 'idxdoc-search `(lp '(nxhtml-download-root-url nil) "util/idxdoc" nxhtml-install-dir) "\
+Search with DocIndexer.
+SEARCH-PATT, FILE-PATTS and ROOT are the same as for `idxsearch',
+except that FILE-PATTS is a list.
+
+Indexing is not incremental and not automatic with DocIndexwer, but it is rather fast.
+You can start the indexing with the command `idxdoc-index-files'.
+
+There is a customization group you can access with:
+
+  M-x customize-group RET idxdoc
 
 \(fn SEARCH-PATT FILE-PATTS ROOT)" nil nil)
 
 ;;;***
 
 ;;;### (autoloads (idxgds-search-adv idxgds-search idxgds-query-url-p)
-;;;;;;  "idxgds" "util/idxgds.el" (19836 60619))
+;;;;;;  "idxgds" "util/idxgds.el" (19839 61243))
 ;;; Generated autoloads from util/idxgds.el
 (web-autoload-require 'idxgds 'lp '(nxhtml-download-root-url nil) "util/idxgds" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2434,8 +2450,8 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (idxsearch) "idxsearch" "util/idxsearch.el" (19838
-;;;;;;  39440))
+;;;### (autoloads (idxsearch) "idxsearch" "util/idxsearch.el" (19841
+;;;;;;  19742))
 ;;; Generated autoloads from util/idxsearch.el
 (web-autoload-require 'idxsearch 'lp '(nxhtml-download-root-url nil) "util/idxsearch" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -2451,12 +2467,21 @@ file to match.
 If the file is a text file it will be searched for all words and
 phrases so you get direct links into it.
 
-\(fn SEARCH-PATT FILE-PATT ROOT PARAMS)" t nil)
+FILE-PATT is a comma-separated list of filenames with '*' as a
+wildcard.  It defaults to `idxsearch-dflt-file-pattern'.
+
+ROOT is the root directory containing files to search.
+
+
+To do the search an indexed search engine is used.  You choose
+which one by customizing `idxsearch-engine'.
+
+\(fn SEARCH-PATT FILE-PATT ROOT)" t nil)
 
 ;;;***
 
-;;;### (autoloads (idxwds-search) "idxsql" "util/idxsql.el" (19836
-;;;;;;  56483))
+;;;### (autoloads (idxwds-search) "idxsql" "util/idxsql.el" (19839
+;;;;;;  62503))
 ;;; Generated autoloads from util/idxsql.el
 (web-autoload-require 'idxsql 'lp '(nxhtml-download-root-url nil) "util/idxsql" nxhtml-install-dir 'nxhtml-byte-compile-file)
 
@@ -4731,7 +4756,7 @@ accept it or skip it.
 ;;;;;;  "util/idn.el" "util/mumamo-trace.el" "util/new-key-seq-widget.el"
 ;;;;;;  "util/org-odt.el" "util/org-panel.el" "util/powershell-mode.el"
 ;;;;;;  "util/rxi.el" "util/tipframe.el" "util/win-alg.el" "web-autoload.el")
-;;;;;;  (19839 43938 203000))
+;;;;;;  (19841 19780 0))
 
 ;;;***
 

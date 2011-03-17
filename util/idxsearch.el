@@ -56,6 +56,9 @@
 
 (eval-when-compile (require 'compile))
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'idxgds))
+(eval-when-compile (require 'idxsql))
+(eval-when-compile (require 'idxdoc))
 (require 'org)
 (require 'nxhtml-base)
 
@@ -84,27 +87,50 @@
   "Customization group for `idxsearch'."
   :group 'matching)
 
-;;(setq idxsearch-engine 'gds)
-;;(setq idxsearch-engine 'wds)
-;;(setq idxsearch-engine 'docindexer)
+(defvar idxsearch-engines
+  '((idxdoc-search "DocIndexer")
+    (idxgds-search "Google Desktop Search")
+    (idxwds-search "Windows Desktop Search"))
+  "Search engines.")
+
+
+;; (idxsearch-funp idxsearch-engine)
+(defun idxsearch-funp (fun)
+  (assoc fun idxsearch-engines))
+
+(define-widget 'idxsearch-function 'function
+  "A index search function known by `idxsearch."
+  :complete-function (lambda ()
+                       (interactive)
+                       (lisp-complete-symbol 'idxsearch-funp))
+  :prompt-match 'idxsearch-funp
+  :prompt-history 'widget-function-prompt-value-history
+  :match-alternatives '(idxsearch-funp)
+  :validate (lambda (widget)
+              (unless (idxsearch-funp (widget-value widget))
+                (widget-put widget :error (format "Unknown index search function: %S"
+                                                  (widget-value widget)))
+                widget))
+  :value 'fundamental-mode
+  :tag "Index search specific function")
+
+;;(setq idxsearch-engine 'idxgds-search)
+;;(setq idxsearch-engine 'idxwds-search)
+;;(setq idxsearch-engine 'idxdoc-search)
 (defcustom idxsearch-engine (cond
-                             ((idxgds-query-url-p) 'gds)
+                             ((idxgds-query-url-p) 'idxgds-search)
                              (t (if (eq system-type 'windows-nt)
-                                    'wds
-                                  'docindexer)))
+                                    'idxwds-search
+                                  'idxdoc-search)))
   "Desktop search engine for `idxsearch' to use.
 The currently supported search engines are:
 
-* DocIndexer, see `idxdocidxer-search'.
+* DocIndexer, see `idxdoc-search'.
 * Google Desktop Search
   You need to set `idxgds-query-url' to use it.
 * Windows Desktop Search
 "
-  :type '(choice :tag "Select search engine:"
-                 (const :tag "DocIndexer" docindexer)
-                 (const :tag "Google Desktop Search" gds)
-                 (const :tag "Windows Desktop Search" wds)
-                 )
+  :type 'idxsearch-function
   :group 'idxsearch)
 
 (defcustom idxsearch-dflt-file-pattern "*.org, *.pdf"
@@ -142,7 +168,7 @@ which one by customizing `idxsearch-engine'."
           (def-fil idxsearch-dflt-file-pattern)
           (fil (read-string "File name pattern: " def-fil 'idxsearch-file-patt-hist))
           (dir (read-directory-name "Indexed search in directory tree: ")))
-     (list str fil dir nil)))
+     (list str fil dir)))
   (let ((item-patt (rx (or (and "\""
                                 (submatch (* (not (any "\""))))
                                 "\"")
@@ -157,11 +183,12 @@ which one by customizing `idxsearch-engine'."
                    (match-string 2 search-patt))))
         (setq start (+ start (length y)))
         (setq strs (cons y strs))))
-    (case idxsearch-engine
-      (gds        (idxgds-search      search-patt file-patts root))
-      (wds        (idxwds-search      search-patt file-patts root))
-      (docindexer (idxdocidxer-search search-patt file-patts root))
-      (t (error "Ops!")))))
+    (funcall idxsearch-engine search-patt file-patts root)))
+    ;; (case idxsearch-engine
+    ;;   (gds        (idxgds-search      search-patt file-patts root))
+    ;;   (wds        (idxwds-search      search-patt file-patts root))
+    ;;   (docindexer (idxdoc-search search-patt file-patts root))
+    ;;   (t (error "Ops!")))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
