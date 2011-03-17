@@ -16,7 +16,8 @@
 ;;
 ;;; Commentary:
 ;;
-;; This is for use with idxsearch.el
+;; Support in `idxsearch' for indexing search engines that you can ask
+;; though SQL.
 ;;
 ;; The index of some search engines can be accessed through SQL queries.
 ;; This file provide generic and specific implementation for such access.

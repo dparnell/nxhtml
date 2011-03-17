@@ -16,10 +16,13 @@
 ;;
 ;;; Commentary:
 ;;
-;; This is for use with idxsearch.el
+;; Support for Google Desktop Search in `idxsearch'.
 ;;
-;; For the Google Desktop Search API see
+;; For info about Google Desktop Search API see
 ;; http://code.google.com/apis/desktop/docs/queryapi.html
+;;
+;; To index any text file you can use the indexing plugin "Larry's Any
+;; Text File Indexer" to Google Desktop Search.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -185,7 +188,7 @@ START is 0-based."
          (more t)
          (num 50)
          (start 0)
-         (buffer-name "*idxsearch gds*")
+         (buffer-name "*idxsearch*")
          (buffer (get-buffer buffer-name))
          (cnt-hits 0)
          win
@@ -203,6 +206,7 @@ START is 0-based."
       (orgstruct-mode)
       (let ((inhibit-read-only t))
         (insert "-*- mode: idxsearch; default-directory: \"" root "\" -*-\n")
+        (insert "Using Google Desktop\n")
         (insert (format " idx:  %s\ngrep:  %s %S\nfile:  %s\n\n"
                         index-patt grep-or-patt grep-and-patts file-patt))
         (insert "Search started at " (format-time-string "%Y-%m-%d %T\n\n"))
@@ -224,9 +228,11 @@ START is 0-based."
                   (message "error hit=%S" hit)
                   (error "%S" hit))
                 (insert "* File " url " matches\n")
-                (when title   (insert "  Title:   " title "\n"))
-                (when snippet (insert "  Snippet: " snippet "\n"))
-                (when (idxsearch-text-p url)
+                (when idxsearch-show-details
+                  (when title   (insert "  Title:   " title "\n"))
+                  (when snippet (insert "  Snippet: " snippet "\n")))
+                (when (and idxsearch-grep-in-text-files
+                           (idxsearch-text-p url))
                   (idxsearch-grep url grep-or-patt grep-and-patts maxw))
                 (sit-for 0)
                 ))

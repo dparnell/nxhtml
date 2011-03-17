@@ -59,6 +59,7 @@
 (eval-when-compile (require 'idxgds))
 (eval-when-compile (require 'idxsql))
 (eval-when-compile (require 'idxdoc))
+(require 'grep)
 (require 'org)
 (require 'nxhtml-base)
 
@@ -140,6 +141,16 @@ name.  '*' may be used as a wildcard."
   :type 'string
   :group 'idxsearch)
 
+(defcustom idxsearch-show-details nil
+  "Show details in search result if they are available."
+  :type 'boolean
+  :group 'idxsearch)
+
+(defcustom idxsearch-grep-in-text-files nil
+  "If the hit file is a text file grep inside it."
+  :type 'boolean
+  :group 'idxsearch)
+
 ;;;###autoload
 (defun idxsearch (search-patt file-patt root)
   "Search using an indexed search engine on your pc.
@@ -177,18 +188,26 @@ which one by customizing `idxsearch-engine'."
                                           word-end)))))
         (start 0)
         strs
-        (file-patts (split-string file-patt (rx (* whitespace) "," (* whitespace)))))
+        (file-patts (split-string file-patt (rx (* whitespace) "," (* whitespace))))
+        (outbuf (get-buffer-create "*idxsearch*"))
+        (engine-name (nth 1 (assoc idxsearch-engine idxsearch-engines))))
     (while (setq start (string-match item-patt search-patt start))
       (let ((y (or (match-string 1 search-patt)
                    (match-string 2 search-patt))))
         (setq start (+ start (length y)))
         (setq strs (cons y strs))))
-    (funcall idxsearch-engine search-patt file-patts root)))
-    ;; (case idxsearch-engine
-    ;;   (gds        (idxgds-search      search-patt file-patts root))
-    ;;   (wds        (idxwds-search      search-patt file-patts root))
-    ;;   (docindexer (idxdoc-search search-patt file-patts root))
-    ;;   (t (error "Ops!")))))
+    (display-buffer outbuf)
+    (with-current-buffer outbuf
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (unless (derived-mode-p 'idxsearch-mode) (idxsearch-mode))
+        (unless orgstruct-mode (orgstruct-mode))
+        (visual-line-mode 1)
+        (setq wrap-prefix "           ")
+        (insert "-*- mode: idxsearch; default-directory: \"" root "\" -*-\n")
+        (insert "using " engine-name "\n")
+        (setq default-directory root)
+        (funcall idxsearch-engine search-patt file-patts root)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
