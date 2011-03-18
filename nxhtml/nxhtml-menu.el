@@ -375,6 +375,8 @@
         (list 'menu-item "--" nil))
       (define-key tools-map [nxhtml-bibhlp]
         (list 'menu-item "Bibliographic Tool" 'bibhlp))
+      (define-key tools-map [nxhtml-idxsearch]
+        (list 'menu-item "Indexed Search" 'idxsearch))
       (define-key tools-map [nxhtml-last-resort-separator]
         (list 'menu-item "--" nil))
       (define-key tools-map [nxhtml-viper-tut]
@@ -1136,9 +1138,7 @@
       (define-key edit-map [nxhtml-rgrep]
         (list 'menu-item "Search in Files in Tree" 'rgrep))
 
-      (define-key edit-map [nxhtml-edit-sepidx] (list 'menu-item "--"))
-      (define-key edit-map [nxhtml-idxsearch]
-        (list 'menu-item "Indexed Search" 'idxsearch))
+      ;; (define-key edit-map [nxhtml-edit-sepidx] (list 'menu-item "--"))
 
       (define-key edit-map [nxhtml-edit-sep2] (list 'menu-item "--"))
       (define-key edit-map [nxhtml-multi-occur]
