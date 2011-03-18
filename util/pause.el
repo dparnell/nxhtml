@@ -1119,7 +1119,7 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
                   (insert ")\n"))
                 (when pose
                   (setq n-pose 1)
-                  (setq prev-point (point))
+                  (setq prev-point (point-marker))
                   (insert "  ")
                   (insert-text-button
                    (let ((tit (cdr pose)))
