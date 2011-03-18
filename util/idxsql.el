@@ -63,9 +63,12 @@
          (file-patt (mapconcat (lambda (fp) (replace-regexp-in-string "*" "%" fp t t))
                                file-patts
                                ","))
-         (options (list "--root" root
-                        "--filepatt" file-patt
-                        "--query" (mapconcat 'identity search-patts ",")))
+         (options (let ((opts (list "--root" root
+                                    "--filepatt" file-patt
+                                    "--query" (mapconcat 'identity search-patts ","))))
+                    (when idxsearch-show-details       (setq opts (cons "--details" opts)))
+                    (when idxsearch-grep-in-text-files (setq opts (cons "--greptext" opts)))
+                    opts))
          (cmds (idxsearch-make-command options))
          (cmd (car cmds))
          (script-type (cadr cmds))
@@ -84,6 +87,7 @@
       (setq cmd (mapconcat 'identity cmd " ")))
     (message "cmd=%S" cmd)
     (with-current-buffer (compilation-start cmd 'idxsearch-mode)
+      ;;(run-with-idle-timer 3 nil 'idxsearch-insert-search-info-header root search-patt (mapconcat 'identity file-patts "; "))
       (visual-line-mode 1)
       (setq wrap-prefix "           ")
       (orgstruct-mode)

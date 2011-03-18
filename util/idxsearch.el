@@ -189,8 +189,7 @@ which one by customizing `idxsearch-engine'."
         (start 0)
         strs
         (file-patts (split-string file-patt (rx (* whitespace) "," (* whitespace))))
-        (outbuf (get-buffer-create "*idxsearch*"))
-        (engine-name (nth 1 (assoc idxsearch-engine idxsearch-engines))))
+        (outbuf (get-buffer-create "*idxsearch*")))
     (while (setq start (string-match item-patt search-patt start))
       (let ((y (or (match-string 1 search-patt)
                    (match-string 2 search-patt))))
@@ -204,11 +203,22 @@ which one by customizing `idxsearch-engine'."
         (unless orgstruct-mode (orgstruct-mode))
         (visual-line-mode 1)
         (setq wrap-prefix "           ")
-        (insert "-*- mode: idxsearch; default-directory: \"" root "\" -*-\n")
-        (insert "using " engine-name "\n")
+        (idxsearch-insert-search-info-header root search-patt file-patt)
         (setq default-directory root)
         (funcall idxsearch-engine search-patt file-patts root)))))
 
+(defun idxsearch-insert-search-info-header (root search-patt file-patt)
+  (let ((here (point-marker))
+        (engine-name (nth 1 (assoc idxsearch-engine idxsearch-engines))))
+    (set-marker-insertion-type here t)
+    (goto-char (point-min))
+    (if (looking-at "-\*- mode: ")
+        (goto-char (point-at-eol))
+      (insert "-*- mode: idxsearch; default-directory: \"" root "\" -*-\n"))
+    (insert "Using " engine-name "\n")
+    (insert "    Search: " search-patt "\n")
+    (insert "  In files: " file-patt "\n")
+    (goto-char here)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Pattern building helpers

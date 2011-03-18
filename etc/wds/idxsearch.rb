@@ -157,9 +157,12 @@ end
 
 class WdsSearchResult < WdsLocateResult
   # This class holds and handles search results
-  def initialize(rootpath, file_patt, comma_sep_query, options)
+  def initialize(rootpath, file_patt, comma_sep_query, show_details, grep_text, options)
+    # print "WdsSearchResult.file_patt=", file_patt, "\n"
     txt_ext = options[:txtexts] || [".txt", ".org", ".el"]
     maxw    = options[:maxw]    || 0
+    @show_details = options[:details]
+    @grep_text    = options[:greptext]
     @query_strings = comma_sep_query.split(",")
     @used_fields ||= []
     @used_fields.push("SYSTEM.AUTHOR")
@@ -192,11 +195,20 @@ class WdsSearchResult < WdsLocateResult
     return ext && @txt_ext.index(ext)
   end
   def output
-    @hits.each {
+    print "Using Windows Desktop Search\n"
+    print "    Search: ", @query_strings, "\n"
+    print "  in files: ", @filename, "\n\n"
+    # Fix-me: sort!
+    # print "hits=", @hits, "\n\n"
+    sorted = @hits.sort{|a,b| a[4].downcase <=> b[4].downcase}
+    # @hits.each {
+    sorted.each {
       |hit|
-      print "\n"
+      if @show_details
+        print "\n"
+      end
       print "* File ", relurl(hit), " matches\n"
-      if istxt(hit)
+      if @grep_text && istxt(hit)
         re_str = "("+@query_strings.join("|")+")"
         # Translate to regexp
         wild = re_str.split("%")
@@ -214,13 +226,15 @@ class WdsSearchResult < WdsLocateResult
           end
         end
       end
-      title = title(hit)
-      if title
-        print "  Title:   ", title, "\n"
-      end
-      authors = authors(hit)
-      if authors
-        print "  Authors: ", authors.join(", "), "\n"
+      if @show_details
+        title = title(hit)
+        if title
+          print "  Title:   ", title, "\n"
+        end
+        authors = authors(hit)
+        if authors
+          print "  Authors: ", authors.join(", "), "\n"
+        end
       end
     }
     print "----\n"
@@ -313,11 +327,13 @@ if __FILE__ == $0
     opt :query,  "The query", :type => :string
     opt :locate, "Locate files", :type => :string
     opt :filepatt, "Match file names", :type => :string
+    opt :details, "Show details"
+    opt :greptext, "Grep in text files"
   end
   Trollop::die :root, "must be specified" unless opts[:root]
   # Trollop::die :query, "must be specified" unless opts[:query]
   if opts[:query]
-    WdsSearchResult.new(opts[:root], opts[:filepatt], opts[:query], maxw: -1).output
+    WdsSearchResult.new(opts[:root], opts[:filepatt], opts[:query], opts[:details], opts[:greptext], maxw: -1).output
   else
     WdsLocateResult.new(opts[:root], opts[:filepatt], 
                         for_locate: opts[:locate] == "locate"
