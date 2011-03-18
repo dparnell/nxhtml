@@ -1354,50 +1354,52 @@ FROM should be either \"pubmed\" or \"pmc\"."
     ))
 
 ;;; LibHub at lu.se
+;; Useful of something does not work with Google Scholar
 
-;; (defun bibhlp-make-libhub-search-string (rec)
-;;   "Make a search string for LibHub from REC."
-;;   (let ((txt nil))
-;;     (dolist (auth (plist-get rec :authors))
-;;       (let ((lastname (car auth)))
-;;         (when txt (setq txt (concat txt " AND ")))
-;;         (when (string-match-p " " lastname)
-;;           (setq lastname (concat "\"" lastname "\"")))
-;;         (setq txt (concat txt "au:" lastname))))
-;;     (let ((ti (plist-get rec :title)))
-;;       (when ti
-;;         (dolist (tw (split-string ti "[][ \f\t\n\r\v!.:,()-]" t))
-;;           (when (< 7 (length tw))
-;;             (when txt (setq txt (concat txt " AND ")))
-;;             (setq txt (concat txt "ti:" tw))))))
-;;     (kill-new txt)
-;;     txt))
+(defun bibhlp-make-libhub-search-string (rec)
+  "Make a search string for LibHub from REC."
+  (let ((txt nil))
+    (dolist (auth (plist-get rec :authors))
+      (let ((lastname (car auth)))
+        (when txt (setq txt (concat txt " AND ")))
+        (when (string-match-p " " lastname)
+          (setq lastname (concat "\"" lastname "\"")))
+        (setq txt (concat txt "au:" lastname))))
+    (let ((ti (plist-get rec :title)))
+      (when ti
+        (dolist (tw (split-string ti "[][ \f\t\n\r\v!.:,()-]" t))
+          (when (< 7 (length tw))
+            (when txt (setq txt (concat txt " AND ")))
+            (setq txt (concat txt "ti:" tw))))))
+    (kill-new txt)
+    txt))
 
-;; (defcustom bibhlp-libhub-search-url
-;;   "http://libhub.sempertool.dk.ludwig.lub.lu.se/libhub?func=search&libhubSearch=1&query="
-;;   "Base url for searching LibHub.
-;; Used by `bibhlp-search-in-libhub'.  The query in LibHub
-;; format is added at the end of this, url-encoded.
+(defcustom bibhlp-libhub-search-url
+  "http://libhub.sempertool.dk.ludwig.lub.lu.se/libhub?func=search&libhubSearch=1&query="
+  "Base url for searching LibHub.
+Used by `bibhlp-search-in-libhub'.  The query in LibHub
+format is added at the end of this, url-encoded.
 
-;; The default value is for Lund University."
-;;   :type 'string
-;;   :group 'bibhlp)
+The default value is for Lund University."
+  :type 'string
+  :group 'bibhlp)
 
-;; (defun bibhlp-search-in-libhub (rec)
-;;   "Go to LibHub and look for REC.
-;; REC should be a bibliographic record in the format returned from
-;; `bibhlp-parse-entry'.
+(defun bibhlp-search-in-libhub (rec)
+  "Go to LibHub and look for REC.
+REC should be a bibliographic record in the format returned from
+`bibhlp-parse-entry'.
 
-;; You must customize `bibhlp-libhub-search-url' to use this
-;; \(unless you are at Lund University)."
-;;   (let ((txt (bibhlp-make-libhub-search-string rec)))
-;;     (message "LibHub search: %S" txt)
-;;     (let ((url (concat
-;;                 ;; "http://elin.lub.lu.se.ludwig.lub.lu.se/elin?func=advancedSearch&lang=se&query="
-;;                 ;; "http://libhub.sempertool.dk.ludwig.lub.lu.se/libhub?func=search&libhubSearch=1&query="
-;;                 bibhlp-libhub-search-url
-;;                 (browse-url-encode-url txt))))
-;;       (bibhlp-browse-url-for-pdf url))))
+You must customize `bibhlp-libhub-search-url' to use this
+\(unless you are at Lund University)."
+  (let ((txt (bibhlp-make-libhub-search-string rec)))
+    (message "LibHub search: %S" txt)
+    (let ((url (concat
+                ;; "http://elin.lub.lu.se.ludwig.lub.lu.se/elin?func=advancedSearch&lang=se&query="
+                ;; "http://libhub.sempertool.dk.ludwig.lub.lu.se/libhub?func=search&libhubSearch=1&query="
+                bibhlp-libhub-search-url
+                (browse-url-encode-url txt))))
+      (bibhlp-browse-url-for-pdf url))))
+
 
 ;;; Google Scholar
 
@@ -1766,9 +1768,10 @@ Convert:  a - APA style
                     (when mid (insert "--- old values:\n"))
                     (message "Inserted answer from CrossRef")
                     )))
-               ;; ((eq cc ?l)
-               ;;  (let ((rec (bibhlp-parse-entry beg mid end)))
-               ;;    (bibhlp-search-in-libhub rec)))
+               ((eq cc ?l)
+                ;; Useful if problems with Google Scholar
+                (let ((rec (bibhlp-parse-entry beg mid end)))
+                  (bibhlp-search-in-libhub rec)))
                ((eq cc ?g)
                 (let ((rec (bibhlp-parse-entry beg mid end)))
                   (bibhlp-search-in-google-scholar rec)))
