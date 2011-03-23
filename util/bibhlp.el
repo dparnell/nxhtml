@@ -312,7 +312,7 @@ users in San Francisco. Clin Infect Dis. 2000;
       (when (search-forward "." beg-yy t)
         (let ((auth-str (buffer-substring-no-properties beg (1- (point))))
               )
-          (dolist (au (split-string auth-str ",[ \n]+" t))
+          (dolist (au (split-string auth-str ",[ \n]*" t))
             (let* ((li (split-string au "[ \n]+" t))
                   (lastname (nth 0 li))
                   (initials (nth 1 li)))
