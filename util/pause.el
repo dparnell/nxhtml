@@ -1001,14 +1001,21 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
 
 (defvar pause-collected-yoga-poses nil)
 
+(defun pause-make-file-title (file)
+  (let ((tit (file-name-nondirectory (file-name-sans-extension file))))
+    (setq tit (replace-regexp-in-string "-" " " tit t t))
+    (setq tit (capitalize tit))
+    tit))
+
 ;;(setq x (pause-get-pose-from-yoga-poses-dir))
 (defun pause-get-pose-from-yoga-poses-dir ()
   "Get a random file name from `pause-yoga-poses-dir'."
   (let* ((poses-dir (substitute-in-file-name pause-yoga-poses-dir))
          (files (directory-files poses-dir nil "[^.]$"))
          (num (length files))
-         (file (pause-random-yoga-pose files)))
-    (cons (expand-file-name file poses-dir) file)))
+         (file (pause-random-yoga-pose files))
+         (title (pause-make-file-title file)))
+    (cons (expand-file-name file poses-dir) title)))
 
 (defun pause-callback-get-yoga-poses (status)
   ;;(message "pause get-yoga-poses: status=%S" status) (message nil)
@@ -1124,7 +1131,7 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
                   (insert-text-button
                    (let ((tit (cdr pose)))
                      (save-match-data
-                       (when (string-match "\\(.*\\)\.[a-z0-9]+$" tit)
+                       (when (string-match "\\(.*\\)\\.[a-z0-9]+$" tit)
                          (setq tit (match-string 1 tit))))
                      tit)
                    'mouse-face 'pause-mouse-face
@@ -1185,7 +1192,7 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
             ))
     ;;(msgtrc "pause-modify-later 2: (length later)=%d" (length later))
     (setq later (sort later (lambda (a b)
-                              (string< (cdr a) (cdr b)))))
+                              (string< (upcase (cdr a)) (upcase (cdr b))))))
     (when buf
       (with-current-buffer buf
         (erase-buffer)
