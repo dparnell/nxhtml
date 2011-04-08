@@ -77,7 +77,8 @@
 ;; Fix-me: Using Opera at the moment due to Chrome and Firefox bug when displaying pdf:
 (defvar bibhlp-browse-url-for-pdf-exe
   (if (eq system-type 'windows-nt)
-      "C:/Program Files/Opera/opera.exe"
+      ;;"C:/Program Files/Opera/opera.exe"
+      "C:/Program Files/Mozilla Firefox/firefox.exe"
     ;; Fix-me:
     "C:/Program Files/Opera/opera.exe"))
 
@@ -207,7 +208,7 @@ APA reference."
              (bibhlp-parse-ris-like  beg end) ;; .ris - Reference Manager, MedLine, Zotero etc
              (bibhlp-parse-from-html beg end)
              (bibhlp-parse-apa-like  beg ref-end)
-             (bibhlp-parse-jama-like beg ref-end)
+             (bibhlp-parse-ama-like beg ref-end)
              (progn
                (message "%s" (propertize "bibhlp: Unrecognized reference format, can't parse it"
                                     'face 'secondary-selection))
@@ -285,9 +286,9 @@ APA reference."
         :pmid pmid
         :pmcid pmcid)))))
 
-(defun bibhlp-parse-jama-like (beg end)
+(defun bibhlp-parse-ama-like (beg end)
   "Unknown. Catch formats used by NCBI etc.
-This should cover JAMA.
+This should cover AMA.
 
 Example:
 
@@ -639,6 +640,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
            ((string= mark "TY")
             (cond
              ((string= val "JOUR") (setq type 'journal-article))
+             ((string= val "ABST") (setq type 'journal-article))
              ((string= val "BOOK") (setq type 'book))
              (t (error "Unknown type: %S" val))))
            ((member mark '("T1" "TI"))
@@ -1505,12 +1507,100 @@ REC should be a bibliographic record in the format returned from
   ;; Fix-me
   )
 
+(defun bibhlp-num-authors (rec)
+  "Return number of authors.
+In case :et-al is set then return -1."
+  (let ((authors (plist-get rec :authors))
+        (et-al   (plist-get rec :et-al)))
+    (if et-al
+        (- (length authors))
+      (length authors))))
+
+(defun bibhlp-make-ama (rec no-empty links)
+  "Make an AMA style ref from REC."
+  ;; http://www.ncbi.nlm.nih.gov/books/NBK7265/
+  ;; http://www.wsulibs.wsu.edu/electric/quickguides/docs/nlm.html
+  (let ((str nil)
+        (type (plist-get rec :type)))
+    (let ((authors (plist-get rec :authors))
+          (et-al   (plist-get rec :et-al)))
+      (unless et-al
+        (when (< 6 (length authors))
+          (setq authors (copy-sequence authors))
+          (setcdr (nthcdr 4 authors) nil)
+          (setq et-al t)))
+      (setq str (concat str
+                        ;; Fix-me:
+                        (let ((auth-strs (mapcar (lambda (a)
+                                                   (let* ((l (nth 0 a))
+                                                          (f (nth 1 a))
+                                                          (i (nth 2 a))
+                                                          (inits (split-string (concat
+                                                                                (when f (substring f 0 1))
+                                                                                i)
+                                                                               "" t)))
+                                                     (concat l
+                                                             (when inits " ")
+                                                             (mapconcat 'identity inits "")
+                                                             )))
+                                                 authors)))
+                          (if (= 1 (length auth-strs))
+                              (concat
+                               (car auth-strs)
+                               (when et-al "et al."))
+                            (if et-al
+                                (concat (mapconcat 'identity auth-strs ", ")
+                                        " et al.")
+                              (concat (mapconcat 'identity (butlast auth-strs) ", ")
+                                      (when (cdr authors) (concat " & "
+                                                                  (car (last auth-strs)))))))))))
+    (let ((ti   (plist-get rec :title)))
+      (when (or ti (not no-empty))
+        (setq str (concat str " " (or ti "NO-TI")))
+        (unless (memq (aref str (1- (length str)))
+                      (append ".!?" nil))
+          (setq str (concat str ".")))
+        ))
+    (when (eq type 'journal-article)
+      (let ((jo (plist-get rec :journal)))
+        (when (or jo (not no-empty))
+          (setq str (concat str
+                            ;;" /"
+                            " "
+                            (or jo "NO-JO")
+                            ;;"/"
+                            "."))))
+      (setq str (concat str
+                        " " (or (plist-get rec :year) "n.d.") ";"))
+      (let ((vl (plist-get rec :volume)))
+        (when (or vl (not no-empty))
+          (setq str (concat str (or vl "NO-VL")))
+          (let ((is (plist-get rec :issue)))
+            (when (or is (not no-empty))
+              (setq str (concat str "(" (or is "NO-IS") ")"))))
+          (setq str (concat str ":")))))
+    (unless (eq type 'book)
+      (let ((pf (plist-get rec :firstpage)))
+        (when (or pf (not no-empty))
+          (setq str (concat str (or pf "NO-PF")))
+          (let ((pe (plist-get rec :lastpage)))
+            (when pe
+              (setq str (concat str "-" pe)))))
+        (setq str (concat str "."))))
+    str)
+  )
+
 (defun bibhlp-make-apa (rec no-empty links)
   "Make an APA style ref from REC."
   (let ((str nil)
         (type (plist-get rec :type)))
     (let ((authors (plist-get rec :authors))
           (et-al   (plist-get rec :et-al)))
+      (unless et-al
+        (when (< 6 (length authors))
+          (setq authors (copy-sequence authors))
+          (setcdr (nthcdr 4 authors) nil)
+          (setq et-al t)))
       (setq str (concat str
                         ;; Fix-me:
                         (let ((auth-strs (mapcar (lambda (a)
@@ -1530,9 +1620,12 @@ REC should be a bibliographic record in the format returned from
                               (concat
                                (car auth-strs)
                                (when et-al "et al."))
-                            (concat (mapconcat 'identity (butlast auth-strs) ", ")
-                                    (when (cdr authors) (concat " & "
-                                                                (car (last auth-strs))))))))))
+                            (if et-al
+                                (concat (mapconcat 'identity auth-strs ", ")
+                                        " et al.")
+                              (concat (mapconcat 'identity (butlast auth-strs) ", ")
+                                      (when (cdr authors) (concat " & "
+                                                                  (car (last auth-strs)))))))))))
     (setq str (concat str
                       " (" (or (plist-get rec :year) "n.d.") ")."))
     (let ((ti   (plist-get rec :title)))
@@ -1720,6 +1813,7 @@ What do you want to do with the marked bibliographic entry?
 Search:   g - Google Scholar (which you can connect to your library)
           x - Get ids from CrossRef
 Convert:  a - APA style
+          m - AMA style
           r - Reference Manager style
 "
                             ;; l - LibHub
@@ -1740,9 +1834,14 @@ Convert:  a - APA style
                (nil ;;(eq cc ?c)
                 (bibhlp-make-ris (parscit-post-reference str)))
                ((eq cc ?x)
-                (let* ((rec (bibhlp-parse-entry beg mid end))
-                       (apa-ref (bibhlp-make-apa rec t nil))
-                       (ret (bibhlp-get-ids-from-crossref apa-ref))
+                (let* ((rec (catch 'top-level
+                              (bibhlp-parse-entry beg mid end)))
+                       (apa-ref (when rec (bibhlp-make-apa rec t nil)))
+                       (ret (let ((ref (or apa-ref
+                                           (if (y-or-n-p "Could not parse entry, send all of it?")
+                                               (buffer-substring-no-properties beg (or mid end))
+                                             (throw 'top-level nil)))))
+                              (bibhlp-get-ids-from-crossref ref)))
                        (other-result (assoc 'other-result ret)))
                   (if other-result
                       (with-current-buffer (get-buffer-create "*BIBHLP*")
@@ -1787,6 +1886,14 @@ Convert:  a - APA style
                     (unless (derived-mode-p 'org-mode) (org-mode))
                     (insert str)
                     (switch-to-buffer-other-window (current-buffer)))))
+               ((eq cc ?m)
+                (let* ((rec (bibhlp-parse-entry beg mid end))
+                       (str (bibhlp-make-ama rec t t)))
+                  (with-current-buffer (get-buffer-create "*BIBHLP*")
+                    (erase-buffer)
+                    (unless (derived-mode-p 'org-mode) (org-mode))
+                    (insert str)
+                    (switch-to-buffer-other-window (current-buffer)))))
                (t (setq done nil))))
           (when (and bibhlp-marking-ovl
                      (overlay-buffer bibhlp-marking-ovl))
@@ -1806,7 +1913,7 @@ For a recognized bibliographic reference at point you can:
 
   The currently recognized reference formats are End Note
   \(.enw), Reference Manager \(.ris), APA style and the style
-  JAMA etc use \(whatever that is called, not sure).
+  AMA etc use.
 
 For an URL at point you can:
   - show it in a specific browser (f ex Firefox/Zotero)
