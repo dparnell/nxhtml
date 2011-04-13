@@ -1,6 +1,6 @@
 ;;; amrita.el --- Amrita major mode
 
-;; Author: Roger Mason.  Based on sample.el by StefanMonnier
+;; Author: Roger Mason.  Based on sample.el by Stefan Monnier
 ;; Copyright: Roger Mason
 ;; Modified by Lennart Borgman
 ;; Keywords: extensions
