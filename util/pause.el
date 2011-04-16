@@ -527,6 +527,8 @@ Please note that it is run in a timer.")
                           (* 2 (frame-parameter f 'internal-border-width))))
          (cols (/ avail-width (frame-char-width)))
          (rows (- (/ avail-height (frame-char-height)) 2)))
+    ;; Fix-me: bug in Emacs, remove 3 rows
+    (setq rows (- rows 3))
     ;;(set-frame-parameter (selected-frame) 'fullscreen 'fullboth)
     ;;(set-frame-parameter (selected-frame) 'fullscreen 'maximized)
     (setq pause-break-last-wcfg-change (float-time))
@@ -535,9 +537,9 @@ Please note that it is run in a timer.")
       (with-selected-window (frame-first-window)
         (switch-to-buffer pause-buffer)
         (setq cols 55)
-        (with-current-buffer pause-buffer
-          (setq rows (+ 5 (line-number-at-pos (point-max))))
-          )
+        ;; (with-current-buffer pause-buffer
+        ;;   (setq rows (+ 5 (line-number-at-pos (point-max))))
+        ;;   )
         (set-frame-size f cols rows)
         ))))
 
