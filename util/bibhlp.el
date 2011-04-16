@@ -1066,9 +1066,13 @@ will give you PMID and PMCID too if they are available."
                   (setq other-result (list 'org-mode
                                            (concat (propertize "Crossref returned no ids, just this:\n\n" 'font-lock-face 'font-lock-warning-face)
                                                    (match-string-no-properties 1 page))))
-                (setq other-result (list 'html-mode
-                                         (concat "<!-- Status 200 but Crossref final output was: -->\n\n" page)))
-                ))
+                (if (string-match "\\(eXtyles parser failed\\)" page)
+                    (setq other-result (list 'org-mode
+                                             (concat (propertize "Crossref failed to parse the input:\n\n" 'font-lock-face 'font-lock-warning-face)
+                                                     (match-string-no-properties 1 page))))
+                  (setq other-result (list 'html-mode
+                                           (concat "<!-- Status 200 but Crossref final output was: -->\n\n" page)))
+                  )))
             )
         (setq other-result
               (list 'html-mode
