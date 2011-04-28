@@ -1143,7 +1143,7 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
                                     (pause-cancel-tell-again-timer)
                                     (browse-url ,(car pose))
                                     (pause-remove-from-later ',pose)
-                                    (pause-remove-1-from-line ,(point))
+                                    (pause-remove-1-from-line ,(1- (point)))
                                     ;;(run-with-idle-timer 1 nil 'pause-break-exit-from-button)
                                     )
                                 (error (message "pause-tell-about-yoga-link c: %s" (error-message-string err))))))

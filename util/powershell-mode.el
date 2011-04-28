@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2009, 2010 Frédéric Perrin
 
-;; Author: Frédéric Perrin <frederic (dot) perrin (arobas) resel (dot) fr>
+;; Author: Fr�d�ric Perrin <frederic (dot) perrin (arobas) resel (dot) fr>
 ;; Keywords: Powershell, Monad, MSH
 ;; Last-Updated: 2010-12-21 Tue
 
