@@ -405,6 +405,7 @@ command `nxhtml-setup-install'."
   (interactive)
   (when (y-or-n-p "Do you want to update your nXhtml files? ")
     (message "")
+    (require 'web-vcs)
     (web-vcs-display-messages t)
     (web-vcs-message-with-face 'web-vcs-yellow "*\nStarting updating your nXhtml files.\n*\n")
     (message nil)
