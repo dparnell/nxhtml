@@ -440,7 +440,9 @@ If TEST is non-nil then do not download, just list the files."
                    ""
                    nil
                    (if recursive 0 nil)
-                   dl-revision test))
+                   dl-revision
+                   test
+                   0))
         (setq moved       (nth 1 ret))
         ;; Now we have a revision number again.
         (with-current-buffer rev-buf
@@ -460,7 +462,7 @@ If TEST is non-nil then do not download, just list the files."
                                      "  %i files updated (old versions renamed to *.moved)"
                                      moved))))))
 
-(defun web-vcs-get-files-on-page-1 (vcs-rec page-url dl-root dl-relative file-mask recursive dl-revision test)
+(defun web-vcs-get-files-on-page-1 (vcs-rec page-url dl-root dl-relative file-mask recursive dl-revision test num-files)
   "Download files listed by VCS-REC on web page page-URL.
 VCS-REC should be an entry like the entries in the list
 `web-vcs-links-regexp'.
@@ -567,6 +569,8 @@ If TEST is non-nil then do not download, just list the files"
                  (time (match-string time-num))
                  (full-file (url-expand-file-name file page-url)))
             (add-to-list 'files (list full-file time)))))
+      (when (< (length files) num-files)
+        (message "files-on-page-1: found %d files, expected %d" (length files) num-files))
       ;; Find subdirs
       (when recursive
         (goto-char (point-min))
@@ -602,11 +606,12 @@ If TEST is non-nil then do not download, just list the files"
                                                      file-mask
                                                      (1+ recursive)
                                                      this-page-revision
-                                                     test)))
+                                                     test
+                                                     0)))
               (setq moved (+ moved (nth 1 ret))))))))
     (list this-page-revision moved)))
 
-(defun web-vcs-get-missing-matching-files (web-vcs url dl-dir file-mask)
+(defun web-vcs-get-missing-matching-files (web-vcs url dl-dir file-mask num-files)
   "Download missing files from VCS system using the web interface.
 Use WEB-VCS entry in variable `web-vcs-links-regexp' to download
 files via http from URL to directory DL-DIR.
@@ -616,7 +621,7 @@ downloading will be made.
 "
   (let ((vcs-rec (or (assq web-vcs web-vcs-links-regexp)
                      (error "Does not know web-cvs %S" web-vcs))))
-    (web-vcs-get-files-on-page-1 vcs-rec url dl-dir "" file-mask 0 nil nil)))
+    (web-vcs-get-files-on-page-1 vcs-rec url dl-dir "" file-mask 0 nil nil num-files)))
 
 
 ;; (web-vcs-get-files-on-page 'lp "http://bazaar.launchpad.net/%7Enxhtml/nxhtml/main/files/head%3A/" t "c:/test/temp13/" t)
@@ -1584,7 +1589,7 @@ some sort of escape sequence, the ambiguity is resolved via `web-vcs-read-key-de
     ;;(web-vcs-message-with-face 'hi-blue "this-rel=%S  %S %S" this-rel  dl-dir this-dir)
     (setq file-mask (concat this-rel (regexp-opt files)))
     ;;(web-vcs-message-with-face 'hi-blue "r=%S" file-mask)
-    (web-vcs-get-missing-matching-files vcs base-url dl-dir file-mask)
+    (web-vcs-get-missing-matching-files vcs base-url dl-dir file-mask (length files))
     (dolist (d dirs)
       (web-vcs-update-existing-files vcs base-url dl-dir
                                        (file-name-as-directory
@@ -2313,7 +2318,7 @@ Download and install nXhtml."
         (delete-other-windows))
       (dolist (file files2)
         (unless (file-exists-p (cdr file))
-          (web-vcs-get-missing-matching-files 'lp root-url this-dir (car file))))
+          (web-vcs-get-missing-matching-files 'lp root-url this-dir (car file) 0)))
       (load (cdr (car files2))))
     (call-interactively 'nxhtml-setup-install)))
 
