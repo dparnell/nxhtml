@@ -321,7 +321,7 @@ users in San Francisco. Clin Infect Dis. 2000;
         (setq auths (reverse auths))
         (skip-chars-forward " \t\n")
         (setq pos (point))
-        (when (re-search-forward "[.?!]" beg-yy t)
+        (when (re-search-forward "[.?!]" (1+ beg-yy) t)
           (setq ti (buffer-substring-no-properties pos (1- (point))))
           (setq ti (replace-regexp-in-string "[ \t\n]+" " " ti))
           (skip-chars-forward " \t\n")
