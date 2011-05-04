@@ -2928,7 +2928,7 @@ This minor mode therefore instead defines them in a minor mode."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Freemind
 
-(eval-when-compile (require 'nxhtml-base))
+(eval-when-compile (require 'nxhtml-base nil t))
 
 ;;;###autoload
 (defun org-freemind-copy-new-marktree.js (output-dir)
