@@ -953,16 +953,37 @@ If you do not set this then it will be fetched each time needed
 
 ;; (bibhlp-get-my-ip)
 (defun bibhlp-get-my-ip ()
+  (or
+   ;;; Needs js:
+   ;; (bibhelp-get-ip-from-showmyip.com "http://www.ip-address.com/"
+   ;; 				     "<h2>My IP address is: \\([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\\)")
+   (bibhelp-get-ip-from-showmyip.com "http://ip.iptelnow.com/"
+    				     "\\([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\\)")
+   (bibhelp-get-ip-from-showmyip.com "http://showmyip.com/"
+				     "displaycopy('\\([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\\)')")
+   (error "Could not find external IP address, please set `bibhlp-my-ip'")))
+
+(defun bibhelp-get-ip-from-showmyip.com (site search)
   (declare (special url-http-response-status))
-  (message "Getting your external IP address...")
-  (with-current-buffer
-        (url-retrieve-synchronously "http://www.showmyip.com/")
-      (let ((status url-http-response-status))
-        (unless (= 200 status) (error "Error trying to get IP: status=%S, please set `bibhlp-my-ip'" status)))
-      (goto-char (point-min))
-      (unless (re-search-forward "displaycopy('\\([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\\)')" nil t)
-        (error "Could not find external IP address, please set `bibhlp-my-ip'"))
-      (match-string 1)))
+  (message "Getting your external IP address from %s ..." site)
+  (let ((outbuf
+	 (condition-case err
+	     (url-retrieve-synchronously site)
+	   (error (message "%s" (error-message-string err))
+		  nil))))
+    (when outbuf
+      (with-current-buffer outbuf
+	(let ((status url-http-response-status))
+	  (if (/= 200 status)
+	      (progn
+		(message "Error trying to get IP: status=%S" status)
+		nil)
+	    (goto-char (point-min))
+	    (if (re-search-forward search nil t)
+		(match-string 1)
+	      (message "Error: Could not find IP-address in output from %s" site)
+	      (message "%s" (buffer-substring-no-properties (point-min) (point-max)))
+	      nil)))))))
 
 (defvar bibhlp-ip2 "172.20.1.78"
   "Used by bibhlp-get-ids-from-crossref.
