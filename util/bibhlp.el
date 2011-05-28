@@ -78,7 +78,12 @@
 (defvar bibhlp-browse-url-for-pdf-exe
   (if (eq system-type 'windows-nt)
       ;;"C:/Program Files/Opera/opera.exe"
-      "C:/Program Files/Mozilla Firefox/firefox.exe"
+      (let ((firefoxes '( "C:/Program Files/Mozilla Firefox/firefox.exe"
+			 "C:/Program Files (x86)/Mozilla Firefox/firefox.exe")))
+	(catch 'found
+	  (dolist (ff firefoxes)
+	    (when (file-exists-p ff)
+	      (throw 'found ff)))))
     ;; Fix-me:
     "C:/Program Files/Opera/opera.exe"))
 
@@ -547,7 +552,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
   (setq end (or end (point-max)))
   (let (type authors et-al year title location publisher journal volume
         issue firstpage lastpage doi pmid section url abstract
-        mail keywords)
+        mail keywords isbn)
     (goto-char beg)
     (when (re-search-forward "^%\\(.\\) " end t)
       (goto-char beg)
@@ -559,6 +564,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
             (cond
              ((string= val "Journal Article") (setq type 'journal-article))
              ((string= val "Book")            (setq type 'book))
+             ((string= val "Thesis")          (setq type 'thesis))
              (t (error "Unknown type: %S" val))))
            ((string= mark "T") (setq title val))
            ((string= mark "A") (setq authors (cons val authors)))
@@ -572,9 +578,6 @@ Return a plist with found info, see `bibhlp-parse-entry'."
             (setq firstpage (match-string-no-properties 1 val))
             (setq lastpage (match-string-no-properties 2 val))
             )
-           ((string= mark "@")
-            ;; Fix-me: what is it? Looks like page numbers, but much bigger.
-            )
            ((string= mark "D") (setq year val))
            ((string= mark "I") (setq publisher val))
            ((string= mark "K") (setq keywords (cons val keywords)))
@@ -583,7 +586,18 @@ Return a plist with found info, see `bibhlp-parse-entry'."
            ((string= mark "R")
             (cond ((string-match "doi:.*?\\(10\..*\\)" val)
                    (setq doi (match-string-no-properties 1 val)))
-                  (t (setq doi val))))
+                  ((string-match "^10\\..*" val)
+                   (setq doi (match-string-no-properties 0 val)))
+                  ;;(t (setq doi val))
+                  ))
+           ((string= mark "@")
+            ;; ISBN/ISSN, take it only if it is ISBN
+            (let ((num-digits (length (replace-regexp-in-string "-" "" val))))
+              (when (or (= 13 num-digits)
+                        (= 10 num-digits))
+                (setq isbn val))))
+           ((string= mark "+")
+            (setq location val))
            )))
       (goto-char (point-min))
       (when (re-search-forward "^ \\([^/].*/.*\\)" nil t)
@@ -591,6 +605,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
       (setq authors (reverse authors))
       (when (or authors title doi pmid)
         (list
+         :type type
          :authors authors
          :et-al et-al
          :year year
@@ -601,6 +616,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
          :firstpage firstpage
          :lastpage lastpage
          :doi doi
+         :isbn isbn
          :pmid pmid
          :pmcid pmid
          :location location
@@ -628,7 +644,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
   (setq end (or end (point-max)))
   (let (type authors et-al year title publisher journal volume
         issue firstpage lastpage doi pmid pmcid section url
-        abstract mail)
+        abstract mail isbn location)
     (goto-char beg)
     (when (re-search-forward "^\\(?:AU\\|A1\\)\\(?: +-\\)? " end t)
       (goto-char beg)
@@ -643,6 +659,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
              ((string= val "JOUR") (setq type 'journal-article))
              ((string= val "ABST") (setq type 'journal-article))
              ((string= val "BOOK") (setq type 'book))
+             ((string= val "THES") (setq type 'thesis))
              (t (error "Unknown type: %S" val))))
            ((member mark '("T1" "TI"))
             ;; Title may span several lines, but probably just 2.
@@ -671,12 +688,15 @@ Return a plist with found info, see `bibhlp-parse-entry'."
            ((string= mark "SP") (setq firstpage val))
            ((string= mark "EP") (setq lastpage val))
            ((string= mark "PG")
-            (string-match "\\([0-9]+\\)-\\([0-9]+\\)" val)
-            (setq firstpage (match-string-no-properties 1 val))
-            (setq lastpage
-                  (number-to-string (+
-                                     (string-to-number firstpage)
-                                     (string-to-number (match-string-no-properties 2 val))))))
+            (if (string-match "\\([0-9]+\\)-\\([0-9]+\\)" val)
+                (progn
+                  (setq firstpage (match-string-no-properties 1 val))
+                  (setq lastpage
+                        (number-to-string (+
+                                           (string-to-number firstpage)
+                                           (string-to-number (match-string-no-properties 2 val))))))
+              (when (string-match "\\([0-9]+\\)" val)
+                (setq firstpage (match-string-no-properties 1 val)))))
            ((string= mark "PY") (setq year val))
            ((string= mark "DP") (setq year val))
            ((string= mark "DEP") (setq year val))
@@ -685,21 +705,25 @@ Return a plist with found info, see `bibhlp-parse-entry'."
            ((string= mark "A1") (setq authors (cons val authors))) ;; zotero
            ((string= mark "PB") (setq publisher val))
            ((string= mark "SN")
-            ;; Fix-me: what is it? Looks like page numbers, but much bigger.
-            )
+            ;; ISBN/ISSN, take it only if it is ISBN
+            (let ((num-digits (length (replace-regexp-in-string "-" "" val))))
+              (when (or (= 13 num-digits)
+                        (= 10 num-digits))
+                (setq isbn val))))
            ((string= mark "DO") (setq doi val))
            ((string= mark "AID")
             (cond ((string-match " ?\\([^ ]+\\) +\\[doi] *$" val)
                    (setq doi (match-string-no-properties 1 val)))))
            ((string= mark "UR") ;; Some journals
             (cond ((string-match "http://dx.doi.org/\\(10\..*\\)" val)
-                   (setq doi (match-string-no-properties 1 val)))))
+                   (setq doi (match-string-no-properties 1 val)))
+                  (t (setq url val))
+                  ))
            ((string= mark "M3")
             ;; M3  - doi: DOI: 10.1016/j.tics.2010.05.002
             (cond ((string-match "doi:.*?\\(10\..*\\)" val)
                    (setq doi (match-string-no-properties 1 val)))
                   (t (setq doi val))))
-           ((string= mark "UR") (setq url val))
            ((string= mark "AB") (setq abstract val))
 
            ;; Used by pubmed at least:
@@ -709,8 +733,10 @@ Return a plist with found info, see `bibhlp-parse-entry'."
            ((string= mark "PMID") (setq pmid val))
            ((string= mark "AD")
             (require 'thingatpt)
-            (when (string-match thing-at-point-email-regexp val)
-              (setq mail (match-string-no-properties 1 val))))
+            (cond ((string-match thing-at-point-email-regexp val)
+                   (setq mail (match-string-no-properties 1 val)))
+                  (t (setq location val))
+                  ))
 
            ;; There are a lot additions in for example pubmed so
            ;; just continue if we do not want it.
@@ -718,8 +744,10 @@ Return a plist with found info, see `bibhlp-parse-entry'."
       (setq authors (reverse authors))
       (when year
         (setq year (substring year 0 4)))
+      ;;(unless publisher (setq publisher address))
       (when (or authors title doi pmid)
         (list
+         :type type
          :authors authors
          :et-al et-al
          :year year
@@ -736,6 +764,8 @@ Return a plist with found info, see `bibhlp-parse-entry'."
          :mail mail
          :url url
          :doi doi
+         :isbn isbn
+         :location location
          )))))
 
 (defun bibhlp-parse-from-html (beg end)
@@ -1688,7 +1718,7 @@ In case :et-al is set then return -1."
         (setq str (concat str "."))))
     (when links
       ;; fix-me: use function above
-      (when (memq type '(book))
+      (when (memq type '(book thesis))
         (let ((location  (or (plist-get rec :location)  "NO-LOCATION"))
               (publisher (or (plist-get rec :publisher) "NO-PUBLISHER"))
               (isbn (or (plist-get rec :isbn)
@@ -1700,12 +1730,19 @@ In case :et-al is set then return -1."
       (let ((doi (plist-get rec :doi)))
         (when doi
           (setq str (concat str "\ndoi:" doi))))
+      ;; (let ((isbn (plist-get rec :isbn)))
+      ;;   (when isbn
+      ;;     (setq str (concat str "\nisbn:" isbn))))
       (let ((pmid (plist-get rec :pmid)))
         (when pmid
           (setq str (concat str "\npmid:" pmid))))
       (let ((pmcid (plist-get rec :pmcid)))
         (when pmcid
-          (setq str (concat str "\npmcid:" pmcid)))))
+          (setq str (concat str "\npmcid:" pmcid))))
+      (let ((url (plist-get rec :url)))
+        (when url
+          (setq str (concat str "\n" url))))
+      )
     str))
 
 (defvar bibhlp-marking-ovl nil)
@@ -1869,7 +1906,8 @@ Convert:  a - APA style
                                                (buffer-substring-no-properties beg (or mid end))
                                              (throw 'top-level nil)))))
                               (bibhlp-get-ids-from-crossref ref)))
-                       (other-result (assoc 'other-result ret)))
+                       (other-result (assoc 'other-result ret))
+                       (in-file-buffer buffer-file-name))
                   (if other-result
                       (with-current-buffer (get-buffer-create "*BIBHLP*")
                         (erase-buffer)
@@ -1883,7 +1921,9 @@ Convert:  a - APA style
                             (let ((k (car r))
                                   (v (cdr r)))
                               (insert (format "%s:%s\n" k v)))))
-                        (switch-to-buffer-other-window (current-buffer))
+                        (if in-file-buffer
+                            (switch-to-buffer-other-window (current-buffer))
+                          (switch-to-buffer (current-buffer)))
                         (message "Answer from CrossRef shown in *BIBHLP*"))
                     (goto-char (or mid end))
                     (insert "\n")
@@ -1907,20 +1947,27 @@ Convert:  a - APA style
 
                ((eq cc ?a)
                 (let* ((rec (bibhlp-parse-entry beg mid end))
-                       (str (bibhlp-make-apa rec t t)))
+                       (str (bibhlp-make-apa rec t t))
+                       (in-file-buffer buffer-file-name))
                   (with-current-buffer (get-buffer-create "*BIBHLP*")
                     (erase-buffer)
                     (unless (derived-mode-p 'org-mode) (org-mode))
                     (insert str)
-                    (switch-to-buffer-other-window (current-buffer)))))
+                    (if in-file-buffer
+                        (switch-to-buffer-other-window (current-buffer))
+                      (switch-to-buffer (current-buffer))
+                      ))))
                ((eq cc ?m)
                 (let* ((rec (bibhlp-parse-entry beg mid end))
-                       (str (bibhlp-make-ama rec t t)))
+                       (str (bibhlp-make-ama rec t t))
+                       (in-file-buffer buffer-file-name))
                   (with-current-buffer (get-buffer-create "*BIBHLP*")
                     (erase-buffer)
                     (unless (derived-mode-p 'org-mode) (org-mode))
                     (insert str)
-                    (switch-to-buffer-other-window (current-buffer)))))
+                    (if in-file-buffer
+                        (switch-to-buffer-other-window (current-buffer))
+                      (switch-to-buffer (current-buffer))))))
                (t (setq done nil))))
           (when (and bibhlp-marking-ovl
                      (overlay-buffer bibhlp-marking-ovl))
