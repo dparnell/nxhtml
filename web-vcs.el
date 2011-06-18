@@ -578,10 +578,10 @@ If TEST is non-nil then do not download, just list the files"
           (let* ((suburl (match-string 1))
                  (lenurl (length page-url))
                  (full-suburl (url-expand-file-name suburl page-url)))
-	    (message "suburl=%S" suburl)
+	    ;;(message "suburl=%S" suburl)
             (when (and (> (length full-suburl) lenurl)
                        (string= (substring full-suburl 0 lenurl) page-url))
-	      (message "...added")
+	      ;;(message "...added")
               (add-to-list 'suburls full-suburl)))))
       (kill-buffer))
     ;; Download files

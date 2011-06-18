@@ -646,7 +646,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
         issue firstpage lastpage doi pmid pmcid section url
         abstract mail isbn location)
     (goto-char beg)
-    (when (re-search-forward "^\\(?:AU\\|A1\\)\\(?: +-\\)? " end t)
+    (when (re-search-forward "^\\(?:AU\\|A1\\|TI\\)\\(?: +-\\)? " end t)
       (goto-char beg)
       ;; RefWorks: RT Journal
       (while (re-search-forward "^\\([A-Z0-9]+\\)\\(?: *-  *\\| \\)\\(.*?\\) *$" end t)
@@ -659,6 +659,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
              ((string= val "JOUR") (setq type 'journal-article))
              ((string= val "ABST") (setq type 'journal-article))
              ((string= val "BOOK") (setq type 'book))
+             ((string= val "CHAP") (setq type 'journal-article)) ;; fix-me
              ((string= val "THES") (setq type 'thesis))
              (t (error "Unknown type: %S" val))))
            ((member mark '("T1" "TI"))
@@ -693,7 +694,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
                   (setq firstpage (match-string-no-properties 1 val))
                   (setq lastpage
                         (number-to-string (+
-                                           (string-to-number firstpage)
+                                           ;;(string-to-number firstpage)
                                            (string-to-number (match-string-no-properties 2 val))))))
               (when (string-match "\\([0-9]+\\)" val)
                 (setq firstpage (match-string-no-properties 1 val)))))
@@ -1363,6 +1364,13 @@ converts between them by calling the conversion routines at NCBI,
 see URL `http://www.ncbi.nlm.nih.gov/'.
 
 FROM should be either \"pubmed\" or \"pmc\"."
+  (interactive (let* ((lnk (org-link-at-point))
+                      (typ (nth 0 lnk))
+                      (val (nth 1 lnk))
+                      (frm (cond
+                            ((string= typ "pmid") "pubmed")
+                            ((string= typ "pmcid") "pmc"))))
+                 (when frm (list val frm))))
   (let ((known-from '("pubmed" "pmc")))
     (unless (member from known-from) (error "Value from=%S must be in %S" from known-from)))
   (unless (stringp id) (error "Parameter id=%S should be a string" id))
@@ -1385,7 +1393,15 @@ FROM should be either \"pubmed\" or \"pmc\"."
            ((string= from "pubmed") (string-match ">PMC\\([0-9]+\\)</td>" decoded-page))
            ((string= from "pmc")    (string-match ">\\([0-9]+\\)</td>" decoded-page))
            (t (error "Bad from=%S" from)))
-      (match-string-no-properties 1 decoded-page))))
+      (let ((result (match-string-no-properties 1 decoded-page)))
+        (when (and result (called-interactively-p 'interactive))
+          (let ((rtyp (cond
+                       ((string= from "pubmed") "pmcid")
+                       ((string= from "pmc") "pmid")
+                       (t (error "Uh?")))))
+            (goto-char (point-at-eol))
+            (insert "\n" rtyp ":" result)))
+        result))))
 
 
 ;; Fix-me: maybe finish these converters? The info in pubmed seems incomplete so I do not know if it is worth it.
@@ -1649,7 +1665,8 @@ In case :et-al is set then return -1."
 (defun bibhlp-make-apa (rec no-empty links)
   "Make an APA style ref from REC."
   (let ((str nil)
-        (type (plist-get rec :type)))
+        (type (plist-get rec :type))
+        (no-author nil))
     (let ((authors (plist-get rec :authors))
           (et-al   (plist-get rec :et-al)))
       (unless et-al
@@ -1672,25 +1689,30 @@ In case :et-al is set then return -1."
                                                              (mapconcat 'identity inits ".")
                                                              (when inits (concat ".")))))
                                                  authors)))
-                          (if (= 1 (length auth-strs))
-                              (concat
-                               (car auth-strs)
-                               (when et-al "et al."))
-                            (if et-al
-                                (concat (mapconcat 'identity auth-strs ", ")
-                                        " et al.")
-                              (concat (mapconcat 'identity (butlast auth-strs) ", ")
-                                      (when (cdr authors) (concat " & "
-                                                                  (car (last auth-strs)))))))))))
+                          (if (not auth-strs)
+                              (let ((ti   (or (plist-get rec :title)
+                                              "NO TITLE")))
+                                (setq no-author t)
+                                ti)
+                            (if (= 1 (length auth-strs))
+                                (concat
+                                 (car auth-strs)
+                                 (when et-al "et al."))
+                              (if et-al
+                                  (concat (mapconcat 'identity auth-strs ", ")
+                                          " et al.")
+                                (concat (mapconcat 'identity (butlast auth-strs) ", ")
+                                        (when (cdr authors) (concat " & "
+                                                                    (car (last auth-strs))))))))))))
     (setq str (concat str
                       " (" (or (plist-get rec :year) "n.d.") ")."))
-    (let ((ti   (plist-get rec :title)))
-      (when (or ti (not no-empty))
-        (setq str (concat str " " (or ti "NO-TI")))
-        (unless (memq (aref str (1- (length str)))
-                      (append ".!?" nil))
-          (setq str (concat str ".")))
-        ))
+    (unless no-author
+      (let ((ti   (plist-get rec :title)))
+        (when (or ti (not no-empty))
+          (setq str (concat str " " (or ti "NO-TI")))
+          (unless (memq (aref str (1- (length str)))
+                        (append ".!?" nil))
+            (setq str (concat str "."))))))
     (when (eq type 'journal-article)
       (let ((jo (plist-get rec :journal)))
         (when (or jo (not no-empty))
