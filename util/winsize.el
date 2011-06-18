@@ -928,7 +928,8 @@ of the windows left of them.)"
         (cols (frame-width frame))
         (rows (window-height (frame-root-window frame)))
         )
-    ;; Fix-me: bug in Emacs, remove 2 lines
+    ;; Fix-me: bug in Emacs? No, propably I am missing the tool-bar
+    ;; height here... For now remove 3 lines
     (setq rows (- rows 3))
     (unless is-max
       ;; Fix-me: There is a bug in w32 Emacs here. Setting just 'top
