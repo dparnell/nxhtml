@@ -1849,6 +1849,8 @@ Show:   p - Open in a browser cabable of pdf download
         f - Show in Firefox (so you can add it to Zotero)
 Find:   e - Find in org-mode buffers
         E - Find in org-mode files
+Copy:   u - Copy URL to clipboard
+        t - Copy title to clipboard
 More:   m - More alternatives
 "
                         ))
@@ -1874,6 +1876,10 @@ More:   m - More alternatives
         (bibhlp-browse-url-for-pdf url))
        ((eq cc ?m)
         (bibhlp-alternatives-for-entry))
+       ((eq cc ?u)
+        (org-copy-url-at-point))
+       ((eq cc ?t)
+        (bibhlp-copy-link-title-at-point))
        ((eq cc ?q) nil)
        (t (setq done nil))))
     ))
@@ -2071,6 +2077,55 @@ and it looks like data can be shared/exported to Zotero later."
 ;;     (let ((rec (bibhlp-parse-entry nil nil nil)))
 ;;       (bibhlp-search-in-libhub rec))))
 
+;;http://www.scopus.com.ludwig.lub.lu.se/results/results.url?sort=plf-f&src=s&st1=10.1016%2fj.biopsych.2007.08.018&sid=8pTEVcKWegfJuOaPSjIfB9Q%3a310&sot=b&sdt=b&sl=35&s=DOI%2810.1016%2fj.biopsych.2007.08.018%29&origin=searchbasic&txGid=8pTEVcKWegfJuOaPSjIfB9Q%3a31
+
+;; http://www.scopus.com.ludwig.lub.lu.se/results/results.url?sort=plf-f&src=s&st1=10.1038%2fnn.2572&sid=Kue6iaMx3Jw-njyFdUKgSTE%3a230&sot=b&sdt=b&sl=20&s=DOI%2810.1038%2fnn.2572%29&origin=searchbasic&txGid=Kue6iaMx3Jw-njyFdUKgSTE%3a23
+;; http://www.scopus.com.ludwig.lub.lu.se/results/results.url?sort=plf-f&src=s&st1=10.1038%2fnn.2572&sid=Kue6iaMx3Jw-njyFdUKgSTE%3a230&sot=b&sdt=b&sl=20&s=DOI%2810.1038%2fnn.2572%29&origin=searchbasic
+;; http://www.scopus.com.ludwig.lub.lu.se/results/results.url?sort=plf-f&src=s&st1=10.1038%2fnn.2572&sot=b&sdt=b&sl=20&s=DOI%2810.1038%2fnn.2572%29&origin=searchbasic
+
+;;http://www.scopus.com.ludwig.lub.lu.se/results/results.url?sort=plf-f&src=s&st1=10.1016%2fj.biopsych.2007.08.018&sid=8pTEVcKWegfJuOaPSjIfB9Q%3a310&sot=b&sdt=b&sl=35&s=DOI%2810.1016%2fj.biopsych.2007.08.018%29
+
+
+;; http://www.scopus.com.ludwig.lub.lu.se/results/results.url?sort=plf-f&src=s&sot=b&sdt=b&sl=35&s=DOI%2810.1016%2fj.biopsych.2007.08.018%29
+
+;;http://www.scopus.com.ludwig.lub.lu.se/results/results.url?sort=plf-f&src=s&st1=10.1001%2farchgenpsychiatry.2010.199&sid=b_mAZjtRTCLqrGj5kHJD8G5%3a80&sot=b&sdt=b&sl=39&s=DOI%2810.1001%2farchgenpsychiatry.2010.199%29&origin=searchbasic&txGid=b_mAZjtRTCLqrGj5kHJD8G5%3a8
+
+;; http://www.scopus.com.ludwig.lub.lu.se/results/results.url?sort=plf-f&src=s&st1=10.1001%2farchgenpsychiatry.2010.199&sot=b&sdt=b&sl=39&s=DOI%2810.1001%2farchgenpsychiatry.2010.199%29&origin=searchbasic
+(defcustom bibhlp-scopus-url
+  "http://www.scopus.com.ludwig.lub.lu.se/results/results.url"
+  "Base URL to got to your Scopus."
+  :type 'string
+  :group 'bibhlp)
+
+;;;###autoload
+(defun bibhlp-copy-link-title-at-point ()
+  "Copy `org-mode' link at point title to clipboard."
+  (let* ((lnk (org-link-at-point))
+         (title (nth 2 lnk)))
+    (if (not lnk)
+        (message "No org-mode linke here")
+      (kill-new title)
+      (message "Copied link title to clipboard"))))
+
+;;;###autoload
+(defun bibhlp-scopus-by-doi (doi)
+  (interactive (let* ((lnk (org-link-at-point))
+                      (typ (nth 0 lnk))
+                      (val (nth 1 lnk)))
+                 (list (when (string= typ "doi") val))))
+  (message "doi=%s" doi)
+  (when doi
+    (let ((enc-doi (browse-url-encode-url doi)))
+      (browse-url (concat bibhlp-scopus-url
+                          ;; http://www.scopus.com.ludwig.lub.lu.se/results/results.url?sort=plf-f&src=s&st1=10.1038%2fnn.2572&sot=b&sdt=b&sl=20&s=DOI%2810.1038%2fnn.2572%29&origin=searchbasic
+                          "?sort=plf-f&src=s&st1="
+                          ;; 10.1038%2fnn.2572
+                          enc-doi
+                          "&sot=b&sdt=b&sl=20&s=DOI%28"
+                          ;;10.1038%2fnn.2572
+                          enc-doi
+                          "%29&origin=searchbasic"
+                          )))))
 
 (provide 'bibhlp)
 ;; Local variables:

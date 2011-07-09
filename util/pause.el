@@ -1084,7 +1084,9 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
                         (pause-cancel-tell-again-timer)
                         (browse-url ,pose-url)
                         (run-with-idle-timer 1 nil 'pause-break-exit-from-button))
-                    (error (message "pause-tell-about-yoga-link a: %s" (error-message-string err))))))
+                    (error (message "pause-tell-about-yoga-link a: %s, %s"
+                                    (error-message-string err)
+                                    ,pose-url)))))
       (insert " (")
       (insert-text-button
        "Do it later"
@@ -1146,7 +1148,9 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
                                     (pause-remove-1-from-line ,(1- (point)))
                                     ;;(run-with-idle-timer 1 nil 'pause-break-exit-from-button)
                                     )
-                                (error (message "pause-tell-about-yoga-link c: %s" (error-message-string err))))))
+                                (error (message "pause-tell-about-yoga-link c: %s, %s"
+                                                (error-message-string err)
+                                                ,(car pose))))))
                   (setq prev-pose pose))))
             )))))
   (dolist (win (get-buffer-window-list pause-buffer nil t))
