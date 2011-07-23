@@ -89,7 +89,7 @@
 
 (defun bibhlp-browse-url-for-pdf (url)
   "Show URL in a web browser, capable of downloading PDF."
-  (if nil
+  (if t
       (browse-url url)
     (if (eq system-type 'windows-nt)
         (w32-shell-execute nil
@@ -256,11 +256,18 @@ APA reference."
           (let (last first inits auth)
             (if (not (string-match "\\(.+\\), +\\(.+\\)" val))
                 ;; Medline format perhaps:
-                (if (not (string-match "\\(.+\\) +\\(.+\\)" val))
+                (if (not (string-match "\\(.+?\\) +\\(.+\\)" val))
                     (setq auth (list val))
                   (setq last  (match-string-no-properties 1 val))
-                  (setq inits (match-string-no-properties 2 val))
-                  (setq auth (list last nil inits)))
+                  (let ((val2 (match-string-no-properties 2 val)))
+                    (if (string= (upcase val2) val2)
+                        (progn
+                          (setq inits val2)
+                          (setq auth (list last nil inits)))
+                      ;; Fix-me: initials, split
+                      (setq first val2)
+                      (setq auth (list last first))
+                      )))
               (setq last (match-string-no-properties 1 val))
               (setq first (match-string-no-properties 2 val))
               (setq auth (list last first)))
@@ -269,6 +276,7 @@ APA reference."
       (when (and journal
                  (null type))
         (setq type 'journal-article))
+      (setq url (replace-regexp-in-string " " "+" url t t))
       (or ;;return-value
        (list
         :type type
@@ -1777,32 +1785,36 @@ In case :et-al is set then return -1."
 If INCLUDE-DOI-ETC then include those \(they are supposed to be at the end).
 
 Return a list \(BEG MID END)."
-  (let* ((here (point))
-         (end (progn
-                (forward-paragraph)
-                (skip-chars-backward " \t\n\f")
-                (point)))
-         (beg (progn
-                (backward-paragraph)
-                (skip-chars-forward " \t\n\f")
-                (point)))
-         mid)
-    (goto-char end)
-    (skip-chars-forward " \t\n\f")
-    (while (looking-at "^[A-Z0-9]\\{2\\} +-")
-      (forward-paragraph)
-      (skip-chars-backward " \t\n\f")
-      (setq end (point)))
-    (goto-char beg)
-    (when (re-search-forward (rx whitespace
-                                 (or "[["
-                                     "http://" "https://" "ftp:" "mailto:"
-                                     "doi:" "pmid:" "pmcid:"))
-                             end t)
-      (goto-char (match-beginning 0))
-      (setq mid (point)))
-    (goto-char here)
-    (list beg mid end)))
+  (if (and buffer-file-name
+           (member (file-name-extension buffer-file-name)
+                   '("env" "ris")))
+      (list (point-min) nil (point-max))
+    (let* ((here (point))
+           (end (progn
+                  (forward-paragraph)
+                  (skip-chars-backward " \t\n\f")
+                  (point)))
+           (beg (progn
+                  (backward-paragraph)
+                  (skip-chars-forward " \t\n\f")
+                  (point)))
+           mid)
+      (goto-char end)
+      (skip-chars-forward " \t\n\f")
+      (while (looking-at "^[A-Z0-9]\\{2\\} +-")
+        (forward-paragraph)
+        (skip-chars-backward " \t\n\f")
+        (setq end (point)))
+      (goto-char beg)
+      (when (re-search-forward (rx whitespace
+                                   (or "[["
+                                       "http://" "https://" "ftp:" "mailto:"
+                                       "doi:" "pmid:" "pmcid:"))
+                               end t)
+        (goto-char (match-beginning 0))
+        (setq mid (point)))
+      (goto-char here)
+      (list beg mid end))))
 
 
 
