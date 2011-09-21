@@ -268,7 +268,11 @@ Start main timer with delay `pause-1-minute-delay'."
     (define-key map [(meta tab)]  'backward-button)
     (define-key map [(shift tab)] 'backward-button)
     (define-key map [backtab]     'backward-button)
+    ;; Fix-me:
+    ;;(define-key map [double-down-mouse-1] (lambda () (interactive) "double-down"))
     map))
+;; (local-set-key [double-mouse-1] (lambda () (interactive) "double-down"))
+;; (local-set-key [double-down-mouse-1] (lambda () (interactive) "double-down"))
 
 (defvar pause-buffer nil)
 (defvar pause-image-buffer nil)
@@ -1044,7 +1048,8 @@ connection fails or you have set `pause-yoga-poses-use-dir' on."
                                (error (message "pause-callback-get-yoga-poses: %s" (error-message-string err))))))
                   (insert (format ": %S" (cdr err)))))))
         (setq pose (pause-random-yoga-pose (pause-get-yoga-poses-1 (current-buffer))))
-        (setq pose (cons (concat pause-yoga-poses-host-url (car pose)) (cdr pose))))
+        (when pose
+          (setq pose (cons (concat pause-yoga-poses-host-url (car pose)) (cdr pose)))))
       (when pose
         (pause-tell-about-yoga-link pose)))))
 
