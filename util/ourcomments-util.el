@@ -2649,6 +2649,7 @@ variant of such blocks then leave the link as it is."
                           (> (length url) 5)
                           (string= (substring url 0 6) "file:/")))
                 (save-match-data
+                  (require 'browse-url)
                   (setq url (browse-url-url-encode-chars url "[\]\[]")))
               (let ((abs-file-url
                      (if (not (memq system-type '(windows-nt ms-dos)))

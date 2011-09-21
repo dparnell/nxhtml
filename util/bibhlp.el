@@ -276,7 +276,8 @@ APA reference."
       (when (and journal
                  (null type))
         (setq type 'journal-article))
-      (setq url (replace-regexp-in-string " " "+" url t t))
+      (when url
+        (setq url (replace-regexp-in-string " " "+" url t t)))
       (or ;;return-value
        (list
         :type type
@@ -708,7 +709,7 @@ Return a plist with found info, see `bibhlp-parse-entry'."
                 (setq firstpage (match-string-no-properties 1 val)))))
            ((string= mark "PY") (setq year val))
            ((string= mark "DP") (setq year val))
-           ((string= mark "DEP") (setq year val))
+           ((string= mark "DEP") (unless year (setq year val)))
            ((string= mark "Y1") (setq year val)) ;; zotero
            ((string= mark "AU") (setq authors (cons val authors)))
            ((string= mark "A1") (setq authors (cons val authors))) ;; zotero
@@ -751,6 +752,9 @@ Return a plist with found info, see `bibhlp-parse-entry'."
            ;; just continue if we do not want it.
            (t nil))))
       (setq authors (reverse authors))
+      (when year
+        (when (> 4 (length year))
+          (setq year nil)))
       (when year
         (setq year (substring year 0 4)))
       ;;(unless publisher (setq publisher address))
@@ -1798,7 +1802,8 @@ Return a list \(BEG MID END)."
                   (backward-paragraph)
                   (skip-chars-forward " \t\n\f")
                   (point)))
-           mid)
+           mid
+           urls)
       (goto-char end)
       (skip-chars-forward " \t\n\f")
       (while (looking-at "^[A-Z0-9]\\{2\\} +-")
@@ -1812,11 +1817,30 @@ Return a list \(BEG MID END)."
                                        "doi:" "pmid:" "pmcid:"))
                                end t)
         (goto-char (match-beginning 0))
-        (setq mid (point)))
+        (setq mid (point))
+        (let ((url))
+          (skip-chars-forward " \t")
+          (while (setq url (org-build-url (org-link-at-point))) ;; Searches current line only!
+            (setq urls (cons url urls))
+            (forward-line)
+            (skip-chars-forward " \t"))
+          (when urls (setq end (point)))))
       (goto-char here)
-      (list beg mid end))))
+      (list beg mid end urls))))
 
-
+(defun bibhlp-copy-and-make-urls (beg mid end urls)
+  "Copy reference to clipboard.
+Copy the bibl reference to clipboard with org style links
+converted to urls.  BEG, MID, END and URLS are the corresponding
+values returned by `bibhlp-find-reftext-at'."
+  (let (txt (first t))
+    (setq txt (buffer-substring-no-properties beg mid))
+    (setq txt (replace-regexp-in-string "\s+\\'" "" txt))
+    (dolist (url urls)
+      (setq txt (concat txt (if first "" "\n") url))
+      (setq first nil))
+    (kill-new txt)
+    (message "Copied reference to clipboard")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1898,15 +1922,16 @@ More:   m - More alternatives
 
 (defun bibhlp-alternatives-for-entry ()
   (catch 'top-level
-    (let (beg mid end)
+    (let (beg mid end urls)
       (if mark-active
           (progn
             (setq beg (region-beginning))
             (setq end (region-end)))
         (let ((bme (bibhlp-find-reftext-at (point))))
-          (setq beg (nth 0 bme))
-          (setq mid (nth 1 bme))
-          (setq end (nth 2 bme)))
+          (setq beg  (nth 0 bme))
+          (setq mid  (nth 1 bme))
+          (setq end  (nth 2 bme))
+          (setq urls (nth 3 bme)))
         (if bibhlp-marking-ovl
             (move-overlay bibhlp-marking-ovl beg end)
           (setq bibhlp-marking-ovl (make-overlay beg end))
@@ -1914,11 +1939,12 @@ More:   m - More alternatives
       (let ((prompt (concat "
 What do you want to do with the marked bibliographic entry?
 
-Search:   g - Google Scholar (which you can connect to your library)
-          x - Get ids from CrossRef
-Convert:  a - APA style
-          m - AMA style
-          r - Reference Manager style
+Search:    g - Google Scholar (which you can connect to your library)
+           x - Get ids from CrossRef
+Convert:   a - APA style
+           m - AMA style
+           r - Reference Manager style
+Clipboard: c - copy reference with links converted to urls
 "
                             ;; l - LibHub
                             ;; p - PubMed
@@ -1937,6 +1963,8 @@ Convert:  a - APA style
                 (bibhlp-make-ris (bibhlp-parse-entry beg mid end)))
                (nil ;;(eq cc ?c)
                 (bibhlp-make-ris (parscit-post-reference str)))
+               ((eq cc ?c)
+                (bibhlp-copy-and-make-urls beg mid end urls))
                ((eq cc ?x)
                 (let* ((rec (catch 'top-level
                               (bibhlp-parse-entry beg mid end)))
