@@ -1836,7 +1836,7 @@ values returned by `bibhlp-find-reftext-at'."
   (let (txt (first t))
     (setq txt (buffer-substring-no-properties beg mid))
     (setq txt (replace-regexp-in-string "\s+\\'" "" txt))
-    (dolist (url urls)
+    (dolist (url (reverse urls))
       (setq txt (concat txt (if first "" "\n") url))
       (setq first nil))
     (kill-new txt)
