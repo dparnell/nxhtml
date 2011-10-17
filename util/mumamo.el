@@ -4021,9 +4021,17 @@ CHUNK-END-FUN should return the end of the chunk.
       (setq chunk-major  (nth 1 start-rec))
       (setq parseable-by (nth 2 start-rec))
       (goto-char start)
+      (when borders-fun
+        (let ((start-border (when start (unless (and (= 1 start)
+                                                     (not chunk-major))
+                                          start))))
+          ;;(msgtrc "poss-fw: %s %s %s %s" borders-fun start-border end-border chunk-major)
+          (setq borders (funcall borders-fun start-border nil chunk-major))
+          (goto-char (nth 0 borders))
+          ))
       ;; Fix-me: There should mabye be a check here, calling
       ;; mumamo-end-in-code, but that is a bit of job.
-      (setq end (when (< start max) (funcall chunk-end-fun start max)))
+      (setq end (when (< (point) max) (funcall chunk-end-fun (point) max)))
       (when borders-fun
         (let ((start-border (when start (unless (and (= 1 start)
                                                      (not chunk-major))
