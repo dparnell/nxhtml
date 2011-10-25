@@ -145,7 +145,8 @@
 
 (eval-when-compile (require 'foldit))
 (eval-when-compile (require 'html-write))
-;; (eval-when-compile (require 'inlimg))
+(if (boundp 'image-types)
+    (eval-when-compile (require 'inlimg)))
 (eval-when-compile (require 'org))
 (eval-when-compile (require 'tex-mode))
 (require 'outline)
@@ -356,8 +357,9 @@ for this function from it."
   (cond
    ((get-char-property (point) 'html-write)
     (html-write-toggle-current-tag))
-;;   ((get-char-property (point) 'inlimg-img)
-;;    (inlimg-toggle-display (point)))
+   (if (boundp 'image-types)
+       ((get-char-property (point) 'inlimg-img)
+	(inlimg-toggle-display (point))))
    ((eq major-mode 'org-mode)
     (org-cycle))
    ((and (fboundp 'outline-cycle)
